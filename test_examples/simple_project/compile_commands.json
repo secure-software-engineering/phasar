@@ -1,0 +1,12 @@
+[
+    {
+        "command": "cc -c -o exe /home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build/main.c", 
+        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build", 
+        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build/main.c"
+    }, 
+    {
+        "command": "cc -c -o exe /home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build/src1.c", 
+        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build", 
+        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/simple_build/src1.c"
+    }
+]

@@ -1,0 +1,17 @@
+[
+{
+  "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/build",
+  "command": "/usr/bin/cc   -I/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build    -o CMakeFiles/MyProject.dir/mysources/one_source.c.o   -c /home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/mysources/one_source.c",
+  "file": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/mysources/one_source.c"
+},
+{
+  "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/build",
+  "command": "/usr/bin/cc   -I/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build    -o CMakeFiles/MyProject.dir/CMakeFiles/2.8.12.2/CompilerIdC/CMakeCCompilerId.c.o   -c /home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/build/CMakeFiles/2.8.12.2/CompilerIdC/CMakeCCompilerId.c",
+  "file": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/build/CMakeFiles/2.8.12.2/CompilerIdC/CMakeCCompilerId.c"
+},
+{
+  "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/build",
+  "command": "/usr/bin/cc   -I/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build    -o CMakeFiles/MyProject.dir/main.c.o   -c /home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/main.c",
+  "file": "/home/pdschbrt/GIT-Repos/sse_dfa_cxx/sse_utils/test/cmake_build/main.c"
+}
+]
