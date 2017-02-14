@@ -1,0 +1,15 @@
+/*
+ * BiDiIDESolver.hh
+ *
+ *  Created on: 15.09.2016
+ *      Author: pdschbrt
+ */
+
+#ifndef ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_HH_
+#define ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_HH_
+
+
+
+
+
+#endif /* ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_HH_ */
