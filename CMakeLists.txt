@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 project (sse_dfa_llvm)
-# set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libstdc++ -O0 -g -rdynamic -march=native -Wall -Wextra")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_FLAGS "-O0 -g -rdynamic -march=native -Wall -Wextra")
 
 find_package(Boost COMPONENTS filesystem system REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
