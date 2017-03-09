@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 project (sse_dfa_llvm)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-O0 -g -rdynamic -march=native -Wall -Wextra")
+set(CMAKE_CXX_FLAGS "-O0 -g -march=native")
 
 find_package(Boost COMPONENTS filesystem system REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
@@ -97,4 +97,13 @@ target_link_libraries(main
   ${Boost_LIBRARIES}
   ${llvm_libs}
   ${CLANG_LIBRARIES}
+  )
+
+
+# Test For Hexastore
+
+add_executable(test_hexastore src/db/Test.cpp src/db/Hexastore.cpp src/db/Hexastore.hh)
+
+target_link_libraries(test_hexastore
+  ${SQLITE3_LIBRARY}
   )

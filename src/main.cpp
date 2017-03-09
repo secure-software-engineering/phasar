@@ -32,7 +32,6 @@
 #include <clang/CodeGen/CodeGenAction.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
-#include <llvm/Analysis/CFLAliasAnalysis.h>
 #include <llvm/Analysis/AliasSetTracker.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/IR/Function.h>
@@ -196,11 +195,9 @@ int main(int argc, const char **argv)
 //	PassManagerBuilder Builder;
 //	Builder.populateModulePassManager();
 	legacy::PassManager PM;
-	CFLAAWrapperPass* CFLAAPass = new CFLAAWrapperPass();
 	AAResultsWrapperPass* AARWP = new AAResultsWrapperPass();
 //	Just commented out for testing purposes
 //	PM.add(createPromoteMemoryToRegisterPass());
-	PM.add(CFLAAPass);
 	PM.add(AARWP);
 	PM.add(new ValueAnnotationPass(Context));
 	PM.add(new GeneralStatisticsPass());
