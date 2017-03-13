@@ -6,9 +6,13 @@ using namespace std;
 
 int main() {
 
-  Hexastore h("test.db");
+  Hexastore h("test.sqlite");
 
-  h.put((string[]){"mary", "likes", "hexastore"});
+  h.put((string[]){"mary", "likes", "hexastores"});
+  h.put((string[]){"mary", "likes", "apples"});
+  h.put((string[]){"peter", "likes", "apples"});
+  h.put((string[]){"peter", "hates", "hexastores"});
+
 
   return 0;
 }

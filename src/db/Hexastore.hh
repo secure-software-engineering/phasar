@@ -15,5 +15,7 @@ public:
   Hexastore(string filename);
   ~Hexastore();
   void put(string[3]);
+  void doPut(string, string[3]);
   map<string, string> query(vector<string>);
+  void close();
 };
