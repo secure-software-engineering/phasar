@@ -145,19 +145,7 @@ int main(int argc, const char **argv) {
       IRDB, {AnalysisKind::IFDS_TaintAnalysis, AnalysisKind::IDE_TaintAnalysis,
              AnalysisKind::IFDS_UninitializedVariables});
 
-  // TODO: change 'createZeroValue()'
-  // A user can only create one analysis problem at a time, due to the
-  // implementation of 'createZeroValue()'.
-  // This has to be changed!
-
-  // 	LLVMBasedInterproceduralICFG icfg(*Mod);
-  // 	IFDSUnitializedVariables uninitializedvarproblem(icfg, Context);
-  // 	LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&>
-  // llvmunivsolver(uninitializedvarproblem, true);
-  // 	llvmunivsolver.solve();
-  // 	cout << "back in main, solving done!" << endl;
-
-  // Why the heck does the call to 'llvm_shutdown()' causes a 'corrupted
+   // Why the heck does the call to 'llvm_shutdown()' causes a 'corrupted
   // double-linked list'?
   // This should definitely be investigated at some point in time.
   //	llvm_shutdown();

@@ -27,6 +27,12 @@
 #include "ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include "passes/GeneralStatisticsPass.hh"
 #include "passes/ValueAnnotationPass.hh"
+#include "ifds_ide/solver/LLVMIFDSSolver.hh"
+#include "ifds_ide/solver/LLVMIDESolver.hh"
+// #include "ifds_ide_problems/ide_taint_analysis/IDETaintAnalysis.hh"
+// #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.hh"
+// #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.hh"
+#include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
 using namespace std;
 
 enum class AnalysisKind {
@@ -66,7 +72,7 @@ class AnalysisController {
     // here every module undergoes the static analysis
     cout << "analyzing modules" << endl;
     for (auto& module_entry : IRDB.modules) {
-      cout << "analyzing module: " << module_entry.first << endl;
+      cout << "start analyzing module: " << module_entry.first << endl;
       llvm::Module& M = *(module_entry.second);
       llvm::LLVMContext& C = *(IRDB.contexts[module_entry.first]);
       llvm::legacy::PassManager PM;
@@ -91,6 +97,7 @@ class AnalysisController {
       llvm::AAResults& AARes = AARWP->getAAResults();
       pti.analyzeModule(AARes, M);
       cout << pti << endl;
+
       // cout << "inter-procedural dependencies" << endl;
       // LLVMBasedInterproceduralICFG icfg(M, AARes, pti);
       // const llvm::Function* F = M.getFunction("main");
@@ -113,9 +120,22 @@ class AnalysisController {
       //     cout << "EMPTY" << endl;
       //   }
       // }
+
+      // TODO: change the implementation of 'createZeroValue()'
+      // The zeroValue can only be added one to a given context which means
+      // a user can only create one analysis problem at a time, due to the
+      // implementation of 'createZeroValue()'.
+
+      LLVMBasedInterproceduralICFG icfg(M, AARes, pti);
+      IFDSUnitializedVariables uninitializedvarproblem(icfg, C);
+      LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&>
+          llvmunivsolver(uninitializedvarproblem, true);
+      llvmunivsolver.solve();
+      cout << "finished analyzing module: " << module_entry.first << endl;
     }
     // after every module has been analyzed the analyses results must be merged
     // and the final results must be computed
+    cout << "combining module-wise results" << endl;
   }
   ~AnalysisController() = default;
 };
