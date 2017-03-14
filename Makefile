@@ -47,6 +47,7 @@ CXX := clang++-3.9
 CXX_FLAGS := -std=c++11			# change to c++14 and libc++ Clang when possible
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
 CXX_FLAGS += -O0 #-O4
+CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
 CXX_FLAGS += -march=native
@@ -117,7 +118,7 @@ db_header_list := $(shell find $(SRC_DB) -name "*.hh")
 db_impl_list := $(shell find $(SRC_DB) -name "*.cpp")
 $(OBJ_DB): $(db_header_list) $(db_impl_list) $(CONFIG_HEADER)
 	mkdir -p $(OBJ_DB); \
-	$(CXX) $(CXX_FLAGS) -c $(db_impl_list); \
+	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(db_impl_list); \
 	mv *.o $(OBJ_DB); \
 
 clang_header_list := $(shell find $(SRC_CLANG) -name "*.hh")

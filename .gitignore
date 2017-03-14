@@ -8,6 +8,8 @@ bin/*
 # doc/ directory
 doc/*
 
+.vscode/*
+
 ##### ignored files
 
 # temporary files
