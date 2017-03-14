@@ -8,10 +8,10 @@
 #ifndef ANALYSIS_POINTSTOGRAPH_HH_
 #define ANALYSIS_POINTSTOGRAPH_HH_
 
-class PointsToGraph {
+class PointsToInformation {
 public:
-	PointsToGraph();
-	virtual ~PointsToGraph();
+	PointsToInformation();
+	virtual ~PointsToInformation();
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

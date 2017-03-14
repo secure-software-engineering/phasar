@@ -33,7 +33,7 @@ private:
 	int last_retcode;
 	char *error_msg = 0;
 	static int resultSetCallBack(void *data, int argc, char **argv, char **azColName);
-	void createDBSchemeFromScratch();
+	void DBInitializationAction();
 
 public:
 	DBConn(const DBConn& db) = delete;

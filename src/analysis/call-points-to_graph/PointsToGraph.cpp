@@ -7,12 +7,12 @@
 
 #include "PointsToGraph.hh"
 
-PointsToGraph::PointsToGraph() {
+PointsToInformation::PointsToInformation() {
 	// TODO Auto-generated constructor stub
 
 }
 
-PointsToGraph::~PointsToGraph() {
+PointsToInformation::~PointsToInformation() {
 	// TODO Auto-generated destructor stub
 }
 

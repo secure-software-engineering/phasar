@@ -67,7 +67,7 @@ void DBConn::createDBSchemeForAnalysis(const string& analysis_name)
 	execute(analysis_initialization_command);
 }
 
-void DBConn::createDBSchemeFromScratch()
+void DBConn::DBInitializationAction()
 {
 	const static string database_initialization_command = "";
 	execute(database_initialization_command);
