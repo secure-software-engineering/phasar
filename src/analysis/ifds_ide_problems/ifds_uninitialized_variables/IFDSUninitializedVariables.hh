@@ -73,8 +73,8 @@ public:
 						// now remove those values that are obtained by function parameters of the entry function
 						for (auto& arg : func->getArgumentList()) {
 							for (auto user : arg.users()) {
-								if (isa<StoreInst>(user)) {
-									auto store = dyn_cast<StoreInst>(user);
+								if (llvm::isa<llvm::StoreInst>(user)) {
+									auto store = llvm::dyn_cast<llvm::StoreInst>(user);
 									res.erase(store->getPointerOperand());
 								}
 							}
@@ -88,7 +88,7 @@ public:
 			return make_shared<UVFF>(func, zerovalue, icfg);
 		}
 		// check the store instructions
-		if (llvm::isa<StoreInst>(curr)) {
+		if (llvm::isa<llvm::StoreInst>(curr)) {
 			const llvm::StoreInst* store = llvm::dyn_cast<const llvm::StoreInst>(curr);
 			const llvm::Value* valueop = store->getValueOperand();
 			const llvm::Value* pointerop = store->getPointerOperand();
@@ -135,9 +135,9 @@ public:
 				const llvm::Value* val = call->getArgOperand(i);
 				// collect all non-global actual parameters
 				for (auto& use : val->uses()) {
-					if (isa<LoadInst>(use)) {
-						const LoadInst* load = dyn_cast<LoadInst>(use);
-						if (!isa<GlobalValue>(load->getPointerOperand())) {
+					if (llvm::isa<llvm::LoadInst>(use)) {
+						const llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(use);
+						if (!llvm::isa<llvm::GlobalValue>(load->getPointerOperand())) {
 							actuals.push_back(val);
 						} else {
 							actuals.push_back(nullptr); // mark a global variable
@@ -165,8 +165,8 @@ public:
 						// do the mapping
 						if (!arg) continue; // arg might be nullptr in case of global variable
 						for (auto& use : arg->uses()) {
-							if (isa<LoadInst>(use)) {
-								const LoadInst* load = dyn_cast<LoadInst>(use);
+							if (llvm::isa<llvm::LoadInst>(use)) {
+								const llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(use);
 								if (source == load->getPointerOperand()) {
 									// TODO do not make it overly complicated, if a uninit value is loaded, the load is uninit as well!
 									unsigned counter = 0;
@@ -206,8 +206,8 @@ public:
 						// remove all local variables, that are formal parameters!
 						for (auto& arg : destMthd->getArgumentList()) {
 							for (auto user : arg.users()) {
-								if (isa<StoreInst>(user)) {
-									auto store = dyn_cast<StoreInst>(user);
+								if (llvm::isa<llvm::StoreInst>(user)) {
+									auto store = llvm::dyn_cast<llvm::StoreInst>(user);
 									uninitlocals.erase(store->getPointerOperand());
 								}
 							}
@@ -243,7 +243,7 @@ public:
 		const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callSite);
 		// check if exitStmt is return statement
 		for (auto user : call->users()) {
-			if (isa<StoreInst>(user)) {
+			if (llvm::isa<llvm::StoreInst>(user)) {
 				const llvm::StoreInst* store = llvm::dyn_cast<llvm::StoreInst>(user);
 				struct UVFF : public FlowFunction<const llvm::Value*> {
 					const llvm::StoreInst* store;

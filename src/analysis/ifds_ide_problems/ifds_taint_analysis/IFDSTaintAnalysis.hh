@@ -185,7 +185,7 @@ public:
 	{
 		cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallFlowFunction()" << endl;
 		if (llvm::isa<llvm::CallInst>(callStmt)) {
-			const llvm::CallInst* call = dyn_cast<CallInst>(callStmt);
+			const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callStmt);
 			if (isSourceFunction(call->getCalledFunction())) {
 				// Generate the values, that are tainted by this call to a source function
 				struct TAFF : FlowFunction<const llvm::Value*> {
