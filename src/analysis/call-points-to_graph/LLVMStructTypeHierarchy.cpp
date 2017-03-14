@@ -14,7 +14,7 @@ void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M)
 	cout << "analyzing module ..." << endl;
 	auto Structs = M.getIdentifiedStructTypes();
 	for (auto Struct : Structs) {
-		type_vertex_map[Struct] = boost::add_vertex(Index(index++, Name(Struct)), graph);
+		type_vertex_map[Struct] = boost::add_vertex(Index(index++, Name(Struct)), g);
 	}
 
 	for (auto Struct : Structs) {
@@ -25,21 +25,21 @@ void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M)
 			Subtype->dump();
 			cout << Subtype << endl;
 			if (Subtype->isStructTy()) {
-				boost::add_edge(type_vertex_map[Struct], type_vertex_map[Subtype], graph);
+				boost::add_edge(type_vertex_map[Struct], type_vertex_map[Subtype], g);
 			}
 		}
 		cout << "-----" << endl;
 	}
 }
 
-set<const llvm::Type*> LLVMStructTypeHierarchy::getTransitivelyReachableParentTypes(const llvm::Type* T)
+set<const llvm::Type*> LLVMStructTypeHierarchy::getTransitivelyReachableTypes(const llvm::Type* T)
 {
 	set<const llvm::Type*> reachable_nodes;
 	boost::adjacency_list<> tc;
-	boost::transitive_closure(graph, tc);
+	boost::transitive_closure(g, tc);
 	dfs_tree_edge_visitor vis;
 	boost::depth_first_search(tc, boost::visitor(vis).root_vertex(type_vertex_map[T]));
-	boost::property_map<digraph_t, boost::vertex_name_t>::type vertex_to_value = get(boost::vertex_name, graph);
+	boost::property_map<digraph_t, boost::vertex_name_t>::type vertex_to_value = get(boost::vertex_name, g);
 	for (auto vertex : collected_vertices) {
 		reachable_nodes.insert(vertex_to_value[vertex]);
 	}
@@ -100,7 +100,7 @@ const llvm::Value* trackLocalValueToNewInst(const llvm::Value* V)
 const llvm::Function* LLVMStructTypeHierarchy::getFunctionFromVirtualCallSite(llvm::Module* M, llvm::ImmutableCallSite ICS)
 {
 	boost::adjacency_list<> tc;
-	boost::transitive_closure(graph, tc);
+	boost::transitive_closure(g, tc);
 
 	cout << "CONSTRUCTION SITE" << endl;
 	const llvm::Value* val = trackLocalValueToNewInst(ICS->getOperand(0));
@@ -136,12 +136,12 @@ bool LLVMStructTypeHierarchy::containsSubType(const llvm::Type* T, const llvm::T
 	return false;
 }
 
-bool LLVMStructTypeHierarchy::hasSuperClass(const llvm::Type* T)
+bool LLVMStructTypeHierarchy::hasSuperType(const llvm::Type* T)
 {
 	return false;
 }
 
-bool LLVMStructTypeHierarchy::hasSubClass(const llvm::Type* T)
+bool LLVMStructTypeHierarchy::hasSubType(const llvm::Type* T)
 {
 	return false;
 }
@@ -165,13 +165,13 @@ bool LLVMStructTypeHierarchy::containsVTable(const llvm::Type* T)
 ostream& operator<< (ostream& os, const LLVMStructTypeHierarchy& ch)
 {
 	os << "LLVMSructTypeHierarchy graph:\n" << endl;
-	boost::print_graph(ch.graph, boost::get(boost::vertex_name, ch.graph));
+	boost::print_graph(ch.g, boost::get(boost::vertex_name, ch.g));
 	return os;
 }
 
 void LLVMStructTypeHierarchy::printTransitiveClosure()
 {
 	boost::adjacency_list<> tc;
-	boost::transitive_closure(graph, tc);
-	boost::print_graph(tc, boost::get(boost::vertex_name, graph));
+	boost::transitive_closure(g, tc);
+	boost::print_graph(tc, boost::get(boost::vertex_name, g));
 }

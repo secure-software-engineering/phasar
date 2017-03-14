@@ -34,7 +34,7 @@ private:
 
 	set<vertex_t> collected_vertices;
 	size_t index = 0;
-	digraph_t graph;
+	digraph_t g;
 	map<const llvm::Type*, vertex_t> type_vertex_map;
 
 	struct dfs_tree_edge_visitor : boost::default_dfs_visitor {
@@ -50,12 +50,12 @@ public:
 	LLVMStructTypeHierarchy() = default;
 	~LLVMStructTypeHierarchy() = default;
 	void analyzeModule(const llvm::Module& M);
-	set<const llvm::Type*> getTransitivelyReachableParentTypes(const llvm::Type* T);
+	set<const llvm::Type*> getTransitivelyReachableTypes(const llvm::Type* T);
 	vector<const llvm::Function*> constructVTable(const llvm::Type* T, const llvm::Module* M);
 	const llvm::Function* getFunctionFromVirtualCallSite(llvm::Module* M, llvm::ImmutableCallSite ICS);
 	bool containsSubType(const llvm::Type* T, const llvm::Type* ST);
-	bool hasSuperClass(const llvm::Type* T);
-	bool hasSubClass(const llvm::Type* T);
+	bool hasSuperType(const llvm::Type* T);
+	bool hasSubType(const llvm::Type* T);
 	bool containsVTable(const llvm::Type* T);
 	void printTransitiveClosure();
 	friend ostream& operator<< (ostream& os, const LLVMStructTypeHierarchy& ch);
