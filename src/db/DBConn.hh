@@ -25,6 +25,7 @@
 #include <string>
 #include <vector>
 #include "../utils/utils.hh"
+#include "ProjectIRCompiledDB.hh"
 
 using namespace std;
 
@@ -64,12 +65,11 @@ class DBConn {
   // API for querying the IR Modules that correspond to the project under
   // analysis
   bool containsIREntry(string mod_name);
-  bool insertFrontEndIRModule(const llvm::Module* module);
-  unique_ptr<llvm::Module> getFrontEndIRByName(string mod_name,
-                                               llvm::LLVMContext& Context);
-  unique_ptr<llvm::Module> getOptimizedIRByName(string mod_name);
-  size_t getSourceHashByName(string mod_name);
-  size_t getFrontEndIRHashByName(string mod_name);
+  bool insertIR(const llvm::Module* module);
+  unique_ptr<llvm::Module> getIR(string mod_name, llvm::LLVMContext& Context);
+  friend void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb);
+  size_t getSourceHash(string mod_name);
+  size_t getIRHash(string mod_name);
   set<string> getAllIRModuleNames();
 
   // API for querying points-to information

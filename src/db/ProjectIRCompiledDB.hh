@@ -14,15 +14,21 @@
 #include <set>
 #include <string>
 #include <utility>
+#include "../utils/utils.hh"
 using namespace std;
 
 class ProjectIRCompiledDB {
  public:
   set<string> source_files;
+  // contains all contexts for all modules and owns them
   map<string, unique_ptr<llvm::LLVMContext>> contexts;
+  // contains all modules that correspond to a project and owns them
   map<string, unique_ptr<llvm::Module>> modules;
+  // maps function names to the module they are defined in
+  map<string, const llvm::Module*> functions;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
   ~ProjectIRCompiledDB() = default;
+  void createFunctionModuleMapping();
   void print();
 };
 

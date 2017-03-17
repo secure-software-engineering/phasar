@@ -13,6 +13,7 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
+#include <algorithm>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
@@ -20,22 +21,12 @@
 #include <iostream>
 #include <map>
 #include <set>
+#include <string>
 #include <tuple>
 #include <vector>
+#include "../../db/ProjectIRCompiledDB.hh"
+#include "VTable.hh"
 using namespace std;
-
-// struct my_dfs_visitor : boost::default_dfs_visitor {
-//	// psssh, don't ask questions ...
-//	//set<vertex_t>* collected_vertices = new set<vertex_t>;
-//
-//	template< typename Edge, typename Graph >
-//	void tree_edge(Edge e, const Graph & g) const
-//	{
-//	//	collected_vertices->insert(boost::target(e, g));
-//		cout << "found tree edge" << endl;
-//	}
-//
-//};
 
 class LLVMStructTypeHierarchy {
  private:
@@ -64,23 +55,28 @@ class LLVMStructTypeHierarchy {
   };
 
   digraph_t g;
-  map<const llvm::Type*, vertex_t> type_vertex_map;
+  map<string, vertex_t> type_vertex_map;
+  map<string, VTable> vtable_map;
+  set<string> recognized_struct_types;
+
+  void reconstructVTable(const llvm::Module& M);
 
  public:
   LLVMStructTypeHierarchy() = default;
+  LLVMStructTypeHierarchy(const ProjectIRCompiledDB& IRDB);
   ~LLVMStructTypeHierarchy() = default;
   void analyzeModule(const llvm::Module& M);
-  set<const llvm::Type*> getTransitivelyReachableTypes(const llvm::Type* T);
+  set<string> getTransitivelyReachableTypes(string TypeName);
   vector<const llvm::Function*> constructVTable(const llvm::Type* T,
                                                 const llvm::Module* M);
-  const llvm::Function* getFunctionFromVirtualCallSite(
-      llvm::Module* M, llvm::ImmutableCallSite ICS);
-  bool containsSubType(const llvm::Type* T, const llvm::Type* ST);
-  bool hasSuperType(const llvm::Type* ST, const llvm::Type* T);
-  bool hasSubType(const llvm::Type* ST, const llvm::Type* T);
-  bool containsVTable(const llvm::Type* T);
+  // const llvm::Function* getFunctionFromVirtualCallSite(
+  //     llvm::Module* M, llvm::ImmutableCallSite ICS);
+  string getVTableEntry(string TypeName, unsigned idx);
+  bool hasSuperType(string TypeName, string SuperTypeName);
+  bool hasSubType(string TypeName, string SubTypeName);
+  bool containsVTable(string TypeName);
   void printTransitiveClosure();
-  friend ostream& operator<<(ostream& os, const LLVMStructTypeHierarchy& ch);
+  void print();
 };
 
 #endif /* ANALYSIS_LLVMSTRUCTTYPEHIERARCHY_HH_ */

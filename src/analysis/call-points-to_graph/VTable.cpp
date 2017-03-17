@@ -7,12 +7,15 @@
 
 #include "VTable.hh"
 
-VTable::VTable() {
-	// TODO Auto-generated constructor stub
-
+string VTable::getFunctionByEntry(unsigned i) {
+  if (i < vtbl.size()) return vtbl[i];
+  return "";
 }
 
-VTable::~VTable() {
-	// TODO Auto-generated destructor stub
-}
+void VTable::addEntry(string entry) { vtbl.push_back(entry); }
 
+ostream& operator<<(ostream& os, const VTable& t) {
+  for_each(t.vtbl.begin(), t.vtbl.end(),
+           [&](const string& entry) { os << entry << "\n"; });
+  return os;
+}

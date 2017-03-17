@@ -129,7 +129,7 @@ int main(int argc, const char **argv) {
     cout << "error: too few arguments provided\n"
             "use '-help' for help\n"
             "about!\n";
-            return 1;
+    return 1;
   }
   // set up the compile commands data base
   clang::tooling::CommonOptionsParser OptionsParser(
@@ -139,16 +139,16 @@ int main(int argc, const char **argv) {
   // create an 'in-memory' databse that is contains the raw front-end IR of all
   // compilation modules
   ProjectIRCompiledDB IRDB(CompileDB);
-  IRDB.print();
 
   AnalysisController Analysis(
       IRDB, {AnalysisKind::IFDS_TaintAnalysis, AnalysisKind::IDE_TaintAnalysis,
              AnalysisKind::IFDS_UninitializedVariables});
 
-   // Why the heck does the call to 'llvm_shutdown()' causes a 'corrupted
+  // Why the heck does the call to 'llvm_shutdown()' causes a 'corrupted
   // double-linked list'?
   // This should definitely be investigated at some point in time.
-  //	llvm_shutdown();
+  // It should be solved by now!
+  llvm_shutdown();
   cout << "... shutdown analysis ..." << endl;
   return 0;
 }

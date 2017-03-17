@@ -27,9 +27,9 @@
 #include <memory>
 #include <set>
 #include <string>
-#include "ICFG.hh"
 #include "../../call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../../call-points-to_graph/PointsToGraph.hh"
+#include "ICFG.hh"
 
 using namespace std;
 
