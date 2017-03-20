@@ -25,7 +25,7 @@ class ProjectIRCompiledDB {
   // contains all modules that correspond to a project and owns them
   map<string, unique_ptr<llvm::Module>> modules;
   // maps function names to the module they are defined in
-  map<string, const llvm::Module*> functions;
+  map<string, string> functions;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
   ~ProjectIRCompiledDB() = default;
   void createFunctionModuleMapping();

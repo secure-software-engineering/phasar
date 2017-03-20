@@ -140,14 +140,13 @@ int main(int argc, const char **argv) {
   // compilation modules
   ProjectIRCompiledDB IRDB(CompileDB);
 
-  AnalysisController Analysis(
-      IRDB, {AnalysisKind::IFDS_TaintAnalysis, AnalysisKind::IDE_TaintAnalysis,
-             AnalysisKind::IFDS_UninitializedVariables});
+  AnalysisController Analysis(IRDB,
+                              {AnalysisKind::IFDS_UninitializedVariables});
 
   // Why the heck does the call to 'llvm_shutdown()' causes a 'corrupted
-  // double-linked list'?
-  // This should definitely be investigated at some point in time.
-  // It should be solved by now!
+  //   // double-linked list'?
+  //   // This should definitely be investigated at some point in time.
+  //   // It should be solved by now!
   llvm_shutdown();
   cout << "... shutdown analysis ..." << endl;
   return 0;

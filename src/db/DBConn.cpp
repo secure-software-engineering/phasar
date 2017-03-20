@@ -70,15 +70,20 @@ void DBConn::createDBSchemeForAnalysis(const string& analysis_name) {
 }
 
 void DBConn::DBInitializationAction() {
-  const static string database_initialization_command =
+  const static string ir_table_initialization_command =
       "CREATE TABLE IF NOT EXISTS IR("
       "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-      "MODULE_ID VARCHAR(255),"
+      "MODULE_IDENTIFIER VARCHAR(255),"
       "SRC_HASH VARCHAR(255),"
-      "FRONTEND_IR_HASH VARCHAR(255),"
-      "FRONTEND_IR BLOB,"
-      "OPTIMIZED_IR BLOB);";
-  execute(database_initialization_command);
+      "IR_HASH VARCHAR(255),"
+      "IR BLOB);";
+  execute(ir_table_initialization_command);
+  const static string function_table_initialization_command =
+      "CREATE TABLE IF NOT EXISTS FUNCTIONS("
+      "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+      "FUNCTION_ID VARCHAR(255),"
+      "MODULE_ID);";
+  execute(function_table_initialization_command);
 }
 
 vector<string> DBConn::getAllTables() {
@@ -120,18 +125,34 @@ bool DBConn::containsIREntry(string mod_name) {
 }
 
 bool DBConn::insertIR(const llvm::Module* module) {
+  // compute the hash value from the original C/C++ source file
+  ifstream src_file(module->getModuleIdentifier(), ios::binary);
+  if (!src_file.is_open()) {
+    cout << "DB error: could not open source file" << endl;
+  }
+  src_file.seekg(0, src_file.end);
+  size_t src_size = src_file.tellg();
+  src_file.seekg(0, src_file.beg);
+  string src_buffer;
+  src_buffer.resize(src_size);
+  src_file.read(const_cast<char*>(src_buffer.data()), src_size);
+  src_file.close();
+  string src_hash = to_string(hash<string>()(src_buffer));
+  cout << "SRC_HASH: " << src_hash << endl;
   // misuse string as a smart buffer
   string ir_buffer;
   llvm::raw_string_ostream rso(ir_buffer);
   llvm::WriteBitcodeToFile(module, rso);
   rso.flush();
-  cout << ir_buffer << endl;
+  // testing the ir buffer
+  // cout << ir_buffer << endl;
   // query to insert a new IR entry
   static string query =
-      "INSERT INTO IR (MODULE_ID,"
-      "FRONTEND_IR_HASH,"
-      "FRONTEND_IR) "
-      "VALUES (?,?,?);";
+      "INSERT INTO IR (MODULE_IDENTIFIER,"
+      "SRC_HASH,"
+      "IR_HASH,"
+      "IR) "
+      "VALUES (?,?,?,?);";
   // bind values to the prepared statement
   sqlite3_stmt* statement;
   last_retcode = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
@@ -145,9 +166,11 @@ bool DBConn::insertIR(const llvm::Module* module) {
                         module->getModuleIdentifier().size(), SQLITE_STATIC);
   // compute hash of front-end IR
   string ir_hash = to_string(hash<string>()(ir_buffer));
-  last_retcode = sqlite3_bind_text(statement, 2, ir_hash.c_str(),
+  last_retcode = sqlite3_bind_text(statement, 2, src_hash.c_str(),
+                                   src_hash.size(), SQLITE_STATIC);
+  last_retcode = sqlite3_bind_text(statement, 3, ir_hash.c_str(),
                                    ir_hash.size(), SQLITE_STATIC);
-  last_retcode = sqlite3_bind_blob(statement, 3, ir_buffer.data(),
+  last_retcode = sqlite3_bind_blob(statement, 4, ir_buffer.data(),
                                    ir_buffer.size(), SQLITE_TRANSIENT);
   if (last_retcode != SQLITE_OK) {
     cout << "DB error: something went wrong in binding" << endl;
@@ -165,7 +188,7 @@ unique_ptr<llvm::Module> DBConn::getIR(string module_id,
   string ir_buffer;  // misue string as a smart buffer
                      //	string module_id;
   sqlite3_stmt* statement;
-  static string query = "SELECT FRONTEND_IR FROM IR WHERE MODULE_ID=?;";
+  static string query = "SELECT IR FROM IR WHERE MODULE_IDENTIFIER=?;";
   last_retcode = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
   last_retcode = sqlite3_bind_text(statement, 1, module_id.c_str(),
                                    module_id.size(), SQLITE_STATIC);
@@ -196,11 +219,16 @@ unique_ptr<llvm::Module> DBConn::getIR(string module_id,
   return Mod;
 }
 
-void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {}
+void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {
+  for (auto& entry : irdb.modules) {
+    db.insertIR(entry.second.get());
+  }
+}
+
+void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb) {}
 
 size_t getSourceHash(string mod_name) { return 0; }
 
 size_t getIRHash(string mod_name) { return 0; }
-
 
 set<string> getAllIRModuleNames() { return {}; }

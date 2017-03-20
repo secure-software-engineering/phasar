@@ -1,5 +1,5 @@
-; ModuleID = 'inter_callgraph.cpp'
-source_filename = "inter_callgraph.cpp"
+; ModuleID = 'interproc_callsite.ll'
+source_filename = "interproc_callsite.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
@@ -41,81 +41,56 @@ $_ZTV4Base = comdat any
 
 ; Function Attrs: uwtable
 define void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8)) #0 {
-  %2 = alloca %struct.Base*, align 8
-  %3 = alloca i32, align 4
-  store %struct.Base* %0, %struct.Base** %2, align 8
-  %4 = load %struct.Base*, %struct.Base** %2, align 8
-  %5 = bitcast %struct.Base* %4 to i32 (%struct.Base*)***
-  %6 = load i32 (%struct.Base*)**, i32 (%struct.Base*)*** %5, align 8
-  %7 = getelementptr inbounds i32 (%struct.Base*)*, i32 (%struct.Base*)** %6, i64 1
-  %8 = load i32 (%struct.Base*)*, i32 (%struct.Base*)** %7, align 8
-  %9 = call i32 %8(%struct.Base* %4)
-  store i32 %9, i32* %3, align 4
+  %2 = bitcast %struct.Base* %0 to i32 (%struct.Base*)***
+  %3 = load i32 (%struct.Base*)**, i32 (%struct.Base*)*** %2, align 8
+  %4 = getelementptr inbounds i32 (%struct.Base*)*, i32 (%struct.Base*)** %3, i64 1
+  %5 = load i32 (%struct.Base*)*, i32 (%struct.Base*)** %4, align 8
+  %6 = call i32 %5(%struct.Base* %0)
   ret void
 }
 
 ; Function Attrs: norecurse uwtable
 define i32 @main() #1 {
-  %1 = alloca i32, align 4
-  %2 = alloca %struct.Derived, align 8
-  store i32 0, i32* %1, align 4
-  call void @_ZN7DerivedC2Ev(%struct.Derived* %2) #4
-  %3 = bitcast %struct.Derived* %2 to %struct.Base*
-  call void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8) %3)
+  %1 = alloca %struct.Derived, align 8
+  call void @_ZN7DerivedC2Ev(%struct.Derived* %1) #4
+  %2 = bitcast %struct.Derived* %1 to %struct.Base*
+  call void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8) %2)
   ret i32 0
 }
 
 ; Function Attrs: inlinehint nounwind uwtable
 define linkonce_odr void @_ZN7DerivedC2Ev(%struct.Derived*) unnamed_addr #2 comdat align 2 {
-  %2 = alloca %struct.Derived*, align 8
-  store %struct.Derived* %0, %struct.Derived** %2, align 8
-  %3 = load %struct.Derived*, %struct.Derived** %2, align 8
-  %4 = bitcast %struct.Derived* %3 to %struct.Base*
-  call void @_ZN4BaseC2Ev(%struct.Base* %4) #4
-  %5 = bitcast %struct.Derived* %3 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*], [4 x i8*]* @_ZTV7Derived, i32 0, i32 2) to i32 (...)**), i32 (...)*** %5, align 8
+  %2 = bitcast %struct.Derived* %0 to %struct.Base*
+  call void @_ZN4BaseC2Ev(%struct.Base* %2) #4
+  %3 = bitcast %struct.Derived* %0 to i32 (...)***
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*], [4 x i8*]* @_ZTV7Derived, i32 0, i32 2) to i32 (...)**), i32 (...)*** %3, align 8
   ret void
 }
 
 ; Function Attrs: inlinehint nounwind uwtable
 define linkonce_odr void @_ZN4BaseC2Ev(%struct.Base*) unnamed_addr #2 comdat align 2 {
-  %2 = alloca %struct.Base*, align 8
-  store %struct.Base* %0, %struct.Base** %2, align 8
-  %3 = load %struct.Base*, %struct.Base** %2, align 8
-  %4 = bitcast %struct.Base* %3 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*], [4 x i8*]* @_ZTV4Base, i32 0, i32 2) to i32 (...)**), i32 (...)*** %4, align 8
+  %2 = bitcast %struct.Base* %0 to i32 (...)***
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*], [4 x i8*]* @_ZTV4Base, i32 0, i32 2) to i32 (...)**), i32 (...)*** %2, align 8
   ret void
 }
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr void @_ZN7Derived3fooEv(%struct.Derived*) unnamed_addr #3 comdat align 2 {
-  %2 = alloca %struct.Derived*, align 8
-  store %struct.Derived* %0, %struct.Derived** %2, align 8
-  %3 = load %struct.Derived*, %struct.Derived** %2, align 8
   ret void
 }
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr i32 @_ZN7Derived3barEv(%struct.Derived*) unnamed_addr #3 comdat align 2 {
-  %2 = alloca %struct.Derived*, align 8
-  store %struct.Derived* %0, %struct.Derived** %2, align 8
-  %3 = load %struct.Derived*, %struct.Derived** %2, align 8
   ret i32 2
 }
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr void @_ZN4Base3fooEv(%struct.Base*) unnamed_addr #3 comdat align 2 {
-  %2 = alloca %struct.Base*, align 8
-  store %struct.Base* %0, %struct.Base** %2, align 8
-  %3 = load %struct.Base*, %struct.Base** %2, align 8
   ret void
 }
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr i32 @_ZN4Base3barEv(%struct.Base*) unnamed_addr #3 comdat align 2 {
-  %2 = alloca %struct.Base*, align 8
-  store %struct.Base* %0, %struct.Base** %2, align 8
-  %3 = load %struct.Base*, %struct.Base** %2, align 8
   ret i32 1
 }
 

@@ -7,25 +7,36 @@
 
 #include "LLVMBasedInterproceduralCFG.hh"
 
+LLVMBasedInterproceduralICFG::LLVMBasedInterproceduralICFG(
+    llvm::Module& Module, llvm::AAResults& AA, LLVMStructTypeHierarchy& STH,
+    ProjectIRCompiledDB& IRDB)
+    : M(Module), CG(Module), AA(AA), CH(STH), IRDB(IRDB) {}
+
 void LLVMBasedInterproceduralICFG::resolveIndirectCallWalker(
     const llvm::Function* F) {
-  PointsToGraph ptg(AA, F);
+  // PointsToGraph ptg(AA, F);
   cout << "walking in " << F->getName().str() << endl;
-
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
        ++I) {
     const llvm::Instruction& Inst = *I;
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
       llvm::ImmutableCallSite cs(llvm::dyn_cast<llvm::CallInst>(&Inst));
-      cout << "call site" << endl;
       // function can be resolved statically
       if (cs.getCalledFunction() != nullptr) {
         resolveIndirectCallWalker(cs.getCalledFunction());
       } else {
         // we have to resolve the called function ourselves
-        set<const llvm::Function*> possible_targets = resolveIndirectCall(cs);
+        cout << "indirect call site:" << endl;
+        cs->dump();
+        set<string> possible_target_names = resolveIndirectCall(cs);
+        set<const llvm::Function*> possible_targets;
+        for (auto target_name : possible_target_names) {
+          possible_targets.insert(
+              IRDB.modules[IRDB.functions[target_name]]->getFunction(
+                  target_name));
+        }
         for (auto target : possible_targets) {
-          PointsToGraph ptg_called_fun(AA, target);
+          //     PointsToGraph ptg_called_fun(AA, target);
           resolveIndirectCallWalker(target);
         }
       }
@@ -37,105 +48,106 @@ void LLVMBasedInterproceduralICFG::resolveIndirectCallWalker(
   }
 }
 
-set<const llvm::Function*> LLVMBasedInterproceduralICFG::resolveIndirectCall(
+set<string> LLVMBasedInterproceduralICFG::resolveIndirectCall(
     llvm::ImmutableCallSite CS) {
   cout << "RESOLVING CALL" << endl;
-  set<const llvm::Type*> possible_receiver_types;
-  set<const llvm::Function*> possible_call_targets;
-//   LLVMStructTypeHierarchy CH;
-//   CH.analyzeModule(M);
-//   if (CS.getNumArgOperands() > 0) {
-//     // deal with a virtual member function
-//     const llvm::LoadInst* load =
-//         llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-//     const llvm::GetElementPtrInst* gep =
-//         llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-//     unsigned vtable_entry =
-//         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+  set<string> possible_receiver_types;
+  set<string> possible_call_targets;
 
-//     const llvm::Value* receiver = CS.getArgOperand(0);
-//     const llvm::Type* receiver_type = receiver->getType();
-//     cout << "receiver" << endl;
-//     receiver->dump();
-//     cout << "receiver type" << endl;
-//     receiver_type->dump();
-//     // retrieve the plain type
-//     // only one dereferencing should be necessary otherwise something is broken
-//     // elsewhere
-//     receiver_type = receiver_type->getPointerElementType();
-//     const llvm::Function* enclosing_function = CS.getParent()->getParent();
-//     cout << "begin class hierarchy" << endl;
-//   //  cout << CH << endl;
-//     cout << "end class hierarchy" << endl;
-//     auto points_to_set = P.getPointsToSet(enclosing_function, receiver);
-//     cout << "points to set" << endl;
-//     for (auto pointer : points_to_set) {
-//       // cout << "obtained from bitcast: " <<
-//       // llvm::isa<llvm::BitCastInst>(pointer) << endl;
-//       // here we want to ignore values casted to the receiver super type, since
-//       // we know that anyway
-//       if (const llvm::BitCastInst* cast =
-//               llvm::dyn_cast<llvm::BitCastInst>(pointer)) {
-//         const llvm::Type* destty = cast->getDestTy();
-//         if (destty->isPointerTy()) {
-//           destty = destty->getPointerElementType();
-//         }
-//         if (destty == receiver_type) {
-//           continue;
-//         }
-//       }
-//       pointer->dump();
-//       //			pointer->getType()->dump();
-//       //			auto formal_aliases =
-//       //P.aliasWithFormalParameter(CS.getParent()->getParent(), pointer);
-//       //			if (!formal_aliases.empty()) {
-//       //				//cout << "  aliases with formal" <<
-//       //endl;
-//       //			}
-//       // retrieve the plain type
-//       const llvm::Type* plain_type = pointer->getType();
-//       if (plain_type->isPointerTy()) {
-//         // only dereference once, since receiver object is always a pointer to
-//         // type T (not pointer to pointer to ...)
-//         // M.foo() ---> foo(M* m);
-//         plain_type = plain_type->getPointerElementType();
-//       }
-//       plain_type->dump();
-//       // if (CH.hasSubType(receiver_type, plain_type)) {
-//       //   possible_receiver_types.insert(plain_type);
-//       // }
-//     }
-//     // check if we could not find some possible receiver types
-//     // in this case we could not retrieve any useful information and thus must
-//     // assume that any version
-//     // of one of receivers children could be called
-//     if (possible_receiver_types.empty()) {
-//       set<const llvm::Type*> fallback;// =
-//         // change this
-//         //  CH.getTransitivelyReachableTypes(receiver_type);
-//       possible_receiver_types.insert(fallback.begin(), fallback.end());
-//       possible_receiver_types.insert(receiver_type);
-//     }
-//     for (auto possible_receiver_type : possible_receiver_types) {
-//       // possible_receiver_type->dump();
-//  //     auto vtable = CH.constructVTable(possible_receiver_type, &M);
-//       // use at() instead of operator[] to be sure, that an exception is thrown
-//       // if this works not as expected
-//       if (!vtable.empty()) {
-//         possible_call_targets.insert(vtable.at(vtable_entry));
-//       }
-//     }
-//   } else {
-//     // deal with a function pointer
-//     //		set<const llvm::Value*> points_to_set =
-//     //P.getPointsToSet(CS->getParent()->getParent(), CS.getCalledValue());
-//     //		for (auto pointer : points_to_set) {
-//     //			if(const llvm::LoadInst* load =
-//     //llvm::dyn_cast<llvm::LoadInst>(pointer)) {
-//     //				load->getPointerOperand()
-//     //			}
-//     //		}
-//   }
+  if (CS.getNumArgOperands() > 0) {
+    // deal with a virtual member function
+    // retrieve the vtable entry that is called
+    const llvm::LoadInst* load =
+        llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+    const llvm::GetElementPtrInst* gep =
+        llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
+    unsigned vtable_entry =
+        llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+
+    const llvm::Value* receiver = CS.getArgOperand(0);
+    const llvm::Type* receiver_type = receiver->getType();
+    cout << "receiver:" << endl;
+    receiver->dump();
+    cout << "receiver type:" << endl;
+    receiver_type->dump();
+    receiver_type = receiver_type->getPointerElementType();
+    cout << "receiver plain type:" << endl;
+    receiver_type->dump();
+    cout << "type name:" << endl;
+    const llvm::StructType* receiver_type_str =
+        llvm::dyn_cast<llvm::StructType>(receiver_type);
+    cout << receiver_type_str->getName().str() << endl;
+    // determine the function this call-site is placed in
+    const llvm::Function* enclosing_function = CS.getParent()->getParent();
+    //    auto points_to_set = P.getPointsToSet(enclosing_function, receiver);
+    //    cout << "points-to set" << endl;
+    // for (auto pointer : points_to_set) {
+    //   // cout << "obtained from bitcast: " <<
+    //   // llvm::isa<llvm::BitCastInst>(pointer) << endl;
+    //   // here we want to ignore values casted to the receiver super type,
+    //   since
+    //   // we know that anyway
+    //   if (const llvm::BitCastInst* cast =
+    //           llvm::dyn_cast<llvm::BitCastInst>(pointer)) {
+    //     const llvm::Type* destty = cast->getDestTy();
+    //     if (destty->isPointerTy()) {
+    //       destty = destty->getPointerElementType();
+    //     }
+    //     if (destty == receiver_type) {
+    //       continue;
+    //     }
+    //   }
+    //   // pointer->dump();
+    //   // pointer->getType()->dump();
+    //   //         //			auto formal_aliases =
+    //   //         //P.aliasWithFormalParameter(CS.getParent()->getParent(),
+    //   //         pointer);
+    //   //         //			if (!formal_aliases.empty()) {
+    //   //         //				//cout << "  aliases with
+    //   //         formal"
+    //   //         <<
+    //   //         //endl;
+    //   //         //			}
+    //   // retrieve the plain type
+    //   const llvm::Type* plain_type = pointer->getType();
+    //   if (plain_type->isPointerTy()) {
+    //     // only dereference once, since receiver object is always a pointer
+    //     to
+    //     // type T (not pointer to pointer to ...)
+    //     // M.foo() ---> foo(M* m);
+    //     plain_type = plain_type->getPointerElementType();
+    //   }
+    //   plain_type->dump();
+    //   if (CH.hasSubType(receiver_type, plain_type)) {
+    //     possible_receiver_types.insert(plain_type);
+    //   }
+    //   // check if we could not find some possible receiver types
+    //   // in this case we could not retrieve any useful information and thus
+    //   // assume that any version of one of receivers children could be called
+    //   if (possible_receiver_types.empty()) {
+    //     set<string> fallback =
+    //     CH.getTransitivelyReachableTypes(receiver_type);
+    //     possible_receiver_types.insert(fallback.begin(), fallback.end());
+    //     possible_receiver_types.insert(receiver_type);
+    //   }
+    //   for (auto possible_receiver_type : possible_receiver_types) {
+    //     possible_receiver_type->dump();
+    //     possible_call_targets.insert(CH.getVTableEntry(possible_receiver_type,
+    //     vtable_entry));
+    //   }
+    // }
+  } else {
+    cout << "function pointer" << endl;
+    // deal with a function pointer
+    //		set<const llvm::Value*> points_to_set =
+    // P.getPointsToSet(CS->getParent()->getParent(), CS.getCalledValue());
+    //		for (auto pointer : points_to_set) {
+    //			if(const llvm::LoadInst* load =
+    // llvm::dyn_cast<llvm::LoadInst>(pointer)) {
+    //				load->getPointerOperand()
+    //			}
+    //		}
+  }
   return possible_call_targets;
 }
 
@@ -190,7 +202,9 @@ set<const llvm::Function*> LLVMBasedInterproceduralICFG::getCalleesOfCallAt(
       return {CI->getCalledFunction()};
     } else {
       // called function needs to be resolved
-      return resolveIndirectCall(llvm::ImmutableCallSite{CI});
+      // FIXME
+      return {};
+      // return resolveIndirectCall(llvm::ImmutableCallSite{CI});
     }
   } else if (const llvm::InvokeInst* II = llvm::dyn_cast<llvm::InvokeInst>(n)) {
     // handle invoke
@@ -199,12 +213,14 @@ set<const llvm::Function*> LLVMBasedInterproceduralICFG::getCalleesOfCallAt(
       return {II->getCalledFunction()};
     } else {
       // invoked function needs to be resolved
-      return resolveIndirectCall(llvm::ImmutableCallSite{II});
+      // FIXME
+      return {};
+      // return resolveIndirectCall(llvm::ImmutableCallSite{II});
     }
   } else {
     // neither call nor invoke - error!
-    llvm::errs()
-        << "ERROR: found instruction that is neither CallInst nor InvokeInst\n";
+    llvm::errs() << "ERROR: found instruction that is neither CallInst nor "
+                    "InvokeInst\n";
     return {};
   }
 }
@@ -258,7 +274,8 @@ set<const llvm::Instruction*> LLVMBasedInterproceduralICFG::getCallsFromWithin(
 set<const llvm::Instruction*> LLVMBasedInterproceduralICFG::getStartPointsOf(
     const llvm::Function* m) {
   set<const llvm::Instruction*> StartPoints;
-  // this does not handle backwards analysis, where a function may contains more
+  // this does not handle backwards analysis, where a function may contains
+  // more
   // than one start points!
   StartPoints.insert(m->getEntryBlock().getFirstNonPHIOrDbg());
   return StartPoints;

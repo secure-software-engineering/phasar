@@ -7,45 +7,6 @@
 
 #include "PointsToInformation.hh"
 
-void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
-                  const llvm::Value *V2, const llvm::Module *M) {
-  if (P) {
-    std::string o1, o2;
-    {
-      llvm::raw_string_ostream os1(o1), os2(o2);
-      V1->printAsOperand(os1, true, M);
-      V2->printAsOperand(os2, true, M);
-    }
-
-    if (o2 < o1) std::swap(o1, o2);
-    llvm::errs() << "  " << Msg << ":\t" << o1 << ", " << o2 << "\n";
-  }
-}
-
-void PrintModRefResults(const char *Msg, bool P, llvm::Instruction *I,
-                        llvm::Value *Ptr, llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ":  Ptr: ";
-    Ptr->printAsOperand(llvm::errs(), true, M);
-    llvm::errs() << "\t<->" << *I << '\n';
-  }
-}
-
-void PrintModRefResults(const char *Msg, bool P, llvm::CallSite CSA,
-                        llvm::CallSite CSB, llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ": " << *CSA.getInstruction() << " <-> "
-                 << *CSB.getInstruction() << '\n';
-  }
-}
-
-void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
-                           const llvm::Value *V2, const llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ": " << *V1 << " <-> " << *V2 << '\n';
-  }
-}
-
 PointsToInformation::PointsToInformation(AliasKind cons)
     : consideration(cons) {}
 
@@ -156,7 +117,7 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
       //				for (llvm::SetVector<llvm::Value
       //*>::iterator I2 =
       //						Stores.begin(), E2 =
-      //Stores.end(); I2 != E2; ++I2) {
+      // Stores.end(); I2 != E2; ++I2) {
       //					switch (AA.alias(
       //							llvm::MemoryLocation::get(
       //									llvm::cast<llvm::LoadInst>(*I1)),
@@ -165,26 +126,26 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
       //{
       //					case llvm::NoAlias:
       //						PrintLoadStoreResults("NoAlias",
-      //PrintNoAlias, *I1, *I2,
+      // PrintNoAlias, *I1, *I2,
       //								F.getParent());
       //						break;
       //					case llvm::MayAlias:
       //						PrintLoadStoreResults("MayAlias",
-      //PrintMayAlias, *I1,
+      // PrintMayAlias, *I1,
       //								*I2,
-      //F.getParent());
+      // F.getParent());
       //						break;
       //					case llvm::PartialAlias:
       //						PrintLoadStoreResults("PartialAlias",
-      //PrintPartialAlias,
+      // PrintPartialAlias,
       //								*I1,
       //*I2, F.getParent());
       //						break;
       //					case llvm::MustAlias:
       //						PrintLoadStoreResults("MustAlias",
-      //PrintMustAlias, *I1,
+      // PrintMustAlias, *I1,
       //								*I2,
-      //F.getParent());
+      // F.getParent());
       //						break;
       //					}
       //				}
@@ -198,7 +159,7 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
       //				for (llvm::SetVector<llvm::Value
       //*>::iterator I2 =
       //						Stores.begin(); I2 !=
-      //I1; ++I2) {
+      // I1; ++I2) {
       //					switch (AA.alias(
       //							llvm::MemoryLocation::get(
       //									llvm::cast<llvm::StoreInst>(*I1)),
@@ -207,72 +168,72 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
       //{
       //					case llvm::NoAlias:
       //						PrintLoadStoreResults("NoAlias",
-      //PrintNoAlias, *I1, *I2,
+      // PrintNoAlias, *I1, *I2,
       //								F.getParent());
       //						break;
       //					case llvm::MayAlias:
       //						PrintLoadStoreResults("MayAlias",
-      //PrintMayAlias, *I1,
+      // PrintMayAlias, *I1,
       //								*I2,
-      //F.getParent());
+      // F.getParent());
       //						break;
       //					case llvm::PartialAlias:
       //						PrintLoadStoreResults("PartialAlias",
-      //PrintPartialAlias,
+      // PrintPartialAlias,
       //								*I1,
       //*I2, F.getParent());
       //						break;
       //					case llvm::MustAlias:
       //						PrintLoadStoreResults("MustAlias",
-      //PrintMustAlias, *I1,
+      // PrintMustAlias, *I1,
       //								*I2,
-      //F.getParent());
+      // F.getParent());
       //						break;
       //					}
       //				}
       //			}
       //
       //			// Mod/ref alias analysis: compare all pairs of
-      //calls and values
+      // calls and values
       //			for (auto C = CallSites.begin(), Ce =
-      //CallSites.end(); C != Ce;
+      // CallSites.end(); C != Ce;
       //					++C) {
       //				llvm::Instruction *I =
-      //C->getInstruction();
+      // C->getInstruction();
       //
       //				for (llvm::SetVector<llvm::Value
       //*>::iterator V =
       //						Pointers.begin(), Ve =
-      //Pointers.end(); V != Ve; ++V) {
+      // Pointers.end(); V != Ve; ++V) {
       //					uint64_t Size =
-      //llvm::MemoryLocation::UnknownSize;
+      // llvm::MemoryLocation::UnknownSize;
       //					llvm::Type *ElTy =
-      //llvm::cast<llvm::PointerType>(
+      // llvm::cast<llvm::PointerType>(
       //							(*V)->getType())->getElementType();
       //					if (ElTy->isSized())
       //						Size =
-      //DL.getTypeStoreSize(ElTy);
+      // DL.getTypeStoreSize(ElTy);
       //
       //					switch (AA.getModRefInfo(*C, *V,
-      //Size)) {
+      // Size)) {
       //					case llvm::MRI_NoModRef:
       //						PrintModRefResults("NoModRef",
-      //PrintNoModRef, I, *V,
+      // PrintNoModRef, I, *V,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_Mod:
       //						PrintModRefResults("Just
-      //Mod", PrintMod, I, *V,
+      // Mod", PrintMod, I, *V,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_Ref:
       //						PrintModRefResults("Just
-      //Ref", PrintRef, I, *V,
+      // Ref", PrintRef, I, *V,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_ModRef:
       //						PrintModRefResults("Both
-      //ModRef", PrintModRef, I, *V,
+      // ModRef", PrintModRef, I, *V,
       //								F.getParent());
       //						break;
       //					}
@@ -280,34 +241,34 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
       //			}
       //
       //			// Mod/ref alias analysis: compare all pairs of
-      //calls
+      // calls
       //			for (auto C = CallSites.begin(), Ce =
-      //CallSites.end(); C != Ce;
+      // CallSites.end(); C != Ce;
       //					++C) {
       //				for (auto D = CallSites.begin(); D !=
-      //Ce; ++D) {
+      // Ce; ++D) {
       //					if (D == C)
       //						continue;
       //					switch (AA.getModRefInfo(*C,
       //*D)) {
       //					case llvm::MRI_NoModRef:
       //						PrintModRefResults("NoModRef",
-      //PrintNoModRef, *C, *D,
+      // PrintNoModRef, *C, *D,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_Mod:
       //						PrintModRefResults("Just
-      //Mod", PrintMod, *C, *D,
+      // Mod", PrintMod, *C, *D,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_Ref:
       //						PrintModRefResults("Just
-      //Ref", PrintRef, *C, *D,
+      // Ref", PrintRef, *C, *D,
       //								F.getParent());
       //						break;
       //					case llvm::MRI_ModRef:
       //						PrintModRefResults("Both
-      //ModRef", PrintModRef, *C, *D,
+      // ModRef", PrintModRef, *C, *D,
       //								F.getParent());
       //						break;
       //					}
@@ -317,7 +278,7 @@ void PointsToInformation::analyzeModule(llvm::AAResults &AA, llvm::Module &M) {
   }
   //	ofstream out("ptg_main.dot");
   //	boost::write_graphviz(out,
-  //function_ptg_map[M.getFunction("main")->getName().str()]);
+  // function_ptg_map[M.getFunction("main")->getName().str()]);
 }
 
 bool PointsToInformation::isInterestingPointer(llvm::Value *V) {
@@ -367,15 +328,14 @@ set<const llvm::Value *> PointsToInformation::getPointsToSet(
   return result;
 }
 
-ostream &operator<<(ostream &os, const PointsToInformation &ptg) {
-  os << "PointsToGraphs:\n";
-  for (auto entry : ptg.function_ptg_map) {
-    os << "graph for " << entry.first << endl;
+void PointsToInformation::print() {
+  cout << "PointsToGraphs:\n";
+  for (auto entry : function_ptg_map) {
+    cout << "graph for " << entry.first << endl;
     boost::print_graph(
         entry.second,
         boost::get(&PointsToInformation::VertexProperties::ir, entry.second));
   }
-  return os;
 }
 
 void PointsToInformation::printValueVertexMap() {

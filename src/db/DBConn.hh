@@ -17,6 +17,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <sqlite3.h>
 #include <cstring>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
@@ -37,7 +38,7 @@ struct ResultSet {
 
 class DBConn {
  private:
-  DBConn(const string name = "llheros_analyzer.db");
+  DBConn(const string dbname = "llheros_analyzer.db");
   ~DBConn();
   sqlite3* db;
   const string dbname;
@@ -68,6 +69,7 @@ class DBConn {
   bool insertIR(const llvm::Module* module);
   unique_ptr<llvm::Module> getIR(string mod_name, llvm::LLVMContext& Context);
   friend void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb);
+  friend void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb);
   size_t getSourceHash(string mod_name);
   size_t getIRHash(string mod_name);
   set<string> getAllIRModuleNames();

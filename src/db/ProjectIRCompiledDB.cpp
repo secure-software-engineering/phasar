@@ -54,7 +54,7 @@ void ProjectIRCompiledDB::createFunctionModuleMapping() {
     const llvm::Module* M = entry.second.get();
     for (auto& function : M->functions()) {
       if (!function.isDeclaration()) {
-        functions[function.getName().str()] = M;
+        functions[function.getName().str()] = M->getModuleIdentifier();
       }
     }
   }
@@ -67,7 +67,7 @@ void ProjectIRCompiledDB::print() {
     entry.second->dump();
   }
   cout << "functions:" << endl;
-  for (auto& entry : functions) {
-    cout << entry.first << " defined in module " << entry.second->getModuleIdentifier() << endl;
+  for (auto entry : functions) {
+    cout << entry.first << " defined in module " << entry.second << endl;
   }
 }
