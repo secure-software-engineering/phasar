@@ -27,9 +27,9 @@
 #include <memory>
 #include <set>
 #include <string>
-#include "ICFG.hh"
 #include "../../call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../../call-points-to_graph/PointsToGraph.hh"
+#include "ICFG.hh"
 
 using namespace std;
 
@@ -39,19 +39,16 @@ class LLVMBasedInterproceduralICFG
   const llvm::Module& M;
   llvm::CallGraph CG;
   llvm::AAResults& AA;
-  PointsToInformation& P;
-  LLVMStructTypeHierarchy CH;
-  PointsToGraph IPTG;
+  LLVMStructTypeHierarchy& CH;
+  ProjectIRCompiledDB& IRDB;
   map<llvm::ImmutableCallSite, set<const llvm::Function*>> CSPTM;
 
-  set<const llvm::Function*> resolveIndirectCall(llvm::ImmutableCallSite CS);
+  set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
 
  public:
   LLVMBasedInterproceduralICFG(llvm::Module& Module, llvm::AAResults& AA,
-                               PointsToInformation& PTI)
-      : M(Module), AA(AA), CG(Module), P(PTI) {
-    CH.analyzeModule(M);
-  }
+                               LLVMStructTypeHierarchy& STH,
+                               ProjectIRCompiledDB& IRDB);
 
   virtual ~LLVMBasedInterproceduralICFG() = default;
 

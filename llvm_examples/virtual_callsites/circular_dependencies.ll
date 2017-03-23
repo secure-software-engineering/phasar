@@ -1,4 +1,4 @@
-; ModuleID = 'circular_dependencies.cpp'
+; ModuleID = 'circular_dependencies.ll'
 source_filename = "circular_dependencies.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
@@ -28,14 +28,11 @@ $_ZN1AC2Ev = comdat any
 
 ; Function Attrs: uwtable
 define void @_ZN1A3fooEv(%struct.A*) unnamed_addr #0 align 2 {
-  %2 = alloca %struct.A*, align 8
-  store %struct.A* %0, %struct.A** %2, align 8
-  %3 = load %struct.A*, %struct.A** %2, align 8
-  %4 = call i8* @_Znwm(i64 8) #6
-  %5 = bitcast i8* %4 to %struct.B*
-  call void @_ZN1BC2Ev(%struct.B* %5) #7
-  %6 = bitcast %struct.B* %5 to %struct.A*
-  store %struct.A* %6, %struct.A** @field, align 8
+  %2 = call i8* @_Znwm(i64 8) #6
+  %3 = bitcast i8* %2 to %struct.B*
+  call void @_ZN1BC2Ev(%struct.B* %3) #7
+  %4 = bitcast %struct.B* %3 to %struct.A*
+  store %struct.A* %4, %struct.A** @field, align 8
   ret void
 }
 
@@ -44,65 +41,51 @@ declare noalias i8* @_Znwm(i64) #1
 
 ; Function Attrs: inlinehint nounwind uwtable
 define linkonce_odr void @_ZN1BC2Ev(%struct.B*) unnamed_addr #2 comdat align 2 {
-  %2 = alloca %struct.B*, align 8
-  store %struct.B* %0, %struct.B** %2, align 8
-  %3 = load %struct.B*, %struct.B** %2, align 8
-  %4 = bitcast %struct.B* %3 to %struct.A*
-  call void @_ZN1AC2Ev(%struct.A* %4) #7
-  %5 = bitcast %struct.B* %3 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1B, i32 0, i32 2) to i32 (...)**), i32 (...)*** %5, align 8
+  %2 = bitcast %struct.B* %0 to %struct.A*
+  call void @_ZN1AC2Ev(%struct.A* %2) #7
+  %3 = bitcast %struct.B* %0 to i32 (...)***
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1B, i32 0, i32 2) to i32 (...)**), i32 (...)*** %3, align 8
   ret void
 }
 
 ; Function Attrs: uwtable
 define void @_ZN1B3fooEv(%struct.B*) unnamed_addr #0 align 2 {
-  %2 = alloca %struct.B*, align 8
-  store %struct.B* %0, %struct.B** %2, align 8
-  %3 = load %struct.B*, %struct.B** %2, align 8
-  %4 = call i8* @_Znwm(i64 8) #6
-  %5 = bitcast i8* %4 to %struct.C*
-  call void @_ZN1CC2Ev(%struct.C* %5) #7
-  %6 = bitcast %struct.C* %5 to %struct.A*
-  store %struct.A* %6, %struct.A** @field, align 8
+  %2 = call i8* @_Znwm(i64 8) #6
+  %3 = bitcast i8* %2 to %struct.C*
+  call void @_ZN1CC2Ev(%struct.C* %3) #7
+  %4 = bitcast %struct.C* %3 to %struct.A*
+  store %struct.A* %4, %struct.A** @field, align 8
   ret void
 }
 
 ; Function Attrs: inlinehint nounwind uwtable
 define linkonce_odr void @_ZN1CC2Ev(%struct.C*) unnamed_addr #2 comdat align 2 {
-  %2 = alloca %struct.C*, align 8
-  store %struct.C* %0, %struct.C** %2, align 8
-  %3 = load %struct.C*, %struct.C** %2, align 8
-  %4 = bitcast %struct.C* %3 to %struct.A*
-  call void @_ZN1AC2Ev(%struct.A* %4) #7
-  %5 = bitcast %struct.C* %3 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1C, i32 0, i32 2) to i32 (...)**), i32 (...)*** %5, align 8
+  %2 = bitcast %struct.C* %0 to %struct.A*
+  call void @_ZN1AC2Ev(%struct.A* %2) #7
+  %3 = bitcast %struct.C* %0 to i32 (...)***
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1C, i32 0, i32 2) to i32 (...)**), i32 (...)*** %3, align 8
   ret void
 }
 
 ; Function Attrs: nounwind uwtable
 define void @_ZN1C3fooEv(%struct.C*) unnamed_addr #3 align 2 {
-  %2 = alloca %struct.C*, align 8
-  store %struct.C* %0, %struct.C** %2, align 8
-  %3 = load %struct.C*, %struct.C** %2, align 8
   ret void
 }
 
 ; Function Attrs: norecurse uwtable
 define i32 @main() #4 {
-  %1 = alloca i32, align 4
-  store i32 0, i32* %1, align 4
-  %2 = call i8* @_Znwm(i64 8) #6
-  %3 = bitcast i8* %2 to %struct.A*
-  %4 = bitcast %struct.A* %3 to i8*
-  call void @llvm.memset.p0i8.i64(i8* %4, i8 0, i64 8, i32 8, i1 false)
-  call void @_ZN1AC2Ev(%struct.A* %3) #7
-  store %struct.A* %3, %struct.A** @field, align 8
-  %5 = load %struct.A*, %struct.A** @field, align 8
-  %6 = bitcast %struct.A* %5 to void (%struct.A*)***
-  %7 = load void (%struct.A*)**, void (%struct.A*)*** %6, align 8
-  %8 = getelementptr inbounds void (%struct.A*)*, void (%struct.A*)** %7, i64 0
-  %9 = load void (%struct.A*)*, void (%struct.A*)** %8, align 8
-  call void %9(%struct.A* %5)
+  %1 = call i8* @_Znwm(i64 8) #6
+  %2 = bitcast i8* %1 to %struct.A*
+  %3 = bitcast %struct.A* %2 to i8*
+  call void @llvm.memset.p0i8.i64(i8* %3, i8 0, i64 8, i32 8, i1 false)
+  call void @_ZN1AC2Ev(%struct.A* %2) #7
+  store %struct.A* %2, %struct.A** @field, align 8
+  %4 = load %struct.A*, %struct.A** @field, align 8
+  %5 = bitcast %struct.A* %4 to void (%struct.A*)***
+  %6 = load void (%struct.A*)**, void (%struct.A*)*** %5, align 8
+  %7 = getelementptr inbounds void (%struct.A*)*, void (%struct.A*)** %6, i64 0
+  %8 = load void (%struct.A*)*, void (%struct.A*)** %7, align 8
+  call void %8(%struct.A* %4)
   ret i32 0
 }
 
@@ -111,11 +94,8 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture, i8, i64, i32, i1) #5
 
 ; Function Attrs: inlinehint nounwind uwtable
 define linkonce_odr void @_ZN1AC2Ev(%struct.A*) unnamed_addr #2 comdat align 2 {
-  %2 = alloca %struct.A*, align 8
-  store %struct.A* %0, %struct.A** %2, align 8
-  %3 = load %struct.A*, %struct.A** %2, align 8
-  %4 = bitcast %struct.A* %3 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1A, i32 0, i32 2) to i32 (...)**), i32 (...)*** %4, align 8
+  %2 = bitcast %struct.A* %0 to i32 (...)***
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]* @_ZTV1A, i32 0, i32 2) to i32 (...)**), i32 (...)*** %2, align 8
   ret void
 }
 

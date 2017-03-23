@@ -24,21 +24,6 @@
 #include <string>
 using namespace std;
 
-void PrintResults(const char* Msg, bool P, const llvm::Value* V1,
-                  const llvm::Value* V2, const llvm::Module* M);
-
-inline void PrintModRefResults(const char* Msg, bool P,
-                               const llvm::Instruction* I,
-                               const llvm::Value* Ptr, const llvm::Module* M);
-
-inline void PrintModRefResults(const char* Msg, bool P,
-                               const llvm::CallSite CSA,
-                               const llvm::CallSite CSB, const llvm::Module* M);
-
-inline void PrintLoadStoreResults(const char* Msg, bool P,
-                                  const llvm::Value* V1, const llvm::Value* V2,
-                                  const llvm::Module* M);
-
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
 // http://llvm.org/docs/doxygen/html/AliasAnalysisEvaluator_8cpp_source.html
@@ -146,7 +131,7 @@ class PointsToInformation {
                                                    const llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Function* F,
                                          const llvm::Value* V);
-  friend ostream& operator<<(ostream& os, const PointsToInformation& ptg);
+  void print();
   void write_pti_graphviz(const string path, const llvm::Function* F);
   void printValueVertexMap();
 };

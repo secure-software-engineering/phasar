@@ -8,18 +8,39 @@
 #ifndef ANALYSIS_POINTSTOGRAPH_HH_
 #define ANALYSIS_POINTSTOGRAPH_HH_
 
+#include <llvm/ADT/SetVector.h>
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Support/raw_ostream.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <iostream>
 #include <string>
 #include <vector>
-#include "PointsToInformation.hh"
 using namespace std;
+
+void PrintResults(const char* Msg, bool P, const llvm::Value* V1,
+                  const llvm::Value* V2, const llvm::Module* M);
+
+inline void PrintModRefResults(const char* Msg, bool P,
+                               const llvm::Instruction* I,
+                               const llvm::Value* Ptr, const llvm::Module* M);
+
+inline void PrintModRefResults(const char* Msg, bool P,
+                               const llvm::CallSite CSA,
+                               const llvm::CallSite CSB, const llvm::Module* M);
+
+inline void PrintLoadStoreResults(const char* Msg, bool P,
+                                  const llvm::Value* V1, const llvm::Value* V2,
+                                  const llvm::Module* M);
 
 class PointsToGraph {
  private:
@@ -64,21 +85,20 @@ class PointsToGraph {
 
   graph_t ptg;
   map<const llvm::Value*, vertex_t> value_vertex_map;
-  const llvm::Function* F = nullptr;
+  llvm::Function& F;
 
  public:
-  PointsToGraph(llvm::AAResults& AA, const llvm::Function* F);
+  PointsToGraph(llvm::AAResults& AA, llvm::Function* F);
   PointsToGraph() = default;
   virtual ~PointsToGraph() = default;
   inline bool isInterestingPointer(llvm::Value* V);
   bool containsValue(llvm::Value* V);
-  set<const llvm::Value*> aliasWithFormalParameter(const llvm::Function* F,
-                                                   const llvm::Value* V);
+  set<const llvm::Value*> isAliasingWithFormals(const llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
   void printValueVertexMap();
   void merge_graphs(PointsToGraph& g, const llvm::Value* v_in_g,
                     const PointsToGraph& h, const llvm::Value* u_in_h);
-  friend ostream& operator<<(ostream& os, const PointsToGraph& ptg);
+  void print();
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

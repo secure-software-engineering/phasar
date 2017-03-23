@@ -1,0 +1,7 @@
+[
+    {
+        "command": "c++ -c -std=c++11 -o main /home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_cpp_file_project/main.cpp", 
+        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_cpp_file_project", 
+        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_cpp_file_project/main.cpp"
+    }
+]

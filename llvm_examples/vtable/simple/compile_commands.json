@@ -1,0 +1,12 @@
+[
+    {
+        "command": "c++ -c -o main /home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple/base.cpp", 
+        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple", 
+        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple/base.cpp"
+    }, 
+    {
+        "command": "c++ -c -o main /home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple/main.cpp", 
+        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple", 
+        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/llvm_examples/vtable/simple/main.cpp"
+    }
+]

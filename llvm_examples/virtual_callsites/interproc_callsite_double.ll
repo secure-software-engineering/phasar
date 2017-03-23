@@ -1,5 +1,5 @@
-; ModuleID = 'interproc_callsite.ll'
-source_filename = "interproc_callsite.cpp"
+; ModuleID = 'interproc_callsite_double.ll.new'
+source_filename = "interproc_callsite_double.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
@@ -52,8 +52,11 @@ define void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8)) #0 {
 ; Function Attrs: norecurse uwtable
 define i32 @main() #1 {
   %1 = alloca %struct.Derived, align 8
+  %2 = alloca %struct.Base, align 8
   call void @_ZN7DerivedC2Ev(%struct.Derived* %1) #4
-  %2 = bitcast %struct.Derived* %1 to %struct.Base*
+  %3 = bitcast %struct.Derived* %1 to %struct.Base*
+  call void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8) %3)
+  call void @_ZN4BaseC2Ev(%struct.Base* %2) #4
   call void @_Z12callFunctionR4Base(%struct.Base* dereferenceable(8) %2)
   ret i32 0
 }
