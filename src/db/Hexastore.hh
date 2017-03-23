@@ -2,20 +2,33 @@
 #include <string>
 #include <map>
 #include <sqlite3.h>
+#include <functional>
 
 using namespace std;
 
-class Hexastore {
+namespace hexastore {
 
-private:
-  void prepare();
-  sqlite3* db;
+  typedef struct {
+    string subject;
+    string predicate;
+    string object;
+  } hs_result;
 
-public:
-  Hexastore(string filename);
-  ~Hexastore();
-  void put(string[3]);
-  void doPut(string, string[3]);
-  map<string, string> query(vector<string>);
-  void close();
-};
+  class Hexastore {
+
+  private:
+    void prepare();
+    sqlite3* db;
+
+  public:
+    Hexastore(string filename);
+    ~Hexastore();
+    void put(string[3]);
+    vector<hs_result> get(vector<string> query, function<int (hs_result)> cb = [](hs_result){return 0;});
+    void close();
+  private:
+    void doPut(string, string[3]);
+  };
+
+
+}

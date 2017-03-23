@@ -8,6 +8,7 @@
 #include <boost/format.hpp>
 
 using namespace boost;
+using namespace hexastore;
 
 static int callback(void *NotUsed, int argc, char **argv, char **azColName){
   int i;
@@ -33,7 +34,8 @@ Hexastore::Hexastore(string filename) {
   sqlite3_exec(this->db, query.c_str(), callback, 0, &err);
 
   if (err != NULL)
-    cout << err << "\n";
+    cout << err << "\n\n";
+
 
 }
 
@@ -42,17 +44,12 @@ Hexastore::~Hexastore() {
 }
 
 void Hexastore::put(string* values) {
-  this->doPut(hs_queries::spo_insert, values);
-  this->doPut(hs_queries::sop_insert, values);
-  this->doPut(hs_queries::pso_insert, values);
-  this->doPut(hs_queries::pos_insert, values);
-  this->doPut(hs_queries::osp_insert, values);
-  this->doPut(hs_queries::ops_insert, values);
-}
-
-map<string, string> Hexastore::query(vector<string>) {
-
-  return map<string, string>();
+  this->doPut(hexastore::SPO_INSERT, values);
+  this->doPut(hexastore::SOP_INSERT, values);
+  this->doPut(hexastore::PSO_INSERT, values);
+  this->doPut(hexastore::POS_INSERT, values);
+  this->doPut(hexastore::OSP_INSERT, values);
+  this->doPut(hexastore::OPS_INSERT, values);
 }
 
 void Hexastore::close() {
@@ -65,7 +62,73 @@ void Hexastore::doPut(string query, string* values) {
   char* err;
   sqlite3_exec(this->db, compiled_query.c_str(), callback, 0, &err);
 
+  
   if (err != NULL)
     cout << err;
+
+}
+
+vector<hs_result> Hexastore::get(vector<string> query, function<int(hs_result)> cb) {
+  vector<hs_result> result;
+
+  
+  if (query.size() != 3) {
+    return vector<hs_result>();
+  }
+
+  string querystring;
+
+  if (query[0] == "?") {
+    if (query[1] == "?") {
+      if (query[2] == "?") {
+        querystring = SEARCH_XXX;
+      } else {
+        querystring = SEARCH_XXO;
+      }
+    } else {
+      if (query[2] == "?") {
+        querystring = SEARCH_XPX;
+      } else {
+        querystring = SEARCH_XPO;
+      }
+    }
+  } else {
+    if (query[1] == "?") {
+      if (query[2] == "?") {
+        querystring = SEARCH_SXX;
+      } else {
+        querystring = SEARCH_SXO;
+      }
+    } else {
+      if (query[2] == "?") {
+        querystring = SEARCH_SPX;
+      } else {
+        querystring = SEARCH_SPO;
+      }
+    }
+  }
+
+  string compiled_query = str(format(querystring) % query[0] % query[1] % query[2]);
+
+  char* err;
+
+  auto sqlite_cb = [] (void* cb, int argc, char **argv, char **azColName) {
+    hs_result r;
+    r.subject = argv[0];
+    r.predicate = argv[1];
+    r.object = argv[2];
+    function<int(hs_result)> cb_function = *((function<int(hs_result)>*) cb);
+    cb_function(r);
+    // cout << argv[0] << " " << argv[1] << " " << argv[2] << "\n";
+    return 0;
+  };
+  sqlite3_exec(this->db, compiled_query.c_str(), sqlite_cb, &cb, &err);
+
+
+  if(err != NULL) {
+    cout << err;
+  }
+
+  return result;
 
 }
