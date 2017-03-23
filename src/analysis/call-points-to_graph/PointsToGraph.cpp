@@ -114,29 +114,24 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(*Fu) {
       llvm::Type* I2ElTy =
           llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
       if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
-    //   switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
-    //     case llvm::NoAlias:
-    //       //           // PrintResults("NoAlias", PrintNoAlias, *I1, *I2,
-    //       //           F->getParent());
-    //       break;
-    //     case llvm::MayAlias:
-    //       //           // PrintResults("MayAlias", PrintMayAlias, *I1, *I2,
-    //       //           F->getParent());
-    //       boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-    //       break;
-    //     case llvm::PartialAlias:
-    //       //           // PrintResults("PartialAlias", PrintPartialAlias, *I1,
-    //       //           *I2,
-    //       //           // F->getParent());
-    //       //           cout << "found partial alias" << endl;
-    //       boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-    //       break;
-    //     case llvm::MustAlias:
-    //       //           // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-    //       //           // F->getParent());
-    //       boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-    //       break;
-    //   }
+      switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
+        case llvm::NoAlias:
+          PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F.getParent());
+          break;
+        case llvm::MayAlias:
+          PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F.getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+        case llvm::PartialAlias:
+          PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+                       F.getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+        case llvm::MustAlias:
+          PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F.getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+      }
     }
   }
 }
@@ -153,7 +148,7 @@ bool PointsToGraph::containsValue(llvm::Value* V) {
   return false;
 }
 
-set<const llvm::Value*> PointsToGraph::isAliasingWithFormalParameter(
+set<const llvm::Value*> PointsToGraph::isAliasingWithFormals(
     const llvm::Value* V) {
   set<vertex_t> formals;
   for (auto& formal : F.args()) {

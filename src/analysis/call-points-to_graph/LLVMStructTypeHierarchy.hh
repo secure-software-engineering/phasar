@@ -24,12 +24,15 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include "../../db/DBConn.hh"
 #include "../../db/ProjectIRCompiledDB.hh"
 #include "VTable.hh"
 using namespace std;
 
+class DBConn;
+
 class LLVMStructTypeHierarchy {
- private:
+ public:
   struct VertexProperties {
     llvm::Type* llvmtype;
     string name;
@@ -45,6 +48,7 @@ class LLVMStructTypeHierarchy {
   typedef boost::graph_traits<digraph_t>::vertex_descriptor vertex_t;
   typedef boost::graph_traits<digraph_t>::edge_descriptor edge_t;
 
+private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t>& subtypes;
     reachability_dfs_visitor(set<vertex_t>& types) : subtypes(types) {}
@@ -56,6 +60,7 @@ class LLVMStructTypeHierarchy {
 
   digraph_t g;
   map<string, vertex_t> type_vertex_map;
+  // maps type names to the corresponding vtable
   map<string, VTable> vtable_map;
   set<string> recognized_struct_types;
 
@@ -77,6 +82,9 @@ class LLVMStructTypeHierarchy {
   bool containsVTable(string TypeName);
   void printTransitiveClosure();
   void print();
+  // these are defined in the DBConn class
+  friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
+  friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);
 };
 
 #endif /* ANALYSIS_LLVMSTRUCTTYPEHIERARCHY_HH_ */

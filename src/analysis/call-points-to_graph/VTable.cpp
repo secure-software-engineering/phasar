@@ -19,3 +19,16 @@ ostream& operator<<(ostream& os, const VTable& t) {
            [&](const string& entry) { os << entry << "\n"; });
   return os;
 }
+
+int VTable::getEntryByFunction(string fname) const {
+  auto iter = find(vtbl.begin(), vtbl.end(), fname);
+  if (iter == vtbl.end()) {
+    return -1;
+  } else {
+    return distance(vtbl.begin(), iter);
+  }
+}
+
+vector<string> VTable::getVTable() const {
+  return vtbl;
+}

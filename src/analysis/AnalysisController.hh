@@ -22,7 +22,6 @@
 #include <iostream>
 #include <string>
 #include "../db/DBConn.hh"
-#include "../db/ModuleAnalysisResults.hh"
 #include "../db/ProjectIRCompiledDB.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
 #include "ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
@@ -115,61 +114,68 @@ class AnalysisController {
     // module pass at some point)
     IRDB.createFunctionModuleMapping();
     IRDB.print();
+
+    DBConn& db = DBConn::getInstance();
+    // db << IRDB;
+
     // reconstruct the inter-modular class hierarchy and virtual function tables
     LLVMStructTypeHierarchy CH(IRDB);
     CH.print();
 
-    // prepare the ICFG the data-flow analyses are build on
-    cout << "starting data-flow analyses" << endl;
-    for (auto& module_entry : IRDB.modules) {
-      llvm::Module& M = *(module_entry.second);
-      LLVMBasedInterproceduralICFG icfg(M, *AAResult, CH, IRDB);
-      llvm::Function* F = M.getFunction("main");
-      cout << "PointsToGraph:" << endl;
-      PointsToGraph ptg(*AAResult, F);
-      ptg.print();
-      //    cout << "CALLING WALKER!" << endl;
-      //   icfg.resolveIndirectCallWalker(F);
-      // create the analyses problems queried by the user and start analyzing
+    db << CH;
+    // db >> CH;
 
-      // TODO: change the implementation of 'createZeroValue()'
-      // The zeroValue can only be added one to a given context which means
-      // a user can only create one analysis problem at a time, due to the
-      // implementation of 'createZeroValue()'.
+    // // prepare the ICFG the data-flow analyses are build on
+    // cout << "starting data-flow analyses" << endl;
+    // for (auto& module_entry : IRDB.modules) {
+    //   llvm::Module& M = *(module_entry.second);
+    //   LLVMBasedInterproceduralICFG icfg(M, *AAResult, CH, IRDB);
+    //   llvm::Function* F = M.getFunction("main");
+    //   cout << "PointsToGraph:" << endl;
+    //   PointsToGraph ptg(*AAResult, F);
+    //   ptg.print();
+    //   //    cout << "CALLING WALKER!" << endl;
+    //   //   icfg.resolveIndirectCallWalker(F);
+    //   // create the analyses problems queried by the user and start analyzing
 
-      for (auto analysis : Analyses) {
-        switch (analysis) {
-          case AnalysisKind::IFDS_TaintAnalysis:
-            cout << "IFDS_TaintAnalysis\n";
-            break;
-          case AnalysisKind::IDE_TaintAnalysis:
-            cout << "IDE_TaintAnalysis\n";
-            break;
-          case AnalysisKind::IFDS_TypeAnalysis:
-            cout << "IFDS_TypeAnalysis\n";
-            break;
-          case AnalysisKind::IFDS_UninitializedVariables: {
-            cout << "IFDS_UninitalizedVariables\n";
-            // IFDSUnitializedVariables uninitializedvarproblem(
-            //     icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-            // LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&>
-            //     llvmunivsolver(uninitializedvarproblem, true);
-            // llvmunivsolver.solve();
-            break;
-          }
-          default:
-            cout << "analysis not valid!" << endl;
-            break;
-        }
-      }
-    }
+    //   // TODO: change the implementation of 'createZeroValue()'
+    //   // The zeroValue can only be added one to a given context which means
+    //   // a user can only create one analysis problem at a time, due to the
+    //   // implementation of 'createZeroValue()'.
 
-    // after every module has been analyzed the analyses results must be merged
-    // and the final results must be computed
-    cout << "combining module-wise results" << endl;
+    //   for (auto analysis : Analyses) {
+    //     switch (analysis) {
+    //       case AnalysisKind::IFDS_TaintAnalysis:
+    //         cout << "IFDS_TaintAnalysis\n";
+    //         break;
+    //       case AnalysisKind::IDE_TaintAnalysis:
+    //         cout << "IDE_TaintAnalysis\n";
+    //         break;
+    //       case AnalysisKind::IFDS_TypeAnalysis:
+    //         cout << "IFDS_TypeAnalysis\n";
+    //         break;
+    //       case AnalysisKind::IFDS_UninitializedVariables: {
+    //         cout << "IFDS_UninitalizedVariables\n";
+    //         // IFDSUnitializedVariables uninitializedvarproblem(
+    //         //     icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
+    //         // LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&>
+    //         //     llvmunivsolver(uninitializedvarproblem, true);
+    //         // llvmunivsolver.solve();
+    //         break;
+    //       }
+    //       default:
+    //         cout << "analysis not valid!" << endl;
+    //         break;
+    //     }
+    //   }
+    // }
 
-    // here we go, now we are done
-    cout << "done analysis!" << endl;
+    // // after every module has been analyzed the analyses results must be merged
+    // // and the final results must be computed
+    // cout << "combining module-wise results" << endl;
+
+    // // here we go, now we are done
+    // cout << "done analysis!" << endl;
   }
   ~AnalysisController() = default;
 };

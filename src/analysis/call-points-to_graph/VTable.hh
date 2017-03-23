@@ -23,7 +23,9 @@ class VTable {
   VTable() = default;
   virtual ~VTable() = default;
   string getFunctionByEntry(unsigned i);
+  int getEntryByFunction(string fname) const;
   void addEntry(string entry);
+  vector<string> getVTable() const;
   friend ostream& operator<<(ostream& os, const VTable& t);
 };
 

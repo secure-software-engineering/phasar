@@ -93,7 +93,7 @@ class PointsToGraph {
   virtual ~PointsToGraph() = default;
   inline bool isInterestingPointer(llvm::Value* V);
   bool containsValue(llvm::Value* V);
-  set<const llvm::Value*> isAliasingWithFormalParameter(const llvm::Value* V);
+  set<const llvm::Value*> isAliasingWithFormals(const llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
   void printValueVertexMap();
   void merge_graphs(PointsToGraph& g, const llvm::Value* v_in_g,
