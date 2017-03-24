@@ -21,7 +21,10 @@ int main() {
     return 0;
   };
 
+  cout << "Who likes what?" << "\n";
   h.get((vector<string>){"?", "likes", "?"}, output);
+  cout << "\n";
+  cout << "What does peter hate?" << "\n";
   h.get((vector<string>){"peter", "hates", "?"}, output);
 
 

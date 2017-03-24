@@ -23,10 +23,8 @@ Hexastore::Hexastore(string filename) {
   sqlite3_open(filename.c_str(), &this->db);
   
 
-  ifstream in;
-  in.open("../src/db/hs_init.sql");
 
-  const string query = static_cast<std::ostringstream&>(ostringstream{} << in.rdbuf()).str();
+  const string query = hexastore::INIT;
 
   char* err;
 
