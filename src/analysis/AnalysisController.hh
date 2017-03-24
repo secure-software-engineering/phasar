@@ -88,9 +88,9 @@ class AnalysisController {
       PM.run(M);
       // just to be sure that none of the passes has messed up the module!
       bool broken_debug_info = false;
-      // if (llvm::verifyModule(M, &llvm::errs(), &broken_debug_info)) {
-      //   cout << "AnalysisController: module is broken!" << endl;
-      // }
+      if (llvm::verifyModule(M, &llvm::errs(), &broken_debug_info)) {
+        cout << "AnalysisController: module is broken!" << endl;
+      }
       if (broken_debug_info) {
         cout << "AnalysisController: debug info is broken" << endl;
       }
