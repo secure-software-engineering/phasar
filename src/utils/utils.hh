@@ -1,8 +1,10 @@
 #ifndef UTILS_HH
 #define UTILS_HH
 
+#include <cxxabi.h>
 #include <algorithm>
 #include <iostream>
+#include <string>
 using namespace std;
 
 #define MYDEBUG
@@ -20,6 +22,6 @@ using namespace std;
     exit(-1);                  \
   }
 
-ostream& operator<<(ostream& os, const vector<const char*> v);
+string cxx_demangle(string mangled_name);
 
 #endif

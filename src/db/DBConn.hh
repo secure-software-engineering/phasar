@@ -110,8 +110,8 @@ class DBConn {
   bool insertType(string type_name, VTable);
   VTable getVTable(string type_name);
   set<string> getAllTypeIdentifiers();
-  bool insertLLVMStructHierarchyGraph(typename LLVMStructTypeHierarchy::digraph_t graph);
-  LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
+  // bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::digraph_t graph);
+  // LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
   friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);
 

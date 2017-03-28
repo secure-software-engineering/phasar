@@ -20,6 +20,10 @@ ostream& operator<<(ostream& os, const VTable& t) {
   return os;
 }
 
+void VTable::addVTable(const VTable& vtbl_toadd) {
+  vtbl.insert(vtbl.begin(), vtbl_toadd.vtbl.begin(), vtbl_toadd.vtbl.end());
+}
+
 int VTable::getEntryByFunction(string fname) const {
   auto iter = find(vtbl.begin(), vtbl.end(), fname);
   if (iter == vtbl.end()) {
@@ -31,4 +35,8 @@ int VTable::getEntryByFunction(string fname) const {
 
 vector<string> VTable::getVTable() const {
   return vtbl;
+}
+
+bool VTable::empty() {
+  return vtbl.empty();
 }

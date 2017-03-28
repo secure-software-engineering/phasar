@@ -358,25 +358,25 @@ set<string> DBConn::getAllTypeIdentifiers() {
   return types;
 }
 
-bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::digraph_t g) {
-  typename boost::graph_traits<LLVMStructTypeHierarchy::digraph_t>::edge_iterator ei_start, e_end;
-	for (tie(ei_start, e_end) = boost::edges(g); ei_start != e_end; ++ei_start) {
-		auto source = boost::source(*ei_start, g);
-		auto target = boost::target(*ei_start, g);
-		cout << g[source].name << " --> " << g[target].name << "\n";
-	}
-  return false;
-}
+// bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::digraph_t g) {
+//   typename boost::graph_traits<LLVMStructTypeHierarchy::digraph_t>::edge_iterator ei_start, e_end;
+// 	for (tie(ei_start, e_end) = boost::edges(g); ei_start != e_end; ++ei_start) {
+// 		auto source = boost::source(*ei_start, g);
+// 		auto target = boost::target(*ei_start, g);
+// 		cout << g[source].name << " --> " << g[target].name << "\n";
+// 	}
+//   return false;
+// }
 
-LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
+// LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
 
-void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
-  cout << "WRITE STH TO DB\n";
-  for (auto& entry : STH.vtable_map) {
-      db.insertType(entry.first, entry.second);
-  }
-  insertLLVMStructHierarchyGraph(STH.g);
-}
+// void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
+//   cout << "WRITE STH TO DB\n";
+//   for (auto& entry : STH.vtable_map) {
+//       db.insertType(entry.first, entry.second);
+//   }
+//   insertLLVMStructHierarchyGraph(STH.g);
+// }
 
 void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
   cout << "READ STH FROM DB\n";

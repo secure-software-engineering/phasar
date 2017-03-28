@@ -39,16 +39,18 @@ class LLVMStructTypeHierarchy {
   };
 
   struct EdgeProperties {
-    string name;
+    int discovery_order;
+    EdgeProperties() : discovery_order(0) {}
+    EdgeProperties(int i) : discovery_order(i) {}
   };
 
-  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::directedS,
+  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
                                 VertexProperties, EdgeProperties>
-      digraph_t;
-  typedef boost::graph_traits<digraph_t>::vertex_descriptor vertex_t;
-  typedef boost::graph_traits<digraph_t>::edge_descriptor edge_t;
+      bidigraph_t;
+  typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
+  typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
 
-private:
+ private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t>& subtypes;
     reachability_dfs_visitor(set<vertex_t>& types) : subtypes(types) {}
@@ -58,10 +60,12 @@ private:
     }
   };
 
-  digraph_t g;
+  bidigraph_t g;
   map<string, vertex_t> type_vertex_map;
   // maps type names to the corresponding vtable
   map<string, VTable> vtable_map;
+  // maps type to contained types
+  map<string, vector<string>> contained_type_map;
   set<string> recognized_struct_types;
 
   void reconstructVTable(const llvm::Module& M);

@@ -14,25 +14,44 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
     analyzeModule(M);
     reconstructVTable(M);
   }
+  cout << "transitive closure" << endl;
+  // we have to complete the transitive vtables from derived classes
+  printTransitiveClosure();
+  bidigraph_t tc;
+  boost::transitive_closure(g, tc);
+  typename boost::graph_traits<bidigraph_t>::vertex_iterator vi, vi_end;
+  typename boost::graph_traits<bidigraph_t>::in_edge_iterator ei, ei_end;
+  for (tie(vi, vi_end) = boost::vertices(tc); vi != vi_end; ++vi) {
+    cout << g[*vi].name << endl;
+    for (tie(ei, ei_end) = boost::in_edges(*vi, tc); ei != ei_end; ++ei) {
+      auto source = boost::source(*ei, tc);
+      //vtable_map[g[*vi].name].addVTable(vtable_map[g[source].name]);
+        cout << "is a: " << g[source].name << endl;
+    }
+  }
 }
 
 void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
-  for (auto& function : M.functions()) {
-    if (function.getArgumentList().size() > 0 && function.hasAddressTaken() &&
-        function.getArgumentList().begin()->getType()->isPointerTy() &&
-        function.getArgumentList()
-            .begin()
-            ->getType()
-            ->getPointerElementType()
-            ->isStructTy()) {
-      llvm::Type* T = function.getArgumentList()
-                          .begin()
-                          ->getType()
-                          ->getPointerElementType();
-      llvm::StructType* ST = llvm::dyn_cast<llvm::StructType>(T);
-      vtable_map[ST->getName().str()].addEntry(function.getName().str());
-    }
-  }
+  llvm::Module& m = const_cast<llvm::Module&>(M);
+    for (auto& global : m.globals()) {
+      string demangled = cxx_demangle(global.getName().str());
+      if (demangled == "") continue;
+      if (llvm::isa<llvm::Constant>(global) && demangled.find("vtable for Z") != demangled.npos) {
+        llvm::Constant* const_init = global.getInitializer();
+        for (unsigned i = 0; i < const_init->getNumOperands(); ++i) {
+          if (llvm::ConstantExpr* constant_expr = llvm::dyn_cast<llvm::ConstantExpr>(const_init->getAggregateElement(i))) {
+            if (constant_expr->isCast()) {
+              if (llvm::Constant* cast = llvm::ConstantExpr::getBitCast(constant_expr, constant_expr->getType())) {
+                if (llvm::Function* vfunc = llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
+                  cout << vfunc->getName().str() << endl;
+                  // get first arguments and its type to determine the objects types ;-)
+                }
+              }
+            }
+          }
+        }
+      }
+    }  
 }
 
 void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M) {
@@ -66,10 +85,10 @@ void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M) {
 set<string> LLVMStructTypeHierarchy::getTransitivelyReachableTypes(
     string TypeName) {
   set<string> reachable_nodes;
-  digraph_t tc;
+  bidigraph_t tc;
   boost::transitive_closure(g, tc);
   // get all out edges of queried type
-  typename boost::graph_traits<digraph_t>::out_edge_iterator ei, ei_end;
+  typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
   for (tie(ei, ei_end) = boost::out_edges(type_vertex_map[TypeName], tc);
        ei != ei_end; ++ei) {
     auto source = boost::source(*ei, tc);
@@ -79,8 +98,8 @@ set<string> LLVMStructTypeHierarchy::getTransitivelyReachableTypes(
   //	boost::print_graph(tc, boost::get(&VertexProperties::name, g));
   //	my_dfs_visitor vis;
   //	boost::depth_first_search(tc, boost::visitor(vis).root_vertex(4));
-  //	boost::property_map<digraph_t, llvm::Type* VertexProperties::*>::type
-  //llvmtype = boost::get(&VertexProperties::llvmtype, g);
+  //	boost::property_map<bidigraph_t, llvm::Type* VertexProperties::*>::type
+  // llvmtype = boost::get(&VertexProperties::llvmtype, g);
   //	for (auto vertex : *(vis.collected_vertices)) {
   //		cout << vertex << endl;
   //		reachable_nodes.insert(vertex_to_value[vertex]);
@@ -156,7 +175,7 @@ void LLVMStructTypeHierarchy::print() {
 }
 
 void LLVMStructTypeHierarchy::printTransitiveClosure() {
-  digraph_t tc;
+  bidigraph_t tc;
   boost::transitive_closure(g, tc);
   boost::print_graph(
       tc, boost::get(&LLVMStructTypeHierarchy::VertexProperties::name, g));

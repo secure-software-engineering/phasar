@@ -69,7 +69,7 @@ class AnalysisController {
     //	TODO lookup Builder.populateModulePassManager();
 
     // just for testing
-    map<string, unique_ptr<llvm::AAResults>> AAMap;
+    // map<string, unique_ptr<llvm::AAResults>> AAMap;
 
     // here we perform a pre-analysis and run some very important passes over
     // all of the IR modules in order to perform various data flow analysis
@@ -96,15 +96,15 @@ class AnalysisController {
       }
       // obtain the very important alias analysis results
       // llvm::AAResults AARes(move(AARWP->getAAResults()));
-      AAMap.insert(make_pair(M.getModuleIdentifier(),
-                             unique_ptr<llvm::AAResults>(new llvm::AAResults(
-                                 move(AARWP->getAAResults())))));
+      // AAMap.insert(make_pair(M.getModuleIdentifier(),
+      //                        unique_ptr<llvm::AAResults>(new llvm::AAResults(
+      //                            move(AARWP->getAAResults())))));
       M.dump();
     }
 
-    cout << "AAMap size is: " << AAMap.size() << endl;
-    llvm::AAResults* AAResult =
-        AAMap["/home/pdschbrt/Schreibtisch/test/interproc_callsite.cpp"].get();
+    // cout << "AAMap size is: " << AAMap.size() << endl;
+    // llvm::AAResults* AAResult =
+    //     AAMap["/home/pdschbrt/Schreibtisch/test/interproc_callsite.cpp"].get();
 
     // some very important pre-analyses are performed here, that have to store
     // the state for the whole project - that is for all IR modules making up
@@ -122,7 +122,7 @@ class AnalysisController {
     LLVMStructTypeHierarchy CH(IRDB);
     CH.print();
 
-    db << CH;
+    // db << CH;
     // db >> CH;
 
     // // prepare the ICFG the data-flow analyses are build on

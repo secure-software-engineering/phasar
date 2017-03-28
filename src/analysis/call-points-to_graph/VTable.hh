@@ -25,6 +25,8 @@ class VTable {
   string getFunctionByEntry(unsigned i);
   int getEntryByFunction(string fname) const;
   void addEntry(string entry);
+  void addVTable(const VTable& vtbl);
+  bool empty();
   vector<string> getVTable() const;
   friend ostream& operator<<(ostream& os, const VTable& t);
 };
