@@ -41,21 +41,21 @@ Hexastore::~Hexastore() {
   sqlite3_close(this->db);
 }
 
-void Hexastore::put(string* values) {
-  this->doPut(hexastore::SPO_INSERT, values);
-  this->doPut(hexastore::SOP_INSERT, values);
-  this->doPut(hexastore::PSO_INSERT, values);
-  this->doPut(hexastore::POS_INSERT, values);
-  this->doPut(hexastore::OSP_INSERT, values);
-  this->doPut(hexastore::OPS_INSERT, values);
+void Hexastore::put(string subject, string predicate, string object) {
+  this->doPut(hexastore::SPO_INSERT, subject, predicate, object);
+  this->doPut(hexastore::SOP_INSERT, subject, predicate, object);
+  this->doPut(hexastore::PSO_INSERT, subject, predicate, object);
+  this->doPut(hexastore::POS_INSERT, subject, predicate, object);
+  this->doPut(hexastore::OSP_INSERT, subject, predicate, object);
+  this->doPut(hexastore::OPS_INSERT, subject, predicate, object);
 }
 
 void Hexastore::close() {
   sqlite3_close(this->db);
 }
 
-void Hexastore::doPut(string query, string* values) {
-  string compiled_query = str(format(query) % values[0] % values[1] % values[2]);
+void Hexastore::doPut(string query, string subject, string predicate, string object) {
+  string compiled_query = str(format(query) % subject % predicate % object);
 
   char* err;
   sqlite3_exec(this->db, compiled_query.c_str(), callback, 0, &err);

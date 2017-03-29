@@ -11,10 +11,10 @@ int main() {
 
   hexastore::Hexastore h("test.sqlite");
 
-  h.put((string[]){"mary", "likes", "hexastores"});
-  h.put((string[]){"mary", "likes", "apples"});
-  h.put((string[]){"peter", "likes", "apples"});
-  h.put((string[]){"peter", "hates", "hexastores"});
+  h.put("mary", "likes", "hexastores");
+  h.put("mary", "likes", "apples");
+  h.put("peter", "likes", "apples");
+  h.put("peter", "hates", "hexastores");
 
   auto output = [](hs_result res) {
     cout << res.subject << " " << res.predicate << " " << res.object << "\n";

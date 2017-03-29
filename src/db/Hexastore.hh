@@ -23,11 +23,11 @@ namespace hexastore {
   public:
     Hexastore(string filename);
     ~Hexastore();
-    void put(string[3]);
+    void put(string subject, string predicate, string object);
     vector<hs_result> get(vector<string> query, function<int (hs_result)> cb = [](hs_result){return 0;});
     void close();
   private:
-    void doPut(string, string[3]);
+    void doPut(string query, string subject, string predicate, string object);
   };
 
 

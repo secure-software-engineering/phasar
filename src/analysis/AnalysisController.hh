@@ -1,7 +1,8 @@
 #ifndef ANALYSISCONTROLLER_HH_
 #define ANALYSISCONTROLLER_HH_
 
-#include <llvm/Analysis/CFLAliasAnalysis.h>
+// #include <llvm/Analysis/CFLAliasAnalysis.h>
+#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/IRBuilder.h>
@@ -78,7 +79,8 @@ class AnalysisController {
       llvm::Module& M = *(module_entry.second);
       llvm::LLVMContext& C = *(IRDB.contexts[module_entry.first]);
       llvm::legacy::PassManager PM;
-      llvm::CFLAAWrapperPass* CFLAAPass = new llvm::CFLAAWrapperPass();
+      // llvm::CFLAAWrapperPass* CFLAAPass = new llvm::CFLAAWrapperPass();
+      llvm::CFLAndersAAWrapperPass* CFLAAPass = new llvm::CFLAndersAAWrapperPass();
       llvm::AAResultsWrapperPass* AARWP = new llvm::AAResultsWrapperPass();
       PM.add(llvm::createPromoteMemoryToRegisterPass());
       PM.add(CFLAAPass);

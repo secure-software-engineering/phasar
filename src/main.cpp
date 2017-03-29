@@ -35,7 +35,7 @@
 #include <llvm/ADT/SmallVector.h>
 #include <llvm/ADT/StringMap.h>
 #include <llvm/Analysis/AliasSetTracker.h>
-#include <llvm/Analysis/CFLAliasAnalysis.h>
+#include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/Analysis/LoopPass.h>
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
@@ -119,10 +119,10 @@ llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
 char GeneralStatisticsPass::ID = 0;
 char ValueAnnotationPass::ID = 13;
 
-namespace boost {
-// this should be removed at some point!
-void throw_exception(std::exception const &e) {}
-}
+// namespace boost {
+// // this should be removed at some point!
+// void throw_exception(std::exception const &e) {}
+// }
 
 int main(int argc, const char **argv) {
   if (argc == 1) {
