@@ -319,7 +319,7 @@ bool DBConn::insertType(string type_name, VTable vtbl) {
     CFINALIZE(sqlite3_finalize(get_func_id_stmt));
     cout << "FUNCTION ID: " << function_id << endl;
     // insert the virtual function into the vfunctions table
-   int vtable_entry = vtbl.getEntryByFunction(vfunc);
+   int vtable_entry = vtbl.getEntryByFunctionName(vfunc);
    CPREPARE(sqlite3_prepare_v2(db, insert_vfunc_query.c_str(), insert_vfunc_query.size(), &insert_vfunc_stmt, NULL));
    CBIND(sqlite3_bind_int(insert_vfunc_stmt, 1, function_id));
    CBIND(sqlite3_bind_int(insert_vfunc_stmt, 2, vtable_entry));

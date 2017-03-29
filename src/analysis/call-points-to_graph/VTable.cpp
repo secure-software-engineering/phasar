@@ -7,7 +7,7 @@
 
 #include "VTable.hh"
 
-string VTable::getFunctionByEntry(unsigned i) {
+string VTable::getFunctionByIdx(unsigned i) {
   if (i < vtbl.size()) return vtbl[i];
   return "";
 }
@@ -20,11 +20,7 @@ ostream& operator<<(ostream& os, const VTable& t) {
   return os;
 }
 
-void VTable::addVTable(const VTable& vtbl_toadd) {
-  vtbl.insert(vtbl.begin(), vtbl_toadd.vtbl.begin(), vtbl_toadd.vtbl.end());
-}
-
-int VTable::getEntryByFunction(string fname) const {
+int VTable::getEntryByFunctionName(string fname) const {
   auto iter = find(vtbl.begin(), vtbl.end(), fname);
   if (iter == vtbl.end()) {
     return -1;
