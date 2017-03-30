@@ -1,132 +1,88 @@
-#include "./Hexastore.hh"
-#include "./Queries.hh"
-
-#include <sqlite3.h>
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <boost/format.hpp>
+#include "Hexastore.hh"
 
 using namespace boost;
 using namespace hexastore;
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName){
-  int i;
-  for(i=0; i<argc; i++){
-    printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-  }
-  printf("\n");
-  return 0;
-}
-
 Hexastore::Hexastore(string filename) {
-  sqlite3_open(filename.c_str(), &this->db);
-  
-
-
+  sqlite3_open(filename.c_str(), &db);
   const string query = hexastore::INIT;
-
   char* err;
-
-
-  sqlite3_exec(this->db, query.c_str(), callback, 0, &err);
-
+  sqlite3_exec(db, query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err << "\n\n";
-
-
 }
 
 Hexastore::~Hexastore() {
-  sqlite3_close(this->db);
+  sqlite3_close(db);
 }
 
-void Hexastore::put(string subject, string predicate, string object) {
-  this->doPut(hexastore::SPO_INSERT, subject, predicate, object);
-  this->doPut(hexastore::SOP_INSERT, subject, predicate, object);
-  this->doPut(hexastore::PSO_INSERT, subject, predicate, object);
-  this->doPut(hexastore::POS_INSERT, subject, predicate, object);
-  this->doPut(hexastore::OSP_INSERT, subject, predicate, object);
-  this->doPut(hexastore::OPS_INSERT, subject, predicate, object);
+int Hexastore::callback(void *NotUsed, int argc, char **argv, char **azColName){
+  for(int i = 0; i < argc; ++i){
+    cout << azColName[i] << " " << (argv[i] ? argv[i] : "NULL") << endl;
+  }
+  return 0;
 }
 
-void Hexastore::close() {
-  sqlite3_close(this->db);
+void Hexastore::put(array<string, 3> edge) {
+  doPut(hexastore::SPO_INSERT, edge);
+  doPut(hexastore::SOP_INSERT, edge);
+  doPut(hexastore::PSO_INSERT, edge);
+  doPut(hexastore::POS_INSERT, edge);
+  doPut(hexastore::OSP_INSERT, edge);
+  doPut(hexastore::OPS_INSERT, edge);
 }
 
-void Hexastore::doPut(string query, string subject, string predicate, string object) {
-  string compiled_query = str(format(query) % subject % predicate % object);
-
+void Hexastore::doPut(string query, array<string, 3> edge) {
+  string compiled_query = str(format(query) % edge[0] % edge[1] % edge[2]);
   char* err;
-  sqlite3_exec(this->db, compiled_query.c_str(), callback, 0, &err);
-
-  
+  sqlite3_exec(db, compiled_query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err;
-
 }
 
-vector<hs_result> Hexastore::get(vector<string> query, function<int(hs_result)> cb) {
-  vector<hs_result> result;
-
-  
-  if (query.size() != 3) {
-    return vector<hs_result>();
-  }
-
+vector<hs_result> Hexastore::get(array<string, 3> edge_query, size_t result_size_hint) {
+  vector<hs_result> result(result_size_hint);
   string querystring;
-
-  if (query[0] == "?") {
-    if (query[1] == "?") {
-      if (query[2] == "?") {
+  if (edge_query[0] == "?") {
+    if (edge_query[1] == "?") {
+      if (edge_query[2] == "?") {
         querystring = SEARCH_XXX;
       } else {
         querystring = SEARCH_XXO;
       }
     } else {
-      if (query[2] == "?") {
+      if (edge_query[2] == "?") {
         querystring = SEARCH_XPX;
       } else {
         querystring = SEARCH_XPO;
       }
     }
   } else {
-    if (query[1] == "?") {
-      if (query[2] == "?") {
+    if (edge_query[1] == "?") {
+      if (edge_query[2] == "?") {
         querystring = SEARCH_SXX;
       } else {
         querystring = SEARCH_SXO;
       }
     } else {
-      if (query[2] == "?") {
+      if (edge_query[2] == "?") {
         querystring = SEARCH_SPX;
       } else {
         querystring = SEARCH_SPO;
       }
     }
   }
-
-  string compiled_query = str(format(querystring) % query[0] % query[1] % query[2]);
-
-  char* err;
-
-  auto sqlite_cb = [] (void* cb, int argc, char **argv, char **azColName) {
-    hs_result r;
-    r.subject = argv[0];
-    r.predicate = argv[1];
-    r.object = argv[2];
-    function<int(hs_result)> cb_function = *((function<int(hs_result)>*) cb);
-    cb_function(r);
-    // cout << argv[0] << " " << argv[1] << " " << argv[2] << "\n";
+  string compiled_query = str(format(querystring) % edge_query[0] % edge_query[1] % edge_query[2]);
+  // this lambda will collect all of our results, since it is called on every row of the result set
+  auto sqlite_cb_result_collector = [] (void* cb, int argc, char **argv, char **azColName) {
+    vector<hs_result>* res = static_cast<vector<hs_result>*>(cb);
+    res->emplace_back(argv[0], argv[1], argv[2]);
     return 0;
   };
-  sqlite3_exec(this->db, compiled_query.c_str(), sqlite_cb, &cb, &err);
-
-
+  char* err;
+  sqlite3_exec(db, compiled_query.c_str(), sqlite_cb_result_collector, &result, &err);
   if(err != NULL) {
     cout << err;
   }
-
   return result;
-
 }

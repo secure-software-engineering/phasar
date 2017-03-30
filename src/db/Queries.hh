@@ -1,7 +1,11 @@
+#ifndef QUERIES_HH_
+#define QUERIES_HH_
+
 #include <string>
 using namespace std;
 
-namespace hexastore {
+namespace hexastore
+{
 
   const string SPO_INSERT =
     "insert or ignore into spo_subject (name) "
@@ -275,4 +279,7 @@ create table if not exists ops_subject(
 );
 
   )";
-    }
+
+} /* end namespace hexastore */
+
+#endif /* QUERIES_HH_ */
