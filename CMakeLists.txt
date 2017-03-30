@@ -6,7 +6,6 @@ set(CMAKE_CXX_FLAGS "-pipe -O0 -g -march=native -DNDEBUG -rdynamic")
 find_package(Boost COMPONENTS filesystem system REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
-# find_path(LLVM_INCLUDE_DIR llvm)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
 
@@ -45,7 +44,7 @@ set(CLANG_LIBRARIES
 set(ALL_LIBS 
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
-  ${llvm_libs}
+  # ${llvm_libs}
   ${CLANG_LIBRARIES}
   )
 
@@ -89,16 +88,14 @@ target_link_libraries(main
   analysis clang db flex lib utils
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
-  # ${llvm_libs}
   LLVM
   ${CLANG_LIBRARIES}
   )
 
-
 # Test For Hexastore
 
-add_executable(test_hexastore src/db/Test.cpp src/db/Hexastore.cpp src/db/Hexastore.hh)
+# add_executable(test_hexastore src/db/Test.cpp src/db/Hexastore.cpp src/db/Hexastore.hh)
 
-target_link_libraries(test_hexastore
-  ${SQLITE3_LIBRARY}
-  )
+# target_link_libraries(test_hexastore
+#   ${SQLITE3_LIBRARY}
+#   )
