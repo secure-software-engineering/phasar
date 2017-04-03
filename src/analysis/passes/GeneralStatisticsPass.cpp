@@ -10,7 +10,7 @@
 
 bool  GeneralStatisticsPass::runOnModule(llvm::Module& M)
 {
-	std::cout << "Running GeneralStatisticsPass ..." << std::endl;
+	std::cout << "running GeneralStatisticsPass ...\n";
 	const std::vector<std::string> dyn_alloc_functions = { "malloc", "calloc", "realloc", "new" };
 	for (llvm::Module::iterator MI = M.begin(); MI != M.end(); ++MI) {
 		for (llvm::Function::iterator FI = MI->begin(); FI != MI->end(); ++FI) {
@@ -58,7 +58,6 @@ bool  GeneralStatisticsPass::runOnModule(llvm::Module& M)
 			++pointers;
 		}
 	}
-	std::cout << "Done running GeneralStatisticsPass." << std::endl;
 	return false;
 }
 
@@ -66,11 +65,11 @@ bool GeneralStatisticsPass::doInitialization(llvm::Module& M) {	return false; }
 
 bool GeneralStatisticsPass::doFinalization(llvm::Module& M)
 {
-	llvm::outs() << "GeneralStatisticsPass for module " << M.getName().str() << "\n";
+	llvm::outs() << "GeneralStatisticsPass summary for module: '" << M.getName().str() << "'\n";
 	llvm::outs() << "allocation sites: " << allocationsites << "\n";
 	llvm::outs() << "calls-sites: " << callsites << "\n";
 	llvm::outs() << "pointer variables: " << pointers << "\n";
-	llvm::outs() << "instructions: " << instructions << "\n";
+	llvm::outs() << "instructions: " << instructions << "\n\n";
 	return false;
 }
 

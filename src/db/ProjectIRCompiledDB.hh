@@ -5,9 +5,11 @@
 #include <clang/CodeGen/CodeGenAction.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>

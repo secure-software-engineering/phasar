@@ -9,7 +9,8 @@
 #define ANALYSIS_POINTSTOINFORMATION_HH_
 
 #include <llvm/ADT/SetVector.h>
-#include <llvm/Analysis/CFLAliasAnalysis.h>
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Module.h>
