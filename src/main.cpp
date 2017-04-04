@@ -22,7 +22,9 @@ static llvm::cl::OptionCategory StaticAnalysisCategory(
     "Data-flow Analysis for C and C++");
 static llvm::cl::extrahelp CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 static llvm::cl::extrahelp MoreHelp(
-    "+++ User Manual +++\n"
+    "\n"
+    "===================\n"
+    "=== User Manual ===\n"
     "===================\n\n"
     "There are currently two modes available to run a program analysis:\n\n"
     "1.) Single module analysis\n"
@@ -31,7 +33,7 @@ static llvm::cl::extrahelp MoreHelp(
     "to a C or C++ module. The module can be a plain C or C++ file (.c/.cpp), LLVM IR "
     "as a human readable .ll file or as bitcode format .bc. "
     "A typically usage would be the following:\n\n\t"
-    "usage: <prog> <path to a C/C++ module> -- <additional parameters>\n\n"
+    "usage: <prog> -module <path to a .c/.cpp/.ll module> <0 or more analyses> -- <additional compiler arguments>\n\n"
     "2.) Whole project analysis\n"
     "--------------------------\n"
     "This mode analyzes a whole C or C++ project consisting of multiple modules. "
@@ -42,7 +44,7 @@ static llvm::cl::extrahelp MoreHelp(
     "to understand the project structure. It then compiles every C or C++ module that belongs to the project "
     " under analysis and compiles it to LLVM IR which is then stored in-memory for further preprocessing. "
     "A typically usage would be the following:\n\n\t"
-    "usage: <prog> <path to a C/C++ project>\n\n"
+    "usage: <prog> <path to a C/C++ project> <0 or more analyses>\n\n"
     "Analysis Modes\n"
     "==============\n"
     "Without specifying further parameters, our analysis tool tries to run all available analyses on the "
@@ -78,48 +80,82 @@ int main(int argc, const char **argv) {
             "abort!\n";
     return 1;
   }
-  // set up the compile commands data base
-  int only_take_care_of_sources = argc; // use that instread of argc, so we can handle the other parameters for ourself
-  clang::tooling::CommonOptionsParser OptionsParser(only_take_care_of_sources,
-                                                    argv,
-                                                    StaticAnalysisCategory,
-                                                    OccurrencesFlag);
-  clang::tooling::CompilationDatabase &CompileDB = OptionsParser.getCompilations();
-
-  // scan the other parameters to decide what analysis should be run
-  vector<AnalysisKind> analyses_to_run = { AnalysisKind::IFDS_UninitializedVariables,
-                                           AnalysisKind::IFDS_TaintAnalysis,
-                                           AnalysisKind::IDE_TaintAnalysis,
-                                           AnalysisKind::IFDS_TypeAnalysis };
-  for (int i = 2; i < argc; ++i) {
-      analyses_to_run.clear();
+  // provide some default analyses
+  vector<AnalysisKind> default_analyses = { AnalysisKind::IFDS_UninitializedVariables,
+                                            AnalysisKind::IFDS_TaintAnalysis,
+                                            AnalysisKind::IDE_TaintAnalysis,
+                                            AnalysisKind::IFDS_TypeAnalysis };
+  // analyses choosen by the user
+  vector<AnalysisKind> user_analyses;
+  // single module mode
+  if (argc >= 2 && string(argv[1]) == "-module") {
+    string path(argv[2]);
+    int additional_params_idx = argc;
+    vector<const char*> compile_args;
+    for (int i = 3; i < argc; ++i) {
       string param(argv[i]);
       if (param == "-ifds_uninit") {
-        analyses_to_run.push_back(AnalysisKind::IFDS_UninitializedVariables);
+        user_analyses.push_back(AnalysisKind::IFDS_UninitializedVariables);
       } else if (param == "-ifds_taint") {
-        analyses_to_run.push_back(AnalysisKind::IFDS_TaintAnalysis);
+        user_analyses.push_back(AnalysisKind::IFDS_TaintAnalysis);
       } else if (param == "-ide_taint") {
-        analyses_to_run.push_back(AnalysisKind::IDE_TaintAnalysis);
+        user_analyses.push_back(AnalysisKind::IDE_TaintAnalysis);
       } else if (param == "-ifds_type") {
-        analyses_to_run.push_back(AnalysisKind::IFDS_TypeAnalysis);
-      } else {
-          cout << "error: unrecognized parameter '" << param << "'\n"
-                  "use '-help' for help\n"
-                  "abort!\n";
-          return 1;
+        user_analyses.push_back(AnalysisKind::IFDS_TypeAnalysis);
+      } else if (param == "--") {
+        additional_params_idx = i;
+        break;
       }
-  }
-  cout << "starting the following analyses:\n";
-  for (auto analysis : analyses_to_run) {
+    }
+    for (int i = additional_params_idx + 1; i < argc; ++i) {
+      compile_args.push_back(argv[i]);
+    }
+    cout << "compiling to LLVM IR ...\n";
+    ProjectIRCompiledDB IRDB(path, compile_args);
+    cout << "starting the following analyses:\n";
+    auto analyses = (user_analyses.empty()) ? default_analyses : user_analyses;
+    for (auto analysis : analyses) {
       cout << "\t" << analysis << "\n";
+    }
+    cout << "compilation done, starting the analysis ...\n";
+    AnalysisController Analysis(IRDB, analyses);
+  } else {
+    // use the project database
+    int only_take_care_of_sources = 2; // use that instread of argc, so we can handle the other parameters for ourself
+    clang::tooling::CommonOptionsParser OptionsParser(only_take_care_of_sources,
+                                                      argv,
+                                                      StaticAnalysisCategory,
+                                                      OccurrencesFlag);
+    clang::tooling::CompilationDatabase &CompileDB = OptionsParser.getCompilations();
+
+    for (int i = 2; i < argc; ++i) {
+        string param(argv[i]);
+        if (param == "-ifds_uninit") {
+          user_analyses.push_back(AnalysisKind::IFDS_UninitializedVariables);
+        } else if (param == "-ifds_taint") {
+          user_analyses.push_back(AnalysisKind::IFDS_TaintAnalysis);
+        } else if (param == "-ide_taint") {
+          user_analyses.push_back(AnalysisKind::IDE_TaintAnalysis);
+        } else if (param == "-ifds_type") {
+          user_analyses.push_back(AnalysisKind::IFDS_TypeAnalysis);
+        } else {
+            cout << "error: unrecognized parameter '" << param << "'\n"
+                    "use '-help' for help\n"
+                    "abort!\n";
+            return 1;
+        }
+    }
+    // create an 'in-memory' databse that is contains the raw front-end IR of all compilation modules
+    cout << "compiling to LLVM IR ...\n";
+    ProjectIRCompiledDB IRDB(CompileDB);
+    cout << "starting the following analyses:\n";
+    auto analyses = (user_analyses.empty()) ? default_analyses : user_analyses;
+    for (auto analysis : analyses) {
+      cout << "\t" << analysis << "\n";
+    }
+    cout << "compilation done, starting the analysis ...\n";
+    AnalysisController Analysis(IRDB, analyses);
   }
-  // create an 'in-memory' databse that is contains the raw front-end IR of all compilation modules
-  cout << "compiling to LLVM IR ...\n";
-  ProjectIRCompiledDB IRDB(CompileDB);
-
-  cout << "compilation done, starting the analysis ...\n";
-  AnalysisController Analysis(IRDB, analyses_to_run);
-
   // shutdown llvm
   llvm::llvm_shutdown();
   cout << "... shutdown analysis ..." << endl;
