@@ -65,7 +65,7 @@ class AnalysisController {
     for (auto file : IRDB.source_files) {
       cout << "\t" << file << endl;
     }
-    // just for testing
+    // currently this AA map is just a makeshift
     map<string, unique_ptr<llvm::AAResults>> AAMap;
     // here we perform a pre-analysis and run some very important passes over
     // all of the IR modules in order to perform various data flow analysis
@@ -121,15 +121,12 @@ class AnalysisController {
         cout << "AnalysisController: debug info is broken" << endl;
       }
       // obtain the very important alias analysis results
-      // llvm::AAResults AARes(move(AARWP->getAAResults()));
-      // AAMap.insert(make_pair(M.getModuleIdentifier(),
-      //                        unique_ptr<llvm::AAResults>(new llvm::AAResults(
-      //                            move(AARWP->getAAResults())))));
+      llvm::AAResults AARes(move(AARWP->getAAResults()));
+      AAMap.insert(make_pair(M.getModuleIdentifier(),
+                             unique_ptr<llvm::AAResults>(new llvm::AAResults(move(AARes)))));
     }
 
-    // cout << "AAMap size is: " << AAMap.size() << endl;
-    // llvm::AAResults* AAResult =
-    //     AAMap["/home/pdschbrt/Schreibtisch/test/interproc_callsite.cpp"].get();
+    cout << "AAMap size is: " << AAMap.size() << endl;
 
     // some very important pre-analyses are performed here, that have to store
     // the state for the whole project - that is for all IR modules making up
@@ -144,62 +141,60 @@ class AnalysisController {
     // //DBConn& db = DBConn::getInstance();
     // // db << IRDB;
 
-    // // reconstruct the inter-modular class hierarchy and virtual function tables
-    // LLVMStructTypeHierarchy CH(IRDB);
-    // CH.print();
+    // reconstruct the inter-modular class hierarchy and virtual function tables
+    cout << "reconstruction the class hierarchy ...\n";
+    LLVMStructTypeHierarchy CH(IRDB);
+    cout << "reconstruction completed ...\n";
+    CH.print();
 
     // // db << CH;
     // // db >> CH;
 
     // // // prepare the ICFG the data-flow analyses are build on
-    cout << "starting the data-flow analyses ...\n";
-    // for (auto& module_entry : IRDB.modules) {
-    //   llvm::Module& M = *(module_entry.second);
-    //   llvm::AAResults& AAResult = *(AAMap[M.getModuleIdentifier()].get());
-    //   LLVMBasedInterproceduralICFG icfg(M, AAResult, CH, IRDB);
-    //   llvm::Function* F = M.getFunction("main");
-    //   cout << "PointsToGraph:" << endl;
-    //   PointsToGraph ptg(AAResult, F);
-    //   ptg.print();
+    cout << "starting the chosen data-flow analyses ...\n";
+    for (auto& module_entry : IRDB.modules) {
+      llvm::Module& M = *(module_entry.second);
+      llvm::AAResults& AAResult = *(AAMap[M.getModuleIdentifier()].get());
+      LLVMBasedInterproceduralICFG icfg(M, AAResult, CH, IRDB);
+      llvm::Function* F = M.getFunction("main");
+      cout << "PointsToGraph:" << endl;
+      PointsToGraph ptg(AAResult, F);
+      ptg.print();
     //   //   //    cout << "CALLING WALKER!" << endl;
     //   //   //   icfg.resolveIndirectCallWalker(F);
-    //   //   // create the analyses problems queried by the user and start
-    //   //   analyzing
+      // create the analyses problems queried by the user and start analyzing
 
-    //   //   // TODO: change the implementation of 'createZeroValue()'
-    //   //   // The zeroValue can only be added one to a given context which means
-    //   //   // a user can only create one analysis problem at a time, due to the
-    //   //   // implementation of 'createZeroValue()'.
-    //   //   // so it would be nice to check if the zerovalue already exists and if so
-    //   //   // just return it!
-
-    //   //   for (auto analysis : Analyses) {
-    //   //     switch (analysis) {
-    //   //       case AnalysisKind::IFDS_TaintAnalysis:
-    //   //         cout << "IFDS_TaintAnalysis\n";
-    //   //         break;
-    //   //       case AnalysisKind::IDE_TaintAnalysis:
-    //   //         cout << "IDE_TaintAnalysis\n";
-    //   //         break;
-    //   //       case AnalysisKind::IFDS_TypeAnalysis:
-    //   //         cout << "IFDS_TypeAnalysis\n";
-    //   //         break;
-    //   //       case AnalysisKind::IFDS_UninitializedVariables: {
-    //   //         cout << "IFDS_UninitalizedVariables\n";
-    //   //         // IFDSUnitializedVariables uninitializedvarproblem(
-    //   //         //     icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-    //   //         // LLVMIFDSSolver<const llvm::Value*,
-    //   //         LLVMBasedInterproceduralICFG&>
-    //   //         //     llvmunivsolver(uninitializedvarproblem, true);
-    //   //         // llvmunivsolver.solve();
-    //   //         break;
-    //   //       }
-    //   //       default:
-    //   //         cout << "analysis not valid!" << endl;
-    //   //         break;
-    //   //     }
-    //   //   }
-    // }
+      // TODO: change the implementation of 'createZeroValue()'
+      // The zeroValue can only be added one to a given context which means
+      // a user can only create one analysis problem at a time, due to the
+      // implementation of 'createZeroValue()'.
+      // so it would be nice to check if the zerovalue already exists and if so
+      // just return it!
+      for (auto analysis : Analyses) {
+    	switch (analysis) {
+    	  case AnalysisKind::IFDS_TaintAnalysis:
+    		cout << "IFDS_TaintAnalysis\n";
+    	  break;
+          case AnalysisKind::IDE_TaintAnalysis:
+            cout << "IDE_TaintAnalysis\n";
+          break;
+          case AnalysisKind::IFDS_TypeAnalysis:
+            cout << "IFDS_TypeAnalysis\n";
+          break;
+          case AnalysisKind::IFDS_UninitializedVariables:
+          {
+            cout << "IFDS_UninitalizedVariables\n";
+            IFDSUnitializedVariables uninitializedvarproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
+            LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmunivsolver(uninitializedvarproblem, true);
+            llvmunivsolver.solve();
+          break;
+          }
+          default:
+            cout << "analysis not valid!" << endl;
+          break;
+    	}
+      }
+    }
     cout << "data-flow analyses completed ...\n";
 
     // // after every module has been analyzed the analyses results must be

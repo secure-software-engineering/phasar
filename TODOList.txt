@@ -11,10 +11,16 @@ TODO List
  
 -Refactor the ProjectIRCompiledDB to have a private function allowing the 
  API IR compilation for greater reusability and flexibility. All modules can be compiled
- in parallel. If a function has been writen, use a vector of threads and std::async 
+ in parallel. If a function has been written, use a vector of threads and std::async 
  for massive parallel compilation.
 
 -Serialize boost::graph using HexaStore. Start off by serializing PointsToGraph.
  Develop a generic mechanism for that, rather than implementing dozens of different versions.
 
 -CD algorithm
+
+-Design in-memory result data structures for (some of this stuff already exists):
+	-Global points to graph
+	-AliasInformation (taken plain from llvm)
+	-ICFG must be modified a bit
+	-IRDB
