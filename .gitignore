@@ -8,9 +8,21 @@ bin/*
 # doc/ directory
 doc/*
 
+# MS VS Code
 .vscode/*
 
+# Eclipse
+.cproject
+.settings/*
+
 ##### ignored files
+
+# ignore all database files that the framework may creates
+*.db
+*.db3
+*.s3db
+*.sqlite
+*.sqlite3
 
 # temporary files
 *.*~

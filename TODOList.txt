@@ -1,0 +1,26 @@
+
+TODO List
+=========
+
+-Create code documentation
+
+-Create a high level overview description of how this framework works and add it to the README.dox.
+
+-Fix memory leak, resulting from allocating objects of type CompilerInstance.
+ What must be the lifetime? Then handle accordingly.
+ 
+-Refactor the ProjectIRCompiledDB to have a private function allowing the 
+ API IR compilation for greater reusability and flexibility. All modules can be compiled
+ in parallel. If a function has been written, use a vector of threads and std::async 
+ for massive parallel compilation.
+
+-Serialize boost::graph using HexaStore. Start off by serializing PointsToGraph.
+ Develop a generic mechanism for that, rather than implementing dozens of different versions.
+
+-CD algorithm
+
+-Design in-memory result data structures for (some of this stuff already exists):
+	-Global points to graph
+	-AliasInformation (taken plain from llvm)
+	-ICFG must be modified a bit
+	-IRDB

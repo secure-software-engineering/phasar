@@ -1,7 +1,7 @@
 [
     {
-        "command": "c++ -c -o main /home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project/main.cpp", 
-        "directory": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project", 
-        "file": "/home/pdschbrt/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project/main.cpp"
+        "command": "c++ -c -o main /home/philipp/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project/main.cpp", 
+        "directory": "/home/philipp/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project", 
+        "file": "/home/philipp/GIT-Repos/sse_dfa_llvm/test_examples/one_file_project/main.cpp"
     }
 ]

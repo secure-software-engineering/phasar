@@ -13,7 +13,7 @@ bool  ValueAnnotationPass::runOnModule(llvm::Module& M)
 {
 	std::string MetaDataKind("ourframework.id");
 
-	std::cout << "Running ValueAnnotationPass ..." << std::endl;
+	std::cout << "running ValueAnnotationPass ...\n";
 	for (auto& global : M.globals()) {
 		llvm::MDNode* node = llvm::MDNode::get(context, llvm::MDString::get(context, std::to_string(unique_value_id)));
 		global.setMetadata(MetaDataKind, node);
@@ -38,7 +38,6 @@ bool  ValueAnnotationPass::runOnModule(llvm::Module& M)
 		    }
 		}
 	}
-	std::cout << "Done running ValueAnnotationPass." << std::endl;
 	return true;
 }
 

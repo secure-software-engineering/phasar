@@ -228,6 +228,7 @@ public:
 			 */
 			return Identity<const llvm::Value*>::v();
 		}
+		return Identity<const llvm::Value*>::v();
 	}
 
 	shared_ptr<FlowFunction<const llvm::Value*>> getRetFlowFunction(const llvm::Instruction* callSite,

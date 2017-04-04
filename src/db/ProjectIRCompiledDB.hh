@@ -5,9 +5,12 @@
 #include <clang/CodeGen/CodeGenAction.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Verifier.h>
+#include <llvm/IRReader/IRReader.h>
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -27,6 +30,7 @@ class ProjectIRCompiledDB {
   // maps function names to the module they are defined in
   map<string, string> functions;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
+  ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
   ~ProjectIRCompiledDB() = default;
   void createFunctionModuleMapping();
   void print();
