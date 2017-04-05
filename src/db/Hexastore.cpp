@@ -41,7 +41,8 @@ void Hexastore::doPut(string query, array<string, 3> edge) {
 }
 
 vector<hs_result> Hexastore::get(array<string, 3> edge_query, size_t result_size_hint) {
-  vector<hs_result> result(result_size_hint);
+  vector<hs_result> result;
+  result.reserve(result_size_hint);
   string querystring;
   if (edge_query[0] == "?") {
     if (edge_query[1] == "?") {
