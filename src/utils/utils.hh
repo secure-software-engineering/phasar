@@ -13,7 +13,7 @@ using namespace std;
   cerr << "file: " << __FILE__ << " line: " << __LINE__ \
        << " function: " << __func__ << endl;
 
-#define KILL exit(-1);
+#define DIE_HARD exit(-1);
 
 #define CXXERROR(BOOL, STRING) \
   if (!BOOL) {                 \

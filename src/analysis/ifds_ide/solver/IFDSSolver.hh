@@ -29,18 +29,9 @@ enum class BinaryDomain {
 	TOP = 1
 };
 
-ostream& operator<< (ostream& os, const BinaryDomain& b)
-{
-	int type = static_cast<underlying_type<BinaryDomain>::type>(b);
-	if (type == 0)
-		return os << "BOTTOM";
-	else if (type == 1)
-		return os << "TOP";
-	else
-		return os << "unrecognized element of BinaryDomain";
-}
+ostream& operator<< (ostream& os, const BinaryDomain& b);
 
-const static shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM = make_shared<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
+extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
 
 /**
  * We have to find an elegant way to promote an IFDSTabulationProblem to an IDETabulationProblem!!!

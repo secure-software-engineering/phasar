@@ -70,8 +70,10 @@ char GeneralStatisticsPass::ID = 0;
 char ValueAnnotationPass::ID = 13;
 
 // this should be removed at some point!
-void boost::throw_exception(std::exception const &e) {}
-
+namespace boost
+{
+void throw_exception(std::exception const &e) {}
+}
 
 int main(int argc, const char **argv) {
   if (argc == 1) {
@@ -81,12 +83,12 @@ int main(int argc, const char **argv) {
     return 1;
   }
   // provide some default analyses
-  vector<AnalysisKind> default_analyses = { AnalysisKind::IFDS_UninitializedVariables,
-                                            AnalysisKind::IFDS_TaintAnalysis,
-                                            AnalysisKind::IDE_TaintAnalysis,
-                                            AnalysisKind::IFDS_TypeAnalysis };
+  vector<AnalysisType> default_analyses = { AnalysisType::IFDS_UninitializedVariables,
+                                            AnalysisType::IFDS_TaintAnalysis,
+                                            AnalysisType::IDE_TaintAnalysis,
+                                            AnalysisType::IFDS_TypeAnalysis };
   // analyses choosen by the user
-  vector<AnalysisKind> user_analyses;
+  vector<AnalysisType> user_analyses;
   // single module mode
   if (argc >= 2 && string(argv[1]) == "-module") {
     string path(argv[2]);
@@ -95,13 +97,13 @@ int main(int argc, const char **argv) {
     for (int i = 3; i < argc; ++i) {
       string param(argv[i]);
       if (param == "-ifds_uninit") {
-        user_analyses.push_back(AnalysisKind::IFDS_UninitializedVariables);
+        user_analyses.push_back(AnalysisType::IFDS_UninitializedVariables);
       } else if (param == "-ifds_taint") {
-        user_analyses.push_back(AnalysisKind::IFDS_TaintAnalysis);
+        user_analyses.push_back(AnalysisType::IFDS_TaintAnalysis);
       } else if (param == "-ide_taint") {
-        user_analyses.push_back(AnalysisKind::IDE_TaintAnalysis);
+        user_analyses.push_back(AnalysisType::IDE_TaintAnalysis);
       } else if (param == "-ifds_type") {
-        user_analyses.push_back(AnalysisKind::IFDS_TypeAnalysis);
+        user_analyses.push_back(AnalysisType::IFDS_TypeAnalysis);
       } else if (param == "--") {
         additional_params_idx = i;
         break;
@@ -131,13 +133,13 @@ int main(int argc, const char **argv) {
     for (int i = 2; i < argc; ++i) {
         string param(argv[i]);
         if (param == "-ifds_uninit") {
-          user_analyses.push_back(AnalysisKind::IFDS_UninitializedVariables);
+          user_analyses.push_back(AnalysisType::IFDS_UninitializedVariables);
         } else if (param == "-ifds_taint") {
-          user_analyses.push_back(AnalysisKind::IFDS_TaintAnalysis);
+          user_analyses.push_back(AnalysisType::IFDS_TaintAnalysis);
         } else if (param == "-ide_taint") {
-          user_analyses.push_back(AnalysisKind::IDE_TaintAnalysis);
+          user_analyses.push_back(AnalysisType::IDE_TaintAnalysis);
         } else if (param == "-ifds_type") {
-          user_analyses.push_back(AnalysisKind::IFDS_TypeAnalysis);
+          user_analyses.push_back(AnalysisType::IFDS_TypeAnalysis);
         } else {
             cout << "error: unrecognized parameter '" << param << "'\n"
                     "use '-help' for help\n"

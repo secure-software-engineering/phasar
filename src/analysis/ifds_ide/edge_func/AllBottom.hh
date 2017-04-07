@@ -10,9 +10,15 @@
 
 #include <iostream>
 #include <memory>
+#include "../../../utils/utils.hh"
 #include "../EdgeFunction.hh"
-#include "EdgeIdentity.hh"
-#include "AllTop.hh"
+//#include "EdgeIdentity.hh"
+//#include "AllTop.hh"
+template<typename V>
+class EdgeIdentity;
+
+template<typename V>
+class AllTop;
 
 using namespace std;
 
@@ -45,7 +51,7 @@ public:
 		// TODO it would be a good idea to make this an exception at some point
 		cerr << "@ UNEXPECTED EDGE FUNCTION!" << endl;
 		HEREANDNOW;
-		exit(-1);
+		DIE_HARD;
 	}
 
 	virtual bool equalTo(shared_ptr<EdgeFunction<V>> other) override
