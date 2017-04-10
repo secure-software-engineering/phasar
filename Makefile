@@ -153,7 +153,7 @@ $(OBJ_ANALYSIS): $(analysis_header_list) $(analysis_impl_list) $(CONFIG_HEADER)
 $(BIN)$(EXE): $(MAIN_FILE) $(OBJ_ANALYSIS) $(OBJ_CLANG) $(OBJ_DB) $(OBJ_FLEX) $(OBJ_LIB) $(OBJ_UTILS) $(CONFIG_HEADER)
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) \
 	-L$(LIB_CXX) \
-	$(OBJ_ANALYSIS)*.o $(OBJ_CLANG)*.o $(OBJ_DB)*.o $(OBJ_FLEX)*.o $(OBJ_LIB)*.o $(OBJ_UTILS)*.o \
+	$(OBJ_CLANG)*.o $(OBJ_DB)*.o $(OBJ_FLEX)*.o $(OBJ_LIB)*.o $(OBJ_UTILS)*.o $(OBJ_ANALYSIS)*.o \
 	$(MAIN_FILE) \
 	$(CLANG_FLAGS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) -o $(EXE); \
 	mkdir -p $(BIN); \
