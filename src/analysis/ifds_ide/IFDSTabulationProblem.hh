@@ -18,9 +18,9 @@
 using namespace std;
 
 template<typename N, typename D, typename M, typename I>
-class IFDSTabulationProblem : public SolverConfiguration,
-							  public FlowFunctions<N,D,M> {
+class IFDSTabulationProblem : public FlowFunctions<N,D,M> {
 public:
+	SolverConfiguration solver_config;
 	virtual ~IFDSTabulationProblem() = default;
 	virtual I interproceduralCFG() = 0;
 	virtual map<N, set<D>> initialSeeds() = 0;

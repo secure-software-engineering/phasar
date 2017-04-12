@@ -19,7 +19,6 @@
 #include "LinkedNode.hh"
 #include "JoinHandlingNode.hh"
 #include "../IDETabluationProblem.hh"
-#include "../IDETabulationProblemWZeroedFF.hh"
 #include "../JoinLattice.hh"
 #include "../FlowFunctions.hh"
 #include "../EdgeFunctions.hh"
@@ -51,42 +50,19 @@ template<class N, class D, class M, class V, class I>
 class IDESolver {
 public:
 	IDESolver(IDETabluationProblem<N,D,M,V,I>&& tabulationProblem) : ideTabluationProblem(
-																		tabulationProblem.autoAddZero() ?
-																		//IDETabluationProblem<N,D,M,V,I>(IDETabulationProblemWAutoZeroedFF<N,D,M,V,I>(tabulationProblem)) :
-																		tabulationProblem :
-																		tabulationProblem),
-																	 recordEdges(tabulationProblem.recordEdges()),
+																	 tabulationProblem),
+																	 recordEdges(tabulationProblem.solver_config.recordEdges),
 																	 zeroValue(tabulationProblem.zeroValue()),
 																	 icfg(tabulationProblem.interproceduralCFG()),
-																	 computevalues(tabulationProblem.computeValues()),
-																	 followReturnPastSeeds(tabulationProblem.followReturnsPastSeeds()),
+																	 computevalues(tabulationProblem.solver_config.computeValues),
+																	 autoAddZero(tabulationProblem.solver_config.autoAddZero),
+																	 followReturnPastSeeds(tabulationProblem.solver_config.followReturnsPastSeeds),
 																	 allTop(tabulationProblem.allTopFunction()),
 																	 jumpFn(make_shared<JumpFunctions<N,D,V>>(allTop)),
 																	 initialSeeds(tabulationProblem.initialSeeds())
 	{
 		cout << "called IDESolver ctor" << endl;
-		// If user wishes to auto add zero value, promote IDETabulationProblem to an IDETabulationProblemWAutoZeroedFF
-		if (tabulationProblem.autoAddZero()) {
-		//	cout << "AUTO ADD ZERO: TRUE" << endl;
-		//	ideTabluationProblem = IDETabulationProblemWAutoZeroedFF<N,D,M,V,I>(tabulationProblem);
-		}
-	}
-
-	IDESolver(IDETabluationProblem<N,D,M,V,I>& tabulationProblem) : ideTabluationProblem(tabulationProblem),
-																		 recordEdges(tabulationProblem.recordEdges()),
-																		 zeroValue(tabulationProblem.zeroValue()),
-																		 icfg(tabulationProblem.interproceduralCFG()),
-																		 computevalues(tabulationProblem.computeValues()),
-																		 followReturnPastSeeds(tabulationProblem.followReturnsPastSeeds()),
-																		 allTop(tabulationProblem.allTopFunction()),
-																		 jumpFn(make_shared<JumpFunctions<N,D,V>>(allTop)),
-																		 initialSeeds(tabulationProblem.initialSeeds())
-	{
-		cout << "called IDESolver ctor" << endl;
-		if (tabulationProblem.autoAddZero()) {
-		//	cout << "AUTO ADD ZERO: TRUE" << endl;
-		//	ideTabluationProblem = IDETabulationProblemWAutoZeroedFF<N,D,M,V,I>(tabulationProblem);
-		}
+		cout << tabulationProblem.solver_config << endl;
 	}
 
 	virtual ~IDESolver() = default;
@@ -199,7 +175,9 @@ private:
 		for(M sCalledProcN : callees) { //still line 14
 
 			//compute the call-flow function
-			shared_ptr<FlowFunction<D>> function = ideTabluationProblem.getCallFlowFuntion(n, sCalledProcN);
+			shared_ptr<FlowFunction<D>> function = (autoAddZero) ?
+																						 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getCallFlowFuntion(n, sCalledProcN), zeroValue) :
+																						 ideTabluationProblem.getCallFlowFuntion(n, sCalledProcN);
 			flowFunctionConstructionCount++;
 			set<D> res = computeCallFlowFunction(function, d1, d2);
 			//for each callee's start point(s)
@@ -230,7 +208,9 @@ private:
 						//for each return site
 						for (N retSiteN : returnSiteNs) {
 							//compute return-flow function
-							shared_ptr<FlowFunction<D>> retFunction = ideTabluationProblem.getRetFlowFunction(n, sCalledProcN, eP, retSiteN);
+							shared_ptr<FlowFunction<D>> retFunction = (autoAddZero) ?
+																												make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getRetFlowFunction(n, sCalledProcN, eP, retSiteN), zeroValue) :
+																												ideTabluationProblem.getRetFlowFunction(n, sCalledProcN, eP, retSiteN);
 							flowFunctionConstructionCount++;
 							set<D> returnedFacts = computeReturnFlowFunction(retFunction, d3, d4, n, set<D>{d2});
 							saveEdges(eP, retSiteN, d4, returnedFacts, true);
@@ -280,7 +260,9 @@ private:
 		for (auto m : successorInst) {
 			cout << "@ successors: " << endl;
 			m->dump();
-			shared_ptr<FlowFunction<D>> flowFunction = ideTabluationProblem.getNormalFlowFunction(n,m);
+			shared_ptr<FlowFunction<D>> flowFunction = (autoAddZero) ?
+																								 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getNormalFlowFunction(n,m), zeroValue) :
+																								 ideTabluationProblem.getNormalFlowFunction(n,m);
 			flowFunctionConstructionCount++;
 			set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
 			cout << "results" << endl;
@@ -351,7 +333,9 @@ private:
 	{
 		D d = nAndD.second;
 		for (M q : icfg.getCalleesOfCallAt(n)) {
-			shared_ptr<FlowFunction<D>> callFlowFunction = ideTabluationProblem.getCallFlowFuntion(n, q);
+			shared_ptr<FlowFunction<D>> callFlowFunction = (autoAddZero) ?
+																										 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getCallFlowFuntion(n, q), zeroValue) :
+																										 ideTabluationProblem.getCallFlowFuntion(n, q);
 			flowFunctionConstructionCount++;
 			for (D dPrime : callFlowFunction->computeTargets(d)) {
 				shared_ptr<EdgeFunction<V>> edgeFn = ideTabluationProblem.getCallEdgeFunction(n, d, q, dPrime);
@@ -464,6 +448,7 @@ protected:
 	D zeroValue;
 	I icfg;
 	bool computevalues;
+	bool autoAddZero;
 	bool followReturnPastSeeds;
 
 	Table<N,N,map<D,set<D>>> computedIntraPathEdges;
@@ -549,7 +534,9 @@ protected:
 			//for each return site
 			for(N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
 				//compute return-flow function
-				shared_ptr<FlowFunction<D>> retFunction = ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
+				shared_ptr<FlowFunction<D>> retFunction = (autoAddZero) ?
+																									make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC), zeroValue) :
+																									ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
 				flowFunctionConstructionCount++;
 				//for each incoming-call value
 				for(D d4 : entry.second) {
@@ -584,7 +571,9 @@ protected:
 			set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
 				for(N c : callers) {
 					for(N retSiteC: icfg.getReturnSitesOfCallAt(c)) {
-						shared_ptr<FlowFunction<D>> retFunction = ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary,n,retSiteC);
+						shared_ptr<FlowFunction<D>> retFunction = (autoAddZero) ?
+																											make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC), zeroValue) :
+																											ideTabluationProblem.getRetFlowFunction(c, methodThatNeedsSummary,n,retSiteC);
 						flowFunctionConstructionCount++;
 						set<D> targets = computeReturnFlowFunction(retFunction, d1, d2, c, set<D>{zeroValue});
 						saveEdges(n, retSiteC, d2, targets, true);
@@ -600,7 +589,9 @@ protected:
 				//this might be undesirable if the flow function has a side effect such as registering a taint;
 				//instead we thus call the return flow function will a null caller
 				if(callers.empty()) {
-					shared_ptr<FlowFunction<D>> retFunction = ideTabluationProblem.getRetFlowFunction(nullptr, methodThatNeedsSummary, n, nullptr);
+					shared_ptr<FlowFunction<D>> retFunction = (autoAddZero) ?
+																										make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getRetFlowFunction(nullptr, methodThatNeedsSummary, n, nullptr), zeroValue) :
+																										ideTabluationProblem.getRetFlowFunction(nullptr, methodThatNeedsSummary, n, nullptr);
 					flowFunctionConstructionCount++;
 					retFunction->computeTargets(d2);
 				}

@@ -13,36 +13,43 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
        << endl;
   // taint every local variable, that is not a function parameter
   if (icfg.getNameOfMethod(curr) == "main" && icfg.isStartPoint(curr)) {
-    const llvm::Function *func = icfg.getMethodOf(curr);
-    struct UVFF : FlowFunction<const llvm::Value *> {
+  	const llvm::Function* func = icfg.getMethodOf(curr);
+
+  	// taint all locals flow function
+  	struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *func;
       const llvm::Value *zerovalue;
-      LLVMBasedInterproceduralICFG &icfg;
-      UVFF(const llvm::Function *f, const llvm::Value *zv,
-           LLVMBasedInterproceduralICFG &g)
-          : func(f), zerovalue(zv), icfg(g) {}
+      UVFF(const llvm::Function *f, const llvm::Value *zv)
+          : func(f), zerovalue(zv) {}
       set<const llvm::Value *> computeTargets(const llvm::Value *source) {
         if (source == zerovalue) {
           set<const llvm::Value *> res;
-          // first add all local values
-          for (auto inst : icfg.getAllInstructionsOfFunction(func)) {
-            if (llvm::isa<llvm::AllocaInst>(inst)) {
-              const llvm::AllocaInst *alloc =
-                  llvm::dyn_cast<const llvm::AllocaInst>(inst);
-              // check if the allocated value is of a primitive type
-              auto type = alloc->getAllocatedType();
-              if (type->isIntegerTy() || type->isFloatingPointTy() ||
-                  type->isPointerTy() || type->isArrayTy()) {
-                res.insert(alloc);
-              }
-            }
+          // first add all local values of primitive types
+          for (auto& BB : *func) {
+          	for (auto& inst : BB) {
+          		if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(&inst)) {
+          			auto alloc_type = alloc->getAllocatedType();
+          			if (alloc_type->isIntegerTy() ||
+          					alloc_type->isFloatingPointTy() ||
+										alloc_type->isPointerTy() ||
+										alloc_type->isArrayTy()) {
+          				res.insert(alloc);
+          			}
+          		} else {
+          			// when the very first instruction immediately uses an undef value
+          			for (auto& operand : inst.operands()) {
+          				if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(&operand)) {
+          				  res.insert(&inst);
+          				}
+          			}
+          		}
+          	}
           }
           // now remove those values that are obtained by function parameters of
           // the entry function
           for (auto &arg : func->getArgumentList()) {
             for (auto user : arg.users()) {
-              if (llvm::isa<llvm::StoreInst>(user)) {
-                auto store = llvm::dyn_cast<llvm::StoreInst>(user);
+              if (const llvm::StoreInst* store = llvm::dyn_cast<llvm::StoreInst>(user)) {
                 res.erase(store->getPointerOperand());
               }
             }
@@ -53,13 +60,14 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
         return set<const llvm::Value *>{};
       }
     };
-    return make_shared<UVFF>(func, zerovalue, icfg);
+    return make_shared<UVFF>(func, zerovalue);
   }
-  // check the store instructions
-  if (llvm::isa<llvm::StoreInst>(curr)) {
-    const llvm::StoreInst *store = llvm::dyn_cast<const llvm::StoreInst>(curr);
+
+  // check the all store instructions
+  if (const llvm::StoreInst* store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     const llvm::Value *valueop = store->getValueOperand();
     const llvm::Value *pointerop = store->getPointerOperand();
+
     struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Value *valueop;
       const llvm::Value *pointerop;
@@ -69,26 +77,32 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
         // check if an uninitialized value is loaded and stored in a variable,
         // then the variable is uninitialized!
         for (auto &use : valueop->uses()) {
-          if (llvm::isa<llvm::LoadInst>(use)) {
-            const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(use);
-            // if the following is uninit, then this store must be uninit as
-            // well!!!
+          if (const llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(use)) {
+            // if the following is uninit, then this store must be uninit as well!
             if (load->getPointerOperand() == source) {
-              return set<const llvm::Value *>{source, pointerop};
+              return { source, pointerop };
             }
           }
         }
         // otherwise the value is initialized through this store and thus can be
         // killed
         if (pointerop == source) {
-          return set<const llvm::Value *>{};
+          return {};
         } else {
-          return set<const llvm::Value *>{source};
+          return { source };
         }
       }
     };
     return make_shared<UVFF>(valueop, pointerop);
   }
+
+  // check if some instruction is using an undefined value directly
+  for (auto& operand : curr->operands()) {
+  	if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(operand)) {
+  		return make_shared<Gen<const llvm::Value *>>(curr, zeroValue());
+  	}
+  }
+
   // otherwise we do not care and nothing changes
   return Identity<const llvm::Value *>::v();
 }
@@ -99,110 +113,75 @@ IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallFlowFunction()"
        << endl;
   // check for a usual function call
-  if (llvm::isa<llvm::CallInst>(callStmt)) {
-    const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt);
-    cout << "found call to " << call->getCalledFunction()->getName().str()
-         << endl;
+  if (const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
+    cout << "found call to " << call->getCalledFunction()->getName().str() << endl;
+    // collect the actual parameters
     vector<const llvm::Value *> actuals;
-    unsigned num_args = call->getNumArgOperands();
-    for (unsigned i = 0; i < num_args; ++i) {
-      const llvm::Value *val = call->getArgOperand(i);
-      // collect all non-global actual parameters
-      for (auto &use : val->uses()) {
-        if (llvm::isa<llvm::LoadInst>(use)) {
-          const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(use);
-          if (!llvm::isa<llvm::GlobalValue>(load->getPointerOperand())) {
-            actuals.push_back(val);
-          } else {
-            actuals.push_back(nullptr); // mark a global variable
-          }
-        }
-      }
+    for (auto& operand : call->operands()) {
+      	actuals.push_back(operand);
     }
 
+    cout << "ACTUALS:" << endl;
     for (auto a : actuals) {
       if (a)
         a->dump();
-      else
-        cout << "nullptr" << endl;
     }
 
     struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *destMthd;
+      const llvm::CallInst *call;
       vector<const llvm::Value *> actuals;
       const llvm::Value *zerovalue;
-      LLVMBasedInterproceduralICFG &icfg;
-      UVFF(const llvm::Function *dm, vector<const llvm::Value *> atl,
-           const llvm::Value *zv, LLVMBasedInterproceduralICFG &g)
-          : destMthd(dm), actuals(atl), zerovalue(zv), icfg(g) {}
-      set<const llvm::Value *>
-      computeTargets(const llvm::Value *source) override {
-        for (const llvm::Value *arg : actuals) {
-          // do the mapping
-          if (!arg)
-            continue; // arg might be nullptr in case of global variable
-          for (auto &use : arg->uses()) {
-            if (llvm::isa<llvm::LoadInst>(use)) {
-              const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(use);
-              if (source == load->getPointerOperand()) {
-                // TODO do not make it overly complicated, if a uninit value is
-                // loaded, the load is uninit as well!
-                unsigned counter = 0;
-                for (auto thing : actuals) {
-                  if (thing == source)
-                    break;
-                  else
-                    counter++;
-                }
-                cout << "right before" << endl;
-                source->dump();
-                cout << counter << endl;
-                for (auto &formalarg : destMthd->getArgumentList()) {
-                  if (formalarg.getArgNo() == 0) {
-                    formalarg.dump();
-                    formalarg.users().begin()->dump();
-                    return set<const llvm::Value *>{&formalarg};
-                  }
-                }
-              }
-            }
-          }
-        }
+      UVFF(const llvm::Function *dm, const llvm::CallInst* c, vector<const llvm::Value *> atl,
+           const llvm::Value *zv)
+          : destMthd(dm), call(c), actuals(atl), zerovalue(zv) {}
+      set<const llvm::Value *> computeTargets(const llvm::Value *source) override {
+      	// do the mapping from actual to formal parameters
+      	for (size_t i = 0; i < actuals.size(); ++i) {
+      		if (actuals[i] == source) {
+      			cout << "ACTUAL == SOURCE" << endl;
+      			return { call->getOperand(i) };
+      		}
+//      		if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(actuals[i])) {
+//      			return { undef };
+//      		}
+      	}
+
         if (source == zerovalue) {
           // gen all locals that are not parameter locals!!!
           // make a set of all uninitialized local variables!
           set<const llvm::Value *> uninitlocals;
-          for (auto inst : icfg.getAllInstructionsOfFunction(destMthd)) {
-            if (llvm::isa<llvm::AllocaInst>(inst)) {
-              const llvm::AllocaInst *alloc =
-                  llvm::dyn_cast<const llvm::AllocaInst>(inst);
-              // check if the allocated value is of a primitive type
-              auto type = alloc->getAllocatedType();
-              if (type->isIntegerTy() || type->isFloatingPointTy() ||
-                  type->isPointerTy() || type->isArrayTy()) {
-                uninitlocals.insert(alloc);
-              }
-            }
+          for (auto& BB : *destMthd) {
+          	for (auto& inst : BB) {
+          		if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(&inst)) {
+          			// check if the allocated value is of a primitive type
+          			auto alloc_type = alloc->getAllocatedType();
+          			if (alloc_type->isIntegerTy() ||
+          					alloc_type->isFloatingPointTy() ||
+										alloc_type->isPointerTy() ||
+										alloc_type->isArrayTy()) {
+          				uninitlocals.insert(alloc);
+          			}
+          		} else {
+          			for (auto& operand : inst.operands()) {
+          				if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(&operand)) {
+          					uninitlocals.insert(operand);
+          				}
+          			}
+          		}
+          	}
           }
-          // remove all local variables, that are formal parameters!
+          // remove all local variables, that are initialized formal parameters!
           for (auto &arg : destMthd->getArgumentList()) {
-            for (auto user : arg.users()) {
-              if (llvm::isa<llvm::StoreInst>(user)) {
-                auto store = llvm::dyn_cast<llvm::StoreInst>(user);
-                uninitlocals.erase(store->getPointerOperand());
-              }
-            }
+            uninitlocals.erase(&arg);
           }
-          cout << "uninitlocals" << endl;
-          for (auto ulocal : uninitlocals)
-            ulocal->dump();
           return uninitlocals;
         }
         return set<const llvm::Value *>{};
       }
     };
-    return make_shared<UVFF>(destMthd, actuals, zerovalue, icfg);
-  } else if (llvm::dyn_cast<llvm::InvokeInst>(callStmt)) {
+    return make_shared<UVFF>(destMthd, call, actuals, zerovalue);
+  } else if (const llvm::InvokeInst* invoke = llvm::dyn_cast<llvm::InvokeInst>(callStmt)) {
     /*
      * TODO consider an invoke statement
      * An invoke statement must be treated the same as an ordinary call
@@ -210,7 +189,11 @@ IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
      */
     return Identity<const llvm::Value *>::v();
   }
-  return Identity<const llvm::Value *>::v();
+  cout << "error when getCallFlowFunction() was called\n"
+  				"instruction is neither a call- nor an invoke instruction!"
+  		<< endl;
+  DIE_HARD;
+  return nullptr;
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -220,51 +203,36 @@ IFDSUnitializedVariables::getRetFlowFunction(const llvm::Instruction *callSite,
                                              const llvm::Instruction *retSite) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getRetFlowFunction()"
        << endl;
-  //		// consider it a value gets store at the call site:
-  //		// int x = call(...);
-  //		// x shall be uninitialized then
-  //		// check if callSite is usual call instruction
-  const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callSite);
-  // check if exitStmt is return statement
-  for (auto user : call->users()) {
-    if (llvm::isa<llvm::StoreInst>(user)) {
-      const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(user);
-      struct UVFF : public FlowFunction<const llvm::Value *> {
-        const llvm::StoreInst *store;
-        UVFF(const llvm::StoreInst *s) : store(s) {}
-        set<const llvm::Value *>
-        computeTargets(const llvm::Value *source) override {
-          if (store->getPointerOperand() == source)
-            return set<const llvm::Value *>{store->getPointerOperand()};
-          return set<const llvm::Value *>{};
-        }
-      };
-      return make_shared<UVFF>(store);
-    }
-  }
+  // consider it a value gets store at the call site:
+  // int x = call(...);
+  // x shall be uninitialized then
+  // check if callSite is usual call instruction
+  if (const llvm::ReturnInst* ret = llvm::dyn_cast<llvm::ReturnInst>(exitStmt)) {
 
-  //		// TODO: not quite - check ICFG implementation!
-  //		// check if callSite is invoke instruction
-  //		if (llvm::isa<llvm::InvokeInst>(exitStmt)) {
-  //			const llvm::InvokeInst* invoke =
-  //llvm::dyn_cast<llvm::InvokeInst>(exitStmt);
-  //			for (auto user : invoke->users()) {
-  //				if (llvm::isa<llvm::StoreInst>(user)) {
-  //					const llvm::StoreInst* store =
-  //llvm::dyn_cast<llvm::StoreInst>(user);
-  //					return make_shared<Gen<const
-  //llvm::Value*>>(store->getPointerOperand(), zerovalue);
-  //				}
-  //			}
-  //		}
-  /*
-   *TODO check, this does not seem to be right, should it not be id, so we can
-   *check at methods return statement,
-   *TODO otherwise we must check one statement before return statement.
-   */
-  return KillAll<const llvm::Value *>::v();
-  // just a test
-  //		return Identity<const llvm::Value*>::v();
+  	struct UVFF : FlowFunction<const llvm::Value*> {
+  		const llvm::CallInst* call;
+  		const llvm::ReturnInst* ret;
+  		UVFF(const llvm::CallInst* c, const llvm::ReturnInst* r) : call(c), ret(r) {}
+  		set<const llvm::Value*> computeTargets(const llvm::Value* source) {
+  			if (ret->getNumOperands() > 0 && ret->getOperand(0) == source) {
+  				set<const llvm::Value*> results;
+  				// users of this call instruction get an uninitialized value!
+  				for (auto user : call->users()) {
+  					results.insert(user);
+  				}
+  				if (results.empty()) {
+  					results.insert(call);
+  				}
+  				return results;
+  			}
+  			return {};
+  		}
+  	};
+  	if (const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callSite)) {
+  		return make_shared<UVFF>(call, ret);
+  	}
+  }
+  return KillAll<const llvm::Value*>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -272,11 +240,9 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallToRetFlowFunction()"
        << endl;
+  // handle a normal use of an initialized return value
   for (auto user : callSite->users()) {
-    if (llvm::isa<llvm::StoreInst>(user)) {
-      const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(user);
-      return make_shared<Kill<const llvm::Value *>>(store->getPointerOperand());
-    }
+  	return make_shared<Kill<const llvm::Value *>>(user);
   }
   return Identity<const llvm::Value *>::v();
 }
@@ -284,7 +250,7 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSUnitializedVariables::initialSeeds() {
   const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
-  const llvm::Instruction *firstinst = &(*(mainfunction->begin()->begin()));
+  const llvm::Instruction *firstinst = &(*mainfunction->begin()->begin());
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{
       {firstinst, iset}};

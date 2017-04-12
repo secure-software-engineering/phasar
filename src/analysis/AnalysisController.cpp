@@ -19,8 +19,6 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     for (auto file : IRDB.source_files) {
       cout << "\t" << file << endl;
     }
-    // currently this AA map is just a makeshift
-    map<string, unique_ptr<llvm::AAResults>> AAMap;
     // here we perform a pre-analysis and run some very important passes over
     // all of the IR modules in order to perform various data flow analysis
     cout << "start pre-analyzing modules ...\n";
@@ -75,13 +73,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
         cout << "AnalysisController: debug info is broken" << endl;
       }
       // obtain the very important alias analysis results
-      llvm::AAResults AARes(move(AARWP->getAAResults()));
-      AAMap.insert(make_pair(M.getModuleIdentifier(),
-                             unique_ptr<llvm::AAResults>(new llvm::AAResults(move(AARes)))));
+      // and construct the intra-procedural points-to graphs
+      for (auto& function : M) {
+      	IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
+      }
     }
-
-    cout << "AAMap size is: " << AAMap.size() << endl;
-
     // some very important pre-analyses are performed here, that have to store
     // the state for the whole project - that is for all IR modules making up
     // the entire project
@@ -92,8 +88,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "pre-analysis completed ...\n";
     IRDB.print();
 
-    // //DBConn& db = DBConn::getInstance();
-    // // db << IRDB;
+    //DBConn& db = DBConn::getInstance();
+    // db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";
@@ -101,21 +97,18 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "reconstruction completed ...\n";
     CH.print();
 
-    // // db << CH;
-    // // db >> CH;
+    // db << CH;
+    // db >> CH;
 
     // // // prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
       llvm::Module& M = *(module_entry.second);
-      llvm::AAResults& AAResult = *(AAMap[M.getModuleIdentifier()].get());
-      LLVMBasedInterproceduralICFG icfg(M, AAResult, CH, IRDB);
-      llvm::Function* F = M.getFunction("main");
-      cout << "PointsToGraph:" << endl;
-      PointsToGraph ptg(AAResult, F);
-      ptg.print();
-    //   //   //    cout << "CALLING WALKER!" << endl;
-    //   //   //   icfg.resolveIndirectCallWalker(F);
+      LLVMBasedInterproceduralICFG icfg(M, CH, IRDB);
+      //llvm::Function* F = M.getFunction("main");
+      //cout << "PointsToGraph:" << endl;
+      //cout << "CALLING WALKER!" << endl;
+      //icfg.resolveIndirectCallWalker(F);
       // create the analyses problems queried by the user and start analyzing
 
       // TODO: change the implementation of 'createZeroValue()'
@@ -167,12 +160,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     }
     cout << "data-flow analyses completed ...\n";
 
-    // // after every module has been analyzed the analyses results must be
-    // merged
-    // // and the final results must be computed
+    // after every module has been analyzed the analyses results must be
+    // merged and the final results must be computed
     cout << "combining module-wise results ...\n";
 
-    // // here we go, now we are done
+    // here we go, now we are done
     cout << "combining module-wise results done ...\n"
             "computation completed!\n";
   }

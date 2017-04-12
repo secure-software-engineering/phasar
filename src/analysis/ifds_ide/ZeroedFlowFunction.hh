@@ -19,7 +19,7 @@ private:
 	D zerovalue;
 public:
 	ZeroedFlowFunction(shared_ptr<FlowFunction<D>> ff, D zv) : delegate(ff), zerovalue(zv) {}
-	set<D> computeTargets(D source)
+	set<D> computeTargets(D source) override
 	{
 		if (source == zerovalue) {
 			set<D> result = delegate->computeTargets(source);

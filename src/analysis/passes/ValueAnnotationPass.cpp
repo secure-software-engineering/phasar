@@ -11,8 +11,6 @@ size_t ValueAnnotationPass::unique_value_id = 0;
 
 bool  ValueAnnotationPass::runOnModule(llvm::Module& M)
 {
-	std::string MetaDataKind("ourframework.id");
-
 	std::cout << "running ValueAnnotationPass ...\n";
 	for (auto& global : M.globals()) {
 		llvm::MDNode* node = llvm::MDNode::get(context, llvm::MDString::get(context, std::to_string(unique_value_id)));
@@ -20,12 +18,6 @@ bool  ValueAnnotationPass::runOnModule(llvm::Module& M)
 //		std::cout << llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str() << std::endl;
 		++unique_value_id;
 	}
-
-	for (auto structtype : M.getIdentifiedStructTypes()) {
-//		llvm::Value* val = llvm::dyn_cast<llvm::Value>(structtype);
-//		llvm::MDNode* node = llvm::MDNode::get(context, llvm::MDString::get(context, std::to_string(unique_value_id)));
-	}
-
 	for (llvm::Module::iterator MI = M.begin(); MI != M.end(); ++MI) {
 		for (llvm::Function::iterator FI = MI->begin(); FI != MI->end(); ++FI) {
 			llvm::ilist_iterator<llvm::BasicBlock> BB = FI;

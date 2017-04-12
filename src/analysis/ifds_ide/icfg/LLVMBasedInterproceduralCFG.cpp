@@ -8,9 +8,9 @@
 #include "LLVMBasedInterproceduralCFG.hh"
 
 LLVMBasedInterproceduralICFG::LLVMBasedInterproceduralICFG(
-    llvm::Module& Module, llvm::AAResults& AA, LLVMStructTypeHierarchy& STH,
+    llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
-    : M(Module), CG(Module), AA(AA), CH(STH), IRDB(IRDB) {}
+    : M(Module), CG(Module), CH(STH), IRDB(IRDB) {}
 
 void LLVMBasedInterproceduralICFG::resolveIndirectCallWalker(
     const llvm::Function* F) {

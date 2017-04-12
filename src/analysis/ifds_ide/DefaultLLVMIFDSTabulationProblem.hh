@@ -14,7 +14,10 @@
 #include "DefaultIFDSTabulationProblem.hh"
 
 template<class D, class I>
-class DefaultLLVMIFDSTabulationProblem : public DefaultIFDSTabulationProblem<llvm::Instruction,D,llvm::Function,I> {
+class DefaultLLVMIFDSTabulationProblem : public DefaultIFDSTabulationProblem<const llvm::Instruction*,
+																																						 D,
+																																						 const llvm::Function*,
+																																						 I> {
 //static_assert(std::is_base_of<ICFG<llvm::Instruction,llvm::Function>, I>::value, "I requires an implementation of interface ICFG!");
 
 public:

@@ -46,6 +46,30 @@ void PrintLoadStoreResults(const char* Msg, bool P, const llvm::Value* V1,
   }
 }
 
+// points-to graph internal stuff
+
+PointsToGraph::VertexProperties::VertexProperties(llvm::Value* v) : value(v) {
+	// save the ir code
+	llvm::raw_string_ostream rso(ir_code);
+	value->print(rso);
+	// retrieve the id
+	if (const llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(value)) {
+		id = stoull(llvm::cast<llvm::MDString>(inst->getMetadata(MetaDataKind)->getOperand(0))->getString().str());
+	}
+}
+
+PointsToGraph::EdgeProperties::EdgeProperties(llvm::Value* v) : callsite(v) {
+	// save the ir code
+	llvm::raw_string_ostream rso(ir_code);
+	callsite->print(rso);
+	// retrieve the id
+	if (const llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(callsite)) {
+		id = stoull(llvm::cast<llvm::MDString>(inst->getMetadata(MetaDataKind)->getOperand(0))->getString().str());
+	}
+}
+
+// points-to graph stuff
+
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(*Fu) {
   cout << "analyzing function: " << F.getName().str() << endl;
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
@@ -93,11 +117,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(*Fu) {
   // make vertices for all pointers
   for (auto pointer : Pointers) {
     value_vertex_map[pointer] = boost::add_vertex(ptg);
-    string ir;
-    llvm::raw_string_ostream rso(ir);
-    pointer->print(rso);
-    ptg[value_vertex_map[pointer]].ir = ir;
-    ptg[value_vertex_map[pointer]].value = pointer;
+    ptg[value_vertex_map[pointer]] = VertexProperties(pointer);
   }
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   for (llvm::SetVector<llvm::Value *>::iterator I1 = Pointers.begin(),
@@ -188,32 +208,14 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
 void PointsToGraph::print() {
   cout << "PointsToGraph for " << F.getName().str() << "\n";
   boost::print_graph(ptg,
-                     boost::get(&PointsToGraph::VertexProperties::ir, ptg));
+                     boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
-void PointsToGraph::merge_graphs(PointsToGraph& g, const llvm::Value* v_in_g,
-                                 const PointsToGraph& h,
-                                 const llvm::Value* u_in_h) {
-  //    typedef boost::property_map<graph_t, boost::vertex_index_t>::type
-  //    index_map_t;
-  //
-  //    //for simple adjacency_list<> this type would be more efficient:
-  //    typedef boost::iterator_property_map<typename
-  //    std::vector<vertex_t>::iterator, index_map_t,vertex_t,vertex_t&>
-  //    IsoMap;
-  //
-  //    //for more generic graphs, one can try  //typedef std::map<vertex_t,
-  //    vertex_t> IsoMap;
-  //    vector<vertex_t> orig2copy_data(boost::num_vertices(h.ptg));
-  //    IsoMap mapV =
-  //    boost::make_iterator_property_map(orig2copy_data.begin(),
-  //    get(boost::vertex_index, h.ptg));
-  //    boost::copy_graph(g.ptg, h.ptg, boost::orig_to_copy(mapV) ); //means
-  //    g1
-  //    += g2
-  //
-  //    vertex_t u_in_g = mapV[value_vertex_map[u_in_h]];
-  //    boost::add_edge(value_vertex_map[v_in_g], u_in_g, g.ptg);
+void PointsToGraph::printAsDot(string file_path_suffix) {
+	ofstream ofs(F.getName().str()+file_path_suffix);
+	boost::write_graphviz(ofs, ptg,
+	    boost::make_label_writer(boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
+	    boost::make_label_writer(boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
 void PointsToGraph::printValueVertexMap() {

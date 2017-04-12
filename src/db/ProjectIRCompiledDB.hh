@@ -19,8 +19,15 @@
 #include <string>
 #include <utility>
 #include "../utils/utils.hh"
+#include "../analysis/call-points-to_graph/PointsToGraph.hh"
 using namespace std;
 
+/**
+ * This class owns the LLVM IR code of the project under analysis and some
+ * very important information associated with the IR.
+ * When an object of this class is destroyed it will clean up all IR related
+ * stuff that is stored in it.
+ */
 class ProjectIRCompiledDB {
  public:
   // stores all source files that have been examined, in-memory only
@@ -35,8 +42,8 @@ class ProjectIRCompiledDB {
   map<string, string> globals;
   // maps a id range of llvm value to the module they can be found in, must be stored persistently
   map<size_t, string> ids;
-  // maps a module to its alias analysis results, in-memory only
-  map<string, unique_ptr<llvm::AAResults>> aaresults;
+  // maps a function to its points-to graph
+  map<string, unique_ptr<PointsToGraph>> ptgs;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
   ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
   ~ProjectIRCompiledDB() = default;
