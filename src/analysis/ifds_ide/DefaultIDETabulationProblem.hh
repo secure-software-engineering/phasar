@@ -18,7 +18,12 @@ protected:
 	D zerovalue;
 
 public:
-	DefaultIDETabulationProblem(I icfg) : icfg(icfg) {}
+	DefaultIDETabulationProblem(I icfg) : icfg(icfg) {
+		this->solver_config.followReturnsPastSeeds = false;
+		this->solver_config.autoAddZero = true;
+		this->solver_config.computeValues = true;
+		this->solver_config.recordEdges = false;
+	}
 
 	virtual ~DefaultIDETabulationProblem() = default;
 
@@ -30,26 +35,6 @@ public:
 	D zeroValue() override
 	{
 		return zerovalue;
-	}
-
-	inline bool followReturnsPastSeeds() override
-	{
-		return false;
-	}
-
-	inline bool autoAddZero() override
-	{
-		return true;
-	}
-
-	inline bool computeValues() override
-	{
-		return true;
-	}
-
-	inline bool recordEdges() override
-	{
-		return false;
 	}
 
 };

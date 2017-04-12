@@ -29,18 +29,9 @@ enum class BinaryDomain {
 	TOP = 1
 };
 
-ostream& operator<< (ostream& os, const BinaryDomain& b)
-{
-	int type = static_cast<underlying_type<BinaryDomain>::type>(b);
-	if (type == 0)
-		return os << "BOTTOM";
-	else if (type == 1)
-		return os << "TOP";
-	else
-		return os << "unrecognized element of BinaryDomain";
-}
+ostream& operator<< (ostream& os, const BinaryDomain& b);
 
-const static shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM = make_shared<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
+extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
 
 /**
  * We have to find an elegant way to promote an IFDSTabulationProblem to an IDETabulationProblem!!!
@@ -51,9 +42,13 @@ template<class N, class D, class M, class I>
 class IFDSToIDETabulationProblem : public IDETabluationProblem<N, D, M, BinaryDomain, I> {
 protected:
 	IFDSTabulationProblem<N,D,M,I>& problem;
-
 public:
-	IFDSToIDETabulationProblem(IFDSTabulationProblem<N,D,M,I>& ifdsProblem) : problem(ifdsProblem) { }
+	IFDSToIDETabulationProblem(IFDSTabulationProblem<N,D,M,I>& ifdsProblem) : problem(ifdsProblem) {
+		this->solver_config.followReturnsPastSeeds = problem.solver_config.followReturnsPastSeeds;
+		this->solver_config.autoAddZero = problem.solver_config.autoAddZero;
+		this->solver_config.computeValues = problem.solver_config.computeValues;
+		this->solver_config.recordEdges = problem.solver_config.recordEdges;
+	}
 
 	shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) override
 	{
@@ -112,27 +107,6 @@ public:
 	shared_ptr<EdgeFunction<BinaryDomain>> allTopFunction() override
 	{
 		return make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
-	}
-
-
-	bool followReturnsPastSeeds() override
-	{
-		return problem.followReturnsPastSeeds();
-	}
-
-	bool autoAddZero() override
-	{
-		return problem.autoAddZero();
-	}
-
-	bool computeValues() override
-	{
-		return problem.computeValues();
-	}
-
-	bool recordEdges() override
-	{
-		return problem.recordEdges();
 	}
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getNormalEdgeFunction(N src,D srcNode,N tgt,D tgtNode) override

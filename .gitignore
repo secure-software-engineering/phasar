@@ -13,6 +13,7 @@ doc/*
 
 # Eclipse
 .cproject
+.project
 .settings/*
 
 ##### ignored files

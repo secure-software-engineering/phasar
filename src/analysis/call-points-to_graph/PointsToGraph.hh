@@ -18,14 +18,19 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Metadata.h>
+#include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
+#include "../../utils/utils.hh"
 using namespace std;
 
 void PrintResults(const char* Msg, bool P, const llvm::Value* V1,
@@ -44,14 +49,21 @@ inline void PrintLoadStoreResults(const char* Msg, bool P,
                                   const llvm::Module* M);
 
 class PointsToGraph {
- private:
+private:
   struct VertexProperties {
-    llvm::Value* value;
-    string ir;
+    llvm::Value* value = nullptr;
+    string ir_code;
+    size_t id = 0;
+  	VertexProperties() = default;
+  	VertexProperties(llvm::Value* v);
   };
 
   struct EdgeProperties {
-    string name;
+    llvm::Value* callsite = nullptr;
+    string ir_code;
+    size_t id = 0;
+    EdgeProperties() = default;
+    EdgeProperties(llvm::Value* v);
   };
 
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
@@ -88,18 +100,17 @@ class PointsToGraph {
   map<const llvm::Value*, vertex_t> value_vertex_map;
   llvm::Function& F;
 
- public:
+public:
   PointsToGraph(llvm::AAResults& AA, llvm::Function* F);
-  PointsToGraph() = default;
+  //PointsToGraph() = default;
   virtual ~PointsToGraph() = default;
   inline bool isInterestingPointer(llvm::Value* V);
   bool containsValue(llvm::Value* V);
   set<const llvm::Value*> isAliasingWithFormals(const llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
   void printValueVertexMap();
-  void merge_graphs(PointsToGraph& g, const llvm::Value* v_in_g,
-                    const PointsToGraph& h, const llvm::Value* u_in_h);
   void print();
+  void printAsDot(string file_path_suffix);
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

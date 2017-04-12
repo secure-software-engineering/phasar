@@ -43,7 +43,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
         bool broken_debug_info = false;
         if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
           cout << "module is broken!\nabort!" << endl;
-          KILL;
+          DIE_HARD;
         }
         if (broken_debug_info) {
           cout << "debug info is broken" << endl;
@@ -53,7 +53,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
         modules.insert(make_pair(name, move(module)));
       } else {
         cout << "could not compile module!\nabort" << endl;
-        KILL;
+        DIE_HARD;
       }
     }
   }
@@ -69,7 +69,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
     bool broken_debug_info = false;
     if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
       cout << "error: module not valid\n";
-      KILL;
+      DIE_HARD;
     }
     if (broken_debug_info) {
       cout << "caution: debug info is broken\n";
@@ -108,7 +108,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
       bool broken_debug_info = false;
       if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
         cout << "module is broken!\nabort!" << endl;
-        KILL;
+        DIE_HARD;
       }
       if (broken_debug_info) {
         cout << "debug info is broken" << endl;
@@ -118,12 +118,12 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
       modules.insert(make_pair(name, move(module)));
     } else {
       cout << "could not compile module!\nabort" << endl;
-      KILL;
+      DIE_HARD;
     }
   }
 }
 
-void ProjectIRCompiledDB::createFunctionModuleMapping() {
+void ProjectIRCompiledDB::buildFunctionModuleMapping() {
   for (auto &entry : modules) {
     const llvm::Module *M = entry.second.get();
     for (auto &function : M->functions()) {
@@ -132,6 +132,22 @@ void ProjectIRCompiledDB::createFunctionModuleMapping() {
       }
     }
   }
+}
+
+void ProjectIRCompiledDB::buildGlobalModuleMapping() {
+  for (auto& entry : modules) {
+    const llvm::Module *M = entry.second.get();
+    for (auto& global : M->globals()) {
+      if (1==1) {
+        globals[global.getName().str()] = M->getModuleIdentifier();
+      }
+    }
+  }
+}
+
+void ProjectIRCompiledDB::buildIDModuleMapping() {
+	// determine first instruction of module
+	// determine last instruction of module (user reverse module iterator)
 }
 
 void ProjectIRCompiledDB::print() {

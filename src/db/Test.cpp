@@ -180,5 +180,4 @@ void hs_serialization_test() {
 	for (tie(ei_start, e_end) = boost::edges(J); ei_start != e_end; ++ei_start) {
 		cout << boost::get(&Edge::edge_name, J, *ei_start) << endl;
 	}
-	void;
 }

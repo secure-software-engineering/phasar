@@ -13,10 +13,10 @@
 #include "../EdgeFunction.hh"
 #include "AllTop.hh"
 
-// #include "AllBottom.hh" // leads to a circular dependency
+#include "AllBottom.hh" // leads to a circular dependency
 // Must be resolved at some point, but for now just forward declare the AllBottom<V> class
-template<typename V>
-class AllBottom;
+//template<typename V>
+//class AllBottom;
 
 using namespace std;
 
