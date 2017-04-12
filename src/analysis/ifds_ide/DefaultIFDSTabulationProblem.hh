@@ -20,7 +20,13 @@ protected:
 	D zerovalue;
 
 public:
-	DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {}
+	DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {
+		// set to the default solver configuration
+		this->solver_config.followReturnsPastSeeds = false;
+		this->solver_config.autoAddZero = true;
+		this->solver_config.computeValues = true;
+		this->solver_config.recordEdges = false;
+	}
 
 	virtual ~DefaultIFDSTabulationProblem() = default;
 
@@ -32,26 +38,6 @@ public:
 	D zeroValue() override
 	{
 		return zerovalue;
-	}
-
-	inline bool followReturnsPastSeeds() override
-	{
-		return false;
-	}
-
-	inline bool autoAddZero() override
-	{
-		return true;
-	}
-
-	inline bool computeValues() override
-	{
-		return true;
-	}
-
-	inline bool recordEdges() override
-	{
-		return false;
 	}
 };
 

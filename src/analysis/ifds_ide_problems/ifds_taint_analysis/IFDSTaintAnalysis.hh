@@ -13,6 +13,7 @@
 #include "../../ifds_ide/flow_func/Gen.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
 #include "../../ifds_ide/flow_func/Kill.hh"
+#include "../../../utils/utils.hh"
 #include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>

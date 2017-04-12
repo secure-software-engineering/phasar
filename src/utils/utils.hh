@@ -24,4 +24,6 @@ using namespace std;
 
 string cxx_demangle(string mangled_name);
 
+extern const string MetaDataKind;
+
 #endif

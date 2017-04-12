@@ -38,7 +38,6 @@ class LLVMBasedInterproceduralICFG
  private:
   const llvm::Module& M;
   llvm::CallGraph CG;
-  llvm::AAResults& AA;
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   map<llvm::ImmutableCallSite, set<const llvm::Function*>> CSPTM;
@@ -46,7 +45,7 @@ class LLVMBasedInterproceduralICFG
   set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
 
  public:
-  LLVMBasedInterproceduralICFG(llvm::Module& Module, llvm::AAResults& AA,
+  LLVMBasedInterproceduralICFG(llvm::Module& Module,
                                LLVMStructTypeHierarchy& STH,
                                ProjectIRCompiledDB& IRDB);
 

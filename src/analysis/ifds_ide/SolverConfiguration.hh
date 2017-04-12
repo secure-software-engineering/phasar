@@ -8,17 +8,17 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_
 #define ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_
 
-class SolverConfiguration {
-public:
+#include <iostream>
+using namespace std;
+
+struct SolverConfiguration {
+	SolverConfiguration() = default;
 	virtual ~SolverConfiguration() = default;
-
-	virtual bool followReturnsPastSeeds() = 0;
-
-	virtual bool autoAddZero() = 0;
-
-	virtual bool computeValues() = 0;
-
-	virtual bool recordEdges() = 0;
+	bool followReturnsPastSeeds = false;
+	bool autoAddZero = false;
+	bool computeValues = false;
+	bool recordEdges = false;
+	friend ostream& operator<< (ostream& os, const SolverConfiguration& sc);
 };
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_ */

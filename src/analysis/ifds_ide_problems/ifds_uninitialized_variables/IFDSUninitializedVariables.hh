@@ -15,6 +15,9 @@
 #include "../../ifds_ide/flow_func/Kill.hh"
 #include "../../ifds_ide/flow_func/KillAll.hh"
 #include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
+#include "../../../utils/utils.hh"
+#include <llvm/IR/Constant.h>
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>

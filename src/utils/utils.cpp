@@ -7,3 +7,5 @@ string cxx_demangle(string mangled_name) {
   free(demangled);
   return result;
 }
+
+const string MetaDataKind("ourframework.id");
