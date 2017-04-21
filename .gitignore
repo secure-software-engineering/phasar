@@ -3,6 +3,9 @@
 # bin/ directory
 bin/*
 
+# build directory for cmake
+build
+
 # obj/ directory
 
 # doc/ directory
@@ -68,3 +71,6 @@ build/*
 # Debug files
 *.dSYM/
 *.su
+
+# Emacs convenience metadata
+TAGS
