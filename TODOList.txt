@@ -24,3 +24,6 @@ TODO List
 	-AliasInformation (taken plain from llvm)
 	-ICFG must be modified a bit
 	-IRDB
+
+-Create a description for the installation of the analysis tool
+

@@ -26,7 +26,7 @@ public:
 			    : IDESolver<const llvm::Instruction*,D,const llvm::Function*,V,I>(problem),
 				  DUMP_RESULTS(dumpResults) {}
 
-	~LLVMIDESolver() = default;
+	virtual ~LLVMIDESolver() = default;
 
 	void solve() override
 	{

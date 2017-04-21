@@ -34,7 +34,7 @@ bool IFDSTaintAnalysis::isSinkFunction(const llvm::Function *f) {
   return false;
 }
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedInterproceduralICFG &icfg,
+IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg,
                                      llvm::LLVMContext &c)
     : DefaultIFDSTabulationProblem(icfg), context(c) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();

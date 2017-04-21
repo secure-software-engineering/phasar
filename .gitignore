@@ -8,6 +8,9 @@ bin/*
 # doc/ directory
 doc/*
 
+# CMake build dir
+build/*
+
 # MS VS Code
 .vscode/*
 

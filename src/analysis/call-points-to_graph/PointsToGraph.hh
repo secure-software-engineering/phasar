@@ -30,6 +30,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "../../analysis/ifds_ide/icfg/InterproceduralCFG.hh"
+#include "../../lib/GraphExtensions.hh"
 #include "../../utils/utils.hh"
 using namespace std;
 
@@ -49,9 +51,9 @@ inline void PrintLoadStoreResults(const char* Msg, bool P,
                                   const llvm::Module* M);
 
 class PointsToGraph {
-private:
+public:
   struct VertexProperties {
-    llvm::Value* value = nullptr;
+    const llvm::Value* value = nullptr;
     string ir_code;
     size_t id = 0;
   	VertexProperties() = default;
@@ -59,11 +61,11 @@ private:
   };
 
   struct EdgeProperties {
-    llvm::Value* callsite = nullptr;
+    const llvm::Value* value = nullptr;
     string ir_code;
     size_t id = 0;
     EdgeProperties() = default;
-    EdgeProperties(llvm::Value* v);
+    EdgeProperties(const llvm::Value* v);
   };
 
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
@@ -73,18 +75,22 @@ private:
   typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
 
-  struct formals_reachability_dfs_visitor : boost::default_dfs_visitor {
-    set<vertex_t> formals;
-    set<vertex_t>& aliasing_with_formals;
-    formals_reachability_dfs_visitor(set<vertex_t> formals,
-                                     set<vertex_t>& result)
-        : formals(formals), aliasing_with_formals(result){};
-    template <class Vertex, class Graph>
-    void finish_vertex(Vertex u, const Graph& g) {
-      if (formals.find(u) != formals.end()) {
-        aliasing_with_formals.insert(u);
-      }
-    }
+private:
+  struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
+  	set<const llvm::Value*>& allocation_sites;
+  	allocation_site_dfs_visitor(set<const llvm::Value*>& allocation_sizes)
+  			: allocation_sites(allocation_sizes) {}
+  	template <class Vertex, class Graph>
+  	void finish_vertex(Vertex u, const Graph& g) {
+  		if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
+  			allocation_sites.insert(g[u].value);
+  		}
+  		if (const llvm::CallInst* cs = llvm::dyn_cast<llvm::CallInst>(g[u].value)) {
+  			if (cs->getCalledFunction()->getName().str() == "_Znwm") {
+  				allocation_sites.insert(g[u].value);
+  			}
+  		}
+  	}
   };
 
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
@@ -98,16 +104,22 @@ private:
 
   graph_t ptg;
   map<const llvm::Value*, vertex_t> value_vertex_map;
-  llvm::Function& F;
+  llvm::Function* F = nullptr;
 
 public:
   PointsToGraph(llvm::AAResults& AA, llvm::Function* F);
-  //PointsToGraph() = default;
+  PointsToGraph() = default;
   virtual ~PointsToGraph() = default;
   inline bool isInterestingPointer(llvm::Value* V);
+  vector<pair<unsigned, const llvm::Value*>> getPointersEscapingThroughParams();
+  vector<const llvm::Value*> getPointersEscapingThroughReturns();
+  set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V);
+  set<const llvm::Type*> computeTypesFromAllocationSites(set<const llvm::Value*> AS);
   bool containsValue(llvm::Value* V);
-  set<const llvm::Value*> isAliasingWithFormals(const llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
+  void mergeWith(PointsToGraph& other,
+  							 vector<pair<const llvm::Value*, const llvm::Value*>> v_in_first_u_in_second,
+								 const llvm::Value* callsite_value);
   void printValueVertexMap();
   void print();
   void printAsDot(string file_path_suffix);

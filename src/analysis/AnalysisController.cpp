@@ -104,11 +104,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
       llvm::Module& M = *(module_entry.second);
-      LLVMBasedInterproceduralICFG icfg(M, CH, IRDB);
-      //llvm::Function* F = M.getFunction("main");
-      //cout << "PointsToGraph:" << endl;
-      //cout << "CALLING WALKER!" << endl;
-      //icfg.resolveIndirectCallWalker(F);
+      LLVMBasedICFG icfg(M, CH, IRDB);
       // create the analyses problems queried by the user and start analyzing
 
       // TODO: change the implementation of 'createZeroValue()'
@@ -123,7 +119,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     	  { // caution: observer '{' and '}' we work in another scope
     		cout << "IFDS_TaintAnalysis\n";
     		IFDSTaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-    		LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
+    		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
     		llvmtaintsolver.solve();
     	  break;
     	  }
@@ -140,7 +136,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
           { // caution: observer '{' and '}' we work in another scope
             cout << "IFDS_TypeAnalysis\n";
             IFDSTypeAnalysis typeanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-            LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtypesolver(typeanalysisproblem, true);
+            LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
             llvmtypesolver.solve();
           break;
           }
@@ -148,7 +144,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
           { // caution: observer '{' and '}' we work in another scope
             cout << "IFDS_UninitalizedVariables\n";
             IFDSUnitializedVariables uninitializedvarproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-            LLVMIFDSSolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmunivsolver(uninitializedvarproblem, true);
+            LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
             llvmunivsolver.solve();
           break;
           }

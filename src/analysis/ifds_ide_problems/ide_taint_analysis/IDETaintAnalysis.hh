@@ -13,7 +13,6 @@
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/edge_func/EdgeIdentity.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
-#include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -26,12 +25,14 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 
 class IDETaintAnalysis : public DefaultIDETabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, const llvm::Value *,
-                             LLVMBasedInterproceduralICFG &> {
+                             LLVMBasedICFG &> {
 private:
   llvm::LLVMContext &context;
 
@@ -42,9 +43,9 @@ public:
   set<string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(set<string> s, string str);
 
-  IDETaintAnalysis(LLVMBasedInterproceduralICFG &icfg, llvm::LLVMContext &c);
+  IDETaintAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c);
 
-  ~IDETaintAnalysis() = default;
+  virtual ~IDETaintAnalysis() = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 

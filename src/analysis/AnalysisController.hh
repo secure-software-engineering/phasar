@@ -29,7 +29,7 @@
 #include "../db/DBConn.hh"
 #include "../db/ProjectIRCompiledDB.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
-#include "ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
+#include "ifds_ide/icfg/LLVMBasedICFG.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"
 #include "passes/GeneralStatisticsPass.hh"

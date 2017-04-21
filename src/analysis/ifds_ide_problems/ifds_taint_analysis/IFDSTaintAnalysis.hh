@@ -14,7 +14,6 @@
 #include "../../ifds_ide/flow_func/Identity.hh"
 #include "../../ifds_ide/flow_func/Kill.hh"
 #include "../../../utils/utils.hh"
-#include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -27,12 +26,14 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 
 class IFDSTaintAnalysis
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedInterproceduralICFG &> {
+          const llvm::Function *, LLVMBasedICFG &> {
 private:
   llvm::LLVMContext &context;
 
@@ -82,7 +83,7 @@ public:
 
   bool isSinkFunction(const llvm::Function *f);
 
-  IFDSTaintAnalysis(LLVMBasedInterproceduralICFG &icfg, llvm::LLVMContext &c);
+  IFDSTaintAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c);
 
   virtual ~IFDSTaintAnalysis() = default;
 

@@ -370,13 +370,13 @@ set<string> DBConn::getAllTypeIdentifiers() {
 
 // LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
 
-// void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
-//   cout << "WRITE STH TO DB\n";
-//   for (auto& entry : STH.vtable_map) {
-//       db.insertType(entry.first, entry.second);
-//   }
+void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
+   cout << "WRITE STH TO DB\n";
+   for (auto& entry : STH.vtable_map) {
+       db.insertType(entry.first, entry.second);
+   }
 //   insertLLVMStructHierarchyGraph(STH.g);
-// }
+}
 
 void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
   cout << "READ STH FROM DB\n";

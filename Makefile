@@ -41,7 +41,7 @@ OBJ_UTILS := $(OBJ)utils/
 OBJ_UNIT_TESTS := $(OBJ)unit_tests/
 
 # compiler to use
-CXX := clang++-3.9
+CXX := clang++
 
 # compiler flags
 CXX_FLAGS := -std=c++11			# change to c++14 and libc++ Clang when possible
@@ -62,10 +62,10 @@ SQLITE3_LIBS := -lsqlite3
 BOOST_LIBS := -lboost_filesystem -lboost_system
 
 # llvm flags to use
-LLVM_FLAGS :=  `llvm-config-3.9 --cxxflags --ldflags`		# core support system analysis ipa jit mcjit native cppbackend`
+LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags`		# core support system analysis ipa jit mcjit native cppbackend`
 
 # llvm libraries to link with
-LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`		# core support system analysis ipa jit mcjit native cppbackend`
+LLVM_LIBS := `llvm-config --system-libs --libs all`		# core support system analysis ipa jit mcjit native cppbackend`
 
 # clang libraries to link with
 CLANG_FLAGS := 	-lclangTooling\
@@ -88,8 +88,8 @@ CLANG_FLAGS := 	-lclangTooling\
 		-lclangASTMatchers\
 		-lclangLex\
 		-lclangBasic\
-		`llvm-config-3.9 --libs`\
-		`llvm-config-3.9 --system-libs`\
+		`llvm-config --libs`\
+		`llvm-config --system-libs`\
 		-lcurses\
 
 # definition of targets
@@ -111,7 +111,7 @@ utils_header_list := $(shell find $(SRC_UTILS) -name "*.hh")
 utils_impl_list := $(shell find $(SRC_UTILS) -name "*.cpp")
 $(OBJ_UTILS): $(utils_header_list) $(utils_impl_list) $(CONFIG_HEADER)
 	mkdir -p $(OBJ_UTILS); \
-	$(CXX) $(CXX_FLAGS) -c $(utils_impl_list); \
+	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(utils_impl_list); \
 	mv *.o $(OBJ_UTILS); \
 
 db_header_list := $(shell find $(SRC_DB) -name "*.hh")

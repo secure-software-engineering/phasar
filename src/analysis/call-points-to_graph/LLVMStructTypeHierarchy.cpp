@@ -14,21 +14,6 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
     analyzeModule(M);
     reconstructVTable(M);
   }
-  // //cout << "transitive closure" << endl;
-  // // we have to complete the transitive vtables from derived classes
-  // printTransitiveClosure();
-  // bidigraph_t tc;
-  // boost::transitive_closure(g, tc);
-  // typename boost::graph_traits<bidigraph_t>::vertex_iterator vi, vi_end;
-  // typename boost::graph_traits<bidigraph_t>::in_edge_iterator ei, ei_end;
-  // for (tie(vi, vi_end) = boost::vertices(tc); vi != vi_end; ++vi) {
-  //   cout << g[*vi].name << endl;
-  //   for (tie(ei, ei_end) = boost::in_edges(*vi, tc); ei != ei_end; ++ei) {
-  //     auto source = boost::source(*ei, tc);
-  //     //vtable_map[g[*vi].name].addVTable(vtable_map[g[source].name]);
-  //     // cout << "is a: " << g[source].name << endl;
-  //   }
-  // }
 }
 
 void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
@@ -117,50 +102,8 @@ set<string> LLVMStructTypeHierarchy::getTransitivelyReachableTypes(
     auto target = boost::target(*ei, tc);
     reachable_nodes.insert(g[target].name);
   }
-  //	boost::print_graph(tc, boost::get(&VertexProperties::name, g));
-  //	my_dfs_visitor vis;
-  //	boost::depth_first_search(tc, boost::visitor(vis).root_vertex(4));
-  //	boost::property_map<bidigraph_t, llvm::Type* VertexProperties::*>::type
-  // llvmtype = boost::get(&VertexProperties::llvmtype, g);
-  //	for (auto vertex : *(vis.collected_vertices)) {
-  //		cout << vertex << endl;
-  //		reachable_nodes.insert(vertex_to_value[vertex]);
-  //	}
-  //	delete vis.collected_vertices;
   return reachable_nodes;
 }
-
-// const llvm::Function*
-// LLVMStructTypeHierarchy::getFunctionFromVirtualCallSite(llvm::Module* M,
-// llvm::ImmutableCallSite ICS)
-// {
-// 	boost::adjacency_list<> tc;
-// 	boost::transitive_closure(g, tc);
-
-// 	const llvm::LoadInst* load =
-// llvm::dyn_cast<llvm::LoadInst>(ICS.getCalledValue());
-// 	const llvm::GetElementPtrInst* gep =
-// llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-// 	vector<const llvm::Function*> vtable;
-// 	if (containsSubType(v->getType(), ICS->getOperand(0)->getType()) &&
-// containsVTable(ICS->getOperand(0)->getType())) {
-// 		cout << "desired" << endl;
-// 		vtable = constructVTable(v->getType(), M);
-// 	} else {
-// 		cout << "undesired" << endl;
-// 		vtable = constructVTable(ICS->getOperand(0)->getType(), M);
-// 	}
-// 	cout << "vtable contents" << endl;
-// 	for (auto entru : vtable) {
-// 		cout << entru->getName().str() << endl;
-// 	}
-// 	cout << "vtable size: " << vtable.size() << endl;
-// 	cout << "index: " <<
-// llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue() <<
-// endl;
-// 	return
-// vtable[llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue()];
-// }
 
 string LLVMStructTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
   auto iter = vtable_map.find(TypeName);

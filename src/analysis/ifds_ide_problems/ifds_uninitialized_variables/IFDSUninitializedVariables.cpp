@@ -1,7 +1,7 @@
 #include "IFDSUninitializedVariables.hh"
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(
-    LLVMBasedInterproceduralICFG &icfg, llvm::LLVMContext &c)
+    LLVMBasedICFG &icfg, llvm::LLVMContext &c)
     : DefaultIFDSTabulationProblem(icfg), context(c) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
@@ -11,11 +11,11 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
                                                 const llvm::Instruction *succ) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
-  // taint every local variable, that is not a function parameter
+  // set every local variable as uninitialized, that is not a function parameter
   if (icfg.getNameOfMethod(curr) == "main" && icfg.isStartPoint(curr)) {
   	const llvm::Function* func = icfg.getMethodOf(curr);
 
-  	// taint all locals flow function
+  	// set all locals as uninitialized flow function
   	struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *func;
       const llvm::Value *zerovalue;

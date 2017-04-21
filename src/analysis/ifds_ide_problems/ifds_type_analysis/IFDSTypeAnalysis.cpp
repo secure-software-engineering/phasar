@@ -1,6 +1,6 @@
 #include "IFDSTypeAnalysis.hh"
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedInterproceduralICFG &icfg, llvm::LLVMContext& c)
+IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext& c)
     : DefaultIFDSTabulationProblem(icfg), context(c) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }

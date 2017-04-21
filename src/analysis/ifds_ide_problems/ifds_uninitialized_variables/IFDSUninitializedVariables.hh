@@ -14,7 +14,6 @@
 #include "../../ifds_ide/flow_func/Identity.hh"
 #include "../../ifds_ide/flow_func/Kill.hh"
 #include "../../ifds_ide/flow_func/KillAll.hh"
-#include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include "../../../utils/utils.hh"
 #include <llvm/IR/Constant.h>
 #include <llvm/IR/Constants.h>
@@ -27,17 +26,19 @@
 #include <map>
 #include <memory>
 #include <set>
+
+#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 
 class IFDSUnitializedVariables
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedInterproceduralICFG &> {
+          const llvm::Function *, LLVMBasedICFG &> {
 private:
   llvm::LLVMContext &context;
 
 public:
-  IFDSUnitializedVariables(LLVMBasedInterproceduralICFG &icfg,
+  IFDSUnitializedVariables(LLVMBasedICFG &icfg,
                            llvm::LLVMContext &c);
 
   virtual ~IFDSUnitializedVariables() = default;

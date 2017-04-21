@@ -25,7 +25,7 @@ void merge_graphs(GraphTy& g1, const GraphTy& g2, vector<pair<VertexTy, VertexTy
   //for more generic graphs, one can try typedef std::map<vertex_t, vertex_t> IsoMap;
   vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
   IsoMap mapV = boost::make_iterator_property_map(orig2copy_data.begin(), get(boost::vertex_index, g2));
-  boost::copy_graph(g2, g1, boost::orig_to_copy(mapV) ); //means g1 += g2
+  boost::copy_graph(g2, g1, boost::orig_to_copy(mapV)); //means g1 += g2
   for (auto& entry : v_in_g1_u_in_g2) {
   	VertexTy u_in_g1 = mapV[entry.second];
   	boost::add_edge(entry.first, u_in_g1, EdgeProperty(args...), g1);

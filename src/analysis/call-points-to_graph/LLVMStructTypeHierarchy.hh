@@ -39,9 +39,7 @@ class LLVMStructTypeHierarchy {
   };
 
   struct EdgeProperties {
-    int discovery_order;
-    EdgeProperties() : discovery_order(0) {}
-    EdgeProperties(int i) : discovery_order(i) {}
+    EdgeProperties() = default;
   };
 
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
@@ -64,8 +62,6 @@ class LLVMStructTypeHierarchy {
   map<string, vertex_t> type_vertex_map;
   // maps type names to the corresponding vtable
   map<string, VTable> vtable_map;
-  // maps type to contained types
-  map<string, vector<string>> contained_type_map;
   set<string> recognized_struct_types;
 
   void reconstructVTable(const llvm::Module& M);
@@ -78,8 +74,6 @@ class LLVMStructTypeHierarchy {
   set<string> getTransitivelyReachableTypes(string TypeName);
   vector<const llvm::Function*> constructVTable(const llvm::Type* T,
                                                 const llvm::Module* M);
-  // const llvm::Function* getFunctionFromVirtualCallSite(
-  //     llvm::Module* M, llvm::ImmutableCallSite ICS);
   string getVTableEntry(string TypeName, unsigned idx);
   bool hasSuperType(string TypeName, string SuperTypeName);
   bool hasSubType(string TypeName, string SubTypeName);

@@ -4,7 +4,7 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(LLVMBasedInterproceduralICFG &icfg,
+IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
                                    llvm::LLVMContext &c)
     : DefaultIDETabulationProblem(icfg), context(c) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();

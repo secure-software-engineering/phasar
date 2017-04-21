@@ -11,7 +11,6 @@
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
-#include "../../ifds_ide/icfg/LLVMBasedInterproceduralCFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -20,16 +19,18 @@
 #include <map>
 #include <memory>
 #include <set>
+
+#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 class IFDSTypeAnalysis
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedInterproceduralICFG &> {
+          const llvm::Function *, LLVMBasedICFG &> {
 private:
   llvm::LLVMContext &context;
 
 public:
-  IFDSTypeAnalysis(LLVMBasedInterproceduralICFG &icfg, llvm::LLVMContext &c);
+  IFDSTypeAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c);
 
   virtual ~IFDSTypeAnalysis() = default;
 

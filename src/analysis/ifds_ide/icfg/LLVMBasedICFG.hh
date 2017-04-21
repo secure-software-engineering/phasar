@@ -5,8 +5,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_
-#define ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_
+#ifndef ANALYSIS_LLVMBASEDICFG_HH_
+#define ANALYSIS_LLVMBASEDICFG_HH_
 
 #include <llvm/ADT/SCCIterator.h>
 #include <llvm/Analysis/CallGraph.h>
@@ -20,36 +20,39 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
+#include <llvm/IR/Type.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/Casting.h>
-#include <llvm/Transforms/Utils/Cloning.h>
 #include <iostream>
 #include <memory>
 #include <set>
 #include <string>
 #include "../../call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../../call-points-to_graph/PointsToGraph.hh"
+#include "../../../lib/GraphExtensions.hh"
+#include "../../../utils/utils.hh"
 #include "ICFG.hh"
 
 using namespace std;
 
-class LLVMBasedInterproceduralICFG
+class LLVMBasedICFG
     : public ICFG<const llvm::Instruction*, const llvm::Function*> {
  private:
   const llvm::Module& M;
   llvm::CallGraph CG;
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
-  map<llvm::ImmutableCallSite, set<const llvm::Function*>> CSPTM;
+  PointsToGraph WholeModulePTG;
+  map<const llvm::Instruction*, set<const llvm::Function*>> IndirectCSTargetMethods;
 
   set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
 
  public:
-  LLVMBasedInterproceduralICFG(llvm::Module& Module,
+  LLVMBasedICFG(llvm::Module& Module,
                                LLVMStructTypeHierarchy& STH,
                                ProjectIRCompiledDB& IRDB);
 
-  virtual ~LLVMBasedInterproceduralICFG() = default;
+  virtual ~LLVMBasedICFG() = default;
 
   void resolveIndirectCallWalker(const llvm::Function* F);
 
