@@ -22,7 +22,6 @@ LLVMBasedICFG::LLVMBasedICFG(
 			WholeModulePTG.printAsDot("main_ptg.dot");
 			resolveIndirectCallWalker(seed);
 		}
-
 		cout << "constructed whole module ptg and resolved indirect calls ...\n";
 		WholeModulePTG.printAsDot("whole_module_ptg.dot");
 }
@@ -57,6 +56,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
 //      		entry.second->dump();
 //      		cout << "end map" << endl;
 //      	}
+      	DirectCSTargetMethods.insert(make_pair(&Inst, cs.getCalledFunction()));
       	// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
       	resolveIndirectCallWalker(cs.getCalledFunction());
@@ -111,7 +111,12 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     	cout << "found the following possible types" << endl;
     	for (auto type : possible_types) {
     		type->dump();
-    		if (const llvm::StructType* struct_type = llvm::dyn_cast<llvm::StructType>(type)) {
+    		// caution: type might be a pointer type returned by a allocating function
+    		const llvm::StructType* struct_type = (!type->isPointerTy()) ?
+    																					llvm::dyn_cast<llvm::StructType>(type) :
+																							llvm::dyn_cast<llvm::StructType>(type->getPointerElementType());
+    		if (struct_type) {
+
     			possible_call_targets.insert(CH.getVTableEntry(struct_type->getName().str(), vtable_entry));
     		}
     	}
@@ -207,20 +212,10 @@ set<const llvm::Function*> LLVMBasedICFG::getCalleesOfCallAt(
 set<const llvm::Instruction*> LLVMBasedICFG::getCallersOf(
     const llvm::Function* m) {
   set<const llvm::Instruction*> CallersOf;
-  for (llvm::Module::const_iterator MI = M.begin(); MI != M.end(); ++MI) {
-    for (llvm::Function::const_iterator FI = MI->begin(); FI != MI->end();
-         ++FI) {
-      llvm::ilist_iterator<const llvm::BasicBlock> BB = FI;
-      for (llvm::BasicBlock::const_iterator BBI = BB->begin(); BBI != BB->end();
-           ++BBI) {
-        const llvm::Instruction& I = *BBI;
-        if (const llvm::CallInst* CI = llvm::dyn_cast<llvm::CallInst>(&I)) {
-          if (CI->getCalledFunction() == m) {
-            CallersOf.insert(&I);
-          }
-        }
-      }
-    }
+  for (auto& entry : DirectCSTargetMethods) {
+  	if (entry.second == m) {
+  		CallersOf.insert(entry.first);
+  	}
   }
   for (auto& entry : IndirectCSTargetMethods) {
   	for (auto function : entry.second) {
@@ -236,18 +231,14 @@ set<const llvm::Instruction*> LLVMBasedICFG::getCallersOf(
  * Returns all call sites within a given method.
  */
 set<const llvm::Instruction*> LLVMBasedICFG::getCallsFromWithin(
-    const llvm::Function* m) {
-  set<const llvm::Instruction*> ISet;
-  for (llvm::Function::const_iterator FI = m->begin(); FI != m->end(); ++FI) {
-    llvm::ilist_iterator<const llvm::BasicBlock> BB = FI;
-    // iterate over single instructions
-    for (llvm::BasicBlock::const_iterator BI = BB->begin(), BE = BB->end();
-         BI != BE;) {
-      const llvm::Instruction& I = *BI++;
-      if (llvm::isa<llvm::CallInst>(I)) ISet.insert(&I);
-    }
+    const llvm::Function* f) {
+  set<const llvm::Instruction*> CallSites;
+  for (llvm::const_inst_iterator I = llvm::inst_begin(f), E = llvm::inst_end(f); I != E; ++I) {
+  	if (llvm::isa<llvm::CallInst>(*I) || llvm::isa<llvm::InvokeInst>(*I)) {
+  		CallSites.insert(&(*I));
+  	}
   }
-  return ISet;
+  return CallSites;
 }
 
 /**
@@ -274,11 +265,20 @@ set<const llvm::Instruction*>
 LLVMBasedICFG::getReturnSitesOfCallAt(
     const llvm::Instruction* n) {
   // at the moment we just ignore exceptional control flow
-  set<const llvm::Instruction*> RetSites;
-  if (llvm::isa<llvm::CallInst>(n)) {
-    RetSites.insert(n->getNextNode());
+  set<const llvm::Instruction*> ReturnSites;
+  if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
+    //ReturnSites.insert(n);
+  	llvm::ImmutableCallSite CS(n);
+  	for (auto user : CS->users()) {
+  		if (const llvm::Instruction* inst = llvm::dyn_cast<llvm::Instruction>(user)) {
+  			ReturnSites.insert(inst);
+  		}
+  	}
+  	if (ReturnSites.empty()) {
+  		ReturnSites.insert(n->getNextNode());
+  	}
   }
-  return RetSites;
+  return ReturnSites;
 }
 
 bool LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
@@ -347,32 +347,19 @@ bool LLVMBasedICFG::isBranchTarget(
 vector<const llvm::Instruction*>
 LLVMBasedICFG::getAllInstructionsOfFunction(const string& name) {
   vector<const llvm::Instruction*> IVec;
-  const llvm::Function* func = M.getFunction(name);
-  for (llvm::Function::const_iterator FI = func->begin(); FI != func->end();
-       ++FI) {
-    llvm::ilist_iterator<const llvm::BasicBlock> BB = FI;
-    for (llvm::BasicBlock::const_iterator BI = BB->begin(), BE = BB->end();
-         BI != BE;) {
-      const llvm::Instruction& I = *BI++;
-      IVec.push_back(&I);
-    }
+  const llvm::Function* f = M.getFunction(name);
+  for (llvm::const_inst_iterator I = inst_begin(f), E = inst_end(f); I != E; ++I) {
+  	IVec.push_back(&(*I));
   }
   return IVec;
 }
 
 const llvm::Instruction* LLVMBasedICFG::getLastInstructionOf(
     const string& name) {
-  const llvm::Function* func = M.getFunction(name);
-  for (llvm::Function::const_iterator FI = func->begin(); FI != func->end();
-       ++FI) {
-    llvm::ilist_iterator<const llvm::BasicBlock> BB = FI;
-    for (llvm::BasicBlock::const_iterator BI = BB->begin(), BE = BB->end();
-         BI != BE;) {
-      const llvm::Instruction& I = *BI++;
-      if (llvm::isa<llvm::ReturnInst>(I)) return &I;
-    }
-  }
-  return nullptr;
+  const llvm::Function& f = *M.getFunction(name);
+  auto last = llvm::inst_end(f);
+  last--;
+  return &(*last);
 }
 
 vector<const llvm::Instruction*>
@@ -384,4 +371,22 @@ LLVMBasedICFG::getAllInstructionsOfFunction(
 const string LLVMBasedICFG::getNameOfMethod(
     const llvm::Instruction* stmt) {
   return stmt->getFunction()->getName().str();
+}
+
+void LLVMBasedICFG::print() {
+	cout << "LLVMBasedICFG\n";
+	cout << "direct calls:\n";
+	for (auto& entry : DirectCSTargetMethods) {
+		entry.first->dump();
+		cout << entry.second->getName().str() << "\n\n";
+	}
+	cout << "indirect calls:\n";
+	for (auto& entry : IndirectCSTargetMethods) {
+		entry.first->dump();
+		cout << "possibilities:\n";
+		for (auto& target : entry.second) {
+			cout << target->getName().str() << "\n";
+		}
+	}
+	cout << endl;
 }

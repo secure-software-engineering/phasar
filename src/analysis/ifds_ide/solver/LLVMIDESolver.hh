@@ -48,7 +48,7 @@ public:
 			cout << "EMPTY" << endl;
 		} else {
 			for (auto cell : results) {
-				cout << "--- START RESULT RECORD ---" << endl;
+				cout << "--- IDE START RESULT RECORD ---" << endl;
 				cout << "N" << endl;
 				cell.r->dump();
 				cout << "D" << endl;
@@ -57,11 +57,11 @@ public:
 				cout << endl;
 				cout << "V\n\t";
 				cout << cell.v << endl;
-				cout << "--- END RESULT RECORD ---" << endl;
+				cout << "--- IDE END RESULT RECORD ---" << endl;
 			}
 			cout << "### END DUMP RESULTS" << endl;
 		}
-		cout << "### RESULTS AT LAST STATEMENT OF MAIN" << endl;
+		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
 		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
 		for (auto entry : resultAtEnd) {
 			cout << "\t--- begin entry ---" << endl;
@@ -69,7 +69,7 @@ public:
 			cout << entry.second << endl;
 			cout << "\t--- end entry ---" << endl;
 		}
-		cout << "### END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+		cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << endl;
 	}
 
 };

@@ -72,6 +72,8 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 // points-to graph stuff
 
+const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
+
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(Fu) {
   cout << "analyzing function: " << F->getName().str() << endl;
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
@@ -204,11 +206,13 @@ bool PointsToGraph::containsValue(llvm::Value* V) {
 
 set<const llvm::Type*> PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value*> AS) {
 	set<const llvm::Type*> types;
-	// an allocation site can either be an AllocaInst or a call to new
+	// an allocation site can either be an AllocaInst or a call to an allocating function
 	for (auto V : AS) {
 		if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
 			types.insert(alloc->getAllocatedType());
 		} else {
+			// usually if an allocating function is called, it is immediately bit-casted
+			// to the desired allocated value
 			for (auto user : V->users()) {
 				if (const llvm::BitCastInst* cast = llvm::dyn_cast<llvm::BitCastInst>(user)) {
 					types.insert(cast->getDestTy());
@@ -260,8 +264,8 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>> v_in_g1_u_in_g2;
 	v_in_g1_u_in_g2.reserve(v_in_first_u_in_second.size());
 	for (auto entry : v_in_first_u_in_second) {
-		cout << value_vertex_map[entry.first] << endl;
-		cout << other.value_vertex_map[entry.second] << endl;
+//		cout << value_vertex_map[entry.first] << endl;
+//		cout << other.value_vertex_map[entry.second] << endl;
 		v_in_g1_u_in_g2.push_back(make_pair(value_vertex_map[entry.first], other.value_vertex_map[entry.second]));
 	}
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>

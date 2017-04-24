@@ -120,15 +120,15 @@ IFDSTaintAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
        << endl;
   if (const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
   	// check for functions generating tainted values
-  	if (isSourceFunction(call->getCalledFunction())) {
+  //	if (isSourceFunction(call->getCalledFunction())) {
 
-  	} else if (isSinkFunction(call->getCalledFunction())) {
+  //	} else if (isSinkFunction(call->getCalledFunction())) {
   		// check for functions that lead to potential leaks
 
-  	} else {
+  //	} else {
   		// other functions
 
-  	}
+  //	}
 
 
   } else if (const llvm::InvokeInst* invoke = llvm::dyn_cast<llvm::InvokeInst>(callStmt)) {

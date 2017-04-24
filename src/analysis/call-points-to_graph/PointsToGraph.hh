@@ -75,6 +75,9 @@ public:
   typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
 
+  // new, new[], malloc
+  const static set<string> allocating_functions;
+
 private:
   struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
   	set<const llvm::Value*>& allocation_sites;
@@ -86,7 +89,8 @@ private:
   			allocation_sites.insert(g[u].value);
   		}
   		if (const llvm::CallInst* cs = llvm::dyn_cast<llvm::CallInst>(g[u].value)) {
-  			if (cs->getCalledFunction()->getName().str() == "_Znwm") {
+  			if (cs->getCalledFunction() != nullptr &&
+  					allocating_functions.find(cs->getCalledFunction()->getName().str()) != allocating_functions.end()) {
   				allocation_sites.insert(g[u].value);
   			}
   		}

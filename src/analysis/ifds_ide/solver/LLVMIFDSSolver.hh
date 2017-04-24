@@ -64,7 +64,7 @@ public:
 				curr = cells[i].r;
 				if (prev != curr) {
 					prev = curr;
-					cout << "--- RESULT AT NODE ---" << endl;
+					cout << "--- IFDS START RESULT RECORD ---" << endl;
 					cout << "N" << endl;
 					cells[i].r->dump();
 					cout << "of function: ";
@@ -82,7 +82,8 @@ public:
 				cout << cells[i].v << endl;
 			}
 		}
-		cout << "### RESULTS AT LAST STATEMENT OF MAIN" << endl;
+		cout << "### IFDS RESULTS AT LAST STATEMENT OF MAIN" << endl;
+		this->icfg.getLastInstructionOf("main")->dump();
 		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
 		if (resultAtEnd.empty()) {
 			cout << "EMPTY" << endl;
@@ -95,7 +96,7 @@ public:
 				cout << "\t--- end entry ---" << endl;
 			}
 		}
-		cout << "### END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+		cout << "### IFDS END RESULTS AT LAST STATEMENT OF MAIN" << endl;
 	}
 };
 

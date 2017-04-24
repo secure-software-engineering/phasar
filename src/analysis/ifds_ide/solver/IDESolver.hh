@@ -124,10 +124,13 @@ public:
 	unordered_map<D,V> resultsAt(N stmt)
 	{
 		unordered_map<D, V> result = valtab.row(stmt);
-		for (auto pair : result) {
-			if (pair.first == zeroValue)
-				result.erase(pair.first);
-		}
+		// the following lines have strange effects
+		// call to erase() occasionally causes segmentation faults
+		// work on it, when concentration is better
+//		for (auto& pair : result) {
+//			if (pair.first == zeroValue)
+//				result.erase(pair.first);
+//		}
 		return result;
 	}
 

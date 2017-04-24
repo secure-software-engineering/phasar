@@ -114,8 +114,13 @@ IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
        << endl;
   // check for a usual function call
   if (const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
-    cout << "found call to " << call->getCalledFunction()->getName().str() << endl;
-    // collect the actual parameters
+    if (call->getCalledFunction()) {
+    	cout << "DIRECT CALL TO: " << destMthd->getName().str() << endl;
+    } else {
+    	cout << "INDIRECT CALL TO: " << destMthd->getName().str() << endl;
+    }
+
+  	// collect the actual parameters
     vector<const llvm::Value *> actuals;
     for (auto& operand : call->operands()) {
       	actuals.push_back(operand);

@@ -43,14 +43,15 @@ class LLVMBasedICFG
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   PointsToGraph WholeModulePTG;
+  map<const llvm::Instruction*, const llvm::Function*> DirectCSTargetMethods;
   map<const llvm::Instruction*, set<const llvm::Function*>> IndirectCSTargetMethods;
 
   set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
 
  public:
   LLVMBasedICFG(llvm::Module& Module,
-                               LLVMStructTypeHierarchy& STH,
-                               ProjectIRCompiledDB& IRDB);
+                LLVMStructTypeHierarchy& STH,
+                ProjectIRCompiledDB& IRDB);
 
   virtual ~LLVMBasedICFG() = default;
 
@@ -103,6 +104,8 @@ class LLVMBasedICFG
   const llvm::Instruction* getLastInstructionOf(const string& name);
 
   const string getNameOfMethod(const llvm::Instruction* stmt);
+
+  void print();
 };
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */

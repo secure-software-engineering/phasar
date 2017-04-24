@@ -105,6 +105,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     for (auto& module_entry : IRDB.modules) {
       llvm::Module& M = *(module_entry.second);
       LLVMBasedICFG icfg(M, CH, IRDB);
+      icfg.print();
       // create the analyses problems queried by the user and start analyzing
 
       // TODO: change the implementation of 'createZeroValue()'
