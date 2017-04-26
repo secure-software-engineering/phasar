@@ -12,46 +12,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
       args.push_back(
           compilecommand.CommandLine[compilecommand.CommandLine.size() - 1]
               .c_str());
-      unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
-      clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
-      clang::TextDiagnosticPrinter *DiagPrinterClient = new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts);
-      llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-      clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
-      ClangCompiler->createDiagnostics();
-      // prepare CodeGenAction and Compiler invocation and compile!
-      unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-      // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
-      // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
-      clang::CompilerInvocation* CI(new clang::CompilerInvocation);
-      clang::CompilerInvocation::CreateFromArgs(*CI, &args[0],
-                                                &args[0] + args.size(), *DiagEngine);
-      ClangCompiler->setDiagnostics(DiagEngine);
-      ClangCompiler->setInvocation(CI);
-      if (!ClangCompiler->hasDiagnostics()) {
-        cout << "compiler has no diagnostics engine" << endl;
-      }
-      if (!ClangCompiler->ExecuteAction(*Action)) {
-        cout << "could not compile module!" << endl;
-      }
-      unique_ptr<llvm::Module> module = Action->takeModule();
-      if (module != nullptr) {
-        string name = module->getName().str();
-        // check if module is alright
-        bool broken_debug_info = false;
-        if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
-          cout << "module is broken!\nabort!" << endl;
-          DIE_HARD;
-        }
-        if (broken_debug_info) {
-          cout << "debug info is broken" << endl;
-        }
-        contexts.insert(make_pair(
-            name, unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
-        modules.insert(make_pair(name, move(module)));
-      } else {
-        cout << "could not compile module!\nabort" << endl;
-        DIE_HARD;
-      }
+      compileAndAddToDB(args);
     }
   }
   buildFunctionModuleMapping();
@@ -61,6 +22,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
 ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
                                          vector<const char *> CompileArgs) {
   source_files.insert(Path);
+  // if we have a file that is already compiled to llvm ir
   if (Path.find(".ll") != Path.npos) {
     llvm::SMDiagnostic Diag;
     unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
@@ -76,63 +38,66 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
     contexts.insert(make_pair(Path, move(C)));
     modules.insert(make_pair(Path, move(M)));
   } else {
+  	// else we compile and then add to the database
     CompileArgs.insert(CompileArgs.begin(), Path.c_str());
-    // add the STL header paths
-    // can be determined with '-v' flag during compilation
-    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0");
-    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/x86_64-linux-gnu/c++/5.4.0");
-    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0/backward");
-    CompileArgs.push_back("-I/usr/local/include");
-    CompileArgs.push_back("-I/usr/lib/llvm-3.9/bin/../lib/clang/3.9.1/include");
-    CompileArgs.push_back("-I/usr/include/x86_64-linux-gnu");
-    CompileArgs.push_back("-I/usr/include");
-    cout << "additional arguments:" << endl;
-    for (auto s : CompileArgs) {
-    	cout << s << endl;
-    }
-
-    unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
-    clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
-    clang::TextDiagnosticPrinter* DiagPrinterClient(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
-    // prepare CodeGenAction and CompilerInvocation and compile!
-    unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-    // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
-    // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
-    clang::CompilerInvocation* CI(new clang::CompilerInvocation);
-    clang::CompilerInvocation::CreateFromArgs(*CI, &CompileArgs[0],
-                                              &CompileArgs[0] + CompileArgs.size(), *DiagEngine);
-    ClangCompiler->setDiagnostics(DiagEngine);
-    ClangCompiler->setInvocation(CI);
-    if (!ClangCompiler->hasDiagnostics()) {
-      cout << "compiler has no diagnostics engine" << endl;
-    }
-    if (!ClangCompiler->ExecuteAction(*Action)) {
-      cout << "could not compile module!" << endl;
-    }
-    unique_ptr<llvm::Module> module = Action->takeModule();
-    if (module != nullptr) {
-      string name = module->getName().str();
-      // check if module is alright
-      bool broken_debug_info = false;
-      if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
-        cout << "module is broken!\nabort!" << endl;
-        DIE_HARD;
-      }
-      if (broken_debug_info) {
-        cout << "debug info is broken" << endl;
-      }
-      contexts.insert(make_pair(
-          name, unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
-      modules.insert(make_pair(name, move(module)));
-    } else {
-      cout << "could not compile module!\nabort" << endl;
-      DIE_HARD;
-    }
+    compileAndAddToDB(CompileArgs);
   }
   buildFunctionModuleMapping();
   buildGlobalModuleMapping();
+}
+
+void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand) {
+  // add the STL header paths
+  // can be determined with '-v' flag during compilation
+	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0");
+	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/x86_64-linux-gnu/c++/5.4.0");
+	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0/backward");
+	CompileCommand.push_back("-I/usr/local/include");
+	CompileCommand.push_back("-I/usr/lib/llvm-3.9/bin/../lib/clang/3.9.1/include");
+	CompileCommand.push_back("-I/usr/include/x86_64-linux-gnu");
+	CompileCommand.push_back("-I/usr/include");
+  cout << "Compile Commands\n";
+  for (auto s : CompileCommand) {
+  	cout << s << "\n";
+  }
+  unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
+  clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
+  clang::TextDiagnosticPrinter* DiagPrinterClient(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
+  llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+  clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
+  // prepare CodeGenAction and CompilerInvocation and compile!
+  unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
+  // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
+  // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
+  clang::CompilerInvocation* CI(new clang::CompilerInvocation);
+  clang::CompilerInvocation::CreateFromArgs(*CI, &CompileCommand[0],
+                                            &CompileCommand[0] + CompileCommand.size(), *DiagEngine);
+  ClangCompiler->setDiagnostics(DiagEngine);
+  ClangCompiler->setInvocation(CI);
+  if (!ClangCompiler->hasDiagnostics()) {
+    cout << "compiler has no diagnostics engine\n";
+  }
+  if (!ClangCompiler->ExecuteAction(*Action)) {
+    cout << "could not compile module!\n";
+  }
+  unique_ptr<llvm::Module> module = Action->takeModule();
+  if (module != nullptr) {
+    string name = module->getName().str();
+    // check if module is alright
+    bool broken_debug_info = false;
+    if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
+      cout << "module is broken!\nabort!\n";
+      DIE_HARD;
+    }
+    if (broken_debug_info) {
+      cout << "debug info is broken\n";
+    }
+    contexts.insert(make_pair(name, unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
+    modules.insert(make_pair(name, move(module)));
+  } else {
+    cout << "could not compile module!\nabort\n";
+    DIE_HARD;
+  }
 }
 
 void ProjectIRCompiledDB::linkForWPA() {

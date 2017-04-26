@@ -34,6 +34,7 @@ using namespace std;
 class ProjectIRCompiledDB {
 private:
 	  llvm::Module* WPAMOD = nullptr;
+	  void compileAndAddToDB(vector<const char *> CompileCommand);
 
  public:
   // stores all source files that have been examined, in-memory only
