@@ -277,6 +277,6 @@ IFDSTaintAnalysis::initialSeeds() {
 const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
   static llvm::Value *zeroValue =
-      llvm::ConstantInt::get(context, llvm::APInt(0, 0, true));
+      llvm::ConstantInt::get(context, llvm::APInt(2, 0, true));
   return zeroValue;
 }

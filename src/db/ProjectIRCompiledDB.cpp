@@ -12,24 +12,21 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
       args.push_back(
           compilecommand.CommandLine[compilecommand.CommandLine.size() - 1]
               .c_str());
-      // create a diagnosticengine and the compiler instance that we use for
-      // compilation
-      clang::DiagnosticOptions DiagOpts;
-      clang::TextDiagnosticPrinter *DiagPrinterClient =
-          new clang::TextDiagnosticPrinter(llvm::errs(), &DiagOpts);
-      llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
-          new clang::DiagnosticIDs());
-      clang::DiagnosticsEngine Diags(DiagID, &DiagOpts, DiagPrinterClient,
-                                     false);
-      clang::CompilerInstance *ClangCompiler = new clang::CompilerInstance();
+      unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
+      clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
+      clang::TextDiagnosticPrinter *DiagPrinterClient = new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts);
+      llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+      clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
       ClangCompiler->createDiagnostics();
       // prepare CodeGenAction and Compiler invocation and compile!
       unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-      unique_ptr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+      // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
+      // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
+      clang::CompilerInvocation* CI(new clang::CompilerInvocation);
       clang::CompilerInvocation::CreateFromArgs(*CI, &args[0],
-                                                &args[0] + args.size(), Diags);
-      ClangCompiler->setDiagnostics(&Diags);
-      ClangCompiler->setInvocation(CI.get());
+                                                &args[0] + args.size(), *DiagEngine);
+      ClangCompiler->setDiagnostics(DiagEngine);
+      ClangCompiler->setInvocation(CI);
       if (!ClangCompiler->hasDiagnostics()) {
         cout << "compiler has no diagnostics engine" << endl;
       }
@@ -80,23 +77,34 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
     modules.insert(make_pair(Path, move(M)));
   } else {
     CompileArgs.insert(CompileArgs.begin(), Path.c_str());
-    // create a diagnosticengine and the compiler instance that we use for
-    // compilation
-    clang::DiagnosticOptions DiagOpts;
-    clang::TextDiagnosticPrinter *DiagPrinterClient =
-        new clang::TextDiagnosticPrinter(llvm::errs(), &DiagOpts);
-    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
-        new clang::DiagnosticIDs());
-    clang::DiagnosticsEngine Diags(DiagID, &DiagOpts, DiagPrinterClient, false);
-    clang::CompilerInstance *ClangCompiler = new clang::CompilerInstance();
-    ClangCompiler->createDiagnostics();
-    // prepare CodeGenAction and Compiler invocation and compile!
+    // add the STL header paths
+    // can be determined with '-v' flag during compilation
+    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0");
+    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/x86_64-linux-gnu/c++/5.4.0");
+    CompileArgs.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0/backward");
+    CompileArgs.push_back("-I/usr/local/include");
+    CompileArgs.push_back("-I/usr/lib/llvm-3.9/bin/../lib/clang/3.9.1/include");
+    CompileArgs.push_back("-I/usr/include/x86_64-linux-gnu");
+    CompileArgs.push_back("-I/usr/include");
+    cout << "additional arguments:" << endl;
+    for (auto s : CompileArgs) {
+    	cout << s << endl;
+    }
+
+    unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
+    clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
+    clang::TextDiagnosticPrinter* DiagPrinterClient(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
+    llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
+    clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
+    // prepare CodeGenAction and CompilerInvocation and compile!
     unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-    unique_ptr<clang::CompilerInvocation> CI(new clang::CompilerInvocation);
+    // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
+    // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
+    clang::CompilerInvocation* CI(new clang::CompilerInvocation);
     clang::CompilerInvocation::CreateFromArgs(*CI, &CompileArgs[0],
-                                              &CompileArgs[0] + CompileArgs.size(), Diags);
-    ClangCompiler->setDiagnostics(&Diags);
-    ClangCompiler->setInvocation(CI.get());
+                                              &CompileArgs[0] + CompileArgs.size(), *DiagEngine);
+    ClangCompiler->setDiagnostics(DiagEngine);
+    ClangCompiler->setInvocation(CI);
     if (!ClangCompiler->hasDiagnostics()) {
       cout << "compiler has no diagnostics engine" << endl;
     }

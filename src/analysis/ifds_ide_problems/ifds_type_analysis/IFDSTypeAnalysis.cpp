@@ -71,6 +71,6 @@ IFDSTypeAnalysis::initialSeeds() {
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
   static llvm::Value *zeroValue =
-      llvm::ConstantInt::get(context, llvm::APInt(0, 0, true));
+      llvm::ConstantInt::get(context, llvm::APInt(2, 0, true));
   return zeroValue;
 }
