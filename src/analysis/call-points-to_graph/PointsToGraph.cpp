@@ -74,7 +74,7 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
 
-PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(Fu) {
+PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu, bool onlyConsiderMustAlias) : F(Fu) {
   cout << "analyzing function: " << F->getName().str() << endl;
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
@@ -138,24 +138,31 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu) : F(Fu) {
       llvm::Type* I2ElTy =
           llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
       if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
-      switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
-        case llvm::NoAlias:
-          PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
-          break;
-        case llvm::MayAlias:
-          PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
-          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-          break;
-        case llvm::PartialAlias:
-          PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-                       F->getParent());
-          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-          break;
-        case llvm::MustAlias:
-          PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
-          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-          break;
-      }
+      if (!onlyConsiderMustAlias) {
+      	switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
+      		case llvm::NoAlias:
+      			PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+      			break;
+      		case llvm::MayAlias:
+      			PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
+      			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+      			break;
+      		case llvm::PartialAlias:
+      			PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+      									 F->getParent());
+      			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+      			break;
+      		case llvm::MustAlias:
+      			PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
+      			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+      			break;
+      	}
+      } else {
+      	if (AA.alias(*I1, I1Size, *I2, I2Size)) {
+      		PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
+     			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+      	}
+    	}
     }
   }
 }

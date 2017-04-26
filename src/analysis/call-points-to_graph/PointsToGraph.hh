@@ -35,6 +35,23 @@
 #include "../../utils/utils.hh"
 using namespace std;
 
+// See the following llvm classes for comprehension
+// http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
+// http://llvm.org/docs/doxygen/html/AliasAnalysisEvaluator_8cpp_source.html
+
+// See also the different kinds of alias analyses
+//	#include "llvm/Analysis/AliasAnalysis.h"
+//	#include "llvm/Analysis/BasicAliasAnalysis.h"
+//	#include "llvm/Analysis/CFG.h"
+//	#include "llvm/Analysis/CFLAliasAnalysis.h"
+//	#include "llvm/Analysis/CaptureTracking.h"
+//	#include "llvm/Analysis/GlobalsModRef.h"
+//	#include "llvm/Analysis/ObjCARCAliasAnalysis.h"
+//	#include "llvm/Analysis/ScalarEvolutionAliasAnalysis.h"
+//	#include "llvm/Analysis/ScopedNoAliasAA.h"
+//	#include "llvm/Analysis/TargetLibraryInfo.h"
+//	#include "llvm/Analysis/TypeBasedAliasAnalysis.h"
+
 void PrintResults(const char* Msg, bool P, const llvm::Value* V1,
                   const llvm::Value* V2, const llvm::Module* M);
 
@@ -111,7 +128,7 @@ private:
   llvm::Function* F = nullptr;
 
 public:
-  PointsToGraph(llvm::AAResults& AA, llvm::Function* F);
+  PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias=false);
   PointsToGraph() = default;
   virtual ~PointsToGraph() = default;
   inline bool isInterestingPointer(llvm::Value* V);

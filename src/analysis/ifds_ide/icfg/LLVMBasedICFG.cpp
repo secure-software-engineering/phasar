@@ -34,7 +34,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       // function can be resolved statically
       if (cs.getCalledFunction() != nullptr) {
       	// get the ptg of the function that is called
-      	PointsToGraph& callee_ptg = *IRDB.ptgs[cs.getCalledFunction()->getName().str()];
+      	PointsToGraph& callee_ptg = *IRDB.getPointsToGraph(cs.getCalledFunction()->getName().str());
       	callee_ptg.printAsDot("callee.dot");
       	// map the formals
       	auto escaping_formal_params = callee_ptg.getPointersEscapingThroughParams();
@@ -67,7 +67,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
         set<string> possible_target_names = resolveIndirectCall(cs);
         set<const llvm::Function*> possible_targets;
         for (auto& possible_target_name : possible_target_names) {
-        	possible_targets.insert(IRDB.modules[IRDB.functions[possible_target_name]]->getFunction(possible_target_name));
+        	possible_targets.insert(IRDB.getFunction(possible_target_name));
         }
         IndirectCSTargetMethods.insert(make_pair(cs.getInstruction(), possible_targets));
         for (auto possible_target : possible_targets) {

@@ -9,8 +9,11 @@
 #include <clang/Tooling/CompilationDatabase.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Linker/Linker.h>
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -29,6 +32,9 @@ using namespace std;
  * stuff that is stored in it.
  */
 class ProjectIRCompiledDB {
+private:
+	  llvm::Module* WPAMOD = nullptr;
+
  public:
   // stores all source files that have been examined, in-memory only
   set<string> source_files;
@@ -50,6 +56,18 @@ class ProjectIRCompiledDB {
   void buildFunctionModuleMapping();
   void buildGlobalModuleMapping();
   void buildIDModuleMapping();
+	// add WPA support by providing a fat completely linked module
+	  void linkForWPA();
+  // get a completely linked module for the WPA_MODE
+  llvm::Module* getWPAModule();
+  // add some useful functionality for querying the database
+  bool containsSourceFile(const string& src);
+  llvm::LLVMContext* getLLVMContext(const string& name);
+  llvm::Module* getModule(const string& name);
+  llvm::Module* getModuleContainingFunction(const string& name);
+  llvm::Function* getFunction(const string& name);
+  llvm::GlobalVariable* getGlobalVariable(const string& name);
+  PointsToGraph* getPointsToGraph(const string& name);
   void print();
 };
 

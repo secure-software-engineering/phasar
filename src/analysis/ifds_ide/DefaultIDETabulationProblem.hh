@@ -22,7 +22,7 @@ public:
 		this->solver_config.followReturnsPastSeeds = false;
 		this->solver_config.autoAddZero = true;
 		this->solver_config.computeValues = true;
-		this->solver_config.recordEdges = false;
+		this->solver_config.recordEdges = true;
 	}
 
 	virtual ~DefaultIDETabulationProblem() = default;

@@ -13,11 +13,17 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 }
 
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses) {
+                     vector<AnalysisType> Analyses, bool WPA_MODE) {
     cout << "constructed AnalysisController ...\n";
     cout << "found the following IR files for this project:" << endl;
     for (auto file : IRDB.source_files) {
       cout << "\t" << file << endl;
+    }
+    cout << "WPA_MODE: " << WPA_MODE << "\n";
+    if (WPA_MODE) {
+    	 // here we link every llvm module into a single module containing the entire IR
+    	cout << "link all llvm modules into a single module for WPA ...\n";
+    	IRDB.linkForWPA();
     }
     // here we perform a pre-analysis and run some very important passes over
     // all of the IR modules in order to perform various data flow analysis
@@ -78,18 +84,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       	IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
       }
     }
-    // some very important pre-analyses are performed here, that have to store
-    // the state for the whole project - that is for all IR modules making up
-    // the entire project
-    // create the function to module mapping to allow inter-modular analyses
-    // (the function createFunctionModuleMappting() should be turned into a
-    // module pass at some point)
-    IRDB.buildFunctionModuleMapping();
     cout << "pre-analysis completed ...\n";
     IRDB.print();
 
-    //DBConn& db = DBConn::getInstance();
-    // db << IRDB;
+//    //DBConn& db = DBConn::getInstance();
+//    // db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";
@@ -97,17 +96,16 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "reconstruction completed ...\n";
     CH.print();
 
-    // db << CH;
-    // db >> CH;
+//    // db << CH;
+//    // db >> CH;
 
-    // // // prepare the ICFG the data-flow analyses are build on
+   	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
-      llvm::Module& M = *(module_entry.second);
-      LLVMBasedICFG icfg(M, CH, IRDB);
-      icfg.print();
-      // create the analyses problems queried by the user and start analyzing
-
+    	// create the analyses problems queried by the user and start analyzing
+    	llvm::Module& M = *(module_entry.second);
+    	LLVMBasedICFG icfg(M, CH, IRDB);
+    	icfg.print();
       // TODO: change the implementation of 'createZeroValue()'
       // The zeroValue can only be added one to a given context which means
       // a user can only create one analysis problem at a time, due to the
@@ -115,54 +113,54 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       // so it would be nice to check if the zerovalue already exists and if so
       // just return it!
       for (auto analysis : Analyses) {
-    	switch (analysis) {
-    	  case AnalysisType::IFDS_TaintAnalysis:
-    	  { // caution: observer '{' and '}' we work in another scope
-    		cout << "IFDS_TaintAnalysis\n";
-    		IFDSTaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-    		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-    		llvmtaintsolver.solve();
-    	  break;
-    	  }
-    	  case AnalysisType::IDE_TaintAnalysis:
-          { // caution: observer '{' and '}' we work in another scope
-            cout << "IDE_TaintAnalysis\n";
-          //  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-          //  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
-          //  llvmtaintsolver.solve();
+      	switch (analysis) {
+      	case AnalysisType::IFDS_TaintAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_TaintAnalysis\n";
+      		IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      		llvmtaintsolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IDE_TaintAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IDE_TaintAnalysis\n";
+      		//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
+      		//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      		//  llvmtaintsolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IFDS_TypeAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_TypeAnalysis\n";
+      		IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
+      		llvmtypesolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IFDS_UninitializedVariables:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_UninitalizedVariables\n";
+      		IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
+      		llvmunivsolver.solve();
+      		break;
+      	}
+      	default:
+      		cout << "analysis not valid!" << endl;
+      		break;
+      	}
+      }
+      if (!WPA_MODE) {
+      	// after every module has been analyzed the analyses results must be
+        // merged and the final results must be computed
+        cout << "combining module-wise results ...\n";
 
-          break;
-          }
-          case AnalysisType::IFDS_TypeAnalysis:
-          { // caution: observer '{' and '}' we work in another scope
-            cout << "IFDS_TypeAnalysis\n";
-            IFDSTypeAnalysis typeanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-            LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
-            llvmtypesolver.solve();
-          break;
-          }
-          case AnalysisType::IFDS_UninitializedVariables:
-          { // caution: observer '{' and '}' we work in another scope
-            cout << "IFDS_UninitalizedVariables\n";
-            IFDSUnitializedVariables uninitializedvarproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-            LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-            llvmunivsolver.solve();
-          break;
-          }
-          default:
-            cout << "analysis not valid!" << endl;
-          break;
-    	}
+        // here we go, now we are done
+        cout << "combining module-wise results done ...\n"
+        				"computation completed!\n";
       }
     }
     cout << "data-flow analyses completed ...\n";
-
-    // after every module has been analyzed the analyses results must be
-    // merged and the final results must be computed
-    cout << "combining module-wise results ...\n";
-
-    // here we go, now we are done
-    cout << "combining module-wise results done ...\n"
-            "computation completed!\n";
-  }
+}
 
