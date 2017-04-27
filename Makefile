@@ -59,10 +59,11 @@ CXX_FLAGS += -DNDEBUG
 SQLITE3_LIBS := -lsqlite3
 
 # boost libraries to link with
-BOOST_LIBS := -lboost_filesystem -lboost_system
+BOOST_LIBS := -lboost_filesystem -lboost_system -lboost_program_options
 
 # llvm flags to use
-LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags`		# core support system analysis ipa jit mcjit native cppbackend`
+# the LLVM_FLAGS usually contain '-fno-exceptions' we override that by '-fcxx-exceptions' to turn exceptions back on
+LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions		# core support system analysis ipa jit mcjit native cppbackend`
 
 # llvm libraries to link with
 LLVM_LIBS := `llvm-config --system-libs --libs all`		# core support system analysis ipa jit mcjit native cppbackend`

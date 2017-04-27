@@ -1,6 +1,9 @@
+#include <boost/filesystem.hpp>
 #include <boost/throw_exception.hpp>
+#include <boost/program_options.hpp>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include <vector>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/CompilationDatabase.h>
@@ -16,24 +19,24 @@
 // confusion only use the 'using namespace' command for the STL
 // all other scopes shall be used explicitly
 using namespace std;
+namespace bpo = boost::program_options;
+namespace bfs = boost::filesystem;
 
 // setup programs command line options (via Clang)
-static llvm::cl::OptionCategory StaticAnalysisCategory(
-    "Data-flow Analysis for C and C++");
+static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");
 static llvm::cl::extrahelp CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
-static llvm::cl::extrahelp MoreHelp(
+llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
+const static string MoreHelp(
     "\n"
-    "===================\n"
-    "=== User Manual ===\n"
-    "===================\n\n"
+    "======================================================\n"
+    "=== Data-flow Analysis for C and C++ - User Manual ===\n"
+    "======================================================\n\n"
     "There are currently two modes available to run a program analysis:\n\n"
     "1.) Single module analysis\n"
     "--------------------------\n"
     "Using the single module analysis the analysis tool expects at least the path "
     "to a C or C++ module. The module can be a plain C or C++ file (.c/.cpp), LLVM IR "
-    "as a human readable .ll file or as bitcode format .bc. "
-    "A typically usage would be the following:\n\n\t"
-    "usage: <prog> -module <path to a .c/.cpp/.ll module> <0 or more analyses> -- <additional compiler arguments>\n\n"
+    "as a human readable .ll file or as bitcode format .bc.\n\n"
     "2.) Whole project analysis\n"
     "--------------------------\n"
     "This mode analyzes a whole C or C++ project consisting of multiple modules. "
@@ -42,123 +45,119 @@ static llvm::cl::extrahelp MoreHelp(
     "by using the cmake flag 'CMAKE_EXPORT_COMPILE_COMMANDS'. When make is used the bear tool can be used "
     "in order to generate the compile commands database. Our analysis tool reads the generated database "
     "to understand the project structure. It then compiles every C or C++ module that belongs to the project "
-    " under analysis and compiles it to LLVM IR which is then stored in-memory for further preprocessing. "
-    "A typically usage would be the following:\n\n\t"
-    "usage: <prog> <path to a C/C++ project> <0 or more analyses>\n\n"
+    " under analysis and compiles it to LLVM IR which is then stored in-memory for further preprocessing.\n\n"
     "Analysis Modes\n"
-    "==============\n"
+    "--------------\n"
     "Without specifying further parameters, our analysis tool tries to run all available analyses on the "
     "code that the user provides. If the user wishes otherwise, they must provide further parameters specifying "
     "the specific analysis to run. Currently the following analyses are available and can be choosen by using the "
     "parameters as shown in the following:\n\n"
     "\tanalysis - parameter\n"
-    "\tuninitialized variable analysis (IFDS) - '-ifds_uninit'\n"
-    "\ttaint analysis (IFDS) - '-ifds_taint'\n"
-    "\ttaint analysis (IDE) - '-ide_taint'\n"
-    "\ttype analysis (IFDS) - '-ifds_type'\n"
+    "\tuninitialized variable analysis (IFDS) - 'ifds_uninit'\n"
+    "\ttaint analysis (IFDS) - 'ifds_taint'\n"
+    "\ttaint analysis (IDE) - 'ide_taint'\n"
+    "\ttype analysis (IFDS) - 'ifds_type'\n"
     "\n\n"
     "Of course the use can choose more than one analysis to be run on the code."
     "\n\n"
     "Gernal Workflow\n"
-    "===============\n"
-    "TODO: decribe the general workflow!"
-    "\n");
-llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
+    "---------------\n"
+    "TODO: decribe the general workflow!\n\n"
+		"============================\n"
+    "=== Command-line options ===\n"
+		"============================\n");
 
 // initialize the module passes ID's that we are using
 char GeneralStatisticsPass::ID = 0;
 char ValueAnnotationPass::ID = 13;
 
-// this should be removed at some point!
-namespace boost
-{
-void throw_exception(std::exception const &e) {}
+namespace boost {
+	void throw_exception(std::exception const & e) {}
 }
 
-int main(int argc, const char **argv) {
-  if (argc == 1) {
-    cout << "error: too few arguments provided\n"
-            "use '-help' for help\n"
-            "abort!\n";
-    return 1;
-  }
-  // provide some default analyses
-  vector<AnalysisType> default_analyses = { AnalysisType::IFDS_UninitializedVariables,
-                                            AnalysisType::IFDS_TaintAnalysis,
-                                            AnalysisType::IDE_TaintAnalysis,
-                                            AnalysisType::IFDS_TypeAnalysis };
-  // analyses choosen by the user
-  vector<AnalysisType> user_analyses;
-  // single module mode
-  if (argc >= 2 && string(argv[1]) == "-module") {
-    string path(argv[2]);
-    int additional_params_idx = argc;
-    vector<const char*> compile_args;
-    for (int i = 3; i < argc; ++i) {
-      string param(argv[i]);
-      if (param == "-ifds_uninit") {
-        user_analyses.push_back(AnalysisType::IFDS_UninitializedVariables);
-      } else if (param == "-ifds_taint") {
-        user_analyses.push_back(AnalysisType::IFDS_TaintAnalysis);
-      } else if (param == "-ide_taint") {
-        user_analyses.push_back(AnalysisType::IDE_TaintAnalysis);
-      } else if (param == "-ifds_type") {
-        user_analyses.push_back(AnalysisType::IFDS_TypeAnalysis);
-      } else if (param == "--") {
-        additional_params_idx = i;
-        break;
-      }
-    }
-    for (int i = additional_params_idx + 1; i < argc; ++i) {
-      compile_args.push_back(argv[i]);
-    }
-    cout << "compiling to LLVM IR ...\n";
-    ProjectIRCompiledDB IRDB(path, compile_args);
-    cout << "starting the following analyses:\n";
-    auto analyses = (user_analyses.empty()) ? default_analyses : user_analyses;
-    for (auto analysis : analyses) {
-      cout << "\t" << analysis << "\n";
-    }
-    cout << "compilation done, starting the analysis ...\n";
-    AnalysisController Analysis(IRDB, analyses);
-  } else {
-    // use the project database
-    int only_take_care_of_sources = 2; // use that instread of argc, so we can handle the other parameters for ourself
-    clang::tooling::CommonOptionsParser OptionsParser(only_take_care_of_sources,
-                                                      argv,
-                                                      StaticAnalysisCategory,
-                                                      OccurrencesFlag);
-    clang::tooling::CompilationDatabase &CompileDB = OptionsParser.getCompilations();
 
-    for (int i = 2; i < argc; ++i) {
-        string param(argv[i]);
-        if (param == "-ifds_uninit") {
-          user_analyses.push_back(AnalysisType::IFDS_UninitializedVariables);
-        } else if (param == "-ifds_taint") {
-          user_analyses.push_back(AnalysisType::IFDS_TaintAnalysis);
-        } else if (param == "-ide_taint") {
-          user_analyses.push_back(AnalysisType::IDE_TaintAnalysis);
-        } else if (param == "-ifds_type") {
-          user_analyses.push_back(AnalysisType::IFDS_TypeAnalysis);
-        } else {
-            cout << "error: unrecognized parameter '" << param << "'\n"
-                    "use '-help' for help\n"
-                    "abort!\n";
-            return 1;
-        }
+int main(int argc, const char **argv) {
+	string ModulePath;
+	string ProjectPath;
+	bool WPAMode;
+	vector<string> Analyses;
+
+	try {
+		bpo::options_description Description(MoreHelp+"\n\nCommand-line options");
+		Description.add_options()
+  				("help,h", "Print help message")
+					("module,m", bpo::value<string>(&ModulePath), "Module for single module mode")
+					("project,p", bpo::value<string>(&ProjectPath), "Path to the project under analysis")
+					("wpa,w", bpo::value<bool>(&WPAMode)->default_value(1), "WPA mode (1 or 0)")
+					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis");
+		bpo::variables_map VarMap;
+		bpo::store(bpo::parse_command_line(argc, argv, Description), VarMap);
+		bpo::notify(VarMap);
+		if (VarMap.count("help")) {
+			cout << Description << "\n";
+			return 0;
+		}
+	} catch (const bpo::error& e) {
+		cerr << "error: could not parse command-line parameters\n"
+						"message: " << e.what() << ", abort\n";
+		return 1;
+	}
+
+  vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_UninitializedVariables,
+                                           AnalysisType::IFDS_TaintAnalysis,
+                                           AnalysisType::IDE_TaintAnalysis,
+                                           AnalysisType::IFDS_TypeAnalysis };
+  if (!Analyses.empty()) {
+    ChosenAnalyses.clear();
+  	for (auto& Analysis : Analyses) {
+  		if (Analysis == "ifds_uninit")
+  			ChosenAnalyses.push_back(AnalysisType::IFDS_UninitializedVariables);
+  		else if (Analysis == "ifds_taint")
+  			ChosenAnalyses.push_back(AnalysisType::IFDS_TaintAnalysis);
+  		else if (Analysis == "ifds_type")
+  			ChosenAnalyses.push_back(AnalysisType::IFDS_TypeAnalysis);
+  		else if (Analysis == "ide_taint")
+  			ChosenAnalyses.push_back(AnalysisType::IDE_TaintAnalysis);
+  		else {
+  			cerr << "error: unrecognized analysis type, abort\n";
+  			return 1;
+  		}
     }
-    // create an 'in-memory' databse that is contains the raw front-end IR of all compilation modules
-    cout << "compiling to LLVM IR ...\n";
-    ProjectIRCompiledDB IRDB(CompileDB);
-    cout << "starting the following analyses:\n";
-    auto analyses = (user_analyses.empty()) ? default_analyses : user_analyses;
-    for (auto analysis : analyses) {
-      cout << "\t" << analysis << "\n";
-    }
-    cout << "compilation done, starting the analysis ...\n";
-    AnalysisController Analysis(IRDB, analyses);
   }
-  // shutdown llvm
+
+  if (ModulePath.empty() != ProjectPath.empty()) {
+  	if (!ModulePath.empty()) {
+  		if (!(bfs::exists(ModulePath) && !bfs::is_directory(ModulePath))) {
+  			cerr << "error: '" << ModulePath << "' is not a valid file, abort\n";
+  			return 1;
+  		}
+  		vector<const char*> CompileArgs;
+  		ProjectIRCompiledDB IRDB(ModulePath, CompileArgs);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  	} else {
+  		if (!(bfs::exists(ProjectPath) && bfs::is_directory(ProjectPath))) {
+  			cerr << "error: '" << ProjectPath << "' is not a valid directory, abort\n";
+  			return 1;
+  		}
+  		// perfrom a little trick to make OptionsParser only responsible for the project sources
+  		int OnlyTakeCareOfSources = 2;
+  		const char* ProjectSources = ProjectPath.c_str();
+  		const char* DummyProgName = "not_important";
+  		const char* DummyArgs[] = { DummyProgName, ProjectSources };
+  		clang::tooling::CommonOptionsParser OptionsParser(OnlyTakeCareOfSources,
+  																											DummyArgs,
+																												StaticAnalysisCategory,
+																												OccurrencesFlag);
+  		clang::tooling::CompilationDatabase& CompileDB = OptionsParser.getCompilations();
+  		ProjectIRCompiledDB IRDB(CompileDB);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  	}
+  } else {
+  	cerr << "error: expected at least the specification of parameter 'module' or 'project'\n"
+  					"note: analysis can only be a single module OR whole project analysis\n"
+  					"use --help to show help message, abort\n";
+  	return 1;
+  }
   llvm::llvm_shutdown();
   cout << "... shutdown analysis ..." << endl;
   return 0;
