@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "create png(s) from dot"
+for dot_file in *.dot
+do
+	bname=$(basename ${dot_file} .dot)
+	echo "compile ${dot_file} to ${bname}.png"
+	dot -Tpng ${dot_file} -o ${bname}.png
+done

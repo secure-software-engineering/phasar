@@ -95,9 +95,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     LLVMStructTypeHierarchy CH(IRDB);
     cout << "reconstruction completed ...\n";
     CH.print();
+    CH.printAsDot();
 
-//    // db << CH;
-//    // db >> CH;
+////    // db << CH;
+////    // db >> CH;
 
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";

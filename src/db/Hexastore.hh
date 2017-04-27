@@ -28,7 +28,7 @@ struct hs_result {
 
 class Hexastore {
   private:
-    sqlite3* db;
+    sqlite3* hs_internal_db;
     static int callback(void *NotUsed, int argc, char **argv, char **azColName);
     void doPut(string query, array<string, 3> edge);
 

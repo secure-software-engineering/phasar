@@ -139,6 +139,11 @@ void LLVMStructTypeHierarchy::print() {
   }
 }
 
+void LLVMStructTypeHierarchy::printAsDot(const string& path) {
+	ofstream ofs(path);
+	boost::write_graphviz(ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+}
+
 void LLVMStructTypeHierarchy::printTransitiveClosure() {
   bidigraph_t tc;
   boost::transitive_closure(g, tc);

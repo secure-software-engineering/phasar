@@ -22,6 +22,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <fstream>
 #include <tuple>
 #include <vector>
 #include "../../db/DBConn.hh"
@@ -80,6 +81,7 @@ class LLVMStructTypeHierarchy {
   bool containsVTable(string TypeName);
   void printTransitiveClosure();
   void print();
+  void printAsDot(const string& path="struct_type_hierarchy.dot");
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
   friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);

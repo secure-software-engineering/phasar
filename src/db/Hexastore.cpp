@@ -4,16 +4,16 @@ using namespace boost;
 using namespace hexastore;
 
 Hexastore::Hexastore(string filename) {
-  sqlite3_open(filename.c_str(), &db);
+  sqlite3_open(filename.c_str(), &hs_internal_db);
   const string query = hexastore::INIT;
   char* err;
-  sqlite3_exec(db, query.c_str(), callback, 0, &err);
+  sqlite3_exec(hs_internal_db, query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err << "\n\n";
 }
 
 Hexastore::~Hexastore() {
-  sqlite3_close(db);
+  sqlite3_close(hs_internal_db);
 }
 
 int Hexastore::callback(void *NotUsed, int argc, char **argv, char **azColName){
@@ -35,7 +35,7 @@ void Hexastore::put(array<string, 3> edge) {
 void Hexastore::doPut(string query, array<string, 3> edge) {
   string compiled_query = str(format(query) % edge[0] % edge[1] % edge[2]);
   char* err;
-  sqlite3_exec(db, compiled_query.c_str(), callback, 0, &err);
+  sqlite3_exec(hs_internal_db, compiled_query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err;
 }
@@ -81,7 +81,7 @@ vector<hs_result> Hexastore::get(array<string, 3> edge_query, size_t result_size
     return 0;
   };
   char* err;
-  sqlite3_exec(db, compiled_query.c_str(), sqlite_cb_result_collector, &result, &err);
+  sqlite3_exec(hs_internal_db, compiled_query.c_str(), sqlite_cb_result_collector, &result, &err);
   if(err != NULL) {
     cout << err;
   }

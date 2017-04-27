@@ -143,7 +143,7 @@ public:
 								 const llvm::Value* callsite_value);
   void printValueVertexMap();
   void print();
-  void printAsDot(string file_path_suffix);
+  void printAsDot(const string& suffix);
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

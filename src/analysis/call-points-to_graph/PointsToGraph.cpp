@@ -252,8 +252,8 @@ void PointsToGraph::print() {
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
-void PointsToGraph::printAsDot(string file_path_suffix) {
-	ofstream ofs(F->getName().str()+file_path_suffix);
+void PointsToGraph::printAsDot(const string& suffix) {
+	ofstream ofs(F->getName().str()+suffix);
 	boost::write_graphviz(ofs, ptg,
 	    boost::make_label_writer(boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
 	    boost::make_label_writer(boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
