@@ -45,7 +45,7 @@ private:
   map<string, unique_ptr<llvm::Module>> modules;
   // maps function names to the module they are defined in, must be stored persistently
   map<string, string> functions;
-  // maps globals to the modulde they are defined in, must be stored persistently
+  // maps globals to the module they are defined in, must be stored persistently
   map<string, string> globals;
   // maps a id range of llvm value to the module they can be found in, must be stored persistently
   map<size_t, string> ids;

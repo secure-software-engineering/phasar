@@ -22,6 +22,58 @@ DBConn::~DBConn() {
   }
 }
 
+int DBConn::getModuleID(const string& mod_name) {
+  static string module_id_query = "SELECT ID FROM IR_MODULE WHERE MODULE_IDENTIFIER=?;";
+  sqlite3_stmt* module_id_statement;
+  CPREPARE(sqlite3_prepare_v2(db, module_id_query.c_str(), -1, &module_id_statement, NULL));
+  CBIND(sqlite3_bind_text(module_id_statement, 1, mod_name.c_str(), mod_name.size(), SQLITE_STATIC));
+  if (SQLITE_ROW != (last_retcode = sqlite3_step(module_id_statement))) {
+    return -1;
+  }
+  int module_id = sqlite3_column_int(module_id_statement, 0);
+  CFINALIZE(sqlite3_finalize(module_id_statement));
+  return module_id;
+}
+
+int DBConn::getFunctionID(const string& f_name) {
+  static string function_id_query = "SELECT ID FROM FUNCTION WHERE FUNCTION_IDENTIFIER=?;";
+  sqlite3_stmt* function_id_statement;
+  CPREPARE(sqlite3_prepare_v2(db, function_id_query.c_str(), -1, &function_id_statement, NULL));
+  CBIND(sqlite3_bind_text(function_id_statement, 1, f_name.c_str(), f_name.size(), SQLITE_STATIC));
+  if (SQLITE_ROW != (last_retcode = sqlite3_step(function_id_statement))) {
+    return -1;
+  }
+  int function_id = sqlite3_column_int(function_id_statement, 0);
+  CFINALIZE(sqlite3_finalize(function_id_statement));
+  return function_id;
+}
+
+int DBConn::getGlobalVariableID(const string& g_name) {
+  static string global_id_query = "SELECT ID FROM GLOBAL_VARIABLE WHERE GLOBAL_VARIABLE_IDENTIFIER=?;";
+  sqlite3_stmt* global_id_statement;
+  CPREPARE(sqlite3_prepare_v2(db, global_id_query.c_str(), -1, &global_id_statement, NULL));
+  CBIND(sqlite3_bind_text(global_id_statement, 1, g_name.c_str(), g_name.size(), SQLITE_STATIC));
+  if (SQLITE_ROW != (last_retcode = sqlite3_step(global_id_statement))) {
+    return -1;
+  }
+  int global_id = sqlite3_column_int(global_id_statement, 0);
+  CFINALIZE(sqlite3_finalize(global_id_statement));
+  return global_id;
+}
+
+int DBConn::getTypeID(const string& t_name) {
+  static string type_id_query = "SELECT ID FROM TYPE WHERE TYPE_IDENTIFIER=?;";
+  sqlite3_stmt* type_id_statement;
+  CPREPARE(sqlite3_prepare_v2(db, type_id_query.c_str(), -1, &type_id_statement, NULL));
+  CBIND(sqlite3_bind_text(type_id_statement, 1, t_name.c_str(), t_name.size(), SQLITE_STATIC));
+  if (SQLITE_ROW != (last_retcode = sqlite3_step(type_id_statement))) {
+    return -1;
+  }
+  int type_id = sqlite3_column_int(type_id_statement, 0);
+  CFINALIZE(sqlite3_finalize(type_id_statement));
+  return type_id;
+}
+
 DBConn& DBConn::getInstance() {
   static DBConn instance;
   return instance;
@@ -48,7 +100,7 @@ DBConn& DBConn::getInstance() {
 void DBConn::execute(const string& query) {
    if ((last_retcode = sqlite3_exec(db, query.c_str(), NULL, NULL,
                                     &error_msg)) != SQLITE_OK) {
-     cerr << "could not execute sqlite3 query!\n";
+     cerr << "could not execute sqlite3 query:\n" + query + "\n";
      cerr << getLastErrorMsg() << endl;
      HEREANDNOW;
      sqlite3_free(error_msg);
@@ -66,42 +118,57 @@ string DBConn::getLastErrorMsg() {
 void DBConn::DBInitializationAction() {
   // table storing the IR modules
   const static string ir_table_init_command =
-      "CREATE TABLE IF NOT EXISTS IR("
+      "CREATE TABLE IF NOT EXISTS IR_MODULE("
       "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
       "MODULE_IDENTIFIER VARCHAR(255),"
       "SRC_HASH VARCHAR(255),"
       "IR_HASH VARCHAR(255),"
-      "IR BLOB);";
+      "IR_CODE BLOB);";
   execute(ir_table_init_command);
-  // table storing the function to module mapping
+  // table storing the functions
   const static string function_table_init_command =
-      "CREATE TABLE IF NOT EXISTS FUNCTIONS("
+      "CREATE TABLE IF NOT EXISTS FUNCTION("
       "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
       "FUNCTION_IDENTIFIER VARCHAR(255),"
-      "MODULE_ID INTEGER);";
+      "IS_VIRTUAL INTEGER);";
   execute(function_table_init_command);
-  // tables for storing the vtables
+  // table for storing the types
   const static string type_table_init_command =
-      "CREATE TABLE IF NOT EXISTS TYPES("
+      "CREATE TABLE IF NOT EXISTS TYPE("
       "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
       "TYPE_IDENTIFIER VARCHAR(255));";
   execute(type_table_init_command);
-  const static string vfunction_table_init_command = 
-      "CREATE TABLE IF NOT EXISTS VFUNCTIONS("
-      "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
-      "FUNCTIONS_ID INTEGER,"
-      "ENTRY INTEGER);";
-  execute(vfunction_table_init_command);
+  // table for storing the global variables
+  const static string global_variable_init_command =
+  		"CREATE TABLE IF NOT EXISTS GLOBAL_VARIABLE("
+  		"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+  		"GLOBAL_VARIABLE_IDENTIFIER VARCHAR(255));";
+  execute(global_variable_init_command);
+  // relation tables are defined here
+  const static string ir_module_defines_function =
+  		"CREATE TABLE IF NOT EXISTS IR_MODULE_DEFINES_FUNCTION("
+  		"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+  		"IR_MODULE_ID INTEGER,"
+  		"FUNCTION_ID INTEGER);";
+  execute(ir_module_defines_function);
+  const static string ir_module_defines_global =
+  		"CREATE TABLE IF NOT EXISTS IR_MODULE_DEFINES_GLOBAL_VARIABLE("
+  		"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+  		"IR_MODULE_ID INTEGER,"
+  		"GLOBAL_VARIABLE_ID INTEGER);";
+  execute(ir_module_defines_global);
   const static string type_has_vfunction_init_command =
       "CREATE TABLE IF NOT EXISTS TYPE_HAS_VFUNCTION("
+  		"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
       "TYPE_ID INTEGER,"
-      "VFUNCTION_ID INTEGER);";
+      "FUNCTION_ID INTEGER,"
+      "VTABLE_INDEX INTEGER);";
   execute(type_has_vfunction_init_command);
 }
 
 // API for querying the IR Modules that correspond to the project under analysis
-bool DBConn::containsIREntry(string mod_name) {
-  static string query = "SELECT EXISTS(SELECT 1 FROM IR WHERE MODULE_IDENTIFIER=? LIMIT 1);";
+bool DBConn::containsIREntry(const string& mod_name) {
+  static string query = "SELECT EXISTS(SELECT 1 FROM IR_MODULE WHERE MODULE_IDENTIFIER=? LIMIT 1);";
   sqlite3_stmt* stmt;
   CPREPARE(sqlite3_prepare_v2(db, query.c_str(), -1, &stmt, NULL));
   CBIND(sqlite3_bind_text(stmt, 1, mod_name.c_str(), mod_name.size(), NULL));
@@ -111,7 +178,7 @@ bool DBConn::containsIREntry(string mod_name) {
   return contains;
 }
 
-bool DBConn::insertIR(const llvm::Module* module) {
+bool DBConn::insertIRModule(const llvm::Module* module) {
   // compute the hash value from the original C/C++ source file
   ifstream src_file(module->getModuleIdentifier(), ios::binary);
   if (!src_file.is_open()) {
@@ -136,10 +203,10 @@ bool DBConn::insertIR(const llvm::Module* module) {
   // cout << ir_buffer << endl;
   // query to insert a new IR entry
   static string query =
-      "INSERT INTO IR (MODULE_IDENTIFIER,"
+      "INSERT INTO IR_MODULE (MODULE_IDENTIFIER,"
       "SRC_HASH,"
       "IR_HASH,"
-      "IR) "
+      "IR_CODE) "
       "VALUES (?,?,?,?);";
   // bind values to the prepared statement
   sqlite3_stmt* statement;
@@ -153,27 +220,70 @@ bool DBConn::insertIR(const llvm::Module* module) {
                         module->getModuleIdentifier().size(), SQLITE_STATIC));
   // compute hash of front-end IR
   string ir_hash = to_string(hash<string>()(ir_buffer));
-  CBIND(sqlite3_bind_text(statement, 2, src_hash.c_str(),
-                                   src_hash.size(), SQLITE_STATIC));
-  CBIND(sqlite3_bind_text(statement, 3, ir_hash.c_str(),
-                                   ir_hash.size(), SQLITE_STATIC));
-  CBIND(sqlite3_bind_blob(statement, 4, ir_buffer.data(),
-                                   ir_buffer.size(), SQLITE_TRANSIENT));
+  CBIND(sqlite3_bind_text(statement, 2, src_hash.c_str(), src_hash.size(), SQLITE_STATIC));
+  CBIND(sqlite3_bind_text(statement, 3, ir_hash.c_str(), ir_hash.size(), SQLITE_STATIC));
+  CBIND(sqlite3_bind_blob(statement, 4, ir_buffer.data(), ir_buffer.size(), SQLITE_TRANSIENT));
   // execute statement and check if it works out
   CSTEP(sqlite3_step(statement));
   CFINALIZE(sqlite3_finalize(statement));
   return false;
 }
 
-unique_ptr<llvm::Module> DBConn::getIR(string module_id,
-                                       llvm::LLVMContext& Context) {
+bool DBConn::insertFunctionModuleDefinition(const string& f_name, const string& mod_name) {
+  // retrieve the ID from the module
+  int module_id = getModuleID(mod_name);
+  // insert the function name
+  static string insert_function_query = "INSERT INTO FUNCTION (FUNCTION_IDENTIFIER, IS_VIRTUAL) VALUES(?, ?);";
+  sqlite3_stmt* insert_function_statement;
+  CPREPARE(sqlite3_prepare_v2(db, insert_function_query.c_str(), -1, &insert_function_statement, NULL));
+  CBIND(sqlite3_bind_text(insert_function_statement, 1, f_name.c_str(), f_name.size(), SQLITE_STATIC));
+  CBIND(sqlite3_bind_int(insert_function_statement, 2, 0));
+  CSTEP(sqlite3_step(insert_function_statement));
+  // retrieve back the functions id
+  int function_id = getFunctionID(f_name);
+ // insert the relation
+  static string insert_relation_query = "INSERT INTO IR_MODULE_DEFINES_FUNCTION (IR_MODULE_ID, FUNCTION_ID) VALUES(?, ?);";
+  sqlite3_stmt* insert_relation_statement;
+  CPREPARE(sqlite3_prepare_v2(db, insert_relation_query.c_str(), -1, &insert_relation_statement, NULL));
+  CBIND(sqlite3_bind_int(insert_relation_statement, 1, module_id));
+  CBIND(sqlite3_bind_int(insert_relation_statement, 2, function_id));
+  CSTEP(sqlite3_step(insert_relation_statement));
+  // free statements
+  CFINALIZE(sqlite3_finalize(insert_function_statement));
+  CFINALIZE(sqlite3_finalize(insert_relation_statement));
+  return false;
+}
+
+bool DBConn::insertGlobalVariableModuleDefinition(const string& g_name, const string& mod_name) {
+  // retrieve the ID from the module
+  int module_id = getModuleID(mod_name);
+  // insert the global name
+  static string insert_global_query = "INSERT INTO GLOBAL_VARIABLE (GLOBAL_VARIABLE_IDENTIFIER) VALUES(?);";
+  sqlite3_stmt* insert_global_statement;
+  CPREPARE(sqlite3_prepare_v2(db, insert_global_query.c_str(), -1, &insert_global_statement, NULL));
+  CBIND(sqlite3_bind_text(insert_global_statement, 1, g_name.c_str(), g_name.size(), SQLITE_STATIC));
+  CSTEP(sqlite3_step(insert_global_statement));
+  // retrieve back the functions id
+  int global_id = getGlobalVariableID(g_name);
+ // insert the relation
+  static string insert_relation_query = "INSERT INTO IR_MODULE_DEFINES_GLOBAL_VARIABLE (IR_MODULE_ID, GLOBAL_VARIABLE_ID) VALUES(?, ?);";
+  sqlite3_stmt* insert_relation_statement;
+  CPREPARE(sqlite3_prepare_v2(db, insert_relation_query.c_str(), -1, &insert_relation_statement, NULL));
+  CBIND(sqlite3_bind_int(insert_relation_statement, 1, module_id));
+  CBIND(sqlite3_bind_int(insert_relation_statement, 2, global_id));
+  CSTEP(sqlite3_step(insert_relation_statement));
+  // free statements
+  CFINALIZE(sqlite3_finalize(insert_global_statement));
+  CFINALIZE(sqlite3_finalize(insert_relation_statement));
+	return false;
+}
+
+unique_ptr<llvm::Module> DBConn::getIRModule(const string& module_id, llvm::LLVMContext& Context) {
   string ir_buffer;  // misue string as a smart buffer
-                     //	string module_id;
   sqlite3_stmt* statement;
-  static string query = "SELECT IR FROM IR WHERE MODULE_IDENTIFIER=?;";
+  static string query = "SELECT IR_CODE FROM IR_MODULE WHERE MODULE_IDENTIFIER=?;";
   CPREPARE(sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL));
-  CBIND(sqlite3_bind_text(statement, 1, module_id.c_str(),
-                                   module_id.size(), SQLITE_STATIC));
+  CBIND(sqlite3_bind_text(statement, 1, module_id.c_str(), module_id.size(), SQLITE_STATIC));
   if (SQLITE_ROW != (last_retcode = sqlite3_step(statement))) {
     cout << "DB error: something went wrong in retrieving IR module" << endl;
     HEREANDNOW;
@@ -185,10 +295,8 @@ unique_ptr<llvm::Module> DBConn::getIR(string module_id,
   CFINALIZE(sqlite3_finalize(statement));
   // parse the freshly retrieved byte sequence into an llvm::Module
   llvm::SMDiagnostic ErrorDiagnostics;
-  unique_ptr<llvm::MemoryBuffer> MemBuffer =
-      llvm::MemoryBuffer::getMemBuffer(ir_buffer);
-  unique_ptr<llvm::Module> Mod =
-      llvm::parseIR(*MemBuffer, ErrorDiagnostics, Context);
+  unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(ir_buffer);
+  unique_ptr<llvm::Module> Mod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, Context);
   // restore module identifier
   Mod->setModuleIdentifier(module_id);
   // check if everything has worked-out
@@ -202,44 +310,13 @@ unique_ptr<llvm::Module> DBConn::getIR(string module_id,
   return Mod;
 }
 
-bool DBConn::insertFunctionModuleDefinition(string f_name, string mod_name) {
-  // retrieve the ID from the module
-  static string module_id_query =
-      "SELECT ID FROM IR WHERE MODULE_IDENTIFIER=?;";
-  sqlite3_stmt* mod_id_statement;
-  CPREPARE(sqlite3_prepare_v2(db, module_id_query.c_str(), -1,
-                                    &mod_id_statement, NULL));
-  CBIND(sqlite3_bind_text(mod_id_statement, 1, mod_name.c_str(),
-                                   mod_name.size(), SQLITE_STATIC));
-  if (SQLITE_ROW != (last_retcode = sqlite3_step(mod_id_statement))) {
-    cout << "DB error: something went wrong in retrieving MODULE_IDENTIFIER"
-         << endl;
-         HEREANDNOW;
-  }
-  int module_id = sqlite3_column_int(mod_id_statement, 0);
-  // insert the function name
-   static string insert_query = "INSERT INTO FUNCTIONS (FUNCTION_IDENTIFIER, MODULE_ID) VALUES(?, ?);";
-   sqlite3_stmt* insert_statement;
-   CPREPARE(sqlite3_prepare_v2(db, insert_query.c_str(), -1,
-                                     &insert_statement, NULL));
-   CBIND(sqlite3_bind_text(insert_statement, 1, f_name.c_str(),
-                                    f_name.size(), SQLITE_STATIC));
-   CBIND(sqlite3_bind_int(insert_statement, 2, module_id));
-   CSTEP(sqlite3_step(insert_statement));
-   CFINALIZE(sqlite3_finalize(mod_id_statement));
-   CFINALIZE(sqlite3_finalize(insert_statement));
-   return false;
-}
-
-string DBConn::getModuleFunctionDefinition(string f_name) { 
+string DBConn::getModuleFunctionDefinition(const string& f_name) {
 // retrieve module id
   static string module_id_query =
       "SELECT MODULE_ID FROM FUNCTIONS WHERE FUNCTION_IDENTIFIER=?;";
   sqlite3_stmt* mod_id_statement;
-  CPREPARE(sqlite3_prepare_v2(db, module_id_query.c_str(), -1,
-                                    &mod_id_statement, NULL));
-  CBIND(sqlite3_bind_text(mod_id_statement, 1, f_name.c_str(),
-                                   f_name.size(), SQLITE_STATIC));
+  CPREPARE(sqlite3_prepare_v2(db, module_id_query.c_str(), -1, &mod_id_statement, NULL));
+  CBIND(sqlite3_bind_text(mod_id_statement, 1, f_name.c_str(), f_name.size(), SQLITE_STATIC));
   if (SQLITE_ROW != (last_retcode = sqlite3_step(mod_id_statement))) {
     cout << "DB error: something went wrong in retrieving MODULE_IDENTIFIER"
          << endl;
@@ -249,8 +326,7 @@ string DBConn::getModuleFunctionDefinition(string f_name) {
 // retrieve module name
   static string module_name_query = "SELECT MODULE_IDENTIFIER FROM IR WHERE ID=?;";
   sqlite3_stmt* module_name_statement;
-  CPREPARE(sqlite3_prepare_v2(db, module_name_query.c_str(), -1,
-                                    &module_name_statement, NULL));
+  CPREPARE(sqlite3_prepare_v2(db, module_name_query.c_str(), -1, &module_name_statement, NULL));
   CBIND(sqlite3_bind_int(module_name_statement, 1, module_id));
   if (SQLITE_ROW != (last_retcode = sqlite3_step(module_name_statement))) {
     cout << "DB error: something went wrong when retrieving MODULE_IDENTIFIER" << endl;
@@ -264,18 +340,19 @@ string DBConn::getModuleFunctionDefinition(string f_name) {
 
 void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {
   for (auto& entry : irdb.modules) {
-    db.insertIR(entry.second.get());
+    db.insertIRModule(entry.second.get());
   }
-  if (!irdb.functions.empty()) {
-    for (auto& entry : irdb.functions) {
-      db.insertFunctionModuleDefinition(entry.first, entry.second);
-    }
+  for (auto& entry : irdb.functions) {
+    db.insertFunctionModuleDefinition(entry.first, entry.second);
+  }
+  for (auto& entry : irdb.globals) {
+  	db.insertGlobalVariableModuleDefinition(entry.first, entry.second);
   }
 }
 
 void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb) {}
 
-size_t DBConn::getSRCHash(string mod_name) { 
+size_t DBConn::getSRCHash(const string& mod_name) {
   static string src_hash_query = "SELECT SRC_HASH FROM IR WHERE MODULE_IDENTIFIER=?;";
   sqlite3_stmt* src_hash_stmt;
   CPREPARE(sqlite3_prepare_v2(db, src_hash_query.c_str(), src_hash_query.size(), &src_hash_stmt, NULL));
@@ -286,63 +363,31 @@ size_t DBConn::getSRCHash(string mod_name) {
   return hash_val;
 }
 
-bool DBConn::insertType(string type_name, VTable vtbl) {
-  static string insert_type_query = "INSERT INTO TYPES (TYPE_IDENTIFIER) VALUES (?);";
-  static string get_func_id_query = "SELECT ID FROM FUNCTIONS WHERE FUNCTION_IDENTIFIER=?;";
-  static string insert_vfunc_query = "INSERT INTO VFUNCTIONS (FUNCTIONS_ID, ENTRY) VALUES (?,?);";
-  static string get_type_id_query = "SELECT ID FROM TYPES WHERE TYPE_IDENTIFIER=?;";
-  static string get_vfunc_id_query = "SELECT ID FROM VFUNCTIONS WHERE FUNCTIONS_ID=?;";
-  static string insert_type_vfunc_query = "INSERT INTO TYPE_HAS_VFUNCTION (TYPE_ID, VFUNCTION_ID) VALUES(?,?);";
+bool DBConn::insertType(const string& type_name, VTable vtbl) {
+  static string insert_type_query = "INSERT INTO TYPE (TYPE_IDENTIFIER) VALUES (?);";
+  static string insert_relation_query = "INSERT INTO TYPE_HAS_VFUNCTION (TYPE_ID, FUNCTION_ID, VTABLE_INDEX) VALUES(?,?,?);";
   sqlite3_stmt* insert_type_stmt;
-  sqlite3_stmt* get_func_id_stmt;
-  sqlite3_stmt* insert_vfunc_stmt;
-  sqlite3_stmt* get_type_id_stmt;
-  sqlite3_stmt* get_vfunc_id_stmt;
-  sqlite3_stmt* insert_type_vfunc_stmt;
+  sqlite3_stmt* insert_relation_stmt;
   // insert the type
   CPREPARE(sqlite3_prepare_v2(db, insert_type_query.c_str(), insert_type_query.size(), &insert_type_stmt, NULL));
   CBIND(sqlite3_bind_text(insert_type_stmt, 1, type_name.c_str(), type_name.size(), SQLITE_STATIC));
   CSTEP(sqlite3_step(insert_type_stmt));
-  // get the type id
-  CPREPARE(sqlite3_prepare_v2(db, get_type_id_query.c_str(), get_type_id_query.size(), &get_type_id_stmt, NULL));
-  CBIND(sqlite3_bind_text(get_type_id_stmt, 1, type_name.c_str(), type_name.size(), SQLITE_STATIC));
-  CSTEP(sqlite3_step(get_type_id_stmt));
-  int type_id = sqlite3_column_int(get_type_id_stmt, 0);
-  CFINALIZE(sqlite3_finalize(get_type_id_stmt));
-  for (auto& vfunc : vtbl.getVTable()) {
+  int type_id = getTypeID(type_name);
+  for (unsigned idx = 0; idx < vtbl.getVTable().size(); ++idx) {
     // get the function id from the virtual function
-    cout << vfunc << endl;
-    CPREPARE(sqlite3_prepare_v2(db, get_func_id_query.c_str(), get_func_id_query.size(), &get_func_id_stmt, NULL));
-    CBIND(sqlite3_bind_text(get_func_id_stmt, 1, vfunc.c_str(), vfunc.size(), SQLITE_STATIC));
-    CSTEP(sqlite3_step(get_func_id_stmt));
-    int function_id = sqlite3_column_int(get_func_id_stmt, 0);
-    CFINALIZE(sqlite3_finalize(get_func_id_stmt));
-    cout << "FUNCTION ID: " << function_id << endl;
-    // insert the virtual function into the vfunctions table
-   int vtable_entry = vtbl.getEntryByFunctionName(vfunc);
-   CPREPARE(sqlite3_prepare_v2(db, insert_vfunc_query.c_str(), insert_vfunc_query.size(), &insert_vfunc_stmt, NULL));
-   CBIND(sqlite3_bind_int(insert_vfunc_stmt, 1, function_id));
-   CBIND(sqlite3_bind_int(insert_vfunc_stmt, 2, vtable_entry));
-   CSTEP(sqlite3_step(insert_vfunc_stmt));
-   CFINALIZE(sqlite3_finalize(insert_vfunc_stmt));
-   // get the vfunction id
-   CPREPARE(sqlite3_prepare_v2(db, get_vfunc_id_query.c_str(), get_vfunc_id_query.size(), &get_vfunc_id_stmt, NULL));
-   CBIND(sqlite3_bind_int(get_vfunc_id_stmt, 1, function_id));
-   CSTEP(sqlite3_step(get_vfunc_id_stmt));
-   int vfunc_id = sqlite3_column_int(get_vfunc_id_stmt, 0);
-   CFINALIZE(sqlite3_finalize(get_vfunc_id_stmt));
-   // insert type id and vfunction id into the relation
-   CPREPARE(sqlite3_prepare_v2(db, insert_type_vfunc_query.c_str(), insert_type_vfunc_query.size(), &insert_type_vfunc_stmt, NULL));
-   CBIND(sqlite3_bind_int(insert_type_vfunc_stmt, 1, type_id));
-   CBIND(sqlite3_bind_int(insert_type_vfunc_stmt, 2, vfunc_id));
-   CSTEP(sqlite3_step(insert_type_vfunc_stmt));
-   CFINALIZE(sqlite3_finalize(insert_type_vfunc_stmt));
-   }
+    int function_id = getFunctionID(vtbl.getFunctionByIdx(idx));
+    CPREPARE(sqlite3_prepare_v2(db, insert_relation_query.c_str(), insert_relation_query.size(), &insert_relation_stmt, NULL));
+    CBIND(sqlite3_bind_int(insert_relation_stmt, 1, type_id));
+    CBIND(sqlite3_bind_int(insert_relation_stmt, 2, function_id));
+    CBIND(sqlite3_bind_int(insert_relation_stmt, 3, idx));
+    CSTEP(sqlite3_step(insert_relation_stmt));
+    CFINALIZE(sqlite3_finalize(insert_relation_stmt));
+  }
   CFINALIZE(sqlite3_finalize(insert_type_stmt));
   return false;
 }
 
-VTable DBConn::getVTable(string type_name) {
+VTable DBConn::getVTable(const string& type_name) {
   return VTable();
 }
 
@@ -368,10 +413,8 @@ set<string> DBConn::getAllTypeIdentifiers() {
 //   return false;
 // }
 
-// LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
-
 void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
-   cout << "WRITE STH TO DB\n";
+
    for (auto& entry : STH.vtable_map) {
        db.insertType(entry.first, entry.second);
    }
@@ -382,7 +425,7 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
   cout << "READ STH FROM DB\n";
 }
 
-size_t DBConn::getIRHash(string mod_name) { 
+size_t DBConn::getIRHash(const string& mod_name) {
   static string ir_hash_query = "SELECT IR_HASH FROM IR WHERE MODULE_IDENTIFIER=?;";
   sqlite3_stmt* ir_hash_stmt;
   CPREPARE(sqlite3_prepare_v2(db, ir_hash_query.c_str(), ir_hash_query.size(), &ir_hash_stmt, NULL));

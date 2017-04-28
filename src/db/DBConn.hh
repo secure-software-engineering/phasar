@@ -81,7 +81,12 @@ class DBConn {
   char* error_msg = 0;
   // static int resultSetCallBack(void* data, int argc, char** argv,
   //                              char** azColName);
+  // Functions for internal use only
   void DBInitializationAction();
+  int getModuleID(const string& mod_name);
+  int getFunctionID(const string& f_name);
+  int getGlobalVariableID(const string& g_name);
+  int getTypeID(const string& t_name);
 
  public:
   DBConn(const DBConn& db) = delete;
@@ -94,32 +99,50 @@ class DBConn {
   int getLastRetCode();
   string getLastErrorMsg();
 
-  // API for querying the IR Modules
-  bool containsIREntry(string mod_name);
-  bool insertIR(const llvm::Module* module);
-  unique_ptr<llvm::Module> getIR(string mod_name, llvm::LLVMContext& Context);
-  bool insertFunctionModuleDefinition(string f_name, string mod_name);
-  string getModuleFunctionDefinition(string f_name);
-  friend void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb);
-  friend void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb);
-  size_t getSRCHash(string mod_name);
-  size_t getIRHash(string mod_name);
+  // API for querying the IR Modules ------------------------------------------
+  // Functions for storing information away
+  bool insertIRModule(const llvm::Module* module);
+  bool insertFunctionModuleDefinition(const string& f_name, const string& mod_name);
+  bool insertGlobalVariableModuleDefinition(const string& g_name, const string& mod_name);
+
+  // Functions for re-storing information from db
   set<string> getAllModuleIdentifiers();
 
-  // API for querying the class hierarchy information
-  bool insertType(string type_name, VTable);
-  VTable getVTable(string type_name);
+  // Functions for querying the database for information
+  bool containsIREntry(const string& mod_name);
+  unique_ptr<llvm::Module> getIRModule(const string& mod_name, llvm::LLVMContext& Context);
+  string getModuleFunctionDefinition(const string& f_name);
+  string getGlobalVariableDefinition(const string& g_name);
+  size_t getSRCHash(const string& mod_name);
+  size_t getIRHash(const string& mod_name);
+
+  // high level load / store functions
+  friend void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb);
+  friend void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb);
+  // --------------------------------------------------------------------------
+
+
+  // API for querying the class hierarchy information -------------------------
+  bool insertType(const string& type_name, VTable);
+  VTable getVTable(const string& type_name);
   set<string> getAllTypeIdentifiers();
   // bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::digraph_t graph);
   // LLVMStructTypeHierarchy::digraph_t getLLVMStructTypeHierarchyGraph();
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
   friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);
+  // --------------------------------------------------------------------------
 
-  // API for querying points-to information
 
-  // API for querying call-graph information
+  // API for querying points-to information -----------------------------------
+  // --------------------------------------------------------------------------
 
-  // API for querying IFDS/IDE information
+
+  // API for querying call-graph information ----------------------------------
+  // --------------------------------------------------------------------------
+
+
+  // API for querying IFDS/IDE information ------------------------------------
+  // --------------------------------------------------------------------------
 };
 
 #endif /* DATABASE_DBCONN_HH_ */

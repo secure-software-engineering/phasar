@@ -87,8 +87,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "pre-analysis completed ...\n";
     IRDB.print();
 
-//    //DBConn& db = DBConn::getInstance();
-//    // db << IRDB;
+    DBConn& db = DBConn::getInstance();
+    db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";
@@ -97,8 +97,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     CH.print();
     CH.printAsDot();
 
-////    // db << CH;
-////    // db >> CH;
+    // db << CH;
+    // db >> CH;
 
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
