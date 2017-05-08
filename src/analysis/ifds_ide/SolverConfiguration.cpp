@@ -5,5 +5,6 @@ ostream& operator<< (ostream& os, const SolverConfiguration& sc) {
 						<< "\tfollowReturnsPastSeeds: " << sc.followReturnsPastSeeds << "\n"
 						<< "\tautoAddZero: " << sc.autoAddZero << "\n"
 						<< "\tcomputeValues: " << sc.computeValues << "\n"
-						<< "\trecordEdges: " << sc.recordEdges;
+						<< "\trecordEdges: " << sc.recordEdges << "\n"
+						<< "\tcomputePersistedSummaries: " << sc.computePersistedSummaries;
 }

@@ -82,21 +82,21 @@ public:
 				cout << cells[i].v << endl;
 			}
 		}
-		cout << "### IFDS RESULTS AT LAST STATEMENT OF MAIN" << endl;
-		this->icfg.getLastInstructionOf("main")->dump();
-		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
-		if (resultAtEnd.empty()) {
-			cout << "EMPTY" << endl;
-		} else {
-			for (auto entry : resultAtEnd) {
-				cout << "\t--- begin entry ---" << endl;
-				entry.first->dump();
-				//cout << "from function: " << entry.first->getFunction().getName().str() << endl;
-				cout << entry.second << endl;
-				cout << "\t--- end entry ---" << endl;
-			}
-		}
-		cout << "### IFDS END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+//		cout << "### IFDS RESULTS AT LAST STATEMENT OF MAIN" << endl;
+//		this->icfg.getLastInstructionOf("main")->dump();
+//		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
+//		if (resultAtEnd.empty()) {
+//			cout << "EMPTY" << endl;
+//		} else {
+//			for (auto entry : resultAtEnd) {
+//				cout << "\t--- begin entry ---" << endl;
+//				entry.first->dump();
+//				//cout << "from function: " << entry.first->getFunction().getName().str() << endl;
+//				cout << entry.second << endl;
+//				cout << "\t--- end entry ---" << endl;
+//			}
+//		}
+//		cout << "### IFDS END RESULTS AT LAST STATEMENT OF MAIN" << endl;
 	}
 
 	void dumpAllInterPathEdges() {

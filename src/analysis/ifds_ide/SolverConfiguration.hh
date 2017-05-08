@@ -18,6 +18,7 @@ struct SolverConfiguration {
 	bool autoAddZero = false;
 	bool computeValues = false;
 	bool recordEdges = false;
+	bool computePersistedSummaries = false;
 	friend ostream& operator<< (ostream& os, const SolverConfiguration& sc);
 };
 

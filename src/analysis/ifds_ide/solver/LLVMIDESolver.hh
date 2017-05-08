@@ -61,15 +61,55 @@ public:
 			}
 			cout << "### END DUMP RESULTS" << endl;
 		}
-		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
-		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
-		for (auto entry : resultAtEnd) {
-			cout << "\t--- begin entry ---" << endl;
-			entry.first->dump();
-			cout << entry.second << endl;
-			cout << "\t--- end entry ---" << endl;
+//		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
+//		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
+//		for (auto entry : resultAtEnd) {
+//			cout << "\t--- begin entry ---" << endl;
+//			entry.first->dump();
+//			cout << entry.second << endl;
+//			cout << "\t--- end entry ---" << endl;
+//		}
+//		cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+	}
+
+	void dumpAllInterPathEdges() {
+			cout << "COMPUTED INTER PATH EDGES" << endl;
+			auto interpe = this->computedInterPathEdges.cellSet();
+			for (auto& cell : interpe) {
+				cout << "FROM" << endl;
+				cell.r->dump();
+				cout << "TO" << endl;
+				cell.c->dump();
+				cout << "FACTS" << endl;
+				for (auto& fact : cell.v) {
+					cout << "fact" << endl;
+					fact.first->dump();
+					cout << "produces" << endl;
+					for (auto& out : fact.second) {
+						out->dump();
+					}
+				}
+			}
 		}
-		cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+
+	void dumpAllIntraPathEdges() {
+		cout << "COMPUTED INTRA PATH EDGES" << endl;
+		auto intrape = this->computedIntraPathEdges.cellSet();
+		for (auto& cell : intrape) {
+			cout << "FROM" << endl;
+			cell.r->dump();
+			cout << "TO" << endl;
+			cell.c->dump();
+			cout << "FACTS" << endl;
+			for (auto& fact : cell.v) {
+				cout << "fact" << endl;
+				fact.first->dump();
+				cout << "produces" << endl;
+				for (auto& out : fact.second) {
+				out->dump();
+				}
+			}
+		}
 	}
 
 };

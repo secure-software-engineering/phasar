@@ -33,6 +33,7 @@
 #include "../../analysis/ifds_ide/icfg/InterproceduralCFG.hh"
 #include "../../lib/GraphExtensions.hh"
 #include "../../utils/utils.hh"
+#include "../../utils/Configuration.hh"
 using namespace std;
 
 // See the following llvm classes for comprehension
@@ -143,7 +144,7 @@ public:
 								 const llvm::Value* callsite_value);
   void printValueVertexMap();
   void print();
-  void printAsDot(const string& suffix);
+  void printAsDot(const string& filename);
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

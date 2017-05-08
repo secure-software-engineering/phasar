@@ -48,6 +48,7 @@ public:
 		this->solver_config.autoAddZero = problem.solver_config.autoAddZero;
 		this->solver_config.computeValues = problem.solver_config.computeValues;
 		this->solver_config.recordEdges = problem.solver_config.recordEdges;
+		this->solver_config.computePersistedSummaries = problem.solver_config.computePersistedSummaries;
 	}
 
 	shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) override

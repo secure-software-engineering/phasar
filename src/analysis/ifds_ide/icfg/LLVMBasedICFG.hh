@@ -35,23 +35,39 @@
 
 using namespace std;
 
-class LLVMBasedICFG
-    : public ICFG<const llvm::Instruction*, const llvm::Function*> {
+enum class CallType {
+	standard = 0,
+	cxx_language,
+	glibc,
+	llvm_intrinsic
+};
+
+ostream& operator<<(ostream& os, const CallType& CT);
+
+
+class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function*> {
  private:
   const llvm::Module& M;
   llvm::CallGraph CG;
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   PointsToGraph WholeModulePTG;
+  set<string> VisitedFunctions;
   map<const llvm::Instruction*, const llvm::Function*> DirectCSTargetMethods;
   map<const llvm::Instruction*, set<const llvm::Function*>> IndirectCSTargetMethods;
 
   set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
+  void printPTGMapping(vector<pair<const llvm::Value*, const llvm::Value*>> mapping);
 
  public:
   LLVMBasedICFG(llvm::Module& Module,
                 LLVMStructTypeHierarchy& STH,
                 ProjectIRCompiledDB& IRDB);
+
+  LLVMBasedICFG(llvm::Module& Module,
+  							LLVMStructTypeHierarchy& STH,
+								ProjectIRCompiledDB& IRDB,
+								const vector<string>& EntryPoints);
 
   virtual ~LLVMBasedICFG() = default;
 

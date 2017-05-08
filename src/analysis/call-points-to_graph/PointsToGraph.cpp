@@ -158,7 +158,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu, bool onlyC
       			break;
       	}
       } else {
-      	if (AA.alias(*I1, I1Size, *I2, I2Size)) {
+      	if (AA.alias(*I1, I1Size, *I2, I2Size) == llvm::MustAlias) {
       		PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
      			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
       	}
@@ -252,8 +252,8 @@ void PointsToGraph::print() {
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
-void PointsToGraph::printAsDot(const string& suffix) {
-	ofstream ofs(F->getName().str()+suffix);
+void PointsToGraph::printAsDot(const string& filename) {
+	ofstream ofs(filename);
 	boost::write_graphviz(ofs, ptg,
 	    boost::make_label_writer(boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
 	    boost::make_label_writer(boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
@@ -270,9 +270,21 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 															const llvm::Value* callsite_value) {
 	vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>> v_in_g1_u_in_g2;
 	v_in_g1_u_in_g2.reserve(v_in_first_u_in_second.size());
+//	cout << "val_vert map this" << endl;
+//	printValueVertexMap();
+//	cout << "val_vert map other" << endl;
+//	other.printValueVertexMap();
+//	for (auto entry : other.value_vertex_map) {
+//		value_vertex_map.insert(make_pair(entry.first, entry.second));
+//	}
+	// we have to merge the value_vertex_maps first
+	value_vertex_map.insert(other.value_vertex_map.begin(), other.value_vertex_map.end());
 	for (auto entry : v_in_first_u_in_second) {
-//		cout << value_vertex_map[entry.first] << endl;
-//		cout << other.value_vertex_map[entry.second] << endl;
+		cout << "!!!" << endl;
+		entry.first->dump();
+		cout << value_vertex_map[entry.first] << endl;
+		entry.second->dump();
+		cout << other.value_vertex_map[entry.second] << endl;
 		v_in_g1_u_in_g2.push_back(make_pair(value_vertex_map[entry.first], other.value_vertex_map[entry.second]));
 	}
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>

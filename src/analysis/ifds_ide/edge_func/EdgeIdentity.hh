@@ -57,7 +57,7 @@ public:
 		return instance;
 	}
 
-	friend ostream& operator<< (ostream& os, const EdgeIdentity& edgeIdentity) { return os << "id"; }
+	friend ostream& operator<< (ostream& os, const EdgeIdentity& edgeIdentity) { return os << "edge identity"; }
 
 	void dump() override { cout << "edge identity\n"; }
 

@@ -35,7 +35,7 @@ class DBConn;
 class LLVMStructTypeHierarchy {
  public:
   struct VertexProperties {
-    llvm::Type* llvmtype;
+    llvm::Type* llvmtype = nullptr;
     string name;
   };
 

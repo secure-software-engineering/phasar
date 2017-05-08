@@ -7,7 +7,9 @@
 
 #include "DBConn.hh"
 
-DBConn::DBConn(const string name) : dbname(name) {
+const string DBConn::dbname = "llheros_analyzer.db";
+
+DBConn::DBConn() {
   if ((last_retcode = sqlite3_open(dbname.c_str(), &db)) != SQLITE_OK) {
     cerr << "could not open sqlite3 database!" << endl;
     HEREANDNOW;
@@ -180,18 +182,8 @@ bool DBConn::containsIREntry(const string& mod_name) {
 
 bool DBConn::insertIRModule(const llvm::Module* module) {
   // compute the hash value from the original C/C++ source file
-  ifstream src_file(module->getModuleIdentifier(), ios::binary);
-  if (!src_file.is_open()) {
-    cout << "DB error: could not open source file" << endl;
-    HEREANDNOW;
-  }
-  src_file.seekg(0, src_file.end);
-  size_t src_size = src_file.tellg();
-  src_file.seekg(0, src_file.beg);
-  string src_buffer;
-  src_buffer.resize(src_size);
-  src_file.read(const_cast<char*>(src_buffer.data()), src_size);
-  src_file.close();
+  string src_file_name(module->getModuleIdentifier());
+  string src_buffer = readFile(src_file_name);
   string src_hash = to_string(hash<string>()(src_buffer));
   cout << "SRC_HASH: " << src_hash << endl;
   // misuse string as a smart buffer
@@ -438,7 +430,7 @@ size_t DBConn::getIRHash(const string& mod_name) {
 
 set<string> DBConn::getAllModuleIdentifiers() { 
   set<string> module_names;
-  static string mod_names_query = "SELECT MODULE_IDENTIFIER FROM IR;";
+  static string mod_names_query = "SELECT MODULE_IDENTIFIER FROM IR_MODULE;";
   sqlite3_stmt* mod_names_stmt;
   CPREPARE(sqlite3_prepare_v2(db, mod_names_query.c_str(), mod_names_query.size(), &mod_names_stmt, NULL));
   while (SQLITE_ROW == sqlite3_step(mod_names_stmt)) {

@@ -26,6 +26,7 @@ public:
 		this->solver_config.autoAddZero = true;
 		this->solver_config.computeValues = true;
 		this->solver_config.recordEdges = true;
+		this->solver_config.computePersistedSummaries = true;
 	}
 
 	virtual ~DefaultIFDSTabulationProblem() = default;

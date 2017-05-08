@@ -1,14 +1,22 @@
 #ifndef UTILS_HH
 #define UTILS_HH
 
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/container/flat_set.hpp>
+#include <boost/container/flat_map.hpp>
 #include <cxxabi.h>
 #include <algorithm>
 #include <iostream>
+#include <fstream>
 #include <string>
+#include <sstream>
+#include <set>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/Support/raw_ostream.h>
+#include "IO.hh"
 using namespace std;
 
 #define MYDEBUG
@@ -26,12 +34,51 @@ using namespace std;
     exit(-1);                  \
   }
 
-string cxx_demangle(string mangled_name);
+string cxx_demangle(const string& mangled_name);
 
-extern const string MetaDataKind;
+string debasify(const string& name);
+
+bool isMangled(const string& name);
 
 bool isFunctionPointer(const llvm::Value* V) noexcept;
 
 bool matchesSignature(const llvm::Function* F, const llvm::FunctionType* FType);
+
+string llvmIRToString(const llvm::Value* V);
+
+template<typename T>
+set<set<T>> computePowerSet(set<T> s) {
+	// compute all subsets of {a, b, c, d}
+	//  bit-pattern - {d, c, b, a}
+	//  0000  {}
+	//  0001  {a}
+	//  0010  {b}
+	//  0011  {a, b}
+	//  0100  {c}
+	//  0101  {a, c}
+	//  0110  {b, c}
+	//  0111  {a, b, c}
+	//  1000  {d}
+	//  1001  {a, d}
+	//  1010  {b, d}
+	//  1011  {a, b, d}
+	//  1100  {c, d}
+	//  1101  {a, c, d}
+	//  1110  {b, c, d}
+	//  1111  {a, b, c, d}
+  set<set<T>> powerset;
+  for (int i = 0; i < (1 << s.size()); ++i) {
+  	set<T> subset;
+  	for (int j = 0; j < s.size(); ++j) {
+  		if ((i & (1 << j)) > 0) {
+  			auto it = s.begin();
+  			advance(it, j);
+  			subset.insert(*it);
+  		}
+  		powerset.insert(subset);
+  	}
+  }
+  return powerset;
+}
 
 #endif

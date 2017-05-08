@@ -28,6 +28,7 @@
 #include "../analysis/call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../analysis/call-points-to_graph/VTable.hh"
 #include "../utils/utils.hh"
+#include "../utils/IO.hh"
 #include "ProjectIRCompiledDB.hh"
 
 #define CPREPARE(FUNCTION)                             \
@@ -73,10 +74,9 @@ class LLVMStructTypeHierarchy;
 
 class DBConn {
  private:
-  DBConn(const string dbname = "llheros_analyzer.db");
+  DBConn();
   ~DBConn();
   sqlite3* db;
-  const string dbname;
   int last_retcode;
   char* error_msg = 0;
   // static int resultSetCallBack(void* data, int argc, char** argv,
@@ -89,6 +89,7 @@ class DBConn {
   int getTypeID(const string& t_name);
 
  public:
+  static const string dbname;
   DBConn(const DBConn& db) = delete;
   DBConn(DBConn&& db) = delete;
   DBConn& operator=(const DBConn& db) = delete;

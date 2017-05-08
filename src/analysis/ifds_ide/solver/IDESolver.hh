@@ -57,6 +57,7 @@ public:
 																	 computevalues(tabulationProblem.solver_config.computeValues),
 																	 autoAddZero(tabulationProblem.solver_config.autoAddZero),
 																	 followReturnPastSeeds(tabulationProblem.solver_config.followReturnsPastSeeds),
+																	 computePersistedSummaries(tabulationProblem.solver_config.computePersistedSummaries),
 																	 allTop(tabulationProblem.allTopFunction()),
 																	 jumpFn(make_shared<JumpFunctions<N,D,V>>(allTop)),
 																	 initialSeeds(tabulationProblem.initialSeeds())
@@ -453,6 +454,7 @@ protected:
 	bool computevalues;
 	bool autoAddZero;
 	bool followReturnPastSeeds;
+	bool computePersistedSummaries;
 
 	Table<N,N,map<D,set<D>>> computedIntraPathEdges;
 

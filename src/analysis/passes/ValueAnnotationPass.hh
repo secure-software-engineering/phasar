@@ -20,7 +20,7 @@
 #include <llvm/IR/Metadata.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_os_ostream.h>
-#include "../../utils/utils.hh"
+#include "../../utils/Configuration.hh"
 
 
 class ValueAnnotationPass : public llvm::ModulePass {

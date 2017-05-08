@@ -7,23 +7,56 @@
 
 #include "LLVMBasedICFG.hh"
 
+ostream& operator<<(ostream& os, const CallType& CT) {
+	switch (static_cast<underlying_type<CallType>::type>(CT)) {
+	case 0:
+		return os << "CallType standard";
+		break;
+	case 1:
+		return os << "CallType cxx_language";
+		break;
+	case 2:
+		return os << "CallType glibc";
+		break;
+	case 3:
+		return os << "CallType llvm_intrinsic";
+		break;
+	default:
+		return os << "CallType unknown";
+		break;
+	}
+}
+
 LLVMBasedICFG::LLVMBasedICFG(
     llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
     : M(Module), CG(Module), CH(STH), IRDB(IRDB) {
-	// perform the resolving of all dynamic call sites contained in the corresponding module
-	// provide one or more functions as seed(s)
-		set<llvm::Function*> seeds;
-		seeds.insert(M.getFunction("main"));
-		cout << "calling the walker ...\n";
-		for (auto seed : seeds) {
-			PointsToGraph& main_ptg = *IRDB.ptgs[M.getFunction("main")->getName().str()];
-			WholeModulePTG.mergeWith(main_ptg, {}, nullptr);
-			WholeModulePTG.printAsDot("main_ptg.dot");
-			resolveIndirectCallWalker(seed);
-		}
-		cout << "constructed whole module ptg and resolved indirect calls ...\n";
-		WholeModulePTG.printAsDot("whole_module_ptg.dot");
+  // perform the resolving of all dynamic call sites contained in the corresponding module
+	llvm::Function* main = M.getFunction("main");
+	cout << "calling the walker ...\n";
+	if (main) {
+		PointsToGraph& main_ptg = *IRDB.getPointsToGraph("main");
+		WholeModulePTG.mergeWith(main_ptg, {}, nullptr);
+		WholeModulePTG.printAsDot("main_ptg.dot");
+		resolveIndirectCallWalker(main);
+	} else {
+		cout << "could not find 'main()' function in call graph construction!\n";
+	}
+	cout << "constructed whole module ptg and resolved indirect calls ...\n";
+	WholeModulePTG.printAsDot("whole_module_ptg.dot");
+}
+
+LLVMBasedICFG::LLVMBasedICFG(llvm::Module& Module,
+							LLVMStructTypeHierarchy& STH,
+							ProjectIRCompiledDB& IRDB,
+							const vector<string>& EntryPoints)
+		: M(Module), CG(Module), CH(STH), IRDB(IRDB) {
+	for (auto& function_name : EntryPoints) {
+			llvm::Function* function = M.getFunction(function_name);
+			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
+			WholeModulePTG.mergeWith(ptg, {}, nullptr);
+			resolveIndirectCallWalker(function);
+	}
 }
 
 void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
@@ -35,7 +68,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       if (cs.getCalledFunction() != nullptr) {
       	// get the ptg of the function that is called
       	PointsToGraph& callee_ptg = *IRDB.getPointsToGraph(cs.getCalledFunction()->getName().str());
-      	callee_ptg.printAsDot("callee.dot");
+      	callee_ptg.printAsDot(cs.getCalledFunction()->getName().str()+".dot");
       	// map the formals
       	auto escaping_formal_params = callee_ptg.getPointersEscapingThroughParams();
       	vector<pair<const llvm::Value*, const llvm::Value*>> mapping;
@@ -50,12 +83,8 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       		}
       	}
       	// note that aliasing with global variables is handled in the intra-procedural ptg construction
-//      	for (auto& entry : mapping) {
-//      		cout << "beg map" << endl;
-//      		entry.first->dump();
-//      		entry.second->dump();
-//      		cout << "end map" << endl;
-//      	}
+      	cout << "mapping caller to callee pointers\n";
+      	printPTGMapping(mapping);
       	DirectCSTargetMethods.insert(make_pair(&Inst, cs.getCalledFunction()));
       	// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
@@ -87,9 +116,9 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
   	// retrieve the vtable entry that is called
     const llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
     const llvm::GetElementPtrInst* gep = llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-    unsigned vtable_entry = llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+    unsigned vtable_index = llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
 
-    cout << "vtable entry: " << vtable_entry << endl;
+    cout << "vtable entry: " << vtable_index << endl;
 
     const llvm::Value* receiver = CS.getArgOperand(0);
     const llvm::Type* receiver_type = receiver->getType();
@@ -100,11 +129,18 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     	// here we take the conservative fall-back solution
     	if (const llvm::StructType* struct_type = llvm::dyn_cast<llvm::StructType>(receiver_type)) {
     		// insert declared type
-    		possible_call_targets.insert(CH.getVTableEntry(struct_type->getName().str(), vtable_entry));
+    		// here we have to call debasify() since the following IR might be generated:
+    		//   %struct.A = type <{ i32 (...)**, i32, [4 x i8] }>
+    		//   %struct.B = type { %struct.A.base, [4 x i8] }
+    		//   %struct.A.base = type <{ i32 (...)**, i32 }>
+    		// in such a case %struct.A and %struct.A.base are treated as aliases and the vtable for A is stored
+    		// under the name %struct.A whereas in the class hierarchy %struct.A.base is used!
+    		// debasify() fixes that circumstance and returns id for all normal cases.
+    		possible_call_targets.insert(CH.getVTableEntry(debasify(struct_type->getName().str()), vtable_index));
     		// also insert all possible subtypes
     		auto fallback_type_names = CH.getTransitivelyReachableTypes(struct_type->getName().str());
     		for (auto& fallback_name : fallback_type_names) {
-    			possible_call_targets.insert(CH.getVTableEntry(fallback_name, vtable_entry));
+    			possible_call_targets.insert(CH.getVTableEntry(fallback_name, vtable_index));
     		}
     	}
     } else {
@@ -116,8 +152,8 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     																					llvm::dyn_cast<llvm::StructType>(type) :
 																							llvm::dyn_cast<llvm::StructType>(type->getPointerElementType());
     		if (struct_type) {
-
-    			possible_call_targets.insert(CH.getVTableEntry(struct_type->getName().str(), vtable_entry));
+    			// same as above
+    			possible_call_targets.insert(CH.getVTableEntry(debasify(struct_type->getName().str()), vtable_index));
     		}
     	}
     }
@@ -142,6 +178,12 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
    }
   }
   return possible_call_targets;
+}
+
+void LLVMBasedICFG::printPTGMapping(vector<pair<const llvm::Value*, const llvm::Value*>> mapping) {
+	for (auto& entry : mapping) {
+		cout << llvmIRToString(entry.first) << " ---> " << llvmIRToString(entry.second) << "\n";
+	}
 }
 
 const llvm::Function* LLVMBasedICFG::getMethodOf(

@@ -88,7 +88,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     IRDB.print();
 
     DBConn& db = DBConn::getInstance();
-    db << IRDB;
+    // db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";
@@ -115,41 +115,41 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       // just return it!
       for (auto analysis : Analyses) {
       	switch (analysis) {
-      	case AnalysisType::IFDS_TaintAnalysis:
-      	{ // caution: observer '{' and '}' we work in another scope
-      		cout << "IFDS_TaintAnalysis\n";
-      		IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
-      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-      		llvmtaintsolver.solve();
-      		break;
-      	}
-      	case AnalysisType::IDE_TaintAnalysis:
-      	{ // caution: observer '{' and '}' we work in another scope
-      		cout << "IDE_TaintAnalysis\n";
-      		//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-      		//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
-      		//  llvmtaintsolver.solve();
-      		break;
-      	}
-      	case AnalysisType::IFDS_TypeAnalysis:
-      	{ // caution: observer '{' and '}' we work in another scope
-      		cout << "IFDS_TypeAnalysis\n";
-      		IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
-      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
-      		llvmtypesolver.solve();
-      		break;
-      	}
-      	case AnalysisType::IFDS_UninitializedVariables:
-      	{ // caution: observer '{' and '}' we work in another scope
-      		cout << "IFDS_UninitalizedVariables\n";
-      		IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
-      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-      		llvmunivsolver.solve();
-      		break;
-      	}
-      	default:
-      		cout << "analysis not valid!" << endl;
-      		break;
+      		case AnalysisType::IFDS_TaintAnalysis:
+      		{ // caution: observer '{' and '}' we work in another scope
+      			cout << "IFDS_TaintAnalysis\n";
+      			IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      			llvmtaintsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::IDE_TaintAnalysis:
+      		{ // caution: observer '{' and '}' we work in another scope
+      			cout << "IDE_TaintAnalysis\n";
+      			//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
+      			//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      			//  llvmtaintsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::IFDS_TypeAnalysis:
+      		{ // caution: observer '{' and '}' we work in another scope
+      			cout << "IFDS_TypeAnalysis\n";
+      			IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
+      			llvmtypesolver.solve();
+      			break;
+      		}
+      		case AnalysisType::IFDS_UninitializedVariables:
+      		{ // caution: observer '{' and '}' we work in another scope
+      			cout << "IFDS_UninitalizedVariables\n";
+      			IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
+      			llvmunivsolver.solve();
+      			break;
+      		}
+      		default:
+      			cout << "analysis not valid!" << endl;
+      			break;
       	}
       }
       if (!WPA_MODE) {
