@@ -30,12 +30,22 @@
 #include "VTable.hh"
 using namespace std;
 
+// forward declaration?
 class DBConn;
 
+/**
+ * 	@brief Represents/owns the class hierarchy of all analyzed modules.
+ *
+ * 	This class is responsible for constructing a inter-modular class hierarchy graph based on the
+ * 	data from the ProjectIRCompiledDB and reconstructing the virtual function tables.
+ */
 class LLVMStructTypeHierarchy {
  public:
+  /// Additional information for each vertex in the type hierarchy graph
   struct VertexProperties {
+	// always StructType so far
     llvm::Type* llvmtype;
+    /// Name of the struct type
     string name;
   };
 
@@ -43,13 +53,17 @@ class LLVMStructTypeHierarchy {
     EdgeProperties() = default;
   };
 
+  /// Represents the class hierarchy type hierarchy graph
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
                                 VertexProperties, EdgeProperties>
       bidigraph_t;
+
+
   typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
 
  private:
+  /// TODO find out what the heck this is good for
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t>& subtypes;
     reachability_dfs_visitor(set<vertex_t>& types) : subtypes(types) {}
@@ -69,8 +83,23 @@ class LLVMStructTypeHierarchy {
 
  public:
   LLVMStructTypeHierarchy() = default;
+
+  /**
+   *  @brief Creates a LLVMStructTypeHierarchy based on the given ProjectIRCompiledDB.
+   *  @param IRDB ProjectIRCompiledDB object.
+   */
   LLVMStructTypeHierarchy(const ProjectIRCompiledDB& IRDB);
+
   ~LLVMStructTypeHierarchy() = default;
+
+  /**
+   * @brief Constructs the actual type hierarchy graph.
+   * @param M LLVM Module
+   *
+   * Extracts new information from the given module and adds new vertices and edges
+   * to the type hierarchy graph. Also creates the type_vertex_map and fills the
+   * recognized_struct_types set.
+   */
   void analyzeModule(const llvm::Module& M);
   set<string> getTransitivelyReachableTypes(string TypeName);
   vector<const llvm::Function*> constructVTable(const llvm::Type* T,
@@ -84,7 +113,7 @@ class LLVMStructTypeHierarchy {
   void printAsDot(const string& path="struct_type_hierarchy.dot");
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
-  friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);
+  friend void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH);
 };
 
 #endif /* ANALYSIS_LLVMSTRUCTTYPEHIERARCHY_HH_ */

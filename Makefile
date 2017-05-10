@@ -98,6 +98,10 @@ CLANG_FLAGS := 	-lclangTooling\
 
 all: $(BIN)$(EXE)
 
+remdb:
+	rm struct_hierarchy_graph_hexastore.db
+	rm llheros_analyzer.db
+
 doc:
 	cd $(SRC); \
 	doxygen doxy_config.conf

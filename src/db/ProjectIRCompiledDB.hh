@@ -57,8 +57,8 @@ private:
   void buildFunctionModuleMapping();
   void buildGlobalModuleMapping();
   void buildIDModuleMapping();
-	// add WPA support by providing a fat completely linked module
-	  void linkForWPA();
+  // add WPA support by providing a fat completely linked module
+  void linkForWPA();
   // get a completely linked module for the WPA_MODE
   llvm::Module* getWPAModule();
   // add some useful functionality for querying the database

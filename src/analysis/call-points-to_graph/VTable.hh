@@ -14,6 +14,9 @@
 #include <vector>
 using namespace std;
 
+/**
+ * 	@brief Represents a virtual method table.
+ */
 class VTable {
  private:
   llvm::Type* type;

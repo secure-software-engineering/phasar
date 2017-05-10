@@ -12,6 +12,11 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
   for (auto& module_entry : IRDB.modules) {
     const llvm::Module& M = *(module_entry.second);
     analyzeModule(M);
+//    cout << "printing vtable_map" << endl;
+//    for(auto elem : vtable_map)
+//    {
+//       std::cout << elem.first << " " << elem.second << "\n";
+//    }
     reconstructVTable(M);
   }
 }

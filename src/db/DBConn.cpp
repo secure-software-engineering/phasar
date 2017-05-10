@@ -159,7 +159,7 @@ void DBConn::DBInitializationAction() {
   execute(ir_module_defines_global);
   const static string type_has_vfunction_init_command =
       "CREATE TABLE IF NOT EXISTS TYPE_HAS_VFUNCTION("
-  		"ID INTEGER PRIMARY KEY AUTOINCREMENT,"
+	  "ID INTEGER PRIMARY KEY AUTOINCREMENT,"
       "TYPE_ID INTEGER,"
       "FUNCTION_ID INTEGER,"
       "VTABLE_INDEX INTEGER);";
@@ -387,13 +387,43 @@ bool DBConn::insertType(const string& type_name, VTable vtbl) {
   return false;
 }
 
+string DBConn::getFunctionIdentifier(int type_id) {
+	static string func_ident_query = "SELECT FUNCTION_IDENTIFIER FROM FUNCTION WHERE ID=?;";
+	sqlite3_stmt* func_ident_stmt;
+	CPREPARE(sqlite3_prepare_v2(db, func_ident_query.c_str(), func_ident_query.size(), &func_ident_stmt, NULL));
+	CBIND(sqlite3_bind_int(func_ident_stmt, 1, type_id));
+	if (SQLITE_ROW != (last_retcode = sqlite3_step(func_ident_stmt))) {
+		cout << "DB error: something went wrong when retrieving FUNCTION_IDENTIFIER" << endl;
+		HEREANDNOW;
+	}
+	string func_ident((char*) sqlite3_column_text(func_ident_stmt, 0));
+	CFINALIZE(sqlite3_finalize(func_ident_stmt));
+	return func_ident;
+}
+
 VTable DBConn::getVTable(const string& type_name) {
-  return VTable();
+	int type_id = getTypeID(type_name);
+	// get function_id and vtable_idx from TYPE_HAS_VFUNCTION
+	// using a map to make sure the function order in the vtable is matching the VTABLE_INDEX
+	map<int, int> vtbl_idx_func_id_map;
+	static string vtbl_idx_func_id_query = "SELECT VTABLE_INDEX, FUNCTION_ID FROM TYPE_HAS_VFUNCTION WHERE TYPE_ID=?;";
+	sqlite3_stmt* vtbl_idx_func_id_stmt;
+	CPREPARE(sqlite3_prepare_v2(db, vtbl_idx_func_id_query.c_str(), vtbl_idx_func_id_query.size(), &vtbl_idx_func_id_stmt, NULL));
+	CBIND(sqlite3_bind_int(vtbl_idx_func_id_stmt, 1, type_id));
+	while (SQLITE_ROW == sqlite3_step(vtbl_idx_func_id_stmt)) {
+		vtbl_idx_func_id_map[sqlite3_column_int(vtbl_idx_func_id_stmt, 0)] = sqlite3_column_int(vtbl_idx_func_id_stmt, 1);
+	}
+	CFINALIZE(sqlite3_finalize(vtbl_idx_func_id_stmt));
+	VTable vtbl;
+	for(auto entry : vtbl_idx_func_id_map) {
+		vtbl.addEntry(getFunctionIdentifier(entry.second));
+	}
+	return vtbl;
 }
 
 set<string> DBConn::getAllTypeIdentifiers() {
   set<string> types;
-  static string get_types_query = "SELECT TYPE_IDENTIFIER FROM TYPES;";
+  static string get_types_query = "SELECT TYPE_IDENTIFIER FROM TYPE;";
   sqlite3_stmt* get_types_stmt;
   CPREPARE(sqlite3_prepare_v2(db, get_types_query.c_str(), get_types_query.size(), &get_types_stmt, NULL));
   while (SQLITE_ROW == sqlite3_step(get_types_stmt)) {
@@ -403,26 +433,88 @@ set<string> DBConn::getAllTypeIdentifiers() {
   return types;
 }
 
-// bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::digraph_t g) {
-//   typename boost::graph_traits<LLVMStructTypeHierarchy::digraph_t>::edge_iterator ei_start, e_end;
-// 	for (tie(ei_start, e_end) = boost::edges(g); ei_start != e_end; ++ei_start) {
-// 		auto source = boost::source(*ei_start, g);
-// 		auto target = boost::target(*ei_start, g);
+bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::bidigraph_t g) {
+	hexastore::Hexastore h("struct_hierarchy_graph_hexastore.db");
+	typename boost::graph_traits<LLVMStructTypeHierarchy::bidigraph_t>::edge_iterator ei_start, e_end;
+	for (tie(ei_start, e_end) = boost::edges(g); ei_start != e_end; ++ei_start) {
+ 		auto source = boost::source(*ei_start, g);
+ 		auto target = boost::target(*ei_start, g);
+ 		h.put({g[source].name, "-->", g[target].name});
 // 		cout << g[source].name << " --> " << g[target].name << "\n";
-// 	}
-//   return false;
+ 	}
+	auto result = h.get({"?", "?", "?"});
+	for_each(result.begin(), result.end(), [](hexastore::hs_result r){
+	  cout << r << endl;
+	});
+ 	return false;
+}
+
+//int hs_test() {
+//   hexastore::Hexastore h("test.sqlite");
+//   // init with some stuff
+//   h.put({"mary", "likes", "hexastores"});
+//   h.put({"mary", "likes", "apples"});
+//   h.put({"peter", "likes", "apples"});
+//   h.put({"peter", "hates", "hexastores"});
+//   h.put({"frank", "admires", "bananas"});
+//   //query some stuff
+//   cout << "Who likes what?" << "\n";
+//   auto result = h.get({"?", "likes", "?"});
+//   for_each(result.begin(), result.end(), [](hexastore::hs_result r){
+// 	  cout << r << endl;
+//   });
+//   cout << "\n";
+//   cout << "What does peter hate?" << "\n";
+//   result = h.get({"peter", "hates", "?"});
+//   for_each(result.begin(), result.end(), [](hexastore::hs_result r){
+// 	  cout << r << endl;
+//   });
+//   cout << "\n";
+//   cout << "Who admires something?" << "\n";
+//   result = h.get({"?", "admires", "?"});
+//   for_each(result.begin(), result.end(), [](hexastore::hs_result r){
+// 	  cout << r << endl;
+//   });
+//   return 0;
 // }
 
 void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
-
    for (auto& entry : STH.vtable_map) {
        db.insertType(entry.first, entry.second);
    }
-//   insertLLVMStructHierarchyGraph(STH.g);
+   insertLLVMStructHierarchyGraph(STH.g);
+   cout << "\nprint type_vertex_map:\n";
+   for(auto elem : STH.type_vertex_map)
+	   cout << elem.first << " " << elem.second << "\n";
+   cout << "\nprint recognized_struct_types:\n";
+   for(auto elem : STH.recognized_struct_types)
+	   cout << elem << " ";
+   cout << endl;
 }
 
-void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
-  cout << "READ STH FROM DB\n";
+void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH) {
+	hexastore::Hexastore h("struct_hierarchy_graph_hexastore.db");
+	set<string> types = db.getAllTypeIdentifiers();
+	for(auto type_name : types) {
+		// reconstruction of the vtable__map
+		STH.vtable_map[type_name] = db.getVTable(type_name);
+
+		// add vertices to the class hierarchy graph - each class = one vertex
+		if (STH.recognized_struct_types.find(type_name) == STH.recognized_struct_types.end()) {
+			STH.type_vertex_map[type_name] = boost::add_vertex(STH.g);
+//			STH.g[type_vertex_map[type_name]].llvmtype = StructType;
+			STH.g[STH.type_vertex_map[type_name]].name = type_name;
+			STH.recognized_struct_types.insert(type_name);
+		}
+	}
+	// add edges to the class hierarchy graph
+	for(auto type_name : types) {
+		auto result = h.get({type_name, "-->", "?"});
+		for_each(result.begin(), result.end(), [type_name, &STH](hexastore::hs_result r){
+			boost::add_edge(STH.type_vertex_map[type_name],
+							STH.type_vertex_map[r.object], STH.g);
+		});
+	}
 }
 
 size_t DBConn::getIRHash(const string& mod_name) {
