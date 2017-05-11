@@ -10,8 +10,19 @@
 
 #include <vector>
 #include <set>
+#include <iostream>
 
 using namespace std;
+
+enum class CallType {
+	none = 0,
+	normal = 1,
+	summary = 2,
+	special_summary = 3,
+	unavailable = 4
+};
+
+ostream& operator<<(ostream& os, const CallType& CT);
 
 template<typename N, typename M>
 class ICFG {
@@ -34,7 +45,19 @@ public:
 
 	virtual set<N> getReturnSitesOfCallAt(N n) = 0;
 
-	virtual bool isCallStmt(N stmt) = 0;
+	/**
+	 * We return an int rather than a boolean value, since we would also like to
+	 * distinguish between different categories of functions that are called.
+	 * A class that inherits from the ICFG interface can define a suitable
+	 * enumeration that represents various kinds of categories. Different
+	 * categories can than be treated different within the solver (e.g. special
+	 * summaries may be used, etc.). IMPORTANT: by convention returning 0
+	 * indicates a non-call statement, returning 1 indicates a usual function call
+	 * that should be treated as a usual function by the solver. Other values are
+	 * free to represent function categories that should receive special treatment
+	 * by the solver.
+	 */
+	virtual CallType isCallStmt(N stmt) = 0;
 
 	virtual bool isExitStmt(N stmt) = 0;
 

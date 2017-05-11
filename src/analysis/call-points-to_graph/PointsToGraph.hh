@@ -30,7 +30,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "../../analysis/ifds_ide/icfg/InterproceduralCFG.hh"
 #include "../../lib/GraphExtensions.hh"
 #include "../../utils/utils.hh"
 #include "../../utils/Configuration.hh"

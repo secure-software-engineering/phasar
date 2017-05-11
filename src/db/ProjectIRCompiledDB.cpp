@@ -47,16 +47,13 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
 }
 
 void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand) {
-  // add the STL header paths
-  // can be determined with '-v' flag during compilation
-	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0");
-	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/x86_64-linux-gnu/c++/5.4.0");
-	CompileCommand.push_back("-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0/backward");
-	CompileCommand.push_back("-I/usr/local/include");
-	CompileCommand.push_back("-I/usr/lib/llvm-3.9/bin/../lib/clang/3.9.1/include");
-	CompileCommand.push_back("-I/usr/include/x86_64-linux-gnu");
-	CompileCommand.push_back("-I/usr/include");
-  cout << "Compile Commands\n";
+	static vector<string> header_search_paths = splitString(readFile(ConfigurationDirectory+HeaderSearchPathsFileName), "\n");
+	static string minusI = "-I";
+	for_each(header_search_paths.begin(), header_search_paths.end(), [&CompileCommand](string& path) {
+		path = minusI + path;
+		CompileCommand.push_back(path.c_str());
+	});
+	cout << "Compile Commands\n";
   for (auto s : CompileCommand) {
   	cout << s << "\n";
   }

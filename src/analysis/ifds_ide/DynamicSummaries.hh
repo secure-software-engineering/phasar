@@ -11,6 +11,9 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <memory>
+#include "../../analysis/ifds_ide/FlowFunction.hh"
+#include "../../analysis/ifds_ide/flow_func/GenAll.hh"
 #include "../../utils/ContainerConfiguration.hh"
 using namespace std;
 
@@ -21,7 +24,7 @@ private:
 	 * Stores the summary for a function specified by a name which holds under a
 	 * specific context described by a bit-pattern represented as vector<bool> type.
 	 */
-	DSMap<string, DSMap<vector<bool>, set<D>>> SummaryMap;
+	DSMap<string, DSMap<vector<bool>, shared_ptr<GenAll<D>>>> SummaryMap;
 
 public:
 	DynamicSummaries() = default;
@@ -31,8 +34,8 @@ public:
 		return SummaryMap.find(name) != SummaryMap.end();
 	}
 
-	void insertSummary(const string& name, const vector<bool>& context, set<D>& result) {
-		SummaryMap[name].insert({ context, result });
+	void insertSummary(const string& name, const vector<bool>& context, set<D> result) {
+		SummaryMap[name].insert({ context, make_shared<GenAll>(result) });
 	}
 
 	set<D> getSummary(const string& name, const vector<bool>& context) {
@@ -51,7 +54,8 @@ public:
 				cout << "\n";
 				cout << "Beg results:\n";
 				for (auto& result : context_summaries.second) {
-					result->dump();
+					//result->dump();
+					cout << "fixme\n";
 				}
 				cout << "End results!\n";
 			}

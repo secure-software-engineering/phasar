@@ -39,17 +39,17 @@ public:
 		return current;
 	}
 
-	static FlowFunction<D> compose(const vector<FlowFunction<D>>& funcs)
+	static shared_ptr<FlowFunction<D>> compose(const vector<FlowFunction<D>>& funcs)
 	{
 		vector<FlowFunction<D>> vec;
 		for (const FlowFunction<D>& func : funcs)
-			if (func != Identity<D>().v())
+			if (func != Identity<D>::v())
 				vec.insert(func);
 		if (vec.size == 1)
 			return vec[0];
 		else if (vec.empty())
-			return Identity<D>().v();
-		return new Compose(vec);
+			return Identity<D>::v();
+		return make_shared<Compose>(vec);
 	}
 };
 

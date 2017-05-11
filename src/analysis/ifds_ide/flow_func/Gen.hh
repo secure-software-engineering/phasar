@@ -25,9 +25,9 @@ public:
 	set<D> computeTargets(D source) override
 	{
 		if (source == zeroValue)
-			return set<D> {source, genValue};
+			return { source, genValue };
 		else
-			return set<D> {source};
+			return { source };
 	}
 };
 

@@ -25,11 +25,11 @@ public:
 	set<D> computeTargets(D source) override
 	{
 		if (source == fromValue)
-			return set<D> { source, toValue };
+			return { source, toValue };
 		else if (source == toValue)
-			return set<D>();
+			return { };
 		else
-			return set<D> {source};
+			return { source };
 	}
 };
 

@@ -11,6 +11,8 @@
 #include <type_traits>
 #include "IFDSTabulationProblem.hh"
 #include "FlowFunctions.hh"
+#include "flow_func/Identity.hh"
+#include "SpecialSummaries.hh"
 
 template<class N, class D, class M, class I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N,D,M,I> {
@@ -30,6 +32,11 @@ public:
 	}
 
 	virtual ~DefaultIFDSTabulationProblem() = default;
+
+	virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
+																														 M destMthd) override {
+			return Identity<D>::v();
+	}
 
 	I interproceduralCFG() override
 	{

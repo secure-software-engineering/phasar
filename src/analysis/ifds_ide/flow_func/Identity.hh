@@ -23,7 +23,7 @@ public:
 	Identity(const Identity& i) = delete;
 	Identity& operator= (const Identity& i) = delete;
 	// simply return what the user provides
-	set<D> computeTargets(D source) override { return set<D>{source}; }
+	set<D> computeTargets(D source) override { return { source }; }
 	static shared_ptr<Identity> v()
 	{
 		static shared_ptr<Identity> instance = shared_ptr<Identity>(new Identity);

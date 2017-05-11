@@ -134,8 +134,12 @@ void LLVMStructTypeHierarchy::print() {
   boost::print_graph(
       g, boost::get(&LLVMStructTypeHierarchy::VertexProperties::name, g));
   cout << "\nVTables:\n";
-  for (auto entry : vtable_map) {
-    cout << entry.first << " contains\n" << entry.second << endl;
+  if (vtable_map.empty()) {
+  	cout << "EMPTY\n";
+  } else {
+  	for (auto entry : vtable_map) {
+    	cout << entry.first << " contains\n" << entry.second << endl;
+  	}
   }
 }
 

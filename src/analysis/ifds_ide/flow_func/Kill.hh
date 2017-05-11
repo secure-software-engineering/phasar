@@ -24,9 +24,9 @@ public:
 	set<D> computeTargets(D source) override
 	{
 		if (source == killValue)
-			return set<D>();
+			return { };
 		else
-			return set<D> {source};
+			return { source };
 	}
 };
 

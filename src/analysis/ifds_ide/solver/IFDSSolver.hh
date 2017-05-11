@@ -62,13 +62,18 @@ public:
 	}
 
 	shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) override
-    {
+  {
 		return problem.getRetFlowFunction(callSite, calleeMthd, exitStmt, retSite);
 	}
 
 	shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite, N retSite) override
 	{
 		return problem.getCallToRetFlowFunction(callSite, retSite);
+	}
+
+	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) override
+	{
+		return problem.getSummaryFlowFunction(callStmt, destMthd);
 	}
 
 	I interproceduralCFG() override

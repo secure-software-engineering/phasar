@@ -2,6 +2,8 @@
 #define UTILS_HH
 
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/flat_map.hpp>
 #include <cxxabi.h>
@@ -45,6 +47,8 @@ bool isFunctionPointer(const llvm::Value* V) noexcept;
 bool matchesSignature(const llvm::Function* F, const llvm::FunctionType* FType);
 
 string llvmIRToString(const llvm::Value* V);
+
+vector<string> splitString(const string& str, const string& delimiter);
 
 template<typename T>
 set<set<T>> computePowerSet(set<T> s) {

@@ -401,19 +401,40 @@ private:
 	void pathEdgeProcessingTask(PathEdge<N,D> edge) // should be made a callable at some point
 	{
 		propagationCount++;
-		if (icfg.isCallStmt(edge.getTarget())) {
-			cout << "@ process call" << endl;
-			// TODO fix processing call correctly!
-			processCall(edge);
-		} else {
-			if (icfg.isExitStmt(edge.getTarget())) {
-				cout << "@ process exit" << endl;
-				processExit(edge);
-			}
-			if (!icfg.getSuccsOf(edge.getTarget()).empty()) {
-				cout << "@ process normal flow" << endl;
-				processNormalFlow(edge);
-			}
+		// TODO provide special treatment for (special) summaries
+		switch (icfg.isCallStmt(edge.getTarget())) {
+			// calltype_no_call
+			case CallType::none:
+				if (icfg.isExitStmt(edge.getTarget())) {
+					cout << "@ process exit" << endl;
+					processExit(edge);
+				}
+				if (!icfg.getSuccsOf(edge.getTarget()).empty()) {
+					cout << "@ process normal flow" << endl;
+					processNormalFlow(edge);
+				}
+				break;
+			// calltype_normal_call
+			case CallType::normal:
+				cout << "@ process call" << endl;
+				processCall(edge);
+				break;
+			// treat the special functions that have special summaries
+			case CallType::special_summary:
+				cout << "FOUND SPECIAL SUMMARY!\n";
+				break;
+			case CallType::summary:
+
+				break;
+			case CallType::unavailable:
+				// here we have to plug-in place holders!
+				break;
+			// everything else does not make sense
+			default:
+					cout << "error: calltype is not recognized!\n";
+					HEREANDNOW;
+					DIE_HARD;
+				break;
 		}
 	}
 
@@ -425,7 +446,8 @@ private:
 		if (icfg.isStartPoint(n) || initialSeeds.count(n) || unbalancedRetSites.count(n)) {
 			propagateValueAtStart(nAndD, n);
 		}
-		if (icfg.isCallStmt(n)) {
+		if (icfg.isCallStmt(n) == CallType::normal) {
+			// TODO provide special treatment for (special) summaries
 			propagateValueAtCall(nAndD, n);
 		}
 	}

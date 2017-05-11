@@ -100,6 +100,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     // db << CH;
     // db >> CH;
 
+    SpecialSummaries<const llvm::Value*>& specialSummaries =
+    		SpecialSummaries<const llvm::Value*>::getInstance();
+    cout << specialSummaries << endl;
+
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {

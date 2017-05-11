@@ -31,19 +31,10 @@
 #include "../../call-points-to_graph/PointsToGraph.hh"
 #include "../../../lib/GraphExtensions.hh"
 #include "../../../utils/utils.hh"
+#include "../SpecialSummaries.hh"
 #include "ICFG.hh"
 
 using namespace std;
-
-enum class CallType {
-	standard = 0,
-	cxx_language,
-	glibc,
-	llvm_intrinsic
-};
-
-ostream& operator<<(ostream& os, const CallType& CT);
-
 
 class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function*> {
  private:
@@ -97,7 +88,7 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   set<const llvm::Instruction*> getReturnSitesOfCallAt(
       const llvm::Instruction* n) override;
 
-  bool isCallStmt(const llvm::Instruction* stmt) override;
+  CallType isCallStmt(const llvm::Instruction* stmt) override;
 
   bool isExitStmt(const llvm::Instruction* stmt) override;
 

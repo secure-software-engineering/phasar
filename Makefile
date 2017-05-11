@@ -20,7 +20,6 @@ OUTPUT := output/
 
 # important special files
 MAIN_FILE := $(SRC)main.cpp
-CONFIG_HEADER := $(SRC)configuration.hh
 
 # source code directories
 SRC_ANALYSIS := $(SRC)analysis/
@@ -44,7 +43,7 @@ OBJ_UNIT_TESTS := $(OBJ)unit_tests/
 CXX := clang++
 
 # compiler flags
-CXX_FLAGS := -std=c++11			# change to c++14 and libc++ Clang when possible
+CXX_FLAGS := -std=c++14			# change to c++14 and libc++ Clang when possible
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
 CXX_FLAGS += -O0 #-O4
 CXX_FLAGS += -pipe
@@ -110,48 +109,48 @@ clean:
 
 utils_header_list := $(shell find $(SRC_UTILS) -name "*.hh")
 utils_impl_list := $(shell find $(SRC_UTILS) -name "*.cpp")
-$(OBJ_UTILS): $(utils_header_list) $(utils_impl_list) $(CONFIG_HEADER)
+$(OBJ_UTILS): $(utils_header_list) $(utils_impl_list)
 	mkdir -p $(OBJ_UTILS); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(utils_impl_list); \
 	mv *.o $(OBJ_UTILS); \
 
 db_header_list := $(shell find $(SRC_DB) -name "*.hh")
 db_impl_list := $(shell find $(SRC_DB) -name "*.cpp")
-$(OBJ_DB): $(db_header_list) $(db_impl_list) $(CONFIG_HEADER)
+$(OBJ_DB): $(db_header_list) $(db_impl_list)
 	mkdir -p $(OBJ_DB); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(db_impl_list); \
 	mv *.o $(OBJ_DB); \
 
 clang_header_list := $(shell find $(SRC_CLANG) -name "*.hh")
 clang_impl_list := $(shell find $(SRC_CLANG) -name "*.cpp")
-$(OBJ_CLANG): $(clang_header_list) $(clang_impl_list) $(CONFIG_HEADER)
+$(OBJ_CLANG): $(clang_header_list) $(clang_impl_list)
 	mkdir -p $(OBJ_CLANG); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(clang_impl_list); \
 	mv *.o $(OBJ_CLANG); \
 
 lib_header_list := $(shell find $(SRC_LIB) -name "*.hh")
 lib_impl_list := $(shell find $(SRC_LIB) -name "*.cpp")
-$(OBJ_LIB): $(lib_header_list) $(lib_impl_list) $(CONFIG_HEADER)
+$(OBJ_LIB): $(lib_header_list) $(lib_impl_list)
 	mkdir -p $(OBJ_LIB); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(lib_impl_list); \
 	mv *.o $(OBJ_LIB); \
 
 flex_header_list := $(shell find $(SRC_FLEX) -name "*.hh")
 flex_impl_list := $(shell find $(SRC_FLEX) -name "*.cpp")
-$(OBJ_FLEX): $(flex_header_list) $(flex_impl_list) $(CONFIG_HEADER)
+$(OBJ_FLEX): $(flex_header_list) $(flex_impl_list)
 	mkdir -p $(OBJ_FLEX); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(flex_impl_list); \
 	mv *.o $(OBJ_FLEX); \
 
 analysis_header_list := $(shell find $(SRC_ANALYSIS) -name "*.hh")
 analysis_impl_list := $(shell find $(SRC_ANALYSIS) -name "*.cpp")
-$(OBJ_ANALYSIS): $(analysis_header_list) $(analysis_impl_list) $(CONFIG_HEADER)
+$(OBJ_ANALYSIS): $(analysis_header_list) $(analysis_impl_list) 
 	mkdir -p $(OBJ_ANALYSIS); \
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $(analysis_impl_list); \
 	mv *.o $(OBJ_ANALYSIS); \
 
 # compile main.cpp and link all other object files with it to produce final executable
-$(BIN)$(EXE): $(MAIN_FILE) $(OBJ_ANALYSIS) $(OBJ_CLANG) $(OBJ_DB) $(OBJ_FLEX) $(OBJ_LIB) $(OBJ_UTILS) $(CONFIG_HEADER)
+$(BIN)$(EXE): $(MAIN_FILE) $(OBJ_ANALYSIS) $(OBJ_CLANG) $(OBJ_DB) $(OBJ_FLEX) $(OBJ_LIB) $(OBJ_UTILS) 
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) \
 	-L$(LIB_CXX) \
 	$(OBJ_CLANG)*.o $(OBJ_DB)*.o $(OBJ_FLEX)*.o $(OBJ_LIB)*.o $(OBJ_UTILS)*.o $(OBJ_ANALYSIS)*.o \

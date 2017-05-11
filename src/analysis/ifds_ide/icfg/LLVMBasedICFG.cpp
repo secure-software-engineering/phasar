@@ -7,26 +7,6 @@
 
 #include "LLVMBasedICFG.hh"
 
-ostream& operator<<(ostream& os, const CallType& CT) {
-	switch (static_cast<underlying_type<CallType>::type>(CT)) {
-	case 0:
-		return os << "CallType standard";
-		break;
-	case 1:
-		return os << "CallType cxx_language";
-		break;
-	case 2:
-		return os << "CallType glibc";
-		break;
-	case 3:
-		return os << "CallType llvm_intrinsic";
-		break;
-	default:
-		return os << "CallType unknown";
-		break;
-	}
-}
-
 LLVMBasedICFG::LLVMBasedICFG(
     llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
@@ -323,8 +303,19 @@ LLVMBasedICFG::getReturnSitesOfCallAt(
   return ReturnSites;
 }
 
-bool LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
-  return llvm::isa<llvm::CallInst>(stmt);
+CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
+	if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
+		llvm::ImmutableCallSite cs(stmt);
+		if (SpecialSummaries<const llvm::Value*>::getInstance().containsSpecialSummary(cs.getCalledFunction()->getName().str())) {
+			return CallType::special_summary;
+		} else if (false) {
+			// return summary
+		} else {
+		return CallType::normal;
+		}
+	} else {
+		return CallType::none;
+	}
 }
 
 bool LLVMBasedICFG::isExitStmt(const llvm::Instruction* stmt) {

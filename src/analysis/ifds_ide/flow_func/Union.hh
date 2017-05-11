@@ -35,12 +35,12 @@ public:
 	{
 		vector<FlowFunction<D>> vec;
 		for (const FlowFunction<D>& func : funcs)
-			if (func != Identity<D>().v())
+			if (func != Identity<D>::v())
 				vec.add(func);
 		if (vec.size() == 1)
 			return vec[0];
 		else if (vec.empty())
-			return Identity<D>().v();
+			return Identity<D>::v();
 		return Union(vec);
 	}
 };

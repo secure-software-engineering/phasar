@@ -53,3 +53,9 @@ string llvmIRToString(const llvm::Value* V) {
 	RSO.flush();
 	return IRBuffer;
 }
+
+vector<string> splitString(const string& str, const string& delimiter) {
+	vector<string> split_strings;
+	boost::split(split_strings, str, boost::is_any_of(delimiter), boost::token_compress_on);
+	return split_strings;
+}
