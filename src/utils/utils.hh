@@ -71,9 +71,9 @@ set<set<T>> computePowerSet(set<T> s) {
 	//  1110  {b, c, d}
 	//  1111  {a, b, c, d}
   set<set<T>> powerset;
-  for (int i = 0; i < (1 << s.size()); ++i) {
+  for (size_t i = 0; i < (1 << s.size()); ++i) {
   	set<T> subset;
-  	for (int j = 0; j < s.size(); ++j) {
+  	for (size_t j = 0; j < s.size(); ++j) {
   		if ((i & (1 << j)) > 0) {
   			auto it = s.begin();
   			advance(it, j);

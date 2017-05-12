@@ -306,12 +306,14 @@ LLVMBasedICFG::getReturnSitesOfCallAt(
 CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 	if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
 		llvm::ImmutableCallSite cs(stmt);
-		if (SpecialSummaries<const llvm::Value*>::getInstance().containsSpecialSummary(cs.getCalledFunction()->getName().str())) {
-			return CallType::special_summary;
-		} else if (false) {
-			// return summary
+		if (const llvm::Function* F = cs.getCalledFunction()) {
+			if (SpecialSummaries<const llvm::Value*>::getInstance().containsSpecialSummary(F->getName().str())) {
+				return CallType::special_summary;
+			} else {
+				return CallType::normal;
+			}
 		} else {
-		return CallType::normal;
+			return CallType::normal;
 		}
 	} else {
 		return CallType::none;

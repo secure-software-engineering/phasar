@@ -35,16 +35,14 @@ public:
 
 	virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
 																														 M destMthd) override {
-			return Identity<D>::v();
+			return nullptr;
 	}
 
-	I interproceduralCFG() override
-	{
+	I interproceduralCFG() override	{
 		return icfg;
 	}
 
-	D zeroValue() override
-	{
+	D zeroValue() override {
 		return zerovalue;
 	}
 };

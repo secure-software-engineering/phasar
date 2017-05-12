@@ -27,6 +27,7 @@
 #include "../solver/JumpFunctions.hh"
 #include "../../../utils/Table.hh"
 #include "../ZeroedFlowFunction.hh"
+#include "../SpecialSummaries.hh"
 
 using namespace std;
 
@@ -251,7 +252,7 @@ private:
 	 * Simply propagate normal, intra-procedural flows.
 	 * @param edge
 	 */
-	void processNormalFlow(PathEdge<N,D> edge)
+	void processNormalFlow(PathEdge<N,D> edge, shared_ptr<FlowFunction<D>> summary=nullptr)
 	{
 		cout << "@ process normal flow edge starting from: " << endl;
 		if (edge.factAtSource() == nullptr)
@@ -264,9 +265,14 @@ private:
 		for (auto m : successorInst) {
 			cout << "@ successors: " << endl;
 			m->dump();
-			shared_ptr<FlowFunction<D>> flowFunction = (autoAddZero) ?
-																								 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getNormalFlowFunction(n,m), zeroValue) :
-																								 ideTabluationProblem.getNormalFlowFunction(n,m);
+			shared_ptr<FlowFunction<D>> flowFunction;
+			if (summary) {
+				flowFunction = summary;
+			} else {
+				flowFunction = (autoAddZero) ?
+											 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getNormalFlowFunction(n,m), zeroValue) :
+											 ideTabluationProblem.getNormalFlowFunction(n,m);
+			}
 			flowFunctionConstructionCount++;
 			set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
 			cout << "results" << endl;
@@ -416,14 +422,18 @@ private:
 				break;
 			// calltype_normal_call
 			case CallType::normal:
+				/*
+				 * Here we can do the following:
+				 * 	1. Process as usual and just process the call
+				 * 	2. Create a new summary for that function (which shall be done by the problem)
+				 * 	3. Just use an existing summary provided by the problem
+				 */
 				cout << "@ process call" << endl;
 				processCall(edge);
 				break;
 			// treat the special functions that have special summaries
 			case CallType::special_summary:
-				cout << "FOUND SPECIAL SUMMARY!\n";
-				break;
-			case CallType::summary:
+				cout << "@ process special summary" << endl;
 
 				break;
 			case CallType::unavailable:

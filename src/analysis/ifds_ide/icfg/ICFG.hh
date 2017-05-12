@@ -11,15 +11,15 @@
 #include <vector>
 #include <set>
 #include <iostream>
+#include "../../../utils/ContainerConfiguration.hh"
 
 using namespace std;
 
 enum class CallType {
 	none = 0,
 	normal = 1,
-	summary = 2,
-	special_summary = 3,
-	unavailable = 4
+	special_summary = 2,
+	unavailable = 3
 };
 
 ostream& operator<<(ostream& os, const CallType& CT);
@@ -53,9 +53,9 @@ public:
 	 * categories can than be treated different within the solver (e.g. special
 	 * summaries may be used, etc.). IMPORTANT: by convention returning 0
 	 * indicates a non-call statement, returning 1 indicates a usual function call
-	 * that should be treated as a usual function by the solver. Other values are
-	 * free to represent function categories that should receive special treatment
-	 * by the solver.
+	 * that should be treated as a usual function by the solver.
+	 * 2 represents special functions like ones defined in glibc or llvm intrinsic
+	 * functions. At last 3 represents that the function being called is not available.
 	 */
 	virtual CallType isCallStmt(N stmt) = 0;
 

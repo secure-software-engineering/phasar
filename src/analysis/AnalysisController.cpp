@@ -109,8 +109,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     for (auto& module_entry : IRDB.modules) {
     	// create the analyses problems queried by the user and start analyzing
     	llvm::Module& M = *(module_entry.second);
+    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
     	LLVMBasedICFG icfg(M, CH, IRDB);
     	icfg.print();
+//    	IFDSSummaryGenerator<const llvm::Value*, const llvm::Instruction*, LLVMBasedICFG&, IFDSUnitializedVariables> Generator(M.getFunction("_Z8functionii"), icfg, C);
+//    	Generator.generateIFDSSummary();
       // TODO: change the implementation of 'createZeroValue()'
       // The zeroValue can only be added one to a given context which means
       // a user can only create one analysis problem at a time, due to the

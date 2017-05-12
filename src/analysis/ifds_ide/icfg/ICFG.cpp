@@ -15,9 +15,6 @@ ostream& operator<<(ostream& os, const CallType& CT) {
 	case CallType::normal:
 		return os << "CallType::normal";
 		break;
-	case CallType::summary:
-		return os << "CallType::summary";
-		break;
 	case CallType::special_summary:
 		return os << "CallType::special_summary";
 		break;

@@ -32,6 +32,7 @@
 #include "ifds_ide/icfg/LLVMBasedICFG.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"
+#include "ifds_ide/IFDSSummaryGenerator.hh"
 #include "passes/GeneralStatisticsPass.hh"
 #include "passes/ValueAnnotationPass.hh"
 #include "ifds_ide_problems/ide_taint_analysis/IDETaintAnalysis.hh"

@@ -24,6 +24,9 @@ build/*
 
 ##### ignored files
 
+# ignore all auto-generated LLVM IR code
+*.ll
+
 # ignore all database files that the framework may creates
 *.db
 *.db3

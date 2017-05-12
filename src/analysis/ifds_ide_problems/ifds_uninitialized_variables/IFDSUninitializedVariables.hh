@@ -26,8 +26,8 @@
 #include <map>
 #include <memory>
 #include <set>
-
 #include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
+#include "../../ifds_ide/DynamicSummaries.hh"
 using namespace std;
 
 class IFDSUnitializedVariables
@@ -36,6 +36,7 @@ class IFDSUnitializedVariables
           const llvm::Function *, LLVMBasedICFG &> {
 private:
   llvm::LLVMContext &context;
+  DynamicSummaries<const llvm::Value*> dynSum;
 
 public:
   IFDSUnitializedVariables(LLVMBasedICFG &icfg,
@@ -60,6 +61,10 @@ public:
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite) override;
+
+  shared_ptr<FlowFunction<const llvm::Value *>>
+	getSummaryFlowFunction(const llvm::Instruction *callStmt,
+												 const llvm::Function *destMthd) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;

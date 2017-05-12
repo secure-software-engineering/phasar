@@ -25,6 +25,10 @@
 #include <llvm/ADT/SmallVector.h>
 // check if we forgot some more useful container implementations
 
+// define the set implementation to use for the ICFG classes ------------------
+template<typename T>
+using ICFGSet = boost::container::flat_set<T>;
+// ----------------------------------------------------------------------------
 
 // define the set implementation to use for the flow functions ----------------
 #define FFSetPreAllocSize 10

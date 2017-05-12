@@ -252,6 +252,12 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
   return Identity<const llvm::Value *>::v();
 }
 
+shared_ptr<FlowFunction<const llvm::Value *>>
+IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callStmt,
+											 	 	 	 	 	 	 	 	 	 	 	 	 	 const llvm::Function *destMthd) {
+		return Identity<const llvm::Value*>::v();
+}
+
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSUnitializedVariables::initialSeeds() {
   const llvm::Function *mainfunction = icfg.getModule().getFunction("main");

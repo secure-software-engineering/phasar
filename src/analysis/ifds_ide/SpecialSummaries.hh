@@ -63,8 +63,9 @@ public:
 	 * Returns true, when an existing function is overwritten, false otherwise.
 	 */
 	bool provideCustomSpecialSummary(const string& name, shared_ptr<FlowFunction<D>> flowfunction) {
+		bool override = containsSpecialSummary(name);
 		SpecialSummaryMap[name] = flowfunction;
-		return containsSpecialSummary(name);
+		return override;
 	}
 
 	bool containsSpecialSummary(const string& name) {
