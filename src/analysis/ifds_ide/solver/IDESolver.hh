@@ -409,7 +409,7 @@ private:
 		propagationCount++;
 		// TODO provide special treatment for (special) summaries
 		switch (icfg.isCallStmt(edge.getTarget())) {
-			// calltype_no_call
+			// Statement is no call.
 			case CallType::none:
 				if (icfg.isExitStmt(edge.getTarget())) {
 					cout << "@ process exit" << endl;
@@ -420,7 +420,7 @@ private:
 					processNormalFlow(edge);
 				}
 				break;
-			// calltype_normal_call
+			// Just a normal function call.
 			case CallType::normal:
 				/*
 				 * Here we can do the following:
@@ -431,15 +431,26 @@ private:
 				cout << "@ process call" << endl;
 				processCall(edge);
 				break;
-			// treat the special functions that have special summaries
+			/*
+			 * Treat the special functions that have special summaries.
+			 * These must be handled analogous to processNormalFlow, but
+			 * the special summary flow function (stored in SpecialSummaries)
+			 * must be used rather than the normal flow function (obtained
+			 * by getNormalFlowFunction()).
+			 */
 			case CallType::special_summary:
 				cout << "@ process special summary" << endl;
 
 				break;
+			/*
+			 * Here we have to plug-in place holders to denote that the
+			 * called function is not yet available! As soon as it is available
+			 * it should be plugged in and information may be re-propagated.
+			 */
 			case CallType::unavailable:
-				// here we have to plug-in place holders!
+
 				break;
-			// everything else does not make sense
+			// Everything else does not make sense!
 			default:
 					cout << "error: calltype is not recognized!\n";
 					HEREANDNOW;

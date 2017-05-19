@@ -23,43 +23,38 @@
 #include "icfg/LLVMBasedICFG.hh"
 #include "icfg/ICFG.hh"
 #include "../../utils/utils.hh"
+#include "../../lib/LLVMShorthands.hh"
+#include "solver/SummaryGenerator.hh"
 using namespace std;
 
-template<typename D, typename N, typename I, typename IFDSTabulationProblem>
+template<typename D, typename I, typename ConcreteIFDSTabulationProblem>
 class IFDSSummaryGenerator {
 private:
 	const llvm::Function* toSummarize;
 	const I& icfg;
 	llvm::LLVMContext& c;
 
-	vector<const llvm::Value*> getInputs() {
-		vector<const llvm::Value*> inputs;
+	vector<D> getInputs() {
+		vector<D> inputs;
 		// collect arguments
 		for (auto& arg : toSummarize->args()) {
 				inputs.push_back(&arg);
 		}
 		// collect global values
-		for (auto& BB : *toSummarize) {
-			for (auto& Inst : BB) {
-				for (auto& Op : Inst.operands()) {
-					if (llvm::GlobalValue* G = llvm::dyn_cast<llvm::GlobalValue>(Op)) {
-						inputs.push_back(G);
-					}
-				}
-			}
-		}
+		auto globals = globalValuesUsedinFunction(toSummarize);
+		inputs.insert(inputs.end(), globals.begin(), globals.end());
 		return inputs;
 	}
 
-	vector<bool> generateBitPattern(const vector<llvm::Value*>& inputs,
-																 	const set<llvm::Value*>& subset) {
-		vector<bool> bitpattern;
-		bitpattern.reserve(inputs.size());
+	vector<bool> generateBitPattern(const vector<D>& inputs,
+																 	const set<D>& subset) {
+		// initialize all bits to zero
+		vector<bool> bitpattern(inputs.size(), 0);
 		if (subset.empty()) {
 			return bitpattern;
 		}
 		for (auto elem : subset) {
-			for (int i = 0; i < inputs.size(); ++i) {
+			for (size_t i = 0; i < inputs.size(); ++i) {
 				if (elem == inputs[i]) {
 					bitpattern[i] = 1;
 				}
@@ -68,19 +63,25 @@ private:
 		return bitpattern;
 	}
 
-	class CTXFunctionProblem : public IFDSTabulationProblem {
+	class CTXFunctionProblem : public ConcreteIFDSTabulationProblem {
 	public:
 		const llvm::Instruction* start;
-		set<const llvm::Value*> facts;
+		set<D> facts;
 
-		CTXFunctionProblem(N start,
+		CTXFunctionProblem(const llvm::Instruction* start,
 											 set<D> facts,
 											 I icfg,
 											 llvm::LLVMContext& c)
-		: IFDSTabulationProblem(icfg, c), start(start), facts(facts) {}
+		: ConcreteIFDSTabulationProblem(icfg, c), start(start), facts(facts) {
+			this->solver_config.followReturnsPastSeeds = false;
+			this->solver_config.autoAddZero = true;
+			this->solver_config.computeValues = true;
+			this->solver_config.recordEdges = false;
+			this->solver_config.computePersistedSummaries = false;
+		}
 
-		virtual map<N, set<D>> initialSeeds() override {
-			map<N, set<D>> seeds;
+		virtual map<const llvm::Instruction*, set<D>> initialSeeds() override {
+			map<const llvm::Instruction*, set<D>> seeds;
 			seeds.insert(make_pair(start, facts));
 			return seeds;
 		}
@@ -94,21 +95,23 @@ public:
 
 	virtual ~IFDSSummaryGenerator() = default;
 
-	set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>> generateIFDSSummary() {
+	set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>> generateSummaryFlowFunction() {
 		set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>> summary;
 		// compute combinations and start solver on all CTXFunctionProblems
-		vector<const llvm::Value*> inputs = getInputs();
-		set<const llvm::Value*> inputset;
+		vector<D> inputs = getInputs();
+		set<D> inputset;
 		inputset.insert(inputs.begin(), inputs.end());
-		set<set<const llvm::Value*>> powerset = computePowerSet(inputset);
+		set<set<D>> powerset = computePowerSet(inputset);
 		for (auto subset : powerset) {
 			cout << "Generate summary for specific context\n";
 			CTXFunctionProblem functionProblem(&(*toSummarize->begin()->begin()), subset, icfg, c);
-			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> solver(functionProblem, false);
+			LLVMIFDSSolver<D, LLVMBasedICFG&> solver(functionProblem, false);
 			solver.solve();
-			// generate bitpattern and insert into summaryset
-			//summarySet.insert(make_pair(generateBitPattern(inputs, subset),
-			//														make_shared<GenAll<const llvm::Value*>>({}, 0)));
+			// get the result at the end of this function and
+			set<D> results;
+			// create a flow function from this set using the GenAll class
+			summary.insert(make_pair(generateBitPattern(inputs, subset),
+							  	  					 make_shared<GenAll<D>>(results, functionProblem.zeroValue())));
 		}
 		return summary;
 	}

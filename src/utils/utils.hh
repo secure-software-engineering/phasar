@@ -42,16 +42,10 @@ string debasify(const string& name);
 
 bool isMangled(const string& name);
 
-bool isFunctionPointer(const llvm::Value* V) noexcept;
-
-bool matchesSignature(const llvm::Function* F, const llvm::FunctionType* FType);
-
-string llvmIRToString(const llvm::Value* V);
-
 vector<string> splitString(const string& str, const string& delimiter);
 
 template<typename T>
-set<set<T>> computePowerSet(set<T> s) {
+set<set<T>> computePowerSet(const set<T>& s) {
 	// compute all subsets of {a, b, c, d}
 	//  bit-pattern - {d, c, b, a}
 	//  0000  {}

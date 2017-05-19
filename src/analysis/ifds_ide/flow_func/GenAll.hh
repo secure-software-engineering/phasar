@@ -20,7 +20,7 @@ private:
 	D zeroValue;
 
 public:
-	GenAll(set<D> genValue, D zeroValue) : genValues(genValues), zeroValue(zeroValue) { }
+	GenAll(set<D> genValues, D zeroValue) : genValues(genValues), zeroValue(zeroValue) { }
 	virtual ~GenAll() = default;
 	set<D> computeTargets(D source) override
 	{

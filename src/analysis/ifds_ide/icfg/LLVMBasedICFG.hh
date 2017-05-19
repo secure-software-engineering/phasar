@@ -30,6 +30,7 @@
 #include "../../call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../../call-points-to_graph/PointsToGraph.hh"
 #include "../../../lib/GraphExtensions.hh"
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../../utils/utils.hh"
 #include "../SpecialSummaries.hh"
 #include "ICFG.hh"

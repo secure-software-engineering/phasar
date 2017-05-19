@@ -3,7 +3,7 @@ int function(int x, int y)
 	int i;
 	int j = x;
 	int k = y;
-	return 42;
+	return i+k;
 }
 
 int main(int argc, char** argv)
