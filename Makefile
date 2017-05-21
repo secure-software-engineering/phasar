@@ -98,7 +98,7 @@ CLANG_FLAGS := 	-lclangTooling\
 
 all: $(BIN)$(EXE)
 
-remdb:
+rmdb:
 	rm struct_hierarchy_graph_hexastore.db
 	rm llheros_analyzer.db
 

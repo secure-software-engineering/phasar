@@ -124,7 +124,21 @@ class DBConn {
 
 
   // API for querying the class hierarchy information -------------------------
-  bool insertType(const string& type_name, VTable);
+  /**
+   * 	@brief Stores a virtual types in the database.
+   * 	@param type_name Name of the type that is stored.
+   * 	@param vtbl Virtual method table of the given type.
+   */
+  bool insertType(const string& type_name, VTable vtbl);
+
+  /**
+   * 	@brief Stores a non-virtual type in the database.
+   * 	@param type_name Name of the type that is stored.
+   *
+   * 	A non-virtual class/struct has no virtual functions and does not inherit from
+   * 	any other class/struct, hence there is no virtual method table.
+   */
+  bool insertType(const string& type_name);
   VTable getVTable(const string& type_name);
   set<string> getAllTypeIdentifiers();
   string getFunctionIdentifier(int type_id);

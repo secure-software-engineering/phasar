@@ -129,7 +129,7 @@ bool LLVMStructTypeHierarchy::hasSubType(string TypeName, string SubTypeName) {
   return reachable_types.find(SubTypeName) != reachable_types.end();
 }
 
-bool LLVMStructTypeHierarchy::containsVTable(string TypeName) {
+bool LLVMStructTypeHierarchy::containsVTable(string TypeName) const {
   auto iter = vtable_map.find(TypeName);
   return iter != vtable_map.end();
 }
