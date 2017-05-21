@@ -1,18 +1,24 @@
-; ModuleID = 'example3.ll.pp'
-source_filename = "example3.cpp"
+; ModuleID = 'example8.ll.pp'
+source_filename = "example8.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-pc-linux-gnu"
 
 %struct.Child = type { %struct.Base }
 %struct.Base = type { i32 (...)** }
+%class.NonvirtualClass = type { i8 }
+%struct.NonvirtualStruct = type { i32 }
 
 $_ZN5ChildC2Ev = comdat any
+
+$_ZN15NonvirtualClass3tarEv = comdat any
 
 $_ZN4BaseC2Ev = comdat any
 
 $_ZN5Child3fooEv = comdat any
 
 $_ZN4Base3barEv = comdat any
+
+$_ZN5Child3bazEv = comdat any
 
 $_ZN4Base3fooEv = comdat any
 
@@ -28,7 +34,7 @@ $_ZTI5Child = comdat any
 
 $_ZTV4Base = comdat any
 
-@_ZTV5Child = linkonce_odr unnamed_addr constant [4 x i8*] [i8* null, i8* bitcast ({ i8*, i8*, i8* }* @_ZTI5Child to i8*), i8* bitcast (i32 (%struct.Child*)* @_ZN5Child3fooEv to i8*), i8* bitcast (i32 (%struct.Base*)* @_ZN4Base3barEv to i8*)], comdat, align 8
+@_ZTV5Child = linkonce_odr unnamed_addr constant [5 x i8*] [i8* null, i8* bitcast ({ i8*, i8*, i8* }* @_ZTI5Child to i8*), i8* bitcast (i32 (%struct.Child*)* @_ZN5Child3fooEv to i8*), i8* bitcast (i32 (%struct.Base*)* @_ZN4Base3barEv to i8*), i8* bitcast (i32 (%struct.Child*)* @_ZN5Child3bazEv to i8*)], comdat, align 8
 @_ZTVN10__cxxabiv120__si_class_type_infoE = external global i8*
 @_ZTS5Child = linkonce_odr constant [7 x i8] c"5Child\00", comdat
 @_ZTVN10__cxxabiv117__class_type_infoE = external global i8*
@@ -37,10 +43,15 @@ $_ZTV4Base = comdat any
 @_ZTI5Child = linkonce_odr constant { i8*, i8*, i8* } { i8* bitcast (i8** getelementptr inbounds (i8*, i8** @_ZTVN10__cxxabiv120__si_class_type_infoE, i64 2) to i8*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @_ZTS5Child, i32 0, i32 0), i8* bitcast ({ i8*, i8* }* @_ZTI4Base to i8*) }, comdat
 @_ZTV4Base = linkonce_odr unnamed_addr constant [4 x i8*] [i8* null, i8* bitcast ({ i8*, i8* }* @_ZTI4Base to i8*), i8* bitcast (i32 (%struct.Base*)* @_ZN4Base3fooEv to i8*), i8* bitcast (i32 (%struct.Base*)* @_ZN4Base3barEv to i8*)], comdat, align 8
 
-; Function Attrs: norecurse nounwind uwtable
+; Function Attrs: norecurse uwtable
 define i32 @main() #0 {
   %1 = alloca %struct.Child, align 8
+  %2 = alloca %class.NonvirtualClass, align 1
+  %3 = alloca %struct.NonvirtualStruct, align 4
   call void @_ZN5ChildC2Ev(%struct.Child* %1) #3
+  %4 = call i32 @_ZN15NonvirtualClass3tarEv(%class.NonvirtualClass* %2)
+  %5 = getelementptr inbounds %struct.NonvirtualStruct, %struct.NonvirtualStruct* %3, i32 0, i32 0
+  store i32 200, i32* %5, align 4
   ret i32 0
 }
 
@@ -49,8 +60,13 @@ define linkonce_odr void @_ZN5ChildC2Ev(%struct.Child*) unnamed_addr #1 comdat a
   %2 = bitcast %struct.Child* %0 to %struct.Base*
   call void @_ZN4BaseC2Ev(%struct.Base* %2) #3
   %3 = bitcast %struct.Child* %0 to i32 (...)***
-  store i32 (...)** bitcast (i8** getelementptr inbounds ([4 x i8*], [4 x i8*]* @_ZTV5Child, i32 0, i32 2) to i32 (...)**), i32 (...)*** %3, align 8
+  store i32 (...)** bitcast (i8** getelementptr inbounds ([5 x i8*], [5 x i8*]* @_ZTV5Child, i32 0, i32 2) to i32 (...)**), i32 (...)*** %3, align 8
   ret void
+}
+
+; Function Attrs: nounwind uwtable
+define linkonce_odr i32 @_ZN15NonvirtualClass3tarEv(%class.NonvirtualClass*) #2 comdat align 2 {
+  ret i32 42
 }
 
 ; Function Attrs: inlinehint nounwind uwtable
@@ -67,15 +83,20 @@ define linkonce_odr i32 @_ZN5Child3fooEv(%struct.Child*) unnamed_addr #2 comdat 
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr i32 @_ZN4Base3barEv(%struct.Base*) unnamed_addr #2 comdat align 2 {
-  ret i32 -1
+  ret i32 1
+}
+
+; Function Attrs: nounwind uwtable
+define linkonce_odr i32 @_ZN5Child3bazEv(%struct.Child*) unnamed_addr #2 comdat align 2 {
+  ret i32 -17
 }
 
 ; Function Attrs: nounwind uwtable
 define linkonce_odr i32 @_ZN4Base3fooEv(%struct.Base*) unnamed_addr #2 comdat align 2 {
-  ret i32 1
+  ret i32 0
 }
 
-attributes #0 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { norecurse uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { inlinehint nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #2 = { nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #3 = { nounwind }
