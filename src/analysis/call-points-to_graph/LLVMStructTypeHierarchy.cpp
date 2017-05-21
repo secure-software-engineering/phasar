@@ -12,11 +12,11 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
   for (auto& module_entry : IRDB.modules) {
     const llvm::Module& M = *(module_entry.second);
     analyzeModule(M);
-//    cout << "printing vtable_map" << endl;
-//    for(auto elem : vtable_map)
-//    {
-//       std::cout << elem.first << " " << elem.second << "\n";
-//    }
+    //    cout << "printing vtable_map" << endl;
+    //    for(auto elem : vtable_map)
+    //    {
+    //       std::cout << elem.first << " " << elem.second << "\n";
+    //    }
     reconstructVTable(M);
   }
 }
@@ -24,46 +24,65 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
 void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
   const static string vtable_for = "vtable for ";
   llvm::Module& m = const_cast<llvm::Module&>(M);
-    for (auto& global : m.globals()) {
-      string demangled = cxx_demangle(global.getName().str());
-      // cxx_demangle returns an empty string if something goes wrong
-      if (demangled == "") continue;
-      if (llvm::isa<llvm::Constant>(global) && demangled.find(vtable_for) != demangled.npos) {
-        string struct_name = "struct." + demangled.erase(0, vtable_for.size());
-        llvm::Constant* initializer = global.getInitializer();
-        // ignore 'vtable for __cxxabiv1::__si_class_type_info', also the vtable might be marked as external!
-        if (!initializer) continue;
-        // check if the vtable is already initialized, then we can skip
-        if (vtable_map.find(struct_name) != vtable_map.end()) continue;
-        for (unsigned i = 0; i < initializer->getNumOperands(); ++i) {
-          if (llvm::ConstantExpr* constant_expr = llvm::dyn_cast<llvm::ConstantExpr>(initializer->getAggregateElement(i))) {
-             if (constant_expr->isCast()) {
-              if (llvm::Constant* cast = llvm::ConstantExpr::getBitCast(constant_expr, constant_expr->getType())) {
-                 if (llvm::Function* vfunc = llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
-                  // cout << struct_name << ": " << vfunc->getName().str() << endl;
-                   vtable_map[struct_name].addEntry(vfunc->getName().str());
+  for (auto& global : m.globals()) {
+    string demangled = cxx_demangle(global.getName().str());
+    // cxx_demangle returns an empty string if something goes wrong
+    if (demangled == "") continue;
+    if (llvm::isa<llvm::Constant>(global) &&
+        demangled.find(vtable_for) != demangled.npos) {
+      string struct_name = "struct." + demangled.erase(0, vtable_for.size());
+      llvm::Constant* initializer = global.getInitializer();
+      // ignore 'vtable for __cxxabiv1::__si_class_type_info', also the vtable
+      // might be marked as external!
+      if (!initializer) continue;
+      // check if the vtable is already initialized, then we can skip
+      if (vtable_map.find(struct_name) != vtable_map.end()) continue;
+      for (unsigned i = 0; i < initializer->getNumOperands(); ++i) {
+        if (llvm::ConstantExpr* constant_expr =
+                llvm::dyn_cast<llvm::ConstantExpr>(
+                    initializer->getAggregateElement(i))) {
+          if (constant_expr->isCast()) {
+            if (llvm::Constant* cast = llvm::ConstantExpr::getBitCast(
+                    constant_expr, constant_expr->getType())) {
+              if (llvm::Function* vfunc =
+                      llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
+                // cout << struct_name << ": " << vfunc->getName().str() <<
+                // endl;
+                vtable_map[struct_name].addEntry(vfunc->getName().str());
                 // } else {
-                // here is another way to find the type name starting with the vtable
-                //   // if it is not a function, it is the corresponding typeinfo
-                //   if (llvm::GlobalVariable* typeinfo = llvm::dyn_cast<llvm::GlobalVariable>(constant_expr->getOperand(0))) {
-                //     llvm::Constant* typeinfo_init = typeinfo->getInitializer();
-                //     if (llvm::ConstantExpr* gep_typename = llvm::dyn_cast<llvm::ConstantExpr>(typeinfo_init->getOperand(1))) {
+                // here is another way to find the type name starting with the
+                // vtable
+                //   // if it is not a function, it is the corresponding
+                //   typeinfo
+                //   if (llvm::GlobalVariable* typeinfo =
+                //   llvm::dyn_cast<llvm::GlobalVariable>(constant_expr->getOperand(0)))
+                //   {
+                //     llvm::Constant* typeinfo_init =
+                //     typeinfo->getInitializer();
+                //     if (llvm::ConstantExpr* gep_typename =
+                //     llvm::dyn_cast<llvm::ConstantExpr>(typeinfo_init->getOperand(1)))
+                //     {
                 //       llvm::Value* name = gep_typename->getOperand(0);
-                //       if (llvm::GlobalVariable* glbl_name = llvm::dyn_cast<llvm::GlobalVariable>(name)) {
-                //         llvm::ConstantDataArray* literal = llvm::dyn_cast<llvm::ConstantDataArray>(glbl_name->getInitializer());
-                //         cout << "TYPE is: " << literal->getAsCString().str() << endl;
-                //         string demangled_struct_prefixed_name = "struct." + cxx_demangle(literal->getAsCString().str());
-                //         cout << "demangled TYPE is: " << demangled_struct_prefixed_name << endl;
+                //       if (llvm::GlobalVariable* glbl_name =
+                //       llvm::dyn_cast<llvm::GlobalVariable>(name)) {
+                //         llvm::ConstantDataArray* literal =
+                //         llvm::dyn_cast<llvm::ConstantDataArray>(glbl_name->getInitializer());
+                //         cout << "TYPE is: " << literal->getAsCString().str()
+                //         << endl;
+                //         string demangled_struct_prefixed_name = "struct." +
+                //         cxx_demangle(literal->getAsCString().str());
+                //         cout << "demangled TYPE is: " <<
+                //         demangled_struct_prefixed_name << endl;
                 //       }
                 //   }
                 // }
-                }
               }
             }
           }
         }
       }
-    } 
+    }
+  }
 }
 
 void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M) {
@@ -145,8 +164,9 @@ void LLVMStructTypeHierarchy::print() {
 }
 
 void LLVMStructTypeHierarchy::printAsDot(const string& path) {
-	ofstream ofs(path);
-	boost::write_graphviz(ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+  ofstream ofs(path);
+  boost::write_graphviz(
+      ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
 }
 
 void LLVMStructTypeHierarchy::printTransitiveClosure() {

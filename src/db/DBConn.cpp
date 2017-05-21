@@ -390,7 +390,7 @@ void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {
   }
 }
 
-void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb) {}
+void operator>>(DBConn& db, ProjectIRCompiledDB& irdb) {}
 
 size_t DBConn::getSRCHash(const string& mod_name) {
   static string src_hash_query =
@@ -440,26 +440,27 @@ bool DBConn::insertType(const string& type_name, VTable vtbl) {
 }
 
 bool DBConn::insertType(const string& type_name) {
-  static string insert_type_query = "INSERT INTO TYPE (TYPE_IDENTIFIER) VALUES (?);";
+  static string insert_type_query =
+      "INSERT INTO TYPE (TYPE_IDENTIFIER) VALUES (?);";
   sqlite3_stmt* insert_type_stmt;
   // insert the type
-	CPREPARE(sqlite3_prepare_v2(db, insert_type_query.c_str(),
-															insert_type_query.size(), &insert_type_stmt,
-															NULL));
-	CBIND(sqlite3_bind_text(insert_type_stmt, 1, type_name.c_str(),
-													type_name.size(), SQLITE_STATIC));
-	CSTEP(sqlite3_step(insert_type_stmt));
-	CFINALIZE(sqlite3_finalize(insert_type_stmt));
-	return false;
+  CPREPARE(sqlite3_prepare_v2(db, insert_type_query.c_str(),
+                              insert_type_query.size(), &insert_type_stmt,
+                              NULL));
+  CBIND(sqlite3_bind_text(insert_type_stmt, 1, type_name.c_str(),
+                          type_name.size(), SQLITE_STATIC));
+  CSTEP(sqlite3_step(insert_type_stmt));
+  CFINALIZE(sqlite3_finalize(insert_type_stmt));
+  return false;
 }
 
-string DBConn::getFunctionIdentifier(int type_id) {
+string DBConn::getFunctionIdentifier(int func_id) {
   static string func_ident_query =
       "SELECT FUNCTION_IDENTIFIER FROM FUNCTION WHERE ID=?;";
   sqlite3_stmt* func_ident_stmt;
   CPREPARE(sqlite3_prepare_v2(db, func_ident_query.c_str(),
                               func_ident_query.size(), &func_ident_stmt, NULL));
-  CBIND(sqlite3_bind_int(func_ident_stmt, 1, type_id));
+  CBIND(sqlite3_bind_int(func_ident_stmt, 1, func_id));
   if (SQLITE_ROW != (last_retcode = sqlite3_step(func_ident_stmt))) {
     cout << "DB error: something went wrong when retrieving FUNCTION_IDENTIFIER"
          << endl;
@@ -518,8 +519,8 @@ bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::bidigraph_t g) {
     auto source = boost::source(*ei_start, g);
     auto target = boost::target(*ei_start, g);
     h.put({g[source].name, "-->", g[target].name});
-     		cout << g[source].name << " --> " << g[target].name << "\n";
   }
+
   auto result = h.get({"?", "?", "?"});
   for_each(result.begin(), result.end(),
            [](hexastore::hs_result r) { cout << r << endl; });
@@ -529,9 +530,9 @@ bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::bidigraph_t g) {
 void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
   for (auto& entry : STH.recognized_struct_types) {
     if (STH.containsVTable(entry)) {
-    	db.insertType(entry, STH.vtable_map.at(entry));
+      db.insertType(entry, STH.vtable_map.at(entry));
     } else {
-    	db.insertType(entry);
+      db.insertType(entry);
     }
   }
   insertLLVMStructHierarchyGraph(STH.g);
@@ -549,10 +550,9 @@ void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH) {
   set<string> types = db.getAllTypeIdentifiers();
   for (auto type_name : types) {
     // reconstruction of the vtable__map
-  	// add type to vtable_map only if type is virtual, i.e. vtable is not empty
+    // add type to vtable_map only if type is virtual, i.e. vtable is not empty
     VTable vtbl = db.getVTable(type_name);
-    if (!vtbl.empty())
-    	STH.vtable_map[type_name] = vtbl;
+    if (!vtbl.empty()) STH.vtable_map[type_name] = vtbl;
 
     // add vertices to the class hierarchy graph - each class = one vertex
     if (STH.recognized_struct_types.find(type_name) ==
@@ -571,6 +571,7 @@ void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH) {
                                STH.type_vertex_map[r.object], STH.g);
              });
   }
+
   cout << "\nprint type_vertex_map:\n";
   for (auto elem : STH.type_vertex_map)
     cout << elem.first << " " << elem.second << "\n";

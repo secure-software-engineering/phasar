@@ -97,13 +97,13 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     CH.print();
     CH.printAsDot("STH_before_store.dot");
 
-    cout << "serializing the class hierarchy ...\n";
+    cout << "storing the class hierarchy in database ...\n";
     db << CH;
-    cout << "serializing completed ...\n";
+    cout << "storing completed ...\n";
     LLVMStructTypeHierarchy TH;
-    cout << "reconstruction of the class hierarchy ...\n";
+    cout << "loading the class hierarchy from database...\n";
     db >> TH;
-    cout << "reconstruction completed ...\n";
+    cout << "loading completed ...\n";
     TH.print();
     TH.printAsDot("STH_after_load.dot");
 
