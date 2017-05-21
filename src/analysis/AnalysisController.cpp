@@ -108,67 +108,67 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     TH.printAsDot("STH_after_load.dot");
 
    	// prepare the ICFG the data-flow analyses are build on
-//    cout << "starting the chosen data-flow analyses ...\n";
-//    for (auto& module_entry : IRDB.modules) {
-//    	// create the analyses problems queried by the user and start analyzing
-//    	llvm::Module& M = *(module_entry.second);
-//    	LLVMBasedICFG icfg(M, CH, IRDB);
-//    	icfg.print();
-//      // TODO: change the implementation of 'createZeroValue()'
-//      // The zeroValue can only be added one to a given context which means
-//      // a user can only create one analysis problem at a time, due to the
-//      // implementation of 'createZeroValue()'.
-//      // so it would be nice to check if the zerovalue already exists and if so
-//      // just return it!
-//      for (auto analysis : Analyses) {
-//      	switch (analysis) {
-//      	case AnalysisType::IFDS_TaintAnalysis:
-//      	{ // caution: observer '{' and '}' we work in another scope
-//      		cout << "IFDS_TaintAnalysis\n";
-//      		IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
-//      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-//      		llvmtaintsolver.solve();
-//      		break;
-//      	}
-//      	case AnalysisType::IDE_TaintAnalysis:
-//      	{ // caution: observer '{' and '}' we work in another scope
-//      		cout << "IDE_TaintAnalysis\n";
-//      		//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-//      		//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
-//      		//  llvmtaintsolver.solve();
-//      		break;
-//      	}
-//      	case AnalysisType::IFDS_TypeAnalysis:
-//      	{ // caution: observer '{' and '}' we work in another scope
-//      		cout << "IFDS_TypeAnalysis\n";
-//      		IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
-//      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
-//      		llvmtypesolver.solve();
-//      		break;
-//      	}
-//      	case AnalysisType::IFDS_UninitializedVariables:
-//      	{ // caution: observer '{' and '}' we work in another scope
-//      		cout << "IFDS_UninitalizedVariables\n";
-//      		IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
-//      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-//      		llvmunivsolver.solve();
-//      		break;
-//      	}
-//      	default:
-//      		cout << "analysis not valid!" << endl;
-//      		break;
-//      	}
-//      }
-//      if (!WPA_MODE) {
-//      	// after every module has been analyzed the analyses results must be
-//        // merged and the final results must be computed
-//        cout << "combining module-wise results ...\n";
-//
-//        // here we go, now we are done
-//        cout << "combining module-wise results done ...\n"
-//        				"computation completed!\n";
-//      }
-//    }
-//    cout << "data-flow analyses completed ...\n";
+    cout << "starting the chosen data-flow analyses ...\n";
+    for (auto& module_entry : IRDB.modules) {
+    	// create the analyses problems queried by the user and start analyzing
+    	llvm::Module& M = *(module_entry.second);
+    	LLVMBasedICFG icfg(M, CH, IRDB);
+    	icfg.print();
+      // TODO: change the implementation of 'createZeroValue()'
+      // The zeroValue can only be added one to a given context which means
+      // a user can only create one analysis problem at a time, due to the
+      // implementation of 'createZeroValue()'.
+      // so it would be nice to check if the zerovalue already exists and if so
+      // just return it!
+      for (auto analysis : Analyses) {
+      	switch (analysis) {
+      	case AnalysisType::IFDS_TaintAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_TaintAnalysis\n";
+      		IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      		llvmtaintsolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IDE_TaintAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IDE_TaintAnalysis\n";
+      		//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
+      		//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      		//  llvmtaintsolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IFDS_TypeAnalysis:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_TypeAnalysis\n";
+      		IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
+      		llvmtypesolver.solve();
+      		break;
+      	}
+      	case AnalysisType::IFDS_UninitializedVariables:
+      	{ // caution: observer '{' and '}' we work in another scope
+      		cout << "IFDS_UninitalizedVariables\n";
+      		IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
+      		LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
+      		llvmunivsolver.solve();
+      		break;
+      	}
+      	default:
+      		cout << "analysis not valid!" << endl;
+      		break;
+      	}
+      }
+      if (!WPA_MODE) {
+      	// after every module has been analyzed the analyses results must be
+        // merged and the final results must be computed
+        cout << "combining module-wise results ...\n";
+
+        // here we go, now we are done
+        cout << "combining module-wise results done ...\n"
+        				"computation completed!\n";
+      }
+    }
+    cout << "data-flow analyses completed ...\n";
 }
 

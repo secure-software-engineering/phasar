@@ -520,10 +520,6 @@ bool insertLLVMStructHierarchyGraph(LLVMStructTypeHierarchy::bidigraph_t g) {
     auto target = boost::target(*ei_start, g);
     h.put({g[source].name, "-->", g[target].name});
   }
-
-  auto result = h.get({"?", "?", "?"});
-  for_each(result.begin(), result.end(),
-           [](hexastore::hs_result r) { cout << r << endl; });
   return false;
 }
 
@@ -536,13 +532,6 @@ void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH) {
     }
   }
   insertLLVMStructHierarchyGraph(STH.g);
-
-  cout << "\nprint type_vertex_map:\n";
-  for (auto elem : STH.type_vertex_map)
-    cout << elem.first << " " << elem.second << "\n";
-  cout << "\nprint recognized_struct_types:\n";
-  for (auto elem : STH.recognized_struct_types) cout << elem << " ";
-  cout << endl;
 }
 
 void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH) {
@@ -571,13 +560,6 @@ void operator>>(DBConn& db, LLVMStructTypeHierarchy& STH) {
                                STH.type_vertex_map[r.object], STH.g);
              });
   }
-
-  cout << "\nprint type_vertex_map:\n";
-  for (auto elem : STH.type_vertex_map)
-    cout << elem.first << " " << elem.second << "\n";
-  cout << "\nprint recognized_struct_types:\n";
-  for (auto elem : STH.recognized_struct_types) cout << elem << " ";
-  cout << endl;
 }
 
 size_t DBConn::getIRHash(const string& mod_name) {
