@@ -148,6 +148,12 @@ $ make
 After compilation using cmake the binary can be found right in the build 
 directory.
 
+Use the command:
+
+$ bin/main --help
+
+in order to display the manual and help message.
+
 Please be careful and check if errors occure during the compilation of our framework.
 
 After having compiled ourframework running small test example seems adequate.
@@ -157,11 +163,11 @@ misconfigured or worse (please report if that happens).
 ##### Testing single modules
 To test if everything works as expected please run the following commands:
 
-$ bin/main --module tests/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
+$ bin/main --module test_examples/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
 
 This is to check if the internal compile mechanism is working.
 
-$ bin/main --module tests/installation_tests/module.ll --analysis ifds_uninit --wpa 1
+$ bin/main --module test_examples/installation_tests/module.ll --analysis ifds_uninit --wpa 1
 
 Here we check if pre-compiled modules work as expected.
 
@@ -180,13 +186,13 @@ $ bear make
 Once the 'compile_commands.json' file has been created continue with the next test.
 In order to check if the digest of whole projects works as well, please try:
 
-$ cd tests/installtion_test/project
+$ cd test_examples/installtion_test/project
 
 $ bear make
 
 $ cd -
 
-$ bin/main --project tests/installation_tests/project/ --analysis ifds_uninit --wpa 1
+$ bin/main --project test_examples/installation_tests/project/ --analysis ifds_uninit --wpa 1
 
 The above commands run small test examples. If any errors occur, the program terminates abnormal or a segmentation fault is displayed please report detailed error messages to the developers.
 
@@ -261,7 +267,8 @@ The code is written in a very generic way. For that reason we use a lot of templ
 * V
     - The is the type for the second value domain of IDE problem. What this should be really depends of your concrete analysis. When using IFDS you do not have to worry about this type, since it is automatically chosen for you as:
 ```C++
-            enum class BinaryDomain { BOTTOM = 0,
+            enum class BinaryDomain { 
+                                      BOTTOM = 0,
                                       TOP = 1
             };
 ```

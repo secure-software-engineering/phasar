@@ -16,7 +16,7 @@ void VTable::addEntry(string entry) { vtbl.push_back(entry); }
 
 ostream& operator<<(ostream& os, const VTable& t) {
   for_each(t.vtbl.begin(), t.vtbl.end(),
-           [&](const string& entry) { os << entry << "\n"; });
+           [&](const string& entry) { os << entry << string("\n"); });
   return os;
 }
 

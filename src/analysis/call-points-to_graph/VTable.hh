@@ -16,7 +16,6 @@ using namespace std;
 
 class VTable {
  private:
-  llvm::Type* type;
   vector<string> vtbl;
 
  public:
