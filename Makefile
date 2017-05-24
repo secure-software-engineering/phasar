@@ -39,6 +39,9 @@ OBJ_FLEX := $(OBJ)flex/
 OBJ_UTILS := $(OBJ)utils/
 OBJ_UNIT_TESTS := $(OBJ)unit_tests/
 
+# important scripts and binaries
+SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
+
 # compiler to use
 CXX := clang++
 
@@ -98,8 +101,14 @@ CLANG_FLAGS := 	-lclangTooling\
 all: $(BIN)$(EXE)
 
 doc:
+	@echo "building the documentation of the source code ..."
 	cd $(SRC); \
 	doxygen doxy_config.conf
+	@echo "built documentation"
+
+format-code:
+	@echo "formatting the project using clang-format ..."
+	python3 $(SCRIPT_AUTOFORMAT)
 
 clean:
 	rm -rf $(BIN)

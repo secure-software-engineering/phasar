@@ -27,6 +27,7 @@ versions of these libraries are installed if not stated otherwise):
 + BOOST version 1.63.0 or newer
 + SQLITE3 version 3.11.0 or newer
 + BEAR bear 2.2.0 or newer
++ PYTHON 3.x
 
 In the following the authors assume that a unix-like system is used.
 Installation guides for the libraries can be found here:
@@ -38,6 +39,8 @@ Installation guides for the libraries can be found here:
 [SQLITE3](https://www.sqlite.org/download.html)
 
 [BEAR](https://github.com/rizsotto/Bear)
+
+[PYTHON](https://www.python.org/)
 
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
@@ -56,6 +59,14 @@ BEAR can just be installed from the Ubuntu sources:
 $ sudo apt-get install bear
 
 Done!
+
+#### Installing PYTHON3
+Python3 can be installed using the Ubuntu sources as well. Just use
+the command:
+
+$ sudo apt-get install python3
+
+and you are done.
 
 #### Installing BOOST
 First you have to download the BOOST source files. This can be achieved by:
@@ -160,6 +171,15 @@ After having compiled ourframework running small test example seems adequate.
 If errors occur when running the test example your compiler might be 
 misconfigured or worse (please report if that happens).
 
+#### Creating the configuration files
+Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
+
+$ cd misc/
+
+$ ./make_config.sh
+
+Done!
+
 ##### Testing single modules
 To test if everything works as expected please run the following commands:
 
@@ -195,15 +215,6 @@ $ cd -
 $ bin/main --project test_examples/installation_tests/project/ --analysis ifds_uninit --wpa 1
 
 The above commands run small test examples. If any errors occur, the program terminates abnormal or a segmentation fault is displayed please report detailed error messages to the developers.
-
-#### Creating the configuration files
-Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
-
-$ cd misc/
-
-$ ./make_config
-
-Done!
 
 
 Getting started

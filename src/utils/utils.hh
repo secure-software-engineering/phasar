@@ -79,4 +79,6 @@ set<set<T>> computePowerSet(const set<T>& s) {
   return powerset;
 }
 
+ostream& operator<< (ostream& os, const vector<bool>& bits);
+
 #endif

@@ -51,9 +51,8 @@ IDETaintAnalysis::initialSeeds() {
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-  static llvm::Value *zeroValue =
-      llvm::ConstantInt::get(context, llvm::APInt(2, 0, true));
-  return zeroValue;
+	static ZeroValue *zero = new ZeroValue;
+	return zero;
 }
 
 // in addition provide specifications for the IDE parts

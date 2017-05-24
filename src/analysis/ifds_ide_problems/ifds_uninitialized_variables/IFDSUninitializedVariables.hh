@@ -28,6 +28,7 @@
 #include <set>
 #include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DynamicSummaries.hh"
+#include "../../ifds_ide/ZeroValue.hh"
 using namespace std;
 
 class IFDSUnitializedVariables

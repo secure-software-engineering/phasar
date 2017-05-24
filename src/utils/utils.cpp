@@ -26,3 +26,10 @@ vector<string> splitString(const string& str, const string& delimiter) {
 	boost::split(split_strings, str, boost::is_any_of(delimiter), boost::token_compress_on);
 	return split_strings;
 }
+
+ostream& operator<< (ostream& os, const vector<bool>& bits) {
+	for (auto bit : bits) {
+		os << bit;
+	}
+	return os;
+}

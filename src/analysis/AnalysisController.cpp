@@ -153,7 +153,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 
       			// check and test the summary generation:
 //      			cout << "GENERATE SUMMARY" << endl;
-//      			IFDSSummaryGenerator<const llvm::Value*, LLVMBasedICFG&, IFDSUnitializedVariables>
+//      			LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
 //      								Generator(M.getFunction("_Z6squarei"), icfg, C);
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;

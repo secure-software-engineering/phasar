@@ -26,7 +26,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include "../../ifds_ide/ZeroValue.hh"
 #include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 

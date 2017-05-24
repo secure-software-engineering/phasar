@@ -70,7 +70,6 @@ IFDSTypeAnalysis::initialSeeds() {
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-  static llvm::Value *zeroValue =
-      llvm::ConstantInt::get(context, llvm::APInt(2, 0, true));
-  return zeroValue;
+	static ZeroValue *zero = new ZeroValue;
+	return zero;
 }

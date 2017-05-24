@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# author: Philipp D. Schubert
+#
+# This scripts determines the compiler information and
+# standard header includes paths and places them in two
+# configuration files that are placed in the config/ directory.
+
 ConfigDir=config/
 CompilerInfoFile=compiler_info.txt
 StdHeaderPathFile=standard_header_paths.conf
