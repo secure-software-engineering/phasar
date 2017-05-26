@@ -103,6 +103,10 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   bool isBranchTarget(const llvm::Instruction* stmt,
                       const llvm::Instruction* succ) override;
 
+  string getMethodName(const llvm::Function* F) override;
+
+	string getMethodName(const llvm::Instruction* n) override;
+
   vector<const llvm::Instruction*> getAllInstructionsOfFunction(
       const string& name);
 
@@ -110,8 +114,6 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
       const llvm::Function* func);
 
   const llvm::Instruction* getLastInstructionOf(const string& name);
-
-  const string getNameOfMethod(const llvm::Instruction* stmt);
 
   void print();
 };

@@ -104,6 +104,7 @@ public:
 		cout << "@ statistics" << endl;
 		cout << "@ flowFunctionsConstructionCount: " << flowFunctionConstructionCount << endl;
 		cout << "@ flowFunctionsApplicationCount: " << flowFunctionApplicationCount << endl;
+		cout << "@ specialFlowFunctionUsageCount: " << specialSummaryFlowFunctionApplicationCount << endl;
 		cout << "@ propagationCount: " << propagationCount << endl;
 		cout << "@ flow function construction: " << durationFlowFunctionConstruction.count() << " ms" << endl;
 		cout << "@ flow function application: " << durationFlowFunctionApplication.count() << " ms" << endl;
@@ -138,9 +139,12 @@ public:
 
 private:
 	IDETabluationProblem<N,D,M,V,I>& ideTabluationProblem;
+	SpecialSummaries<D>& specialSummaries = SpecialSummaries<D>::getInstance();
 	bool recordEdges;
 	size_t flowFunctionConstructionCount = 0;
 	size_t flowFunctionApplicationCount = 0;
+	size_t specialSummaryFlowFunctionApplicationCount = 0;
+	size_t summaryFlowFunctionApplicationCount = 0;
 	size_t propagationCount = 0;
 	chrono::milliseconds durationFlowFunctionConstruction;
 	chrono::milliseconds durationFlowFunctionApplication;
@@ -161,6 +165,12 @@ private:
 	 *
 	 * For each possible callee, registers incoming call edges.
 	 * Also propagates call-to-return flows and summarized callee flows within the caller.
+	 *
+	 * 	The following cases must be considered and handled:
+	 *		1. Process as usual and just process the call
+	 *		2. Create a new summary for that function (which shall be done by the problem)
+	 *		3. Just use an existing summary provided by the problem
+	 *		4. If a special function is called, use a special summary function
 	 *
 	 * @param edge an edge whose target node resembles a method call
 	 */
@@ -252,7 +262,7 @@ private:
 	 * Simply propagate normal, intra-procedural flows.
 	 * @param edge
 	 */
-	void processNormalFlow(PathEdge<N,D> edge, shared_ptr<FlowFunction<D>> summary=nullptr)
+	void processNormalFlow(PathEdge<N,D> edge)
 	{
 		cout << "@ process normal flow edge starting from: " << endl;
 		if (edge.factAtSource() == nullptr)
@@ -265,14 +275,9 @@ private:
 		for (auto m : successorInst) {
 			cout << "@ successors: " << endl;
 			m->dump();
-			shared_ptr<FlowFunction<D>> flowFunction;
-			if (summary) {
-				flowFunction = summary;
-			} else {
-				flowFunction = (autoAddZero) ?
-											 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getNormalFlowFunction(n,m), zeroValue) :
-											 ideTabluationProblem.getNormalFlowFunction(n,m);
-			}
+			shared_ptr<FlowFunction<D>> flowFunction = (autoAddZero) ?
+											 	 	 	 	 	 	 	 	 	 	 	 	 	 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getNormalFlowFunction(n,m), zeroValue) :
+																								 ideTabluationProblem.getNormalFlowFunction(n,m);
 			flowFunctionConstructionCount++;
 			set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
 			cout << "results" << endl;
@@ -421,26 +426,16 @@ private:
 				}
 				break;
 			// Just a normal function call.
-			case CallType::normal:
+			case CallType::call:
 				/*
 				 * Here we can do the following:
 				 * 	1. Process as usual and just process the call
 				 * 	2. Create a new summary for that function (which shall be done by the problem)
 				 * 	3. Just use an existing summary provided by the problem
+				 * 	4. If a special function is called, use a special summary function
 				 */
 				cout << "@ process call" << endl;
 				processCall(edge);
-				break;
-			/*
-			 * Treat the special functions that have special summaries.
-			 * These must be handled analogous to processNormalFlow, but
-			 * the special summary flow function (stored in SpecialSummaries)
-			 * must be used rather than the normal flow function (obtained
-			 * by getNormalFlowFunction()).
-			 */
-			case CallType::special_summary:
-				cout << "@ process special summary" << endl;
-
 				break;
 			/*
 			 * Here we have to plug-in place holders to denote that the
@@ -448,7 +443,7 @@ private:
 			 * it should be plugged in and information may be re-propagated.
 			 */
 			case CallType::unavailable:
-
+				cout << "@ process call -> not available" << endl;
 				break;
 			// Everything else does not make sense!
 			default:
@@ -467,7 +462,7 @@ private:
 		if (icfg.isStartPoint(n) || initialSeeds.count(n) || unbalancedRetSites.count(n)) {
 			propagateValueAtStart(nAndD, n);
 		}
-		if (icfg.isCallStmt(n) == CallType::normal) {
+		if (icfg.isCallStmt(n) == CallType::call) {
 			// TODO provide special treatment for (special) summaries
 			propagateValueAtCall(nAndD, n);
 		}

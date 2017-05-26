@@ -26,11 +26,8 @@ class IFDSTypeAnalysis
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
-private:
-  llvm::LLVMContext &context;
-
 public:
-  IFDSTypeAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c);
+  IFDSTypeAnalysis(LLVMBasedICFG &icfg);
 
   virtual ~IFDSTypeAnalysis() = default;
 

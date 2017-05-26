@@ -123,7 +123,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		case AnalysisType::IFDS_TaintAnalysis:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IFDS_TaintAnalysis\n";
-      			IFDSTaintAnalysis taintanalysisproblem(icfg, M.getContext());
+      			IFDSTaintAnalysis taintanalysisproblem(icfg);
       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
       			llvmtaintsolver.solve();
       			break;
@@ -139,7 +139,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		case AnalysisType::IFDS_TypeAnalysis:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IFDS_TypeAnalysis\n";
-      			IFDSTypeAnalysis typeanalysisproblem(icfg, M.getContext());
+      			IFDSTypeAnalysis typeanalysisproblem(icfg);
       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
       			llvmtypesolver.solve();
       			break;
@@ -147,14 +147,14 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		case AnalysisType::IFDS_UninitializedVariables:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IFDS_UninitalizedVariables\n";
-      			IFDSUnitializedVariables uninitializedvarproblem(icfg, M.getContext());
+      			IFDSUnitializedVariables uninitializedvarproblem(icfg);
       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
       			llvmunivsolver.solve();
 
       			// check and test the summary generation:
 //      			cout << "GENERATE SUMMARY" << endl;
 //      			LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
-//      								Generator(M.getFunction("_Z6squarei"), icfg, C);
+//      								Generator(M.getFunction("_Z6squarei"), icfg);
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;
       		}

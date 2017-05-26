@@ -19,7 +19,6 @@ class IFDSSummaryGenerator {
 protected:
   const M toSummarize;
   const I icfg;
-  llvm::LLVMContext &c;
 
   virtual vector<D> getInputs() = 0;
   virtual vector<bool> generateBitPattern(const vector<D> &inputs,
@@ -30,8 +29,8 @@ protected:
     const N start;
     set<D> facts;
 
-    CTXFunctionProblem(N start, set<D> facts, I icfg, llvm::LLVMContext &c)
-        : ConcreteTabulationProblem(icfg, c), start(start), facts(facts) {
+    CTXFunctionProblem(N start, set<D> facts, I icfg)
+        : ConcreteTabulationProblem(icfg), start(start), facts(facts) {
       this->solver_config.followReturnsPastSeeds = false;
       this->solver_config.autoAddZero = true;
       this->solver_config.computeValues = true;
@@ -47,8 +46,8 @@ protected:
   };
 
 public:
-  IFDSSummaryGenerator(M Function, I icfg, llvm::LLVMContext &c)
-      : toSummarize(Function), icfg(icfg), c(c) {}
+  IFDSSummaryGenerator(M Function, I icfg)
+      : toSummarize(Function), icfg(icfg) {}
   virtual ~IFDSSummaryGenerator() = default;
   virtual set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>>
   generateSummaryFlowFunction() {
@@ -61,7 +60,7 @@ public:
       cout << "Generate summary for specific context: "
       		 << generateBitPattern(inputs, subset) << "\n";
       CTXFunctionProblem functionProblem(
-          *icfg.getStartPointsOf(toSummarize).begin(), subset, icfg, c);
+          *icfg.getStartPointsOf(toSummarize).begin(), subset, icfg);
       ConcreteSolver solver(functionProblem, true);
       solver.solve();
       // get the result at the end of this function and

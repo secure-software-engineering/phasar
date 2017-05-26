@@ -34,9 +34,8 @@ bool IFDSTaintAnalysis::isSinkFunction(const llvm::Function *f) {
   return false;
 }
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg,
-                                     llvm::LLVMContext &c)
-    : DefaultIFDSTabulationProblem(icfg), context(c) {
+IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg)
+    : DefaultIFDSTabulationProblem(icfg) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -46,7 +45,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
   // Taint the commandline arguments
-  if (icfg.getNameOfMethod(curr) == "main" && icfg.isStartPoint(curr)) {
+  if (icfg.getMethodName(curr) == "main" && icfg.isStartPoint(curr)) {
 
   	// taint the command line arguments
     struct TAFF : FlowFunction<const llvm::Value *> {

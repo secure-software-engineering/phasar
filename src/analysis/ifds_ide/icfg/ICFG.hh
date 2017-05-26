@@ -17,8 +17,7 @@ using namespace std;
 
 enum class CallType {
 	none = 0,
-	normal = 1,
-	special_summary = 2,
+	call = 1,
 	unavailable = 3
 };
 
@@ -68,6 +67,10 @@ public:
 	virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
 
 	virtual bool isBranchTarget(N stmt, N succ) = 0;
+
+	virtual string getMethodName(N n) = 0;
+
+	virtual string getMethodName(M m) = 0;
 };
 
 #endif /* ANALYSIS_ICFG_HH_ */

@@ -33,9 +33,6 @@ class IDETaintAnalysis : public DefaultIDETabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, const llvm::Value *,
                              LLVMBasedICFG &> {
-private:
-  llvm::LLVMContext &context;
-
 public:
   set<string> source_functions = {"fread", "read"};
   // keep in mind that 'char** argv' of main is a source for tainted values as
@@ -43,7 +40,7 @@ public:
   set<string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(set<string> s, string str);
 
-  IDETaintAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c);
+  IDETaintAnalysis(LLVMBasedICFG &icfg);
 
   virtual ~IDETaintAnalysis() = default;
 

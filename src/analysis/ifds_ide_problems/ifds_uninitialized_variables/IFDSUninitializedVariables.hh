@@ -36,12 +36,10 @@ class IFDSUnitializedVariables
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
 private:
-  llvm::LLVMContext &context;
   DynamicSummaries<const llvm::Value*> dynSum;
 
 public:
-  IFDSUnitializedVariables(LLVMBasedICFG &icfg,
-                           llvm::LLVMContext &c);
+  IFDSUnitializedVariables(LLVMBasedICFG &icfg);
 
   virtual ~IFDSUnitializedVariables() = default;
 

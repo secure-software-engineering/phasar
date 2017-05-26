@@ -305,16 +305,7 @@ LLVMBasedICFG::getReturnSitesOfCallAt(
 
 CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 	if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
-		llvm::ImmutableCallSite cs(stmt);
-		if (const llvm::Function* F = cs.getCalledFunction()) {
-			if (SpecialSummaries<const llvm::Value*>::getInstance().containsSpecialSummary(F->getName().str())) {
-				return CallType::special_summary;
-			} else {
-				return CallType::normal;
-			}
-		} else {
-			return CallType::normal;
-		}
+			return CallType::call;
 	} else {
 		return CallType::none;
 	}
@@ -403,9 +394,13 @@ LLVMBasedICFG::getAllInstructionsOfFunction(
   return getAllInstructionsOfFunction(func->getName().str());
 }
 
-const string LLVMBasedICFG::getNameOfMethod(
-    const llvm::Instruction* stmt) {
-  return stmt->getFunction()->getName().str();
+string LLVMBasedICFG::getMethodName(const llvm::Function* F) {
+  return F->getName().str();
+}
+
+string LLVMBasedICFG::getMethodName(const llvm::Instruction* n) {
+	llvm::ImmutableCallSite CS(n);
+	return CS.getCalledFunction()->getName().str();
 }
 
 void LLVMBasedICFG::print() {
