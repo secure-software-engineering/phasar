@@ -399,8 +399,13 @@ string LLVMBasedICFG::getMethodName(const llvm::Function* F) {
 }
 
 string LLVMBasedICFG::getMethodName(const llvm::Instruction* n) {
-	llvm::ImmutableCallSite CS(n);
-	return CS.getCalledFunction()->getName().str();
+	if (const llvm::CallInst* Call = llvm::dyn_cast<llvm::CallInst>(n)) {
+			return Call->getCalledFunction()->getName().str();
+	} else if (const llvm::InvokeInst* Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
+			return Invoke->getCalledFunction()->getName().str();
+	} else {
+		return "";
+	}
 }
 
 void LLVMBasedICFG::print() {
