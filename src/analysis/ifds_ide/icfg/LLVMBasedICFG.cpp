@@ -7,6 +7,18 @@
 
 #include "LLVMBasedICFG.hh"
 
+
+LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function* f) : function(f),
+																																						 functionName(f->getName().str()) {
+
+}
+
+LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction* i) : callsite(i),
+																																						ir_code(llvmIRToString(i)),
+																																						id(stoull(llvm::cast<llvm::MDString>(i->getMetadata(MetaDataKind)->getOperand(0))->getString().str())) {
+
+}
+
 LLVMBasedICFG::LLVMBasedICFG(
     llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
@@ -21,6 +33,8 @@ LLVMBasedICFG::LLVMBasedICFG(
 		resolveIndirectCallWalker(main);
 	} else {
 		cout << "could not find 'main()' function in call graph construction!\n";
+		HEREANDNOW;
+		DIE_HARD;
 	}
 	cout << "constructed whole module ptg and resolved indirect calls ...\n";
 	WholeModulePTG.printAsDot("whole_module_ptg.dot");
@@ -66,7 +80,17 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	cout << "mapping caller to callee pointers\n";
       	printPTGMapping(mapping);
       	DirectCSTargetMethods.insert(make_pair(&Inst, cs.getCalledFunction()));
-      	// do the merge
+      	// additionally add into boost graph
+      	if (function_vertex_map.find(F->getName().str()) != function_vertex_map.end()) {
+      		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
+      		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
+      	}
+      	if (function_vertex_map.find(cs.getCalledFunction()->getName().str()) != function_vertex_map.end()) {
+      		function_vertex_map[cs.getCalledFunction()->getName().str()] = boost::add_vertex(cg);
+      		cg[function_vertex_map[cs.getCalledFunction()->getName().str()]] = VertexProperties(cs.getCalledFunction());
+      	}
+      	boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[cs.getCalledFunction()->getName().str()], EdgeProperties(cs.getInstruction()), cg);
+    		// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
       	resolveIndirectCallWalker(cs.getCalledFunction());
       } else {
@@ -79,6 +103,15 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
         	possible_targets.insert(IRDB.getFunction(possible_target_name));
         }
         IndirectCSTargetMethods.insert(make_pair(cs.getInstruction(), possible_targets));
+        // additionally add into boost graph
+    		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
+    		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
+    		for (auto possible_target : possible_targets) {
+    			function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
+    			cg[function_vertex_map[possible_target->getName().str()]] = VertexProperties(possible_target);
+    			boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[possible_target->getName().str()], EdgeProperties(cs.getInstruction()), cg);
+    		}
+    		// continue resolving
         for (auto possible_target : possible_targets) {
         	resolveIndirectCallWalker(possible_target);
         }
@@ -409,19 +442,30 @@ string LLVMBasedICFG::getMethodName(const llvm::Instruction* n) {
 }
 
 void LLVMBasedICFG::print() {
-	cout << "LLVMBasedICFG\n";
-	cout << "direct calls:\n";
-	for (auto& entry : DirectCSTargetMethods) {
-		entry.first->dump();
-		cout << entry.second->getName().str() << "\n\n";
-	}
-	cout << "indirect calls:\n";
-	for (auto& entry : IndirectCSTargetMethods) {
-		entry.first->dump();
-		cout << "possibilities:\n";
-		for (auto& target : entry.second) {
-			cout << target->getName().str() << "\n";
-		}
-	}
-	cout << endl;
+//	cout << "LLVMBasedICFG\n";
+//	cout << "direct calls:\n";
+//	for (auto& entry : DirectCSTargetMethods) {
+//		entry.first->dump();
+//		cout << entry.second->getName().str() << "\n\n";
+//	}
+//	cout << "indirect calls:\n";
+//	for (auto& entry : IndirectCSTargetMethods) {
+//		entry.first->dump();
+//		cout << "possibilities:\n";
+//		for (auto& target : entry.second) {
+//			cout << target->getName().str() << "\n";
+//		}
+//	}
+//	cout << endl;
+
+	// Provide a better implementation based on boost graph
+	boost::print_graph(cg,
+	  	boost::get(&LLVMBasedICFG::VertexProperties::functionName, cg));
+}
+
+void LLVMBasedICFG::printAsDot(const string& filename) {
+	ofstream ofs(filename);
+	boost::write_graphviz(ofs, cg,
+			boost::make_label_writer(boost::get(&LLVMBasedICFG::VertexProperties::functionName, cg)),
+			boost::make_label_writer(boost::get(&LLVMBasedICFG::EdgeProperties::ir_code, cg)));
 }

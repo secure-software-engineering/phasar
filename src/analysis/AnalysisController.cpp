@@ -4,7 +4,7 @@ const array<string, 4> AnalysesNames = {
   {"IFDS_UninitializedVariables",
    "IFDS_TaintAnalysis",
    "IDE_TaintAnalysis",
-   "IFDS_TypeAnalysis",
+   "IFDS_TypeAnalysis"
 }};
 
 ostream& operator<<(ostream& os, const AnalysisType& k) {
@@ -100,8 +100,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     // db << CH;
     // db >> CH;
 
-    SpecialSummaries<const llvm::Value*>& specialSummaries =
-    		SpecialSummaries<const llvm::Value*>::getInstance();
+    IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
+    		IFDSSpecialSummaries<const llvm::Value*>::getInstance();
     cout << specialSummaries << endl;
 
    	// prepare the ICFG the data-flow analyses are build on
@@ -111,7 +111,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     	llvm::Module& M = *(module_entry.second);
     	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
     	LLVMBasedICFG icfg(M, CH, IRDB);
+    	cout << "call graph:\n";
     	icfg.print();
+    	icfg.printAsDot("call_graph.dot");
       // TODO: change the implementation of 'createZeroValue()'
       // The zeroValue can only be added one to a given context which means
       // a user can only create one analysis problem at a time, due to the

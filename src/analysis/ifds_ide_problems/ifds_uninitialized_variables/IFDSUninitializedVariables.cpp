@@ -253,8 +253,16 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-											 	 	 	 	 	 	 	 	 	 	 	 	 	 const llvm::Function *destMthd) {
-		return Identity<const llvm::Value*>::v();
+											 	 	 	 	 	 	 	 	 	 	 	 	 	 const llvm::Function *destMthd,
+																								 vector<const llvm::Value*> inputs,
+																								 vector<bool> context) {
+	cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getSummaryFlowFunction()" << endl;
+		IFDSSpecialSummaries<const llvm::Value*>& SpecialSum = IFDSSpecialSummaries<const llvm::Value*>::getInstance();
+		if (SpecialSum.containsSpecialSummary(destMthd))  {
+			return SpecialSum.getSpecialSummary(destMthd);
+		} else {
+			return nullptr;
+		}
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>

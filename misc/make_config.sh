@@ -11,6 +11,14 @@ CompilerInfoFile=compiler_info.txt
 StdHeaderPathFile=standard_header_paths.conf
 
 echo -e "int main() { return 0; }" | clang++ -x c++ -v - -o /dev/null &> ${CompilerInfoFile}
-cat ${CompilerInfoFile} | tr -d '\n' | sed -e 's/.*#include <\.\.\.> search starts here: \(.*\)End of search list\..*/\1/' | tr ' ' '\n' > ${StdHeaderPathFile}
+if [[ "$OSTYPE" == "linux-gnu" ]]; then
+	echo "system: Linux"
+	cat ${CompilerInfoFile} | tr -d '\n' | sed -e 's/.*#include <\.\.\.> search starts here: \(.*\)End of search list\..*/\1/' | tr ' ' '\n' > ${StdHeaderPathFile}
+#elif [[ "$OSTYPE" == "darwin"* ]]; then
+#	echo "system: Mac OSX"
+#	cat ${CompilerInfoFile} | tr -d '\n' | sed -e 's/.*#include <\.\.\.> search starts here: \(.*\)End of search list\..*/\1/' | tr ' ' '\n' > ${StdHeaderPathFile}
+else
+	echo "OS not supported yet, abort!"
+fi
 mv ${CompilerInfoFile} ../${ConfigDir}
 mv ${StdHeaderPathFile} ../${ConfigDir}

@@ -5,8 +5,8 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_DYNAMICSUMMARIES_HH_
-#define SRC_ANALYSIS_IFDS_IDE_DYNAMICSUMMARIES_HH_
+#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_HH_
+#define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_HH_
 
 #include <algorithm>
 #include <vector>
@@ -18,7 +18,7 @@
 using namespace std;
 
 template<typename D>
-class DynamicSummaries {
+class IFDSSummaryPool {
 private:
 	/**
 	 * Stores the summary for a function specified by a name which holds under a
@@ -27,8 +27,8 @@ private:
 	DSMap<string, DSMap<vector<bool>, shared_ptr<GenAll<D>>>> SummaryMap;
 
 public:
-	DynamicSummaries() = default;
-	~DynamicSummaries() = default;
+	IFDSSummaryPool() = default;
+	~IFDSSummaryPool() = default;
 
 	bool containsSummary(const string& name) {
 		return SummaryMap.find(name) != SummaryMap.end();

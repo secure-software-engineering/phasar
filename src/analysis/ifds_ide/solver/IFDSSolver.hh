@@ -71,9 +71,9 @@ public:
 		return problem.getCallToRetFlowFunction(callSite, retSite);
 	}
 
-	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) override
+	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override
 	{
-		return problem.getSummaryFlowFunction(callStmt, destMthd);
+		return problem.getSummaryFlowFunction(callStmt, destMthd, inputs, context);
 	}
 
 	I interproceduralCFG() override

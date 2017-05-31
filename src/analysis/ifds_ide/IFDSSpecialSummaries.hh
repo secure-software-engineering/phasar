@@ -5,8 +5,8 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_
-#define SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_
+#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSPECIALSUMMARIES_HH_
+#define SRC_ANALYSIS_IFDS_IDE_IFDSSPECIALSUMMARIES_HH_
 
 #include <set>
 #include <string>
@@ -22,12 +22,12 @@
 using namespace std;
 
 template<typename D>
-class SpecialSummaries {
+class IFDSSpecialSummaries {
 private:
 	SSMap<string, shared_ptr<FlowFunction<D>>> SpecialSummaryMap;
 	vector<string> operators = {"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"};
 
-	SpecialSummaries() {
+	IFDSSpecialSummaries() {
 		string glibc = readFile(ConfigurationDirectory+GLIBCFunctionListFileName);
 		vector<string> glibcfunctions = splitString(glibc, "\n");
 		string llvmintrinsics = readFile(ConfigurationDirectory+LLVMIntrinsicFunctionListFileName);
@@ -48,14 +48,14 @@ private:
 	}
 
 public:
-	SpecialSummaries(const SpecialSummaries&) = delete;
-	SpecialSummaries& operator= (const SpecialSummaries&) = delete;
-	SpecialSummaries(SpecialSummaries&&) = delete;
-	SpecialSummaries& operator= (SpecialSummaries&&) = delete;
-	~SpecialSummaries() = default;
+	IFDSSpecialSummaries(const IFDSSpecialSummaries&) = delete;
+	IFDSSpecialSummaries& operator= (const IFDSSpecialSummaries&) = delete;
+	IFDSSpecialSummaries(IFDSSpecialSummaries&&) = delete;
+	IFDSSpecialSummaries& operator= (IFDSSpecialSummaries&&) = delete;
+	~IFDSSpecialSummaries() = default;
 
-	static SpecialSummaries& getInstance() {
-		static SpecialSummaries instance;
+	static IFDSSpecialSummaries& getInstance() {
+		static IFDSSpecialSummaries instance;
 		return instance;
 	}
 
@@ -68,15 +68,23 @@ public:
 		return override;
 	}
 
+	bool containsSpecialSummary(const llvm::Function* function) {
+		return containsSpecialSummary(function->getName().str());
+	}
+
 	bool containsSpecialSummary(const string& name) {
 		return SpecialSummaryMap.find(name) != SpecialSummaryMap.end();
+	}
+
+	shared_ptr<FlowFunction<D>> getSpecialSummary(const llvm::Function* function) {
+		return getSpecialSummary(function->getName().str());
 	}
 
 	shared_ptr<FlowFunction<D>> getSpecialSummary(const string& name) {
 		return SpecialSummaryMap[name];
 	}
 
-	friend ostream& operator<<(ostream& os, const SpecialSummaries<D>& ss) {
+	friend ostream& operator<<(ostream& os, const IFDSSpecialSummaries<D>& ss) {
 		os << "SpecialSummary:\n";
 		for (auto& entry : ss.SpecialSummaryMap) {
 			os << entry.first << " ";
@@ -85,4 +93,4 @@ public:
 	}
 };
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_ */
+#endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSPECIALSUMMARIES_HH_ */

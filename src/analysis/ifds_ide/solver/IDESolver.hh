@@ -26,8 +26,8 @@
 #include "../edge_func/EdgeIdentity.hh"
 #include "../solver/JumpFunctions.hh"
 #include "../../../utils/Table.hh"
+#include "../IFDSSpecialSummaries.hh"
 #include "../ZeroedFlowFunction.hh"
-#include "../SpecialSummaries.hh"
 
 using namespace std;
 
@@ -139,7 +139,7 @@ public:
 
 private:
 	IDETabluationProblem<N,D,M,V,I>& ideTabluationProblem;
-	SpecialSummaries<D>& specialSummaries = SpecialSummaries<D>::getInstance();
+	IFDSSpecialSummaries<D>& specialSummaries = IFDSSpecialSummaries<D>::getInstance();
 	bool recordEdges;
 	size_t flowFunctionConstructionCount = 0;
 	size_t flowFunctionApplicationCount = 0;
@@ -188,6 +188,36 @@ private:
 		//for each possible callee
 		set<M> callees = icfg.getCalleesOfCallAt(n);
 		for(M sCalledProcN : callees) { //still line 14
+
+			// check if a summary for the called procedure exists
+			shared_ptr<FlowFunction<D>> summary = ideTabluationProblem.getSummaryFlowFunction(n, sCalledProcN, {}, {});
+			if (summary) {
+				if (autoAddZero) {
+					summary = make_shared<ZeroedFlowFunction<D>>(summary, zeroValue);
+				}
+				cout << "############################################# FOUND SPECIAL SUMMARY!!!" << endl;
+				cout << "@ process summary flow" << endl;
+					if (edge.factAtSource() == nullptr)
+						cout << "fact at source is nullptr" << endl;
+					shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
+					auto successorInst = icfg.getSuccsOf(n);
+					for (auto m : successorInst) {
+						cout << "@ successors: " << endl;
+						m->dump();
+						summaryFlowFunctionApplicationCount++;
+						set<D> res = computeNormalFlowFunction(summary, d1, d2);
+						cout << "results" << endl;
+						for (auto r : res)
+							if (r)
+								r->dump();
+						saveEdges(n, m, d2, res, false);
+						for (D d3 : res) {
+							shared_ptr<EdgeFunction<V>> fprime = f->composeWith(ideTabluationProblem.getNormalEdgeFunction(n, d2, m, d3));
+							propagate(d1, m, d3, fprime, nullptr, false);
+						}
+					}
+
+			} else {
 
 			//compute the call-flow function
 			shared_ptr<FlowFunction<D>> function = (autoAddZero) ?
@@ -243,6 +273,7 @@ private:
 				}
 			}
 		}
+
 		//line 17-19 of Naeem/Lhotak/Rodriguez
 		//process intra-procedural flows along call-to-return flow functions
 		for (N returnSiteN : returnSiteNs) {
@@ -254,6 +285,8 @@ private:
 				shared_ptr<EdgeFunction<V>> edgeFnE = ideTabluationProblem.getCallToReturnEdgeFunction(n, d2, returnSiteN, d3);
 				propagate(d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
 			}
+		}
+
 		}
 	}
 
@@ -348,6 +381,12 @@ private:
 	{
 		D d = nAndD.second;
 		for (M q : icfg.getCalleesOfCallAt(n)) {
+
+			shared_ptr<FlowFunction<D>> summary = ideTabluationProblem.getSummaryFlowFunction(n, q, {}, {});
+			if (summary) {
+				propagateValue(n, d, EdgeIdentity<V>::v()->computeTarget(val(n, d)));
+			} else {
+
 			shared_ptr<FlowFunction<D>> callFlowFunction = (autoAddZero) ?
 																										 make_shared<ZeroedFlowFunction<D>>(ideTabluationProblem.getCallFlowFuntion(n, q), zeroValue) :
 																										 ideTabluationProblem.getCallFlowFuntion(n, q);
@@ -358,6 +397,7 @@ private:
 					propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n,d)));
 					flowFunctionApplicationCount++;
 				}
+			}
 			}
 		}
 	}

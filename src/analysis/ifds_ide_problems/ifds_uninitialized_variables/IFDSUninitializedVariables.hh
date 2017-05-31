@@ -26,8 +26,9 @@
 #include <map>
 #include <memory>
 #include <set>
+#include "../../ifds_ide/SpecialSummaries.hh"
 #include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
-#include "../../ifds_ide/DynamicSummaries.hh"
+#include "../../ifds_ide/IFDSSummaryPool.hh"
 #include "../../ifds_ide/ZeroValue.hh"
 using namespace std;
 
@@ -36,7 +37,7 @@ class IFDSUnitializedVariables
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
 private:
-  DynamicSummaries<const llvm::Value*> dynSum;
+  IFDSSummaryPool<const llvm::Value*> dynSum;
 
 public:
   IFDSUnitializedVariables(LLVMBasedICFG &icfg);
@@ -63,7 +64,9 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
 	getSummaryFlowFunction(const llvm::Instruction *callStmt,
-												 const llvm::Function *destMthd) override;
+												 const llvm::Function *destMthd,
+												 vector<const llvm::Value*> inputs,
+												 vector<bool> context) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;

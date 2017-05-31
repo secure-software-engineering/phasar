@@ -10,8 +10,22 @@
 
 #include <set>
 #include <vector>
+#include <iostream>
+#include "../FlowFunction.hh"
 #include "../../../utils/utils.hh"
 using namespace std;
+
+
+enum class SummaryGenerationCTXStrategy {
+	always_all = 0,
+	powerset,
+	all_and_none,
+	all_observed,
+	always_none
+};
+
+ostream& operator<<(ostream& os, const SummaryGenerationCTXStrategy& s);
+
 
 template <typename N, typename D, typename M, typename I,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
