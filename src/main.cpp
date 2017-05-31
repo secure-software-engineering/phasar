@@ -118,6 +118,10 @@ int main(int argc, const char **argv) {
   			ChosenAnalyses.push_back(AnalysisType::IFDS_TypeAnalysis);
   		else if (Analysis == "ide_taint")
   			ChosenAnalyses.push_back(AnalysisType::IDE_TaintAnalysis);
+  		else if (Analysis == "ifds_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::IFDS_SolverTest);
+  		else if (Analysis == "ide_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::IDE_SolverTest);
   		else {
   			cerr << "error: unrecognized analysis type, abort\n";
   			return 1;

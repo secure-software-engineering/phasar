@@ -205,37 +205,41 @@ const llvm::Function* LLVMBasedICFG::getMethodOf(
 }
 
 vector<const llvm::Instruction*> LLVMBasedICFG::getPredsOf(
-    const llvm::Instruction* u) {
-  // FIXME
-  cout << "getPredsOf not supported yet" << endl;
-  vector<const llvm::Instruction*> IVec;
-  const llvm::BasicBlock* BB = u->getParent();
-  if (BB->getFirstNonPHIOrDbg() != u) {
-  } else {
-    IVec.push_back(u->getPrevNode());
+    const llvm::Instruction* I) {
+  vector<const llvm::Instruction *> Preds;
+  if (I->getPrevNode()) {
+    Preds.push_back(I->getPrevNode());
   }
-  return IVec;
+  /*
+   * If we do not have a predecessor yet, look for basic blocks which
+   * lead to our instruction in question!
+   */
+  if (Preds.empty()) {
+    for (auto &BB : *I->getFunction()) {
+      if (const llvm::TerminatorInst *T =
+              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+        for (auto successor : T->successors()) {
+          if (&*successor->begin() == I) {
+            Preds.push_back(T);
+          }
+        }
+      }
+    }
+  }
+  return Preds;
 }
 
 vector<const llvm::Instruction*> LLVMBasedICFG::getSuccsOf(
-    const llvm::Instruction* n) {
-  vector<const llvm::Instruction*> IVec;
-  // if n is a return instruction, there are no more successors
-  if (llvm::isa<llvm::ReturnInst>(n)) return IVec;
-  // get the next instruction
-  const llvm::Instruction* I = n->getNextNode();
-  // check if the next instruction is not a branch instruction just add it to
-  // the successors
-  if (!llvm::isa<llvm::BranchInst>(I)) {
-    IVec.push_back(I);
-  } else {
-    // if it is a branch instruction there are multiple successors we have to
-    // collect
-    const llvm::BranchInst* BI = llvm::dyn_cast<const llvm::BranchInst>(I);
-    for (size_t i = 0; i < BI->getNumSuccessors(); ++i)
-      IVec.push_back(BI->getSuccessor(i)->getFirstNonPHIOrDbg());
+    const llvm::Instruction* I) {
+  vector<const llvm::Instruction*> Successors;
+  if (I->getNextNode())
+    Successors.push_back(I->getNextNode());
+  if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
+    for (auto successor : T->successors()) {
+      Successors.push_back(&*successor->begin());
+    }
   }
-  return IVec;
+  return Successors;
 }
 
 /**
@@ -304,9 +308,8 @@ set<const llvm::Instruction*> LLVMBasedICFG::getStartPointsOf(
     const llvm::Function* m) {
   set<const llvm::Instruction*> StartPoints;
   // this does not handle backwards analysis, where a function may contains
-  // more
-  // than one start points!
-  StartPoints.insert(m->getEntryBlock().getFirstNonPHIOrDbg());
+  // more than one start points!
+  StartPoints.insert(&*m->getEntryBlock().begin());
   return StartPoints;
 }
 
@@ -354,7 +357,7 @@ bool LLVMBasedICFG::isExitStmt(const llvm::Instruction* stmt) {
  */
 bool LLVMBasedICFG::isStartPoint(const llvm::Instruction* stmt) {
   const llvm::Function* F = stmt->getFunction();
-  return F->getEntryBlock().getFirstNonPHIOrDbg() == stmt;
+  return &*F->getEntryBlock().begin() == stmt;
 }
 
 /**
@@ -363,17 +366,14 @@ bool LLVMBasedICFG::isStartPoint(const llvm::Instruction* stmt) {
 set<const llvm::Instruction*>
 LLVMBasedICFG::allNonCallStartNodes() {
   set<const llvm::Instruction*> NonCallStartNodes;
-  for (llvm::Module::const_iterator MI = M.begin(); MI != M.end(); ++MI) {
-    for (llvm::Function::const_iterator FI = MI->begin(); FI != MI->end();
-         ++FI) {
-      llvm::ilist_iterator<const llvm::BasicBlock> BB = FI;
-      for (llvm::BasicBlock::const_iterator BI = BB->begin(), BE = BB->end();
-           BI != BE;) {
-        const llvm::Instruction& I = *BI++;
-        if ((!llvm::isa<llvm::CallInst>(I)) && (!isStartPoint(&I)))
-          NonCallStartNodes.insert(&I);
-      }
-    }
+  for (auto& F : M) {
+  	for (auto& BB : F) {
+  		for (auto& I : BB) {
+  			if ((!llvm::isa<llvm::CallInst>(&I)) && (!llvm::isa<llvm::InvokeInst>(&I)) && (!isStartPoint(&I))) {
+  				NonCallStartNodes.insert(&I);
+  			}
+  		}
+  	}
   }
   return NonCallStartNodes;
 }
@@ -393,14 +393,14 @@ bool LLVMBasedICFG::isFallThroughSuccessor(
  */
 bool LLVMBasedICFG::isBranchTarget(
     const llvm::Instruction* stmt, const llvm::Instruction* succ) {
-  if (const llvm::BranchInst* BI = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
-    for (size_t successor = 0; successor < BI->getNumSuccessors();
-         ++successor) {
-      const llvm::BasicBlock* BB = BI->getSuccessor(successor);
-      if (BB == succ->getParent()) return true;
-    }
-  }
-  return false;
+	if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
+		for (auto successor : T->successors()) {
+			if (&*successor->begin() == succ) {
+				return true;
+			}
+		}
+	}
+	return false;
 }
 
 vector<const llvm::Instruction*>

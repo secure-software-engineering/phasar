@@ -46,9 +46,9 @@ enum class AnalysisType {
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,
+	IFDS_SolverTest,
+	IDE_SolverTest
 };
-
-extern const array<string, 4> AnalysesNames;
 
 ostream& operator<<(ostream& os, const AnalysisType& k);
 

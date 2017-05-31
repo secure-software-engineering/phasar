@@ -1,15 +1,30 @@
 #include "AnalysisController.hh"
 
-const array<string, 4> AnalysesNames = {
-  {"IFDS_UninitializedVariables",
-   "IFDS_TaintAnalysis",
-   "IDE_TaintAnalysis",
-   "IFDS_TypeAnalysis"
-}};
-
 ostream& operator<<(ostream& os, const AnalysisType& k) {
-  int underlying_val = static_cast<std::underlying_type<AnalysisType>::type>(k);
-  return os << underlying_val << " - " << AnalysesNames.at(underlying_val);
+	switch (k) {
+	case AnalysisType::IFDS_UninitializedVariables:
+		os << "AnalysisType::IFDS_UninitializedVariables";
+		break;
+	case AnalysisType::IFDS_TaintAnalysis:
+		os << "AnalysisType::IFDS_TaintAnalysis";
+		break;
+	case AnalysisType::IDE_TaintAnalysis:
+		os << "AnalysisType::IDE_TaintAnalysis";
+		break;
+	case AnalysisType::IFDS_TypeAnalysis:
+		os << "AnalysisType::IFDS_TypeAnalysis";
+		break;
+	case AnalysisType::IFDS_SolverTest:
+		os << "AnalysisType::IFDS_SolverTest";
+		break;
+	case AnalysisType::IDE_SolverTest:
+		os << "AnalysisType::IDE_SolverTest";
+		break;
+	default:
+		os << "AnalysisType::error";
+		break;
+	}
+  return os;
 }
 
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
