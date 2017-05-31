@@ -26,7 +26,7 @@
 #include <map>
 #include <memory>
 #include <set>
-#include "../../ifds_ide/SpecialSummaries.hh"
+#include "../../ifds_ide/IFDSSpecialSummaries.hh"
 #include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/IFDSSummaryPool.hh"
 #include "../../ifds_ide/ZeroValue.hh"

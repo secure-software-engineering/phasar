@@ -15,7 +15,7 @@ IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG& I) : DefaultIFDSTabulationProblem<
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
+IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                                 const llvm::Instruction *succ) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
@@ -23,7 +23,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IFDSSolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
                                              const llvm::Function *destMthd) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallFlowFunction()"
        << endl;
@@ -31,7 +31,7 @@ IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSUnitializedVariables::getRetFlowFunction(const llvm::Instruction *callSite,
+IFDSSolverTest::getRetFlowFunction(const llvm::Instruction *callSite,
                                              const llvm::Function *calleeMthd,
                                              const llvm::Instruction *exitStmt,
                                              const llvm::Instruction *retSite) {
@@ -41,7 +41,7 @@ IFDSUnitializedVariables::getRetFlowFunction(const llvm::Instruction *callSite,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSUnitializedVariables::getCallToRetFlowFunction(
+IFDSSolverTest::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallToRetFlowFunction()"
        << endl;
@@ -49,7 +49,7 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callStmt,
+IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 											 	 	 	 	 	 	 	 	 	 	 	 	 	 const llvm::Function *destMthd,
 																								 vector<const llvm::Value*> inputs,
 																								 vector<bool> context) {
@@ -57,7 +57,7 @@ IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callSt
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
-IFDSUnitializedVariables::initialSeeds() {
+IFDSSolverTest::initialSeeds() {
   const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
   const llvm::Instruction *firstinst = &(*mainfunction->begin()->begin());
   set<const llvm::Value *> iset{zeroValue()};
@@ -66,7 +66,7 @@ IFDSUnitializedVariables::initialSeeds() {
   return imap;
 }
 
-const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
+const llvm::Value *IFDSSolverTest::createZeroValue() {
   // create a special value to represent the zero value!
   static ZeroValue *zero = new ZeroValue;
 	return zero;
