@@ -20,6 +20,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 	case AnalysisType::IDE_SolverTest:
 		os << "AnalysisType::IDE_SolverTest";
 		break;
+	case AnalysisType::None:
+		os << "AnalysisType::None";
+		break;
 	default:
 		os << "AnalysisType::error";
 		break;
