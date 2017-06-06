@@ -33,6 +33,7 @@
 #include "../../lib/GraphExtensions.hh"
 #include "../../utils/utils.hh"
 #include "../../utils/Configuration.hh"
+#include "../../db/DBConn.hh"
 using namespace std;
 
 // See the following llvm classes for comprehension
@@ -66,6 +67,9 @@ inline void PrintModRefResults(const char* Msg, bool P,
 inline void PrintLoadStoreResults(const char* Msg, bool P,
                                   const llvm::Value* V1, const llvm::Value* V2,
                                   const llvm::Module* M);
+
+// forward declare the DBConn class
+class DBConn;
 
 class PointsToGraph {
 public:
@@ -144,6 +148,9 @@ public:
   void printValueVertexMap();
   void print();
   void printAsDot(const string& filename);
+  // these are defined in the DBConn class
+  friend void operator<<(DBConn& db, const PointsToGraph& STH);
+  friend void operator>>(DBConn& db, const PointsToGraph& STH);
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

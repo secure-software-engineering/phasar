@@ -53,3 +53,20 @@ vector<const llvm::Value*> globalValuesUsedinFunction(const llvm::Function* F) {
 	}
 	return globals_used;
 }
+
+string getMetaDataID(const llvm::Instruction* I) {
+	return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))->getString().str();
+}
+
+const llvm::Argument* getNthFunctionArgument(const llvm::Function* F, unsigned argNo) {
+	if (argNo < F->arg_size()) {
+		unsigned current = 0;
+		for (auto &A : F->args()) {
+			if (argNo == current) {
+				return &A;
+			}
+			++current;
+		}
+	}
+	return nullptr;
+}

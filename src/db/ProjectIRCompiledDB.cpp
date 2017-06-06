@@ -220,6 +220,11 @@ llvm::GlobalVariable* ProjectIRCompiledDB::getGlobalVariable(const string& name)
 	return modules[globals[name]]->getGlobalVariable(name);
 }
 
+llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
+	UNRECOVERABLE_CXX_ERROR_UNCOND("not implemented yet!");
+	return nullptr;
+}
+
 PointsToGraph* ProjectIRCompiledDB::getPointsToGraph(const string& name) {
 	return ptgs[name].get();
 }

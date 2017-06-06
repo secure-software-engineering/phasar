@@ -8,6 +8,7 @@
 #ifndef SRC_LIB_LLVMSHORTHANDS_HH_
 #define SRC_LIB_LLVMSHORTHANDS_HH_
 
+#include "../utils/Configuration.hh"
 #include <string>
 #include <vector>
 #include <llvm/IR/Value.h>
@@ -23,5 +24,9 @@ bool matchesSignature(const llvm::Function* F, const llvm::FunctionType* FType);
 string llvmIRToString(const llvm::Value* V);
 
 vector<const llvm::Value*> globalValuesUsedinFunction(const llvm::Function* F);
+
+string getMetaDataID(const llvm::Instruction*);
+
+const llvm::Argument* getNthFunctionArgument(const llvm::Function* F, unsigned argNo);
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

@@ -25,6 +25,9 @@
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 using namespace std;
 
+// forward declare the PointsToGraph
+class PointsToGraph;
+
 /**
  * This class owns the LLVM IR code of the project under analysis and some
  * very important information associated with the IR.
@@ -68,6 +71,7 @@ private:
   llvm::Module* getModuleContainingFunction(const string& name);
   llvm::Function* getFunction(const string& name);
   llvm::GlobalVariable* getGlobalVariable(const string& name);
+  llvm::Instruction* getInstruction(size_t id);
   PointsToGraph* getPointsToGraph(const string& name);
   void print();
 };

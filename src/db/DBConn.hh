@@ -25,6 +25,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include "../analysis/call-points-to_graph/PointsToGraph.hh"
 #include "../analysis/call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../analysis/call-points-to_graph/VTable.hh"
 #include "../utils/utils.hh"
@@ -64,7 +65,10 @@
 
 using namespace std;
 
+// forward declarations
 class LLVMStructTypeHierarchy;
+class ProjectIRCompiledDB;
+class PointsToGraph;
 
 // struct ResultSet {
 //   size_t rows = 0;
@@ -136,7 +140,8 @@ class DBConn {
 
   // API for querying points-to information -----------------------------------
   // --------------------------------------------------------------------------
-
+  friend void operator<<(DBConn& db, const PointsToGraph& PTG);
+  friend void operator>>(DBConn& db, const PointsToGraph& PTG);
 
   // API for querying call-graph information ----------------------------------
   // --------------------------------------------------------------------------

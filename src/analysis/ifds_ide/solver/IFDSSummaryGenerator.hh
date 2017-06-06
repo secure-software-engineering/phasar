@@ -33,6 +33,7 @@ class IFDSSummaryGenerator {
 protected:
   const M toSummarize;
   const I icfg;
+  const SummaryGenerationCTXStrategy CTXStrategy;
 
   virtual vector<D> getInputs() = 0;
   virtual vector<bool> generateBitPattern(const vector<D> &inputs,
@@ -60,8 +61,8 @@ protected:
   };
 
 public:
-  IFDSSummaryGenerator(M Function, I icfg)
-      : toSummarize(Function), icfg(icfg) {}
+  IFDSSummaryGenerator(M Function, I icfg, SummaryGenerationCTXStrategy Strategy)
+      : toSummarize(Function), icfg(icfg), CTXStrategy(Strategy) {}
   virtual ~IFDSSummaryGenerator() = default;
   virtual set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>>
   generateSummaryFlowFunction() {
@@ -69,8 +70,27 @@ public:
     vector<D> inputs = getInputs();
     set<D> inputset;
     inputset.insert(inputs.begin(), inputs.end());
-    set<set<D>> powerset = computePowerSet(inputset);
-    for (auto subset : powerset) {
+    set<set<D>> InputCombinations;
+    // initialize the input combinations that should be considered
+    switch(CTXStrategy) {
+  	case SummaryGenerationCTXStrategy::always_all:
+  		InputCombinations.insert(inputset);
+  		break;
+  	case SummaryGenerationCTXStrategy::always_none:
+  		InputCombinations.insert(set<D>());
+  		break;
+  	case SummaryGenerationCTXStrategy::all_and_none:
+  		InputCombinations.insert(inputset);
+  		InputCombinations.insert(set<D>());
+  		break;
+  	case SummaryGenerationCTXStrategy::powerset:
+  		InputCombinations = computePowerSet(inputset);
+  		break;
+  	case SummaryGenerationCTXStrategy::all_observed:
+  		// TODO here we have to track what we have already observed first!
+  		break;
+    }
+    for (auto subset : InputCombinations) {
       cout << "Generate summary for specific context: "
       		 << generateBitPattern(inputs, subset) << "\n";
       CTXFunctionProblem functionProblem(

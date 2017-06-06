@@ -27,6 +27,7 @@
 #include <iostream>
 #include <string>
 #include "../db/DBConn.hh"
+#include "../db/PHSStringConverter.hh"
 #include "../db/ProjectIRCompiledDB.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
 #include "ifds_ide/icfg/LLVMBasedICFG.hh"
@@ -47,7 +48,8 @@ enum class AnalysisType {
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,
 	IFDS_SolverTest,
-	IDE_SolverTest
+	IDE_SolverTest,
+	None
 };
 
 ostream& operator<<(ostream& os, const AnalysisType& k);

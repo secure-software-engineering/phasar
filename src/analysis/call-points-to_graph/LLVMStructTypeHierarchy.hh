@@ -31,6 +31,7 @@
 using namespace std;
 
 class DBConn;
+class ProjectIRCompiledDB;
 
 class LLVMStructTypeHierarchy {
  public:

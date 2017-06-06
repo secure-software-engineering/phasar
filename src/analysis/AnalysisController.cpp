@@ -122,14 +122,15 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
-    	// create the analyses problems queried by the user and start analyzing
+//    	// create the analyses problems queried by the user and start analyzing
     	llvm::Module& M = *(module_entry.second);
     	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
     	LLVMBasedICFG icfg(M, CH, IRDB);
     	cout << "call graph:\n";
     	icfg.print();
     	icfg.printAsDot("call_graph.dot");
-      // TODO: change the implementation of 'createZeroValue()'
+
+    	// TODO: change the implementation of 'createZeroValue()'
       // The zeroValue can only be added one to a given context which means
       // a user can only create one analysis problem at a time, due to the
       // implementation of 'createZeroValue()'.
@@ -175,6 +176,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;
       		}
+      			case AnalysisType::None:
+      				break;
       		default:
       			cout << "analysis not valid!" << endl;
       			break;

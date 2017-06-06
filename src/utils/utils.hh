@@ -29,12 +29,17 @@ using namespace std;
 
 #define DIE_HARD exit(-1);
 
-#define CXXERROR(BOOL, STRING) \
+#define UNRECOVERABLE_CXX_ERROR_COND(BOOL, STRING) \
   if (!BOOL) {                 \
     HEREANDNOW;                \
     cerr << STRING << endl;    \
     exit(-1);                  \
   }
+
+#define UNRECOVERABLE_CXX_ERROR_UNCOND(STRING) \
+    HEREANDNOW;                \
+    cerr << STRING << endl;    \
+    exit(-1);
 
 string cxx_demangle(const string& mangled_name);
 

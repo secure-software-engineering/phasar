@@ -417,6 +417,14 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
   cout << "READ STH FROM DB\n";
 }
 
+void operator<<(DBConn& db, const PointsToGraph& PTG) {
+	cout << "writing points-to graph into hexastore\n";
+}
+
+void operator>>(DBConn& db, const PointsToGraph& PTG) {
+	cout << "reading points-to graph from hexastore\n";
+}
+
 size_t DBConn::getIRHash(const string& mod_name) {
   static string ir_hash_query = "SELECT IR_HASH FROM IR WHERE MODULE_IDENTIFIER=?;";
   sqlite3_stmt* ir_hash_stmt;

@@ -122,6 +122,8 @@ int main(int argc, const char **argv) {
   			ChosenAnalyses.push_back(AnalysisType::IFDS_SolverTest);
   		else if (Analysis == "ide_solvertest")
   			ChosenAnalyses.push_back(AnalysisType::IDE_SolverTest);
+  		else if (Analysis == "none")
+  			ChosenAnalyses.push_back(AnalysisType::None);
   		else {
   			cerr << "error: unrecognized analysis type, abort\n";
   			return 1;
