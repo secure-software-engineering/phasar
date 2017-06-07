@@ -23,7 +23,13 @@ build/*
 .settings/*
 .pydevproject
 
+# CLion
+.idea/*
+
 ##### ignored files
+
+# dot files
+*.dot
 
 # ignore all auto-generated LLVM IR code
 *.ll
