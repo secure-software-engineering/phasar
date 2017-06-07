@@ -31,6 +31,7 @@
 #include "../utils/utils.hh"
 #include "../utils/IO.hh"
 #include "ProjectIRCompiledDB.hh"
+#include "Hexastore.hh"
 
 #define CPREPARE(FUNCTION)                             \
   if (SQLITE_OK != FUNCTION) {                         \

@@ -246,7 +246,7 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
   return result;
 }
 
-void PointsToGraph::print() {
+void PointsToGraph::print() const {
   cout << "PointsToGraph for " << F->getName().str() << "\n";
   boost::print_graph(ptg,
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));

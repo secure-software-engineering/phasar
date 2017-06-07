@@ -106,7 +106,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     IRDB.print();
 
     DBConn& db = DBConn::getInstance();
-    // db << IRDB;
+     db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";

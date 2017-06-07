@@ -1,0 +1,138 @@
+Compile Commands
+llvm_examples/constness/constness_4.cpp
+-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0
+-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/x86_64-linux-gnu/c++/5.4.0
+-I/usr/lib/gcc/x86_64-linux-gnu/5.4.0/../../../../include/c++/5.4.0/backward
+-I/usr/local/include
+-I/usr/lib/llvm-3.9/bin/../lib/clang/3.9.1/include
+-I/usr/include/x86_64-linux-gnu
+-I/usr/include
+constructed AnalysisController ...
+found the following IR files for this project:
+	llvm_examples/constness/constness_4.cpp
+WPA_MODE: 1
+link all llvm modules into a single module for WPA ...
+remaining contexts: 1
+remaining modules: 1
+start pre-analyzing modules ...
+pre-analyzing module: llvm_examples/constness/constness_4.cpp
+running GeneralStatisticsPass ...
+running ValueAnnotationPass ...
+analyzing function: main
+analyzing function: _ZN1XC1Ev
+analyzing function: llvm.memcpy.p0i8.p0i8.i64
+analyzing function: _ZN1XC2Ev
+pre-analysis completed ...
+modules:
+front-end module: llvm_examples/constness/constness_4.cpp
+functions:
+_ZN1XC1Ev defined in module llvm_examples/constness/constness_4.cpp
+_ZN1XC2Ev defined in module llvm_examples/constness/constness_4.cpp
+main defined in module llvm_examples/constness/constness_4.cpp
+SRC_HASH: 12250582182327931800
+writing points-to graph of function _ZN1XC1Ev into hexastore
+id: 0 ir_code: %struct.X* %this
+
+PointsToGraph for _ZN1XC1Ev
+%struct.X* %this <--> 
+
+
+
+writing points-to graph of function _ZN1XC2Ev into hexastore
+id: 0 ir_code: %struct.X* %this
+id: 10 ir_code:   %i = getelementptr inbounds %struct.X, %struct.X* %this, i32 0, i32 0, !ourframework.id !1
+  %i = getelementptr inbounds %struct.X, %struct.X* %this, i32 0, i32 0, !ourframework.id !1-->%struct.X* %this
+
+PointsToGraph for _ZN1XC2Ev
+%struct.X* %this <-->   %i = getelementptr inbounds %struct.X, %struct.X* %this, i32 0, i32 0, !ourframework.id !1 
+  %i = getelementptr inbounds %struct.X, %struct.X* %this, i32 0, i32 0, !ourframework.id !1 <--> %struct.X* %this 
+
+
+
+writing points-to graph of function llvm.memcpy.p0i8.p0i8.i64 into hexastore
+id: 0 ir_code: i8* %0
+id: 0 ir_code: i8* %1
+i8* %1-->i8* %0
+
+PointsToGraph for llvm.memcpy.p0i8.p0i8.i64
+i8* %0 <--> i8* %1 
+i8* %1 <--> i8* %0 
+
+
+
+writing points-to graph of function main into hexastore
+id: 0 ir_code:   %x = alloca %struct.X, align 4, !ourframework.id !1
+id: 1 ir_code:   %y = alloca %struct.X, align 4, !ourframework.id !2
+id: 4 ir_code:   %1 = bitcast %struct.X* %x to i8*, !ourframework.id !5
+id: 5 ir_code:   %2 = bitcast %struct.X* %y to i8*, !ourframework.id !6
+  %1 = bitcast %struct.X* %x to i8*, !ourframework.id !5-->  %x = alloca %struct.X, align 4, !ourframework.id !1
+  %2 = bitcast %struct.X* %y to i8*, !ourframework.id !6-->  %y = alloca %struct.X, align 4, !ourframework.id !2
+
+PointsToGraph for main
+  %x = alloca %struct.X, align 4, !ourframework.id !1 <-->   %1 = bitcast %struct.X* %x to i8*, !ourframework.id !5 
+  %y = alloca %struct.X, align 4, !ourframework.id !2 <-->   %2 = bitcast %struct.X* %y to i8*, !ourframework.id !6 
+  %1 = bitcast %struct.X* %x to i8*, !ourframework.id !5 <-->   %x = alloca %struct.X, align 4, !ourframework.id !1 
+  %2 = bitcast %struct.X* %y to i8*, !ourframework.id !6 <-->   %y = alloca %struct.X, align 4, !ourframework.id !2 
+
+
+
+reconstruction the class hierarchy ...
+reconstruction completed ...
+LLVMSructTypeHierarchy graph:
+struct.X --> 
+
+VTables:
+EMPTY
+
+
+starting the chosen data-flow analyses ...
+calling the walker ...
+mapping caller to callee pointers
+  %x = alloca %struct.X, align 4, !ourframework.id !1 ---> %struct.X* %this
+!!!
+0
+0
+mapping caller to callee pointers
+%struct.X* %this ---> %struct.X* %this
+!!!
+0
+0
+mapping caller to callee pointers
+  %y = alloca %struct.X, align 4, !ourframework.id !2 ---> %struct.X* %this
+!!!
+1
+0
+mapping caller to callee pointers
+%struct.X* %this ---> %struct.X* %this
+!!!
+0
+0
+mapping caller to callee pointers
+  %1 = bitcast %struct.X* %x to i8*, !ourframework.id !5 ---> i8* %0
+  %2 = bitcast %struct.X* %y to i8*, !ourframework.id !6 ---> i8* %1
+!!!
+2
+0
+!!!
+3
+1
+constructed whole module ptg and resolved indirect calls ...
+call graph:
+ -->  
+_ZN1XC1Ev -->  
+main --> _ZN1XC1Ev 
+_ZN1XC1Ev --> 
+_ZN1XC1Ev --> _ZN1XC2Ev 
+_ZN1XC2Ev --> 
+main -->  
+data-flow analyses completed ...
+... shutdown analysis ...
+GeneralStatisticsPass summary for module: 'llvm_examples/constness/constness_4.cpp'
+functions: 4
+globals: 0
+basic blocks: 3
+allocation sites: 0
+calls-sites: 4
+pointer variables: 0
+instructions: 13
+

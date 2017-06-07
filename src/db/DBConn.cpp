@@ -340,6 +340,11 @@ void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {
   for (auto& entry : irdb.globals) {
   	db.insertGlobalVariableModuleDefinition(entry.first, entry.second);
   }
+  for (auto& entry : irdb.ptgs) {
+//    insertPointsToGraphs(irdb.functions.at(entry.first), entry.first, entry.second.get());
+//    entry.second.get()->print();
+      db << *(entry.second);
+  }
 }
 
 void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb) {}
@@ -418,7 +423,22 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 }
 
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
-	cout << "writing points-to graph into hexastore\n";
+	cout << "writing points-to graph of function " << PTG.F->getName().str() << " into hexastore\n";
+//  hexastore::Hexastore h("points_to_graph_hexastore.db");
+  typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
+  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PTG.ptg); vp.first != vp.second; ++vp.first) {
+    cout << "id: " << PTG.ptg[*vp.first].id << " ir_code: " << PTG.ptg[*vp.first].ir_code << "\n";
+  }
+
+  typename boost::graph_traits<PointsToGraph::graph_t>::edge_iterator ei_start, e_end;
+  for (tie(ei_start, e_end) = boost::edges(PTG.ptg); ei_start != e_end; ++ei_start) {
+    auto source = boost::source(*ei_start, PTG.ptg);
+    auto target = boost::target(*ei_start, PTG.ptg);
+    cout << PTG.ptg[source].ir_code << "-->" << PTG.ptg[target].ir_code << "\n";
+  }
+  cout << "\n";
+  PTG.print();
+  cout << "\n\n\n";
 }
 
 void operator>>(DBConn& db, const PointsToGraph& PTG) {

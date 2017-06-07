@@ -146,7 +146,7 @@ public:
   							 vector<pair<const llvm::Value*, const llvm::Value*>> v_in_first_u_in_second,
 								 const llvm::Value* callsite_value);
   void printValueVertexMap();
-  void print();
+  void print() const;
   void printAsDot(const string& filename);
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const PointsToGraph& STH);
