@@ -9,21 +9,31 @@
 #define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_
 
 #include <string>
+#include <vector>
+#include <llvm/IR/Instruction.h>
+#include "ZeroValue.hh"
+#include "FlowFunction.hh"
 using namespace std;
 
-template<typename N, typename D>
-class IFDSSummary {
+template<typename D>
+class IFDSSummary : FlowFunction<D> {
 private:
-	string FunctionName;
-	N Start;
-	N End;
-//	vector<D> Inputs;
-//	vector<bool> Context;
-//	set<D> Outputs;
+	const llvm::Instruction* StartNode;
+	const llvm::Instruction* EndNode;
+	D ZeroValue;
+	set<D> Outputs;
 
 public:
-	IFDSSummary();
+	IFDSSummary(const llvm::Instruction* Start, const llvm::Instruction* End, D ZV);
 	virtual ~IFDSSummary();
+	set<D> computeTargets(D source) override {
+		if (source == ZeroValue) {
+			Outputs.insert(source);
+			return Outputs;
+		} else {
+			return { source };
+		}
+	}
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_ */

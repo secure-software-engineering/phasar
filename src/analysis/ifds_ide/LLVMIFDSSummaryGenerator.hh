@@ -15,8 +15,8 @@
 #include "../ifds_ide/flow_func/GenAll.hh"
 #include "DefaultIFDSTabulationProblem.hh"
 #include "IFDSTabulationProblem.hh"
-#include "icfg/ICFG.hh"
-#include "icfg/LLVMBasedICFG.hh"
+#include "../icfg/ICFG.hh"
+#include "../icfg/LLVMBasedICFG.hh"
 #include "solver/LLVMIFDSSolver.hh"
 #include "solver/IFDSSummaryGenerator.hh"
 #include <llvm/IR/Function.h>

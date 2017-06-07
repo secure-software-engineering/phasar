@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <map>
 #include <set>
-#include "icfg/ICFG.hh"
+#include "../icfg/ICFG.hh"
 #include "SolverConfiguration.hh"
 #include "FlowFunctions.hh"
 

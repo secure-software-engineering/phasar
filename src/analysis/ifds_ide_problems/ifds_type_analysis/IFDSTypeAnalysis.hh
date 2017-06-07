@@ -20,7 +20,7 @@
 #include <memory>
 #include <set>
 #include "../../ifds_ide/ZeroValue.hh"
-#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 using namespace std;
 class IFDSTypeAnalysis
     : public DefaultIFDSTabulationProblem<

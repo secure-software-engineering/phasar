@@ -49,6 +49,7 @@ CXX := clang++
 CXX_FLAGS := -std=c++14			# change to c++14 and libc++ Clang when possible
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
 CXX_FLAGS += -O0 #-O4
+CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
 CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic

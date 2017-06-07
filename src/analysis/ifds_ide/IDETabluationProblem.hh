@@ -10,7 +10,7 @@
 
 #include <type_traits>
 #include <memory>
-#include "icfg/ICFG.hh"
+#include "../icfg/ICFG.hh"
 #include "IFDSTabulationProblem.hh"
 #include "EdgeFunctions.hh"
 #include "JoinLattice.hh"

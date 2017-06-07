@@ -13,8 +13,15 @@
 #include "../utils/utils.hh"
 using namespace std;
 
-
+template <typename D>
 class DHSStringConverter {
+	virtual ~DHSStringConverter() = default;
+	virtual string DToHStoreStringRep(const llvm::Instruction* n, D d) = 0;
+	virtual D HStoreStringRepToD(const string& s) = 0;
+};
+
+template <>
+class DHSStringConverter<const llvm::Value*> {
 public:
 	~DHSStringConverter() = default;
 	string DToHStoreStringRep(const llvm::Instruction* n, const llvm::Value* d);

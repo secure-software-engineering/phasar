@@ -10,7 +10,7 @@
 
 #include "../IDETabluationProblem.hh"
 #include "IDESolver.hh"
-#include "../icfg/ICFG.hh"
+#include "../../icfg/ICFG.hh"
 
 template <class D, class V, class I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction*,

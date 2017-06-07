@@ -154,7 +154,7 @@ $ cd build/
 
 $ cmake ..
 
-$ make
+$ make -j $(nproc)
 
 After compilation using cmake the binary can be found right in the build 
 directory.
@@ -170,6 +170,9 @@ Please be careful and check if errors occure during the compilation of our frame
 After having compiled ourframework running small test example seems adequate.
 If errors occur when running the test example your compiler might be 
 misconfigured or worse (please report if that happens).
+
+#### A remark on compile time
+C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. We plan to adjust our handwritten Makefile as well, so that it can be build using makes parallelization capabilities (currently it cannot run in parallel).
 
 #### Creating the configuration files
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:

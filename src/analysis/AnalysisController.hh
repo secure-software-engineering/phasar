@@ -30,7 +30,7 @@
 #include "../db/PHSStringConverter.hh"
 #include "../db/ProjectIRCompiledDB.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
-#include "ifds_ide/icfg/LLVMBasedICFG.hh"
+#include "icfg/LLVMBasedICFG.hh"
 #include "ifds_ide/LLVMIFDSSummaryGenerator.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"

@@ -12,7 +12,7 @@
 #include <algorithm>
 #include "../IFDSTabulationProblem.hh"
 #include "IFDSSolver.hh"
-#include "../icfg/ICFG.hh"
+#include "../../icfg/ICFG.hh"
 #include "../../../utils/Table.hh"
 using namespace std;
 

@@ -12,8 +12,9 @@
 #include <vector>
 #include <string>
 #include <memory>
-#include "../../analysis/ifds_ide/FlowFunction.hh"
 #include "../../analysis/ifds_ide/flow_func/GenAll.hh"
+#include "../../analysis/ifds_ide/FlowFunction.hh"
+#include "../../analysis/ifds_ide/IFDSSummary.hh"
 #include "../../utils/ContainerConfiguration.hh"
 using namespace std;
 
@@ -24,7 +25,7 @@ private:
 	 * Stores the summary for a function specified by a name which holds under a
 	 * specific context described by a bit-pattern represented as vector<bool> type.
 	 */
-	DSMap<string, DSMap<vector<bool>, shared_ptr<GenAll<D>>>> SummaryMap;
+	map<string, map<vector<bool>, shared_ptr<IFDSSummary<D>>>> SummaryMap;
 
 public:
 	IFDSSummaryPool() = default;

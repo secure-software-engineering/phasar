@@ -21,15 +21,10 @@
 #include "../edge_func/EdgeIdentity.hh"
 #include "../edge_func/AllTop.hh"
 #include "../edge_func/AllBottom.hh"
+#include "../../misc/BinaryDomain.hh"
 
 using namespace std;
 
-enum class BinaryDomain {
-	BOTTOM = 0,
-	TOP = 1
-};
-
-ostream& operator<< (ostream& os, const BinaryDomain& b);
 
 extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
 

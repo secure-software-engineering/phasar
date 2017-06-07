@@ -14,7 +14,7 @@
 #include "../../ifds_ide/ZeroValue.hh"
 #include "../../ifds_ide/edge_func/EdgeIdentity.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
-#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>

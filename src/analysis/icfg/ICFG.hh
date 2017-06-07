@@ -11,7 +11,7 @@
 #include <vector>
 #include <set>
 #include <iostream>
-#include "../../../utils/ContainerConfiguration.hh"
+#include "../../utils/ContainerConfiguration.hh"
 
 using namespace std;
 

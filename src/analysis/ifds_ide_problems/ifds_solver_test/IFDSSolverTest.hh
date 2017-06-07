@@ -9,7 +9,7 @@
 #define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_
 
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/ZeroValue.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
