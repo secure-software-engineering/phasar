@@ -54,6 +54,7 @@ const static string MoreHelp(
     "parameters as shown in the following:\n\n"
     "\tanalysis - parameter\n"
     "\tuninitialized variable analysis (IFDS) - 'ifds_uninit'\n"
+		"\tconstness analysis (IFDS) - 'ifds_const'\n"
     "\ttaint analysis (IFDS) - 'ifds_taint'\n"
     "\ttaint analysis (IDE) - 'ide_taint'\n"
     "\ttype analysis (IFDS) - 'ifds_type'\n"
@@ -104,9 +105,10 @@ int main(int argc, const char **argv) {
 	}
 
   vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_UninitializedVariables,
-                                           AnalysisType::IFDS_TaintAnalysis,
-                                           AnalysisType::IDE_TaintAnalysis,
-                                           AnalysisType::IFDS_TypeAnalysis };
+																					AnalysisType::IFDS_ConstnessAnalysis,
+                                          AnalysisType::IFDS_TaintAnalysis,
+                                          AnalysisType::IDE_TaintAnalysis,
+                                          AnalysisType::IFDS_TypeAnalysis };
   if (!Analyses.empty()) {
     ChosenAnalyses.clear();
   	for (auto& Analysis : Analyses) {
@@ -114,6 +116,8 @@ int main(int argc, const char **argv) {
   			ChosenAnalyses.push_back(AnalysisType::IFDS_UninitializedVariables);
   		else if (Analysis == "ifds_taint")
   			ChosenAnalyses.push_back(AnalysisType::IFDS_TaintAnalysis);
+			else if (Analysis == "ifds_const")
+  			ChosenAnalyses.push_back(AnalysisType::IFDS_ConstnessAnalysis);
   		else if (Analysis == "ifds_type")
   			ChosenAnalyses.push_back(AnalysisType::IFDS_TypeAnalysis);
   		else if (Analysis == "ide_taint")

@@ -39,11 +39,13 @@
 #include "ifds_ide_problems/ide_taint_analysis/IDETaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.hh"
+#include "ifds_ide_problems/ifds_constness_analysis/IFDSConstnessAnalysis.hh"
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
 using namespace std;
 
 enum class AnalysisType {
   IFDS_UninitializedVariables,
+	IFDS_ConstnessAnalysis,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,

@@ -5,6 +5,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 	case AnalysisType::IFDS_UninitializedVariables:
 		os << "AnalysisType::IFDS_UninitializedVariables";
 		break;
+  case AnalysisType::IFDS_ConstnessAnalysis:
+		os << "AnalysisType::IFDS_ConstnessAnalysis";
+		break;
 	case AnalysisType::IFDS_TaintAnalysis:
 		os << "AnalysisType::IFDS_TaintAnalysis";
 		break;
@@ -165,6 +168,14 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       			llvmtypesolver.solve();
       			break;
       		}
+          case AnalysisType::IFDS_ConstnessAnalysis:
+      		{ // caution: observer '{' and '}' we work in another scope
+      			cout << "IFDS_ConstnessAnalysis\n";
+            IFDSConstnessAnalysis constanalysisproblem(icfg);
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(constanalysisproblem, true);
+            llvmconstsolver.solve();
+      			break;
+      		}
       		case AnalysisType::IFDS_UninitializedVariables:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IFDS_UninitalizedVariables\n";
@@ -179,7 +190,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;
       		}
-      			case AnalysisType::None:
+          case AnalysisType::None:
       				break;
       		default:
       			cout << "analysis not valid!" << endl;
