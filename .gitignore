@@ -38,6 +38,9 @@ build/*
 *.sqlite
 *.sqlite3
 
+# dot files
+*.dot
+
 # temporary files
 *.*~
 *.dwo
