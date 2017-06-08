@@ -113,10 +113,17 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     LLVMStructTypeHierarchy CH(IRDB);
     cout << "reconstruction completed ...\n";
     CH.print();
-    CH.printAsDot();
+    CH.printAsDot("STH_before_store.dot");
 
-    // db << CH;
-    // db >> CH;
+    cout << "storing the class hierarchy in database ...\n";
+    db << CH;
+    cout << "storing completed ...\n";
+    LLVMStructTypeHierarchy TH;
+    cout << "loading the class hierarchy from database...\n";
+    db >> TH;
+    cout << "loading completed ...\n";
+    TH.print();
+    TH.printAsDot("STH_after_load.dot");
 
     IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
     		IFDSSpecialSummaries<const llvm::Value*>::getInstance();

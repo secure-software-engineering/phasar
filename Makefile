@@ -100,6 +100,10 @@ CLANG_FLAGS := 	-lclangTooling\
 
 all: $(BIN)$(EXE)
 
+rmdb:
+	rm struct_hierarchy_graph_hexastore.db
+	rm llheros_analyzer.db
+
 doc:
 	@echo "building the documentation of the source code ..."
 	cd $(SRC); \
