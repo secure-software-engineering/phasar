@@ -37,6 +37,14 @@ IDETaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
   return Identity<const llvm::Value *>::v();
 }
 
+shared_ptr<FlowFunction<const llvm::Value *>>
+IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction* callStmt,
+																				 const llvm::Function* destMthd,
+																				 vector<const llvm::Value*> inputs,
+																				 vector<bool> context) {
+	return nullptr;
+}
+
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()

@@ -103,10 +103,10 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 
-  vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_UninitializedVariables,
-                                           AnalysisType::IFDS_TaintAnalysis,
-                                           AnalysisType::IDE_TaintAnalysis,
-                                           AnalysisType::IFDS_TypeAnalysis };
+  vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_SolverTest,
+  																				AnalysisType::IDE_SolverTest,
+  																				AnalysisType::MONO_Intra_SolverTest,
+  																				AnalysisType::MONO_Inter_SolverTest };
   if (!Analyses.empty()) {
     ChosenAnalyses.clear();
   	for (auto& Analysis : Analyses) {
@@ -122,9 +122,14 @@ int main(int argc, const char **argv) {
   			ChosenAnalyses.push_back(AnalysisType::IFDS_SolverTest);
   		else if (Analysis == "ide_solvertest")
   			ChosenAnalyses.push_back(AnalysisType::IDE_SolverTest);
-  		else if (Analysis == "none")
+  		else if (Analysis == "mono_intra_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::MONO_Intra_SolverTest);
+  		else if (Analysis == "mono_inter_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::MONO_Inter_SolverTest);
+  		else if (Analysis == "none") {
+  			ChosenAnalyses.clear();
   			ChosenAnalyses.push_back(AnalysisType::None);
-  		else {
+  		} else {
   			cerr << "error: unrecognized analysis type, abort\n";
   			return 1;
   		}

@@ -21,21 +21,21 @@ protected:
 
 public:
 	LLVMMonotoneSolver();
-	virtual ~LLVMMonotoneSolver();
+	virtual ~LLVMMonotoneSolver() = default;
 
 	LLVMMonotoneSolver(MonotoneProblem<const llvm::Instruction*,D,C>& problem, bool dumpResults=false)
-						: MonotoneSolver<const llvm::Instruction*,D,I>(problem),
+						: MonotoneSolver<const llvm::Instruction*,D,C>(problem),
 						  DUMP_RESULTS(dumpResults) {}
 
 	virtual void solve() override {
 		// do the solving of the analaysis problem
-		MonotoneSolver<const llvm::Instruction*, D, I>::solve();
+		MonotoneSolver<const llvm::Instruction*, D, C>::solve();
 		if (DUMP_RESULTS)
 			dumpResults();
 	}
 
 	void dumpResults() {
-		cout << "dump results!\n";
+		cout << "dump monotone solver results!\n";
 	}
 };
 

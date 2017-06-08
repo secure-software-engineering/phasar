@@ -20,6 +20,12 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 	case AnalysisType::IDE_SolverTest:
 		os << "AnalysisType::IDE_SolverTest";
 		break;
+	case AnalysisType::MONO_Intra_SolverTest:
+		os << "AnalysisType::MONO_Intra_SolverTest";
+		break;
+	case AnalysisType::MONO_Inter_SolverTest:
+		os << "AnalysisType::MONO_Inter_SoverTest";
+		break;
 	case AnalysisType::None:
 		os << "AnalysisType::None";
 		break;
@@ -152,9 +158,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		case AnalysisType::IDE_TaintAnalysis:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IDE_TaintAnalysis\n";
-      			//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-      			//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
-      			//  llvmtaintsolver.solve();
+      			//IDETaintAnalysis taintanalysisproblem(icfg);
+      			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      			//llvmtaintsolver.solve();
       			break;
       		}
       		case AnalysisType::IFDS_TypeAnalysis:
@@ -179,7 +185,34 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;
       		}
-      			case AnalysisType::None:
+      		case AnalysisType::IFDS_SolverTest:
+      		{
+      			IFDSSolverTest ifdstest(icfg);
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
+      			llvmifdstestsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::IDE_SolverTest:
+      		{
+      			//IDESolverTest idetest(icfg);
+      			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
+      			//llvmidetestsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::MONO_Intra_SolverTest:
+      		{
+          	LLVMBasedCFG cfg(M.getFunction("main"));
+          	MonotoneSolverTest intra(cfg);
+          	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
+          	solver.solve();
+      			break;
+      		}
+      		case AnalysisType::MONO_Inter_SolverTest:
+      		{
+          	cout << "yet to be implemented!\n";
+      			break;
+      		}
+      		case AnalysisType::None:
       				break;
       		default:
       			cout << "analysis not valid!" << endl;

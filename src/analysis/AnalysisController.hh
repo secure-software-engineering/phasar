@@ -31,6 +31,7 @@
 #include "../db/ProjectIRCompiledDB.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
 #include "icfg/LLVMBasedICFG.hh"
+#include "icfg/LLVMBasedCFG.hh"
 #include "ifds_ide/LLVMIFDSSummaryGenerator.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"
@@ -40,6 +41,10 @@
 #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.hh"
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
+#include "ifds_ide_problems/ide_solver_test/IDESolverTest.hh"
+#include "ifds_ide_problems/ifds_solver_test/IFDSSolverTest.hh"
+#include "monotone/solver/LLVMMonotoneSolver.hh"
+#include "monotone_problems/monotone_solver_test/MonotoneSolverTest.hh"
 using namespace std;
 
 enum class AnalysisType {
@@ -49,6 +54,8 @@ enum class AnalysisType {
   IFDS_TypeAnalysis,
 	IFDS_SolverTest,
 	IDE_SolverTest,
+	MONO_Intra_SolverTest,
+	MONO_Inter_SolverTest,
 	None
 };
 
