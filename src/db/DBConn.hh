@@ -29,11 +29,8 @@
 #include "../analysis/call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../analysis/call-points-to_graph/VTable.hh"
 #include "../utils/utils.hh"
-<<<<<<< HEAD
 #include "../utils/IO.hh"
-=======
 #include "Hexastore.hh"
->>>>>>> persist-sth
 #include "ProjectIRCompiledDB.hh"
 
 #define CPREPARE(FUNCTION)                             \
@@ -100,12 +97,12 @@ class DBConn {
 	 * 	@brief Initializes the database at the given path.
 	 * 	@param dbname Path to the database.
 	 */
-  DBConn(const string dbname = "llheros_analyzer.db");
+  DBConn();
   ~DBConn();
   // Object representing the SQLite3 database.
   sqlite3* db;
   // Name of the database.
-  const string dbname;
+  //const string dbname;
   // Holds last return code from the database.
   int last_retcode;
   char* error_msg = 0;
@@ -119,7 +116,7 @@ class DBConn {
   int getTypeID(const string& t_name);
 
  public:
-  static const string dbname;
+  const static string dbname;
   DBConn(const DBConn& db) = delete;
   DBConn(DBConn&& db) = delete;
   DBConn& operator=(const DBConn& db) = delete;
