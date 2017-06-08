@@ -11,22 +11,21 @@
 #include <iostream>
 #include <vector>
 #include <set>
+#include <utility>
 using namespace std;
 
 template <typename M, typename N>
 class CFG {
 public:
-	CFG();
-
-	virtual ~CFG();
+	virtual ~CFG() = default;
 
 	virtual vector<N> getPredsOf(N u) = 0;
 
 	virtual vector<N> getSuccsOf(N n) = 0;
 
-	virtual set<M> getCalleesOfCallAt(N n) = 0;
+	virtual vector<pair<N,N>> getAllControlFlowEdges() = 0;
 
-	virtual set<N> getReturnSitesOfCallAt(N n) = 0;
+	virtual vector<N> getAllInstructions() = 0;
 
 	virtual bool isCallStmt(N stmt) = 0;
 
@@ -34,7 +33,7 @@ public:
 
 	virtual bool isStartPoint(N stmt) = 0;
 
-	virtual set<N> allNonCallStartNodes() = 0;
+	virtual vector<N> allNonCallStartNodes() = 0;
 
 	virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
 

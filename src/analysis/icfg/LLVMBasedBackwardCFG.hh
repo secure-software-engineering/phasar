@@ -28,17 +28,13 @@ public:
 
 	virtual vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n) override;
 
-	virtual set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction* n) override;
-
-	virtual set<const llvm::Instruction*> getReturnSitesOfCallAt(const llvm::Instruction* n) override;
-
 	virtual bool isCallStmt(const llvm::Instruction* stmt) override;
 
 	virtual bool isExitStmt(const llvm::Instruction* stmt) override;
 
 	virtual bool isStartPoint(const llvm::Instruction* stmt) override;
 
-	virtual set<const llvm::Instruction*> allNonCallStartNodes() override;
+	virtual vector<const llvm::Instruction*> allNonCallStartNodes() override;
 
 	virtual bool isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
 

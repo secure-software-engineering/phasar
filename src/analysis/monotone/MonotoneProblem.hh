@@ -13,8 +13,13 @@ using namespace std;
 
 template <typename N, typename D, typename C>
 class MonotoneProblem {
+protected:
+	C CFG;
+
 public:
+	MonotoneProblem(C cfg) : CFG(cfg) {}
 	virtual ~MonotoneProblem() = default;
+	C getCFG() { return CFG; }
 	virtual set<D> join(const set<D>& lhs, const set<D>& rhs) = 0;
 	virtual bool sqSubSetEq(const set<D>& lhs, const set<D>& rhs) = 0;
 	virtual set<D> flow(N s, const set<D>& in) = 0;

@@ -14,22 +14,27 @@
 #include <llvm/IR/Function.h>
 #include <iostream>
 #include <vector>
+#include <string>
 #include <set>
 using namespace std;
 
 
 class LLVMBasedCFG : public CFG<const llvm::Function*, const llvm::Instruction*> {
-public:
-	LLVMBasedCFG();
-	virtual ~LLVMBasedCFG();
+private:
+	const llvm::Function* F;
 
-	virtual vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* u) override;
+public:
+	LLVMBasedCFG(const llvm::Function* f);
+
+	virtual ~LLVMBasedCFG() = default;
+
+	virtual vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* n) override;
 
 	virtual vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n) override;
 
-	virtual set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction* n) override;
+	virtual vector<pair<const llvm::Instruction*,const llvm::Instruction*>> getAllControlFlowEdges() override;
 
-	virtual set<const llvm::Instruction*> getReturnSitesOfCallAt(const llvm::Instruction* n) override;
+	virtual vector<const llvm::Instruction*> getAllInstructions() override;
 
 	virtual bool isCallStmt(const llvm::Instruction* stmt) override;
 
@@ -37,11 +42,13 @@ public:
 
 	virtual bool isStartPoint(const llvm::Instruction* stmt) override;
 
-	virtual set<const llvm::Instruction*> allNonCallStartNodes() override;
+	virtual vector<const llvm::Instruction*> allNonCallStartNodes() override;
 
 	virtual bool isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
 
 	virtual bool isBranchTarget(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
+
+	void print();
 };
 
 #endif /* SRC_ANALYSIS_ICFG_LLVMBASEDCFG_HH_ */
