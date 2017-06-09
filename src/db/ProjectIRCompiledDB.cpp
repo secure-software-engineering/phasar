@@ -50,8 +50,10 @@ void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand)
 	static vector<string> header_search_paths = splitString(readFile(ConfigurationDirectory+HeaderSearchPathsFileName), "\n");
 	static string minusI = "-I";
 	for_each(header_search_paths.begin(), header_search_paths.end(), [&CompileCommand](string& path) {
-		path = minusI + path;
-		CompileCommand.push_back(path.c_str());
+		if (!path.empty()) {
+			path = minusI + path;
+			CompileCommand.push_back(path.c_str());
+		}
 	});
 	cout << "Compile Commands\n";
   for (auto s : CompileCommand) {
