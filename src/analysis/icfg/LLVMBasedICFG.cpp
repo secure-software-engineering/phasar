@@ -81,11 +81,11 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	printPTGMapping(mapping);
       	DirectCSTargetMethods.insert(make_pair(&Inst, cs.getCalledFunction()));
       	// additionally add into boost graph
-      	if (function_vertex_map.find(F->getName().str()) != function_vertex_map.end()) {
+      	if (function_vertex_map.find(F->getName().str()) == function_vertex_map.end()) {
       		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
       		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
       	}
-      	if (function_vertex_map.find(cs.getCalledFunction()->getName().str()) != function_vertex_map.end()) {
+      	if (function_vertex_map.find(cs.getCalledFunction()->getName().str()) == function_vertex_map.end()) {
       		function_vertex_map[cs.getCalledFunction()->getName().str()] = boost::add_vertex(cg);
       		cg[function_vertex_map[cs.getCalledFunction()->getName().str()]] = VertexProperties(cs.getCalledFunction());
       	}
@@ -102,13 +102,14 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
         for (auto& possible_target_name : possible_target_names) {
         	possible_targets.insert(IRDB.getFunction(possible_target_name));
         }
+        cout << "POSSIBLE TARGES: " << possible_targets.size() << endl;
         IndirectCSTargetMethods.insert(make_pair(cs.getInstruction(), possible_targets));
         // additionally add into boost graph
-    		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
-    		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
     		for (auto possible_target : possible_targets) {
-    			function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
-    			cg[function_vertex_map[possible_target->getName().str()]] = VertexProperties(possible_target);
+    			if (function_vertex_map.find(possible_target->getName().str()) == function_vertex_map.end()) {
+    				function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
+    				cg[function_vertex_map[possible_target->getName().str()]] = VertexProperties(possible_target);
+    			}
     			boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[possible_target->getName().str()], EdgeProperties(cs.getInstruction()), cg);
     		}
     		// continue resolving

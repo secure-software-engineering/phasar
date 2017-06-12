@@ -81,6 +81,7 @@ int main(int argc, const char **argv) {
 	string ProjectPath;
 	bool WPAMode;
 	vector<string> Analyses;
+	bool Mem2Reg;
 
 	try {
 		bpo::options_description Description(MoreHelp+"\n\nCommand-line options");
@@ -88,8 +89,9 @@ int main(int argc, const char **argv) {
   				("help,h", "Print help message")
 					("module,m", bpo::value<string>(&ModulePath), "Module for single module mode")
 					("project,p", bpo::value<string>(&ProjectPath), "Path to the project under analysis")
+					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis")
 					("wpa,w", bpo::value<bool>(&WPAMode)->default_value(1), "WPA mode (1 or 0)")
-					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis");
+					("mem2reg", bpo::value<bool>(&Mem2Reg)->default_value(1), "Promote memory to register pass (1 or 0)");
 		bpo::variables_map VarMap;
 		bpo::store(bpo::parse_command_line(argc, argv, Description), VarMap);
 		bpo::notify(VarMap);
@@ -144,7 +146,7 @@ int main(int argc, const char **argv) {
   		}
   		vector<const char*> CompileArgs;
   		ProjectIRCompiledDB IRDB(ModulePath, CompileArgs);
-  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg);
   	} else {
   		if (!(bfs::exists(ProjectPath) && bfs::is_directory(ProjectPath))) {
   			cerr << "error: '" << ProjectPath << "' is not a valid directory, abort\n";
@@ -161,7 +163,7 @@ int main(int argc, const char **argv) {
 																												OccurrencesFlag);
   		clang::tooling::CompilationDatabase& CompileDB = OptionsParser.getCompilations();
   		ProjectIRCompiledDB IRDB(CompileDB);
-  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg);
   	}
   } else {
   	cerr << "error: expected at least the specification of parameter 'module' or 'project'\n"
