@@ -96,13 +96,25 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
 
   const llvm::Module& getModule() { return M; }
 
-  const llvm::Function* getMethodOf(const llvm::Instruction* n) override;
+  virtual const llvm::Function* getMethodOf(const llvm::Instruction* stmt) override;
 
-  vector<const llvm::Instruction*> getPredsOf(
-      const llvm::Instruction* u) override;
+  vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* I) override;
 
-  vector<const llvm::Instruction*> getSuccsOf(
-      const llvm::Instruction* n) override;
+  vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* I) override;
+
+  vector<pair<const llvm::Instruction*,const llvm::Instruction*>> getAllControlFlowEdges(const llvm::Function* fun) override;
+
+  vector<const llvm::Instruction*> getAllInstructionsOf(const llvm::Function* fun) override;
+
+  bool isExitStmt(const llvm::Instruction* stmt) override;
+
+  bool isStartPoint(const llvm::Instruction* stmt) override;
+
+  bool isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
+
+  bool isBranchTarget(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
+
+  string getMethodName(const llvm::Function* fun) override;
 
   set<const llvm::Function*> getCalleesOfCallAt(
       const llvm::Instruction* n) override;
@@ -120,29 +132,11 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
 
   CallType isCallStmt(const llvm::Instruction* stmt) override;
 
-  bool isExitStmt(const llvm::Instruction* stmt) override;
-
-  bool isStartPoint(const llvm::Instruction* stmt) override;
-
   set<const llvm::Instruction*> allNonCallStartNodes() override;
 
-  bool isFallThroughSuccessor(const llvm::Instruction* stmt,
-                              const llvm::Instruction* succ) override;
-
-  bool isBranchTarget(const llvm::Instruction* stmt,
-                      const llvm::Instruction* succ) override;
-
-  string getMethodName(const llvm::Function* F) override;
-
-	string getMethodName(const llvm::Instruction* n) override;
-
-  vector<const llvm::Instruction*> getAllInstructionsOfFunction(
-      const string& name);
-
-  vector<const llvm::Instruction*> getAllInstructionsOfFunction(
-      const llvm::Function* func);
-
   const llvm::Instruction* getLastInstructionOf(const string& name);
+
+  vector<const llvm::Instruction*> getAllInstructionsOfFunction(const string& name);
 
   void print();
 

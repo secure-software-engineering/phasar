@@ -7,6 +7,7 @@
 
 #include "ICFG.hh"
 
+
 ostream& operator<<(ostream& os, const CallType& CT) {
 	switch (CT) {
 	case CallType::none:
@@ -23,4 +24,3 @@ ostream& operator<<(ostream& os, const CallType& CT) {
 		break;
 	}
 }
-

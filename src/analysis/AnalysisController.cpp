@@ -131,7 +131,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
-//    	// create the analyses problems queried by the user and start analyzing
+    	// create the analyses problems queried by the user and start analyzing
     	llvm::Module& M = *(module_entry.second);
     	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
     	LLVMBasedICFG icfg(M, CH, IRDB);
@@ -201,8 +201,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		}
       		case AnalysisType::MONO_Intra_SolverTest:
       		{
-          	LLVMBasedCFG cfg(M.getFunction("main"));
-          	MonotoneSolverTest intra(cfg);
+          	LLVMBasedCFG cfg;
+          	MonotoneSolverTest intra(cfg, M.getFunction("main"));
           	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
           	solver.solve();
       			break;

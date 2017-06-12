@@ -14,30 +14,31 @@
 #include <utility>
 using namespace std;
 
-template <typename M, typename N>
+
+template <typename N, typename M>
 class CFG {
 public:
 	virtual ~CFG() = default;
 
-	virtual vector<N> getPredsOf(N u) = 0;
+	virtual M getMethodOf(N stmt) = 0;
 
-	virtual vector<N> getSuccsOf(N n) = 0;
+	virtual vector<N> getPredsOf(N stmt) = 0;
 
-	virtual vector<pair<N,N>> getAllControlFlowEdges() = 0;
+	virtual vector<N> getSuccsOf(N stmt) = 0;
 
-	virtual vector<N> getAllInstructions() = 0;
+	virtual vector<pair<N,N>> getAllControlFlowEdges(M fun) = 0;
 
-	virtual bool isCallStmt(N stmt) = 0;
+	virtual vector<N> getAllInstructionsOf(M fun) = 0;
 
 	virtual bool isExitStmt(N stmt) = 0;
 
 	virtual bool isStartPoint(N stmt) = 0;
 
-	virtual vector<N> allNonCallStartNodes() = 0;
-
 	virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
 
 	virtual bool isBranchTarget(N stmt, N succ) = 0;
+
+	virtual string getMethodName(M fun) = 0;
 };
 
 #endif /* SRC_ANALYSIS_ICFG_CFG_HH_ */

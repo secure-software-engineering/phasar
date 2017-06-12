@@ -74,8 +74,9 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
 
-PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* Fu, bool onlyConsiderMustAlias) : F(Fu) {
+PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
   cout << "analyzing function: " << F->getName().str() << endl;
+  merge_stack.push_back(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
   // ModRef information
@@ -247,7 +248,11 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
 }
 
 void PointsToGraph::print() {
-  cout << "PointsToGraph for " << F->getName().str() << "\n";
+  cout << "PointsToGraph for ";
+  for (const auto& fname : merge_stack) {
+  	cout << fname << " ";
+  }
+  cout << "\n";
   boost::print_graph(ptg,
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
@@ -289,5 +294,5 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	}
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
 			(ptg, other.ptg, v_in_g1_u_in_g2, callsite_value);
-	F = other.F;
+	merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
 }

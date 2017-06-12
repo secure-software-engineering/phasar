@@ -7,9 +7,10 @@
 
 #include "MonotoneSolverTest.hh"
 
-MonotoneSolverTest::MonotoneSolverTest(LLVMBasedCFG& cfg) : MonotoneProblem<const llvm::Instruction*,
-																																						const llvm::Value*,
-																																						LLVMBasedCFG&>(cfg) {}
+MonotoneSolverTest::MonotoneSolverTest(LLVMBasedCFG& cfg, const llvm::Function* f) : MonotoneProblem<const llvm::Instruction*,
+																																																		 const llvm::Value*,
+																																																		 const llvm::Function*,
+																																																		 LLVMBasedCFG&>(cfg, f) {}
 
 set<const llvm::Value*> MonotoneSolverTest::join(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) {
 	cout << "MonotoneSolverTest::join()\n";
