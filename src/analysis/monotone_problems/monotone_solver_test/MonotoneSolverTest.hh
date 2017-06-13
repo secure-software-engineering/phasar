@@ -18,9 +18,10 @@ using namespace std;
 
 class MonotoneSolverTest : public MonotoneProblem<const llvm::Instruction*,
 																									const llvm::Value*,
+																									const llvm::Function*,
 																									LLVMBasedCFG&> {
 public:
-	MonotoneSolverTest(LLVMBasedCFG& cfg);
+	MonotoneSolverTest(LLVMBasedCFG& cfg, const llvm::Function* f);
 	virtual ~MonotoneSolverTest() = default;
 	virtual set<const llvm::Value*> join(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) override;
 	virtual bool sqSubSetEq(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) override;

@@ -65,7 +65,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k);
 
 class AnalysisController {
  public:
-  AnalysisController(ProjectIRCompiledDB& IRDB, vector<AnalysisType> Analyses, bool WPA_MODE=true);
+  AnalysisController(ProjectIRCompiledDB& IRDB,
+  									 vector<AnalysisType> Analyses,
+										 bool WPA_MODE=true,
+										 bool Mem2Reg_MODE=true);
   ~AnalysisController() = default;
 };
 

@@ -22,7 +22,7 @@ LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction* i) : call
 LLVMBasedICFG::LLVMBasedICFG(
     llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
-    : M(Module), CG(Module), CH(STH), IRDB(IRDB) {
+    : M(Module), CH(STH), IRDB(IRDB) {
   // perform the resolving of all dynamic call sites contained in the corresponding module
 	llvm::Function* main = M.getFunction("main");
 	cout << "calling the walker ...\n";
@@ -44,7 +44,7 @@ LLVMBasedICFG::LLVMBasedICFG(llvm::Module& Module,
 							LLVMStructTypeHierarchy& STH,
 							ProjectIRCompiledDB& IRDB,
 							const vector<string>& EntryPoints)
-		: M(Module), CG(Module), CH(STH), IRDB(IRDB) {
+		: M(Module), CH(STH), IRDB(IRDB) {
 	for (auto& function_name : EntryPoints) {
 			llvm::Function* function = M.getFunction(function_name);
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
@@ -81,11 +81,11 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	printPTGMapping(mapping);
       	DirectCSTargetMethods.insert(make_pair(&Inst, cs.getCalledFunction()));
       	// additionally add into boost graph
-      	if (function_vertex_map.find(F->getName().str()) != function_vertex_map.end()) {
+      	if (function_vertex_map.find(F->getName().str()) == function_vertex_map.end()) {
       		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
       		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
       	}
-      	if (function_vertex_map.find(cs.getCalledFunction()->getName().str()) != function_vertex_map.end()) {
+      	if (function_vertex_map.find(cs.getCalledFunction()->getName().str()) == function_vertex_map.end()) {
       		function_vertex_map[cs.getCalledFunction()->getName().str()] = boost::add_vertex(cg);
       		cg[function_vertex_map[cs.getCalledFunction()->getName().str()]] = VertexProperties(cs.getCalledFunction());
       	}
@@ -102,13 +102,14 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
         for (auto& possible_target_name : possible_target_names) {
         	possible_targets.insert(IRDB.getFunction(possible_target_name));
         }
+        cout << "POSSIBLE TARGES: " << possible_targets.size() << endl;
         IndirectCSTargetMethods.insert(make_pair(cs.getInstruction(), possible_targets));
         // additionally add into boost graph
-    		function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
-    		cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
     		for (auto possible_target : possible_targets) {
-    			function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
-    			cg[function_vertex_map[possible_target->getName().str()]] = VertexProperties(possible_target);
+    			if (function_vertex_map.find(possible_target->getName().str()) == function_vertex_map.end()) {
+    				function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
+    				cg[function_vertex_map[possible_target->getName().str()]] = VertexProperties(possible_target);
+    			}
     			boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[possible_target->getName().str()], EdgeProperties(cs.getInstruction()), cg);
     		}
     		// continue resolving
@@ -199,47 +200,101 @@ void LLVMBasedICFG::printPTGMapping(vector<pair<const llvm::Value*, const llvm::
 	}
 }
 
-const llvm::Function* LLVMBasedICFG::getMethodOf(
-    const llvm::Instruction* n) {
-  return n->getFunction();
+const llvm::Function* LLVMBasedICFG::getMethodOf(const llvm::Instruction* stmt) {
+	return stmt->getParent()->getParent();
 }
 
-vector<const llvm::Instruction*> LLVMBasedICFG::getPredsOf(
-    const llvm::Instruction* I) {
-  vector<const llvm::Instruction *> Preds;
-  if (I->getPrevNode()) {
-    Preds.push_back(I->getPrevNode());
-  }
-  /*
-   * If we do not have a predecessor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
-  if (Preds.empty()) {
-    for (auto &BB : *I->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == I) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
-  }
-  return Preds;
+vector<const llvm::Instruction*> LLVMBasedICFG::getPredsOf(const llvm::Instruction* I) {
+	vector<const llvm::Instruction *> Preds;
+	if (I->getPrevNode()) {
+	  Preds.push_back(I->getPrevNode());
+	}
+	/*
+	 * If we do not have a predecessor yet, look for basic blocks which
+	 * lead to our instruction in question!
+	 */
+	if (Preds.empty()) {
+	  for (auto &BB : *I->getFunction()) {
+	    if (const llvm::TerminatorInst *T =
+	            llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+	      for (auto successor : T->successors()) {
+	        if (&*successor->begin() == I) {
+	          Preds.push_back(T);
+	        }
+	      }
+	    }
+	  }
+	}
+	return Preds;
 }
 
-vector<const llvm::Instruction*> LLVMBasedICFG::getSuccsOf(
-    const llvm::Instruction* I) {
-  vector<const llvm::Instruction*> Successors;
-  if (I->getNextNode())
-    Successors.push_back(I->getNextNode());
-  if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
-    for (auto successor : T->successors()) {
-      Successors.push_back(&*successor->begin());
-    }
-  }
-  return Successors;
+vector<const llvm::Instruction*> LLVMBasedICFG::getSuccsOf(const llvm::Instruction* I) {
+	vector<const llvm::Instruction*> Successors;
+	if (I->getNextNode())
+	  Successors.push_back(I->getNextNode());
+	if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
+	  for (auto successor : T->successors()) {
+	   Successors.push_back(&*successor->begin());
+	  }
+	}
+	return Successors;
+}
+
+vector<pair<const llvm::Instruction*,const llvm::Instruction*>> LLVMBasedICFG::getAllControlFlowEdges(const llvm::Function* fun) {
+	vector<pair<const llvm::Instruction*,const llvm::Instruction*>> Edges;
+	for (auto& BB : *fun) {
+		for (auto& I : BB) {
+			auto Successors = getSuccsOf(&I);
+			for (auto Successor : Successors) {
+				Edges.push_back(make_pair(&I, Successor));
+			}
+		}
+	}
+	return Edges;
+}
+
+vector<const llvm::Instruction*> LLVMBasedICFG::getAllInstructionsOf(const llvm::Function* fun) {
+	vector<const llvm::Instruction*> Instructions;
+		for (auto& BB : *fun) {
+			for (auto& I : BB) {
+				Instructions.push_back(&I);
+			}
+		}
+		return Instructions;
+}
+
+bool LLVMBasedICFG::isExitStmt(const llvm::Instruction* stmt) {
+	return llvm::isa<llvm::ReturnInst>(stmt);
+}
+
+bool LLVMBasedICFG::isStartPoint(const llvm::Instruction* stmt) {
+	return (stmt == &(*stmt->getFunction()->getEntryBlock().begin()));
+}
+
+bool LLVMBasedICFG::isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) {
+	if (const llvm::BranchInst* B = llvm::dyn_cast<llvm::BranchInst>(succ)) {
+    if (B->isConditional()) {
+       return &(*B->getSuccessor(1)->begin()) == succ;
+     } else {
+       return &(*B->getSuccessor(0)->begin()) == succ;
+     }
+	}
+	return false;
+}
+
+bool LLVMBasedICFG::isBranchTarget(const llvm::Instruction* stmt, const llvm::Instruction* succ) {
+	if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
+		for (auto successor : T->successors()) {
+			if (&*successor->begin() == succ) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+string LLVMBasedICFG::getMethodName(const llvm::Function* fun) {
+	return fun->getName().str();
 }
 
 /**
@@ -347,19 +402,6 @@ CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 	}
 }
 
-bool LLVMBasedICFG::isExitStmt(const llvm::Instruction* stmt) {
-  return llvm::isa<llvm::ReturnInst>(stmt);
-}
-
-/**
- * Returns all start points of a given method. There may be
- * more than one start point in case of a backward analysis.
- */
-bool LLVMBasedICFG::isStartPoint(const llvm::Instruction* stmt) {
-  const llvm::Function* F = stmt->getFunction();
-  return &*F->getEntryBlock().begin() == stmt;
-}
-
 /**
  * Returns the set of all nodes that are neither call nor start nodes.
  */
@@ -378,39 +420,9 @@ LLVMBasedICFG::allNonCallStartNodes() {
   return NonCallStartNodes;
 }
 
-/**
- * Returns whether succ is the fall-through successor of stmt,
- * i.e., the unique successor that is be reached when stmt
- * does not branch.
- */
-bool LLVMBasedICFG::isFallThroughSuccessor(
-    const llvm::Instruction* stmt, const llvm::Instruction* succ) {
-  return (stmt->getParent() == succ->getParent());
-}
-
-/**
- * Returns whether succ is a branch target of stmt.
- */
-bool LLVMBasedICFG::isBranchTarget(
-    const llvm::Instruction* stmt, const llvm::Instruction* succ) {
-	if (const llvm::TerminatorInst* T = llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-		for (auto successor : T->successors()) {
-			if (&*successor->begin() == succ) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 vector<const llvm::Instruction*>
 LLVMBasedICFG::getAllInstructionsOfFunction(const string& name) {
-  vector<const llvm::Instruction*> IVec;
-  const llvm::Function* f = M.getFunction(name);
-  for (llvm::const_inst_iterator I = inst_begin(f), E = inst_end(f); I != E; ++I) {
-  	IVec.push_back(&(*I));
-  }
-  return IVec;
+  return getAllInstructionsOf(M.getFunction(name));
 }
 
 const llvm::Instruction* LLVMBasedICFG::getLastInstructionOf(
@@ -419,26 +431,6 @@ const llvm::Instruction* LLVMBasedICFG::getLastInstructionOf(
   auto last = llvm::inst_end(f);
   last--;
   return &(*last);
-}
-
-vector<const llvm::Instruction*>
-LLVMBasedICFG::getAllInstructionsOfFunction(
-    const llvm::Function* func) {
-  return getAllInstructionsOfFunction(func->getName().str());
-}
-
-string LLVMBasedICFG::getMethodName(const llvm::Function* F) {
-  return F->getName().str();
-}
-
-string LLVMBasedICFG::getMethodName(const llvm::Instruction* n) {
-	if (const llvm::CallInst* Call = llvm::dyn_cast<llvm::CallInst>(n)) {
-			return Call->getCalledFunction()->getName().str();
-	} else if (const llvm::InvokeInst* Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
-			return Invoke->getCalledFunction()->getName().str();
-	} else {
-		return "";
-	}
 }
 
 void LLVMBasedICFG::print() {

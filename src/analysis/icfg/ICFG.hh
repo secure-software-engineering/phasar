@@ -11,9 +11,10 @@
 #include <vector>
 #include <set>
 #include <iostream>
+#include "CFG.hh"
 #include "../../utils/ContainerConfiguration.hh"
-
 using namespace std;
+
 
 enum class CallType {
 	none = 0,
@@ -24,25 +25,9 @@ enum class CallType {
 ostream& operator<<(ostream& os, const CallType& CT);
 
 template<typename N, typename M>
-class ICFG {
+class ICFG : public CFG<N, M> {
 public:
 	virtual ~ICFG() = default;
-
-	virtual M getMethodOf(N n) = 0;
-
-	virtual vector<N> getPredsOf(N u) = 0;
-
-	virtual vector<N> getSuccsOf(N n) = 0;
-
-	virtual set<M> getCalleesOfCallAt(N n) = 0;
-
-	virtual set<N> getCallersOf(M m) = 0;
-
-	virtual set<N> getCallsFromWithin(M m) = 0;
-
-	virtual set<N> getStartPointsOf(M m) = 0;
-
-	virtual set<N> getReturnSitesOfCallAt(N n) = 0;
 
 	/**
 	 * We return an int rather than a boolean value, since we would also like to
@@ -58,19 +43,17 @@ public:
 	 */
 	virtual CallType isCallStmt(N stmt) = 0;
 
-	virtual bool isExitStmt(N stmt) = 0;
-
-	virtual bool isStartPoint(N stmt) = 0;
-
 	virtual set<N> allNonCallStartNodes() = 0;
 
-	virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
+	virtual set<M> getCalleesOfCallAt(N stmt) = 0;
 
-	virtual bool isBranchTarget(N stmt, N succ) = 0;
+	virtual set<N> getCallersOf(M fun) = 0;
 
-	virtual string getMethodName(N n) = 0;
+	virtual set<N> getCallsFromWithin(M fun) = 0;
 
-	virtual string getMethodName(M m) = 0;
+	virtual set<N> getStartPointsOf(M fun) = 0;
+
+	virtual set<N> getReturnSitesOfCallAt(N stmt) = 0;
 };
 
 #endif /* ANALYSIS_ICFG_HH_ */

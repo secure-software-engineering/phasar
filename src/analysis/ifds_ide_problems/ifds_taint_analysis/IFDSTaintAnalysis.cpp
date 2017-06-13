@@ -45,7 +45,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
   // Taint the commandline arguments
-  if (icfg.getMethodName(curr) == "main" && icfg.isStartPoint(curr)) {
+  if (curr->getFunction()->getName().str() == "main" && icfg.isStartPoint(curr)) {
 
   	// taint the command line arguments
     struct TAFF : FlowFunction<const llvm::Value *> {

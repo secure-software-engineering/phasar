@@ -18,10 +18,10 @@
 using namespace std;
 
 
-template <typename N, typename D, typename C>
+template <typename N, typename D, typename M, typename C>
 class MonotoneSolver {
 protected:
-	MonotoneProblem<N,D,C>& IMProblem;
+	MonotoneProblem<N,D,M,C>& IMProblem;
 	deque<pair<N,N>> Worklist;
 	map<N, set<D>> Analysis;
 	C CFG;
@@ -29,16 +29,16 @@ protected:
 	void initialize() {
 		// step 1: Initalization (of Worklist and Analysis)
 		// add all edges to the worklist
-		vector<pair<N,N>> edges = CFG.getAllControlFlowEdges();
+		vector<pair<N,N>> edges = CFG.getAllControlFlowEdges(IMProblem.getFunction());
 		Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
 		// set all analysis information to the empty set
-		for (auto s : CFG.getAllInstructions()) {
+		for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
 			Analysis.insert({s, set<D>()});
 		}
 	}
 
 public:
-	MonotoneSolver(MonotoneProblem<N,D,C>& IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
+	MonotoneSolver(MonotoneProblem<N,D,M,C>& IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
 	virtual ~MonotoneSolver() = default;
 	virtual void solve() {
 		initialize();

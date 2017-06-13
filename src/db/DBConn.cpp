@@ -24,6 +24,18 @@ DBConn::~DBConn() {
   }
 }
 
+void DBConn::synchronize(ProjectIRCompiledDB* irdb) {
+	IRDB = irdb;
+}
+
+void DBConn::desynchronize() {
+	IRDB = nullptr;
+}
+
+bool DBConn::isSynchronized() {
+	return IRDB != nullptr;
+}
+
 int DBConn::getModuleID(const string& mod_name) {
   static string module_id_query = "SELECT ID FROM IR_MODULE WHERE MODULE_IDENTIFIER=?;";
   sqlite3_stmt* module_id_statement;
@@ -418,10 +430,14 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 }
 
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
+	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
+	static PHSStringConverter converter(*db.IRDB);
 	cout << "writing points-to graph into hexastore\n";
 }
 
 void operator>>(DBConn& db, const PointsToGraph& PTG) {
+	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
+	static PHSStringConverter converter(*db.IRDB);
 	cout << "reading points-to graph from hexastore\n";
 }
 

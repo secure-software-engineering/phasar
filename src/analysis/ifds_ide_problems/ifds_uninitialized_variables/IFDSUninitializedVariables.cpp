@@ -11,7 +11,8 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
   // set every local variable as uninitialized, that is not a function parameter
-  if (icfg.getMethodName(curr) == "main" && icfg.isStartPoint(curr)) {
+  if (curr->getFunction()->getName().str() == "main" && icfg.isStartPoint(curr)) {
+  	curr->dump();
   	const llvm::Function* func = icfg.getMethodOf(curr);
 
   	// set all locals as uninitialized flow function
@@ -95,12 +96,25 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
     return make_shared<UVFF>(valueop, pointerop);
   }
 
-  // check if some instruction is using an undefined value directly
-  for (auto& operand : curr->operands()) {
-  	if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(operand)) {
-  		return make_shared<Gen<const llvm::Value *>>(curr, zeroValue());
+  // check if some instruction is using an undefined value directly or indirectly
+  struct UVFF : FlowFunction<const llvm::Value*> {
+  	const llvm::Instruction* inst;
+  	UVFF(const llvm::Instruction* inst) : inst(inst) {}
+  	set<const llvm::Value *> computeTargets(const llvm::Value* source) {
+  		for (auto& operand : inst->operands()) {
+  			if (operand == source) {
+  				return { source, inst };
+  			}
+  		}
+  		for (auto& operand : inst->operands()) {
+  		 	if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(operand)) {
+  		 		return { source, inst };
+  		 	}
+  		}
+  		return { source };
   	}
-  }
+  };
+  return make_shared<UVFF>(curr);
 
   // otherwise we do not care and nothing changes
   return Identity<const llvm::Value *>::v();
@@ -168,6 +182,11 @@ IFDSUnitializedVariables::getCallFlowFuntion(const llvm::Instruction *callStmt,
           			}
           		} else {
           			for (auto& operand : inst.operands()) {
+          				if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(&operand)) {
+          					uninitlocals.insert(operand);
+          				}
+          			}
+          			for (auto& operand : call->operands()) {
           				if (const llvm::UndefValue* undef = llvm::dyn_cast<llvm::UndefValue>(&operand)) {
           					uninitlocals.insert(operand);
           				}
