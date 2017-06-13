@@ -152,7 +152,7 @@ int main(int argc, const char **argv) {
   			cerr << "error: '" << ProjectPath << "' is not a valid directory, abort\n";
   			return 1;
   		}
-  		// perfrom a little trick to make OptionsParser only responsible for the project sources
+  		// perform a little trick to make OptionsParser only responsible for the project sources
   		int OnlyTakeCareOfSources = 2;
   		const char* ProjectSources = ProjectPath.c_str();
   		const char* DummyProgName = "not_important";

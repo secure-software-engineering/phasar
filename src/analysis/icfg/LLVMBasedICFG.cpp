@@ -22,7 +22,7 @@ LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction* i) : call
 LLVMBasedICFG::LLVMBasedICFG(
     llvm::Module& Module, LLVMStructTypeHierarchy& STH,
     ProjectIRCompiledDB& IRDB)
-    : M(Module), CG(Module), CH(STH), IRDB(IRDB) {
+    : M(Module), CH(STH), IRDB(IRDB) {
   // perform the resolving of all dynamic call sites contained in the corresponding module
 	llvm::Function* main = M.getFunction("main");
 	cout << "calling the walker ...\n";
@@ -44,7 +44,7 @@ LLVMBasedICFG::LLVMBasedICFG(llvm::Module& Module,
 							LLVMStructTypeHierarchy& STH,
 							ProjectIRCompiledDB& IRDB,
 							const vector<string>& EntryPoints)
-		: M(Module), CG(Module), CH(STH), IRDB(IRDB) {
+		: M(Module), CH(STH), IRDB(IRDB) {
 	for (auto& function_name : EntryPoints) {
 			llvm::Function* function = M.getFunction(function_name);
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);

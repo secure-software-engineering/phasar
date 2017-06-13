@@ -29,6 +29,7 @@
 #include <iostream>
 #include <memory>
 #include <set>
+#include <vector>
 #include <map>
 #include <string>
 #include "../call-points-to_graph/LLVMStructTypeHierarchy.hh"
@@ -43,11 +44,11 @@ using namespace std;
 class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function*> {
  private:
   const llvm::Module& M;
-  llvm::CallGraph CG;
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   PointsToGraph WholeModulePTG;
   set<string> VisitedFunctions;
+  vector<string> CallStack;
   map<const llvm::Instruction*, const llvm::Function*> DirectCSTargetMethods;
   map<const llvm::Instruction*, set<const llvm::Function*>> IndirectCSTargetMethods;
   /*
