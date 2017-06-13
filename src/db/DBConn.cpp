@@ -24,6 +24,18 @@ DBConn::~DBConn() {
   }
 }
 
+void DBConn::synchronize(ProjectIRCompiledDB* irdb) {
+	IRDB = irdb;
+}
+
+void DBConn::desynchronize() {
+	IRDB = nullptr;
+}
+
+bool DBConn::isSynchronized() {
+	return IRDB != nullptr;
+}
+
 int DBConn::getModuleID(const string& mod_name) {
   static string module_id_query = "SELECT ID FROM IR_MODULE WHERE MODULE_IDENTIFIER=?;";
   sqlite3_stmt* module_id_statement;
@@ -423,6 +435,8 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 }
 
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
+	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
+	static PHSStringConverter converter(*db.IRDB);
 	cout << "writing points-to graph of function " << PTG.F->getName().str() << " into hexastore\n";
 //  hexastore::Hexastore h("points_to_graph_hexastore.db");
   typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
@@ -442,6 +456,8 @@ void operator<<(DBConn& db, const PointsToGraph& PTG) {
 }
 
 void operator>>(DBConn& db, const PointsToGraph& PTG) {
+	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
+	static PHSStringConverter converter(*db.IRDB);
 	cout << "reading points-to graph from hexastore\n";
 }
 

@@ -20,6 +20,12 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 	case AnalysisType::IDE_SolverTest:
 		os << "AnalysisType::IDE_SolverTest";
 		break;
+	case AnalysisType::MONO_Intra_SolverTest:
+		os << "AnalysisType::MONO_Intra_SolverTest";
+		break;
+	case AnalysisType::MONO_Inter_SolverTest:
+		os << "AnalysisType::MONO_Inter_SoverTest";
+		break;
 	case AnalysisType::None:
 		os << "AnalysisType::None";
 		break;
@@ -31,7 +37,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 }
 
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses, bool WPA_MODE) {
+                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE) {
     cout << "constructed AnalysisController ...\n";
     cout << "found the following IR files for this project:" << endl;
     for (auto file : IRDB.source_files) {
@@ -77,12 +83,14 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       ///   ...
       // But for now, stick to what is well debugged
       llvm::legacy::PassManager PM;
-      llvm::FunctionPass* Mem2Reg = llvm::createPromoteMemoryToRegisterPass();
       GeneralStatisticsPass* GSP = new GeneralStatisticsPass();
       ValueAnnotationPass* VAP = new ValueAnnotationPass(C);
       llvm::CFLSteensAAWrapperPass* SteensP = new llvm::CFLSteensAAWrapperPass();
       llvm::AAResultsWrapperPass* AARWP = new llvm::AAResultsWrapperPass();
-      PM.add(Mem2Reg);
+      if (Mem2Reg_MODE) {
+      	llvm::FunctionPass* Mem2Reg = llvm::createPromoteMemoryToRegisterPass();
+      	PM.add(Mem2Reg);
+      }
       PM.add(GSP);
       PM.add(VAP);
       PM.add(SteensP);
@@ -125,7 +133,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
    	// prepare the ICFG the data-flow analyses are build on
     cout << "starting the chosen data-flow analyses ...\n";
     for (auto& module_entry : IRDB.modules) {
-//    	// create the analyses problems queried by the user and start analyzing
+    	// create the analyses problems queried by the user and start analyzing
     	llvm::Module& M = *(module_entry.second);
     	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
     	LLVMBasedICFG icfg(M, CH, IRDB);
@@ -152,9 +160,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       		case AnalysisType::IDE_TaintAnalysis:
       		{ // caution: observer '{' and '}' we work in another scope
       			cout << "IDE_TaintAnalysis\n";
-      			//  IDETaintAnalysis taintanalysisproblem(icfg, *(IRDB.contexts[M.getModuleIdentifier()]));
-      			//  LLVMIDESolver<const llvm::Value*, LLVMBasedInterproceduralICFG&> llvmtaintsolver(taintanalysisproblem, true);
-      			//  llvmtaintsolver.solve();
+      			//IDETaintAnalysis taintanalysisproblem(icfg);
+      			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+      			//llvmtaintsolver.solve();
       			break;
       		}
       		case AnalysisType::IFDS_TypeAnalysis:
@@ -179,7 +187,34 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //      			auto summary = Generator.generateSummaryFlowFunction();
       			break;
       		}
-      			case AnalysisType::None:
+      		case AnalysisType::IFDS_SolverTest:
+      		{
+      			IFDSSolverTest ifdstest(icfg);
+      			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
+      			llvmifdstestsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::IDE_SolverTest:
+      		{
+      			//IDESolverTest idetest(icfg);
+      			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
+      			//llvmidetestsolver.solve();
+      			break;
+      		}
+      		case AnalysisType::MONO_Intra_SolverTest:
+      		{
+          	LLVMBasedCFG cfg;
+          	MonotoneSolverTest intra(cfg, M.getFunction("main"));
+          	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
+          	solver.solve();
+      			break;
+      		}
+      		case AnalysisType::MONO_Inter_SolverTest:
+      		{
+          	cout << "yet to be implemented!\n";
+      			break;
+      		}
+      		case AnalysisType::None:
       				break;
       		default:
       			cout << "analysis not valid!" << endl;

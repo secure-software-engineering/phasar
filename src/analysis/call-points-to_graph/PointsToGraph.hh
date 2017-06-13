@@ -129,7 +129,7 @@ private:
 
   graph_t ptg;
   map<const llvm::Value*, vertex_t> value_vertex_map;
-  llvm::Function* F = nullptr;
+  vector<string> merge_stack;
 
 public:
   PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias=false);

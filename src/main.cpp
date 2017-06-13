@@ -81,6 +81,7 @@ int main(int argc, const char **argv) {
 	string ProjectPath;
 	bool WPAMode;
 	vector<string> Analyses;
+	bool Mem2Reg;
 
 	try {
 		bpo::options_description Description(MoreHelp+"\n\nCommand-line options");
@@ -88,8 +89,9 @@ int main(int argc, const char **argv) {
   				("help,h", "Print help message")
 					("module,m", bpo::value<string>(&ModulePath), "Module for single module mode")
 					("project,p", bpo::value<string>(&ProjectPath), "Path to the project under analysis")
+					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis")
 					("wpa,w", bpo::value<bool>(&WPAMode)->default_value(1), "WPA mode (1 or 0)")
-					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis");
+					("mem2reg", bpo::value<bool>(&Mem2Reg)->default_value(1), "Promote memory to register pass (1 or 0)");
 		bpo::variables_map VarMap;
 		bpo::store(bpo::parse_command_line(argc, argv, Description), VarMap);
 		bpo::notify(VarMap);
@@ -103,10 +105,10 @@ int main(int argc, const char **argv) {
 		return 1;
 	}
 
-  vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_UninitializedVariables,
-                                           AnalysisType::IFDS_TaintAnalysis,
-                                           AnalysisType::IDE_TaintAnalysis,
-                                           AnalysisType::IFDS_TypeAnalysis };
+  vector<AnalysisType> ChosenAnalyses = { AnalysisType::IFDS_SolverTest,
+  																				AnalysisType::IDE_SolverTest,
+  																				AnalysisType::MONO_Intra_SolverTest,
+  																				AnalysisType::MONO_Inter_SolverTest };
   if (!Analyses.empty()) {
     ChosenAnalyses.clear();
   	for (auto& Analysis : Analyses) {
@@ -122,9 +124,14 @@ int main(int argc, const char **argv) {
   			ChosenAnalyses.push_back(AnalysisType::IFDS_SolverTest);
   		else if (Analysis == "ide_solvertest")
   			ChosenAnalyses.push_back(AnalysisType::IDE_SolverTest);
-  		else if (Analysis == "none")
+  		else if (Analysis == "mono_intra_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::MONO_Intra_SolverTest);
+  		else if (Analysis == "mono_inter_solvertest")
+  			ChosenAnalyses.push_back(AnalysisType::MONO_Inter_SolverTest);
+  		else if (Analysis == "none") {
+  			ChosenAnalyses.clear();
   			ChosenAnalyses.push_back(AnalysisType::None);
-  		else {
+  		} else {
   			cerr << "error: unrecognized analysis type, abort\n";
   			return 1;
   		}
@@ -139,13 +146,13 @@ int main(int argc, const char **argv) {
   		}
   		vector<const char*> CompileArgs;
   		ProjectIRCompiledDB IRDB(ModulePath, CompileArgs);
-  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg);
   	} else {
   		if (!(bfs::exists(ProjectPath) && bfs::is_directory(ProjectPath))) {
   			cerr << "error: '" << ProjectPath << "' is not a valid directory, abort\n";
   			return 1;
   		}
-  		// perfrom a little trick to make OptionsParser only responsible for the project sources
+  		// perform a little trick to make OptionsParser only responsible for the project sources
   		int OnlyTakeCareOfSources = 2;
   		const char* ProjectSources = ProjectPath.c_str();
   		const char* DummyProgName = "not_important";
@@ -156,7 +163,7 @@ int main(int argc, const char **argv) {
 																												OccurrencesFlag);
   		clang::tooling::CompilationDatabase& CompileDB = OptionsParser.getCompilations();
   		ProjectIRCompiledDB IRDB(CompileDB);
-  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg);
   	}
   } else {
   	cerr << "error: expected at least the specification of parameter 'module' or 'project'\n"

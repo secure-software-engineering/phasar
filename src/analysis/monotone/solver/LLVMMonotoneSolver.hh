@@ -15,27 +15,27 @@
 using namespace std;
 
 template <typename D, typename C>
-class LLVMMonotoneSolver : public MonotoneSolver<const llvm::Instruction*, D, C> {
+class LLVMMonotoneSolver : public MonotoneSolver<const llvm::Instruction*, D, const llvm::Function*, C> {
 protected:
 	bool DUMP_RESULTS;
 
 public:
 	LLVMMonotoneSolver();
-	virtual ~LLVMMonotoneSolver();
+	virtual ~LLVMMonotoneSolver() = default;
 
-	LLVMMonotoneSolver(MonotoneProblem<const llvm::Instruction*,D,C>& problem, bool dumpResults=false)
-						: MonotoneSolver<const llvm::Instruction*,D,I>(problem),
+	LLVMMonotoneSolver(MonotoneProblem<const llvm::Instruction*,D,const llvm::Function*,C>& problem, bool dumpResults=false)
+						: MonotoneSolver<const llvm::Instruction*,D,const llvm::Function*,C>(problem),
 						  DUMP_RESULTS(dumpResults) {}
 
 	virtual void solve() override {
 		// do the solving of the analaysis problem
-		MonotoneSolver<const llvm::Instruction*, D, I>::solve();
+		MonotoneSolver<const llvm::Instruction*, D, const llvm::Function*, C>::solve();
 		if (DUMP_RESULTS)
 			dumpResults();
 	}
 
 	void dumpResults() {
-		cout << "dump results!\n";
+		cout << "dump monotone solver results!\n";
 	}
 };
 

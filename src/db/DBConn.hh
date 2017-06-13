@@ -32,6 +32,7 @@
 #include "../utils/IO.hh"
 #include "ProjectIRCompiledDB.hh"
 #include "Hexastore.hh"
+#include "PHSStringConverter.hh"
 
 #define CPREPARE(FUNCTION)                             \
   if (SQLITE_OK != FUNCTION) {                         \
@@ -83,6 +84,7 @@ class DBConn {
   ~DBConn();
   sqlite3* db;
   int last_retcode;
+  ProjectIRCompiledDB* IRDB = nullptr;
   char* error_msg = 0;
   // static int resultSetCallBack(void* data, int argc, char** argv,
   //                              char** azColName);
@@ -104,6 +106,11 @@ class DBConn {
   string getDBName();
   int getLastRetCode();
   string getLastErrorMsg();
+
+  // Function for ProjectIRCompiledDB / DBConn synchronization
+  void synchronize(ProjectIRCompiledDB* irdb);
+  void desynchronize();
+  bool isSynchronized();
 
   // API for querying the IR Modules ------------------------------------------
   // Functions for storing information away

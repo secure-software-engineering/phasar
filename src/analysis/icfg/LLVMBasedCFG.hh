@@ -14,34 +14,36 @@
 #include <llvm/IR/Function.h>
 #include <iostream>
 #include <vector>
+#include <string>
 #include <set>
 using namespace std;
 
 
-class LLVMBasedCFG : public CFG<const llvm::Function*, const llvm::Instruction*> {
+class LLVMBasedCFG : public CFG<const llvm::Instruction*, const llvm::Function*> {
 public:
-	LLVMBasedCFG();
-	virtual ~LLVMBasedCFG();
+	LLVMBasedCFG() = default;
 
-	virtual vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* u) override;
+	virtual ~LLVMBasedCFG() = default;
 
-	virtual vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n) override;
+	virtual const llvm::Function* getMethodOf(const llvm::Instruction* stmt) override;
 
-	virtual set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction* n) override;
+	virtual vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* stmt) override;
 
-	virtual set<const llvm::Instruction*> getReturnSitesOfCallAt(const llvm::Instruction* n) override;
+	virtual vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* stmt) override;
 
-	virtual bool isCallStmt(const llvm::Instruction* stmt) override;
+	virtual vector<pair<const llvm::Instruction*,const llvm::Instruction*>> getAllControlFlowEdges(const llvm::Function* fun) override;
+
+	virtual vector<const llvm::Instruction*> getAllInstructionsOf(const llvm::Function* fun) override;
 
 	virtual bool isExitStmt(const llvm::Instruction* stmt) override;
 
 	virtual bool isStartPoint(const llvm::Instruction* stmt) override;
 
-	virtual set<const llvm::Instruction*> allNonCallStartNodes() override;
-
 	virtual bool isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
 
 	virtual bool isBranchTarget(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
+
+	virtual string getMethodName(const llvm::Function* fun) override;
 };
 
 #endif /* SRC_ANALYSIS_ICFG_LLVMBASEDCFG_HH_ */

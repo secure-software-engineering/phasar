@@ -58,6 +58,12 @@ public:
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite) override;
 
+  shared_ptr<FlowFunction<const llvm::Value *>>
+	getSummaryFlowFunction(const llvm::Instruction* callStmt,
+												 const llvm::Function* destMthd,
+												 vector<const llvm::Value*> inputs,
+												 vector<bool> context) override;
+
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;
 

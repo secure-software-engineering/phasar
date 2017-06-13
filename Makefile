@@ -169,4 +169,5 @@ $(BIN)$(EXE): $(MAIN_FILE) $(OBJ_ANALYSIS) $(OBJ_CLANG) $(OBJ_DB) $(OBJ_FLEX) $(
 	mkdir -p $(BIN); \
 	mkdir -p $(DWO); \
 	mv $(EXE) $(BIN); \
-	mv *.dwo $(DWO); \
+	mv *.dwo $(DWO); true;
+	@echo "\ndone! ;-)"

@@ -18,24 +18,27 @@
 using namespace std;
 
 
-template <typename N, typename D, typename C>
+template <typename N, typename D, typename M, typename C>
 class MonotoneSolver {
 protected:
-	MonotoneProblem<N,D,C>& IMProblem;
+	MonotoneProblem<N,D,M,C>& IMProblem;
 	deque<pair<N,N>> Worklist;
 	map<N, set<D>> Analysis;
+	C CFG;
+
 	void initialize() {
 		// step 1: Initalization (of Worklist and Analysis)
 		// add all edges to the worklist
-
+		vector<pair<N,N>> edges = CFG.getAllControlFlowEdges(IMProblem.getFunction());
+		Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
 		// set all analysis information to the empty set
-		for (auto& s : set<N>()) {
-			Analysis.insert({s, set()});
+		for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
+			Analysis.insert({s, set<D>()});
 		}
 	}
 
 public:
-	MonotoneSolver(MonotoneProblem<N,D,C>& IMP) : IMProblem(IMP) {}
+	MonotoneSolver(MonotoneProblem<N,D,M,C>& IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
 	virtual ~MonotoneSolver() = default;
 	virtual void solve() {
 		initialize();
@@ -47,8 +50,8 @@ public:
 			N dst = path.second;
 			set<D> Out = IMProblem.flow(src, Analysis[src]);
 			if (!IMProblem.sqSubSetEq(Out, Analysis[dst])) {
-				Analysis[dst] = IMProblem.joinWith(Analysis[dst], Out);
-				for (auto& nprimeprime : set()) {
+				Analysis[dst] = IMProblem.join(Analysis[dst], Out);
+				for (auto& nprimeprime : CFG.getSuccsOf(dst)) {
 					Worklist.push_back({dst, nprimeprime});
 				}
 			}
@@ -56,6 +59,9 @@ public:
 		// step 3: Presenting the result (MFP_in and MFP_out)
 		// MFP_in[s] = Analysis[s];
 		// MFP out[s] = IMProblem.flow(Analysis[s]);
+		for (auto entry : Analysis) {
+			entry.second = IMProblem.flow(entry.first, entry.second);
+		}
 	}
 };
 
