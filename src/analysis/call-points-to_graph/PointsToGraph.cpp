@@ -257,6 +257,16 @@ void PointsToGraph::print() {
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
+void PointsToGraph::print() const {
+  cout << "PointsToGraph for ";
+  for (const auto& fname : merge_stack) {
+    cout << fname << " ";
+  }
+  cout << "\n";
+  boost::print_graph(ptg,
+                     boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
+}
+
 void PointsToGraph::printAsDot(const string& filename) {
 	ofstream ofs(filename);
 	boost::write_graphviz(ofs, ptg,

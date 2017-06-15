@@ -437,19 +437,29 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
 	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
 	static PHSStringConverter converter(*db.IRDB);
-	cout << "writing points-to graph of function " << PTG.F->getName().str() << " into hexastore\n";
+	cout << "writing points-to graph of function ";
+  for (const auto& fname : PTG.merge_stack) {
+    cout << fname << " ";
+  }
+  cout << "into hexastore\n";
 //  hexastore::Hexastore h("points_to_graph_hexastore.db");
   typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
+  cout << "vertices:\n";
   for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PTG.ptg); vp.first != vp.second; ++vp.first) {
-    cout << "id: " << PTG.ptg[*vp.first].id << " ir_code: " << PTG.ptg[*vp.first].ir_code << "\n";
-  }
+    cout << "id: " << PTG.ptg[*vp.first].id
+         << " ir_code: " << PTG.ptg[*vp.first].ir_code
+         << " hex name: " << converter.PToHStoreStringRep(PTG.ptg[*vp.first].value)
+         << "\n";
 
+  }
+  cout << "edges:\n";
   typename boost::graph_traits<PointsToGraph::graph_t>::edge_iterator ei_start, e_end;
   for (tie(ei_start, e_end) = boost::edges(PTG.ptg); ei_start != e_end; ++ei_start) {
     auto source = boost::source(*ei_start, PTG.ptg);
     auto target = boost::target(*ei_start, PTG.ptg);
-    cout << PTG.ptg[source].ir_code << "-->" << PTG.ptg[target].ir_code << "\n";
+    cout << PTG.ptg[source].ir_code << " --> " << PTG.ptg[target].ir_code << "\n";
   }
+  cout << "\n";
   cout << "\n";
   PTG.print();
   cout << "\n\n\n";
