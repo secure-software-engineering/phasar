@@ -53,6 +53,8 @@ public:
 
 	virtual set<N> getStartPointsOf(M fun) = 0;
 
+	virtual set<N> getExitPointsOf(M fun) = 0;
+
 	virtual set<N> getReturnSitesOfCallAt(N stmt) = 0;
 };
 

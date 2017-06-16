@@ -12,6 +12,7 @@
 #include <vector>
 #include <iostream>
 #include "../FlowFunction.hh"
+#include "../flow_func/GenAll.hh"
 #include "../../../utils/utils.hh"
 using namespace std;
 
@@ -99,8 +100,9 @@ public:
       solver.solve();
       // get the result at the end of this function and
       // create a flow function from this set using the GenAll class
-   //   summary.insert(make_pair(generateBitPattern(inputs, subset),
-   //                            make_shared<GenAll<D>>(set<D>{}, 0)));
+      set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
+      summary.insert(make_pair(generateBitPattern(inputs, subset),
+                               make_shared<GenAll<D>>(solver.resultsAt(*LastInsts.begin()), 0)));
     }
     return summary;
   }

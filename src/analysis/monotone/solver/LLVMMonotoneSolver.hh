@@ -35,7 +35,21 @@ public:
 	}
 
 	void dumpResults() {
-		cout << "dump monotone solver results!\n";
+		cout << "Monotone solver results:\n"
+				    "------------------------\n";
+		for (auto& entry : MonotoneSolver<const llvm::Instruction*, D, const llvm::Function*, C>::Analysis) {
+			cout << "Instruction:\n";
+			entry.first->dump();
+			cout << "Facts:\n";
+			if (entry.second.empty()) {
+				cout << "\tEMPTY\n";
+			} else {
+				for (auto fact : entry.second) {
+					fact->dump();
+				}
+			}
+			cout << "\n\n";
+		}
 	}
 };
 

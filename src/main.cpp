@@ -26,46 +26,9 @@ namespace bfs = boost::filesystem;
 static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");
 static llvm::cl::extrahelp CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
-const static string MoreHelp(
-    "\n"
-    "======================================================\n"
-    "=== Data-flow Analysis for C and C++ - User Manual ===\n"
-    "======================================================\n\n"
-    "There are currently two modes available to run a program analysis:\n\n"
-    "1.) Single module analysis\n"
-    "--------------------------\n"
-    "Using the single module analysis the analysis tool expects at least the path "
-    "to a C or C++ module. The module can be a plain C or C++ file (.c/.cpp), LLVM IR "
-    "as a human readable .ll file or as bitcode format .bc.\n\n"
-    "2.) Whole project analysis\n"
-    "--------------------------\n"
-    "This mode analyzes a whole C or C++ project consisting of multiple modules. "
-    "It expects at least the path to a C or C++ project containing a 'compile_commands.json' "
-    "file, which contains all compile commands of the project. This database can be generated automatically "
-    "by using the cmake flag 'CMAKE_EXPORT_COMPILE_COMMANDS'. When make is used the bear tool can be used "
-    "in order to generate the compile commands database. Our analysis tool reads the generated database "
-    "to understand the project structure. It then compiles every C or C++ module that belongs to the project "
-    " under analysis and compiles it to LLVM IR which is then stored in-memory for further preprocessing.\n\n"
-    "Analysis Modes\n"
-    "--------------\n"
-    "Without specifying further parameters, our analysis tool tries to run all available analyses on the "
-    "code that the user provides. If the user wishes otherwise, they must provide further parameters specifying "
-    "the specific analysis to run. Currently the following analyses are available and can be choosen by using the "
-    "parameters as shown in the following:\n\n"
-    "\tanalysis - parameter\n"
-    "\tuninitialized variable analysis (IFDS) - 'ifds_uninit'\n"
-    "\ttaint analysis (IFDS) - 'ifds_taint'\n"
-    "\ttaint analysis (IDE) - 'ide_taint'\n"
-    "\ttype analysis (IFDS) - 'ifds_type'\n"
-    "\n\n"
-    "Of course the use can choose more than one analysis to be run on the code."
-    "\n\n"
-    "Gernal Workflow\n"
-    "---------------\n"
-    "TODO: decribe the general workflow!\n\n"
-		"============================\n"
-    "=== Command-line options ===\n"
-		"============================\n");
+static const string MoreHelp =
+	#include "more_help.txt"
+	;
 
 // initialize the module passes ID's that we are using
 char GeneralStatisticsPass::ID = 0;
@@ -172,6 +135,6 @@ int main(int argc, const char **argv) {
   	return 1;
   }
   llvm::llvm_shutdown();
-  cout << "... shutdown analysis ..." << endl;
+  cout << "... shutdown analysis ...\n";
   return 0;
 }

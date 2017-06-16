@@ -8,7 +8,7 @@
 #ifndef MONOTONEPROBLEM_HH_
 #define MONOTONEPROBLEM_HH_
 
-#include <set>
+#include "../../utils/ContainerConfiguration.hh"
 using namespace std;
 
 template <typename N, typename D, typename M, typename C>
@@ -18,14 +18,14 @@ protected:
 	M Function;
 
 public:
-	MonotoneProblem(C cfg, M f) : CFG(cfg), Function(f) {}
+	MonotoneProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
 	virtual ~MonotoneProblem() = default;
 	C getCFG() { return CFG; }
 	M getFunction() { return Function; }
-	virtual set<D> join(const set<D>& lhs, const set<D>& rhs) = 0;
-	virtual bool sqSubSetEq(const set<D>& lhs, const set<D>& rhs) = 0;
-	virtual set<D> flow(N s, const set<D>& in) = 0;
-	virtual map<N, set<D>> initialSeeds() = 0;
+	virtual MonoSet<D> join(const MonoSet<D>& Lhs, const MonoSet<D>& Rhs) = 0;
+	virtual bool sqSubSetEqual(const MonoSet<D>& Lhs, const MonoSet<D>& Rhs) = 0;
+	virtual MonoSet<D> flow(N S, const MonoSet<D>& In) = 0;
+	virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
 };
 
 #endif

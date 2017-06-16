@@ -7,27 +7,36 @@
 
 #include "MonotoneSolverTest.hh"
 
-MonotoneSolverTest::MonotoneSolverTest(LLVMBasedCFG& cfg, const llvm::Function* f) : MonotoneProblem<const llvm::Instruction*,
+MonotoneSolverTest::MonotoneSolverTest(LLVMBasedCFG& Cfg, const llvm::Function* F) : MonotoneProblem<const llvm::Instruction*,
 																																																		 const llvm::Value*,
 																																																		 const llvm::Function*,
-																																																		 LLVMBasedCFG&>(cfg, f) {}
+																																																		 LLVMBasedCFG&>(Cfg, F) {}
 
-set<const llvm::Value*> MonotoneSolverTest::join(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) {
+MonoSet<const llvm::Value*> MonotoneSolverTest::join(const MonoSet<const llvm::Value*>& Lhs, const MonoSet<const llvm::Value*>& Rhs) {
 	cout << "MonotoneSolverTest::join()\n";
-	return {};
+	MonoSet<const llvm::Value*> Result;
+	set_union(Lhs.begin(), Lhs.end(),
+						Rhs.begin(), Rhs.end(),
+						inserter(Result, Result.begin()));
+	return Result;
 }
 
-bool MonotoneSolverTest::sqSubSetEq(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) {
-	cout << "MonotoneSolverTest::sqSubSetEq()\n";
-	return false;
+bool MonotoneSolverTest::sqSubSetEqual(const MonoSet<const llvm::Value*>& Lhs, const MonoSet<const llvm::Value*>& Rhs) {
+	cout << "MonotoneSolverTest::sqSubSetEqual()\n";
+	return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-set<const llvm::Value*> MonotoneSolverTest::flow(const llvm::Instruction* s, const set<const llvm::Value*>& in) {
+MonoSet<const llvm::Value*> MonotoneSolverTest::flow(const llvm::Instruction* S, const MonoSet<const llvm::Value*>& In) {
 	cout << "MonotoneSolverTest::flow()\n";
-	return {};
+	MonoSet<const llvm::Value*> Result;
+	Result.insert(In.begin(), In.end());
+	if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
+		Result.insert(Store);
+	}
+	return Result;
 }
 
-map<const llvm::Instruction*, set<const llvm::Value*>> MonotoneSolverTest::initialSeeds() {
+MonoMap<const llvm::Instruction*, MonoSet<const llvm::Value*>> MonotoneSolverTest::initialSeeds() {
 	cout << "MonotoneSolverTest::initialSeeds()\n";
 	return {};
 }

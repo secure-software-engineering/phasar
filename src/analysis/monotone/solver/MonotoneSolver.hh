@@ -15,6 +15,7 @@
 #include <map>
 #include <utility>
 #include "../MonotoneProblem.hh"
+#include "../../../utils/ContainerConfiguration.hh"
 using namespace std;
 
 
@@ -23,35 +24,45 @@ class MonotoneSolver {
 protected:
 	MonotoneProblem<N,D,M,C>& IMProblem;
 	deque<pair<N,N>> Worklist;
-	map<N, set<D>> Analysis;
+	MonoMap<N, MonoSet<D>> Analysis;
 	C CFG;
+	size_t prealloc_hint;
 
 	void initialize() {
-		// step 1: Initalization (of Worklist and Analysis)
-		// add all edges to the worklist
 		vector<pair<N,N>> edges = CFG.getAllControlFlowEdges(IMProblem.getFunction());
+		// add all edges to the worklist
 		Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
 		// set all analysis information to the empty set
 		for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
-			Analysis.insert({s, set<D>()});
+			Analysis.insert(std::make_pair(s, MonoSet<D>()));
+		}
+		if (prealloc_hint) {
+			for (auto& AnalysisSet : Analysis) {
+				AnalysisSet.second.reserve(prealloc_hint);
+			}
 		}
 	}
 
 public:
-	MonotoneSolver(MonotoneProblem<N,D,M,C>& IMP) : IMProblem(IMP), CFG(IMP.getCFG()) {}
+	MonotoneSolver(MonotoneProblem<N,D,M,C>& IMP, size_t prealloc_hint=0)
+											: IMProblem(IMP),
+												CFG(IMP.getCFG()),
+												prealloc_hint(prealloc_hint){}
 	virtual ~MonotoneSolver() = default;
 	virtual void solve() {
+		// step 1: Initalization (of Worklist and Analysis)
 		initialize();
 		// step 2: Iteration (updating Worklist and Analysis)
 		while (!Worklist.empty()) {
+			cout << "worklist size: " << Worklist.size() << "\n";
 			pair<N,N> path = Worklist.front();
 			Worklist.pop_front();
 			N src = path.first;
 			N dst = path.second;
-			set<D> Out = IMProblem.flow(src, Analysis[src]);
-			if (!IMProblem.sqSubSetEq(Out, Analysis[dst])) {
+			MonoSet<D> Out = IMProblem.flow(src, Analysis[src]);
+			if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
 				Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-				for (auto& nprimeprime : CFG.getSuccsOf(dst)) {
+				for (auto nprimeprime : CFG.getSuccsOf(dst)) {
 					Worklist.push_back({dst, nprimeprime});
 				}
 			}

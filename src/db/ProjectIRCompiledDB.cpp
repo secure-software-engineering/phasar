@@ -208,6 +208,14 @@ llvm::Module* ProjectIRCompiledDB::getModule(const string& name) {
 	return modules[name].get();
 }
 
+set<llvm::Module*> ProjectIRCompiledDB::getAllModules() {
+	set<llvm::Module*> ModuleSet;
+	for (auto& entry : modules) {
+		ModuleSet.insert(entry.second.get());
+	}
+	return ModuleSet;
+}
+
 llvm::Module* ProjectIRCompiledDB::getModuleContainingFunction(const string& name) {
 	return modules[functions[name]].get();
 }

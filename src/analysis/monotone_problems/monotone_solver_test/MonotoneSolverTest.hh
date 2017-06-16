@@ -8,6 +8,7 @@
 #ifndef MONOTONESOLVERTEST_HH_
 #define MONOTONESOLVERTEST_HH_
 
+#include <algorithm>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -21,12 +22,12 @@ class MonotoneSolverTest : public MonotoneProblem<const llvm::Instruction*,
 																									const llvm::Function*,
 																									LLVMBasedCFG&> {
 public:
-	MonotoneSolverTest(LLVMBasedCFG& cfg, const llvm::Function* f);
+	MonotoneSolverTest(LLVMBasedCFG& Cfg, const llvm::Function* F);
 	virtual ~MonotoneSolverTest() = default;
-	virtual set<const llvm::Value*> join(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) override;
-	virtual bool sqSubSetEq(const set<const llvm::Value*>& lhs, const set<const llvm::Value*>& rhs) override;
-	virtual set<const llvm::Value*> flow(const llvm::Instruction* s, const set<const llvm::Value*>& in) override;
-	virtual map<const llvm::Instruction*, set<const llvm::Value*>> initialSeeds() override;
+	virtual MonoSet<const llvm::Value*> join(const MonoSet<const llvm::Value*>& Lhs, const MonoSet<const llvm::Value*>& Rhs) override;
+	virtual bool sqSubSetEqual(const MonoSet<const llvm::Value*>& Lhs, const MonoSet<const llvm::Value*>& Rhs) override;
+	virtual MonoSet<const llvm::Value*> flow(const llvm::Instruction* S, const MonoSet<const llvm::Value*>& In) override;
+	virtual MonoMap<const llvm::Instruction*, MonoSet<const llvm::Value*>> initialSeeds() override;
 };
 
 #endif
