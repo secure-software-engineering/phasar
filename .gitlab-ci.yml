@@ -1,0 +1,38 @@
+image: debian:sid-slim
+
+stages:
+  - build
+
+# install the necessary build tools 
+before_script: 
+  - apt update && apt-get install -y clang-3.9 libclang-3.9-dev llvm-3.9 libboost1.63-all-dev libsqlite3-dev cmake graphviz
+  - ln -s /usr/bin/clang-3.9 /usr/bin/clang && ln -s /usr/bin/clang++-3.9 /usr/bin/clang++ 
+
+build:
+  stage: build
+  # build doc and the binary
+  script: 
+    - make doc
+    - make
+  only:
+    - master
+  tags:
+    - shared
+  #save the documentation and binary
+  artifacts:
+    name: "analysisFramework-$CI_BUILD_ID-$CI_BUILD_REF"
+    expire_in: 1 week
+    paths:
+      - doc/*
+      - bin/*
+  # depending on the build setup it's a good idea to cache outputs to reduce the build time
+  # cache:
+  #   paths:
+  #     - "*.o"
+
+# run tests using the binary built before
+#test:
+ # stage: test
+  #script:
+   # - ./runmytests.sh
+
