@@ -13,7 +13,9 @@ build:
   # build doc and the binary
   script: 
     - make doc
-    - make
+    - mkdir -p build
+    - cd build
+    - cmake .. && make
   only:
     - master
   tags:
