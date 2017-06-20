@@ -18,9 +18,9 @@ quickly as possible, please help us achieving this goal.
 
 Installation
 ------------
-The installation of ourframework is not that trivial, since it has some library 
+The installation of our framework is not that trivial, since it has some library 
 dependencies. The libraries needed in order to be able to compile and run
-ourframework successfully are the following (it is important that the exact 
+our framework successfully are the following (it is important that the exact 
 versions of these libraries are installed if not stated otherwise):
 
 + LLVM / Clang version 3.9.1
@@ -44,7 +44,26 @@ Installation guides for the libraries can be found here:
 
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
-ourframework using an Ubuntu (16.04) or Unix-like system.
+our framework using an Ubuntu (16.04) or Unix-like system.
+
+
+#### Installing ZLIB
+ZLIB can just be installed from the Ubuntu sources:
+
+$ sudo apt-get install zlib1g-dev
+
+That's it - done.
+
+[ZLIB](https://zlib.net/) is a lossless data-compresion library.
+
+
+#### Installing LIBCURSES
+LIBCURSES can just be installed from the Ubuntu sources:
+
+$ sudo apt-get install libncurses5-dev
+
+[LIBCURSES](http://www.gnu.org/software/ncurses/ncurses.html) is terminal control library for constructing text user interfaces.
+
 
 #### Installing SQLITE3
 SQLITE3 can just be installed from the Ubuntu sources:
@@ -53,12 +72,14 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 
 That's it - done.
 
+
 #### Installing BEAR
 BEAR can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install bear
 
 Done!
+
 
 #### Installing PYTHON3
 Python3 can be installed using the Ubuntu sources as well. Just use
@@ -67,6 +88,17 @@ the command:
 $ sudo apt-get install python3
 
 and you are done.
+
+
+#### Installing DOXYGEN and GRAPHVIZ (Required for generating the documentation)
+If you want to generate the documentation running 'make doc' you have to install 
+[Doxygen](www.doxygen.org) and [Graphviz](www.graphviz.org).
+To install them just use the command:
+  
+  $ sudo apt-get install doxygen graphviz
+
+Done!
+
 
 #### Installing BOOST
 First you have to download the BOOST source files. This can be achieved by:
