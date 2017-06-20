@@ -42,6 +42,17 @@ Installation guides for the libraries can be found here:
 
 [PYTHON](https://www.python.org/)
 
+[ZLIB](https://zlib.net/) - a lossless data-compresion library
+
+[LIBCURSES](http://www.gnu.org/software/ncurses/ncurses.html) - a terminal control library for constructing text user interfaces.
+
+[Doxygen](www.doxygen.org) 
+
+[Graphviz](www.graphviz.org)
+
+
+
+
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
 our framework using an Ubuntu (16.04) or Unix-like system.
@@ -54,15 +65,13 @@ $ sudo apt-get install zlib1g-dev
 
 That's it - done.
 
-[ZLIB](https://zlib.net/) is a lossless data-compresion library.
-
 
 #### Installing LIBCURSES
 LIBCURSES can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install libncurses5-dev
 
-[LIBCURSES](http://www.gnu.org/software/ncurses/ncurses.html) is terminal control library for constructing text user interfaces.
+Done!
 
 
 #### Installing SQLITE3
