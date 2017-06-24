@@ -26,7 +26,7 @@ build:
     expire_in: 1 week
     paths:
       - doc/*
-      - bin/*
+      - build/bin/*
   # depending on the build setup it's a good idea to cache outputs to reduce the build time
   # cache:
   #   paths:
