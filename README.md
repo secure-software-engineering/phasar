@@ -6,17 +6,61 @@ Secure Software Engineering - Data Flow Analysis for C and C++
 
 + author: Philipp D. Schubert (philipp.schubert@upb.de)
 
+Table of Contents
+=================
 
-Purpose of this tool
+* [Purpose of this tool](#purpose-of-this-tool)
+* [Errors](#errors)
+* [Installation](#installation)
+    * [Brief example using an Ubuntu system](#brief-example-using-an-ubuntu-system)
+        * [Installing SQLITE3](#installing-sqlite3)
+        * [Installing BEAR](#installing-bear)
+        * [Installing PYTHON3](#installing-python3)
+        * [Installing BOOST](#installing-boost)
+        * [Installing LLVM](#installing-llvm)
+        * [Makefile](#makefile)
+        * [CMake](#cmake)
+    * [A remark on compile time](#a-remark-on-compile-time)
+    * [Creating the configuration files](#creating-the-configuration-files)
+    * [Testing single modules](#testing-single-modules)
+    * [Testing whole projects](#testing-whole-projects)
+* [Getting started](#getting-started)
+    * [Choosing an existing analysis](#choosing-an-existing-analysis)
+        * [IFDS_UninitializedVariables](#ifds_uninitializedvariables)
+        * [IFDS_TaintAnalysis](#ifds_taintanalysis)
+        * [IDE_TaintAnalysis](#ide_taintanalysis)
+        * [IFDS_TypeAnalysis](#ifds_typeanalysis)
+        * [IFDS_SolverTest](#ifds_solvertest)
+        * [IDE_SolverTest](#ide_solvertest)
+        * [Immutability / const-ness analysis (TODO fix name)](#immutability--const-ness-analysis-todo-fix-name)
+        * [MONO_Intra_SolverTest](#mono_intra_solvertest)
+        * [MONO_Inter_SolverTest](#mono_inter_solvertest)
+        * [None](#none)
+    * [Running an analysis](#running-an-analysis)
+    * [A concrete example and how to interpret the results](#a-concrete-example-and-how-to-interpret-the-results)
+    * [Writing a static analysis](#writing-a-static-analysis)
+        * [Choosing a control-flow graph](#choosing-a-control-flow-graph)
+        * [Useful shortcuts](#useful-shortcuts)
+            * [The std::algorithm header](#the-stdalgorithm-header)
+            * [The pre-defined flow_func classes](#the-pre-defined-flow_func-classes)
+        * [Important template parameters](#important-template-parameters)
+        * [Writing an intra-procedural monotone framework analysis](#writing-an-intra-procedural-monotone-framework-analysis)
+        * [Writing an inter-procedural monotone framework analysis (using call-strings)](#writing-an-inter-procedural-monotone-framework-analysis-using-call-strings)
+        * [Writing an IFDS analaysis](#writing-an-ifds-analaysis)
+        * [Writing an IDE analysis](#writing-an-ide-analysis)
+
+
+Purpose of this tool {#purpose-of-this-tool}
 --------------------
+TODO descibe what this is all about!
 
-### Errors
+### Errors {#errors}
 This framework is still under heavy development. Thus, it might contain errors that
 are (un)known to the developers. If you find an error please send mail and report
 it to the developers. The report should include at least a summary of what you were doing when you hit the error and a complete error message (if possible). We will try to fix bugs as
 quickly as possible, please help us achieving this goal.
 
-Installation
+Installation {#installation}
 ------------
 The installation of ourframework is not that trivial, since it has some library 
 dependencies. The libraries needed in order to be able to compile and run
@@ -42,25 +86,25 @@ Installation guides for the libraries can be found here:
 
 [PYTHON](https://www.python.org/)
 
-### Brief example using an Ubuntu system
+### Brief example using an Ubuntu system {#brief-example-using-an-ubuntu-system}
 In the following we would like to give an complete example of how to install 
 ourframework using an Ubuntu (16.04) or Unix-like system.
 
-#### Installing SQLITE3
+#### Installing SQLITE3 {#installing-sqlite3}
 SQLITE3 can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install sqlite3 libsqlite3-dev
 
 That's it - done.
 
-#### Installing BEAR
+#### Installing BEAR {#installing-bear}
 BEAR can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install bear
 
 Done!
 
-#### Installing PYTHON3
+#### Installing PYTHON3 {#installing-python3}
 Python3 can be installed using the Ubuntu sources as well. Just use
 the command:
 
@@ -68,7 +112,7 @@ $ sudo apt-get install python3
 
 and you are done.
 
-#### Installing BOOST
+#### Installing BOOST {#installing-boost}
 First you have to download the BOOST source files. This can be achieved by:
 
 $ wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz
@@ -102,7 +146,7 @@ $ ls /usr/local/include
 should contain one directory which is called 'boost'. Congratulations, now you 
 have installed boost. The hardest part is yet to come.
 
-#### Installing LLVM
+#### Installing LLVM {#installing-llvm}
 When installing LLVM your best bet is probably to install it by using the apt packages.
 First add the llvm-3.9 repository using the following command which is specific for Ubuntu 16.04
 if you have a different version of Ubuntu, please change the following command to your needs!
@@ -138,13 +182,13 @@ Almost done! After having everything set-up correctly, you can now continue the
 installation by compiling ourframework. For the sake of compilation we provide 
 two mechanisms:
 
-#### Makefile
+#### Makefile {#makefile}
 Just type 'make' and ourframework will be compiled. As usual 'make clean' will 
 delete all compiled and auto-generated files. Using 'make doc' will generate the
 doxygen code documentation. The compiled binary file can be found in the bin/ 
 directory.
 
-#### CMake
+#### CMake {#cmake}
 If you are a fan of cmake you probably would like to go this route. 
 The following commands will do the job:
 
@@ -171,10 +215,10 @@ After having compiled ourframework running small test example seems adequate.
 If errors occur when running the test example your compiler might be 
 misconfigured or worse (please report if that happens).
 
-#### A remark on compile time
+#### A remark on compile time {#a-remark-on-compile-time}
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. We plan to adjust our handwritten Makefile as well, so that it can be build using makes parallelization capabilities (currently it cannot run in parallel).
 
-#### Creating the configuration files
+#### Creating the configuration files {#creating-the-configuration-files}
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
 
 $ cd misc/
@@ -183,7 +227,7 @@ $ ./make_config.sh
 
 Done!
 
-##### Testing single modules
+##### Testing single modules {#testing-single-modules}
 To test if everything works as expected please run the following commands:
 
 $ bin/main --module test_examples/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
@@ -194,7 +238,7 @@ $ bin/main --module test_examples/installation_tests/module.ll --analysis ifds_u
 
 Here we check if pre-compiled modules work as expected.
 
-##### Testing whole projects
+##### Testing whole projects {#testing-whole-projects}
 C and C++ are notoriously hard to analyze. Because of the weak module system it is hard 
 to tell which files belong to a specific project even! Usually every project
 comes with a build system. Often cmake or make is used to tell the compile how to compile
@@ -220,11 +264,11 @@ $ bin/main --project test_examples/installation_tests/project/ --analysis ifds_u
 The above commands run small test examples. If any errors occur, the program terminates abnormal or a segmentation fault is displayed please report detailed error messages to the developers.
 
 
-Getting started
+Getting started {#getting-started}
 ---------------
 In the following we will describe how ourframework can be used to perform data-flow analyses.
 
-### Using an existing analysis
+### Choosing an existing analysis {#choosing-an-existing-analysis}
 The analysis that build into ourframework can be selected using the -a or 
 --analysis command-line option. Note: more than one analysis can be selected to be 
 executed on the code under analsis. Example:
@@ -233,40 +277,328 @@ $ bin/main -a ifds_uninit ...
 
 $ bin/main -a ifds_uninit ifds_taint ...
 
-If no analysis is selected, all available analyses will be executed on your code.
-This is usually not what you would like to do.
+If no analysis is selected, all available special test analyses will be executed on your code. These test analyses will check if their corresponding solver is working correctly. If such an analysis fails, there is definitely an error within the code or project under analysis or within the framework (which is obviously worse). In any way please report these errors.
 
 Currently the following analyses are available in ourframework:
 
-#### Uninitialized variables
+#### IFDS_UninitializedVariables {#ifds_uninitializedvariables}
 TODO: describe what it does!
 
-#### Taint analysis
+#### IFDS_TaintAnalysis {#ifds_taintanalysis}
 TODO: describe what it does!
 
-#### Taint analysis tracking paths
+#### IDE_TaintAnalysis {#ide_taintanalysis}
 TODO: describe what it does!
 
-#### Type analysis
+#### IFDS_TypeAnalysis {#ifds_typeanalysis}
 TODO: describe what it does!
 
-#### Immutability / const-ness analysis
+#### IFDS_SolverTest {#ifds_solvertest}
 TODO: describe what it does!
 
+#### IDE_SolverTest {#ide_solvertest}
+TODO: describe what it does!
 
-### Writing a static analysis
-ourframework provides several sophisticated mechanisms that allow you the ease
-of writing your own data-flow analysis.
+#### Immutability / const-ness analysis (TODO fix name) {#immutability--const-ness-analysis-todo-fix-name}
+TODO: describe what it does!
 
-#### Choosing an inter-procedural control-flow graph
-The IFDS/ IDE framework solves a concrete analysis based on an inter-procedural control-flow
-graph describing the structure of the code under analysis. Depending on the analysis you
-would like to perform you can use a forward-, backward-, or bi-directional control-flow graph.
+#### MONO_Intra_SolverTest {#mono_intra_solvertest}
+TODO: describe what it does!
+
+#### MONO_Inter_SolverTest {#mono_inter_solvertest}
+TODO: describe what it does!
+
+#### None {#none}
+TODO: describe what it does!
+
+### Running an analysis {#running-an-analysis}
+When you have chosen an analysis, you can run it on some code. The code on which the analysis runs can be either C/C++ or LLVM IR code. The framework can even run on whole projects.
+
+
+Let us start with an easy example or analyzing some code. First let us consider some C/C++ code that a user would like to analyze. Let us assume there is a file called main.cpp with the following contents:
+```C++
+int main() {
+    int i;
+    int j = 4;
+    int k = 5;
+    int l = i + j;
+    l += k;
+    return 0;
+}
+```
+Since all analysis solvers are working on the LLVM IR we probably want to see the corresponding LLVM IR. (By the way: the LLVM Language Reference Manual can be found [here](http://llvm.org/docs/LangRef.html)). It makes much sense to make oneself familiar with the intermediate representation that all infrastructure is based on!
+
+The above C/C++ code can be translated into the LLVM IR using programs of the LLVM compiler tool chain. In our case we call the clang compiler and ask it to emit the LLVM IR code.
+
+$ clang++ -emit-llvm -S main.cpp
+
+After running this command a file named main.ll can be found within the current directory. The main.ll should contain code similar to:
+```C++
+; ModuleID = 'main.cpp'
+source_filename = "main.cpp"
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
+
+; Function Attrs: norecurse nounwind uwtable
+define i32 @main() #0 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i32, align 4
+  store i32 0, i32* %1, align 4
+  store i32 4, i32* %3, align 4
+  store i32 5, i32* %4, align 4
+  %6 = load i32, i32* %2, align 4
+  %7 = load i32, i32* %3, align 4
+  %8 = add nsw i32 %6, %7
+  store i32 %8, i32* %5, align 4
+  %9 = load i32, i32* %4, align 4
+  %10 = load i32, i32* %5, align 4
+  %11 = add nsw i32 %10, %9
+  store i32 %11, i32* %5, align 4
+  ret i32 0
+}
+
+attributes #0 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
+```
+
+It is important to recognize that all of our analysis run on the IR rather than the originally source code. The file to be analyzed by our framework can be specified using the -m flag. As default behavior ourframework starts the analysis at the very first instruction of the main() function.
+
+An example call would be:
+
+$ main -m path/to/your/main.ll -a ifds_solvertest
+
+to run an IFDS solver test on the IR code contained in main.ll.
+
+The LLVM infrastructure supports many different passes that can be run on the intermediate representation in order to optimize or simplify it. "The compiler front-end typically generates very stupid code" that becomes high quality code when using different passes. One very important pass that might be used is the so called memory to register pass (mem2reg). LLVM follows a register based design (unlike stack-based Java byte code). Conceptually LLVM assumes that it has an infinite amount of registers that it can use. (It is up to the code generator, to produce code that uses the amount of registers available for the target platform.) As you can see in our code example above we use some stack variables i, j, ... and so on. They translate into the LLVM IR as the result of alloca instructions which allocate the desired amount of stack memory. The mem2reg pass now tries to make use of the infinite amount of register in a way that it tries to eliminate as much 'memory cells' as possible and places values into registers instead. Due to complex pointer arithmetic LLVM is most of the time not able to eliminate all alloca instructions. Reducing the amount of memory cells makes analysis-writing much more easy. But it is important that one understand the conceptual step that mem2reg performs. Ourframework runs the mem2reg pass automatically as default behavior on the code under analysis. For beginners and debug reasons this behavior of ourframework can be changed to not running mem2reg by using the --mem2reg option.
+
+Let us have a look what the mem2reg pass does to our IR code from above. We run the pass by using the opt tool provided by the compiler tool chain.
+
+$ opt -mem2reg -S main.ll
+
+The output of that command should look similar to
+
+```C++
+; ModuleID = 'simple.ll'
+source_filename = "simple.cpp"
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
+
+; Function Attrs: norecurse nounwind uwtable
+define i32 @main() #0 {
+  %1 = add nsw i32 undef, 4
+  %2 = add nsw i32 %1, 5
+  ret i32 0
+}
+
+attributes #0 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
+```
+
+As expected LLVM is able to place all values into registers and can completely replace all of the alloca instructions. LLVM is also able to detect that the first addition in the unoptimized IR code uses an uninitialized variable as one of its operands, replacing it using a special undef value. Ourframework does not care if you provide C/C++/LLVM IR or even optimized IR code when using it with the -m command-line option. If the file your provide contains C or C++ code it will compile this code automatically into IR for you and runs additional required passes on it.
+
+Ourframework is also able to analyse whole project in a whole program analysis or in a module-wise style. For simplicity we just consider the whole program analysis (WPA) mode. Imagine your project is a Makefile project which has a structure as shown in the following:
+
+```C++
+project/
+    src/
+    doc/
+    ...
+    Makefile
+    ...
+```
+Ourframework needs to understand your project (which files belong to this project, what is compiled, what are macro definitions and so on). For that reason it needs a so called compiler command database which is usually named compile_commands.json. When using a Makefile for a project this database can be generated using the bear tool. You just prefix your call to make with bear like the following:
+
+$ bear make
+
+A compile_commands.json file should now show up within your project directory. Instead of calling ourframework with the -m command-line option you now have to use -p (p for project, of course) and specify the absolute path to your project directory which contains the compile_commands.json file. Ourframework will now internally compile each C or C++ file that belongs to your project into LLVM IR code that it stores in-memory. After having produced all of the IR code it next links all code together leading to one large IR module that makes up your entire program.
+
+An example call is as simple as:
+
+$ main -p /the/path/to/your/project/ -a ifds_solvertest
+
+to run a simple IFDS solver test.
+
+When you would like to analyze a project that uses a CMakeLists.txt you do not even need the bear tool. The cmake command allows specifying the flag -DCMAKE_EXPORT_COMPILE_COMMANDS=1 which will create the compile_commands.json for you. Suppose you have the following project structure:
+
+```C++
+project/
+    src/
+    doc/
+    ...
+    CMakeLists.txt
+    ...
+```
+You can run
+
+$ mkdir build
+$ cd build
+$ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
+
+The generated compiler_commands.json will be placed in the current (build/) directory.
+
+#### A concrete example and how to interpret the results {#a-concrete-example-and-how-to-interpret-the-results}
+Let us consider this slightly more complex C++ program:
+```C++
+int function(int x, int y) {
+	int i;
+	int j = x;
+	int k = y;
+	return i+k;
+}
+
+int main(int argc, char** argv) {
+	int i;
+	int j;
+	int k;
+	k = function(j, 12);
+	return 0;
+}
+```
+
+The above program translates into the following IR code:
+
+```C++
+; ModuleID = 'main.cpp'
+source_filename = "main.cpp"
+target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
+
+; Function Attrs: nounwind uwtable
+define i32 @_Z8functionii(i32, i32) #0 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i32, align 4
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  store i32 %0, i32* %3, align 4
+  store i32 %1, i32* %4, align 4
+  %8 = load i32, i32* %3, align 4
+  store i32 %8, i32* %6, align 4
+  %9 = load i32, i32* %4, align 4
+  store i32 %9, i32* %7, align 4
+  %10 = load i32, i32* %5, align 4
+  %11 = load i32, i32* %7, align 4
+  %12 = add nsw i32 %10, %11
+  ret i32 %12
+}
+
+; Function Attrs: norecurse nounwind uwtable
+define i32 @main(i32, i8**) #1 {
+  %3 = alloca i32, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca i8**, align 8
+  %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
+  %8 = alloca i32, align 4
+  store i32 0, i32* %3, align 4
+  store i32 %0, i32* %4, align 4
+  store i8** %1, i8*** %5, align 8
+  %9 = load i32, i32* %7, align 4
+  %10 = call i32 @_Z8functionii(i32 %9, i32 12)
+  store i32 %10, i32* %8, align 4
+  ret i32 0
+}
+
+attributes #0 = { nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+
+!llvm.ident = !{!0}
+
+!0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
+```
+
+Running the [IFDS_UninitializedVariables](#ifds_uninitializedvariables) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
+
+```C++
+TODO insert results
+```
+
+In IFDS/IDE results for each program statement N, all data-flow facts D holding at this program point are shown. Additionally the value from the value domain V is printed. Note: when running IFDS analysis, only BOTTOM is shown, since TOP is representing data-flow facts that do not hold and thus are irrelevant to the analysis user.
+
+Additionally to the results, ourframe is able to record all edges from the exploded super-graph that the computation is based on. The edges reside in two edge recorders (for intra- and inter-procedural edges) inside the IDESolver implementation. For the above example the following exploded super-graph is produced:
+
+```C++
+TODO insert edges
+```
+
+We visualized the recorded edges in the following figure in order to obtain the actual exploded super-graph.
+
+![alt text](img/DragonMedium.png "Visualization of the recorded edges")
+TODO insert correct exploded super-graph visualization
+
+
+
+### Writing a static analysis {#writing-a-static-analysis}
+ourframework provides several sophisticated mechanisms that allow you to
+write your own data-flow analysis. In general, ourframework is designed in such a way that the analysis writer has to choose from several possible interfaces which he can use for a concrete static analysis. Depending on your analysis problem some interfaces are more suited than others. When having found the right interface for your problem, the analysis writer usually just has to provide a new class which implements the interfaces missing functionality which then in turn is the problem description for the analysis. This concrete problem description is then handed over to a corresponding solver, which solves the problem in a completely automatic fashion. In the following the possible data-flow solvers are ordered according to their power (and difficulty to provide an analysis for).
+
+#### Choosing a control-flow graph {#choosing-a-control-flow-graph}
+In general, all data-flow analysis is performed on the codes control flow graph. When writing an analysis a user has to choose a control flow graph for his analysis to work. For that reason all of our solvers work either on the CFG.hh (intra-procedural control flow graph) or on the ICFG.hh (inter-procedural control flow graph) interface.
+
+For instance, when writing a simple intra-procedural data-flow analysis using the monotone framework the use must use one of CFG.hh's concrete implementation or provide his own implementation for this interface. Usually the pre-implemented LLVMBasedCFG.hh should do the job and can be used out-of-the-box.
+
+The inter-procedural call-string approach and the IFDS/ IDE frameworks solve a concrete analysis based on an inter-procedural control-flow graph describing the structure of the code under analysis. Depending on the analysis needs, you can use a forward-, backward-, or bi-directional inter-procedural control-flow graph.
 However, most of the time the 'LLVMBasedICFG' should work just fine.
 
-If necessary it is also possible to provide you own implementation of an ICFG. In that case just provide another class for which you provide a reasonable name and place it in src/analysis/ifds_ide/icfg/. You implementation must at least implement the interface that is defined in ICFG.hh.
+If necessary it is also possible to provide you own implementation of an ICFG. In that case just provide another class for which you provide a reasonable name and place it in src/analysis/ifds_ide/icfg/. You implementation must at least implement the interface that is defined by the ICFG.hh interface.
 
-#### Important template parameters
+#### Useful shortcuts {#useful-shortcuts}
+In the following section some useful coding shortcuts are presented which may come very handy when writing a new analysis within ourframework.
+
+##### The std::algorithm header {#the-stdalgorithm-header}
+When overriding the classes for solving problems within the monotone framework, oftentimes set operations like set union, set intersect or set difference are required. Writing these functions yourself is tedious. Therefore it make much sense to use the existing set operation functions which are defined in the std::algorithm header file. Many useful functionality is provided there such as:
+```C++
+    ...
+    std::includes /* subset */
+    std::set_difference
+    std::set_intersection
+    std::set_union
+    ...
+```
+The neat thing about these functions is that they are completely generic as they operating an iterators and provide several useful overloads. They work on different container types which follow the concept required by these functions.
+In the following a small code example is presented:
+```C++
+    std::set<int> a = {1, 2, 3};
+    std::set<int> b = {6, 4, 3, 2, 8, 1};
+    std::set<int> c;
+    std::set_union(a.begin(), a.end(),
+                   b.begin(), b.end(),
+                   inserter(c, c.begin()));
+    bool isSubSet = std::includes(b.begin(), b.end(), a.begin(), a.end());
+```
+
+##### The pre-defined flow_func classes {#the-pre-defined-flow_func-classes}
+When defining flow functions in IFDS or IDE, sometimes certain flow function type occur more than once. For instance, the Kill flow function that kills a specific data-flow fact is often needed many times. As the writer of an IFDS or IDE analysis you can find several useful pre-defined flow functions in the src/analysis/ifds_ide/flow_func/ director that can be used directly. Another very useful example is the Identity flow function. Some of these flow functions are also defined as a singleton if possible in order to keep the amount of overhead as small as possible. You can use the pre-defined flow functions inside your flow function factories using the std::make_shared().
+Here is a small code example:
+```C++
+    // in this example let domain D be const llvm::Value*
+
+    shared_ptr<FlowFunction<const llvm::Value*>> getNormalFlowFunction(....) {
+        // check the type of the instruction
+        if( ...) {
+            // do some work
+        } else if (...) {
+            // kill some data-flow fact
+            return make_shared<Kill<const llvm::Value*>>(/* some fact to be killed */);
+        } else {
+            // just treat everything else as Identity
+            return Identity<const llvm::Value*>::v();
+        }
+    }
+```
+
+
+
+#### Important template parameters {#important-template-parameters}
 
 The code is written in a very generic way. For that reason we use a lot of template parameters. Here we describe the most important template parameters:
 
@@ -289,7 +621,17 @@ The code is written in a very generic way. For that reason we use a lot of templ
 * L
     - Same as V, but only used internally in some specific classes.
 
-#### Writing an IFDS analaysis
+#### Writing an intra-procedural monotone framework analysis {#writing-an-intra-procedural-monotone-framework-analysis}
+This is probably the easiest analysis you can write and if the analysis writer is a beginner, he should definitely start at this point. Using an intra-procedural monotone framework analysis, an data-flow analysis problem can be solved within one single function (caution: function calls within the function under analysis are not followed, but the call-sites are still in the code of course). In order to formulate such an analysis the user has to implement the InraMonotoneProblem.hh interface. His implemented analysis is then handed over to the corresponding IntraMonotonSolver.hh which solves his analysis problem.
+
+
+#### Writing an inter-procedural monotone framework analysis (using call-strings) {#writing-an-inter-procedural-monotone-framework-analysis-using-call-strings}
+Implementation will be finished soon.
+
+This analysis can be used when inter-procedural data-flow problems must be solved. It uses the classical monotone framework combined with the call-string approach to achieve k-context sensitivity. The k can be specified by the analysis implementor. The interface the analysis writer has to implement (InterMonotoneProblem) contains a few more functions than the IntraMonotoneProblem.hh and thus is slightly more complex. Please note that this solver has scaling problems for a large k on large programs. If the analysis writer demands a scalable analysis with infinite context sensitivity, he may would like to formulate his data-flow problem with an IFDS or IDE analysis (caution: IFDS and IDE can only be used when the flow functions used are distributive).
+
+
+#### Writing an IFDS analaysis {#writing-an-ifds-analaysis}
 When you would like to write your own data-flow analysis using IFDS you basically just have
 to implement a single class. Is is a good idea to create a new directory for your new analysis
 that lives below 'ifds_ide_problems' and is name after the naming conventions that you will find 
@@ -340,7 +682,8 @@ abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions y
             }
 ```
 
-#### Writing an IDE analysis
+#### Writing an IDE analysis {#writing-an-ide-analysis}
+If you read this, you made it very far and will now explore the most complex solver we currently provide within ourframework (but do not worry, we are already planing to include another even more abstract solver).
 When writing an IDE analysis you only have to implement a single class as well.
 The general concept is very similar to writing an IFDS analysis. But this time your analysis
 class has to inherit from 'DefaultIDETabulationProblem'.

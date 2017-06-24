@@ -214,17 +214,19 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
-           	MonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
-           	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
+           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
+           	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
        		}
-       		case AnalysisType::MONO_Inter_SolverTest:
-       		{
-       			cout << "MONO_Inter_SolverTest\n";
-           	cout << "yet to be implemented!\n";
-       			break;
-       		}
+			case AnalysisType::MONO_Inter_SolverTest:
+			{
+				cout << "MONO_Inter_SolverTest\n";
+				InterMonotoneSolverTest inter(ICFG);
+				LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
+				solver.solve();
+				break;
+			}
        		case AnalysisType::None:
        			cout << "None\n";
       				break;

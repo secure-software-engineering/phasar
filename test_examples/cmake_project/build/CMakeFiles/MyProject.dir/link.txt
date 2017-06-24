@@ -1,1 +1,1 @@
-/usr/bin/cc      CMakeFiles/MyProject.dir/mysources/one_source.c.o CMakeFiles/MyProject.dir/CMakeFiles/2.8.12.2/CompilerIdC/CMakeCCompilerId.c.o CMakeFiles/MyProject.dir/main.c.o  -o MyProject -rdynamic 
+/usr/bin/cc     CMakeFiles/MyProject.dir/mysources/one_source.c.o CMakeFiles/MyProject.dir/CMakeFiles/3.5.1/CompilerIdC/CMakeCCompilerId.c.o CMakeFiles/MyProject.dir/CMakeFiles/feature_tests.c.o CMakeFiles/MyProject.dir/main.c.o  -o MyProject -rdynamic 
