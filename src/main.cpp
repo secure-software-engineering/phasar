@@ -45,6 +45,7 @@ int main(int argc, const char **argv) {
 	bool WPAMode;
 	vector<string> Analyses;
 	bool Mem2Reg;
+	bool PrintEdgeRecorder;
 
 	try {
 		bpo::options_description Description(MoreHelp+"\n\nCommand-line options");
@@ -54,7 +55,8 @@ int main(int argc, const char **argv) {
 					("project,p", bpo::value<string>(&ProjectPath), "Path to the project under analysis")
 					("analysis,a", bpo::value<vector<string>>(&Analyses)->multitoken()->zero_tokens()->composing(), "Analysis")
 					("wpa,w", bpo::value<bool>(&WPAMode)->default_value(1), "WPA mode (1 or 0)")
-					("mem2reg", bpo::value<bool>(&Mem2Reg)->default_value(1), "Promote memory to register pass (1 or 0)");
+					("mem2reg", bpo::value<bool>(&Mem2Reg)->default_value(1), "Promote memory to register pass (1 or 0)")
+					("printedgerec,r", bpo::value<bool>(&PrintEdgeRecorder)->default_value(0), "Print edge recorder (1 or 0)");
 		bpo::variables_map VarMap;
 		bpo::store(bpo::parse_command_line(argc, argv, Description), VarMap);
 		bpo::notify(VarMap);
@@ -109,7 +111,7 @@ int main(int argc, const char **argv) {
   		}
   		vector<const char*> CompileArgs;
   		ProjectIRCompiledDB IRDB(ModulePath, CompileArgs);
-  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg);
+  		AnalysisController Controller(IRDB, ChosenAnalyses, WPAMode, Mem2Reg, PrintEdgeRecorder);
   	} else {
   		if (!(bfs::exists(ProjectPath) && bfs::is_directory(ProjectPath))) {
   			cerr << "error: '" << ProjectPath << "' is not a valid directory, abort\n";

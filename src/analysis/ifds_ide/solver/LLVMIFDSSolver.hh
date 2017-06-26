@@ -105,8 +105,10 @@ public:
 		for (auto& cell : interpe) {
 			cout << "FROM" << endl;
 			cell.r->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "TO" << endl;
 			cell.c->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "FACTS" << endl;
 			for (auto& fact : cell.v) {
 				cout << "fact" << endl;
@@ -125,8 +127,10 @@ public:
 		for (auto& cell : intrape) {
 			cout << "FROM" << endl;
 			cell.r->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "TO" << endl;
 			cell.c->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "FACTS" << endl;
 			for (auto& fact : cell.v) {
 				cout << "fact" << endl;

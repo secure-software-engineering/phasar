@@ -68,7 +68,8 @@ class AnalysisController {
   AnalysisController(ProjectIRCompiledDB& IRDB,
   									 vector<AnalysisType> Analyses,
 										 bool WPA_MODE=true,
-										 bool Mem2Reg_MODE=true);
+										 bool Mem2Reg_MODE=true,
+										 bool PrintEdgeRecorder=true);
   ~AnalysisController() = default;
 };
 

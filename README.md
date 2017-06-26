@@ -519,7 +519,823 @@ attributes #1 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-
 Running the [IFDS_UninitializedVariables](#ifds_uninitializedvariables) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
 
 ```C++
-TODO insert results
+--- IFDS START RESULT RECORD ---
+N
+  %3 = alloca i32, align 4, !ourframework.id !1
+of function: _Z8functionii
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %4 = alloca i32, align 4, !ourframework.id !2
+of function: _Z8functionii
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %5 = alloca i32, align 4, !ourframework.id !3
+of function: _Z8functionii
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %6 = alloca i32, align 4, !ourframework.id !4
+of function: _Z8functionii
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %7 = alloca i32, align 4, !ourframework.id !5
+of function: _Z8functionii
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %0, i32* %3, align 4, !ourframework.id !6
+of function: _Z8functionii
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %1, i32* %4, align 4, !ourframework.id !7
+of function: _Z8functionii
+D
+  %4 = alloca i32, align 4, !ourframework.id !2
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %8 = load i32, i32* %3, align 4, !ourframework.id !8
+of function: _Z8functionii
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %8, i32* %6, align 4, !ourframework.id !9
+of function: _Z8functionii
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %9 = load i32, i32* %4, align 4, !ourframework.id !10
+of function: _Z8functionii
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %9, i32* %7, align 4, !ourframework.id !11
+of function: _Z8functionii
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+of function: _Z8functionii
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %11 = load i32, i32* %7, align 4, !ourframework.id !13
+of function: _Z8functionii
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+of function: _Z8functionii
+D
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  ret i32 %12, !ourframework.id !15
+of function: _Z8functionii
+D
+  %5 = alloca i32, align 4, !ourframework.id !3
+
+V
+  BinaryDomain::BOTTOM
+D
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+
+V
+  BinaryDomain::BOTTOM
+D
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %3 = alloca i32, align 4, !ourframework.id !1
+of function: main
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %4 = alloca i32, align 4, !ourframework.id !2
+of function: main
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %5 = alloca i8**, align 8, !ourframework.id !3
+of function: main
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %6 = alloca i32, align 4, !ourframework.id !4
+of function: main
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %7 = alloca i32, align 4, !ourframework.id !5
+of function: main
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %8 = alloca i32, align 4, !ourframework.id !6
+of function: main
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 0, i32* %3, align 4, !ourframework.id !7
+of function: main
+D
+  %3 = alloca i32, align 4, !ourframework.id !1
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %0, i32* %4, align 4, !ourframework.id !8
+of function: main
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i8** %1, i8*** %5, align 8, !ourframework.id !9
+of function: main
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+of function: main
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
+of function: main
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+of function: main
+D
+  %8 = alloca i32, align 4, !ourframework.id !6
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
+D
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+--- IFDS START RESULT RECORD ---
+N
+  ret i32 0, !ourframework.id !13
+of function: main
+D
+  %6 = alloca i32, align 4, !ourframework.id !4
+
+V
+  BinaryDomain::BOTTOM
+D
+  %7 = alloca i32, align 4, !ourframework.id !5
+
+V
+  BinaryDomain::BOTTOM
+D
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+
+V
+  BinaryDomain::BOTTOM
+D
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+
+V
+  BinaryDomain::BOTTOM
+D
+@zero_value = constant i2 0, align 4
+
+V
+  BinaryDomain::BOTTOM
 ```
 
 In IFDS/IDE results for each program statement N, all data-flow facts D holding at this program point are shown. Additionally the value from the value domain V is printed. Note: when running IFDS analysis, only BOTTOM is shown, since TOP is representing data-flow facts that do not hold and thus are irrelevant to the analysis user.
@@ -527,13 +1343,717 @@ In IFDS/IDE results for each program statement N, all data-flow facts D holding 
 Additionally to the results, ourframe is able to record all edges from the exploded super-graph that the computation is based on. The edges reside in two edge recorders (for intra- and inter-procedural edges) inside the IDESolver implementation. For the above example the following exploded super-graph is produced:
 
 ```C++
-TODO insert edges
+COMPUTED INTRA PATH EDGES
+FROM
+  %3 = alloca i32, align 4, !ourframework.id !1
+TO
+  %4 = alloca i32, align 4, !ourframework.id !2
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %4 = alloca i32, align 4, !ourframework.id !2
+TO
+  %5 = alloca i32, align 4, !ourframework.id !3
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %5 = alloca i32, align 4, !ourframework.id !3
+TO
+  %6 = alloca i32, align 4, !ourframework.id !4
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %6 = alloca i32, align 4, !ourframework.id !4
+TO
+  %7 = alloca i32, align 4, !ourframework.id !5
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %7 = alloca i32, align 4, !ourframework.id !5
+TO
+  store i32 %0, i32* %3, align 4, !ourframework.id !6
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %0, i32* %3, align 4, !ourframework.id !6
+TO
+  store i32 %1, i32* %4, align 4, !ourframework.id !7
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+  %4 = alloca i32, align 4, !ourframework.id !2
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %1, i32* %4, align 4, !ourframework.id !7
+TO
+  %8 = load i32, i32* %3, align 4, !ourframework.id !8
+FACTS
+fact
+  %4 = alloca i32, align 4, !ourframework.id !2
+produces
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %8 = load i32, i32* %3, align 4, !ourframework.id !8
+TO
+  store i32 %8, i32* %6, align 4, !ourframework.id !9
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %8, i32* %6, align 4, !ourframework.id !9
+TO
+  %9 = load i32, i32* %4, align 4, !ourframework.id !10
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %9 = load i32, i32* %4, align 4, !ourframework.id !10
+TO
+  store i32 %9, i32* %7, align 4, !ourframework.id !11
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %9, i32* %7, align 4, !ourframework.id !11
+TO
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+TO
+  %11 = load i32, i32* %7, align 4, !ourframework.id !13
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %11 = load i32, i32* %7, align 4, !ourframework.id !13
+TO
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+produces
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+TO
+  ret i32 %12, !ourframework.id !15
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+  %5 = alloca i32, align 4, !ourframework.id !3
+fact
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+produces
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %3 = alloca i32, align 4, !ourframework.id !1
+TO
+  %4 = alloca i32, align 4, !ourframework.id !2
+FACTS
+fact
+@zero_value = constant i2 0, align 4
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+  %6 = alloca i32, align 4, !ourframework.id !4
+  %7 = alloca i32, align 4, !ourframework.id !5
+  %8 = alloca i32, align 4, !ourframework.id !6
+@zero_value = constant i2 0, align 4
+FROM
+  %4 = alloca i32, align 4, !ourframework.id !2
+TO
+  %5 = alloca i8**, align 8, !ourframework.id !3
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %5 = alloca i8**, align 8, !ourframework.id !3
+TO
+  %6 = alloca i32, align 4, !ourframework.id !4
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %6 = alloca i32, align 4, !ourframework.id !4
+TO
+  %7 = alloca i32, align 4, !ourframework.id !5
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %7 = alloca i32, align 4, !ourframework.id !5
+TO
+  %8 = alloca i32, align 4, !ourframework.id !6
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %8 = alloca i32, align 4, !ourframework.id !6
+TO
+  store i32 0, i32* %3, align 4, !ourframework.id !7
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 0, i32* %3, align 4, !ourframework.id !7
+TO
+  store i32 %0, i32* %4, align 4, !ourframework.id !8
+FACTS
+fact
+  %3 = alloca i32, align 4, !ourframework.id !1
+produces
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %0, i32* %4, align 4, !ourframework.id !8
+TO
+  store i8** %1, i8*** %5, align 8, !ourframework.id !9
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i8** %1, i8*** %5, align 8, !ourframework.id !9
+TO
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+TO
+  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
+TO
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+  %8 = alloca i32, align 4, !ourframework.id !6
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+TO
+  ret i32 0, !ourframework.id !13
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+  %6 = alloca i32, align 4, !ourframework.id !4
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+  %7 = alloca i32, align 4, !ourframework.id !5
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+produces
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+COMPUTED INTER PATH EDGES
+FROM
+  ret i32 %12, !ourframework.id !15
+TO
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+FACTS
+fact
+  %5 = alloca i32, align 4, !ourframework.id !3
+produces
+fact
+  %10 = load i32, i32* %5, align 4, !ourframework.id !12
+produces
+fact
+  %12 = add nsw i32 %10, %11, !ourframework.id !14
+produces
+  store i32 %10, i32* %8, align 4, !ourframework.id !12
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+fact
+@zero_value = constant i2 0, align 4
+produces
+@zero_value = constant i2 0, align 4
+FROM
+  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
+TO
+  %3 = alloca i32, align 4, !ourframework.id !1
+FACTS
+fact
+  %6 = alloca i32, align 4, !ourframework.id !4
+produces
+fact
+  %7 = alloca i32, align 4, !ourframework.id !5
+produces
+fact
+  %8 = alloca i32, align 4, !ourframework.id !6
+produces
+fact
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+produces
+  %9 = load i32, i32* %7, align 4, !ourframework.id !10
+fact
+@zero_value = constant i2 0, align 4
+produces
+  %3 = alloca i32, align 4, !ourframework.id !1
+  %4 = alloca i32, align 4, !ourframework.id !2
+  %5 = alloca i32, align 4, !ourframework.id !3
+  %6 = alloca i32, align 4, !ourframework.id !4
+  %7 = alloca i32, align 4, !ourframework.id !5
+@zero_value = constant i2 0, align 4
 ```
 
 We visualized the recorded edges in the following figure in order to obtain the actual exploded super-graph.
 
-![alt text](img/DragonMedium.png "Visualization of the recorded edges")
-TODO insert correct exploded super-graph visualization
+![alt text](img/ifds_uninit_exploded_supergraph/example_exploded_supergraph.png "Visualization of the recorded edges")
 
 
 
@@ -612,12 +2132,14 @@ The code is written in a very generic way. For that reason we use a lot of templ
     - The type of the inter-procedural control-flow graph to be used. Usually it will be some reference to a type implementing the ICFG.hh interface. For example: LLVMBasedICFG&.
 * V
     - The is the type for the second value domain of IDE problem. What this should be really depends of your concrete analysis. When using IFDS you do not have to worry about this type, since it is automatically chosen for you as:
+
 ```C++
-            enum class BinaryDomain { 
-                                      BOTTOM = 0,
-                                      TOP = 1
-            };
+    enum class BinaryDomain {
+        BOTTOM = 0,
+        TOP = 1
+    };
 ```
+
 * L
     - Same as V, but only used internally in some specific classes.
 

@@ -37,7 +37,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 }
 
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE) {
+                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
+					 bool PrintEdgeRecorder) {
     cout << "constructed AnalysisController ...\n";
     cout << "found the following IR files for this project:" << endl;
     for (auto file : IRDB.source_files) {
@@ -193,6 +194,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
        			llvmunivsolver.solve();
+				if (PrintEdgeRecorder) {
+					llvmunivsolver.dumpAllIntraPathEdges();
+					llvmunivsolver.dumpAllInterPathEdges();
+				}
        			break;
        		}
        		case AnalysisType::IFDS_SolverTest:
