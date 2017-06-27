@@ -151,13 +151,12 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
      * -----------
      */
     if (WPA_MODE) {
-    	// There is only one module left, because we have linked earlier
-    	llvm::Module& M = *IRDB.getModuleContainingFunction("main");
-    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
+   	  // There is only one module left, because we have linked earlier
+	  	llvm::Module& M = *IRDB.getWPAModule();
       LLVMBasedICFG ICFG(M, CH, IRDB);
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
- 			// CFG is only needed for intra-procedural monotone framework
+	  // CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*
        * Perform all the analysis that the user has chosen.
@@ -193,11 +192,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			cout << "IFDS_UninitalizedVariables\n";
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-       			llvmunivsolver.solve();
-				if (PrintEdgeRecorder) {
-					llvmunivsolver.dumpAllIntraPathEdges();
-					llvmunivsolver.dumpAllInterPathEdges();
-				}
+						llvmunivsolver.solve();
+						// if (PrintEdgeRecorder) {
+						// 	llvmunivsolver.dumpAllIntraPathEdges();
+						// 	llvmunivsolver.dumpAllInterPathEdges();
+						// }
        			break;
        		}
        		case AnalysisType::IFDS_SolverTest:

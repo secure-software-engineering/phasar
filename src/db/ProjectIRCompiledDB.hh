@@ -69,6 +69,7 @@ private:
   llvm::LLVMContext* getLLVMContext(const string& ModName);
   llvm::Module* getModule(const string& ModName);
   set<llvm::Module*> getAllModules();
+  size_t getNumberOfModules();
   llvm::Module* getModuleContainingFunction(const string& FName);
   llvm::Function* getFunction(const string& FName);
   llvm::GlobalVariable* getGlobalVariable(const string& GName);
