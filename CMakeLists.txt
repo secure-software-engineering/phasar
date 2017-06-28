@@ -11,6 +11,8 @@ find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
 
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+
 set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 find_path(CLANG_LIB_PATH clang)
@@ -21,6 +23,7 @@ set(STATIC_LINKING false)
 
 set(CLANG_LIBRARIES
   clangTooling
+  clangFrontendTool
   clangFrontend
   clangDriver
   clangSerialization
@@ -44,8 +47,8 @@ set(CLANG_LIBRARIES
 set(ALL_LIBS 
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
-  LLVM
-  # ${llvm_libs}
+  # LLVM
+  ${llvm_libs}
   ${CLANG_LIBRARIES}
   )
 
@@ -61,6 +64,10 @@ file(GLOB_RECURSE SRC_ANALYSIS src/analysis/*.h? src/analysis/*.cpp)
 add_library( analysis STATIC ${SRC_ANALYSIS} )
 target_link_libraries(analysis ${ALL_LIBS})
 
+file(GLOB_RECURSE SRC_DB src/db/*.h? src/db/*.cpp)
+add_library( db STATIC ${SRC_DB} )
+target_link_libraries(db ${ALL_LIBS})
+
 file(GLOB_RECURSE SRC_CLANG src/clang/*.h? src/clang/*.cpp)
 add_library( clang STATIC ${SRC_CLANG} )
 target_link_libraries(clang ${ALL_LIBS})
@@ -68,10 +75,6 @@ target_link_libraries(clang ${ALL_LIBS})
 file(GLOB_RECURSE SRC_LIB src/lib/*.h? src/lib/*.cpp)
 add_library( lib STATIC ${SRC_LIB} )
 target_link_libraries(lib ${ALL_LIBS})
-
-file(GLOB_RECURSE SRC_DB src/db/*.h? src/db/*.cpp)
-add_library( db STATIC ${SRC_DB} )
-target_link_libraries(db ${ALL_LIBS})
 
 file(GLOB_RECURSE SRC_FLEX src/flex/*.h? src/flex/*.cpp)
 add_library( flex STATIC ${SRC_FLEX} )
