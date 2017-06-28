@@ -37,7 +37,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 }
 
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE) {
+                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
+					 bool PrintEdgeRecorder) {
     cout << "constructed AnalysisController ...\n";
     cout << "found the following IR files for this project:" << endl;
     for (auto file : IRDB.source_files) {
@@ -150,13 +151,12 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
      * -----------
      */
     if (WPA_MODE) {
-    	// There is only one module left, because we have linked earlier
-    	llvm::Module& M = *IRDB.getModuleContainingFunction("main");
-    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-      LLVMBasedICFG ICFG(M, CH, IRDB);
+   	  // There is only one module left, because we have linked earlier
+	  	llvm::Module& M = *IRDB.getWPAModule();
+      LLVMBasedICFG ICFG(M, CH, IRDB); // LLVMBasedICFG ICFG(M, CH, IRDB, {"sub_400550"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
- 			// CFG is only needed for intra-procedural monotone framework
+	  // CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*
        * Perform all the analysis that the user has chosen.
@@ -192,7 +192,12 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			cout << "IFDS_UninitalizedVariables\n";
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-       			llvmunivsolver.solve();
+						llvmunivsolver.solve();
+						llvmunivsolver.exportJSONDataModel();
+						// if (PrintEdgeRecorder) {
+						// 	llvmunivsolver.dumpAllIntraPathEdges();
+						// 	llvmunivsolver.dumpAllInterPathEdges();
+						// }
        			break;
        		}
        		case AnalysisType::IFDS_SolverTest:
@@ -214,24 +219,28 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
-           	MonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
-           	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
+           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main")); // IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("sub_400550"));
+           	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
        		}
-       		case AnalysisType::MONO_Inter_SolverTest:
-       		{
-       			cout << "MONO_Inter_SolverTest\n";
-           	cout << "yet to be implemented!\n";
-       			break;
-       		}
+					case AnalysisType::MONO_Inter_SolverTest:
+					{
+						cout << "MONO_Inter_SolverTest\n";
+						InterMonotoneSolverTest inter(ICFG);
+						LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
+						solver.solve();
+						break;
+					}
        		case AnalysisType::None:
+					 {
        			cout << "None\n";
-      				break;
+						break;
+					 }
        		default:
        			cout << "Chosen AnalysisType is not valid\n" << endl;
        			break;
-       	}
+       		}
        }
     }
     /*

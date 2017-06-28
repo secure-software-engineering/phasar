@@ -92,8 +92,11 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[cs.getCalledFunction()->getName().str()], EdgeProperties(cs.getInstruction()), cg);
     		// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
-      	resolveIndirectCallWalker(cs.getCalledFunction());
-      } else {
+				// recursion detection
+				if (F != cs.getCalledFunction()) {
+	      	resolveIndirectCallWalker(cs.getCalledFunction());
+				}
+	    } else {
       // we have to resolve the called function ourselves using the accessible points-to information
         cout << "FOUND INDIRECT CALL-SITE" << endl;
         cs->dump();
@@ -114,7 +117,10 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
     		}
     		// continue resolving
         for (auto possible_target : possible_targets) {
-        	resolveIndirectCallWalker(possible_target);
+					// recursion detection
+					if (F != possible_target) {
+        		resolveIndirectCallWalker(possible_target);
+					}
         }
       }
     }

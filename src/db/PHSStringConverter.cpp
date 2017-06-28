@@ -17,6 +17,7 @@ string PHSStringConverter::PToHStoreStringRep(const llvm::Value *V) {
     return "";
   }
 }
+
 const llvm::Value *PHSStringConverter::HStoreStringRepToP(const string &S) {
   if (S == ZeroValueInternalName || S.find(ZeroValueInternalName) != string::npos) {
   	return new ZeroValue;
