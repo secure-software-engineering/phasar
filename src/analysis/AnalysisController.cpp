@@ -193,6 +193,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
 						llvmunivsolver.solve();
+						llvmunivsolver.exportJSONDataModel();
 						// if (PrintEdgeRecorder) {
 						// 	llvmunivsolver.dumpAllIntraPathEdges();
 						// 	llvmunivsolver.dumpAllInterPathEdges();
