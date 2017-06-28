@@ -153,7 +153,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     if (WPA_MODE) {
    	  // There is only one module left, because we have linked earlier
 	  	llvm::Module& M = *IRDB.getWPAModule();
-      LLVMBasedICFG ICFG(M, CH, IRDB);
+      LLVMBasedICFG ICFG(M, CH, IRDB); // LLVMBasedICFG ICFG(M, CH, IRDB, {"sub_400550"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
 	  // CFG is only needed for intra-procedural monotone framework
@@ -218,19 +218,19 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
-           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
+           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main")); // IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("sub_400550"));
            	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
        		}
-			case AnalysisType::MONO_Inter_SolverTest:
-			{
-				cout << "MONO_Inter_SolverTest\n";
-				InterMonotoneSolverTest inter(ICFG);
-				LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
-				solver.solve();
-				break;
-			}
+					case AnalysisType::MONO_Inter_SolverTest:
+					{
+						cout << "MONO_Inter_SolverTest\n";
+						InterMonotoneSolverTest inter(ICFG);
+						LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
+						solver.solve();
+						break;
+					}
        		case AnalysisType::None:
        			cout << "None\n";
       				break;
