@@ -233,12 +233,14 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						break;
 					}
        		case AnalysisType::None:
+					 {
        			cout << "None\n";
-      				break;
+						break;
+					 }
        		default:
        			cout << "Chosen AnalysisType is not valid\n" << endl;
        			break;
-       	}
+       		}
        }
     }
     /*
