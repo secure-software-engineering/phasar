@@ -92,8 +92,11 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[cs.getCalledFunction()->getName().str()], EdgeProperties(cs.getInstruction()), cg);
     		// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
-      	resolveIndirectCallWalker(cs.getCalledFunction());
-      } else {
+				// recursion detection
+				if (F != cs.getCalledFunction()) {
+	      	resolveIndirectCallWalker(cs.getCalledFunction());
+				}
+	    } else {
       // we have to resolve the called function ourselves using the accessible points-to information
         cout << "FOUND INDIRECT CALL-SITE" << endl;
         cs->dump();
@@ -114,7 +117,10 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
     		}
     		// continue resolving
         for (auto possible_target : possible_targets) {
-        	resolveIndirectCallWalker(possible_target);
+					// recursion detection
+					if (F != possible_target) {
+        		resolveIndirectCallWalker(possible_target);
+					}
         }
       }
     }
@@ -268,15 +274,15 @@ bool LLVMBasedICFG::isExitStmt(const llvm::Instruction* stmt) {
 }
 
 bool LLVMBasedICFG::isStartPoint(const llvm::Instruction* stmt) {
-	return (stmt == &(*stmt->getFunction()->getEntryBlock().begin()));
+	return (stmt == &stmt->getFunction()->front().front());
 }
 
 bool LLVMBasedICFG::isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) {
 	if (const llvm::BranchInst* B = llvm::dyn_cast<llvm::BranchInst>(succ)) {
     if (B->isConditional()) {
-       return &(*B->getSuccessor(1)->begin()) == succ;
+       return &B->getSuccessor(1)->front() == succ;
      } else {
-       return &(*B->getSuccessor(0)->begin()) == succ;
+       return &B->getSuccessor(0)->front() == succ;
      }
 	}
 	return false;
@@ -361,11 +367,12 @@ set<const llvm::Instruction*> LLVMBasedICFG::getCallsFromWithin(
  */
 set<const llvm::Instruction*> LLVMBasedICFG::getStartPointsOf(
     const llvm::Function* m) {
-  set<const llvm::Instruction*> StartPoints;
-  // this does not handle backwards analysis, where a function may contains
-  // more than one start points!
-  StartPoints.insert(&*m->getEntryBlock().begin());
-  return StartPoints;
+  return { &m->front().front() };
+}
+
+set<const llvm::Instruction*> LLVMBasedICFG::getExitPointsOf(
+		const llvm::Function* fun) {
+	return { &fun->back().back() };
 }
 
 /**

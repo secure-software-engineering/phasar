@@ -103,66 +103,74 @@ void ProjectIRCompiledDB::linkForWPA() {
 	// Therefore we must load all modules into one single context and then perform
 	// the linkage. This is still very fast compared to compiling and pre-processing
 	// all modules.
-	llvm::Module* MainMod = getModuleContainingFunction("main");
-	if (!MainMod) {
-		cout << "could not find main() function!\n";
-		HEREANDNOW;
-		DIE_HARD;
-	}
-	for (auto& entry : modules) {
-		// we do not want to link a module with itself!
-		if (MainMod != entry.second.get()) {
-			// reload the modules into the module containing the main function
-			string IRBuffer;
-			llvm::raw_string_ostream RSO(IRBuffer);
-			llvm::WriteBitcodeToFile(entry.second.get(), RSO);
-			RSO.flush();
-			llvm::SMDiagnostic ErrorDiagnostics;
-			unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(IRBuffer);
-			unique_ptr<llvm::Module> TmpMod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
-			bool broken_debug_info = false;
-			if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
-				cout << "module is broken!\nabort!" << endl;
-				DIE_HARD;
-			}
-			if (broken_debug_info) {
-				cout << "debug info is broken" << endl;
-			}
-			// now we can safely perform the linking
-			if (llvm::Linker::linkModules(*MainMod, move(TmpMod), llvm::Linker::LinkOnlyNeeded)) {
-				cout << "ERROR when try to link modules for WPA module!" << endl;
-				DIE_HARD;
-			}
-		}
-	}
-	// Update the IRDB reflecting that we now only need 'MainMod' and its corresponding context!
-  // delete every other module
-  for (auto it = modules.begin(); it != modules.end();) {
-  	if (it->second.get() != MainMod) {
-  		it = modules.erase(it);
-  	} else {
-  		++it;
-  	}
+  if (modules.size() > 1) {
+	  llvm::Module* MainMod = getModuleContainingFunction("main");
+	  if (!MainMod) {
+	  	cout << "could not find main() function!\n";
+	  	HEREANDNOW;
+	  	DIE_HARD;
+	  }
+	  for (auto& entry : modules) {
+	  	// we do not want to link a module with itself!
+	  	if (MainMod != entry.second.get()) {
+	  		// reload the modules into the module containing the main function
+	  		string IRBuffer;
+	  		llvm::raw_string_ostream RSO(IRBuffer);
+	  		llvm::WriteBitcodeToFile(entry.second.get(), RSO);
+	  		RSO.flush();
+	  		llvm::SMDiagnostic ErrorDiagnostics;
+	  		unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(IRBuffer);
+	  		unique_ptr<llvm::Module> TmpMod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
+	  		bool broken_debug_info = false;
+	  		if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
+	  			cout << "module is broken!\nabort!" << endl;
+	  			DIE_HARD;
+	  		}
+	  		if (broken_debug_info) {
+	  			cout << "debug info is broken" << endl;
+	  		}
+	  		// now we can safely perform the linking
+	  		if (llvm::Linker::linkModules(*MainMod, move(TmpMod), llvm::Linker::LinkOnlyNeeded)) {
+	  			cout << "ERROR when try to link modules for WPA module!" << endl;
+	  			DIE_HARD;
+	  		}
+	  	}
+    }
+	  // Update the IRDB reflecting that we now only need 'MainMod' and its corresponding context!
+    // delete every other module
+    for (auto it = modules.begin(); it != modules.end();) {
+    	if (it->second.get() != MainMod) {
+    		it = modules.erase(it);
+    	} else {
+    		++it;
+    	}
+    }
+	  // delete every other context
+    for (auto it = contexts.begin(); it != contexts.end();) {
+    	if (it->second.get() != &MainMod->getContext()) {
+    		it = contexts.erase(it);
+    	} else {
+    		++it;
+    	}
+    }
+    // update functions
+    for (auto& entry : functions) {
+    	entry.second = MainMod->getModuleIdentifier();
+    }
+    // update globals
+    for (auto& entry : globals) {
+    	entry.second = MainMod->getModuleIdentifier();
+    }
+    cout << "remaining contexts: " << contexts.size() << endl;
+    cout << "remaining modules: " << modules.size() << endl;
+	  WPAMOD = MainMod;
+  } else if (modules.size() == 1) {
+    // In this case we only have one module anyway, so we do not have
+    // to link at all. But we have to the the WPAMOD pointer!
+    WPAMOD = modules.begin()->second.get();
+  } else {
+    UNRECOVERABLE_CXX_ERROR_UNCOND("error: number of modules within ProjectIRCompiledDB cannot be used for WPA");
   }
-	// delete every other context
-  for (auto it = contexts.begin(); it != contexts.end();) {
-  	if (it->second.get() != &MainMod->getContext()) {
-  		it = contexts.erase(it);
-  	} else {
-  		++it;
-  	}
-  }
-  // update functions
-  for (auto& entry : functions) {
-  	entry.second = MainMod->getModuleIdentifier();
-  }
-  // update globals
-  for (auto& entry : globals) {
-  	entry.second = MainMod->getModuleIdentifier();
-  }
-  cout << "remaining contexts: " << contexts.size() << endl;
-  cout << "remaining modules: " << modules.size() << endl;
-	WPAMOD = MainMod;
 }
 
 llvm::Module* ProjectIRCompiledDB::getWPAModule() {
@@ -206,6 +214,18 @@ llvm::LLVMContext* ProjectIRCompiledDB::getLLVMContext(const string& name) {
 
 llvm::Module* ProjectIRCompiledDB::getModule(const string& name) {
 	return modules[name].get();
+}
+
+set<llvm::Module*> ProjectIRCompiledDB::getAllModules() {
+	set<llvm::Module*> ModuleSet;
+	for (auto& entry : modules) {
+		ModuleSet.insert(entry.second.get());
+	}
+	return ModuleSet;
+}
+
+size_t ProjectIRCompiledDB::getNumberOfModules() {
+  return modules.size();
 }
 
 llvm::Module* ProjectIRCompiledDB::getModuleContainingFunction(const string& name) {

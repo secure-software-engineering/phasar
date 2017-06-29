@@ -128,6 +128,9 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   set<const llvm::Instruction*> getStartPointsOf(
       const llvm::Function* m) override;
 
+  set<const llvm::Instruction*> getExitPointsOf(
+  		const llvm::Function* fun) override;
+
   set<const llvm::Instruction*> getReturnSitesOfCallAt(
       const llvm::Instruction* n) override;
 
