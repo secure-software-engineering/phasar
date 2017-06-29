@@ -11,7 +11,9 @@ find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
 
-llvm_map_components_to_libnames(llvm_libs support core irreader)
+llvm_map_components_to_libnames(llvm_libs
+  coverage libdriver lto
+)
 
 set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
@@ -88,11 +90,12 @@ target_link_libraries(utils ${ALL_LIBS})
 add_executable(main  src/main.cpp)
 
 target_link_libraries(main
+  ${CLANG_LIBRARIES}
+  ${llvm_libs}
   analysis clang db flex lib utils
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
-  LLVM
-  ${CLANG_LIBRARIES}
+  # LLVM
   )
 
 # Test For Hexastore
