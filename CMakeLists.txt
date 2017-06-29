@@ -12,7 +12,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
 
 llvm_map_components_to_libnames(llvm_libs
-  coverage libdriver lto
+  coverage libdriver lto support analysis bitwriter core ipo irreader instcombine instrumentation linker objcarcopts scalaropts transformutils codegen vectorize
 )
 
 set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)
