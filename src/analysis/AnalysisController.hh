@@ -43,8 +43,10 @@
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
 #include "ifds_ide_problems/ide_solver_test/IDESolverTest.hh"
 #include "ifds_ide_problems/ifds_solver_test/IFDSSolverTest.hh"
-#include "monotone/solver/LLVMMonotoneSolver.hh"
-#include "monotone_problems/monotone_solver_test/MonotoneSolverTest.hh"
+#include "monotone/solver/LLVMIntraMonotoneSolver.hh"
+#include "monotone/solver/LLVMInterMonotoneSolver.hh"
+#include "monotone_problems/intra_monotone_solver_test/IntraMonotoneSolverTest.hh"
+#include "monotone_problems/inter_monotone_solver_test/InterMonotoneSolverTest.hh"
 using namespace std;
 
 enum class AnalysisType {
@@ -66,7 +68,8 @@ class AnalysisController {
   AnalysisController(ProjectIRCompiledDB& IRDB,
   									 vector<AnalysisType> Analyses,
 										 bool WPA_MODE=true,
-										 bool Mem2Reg_MODE=true);
+										 bool Mem2Reg_MODE=true,
+										 bool PrintEdgeRecorder=true);
   ~AnalysisController() = default;
 };
 

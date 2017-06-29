@@ -101,6 +101,11 @@ CLANG_FLAGS := 	-lclangTooling\
 
 all: $(BIN)$(EXE)
 
+# this target currently exists just for testing purposes
+plugins:
+	@echo "comiling plugins into shared object libraries ..."
+	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined src/analysis/plugins/IFDSTabulationProblemTestPlugin.cpp -L$(LIB_CXX) $(LLVM_LIBS) $(BOOST_LIBS) -o src/analysis/plugins/IFDSTabulationProblemTestPlugin.so
+
 doc:
 	@echo "building the documentation of the source code ..."
 	cd $(SRC); \

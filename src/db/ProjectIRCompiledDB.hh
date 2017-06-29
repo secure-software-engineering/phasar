@@ -66,13 +66,15 @@ private:
   llvm::Module* getWPAModule();
   // add some useful functionality for querying the database
   bool containsSourceFile(const string& src);
-  llvm::LLVMContext* getLLVMContext(const string& name);
-  llvm::Module* getModule(const string& name);
-  llvm::Module* getModuleContainingFunction(const string& name);
-  llvm::Function* getFunction(const string& name);
-  llvm::GlobalVariable* getGlobalVariable(const string& name);
+  llvm::LLVMContext* getLLVMContext(const string& ModName);
+  llvm::Module* getModule(const string& ModName);
+  set<llvm::Module*> getAllModules();
+  size_t getNumberOfModules();
+  llvm::Module* getModuleContainingFunction(const string& FName);
+  llvm::Function* getFunction(const string& FName);
+  llvm::GlobalVariable* getGlobalVariable(const string& GName);
   llvm::Instruction* getInstruction(size_t id);
-  PointsToGraph* getPointsToGraph(const string& name);
+  PointsToGraph* getPointsToGraph(const string& FName);
   void print();
 };
 

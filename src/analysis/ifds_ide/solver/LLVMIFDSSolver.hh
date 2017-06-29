@@ -99,14 +99,52 @@ public:
 //		cout << "### IFDS END RESULTS AT LAST STATEMENT OF MAIN" << endl;
 	}
 
+	void exportJSONDataModel() {
+		// Table<N,N,map<D,set<D>>> computedIntraPathEdges;
+		// Table<N,N,map<D,set<D>>> computedInterPathEdges;
+		for (auto Seed : this->initialSeeds) {
+			auto SourceNode = Seed.first;
+			cout << "START NODE (in function " << SourceNode->getFunction()->getName().str() << ")\n";
+			SourceNode->dump();
+			// In the next line we obtain the corresponding row map which maps (given a source node)
+			// the target node to the data flow fact map<D, set<D>. In the data flow fact map D is
+			// a fact F which holds at the source node whereas set<D> contains the facts that are
+			// produced by F and hold at statement TargetNode.
+			// Usually every node has one successor node, that is why the row map obtained by row usually
+			// only contains just a single entry. BUT: in case of branch statements and other advanced
+			// instructions, one statement sometimes has multiple successor statments. In these cases
+			// the row map contains entries for every single successor statement. After having obtained
+			// the pairs <SourceNode, TargetNode> the data flow map can be obtained easily.
+			auto TargetNodeMap = this->computedIntraPathEdges.row(SourceNode);
+			cout << "TARGET NODE(S)\n";
+			for (auto entry : TargetNodeMap) {
+				auto TargetNode = entry.first;
+				TargetNode->dump();
+				auto FlowFactMap = entry.second;
+				for (auto FlowFactEntry : FlowFactMap) {
+					auto FlowFactAtStart = FlowFactEntry.first;
+					auto ProducedFlowFactsAtTarget = FlowFactEntry.second;
+					cout << "FLOW FACT AT SourceNode:\n";
+					FlowFactAtStart->dump(); // this would be the place for something like 'DtoString()'
+					cout << "IS PRODUCING FACTS AT TARGET NODE:\n";
+					for (auto ProdFlowFact : ProducedFlowFactsAtTarget) {
+						ProdFlowFact->dump(); // this would be the place for something like 'DtoString()'
+					}
+				}
+			}
+		}
+	}
+
 	void dumpAllInterPathEdges() {
 		cout << "COMPUTED INTER PATH EDGES" << endl;
 		auto interpe = this->computedInterPathEdges.cellSet();
 		for (auto& cell : interpe) {
 			cout << "FROM" << endl;
 			cell.r->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "TO" << endl;
 			cell.c->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "FACTS" << endl;
 			for (auto& fact : cell.v) {
 				cout << "fact" << endl;
@@ -125,8 +163,10 @@ public:
 		for (auto& cell : intrape) {
 			cout << "FROM" << endl;
 			cell.r->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "TO" << endl;
 			cell.c->dump();
+			cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
 			cout << "FACTS" << endl;
 			for (auto& fact : cell.v) {
 				cout << "fact" << endl;

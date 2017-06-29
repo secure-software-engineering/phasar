@@ -75,15 +75,15 @@ bool LLVMBasedCFG::isExitStmt(const llvm::Instruction* stmt) {
 }
 
 bool LLVMBasedCFG::isStartPoint(const llvm::Instruction* stmt) {
-	return (stmt == &(*stmt->getFunction()->getEntryBlock().begin()));
+	return (stmt == &stmt->getFunction()->front().front());
 }
 
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction* stmt, const llvm::Instruction* succ) {
 	if (const llvm::BranchInst* B = llvm::dyn_cast<llvm::BranchInst>(succ)) {
     if (B->isConditional()) {
-       return &(*B->getSuccessor(1)->begin()) == succ;
+       return &B->getSuccessor(1)->front() == succ;
      } else {
-       return &(*B->getSuccessor(0)->begin()) == succ;
+       return &B->getSuccessor(0)->front() == succ;
      }
 	}
 	return false;

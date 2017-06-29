@@ -55,7 +55,7 @@ IDESolverTest::initialSeeds() {
 	cout << "IDESolverTest::initialSeeds()\n";
   // just start in main()
   const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
-  const llvm::Instruction *firstinst = &(*(mainfunction->begin()->begin()));
+  const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{
       {firstinst, iset}};

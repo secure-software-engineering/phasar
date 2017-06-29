@@ -57,7 +57,7 @@ map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSSolverTest::initialSeeds() {
 	cout << "IFDSSolverTest::initialSeeds()\n";
   const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
-  const llvm::Instruction *firstinst = &(*mainfunction->begin()->begin());
+  const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{
       {firstinst, iset}};
@@ -65,9 +65,7 @@ IFDSSolverTest::initialSeeds() {
 }
 
 const llvm::Value *IFDSSolverTest::createZeroValue() {
-	cout << "IFDSSolverTest::createZeroValue()\n";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
+	static ZeroValue *zero = new ZeroValue;
 	return zero;
 }
-
