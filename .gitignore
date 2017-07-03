@@ -31,6 +31,9 @@ build/*
 # ignore all auto-generated LLVM IR code
 *.ll
 
+# ignore all auto-generated compile command databases
+compile_commands.json
+
 # ignore all auto-generated dot files
 *.dot
 

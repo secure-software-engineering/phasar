@@ -61,7 +61,7 @@ InterMonotoneSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 InterMonotoneSolverTest::initialSeeds() {
   cout << "InterMonotoneSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICFG.getModule().getFunction("main");
+  const llvm::Function *main = ICFG.getMethod("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
   Seeds.insert(std::make_pair(&main->front().front(), MonoSet<const llvm::Value*>()));
   return Seeds;

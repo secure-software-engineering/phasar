@@ -56,7 +56,7 @@ IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSSolverTest::initialSeeds() {
 	cout << "IFDSSolverTest::initialSeeds()\n";
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
+  const llvm::Function *mainfunction = icfg.getMethod("main");
   const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{

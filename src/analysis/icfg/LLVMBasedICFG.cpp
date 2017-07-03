@@ -19,41 +19,44 @@ LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction* i) : call
 
 }
 
-LLVMBasedICFG::LLVMBasedICFG(
-    llvm::Module& Module, LLVMStructTypeHierarchy& STH,
-    ProjectIRCompiledDB& IRDB)
-    : M(Module), CH(STH), IRDB(IRDB) {
-  // perform the resolving of all dynamic call sites contained in the corresponding module
-	llvm::Function* main = M.getFunction("main");
+LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
+														 ProjectIRCompiledDB& IRDB,
+														 const vector<string>& EntryPoints)
+		: CH(STH), IRDB(IRDB) {
 	cout << "calling the walker ...\n";
-	if (main) {
-		PointsToGraph& main_ptg = *IRDB.getPointsToGraph("main");
-		WholeModulePTG.mergeWith(main_ptg, {}, nullptr);
-		WholeModulePTG.printAsDot("main_ptg.dot");
-		resolveIndirectCallWalker(main);
-	} else {
-		cout << "could not find 'main()' function in call graph construction!\n";
-		HEREANDNOW;
-		DIE_HARD;
+	cout << "entry points are:\n";
+	for (auto& function_name : EntryPoints) {
+		cout << function_name << "\n";
+	}
+	for (auto& function_name : EntryPoints) {
+			llvm::Function* function = IRDB.getFunction(function_name);
+			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
+			WholeModulePTG.mergeWith(ptg, {}, nullptr);
+			resolveIndirectCallWalker(function);
 	}
 	cout << "constructed whole module ptg and resolved indirect calls ...\n";
 	WholeModulePTG.printAsDot("whole_module_ptg.dot");
 }
 
-LLVMBasedICFG::LLVMBasedICFG(llvm::Module& Module,
-							LLVMStructTypeHierarchy& STH,
-							ProjectIRCompiledDB& IRDB,
-							const vector<string>& EntryPoints)
-		: M(Module), CH(STH), IRDB(IRDB) {
-	for (auto& function_name : EntryPoints) {
-			llvm::Function* function = M.getFunction(function_name);
-			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
+LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
+														 ProjectIRCompiledDB& IRDB,
+														 const llvm::Module& M)
+		: CH(STH), IRDB(IRDB) {
+		cout << "CONSTRUCTING CALL-GRAPH FOR MODULE: " << M.getModuleIdentifier() << "\n";
+		for (auto& F : M) {
+			cout << F.getName().str() << "\n";
+			PointsToGraph& ptg = *IRDB.getPointsToGraph(F.getName().str());
 			WholeModulePTG.mergeWith(ptg, {}, nullptr);
-			resolveIndirectCallWalker(function);
-	}
+			resolveIndirectCallWalker(&F);
+		}
 }
 
 void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
+	// do not analyze functions more than once (this also acts as recursion detection)
+	if (VisitedFunctions.find(F->getName().str()) != VisitedFunctions.end()) {
+		return;
+	}
+	VisitedFunctions.insert(F->getName().str());
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
     const llvm::Instruction& Inst = *I;
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
@@ -92,10 +95,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       	boost::add_edge(function_vertex_map[F->getName().str()], function_vertex_map[cs.getCalledFunction()->getName().str()], EdgeProperties(cs.getInstruction()), cg);
     		// do the merge
       	WholeModulePTG.mergeWith(callee_ptg, mapping, cs.getInstruction());
-				// recursion detection
-				if (F != cs.getCalledFunction()) {
-	      	resolveIndirectCallWalker(cs.getCalledFunction());
-				}
+	      resolveIndirectCallWalker(cs.getCalledFunction());
 	    } else {
       // we have to resolve the called function ourselves using the accessible points-to information
         cout << "FOUND INDIRECT CALL-SITE" << endl;
@@ -117,10 +117,7 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
     		}
     		// continue resolving
         for (auto possible_target : possible_targets) {
-					// recursion detection
-					if (F != possible_target) {
-        		resolveIndirectCallWalker(possible_target);
-					}
+        	resolveIndirectCallWalker(possible_target);
         }
       }
     }
@@ -207,7 +204,11 @@ void LLVMBasedICFG::printPTGMapping(vector<pair<const llvm::Value*, const llvm::
 }
 
 const llvm::Function* LLVMBasedICFG::getMethodOf(const llvm::Instruction* stmt) {
-	return stmt->getParent()->getParent();
+	return stmt->getFunction();
+}
+
+const llvm::Function* LLVMBasedICFG::getMethod(const string& fun) {
+	return IRDB.getFunction(fun);
 }
 
 vector<const llvm::Instruction*> LLVMBasedICFG::getPredsOf(const llvm::Instruction* I) {
@@ -403,7 +404,13 @@ LLVMBasedICFG::getReturnSitesOfCallAt(
 
 CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 	if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
-			return CallType::call;
+		set<const llvm::Function*> Callees = getCalleesOfCallAt(stmt);
+		for (auto Callee : Callees) {
+			if (Callee->isDeclaration()) {
+				return CallType::unavailable;
+			}
+		}
+		return CallType::call;
 	} else {
 		return CallType::none;
 	}
@@ -415,29 +422,35 @@ CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 set<const llvm::Instruction*>
 LLVMBasedICFG::allNonCallStartNodes() {
   set<const llvm::Instruction*> NonCallStartNodes;
-  for (auto& F : M) {
-  	for (auto& BB : F) {
-  		for (auto& I : BB) {
-  			if ((!llvm::isa<llvm::CallInst>(&I)) && (!llvm::isa<llvm::InvokeInst>(&I)) && (!isStartPoint(&I))) {
-  				NonCallStartNodes.insert(&I);
+	for (auto M : IRDB.getAllModules()) {
+  	for (auto& F : *M) {
+  		for (auto& BB : F) {
+  			for (auto& I : BB) {
+  				if ((!llvm::isa<llvm::CallInst>(&I)) && (!llvm::isa<llvm::InvokeInst>(&I)) && (!isStartPoint(&I))) {
+  					NonCallStartNodes.insert(&I);
+  				}
   			}
   		}
   	}
-  }
+	}
   return NonCallStartNodes;
 }
 
 vector<const llvm::Instruction*>
 LLVMBasedICFG::getAllInstructionsOfFunction(const string& name) {
-  return getAllInstructionsOf(M.getFunction(name));
+  return getAllInstructionsOf(IRDB.getFunction(name));
 }
 
 const llvm::Instruction* LLVMBasedICFG::getLastInstructionOf(
     const string& name) {
-  const llvm::Function& f = *M.getFunction(name);
+  const llvm::Function& f = *IRDB.getFunction(name);
   auto last = llvm::inst_end(f);
   last--;
   return &(*last);
+}
+
+void LLVMBasedICFG::mergeWith(LLVMBasedICFG& other) {
+
 }
 
 void LLVMBasedICFG::print() {

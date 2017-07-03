@@ -153,7 +153,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     if (WPA_MODE) {
    	  // There is only one module left, because we have linked earlier
 	  	llvm::Module& M = *IRDB.getWPAModule();
-      LLVMBasedICFG ICFG(M, CH, IRDB); // LLVMBasedICFG ICFG(M, CH, IRDB, {"sub_400550"});
+      LLVMBasedICFG ICFG(CH, IRDB);
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
 	  // CFG is only needed for intra-procedural monotone framework
@@ -219,7 +219,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
-           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main")); // IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("sub_400550"));
+           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
            	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
@@ -233,10 +233,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						break;
 					}
        		case AnalysisType::None:
-					 {
+					{
        			cout << "None\n";
 						break;
-					 }
+					}
        		default:
        			cout << "Chosen AnalysisType is not valid\n" << endl;
        			break;
@@ -252,11 +252,11 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        * We build all the call- and points-to graphs which can be used for
        * all of the analysis of course.
        */
-       for (auto M : IRDB.getAllModules()) {
-       	LLVMBasedICFG ICFG(*M, CH, IRDB);
-       	// store them away for later use
-       	MWICFGs.insert(make_pair(M, ICFG));
-       }
+      // for (auto M : IRDB.getAllModules()) {
+      // 	LLVMBasedICFG ICFG(CH, IRDB, *M);
+      //  	// // store them away for later use
+      //  	// MWICFGs.insert(make_pair(M, ICFG));
+      // }
 
        /*
         * Perform all the analysis that the user has chosen.
@@ -449,8 +449,18 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			break;
        		}
        		case AnalysisType::None:
+					{
        			cout << "None\n";
-      			break;
+						cout << "LLVMBASEDICFG TEST\n";
+						LLVMBasedICFG G(CH, IRDB, *IRDB.getModuleContainingFunction("main"));
+						G.print();
+						G.printAsDot("main.dot");
+
+						LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleContainingFunction("_Z8sanitizei"));
+						H.print();
+						H.printAsDot("src1.dot");		
+						break;
+					}
        		default:
        			cout << "analysis not valid!" << endl;
        			break;

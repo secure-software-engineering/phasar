@@ -286,7 +286,7 @@ IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callSt
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSUnitializedVariables::initialSeeds() {
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
+  const llvm::Function *mainfunction = icfg.getMethod("main");
   const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{
