@@ -61,7 +61,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTypeAnalysis::initialSeeds() {
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
+  const llvm::Function *mainfunction = icfg.getMethod("main");
   const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{

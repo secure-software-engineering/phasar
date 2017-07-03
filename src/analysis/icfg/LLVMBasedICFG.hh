@@ -43,7 +43,6 @@ using namespace std;
 
 class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function*> {
  private:
-  const llvm::Module& M;
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   PointsToGraph WholeModulePTG;
@@ -82,20 +81,17 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   void printPTGMapping(vector<pair<const llvm::Value*, const llvm::Value*>> mapping);
 
  public:
-  LLVMBasedICFG(llvm::Module& Module,
-                LLVMStructTypeHierarchy& STH,
-                ProjectIRCompiledDB& IRDB);
+  LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
+				ProjectIRCompiledDB& IRDB,
+                const vector<string>& EntryPoints = {"main"});
 
-  LLVMBasedICFG(llvm::Module& Module,
-  							LLVMStructTypeHierarchy& STH,
-								ProjectIRCompiledDB& IRDB,
-								const vector<string>& EntryPoints);
+  LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
+                ProjectIRCompiledDB& IRDB,
+                const llvm::Module& M);
 
   virtual ~LLVMBasedICFG() = default;
 
   void resolveIndirectCallWalker(const llvm::Function* F);
-
-  const llvm::Module& getModule() { return M; }
 
   virtual const llvm::Function* getMethodOf(const llvm::Instruction* stmt) override;
 
@@ -116,6 +112,8 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   bool isBranchTarget(const llvm::Instruction* stmt, const llvm::Instruction* succ) override;
 
   string getMethodName(const llvm::Function* fun) override;
+
+  const llvm::Function* getMethod(const string& fun) override;
 
   set<const llvm::Function*> getCalleesOfCallAt(
       const llvm::Instruction* n) override;
@@ -141,6 +139,8 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   const llvm::Instruction* getLastInstructionOf(const string& name);
 
   vector<const llvm::Instruction*> getAllInstructionsOfFunction(const string& name);
+
+  void mergeWith(LLVMBasedICFG& other);
 
   void print();
 
