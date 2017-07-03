@@ -148,6 +148,7 @@ public:
   void printValueVertexMap();
   void print();
   void printAsDot(const string& filename);
+  void exportPATBCJSON();
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const PointsToGraph& STH);
   friend void operator>>(DBConn& db, const PointsToGraph& STH);

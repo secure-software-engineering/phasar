@@ -451,14 +451,18 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::None:
 					{
        			cout << "None\n";
-						cout << "LLVMBASEDICFG TEST\n";
-						LLVMBasedICFG G(CH, IRDB, *IRDB.getModuleContainingFunction("main"));
-						G.print();
-						G.printAsDot("main.dot");
-
-						LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleContainingFunction("_Z8sanitizei"));
-						H.print();
-						H.printAsDot("src1.dot");		
+						// cout << "LLVMBASEDICFG TEST\n";
+						// LLVMBasedICFG G(CH, IRDB, *IRDB.getModuleDefiningFunction("main"));
+						// cout << "G\n";
+						// G.print();
+						// G.printAsDot("main.dot");
+						// cout << "H\n";
+						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z8sanitizei"));
+						// H.print();
+						// H.printAsDot("src1.dot");
+						// cout << "after merge\n";
+						// G.mergeWith(H);
+						// G.print();
 						break;
 					}
        		default:
@@ -471,7 +475,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
          cout << "combining module-wise results ...\n";
          // start at the main function and iterate over the entire program combining
          // all results!
-         llvm::Module& M = *IRDB.getModuleContainingFunction("main");
+         llvm::Module& M = *IRDB.getModuleDefiningFunction("main");
          cout << "combining module-wise results done ...\n"
           				"computation completed!\n";
     }

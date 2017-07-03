@@ -70,7 +70,7 @@ private:
   llvm::Module* getModule(const string& ModName);
   set<llvm::Module*> getAllModules();
   size_t getNumberOfModules();
-  llvm::Module* getModuleContainingFunction(const string& FName);
+  llvm::Module* getModuleDefiningFunction(const string& FName);
   llvm::Function* getFunction(const string& FName);
   llvm::GlobalVariable* getGlobalVariable(const string& GName);
   llvm::Instruction* getInstruction(size_t id);

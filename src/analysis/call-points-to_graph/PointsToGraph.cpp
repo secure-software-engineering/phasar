@@ -264,6 +264,10 @@ void PointsToGraph::printAsDot(const string& filename) {
 	    boost::make_label_writer(boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
+void PointsToGraph::exportPATBCJSON() {
+  cout << "PointsToGraph::exportPATBCJSON()\n";
+}
+
 void PointsToGraph::printValueVertexMap() {
   for (const auto& entry : value_vertex_map) {
     cout << entry.first << " <---> " << entry.second << endl;
