@@ -104,7 +104,7 @@ void ProjectIRCompiledDB::linkForWPA() {
 	// the linkage. This is still very fast compared to compiling and pre-processing
 	// all modules.
   if (modules.size() > 1) {
-	  llvm::Module* MainMod = getModuleContainingFunction("main");
+	  llvm::Module* MainMod = getModuleDefiningFunction("main");
 	  if (!MainMod) {
 	  	cout << "could not find main() function!\n";
 	  	HEREANDNOW;
@@ -228,7 +228,7 @@ size_t ProjectIRCompiledDB::getNumberOfModules() {
   return modules.size();
 }
 
-llvm::Module* ProjectIRCompiledDB::getModuleContainingFunction(const string& name) {
+llvm::Module* ProjectIRCompiledDB::getModuleDefiningFunction(const string& name) {
 	return modules[functions[name]].get();
 }
 

@@ -46,7 +46,7 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
   PointsToGraph WholeModulePTG;
-  set<string> VisitedFunctions;
+  set<const llvm::Function*> VisitedFunctions;
   vector<string> CallStack;
   map<const llvm::Instruction*, const llvm::Function*> DirectCSTargetMethods;
   map<const llvm::Instruction*, set<const llvm::Function*>> IndirectCSTargetMethods;
@@ -140,11 +140,15 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
 
   vector<const llvm::Instruction*> getAllInstructionsOfFunction(const string& name);
 
-  void mergeWith(LLVMBasedICFG& other);
+  void mergeWith(const LLVMBasedICFG& other);
+
+  bool isPrimitiveFunction(const string& name);
 
   void print();
 
   void printAsDot(const string& filename);
+
+  void exportPATBCJSON();
 };
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */
