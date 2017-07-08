@@ -4,9 +4,10 @@
 bin/*
 
 # build directory for cmake
-build
+build/
 
 # obj/ directory
+obj/
 
 # doc/ directory
 doc/*
