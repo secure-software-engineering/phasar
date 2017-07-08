@@ -432,6 +432,15 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
 	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
 	static PHSStringConverter converter(*db.IRDB);
+  typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
+  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PTG.ptg); vp.first != vp.second; ++vp.first) {      
+    PTG.ptg[*vp.first].value->dump();
+    string hsstringrep = converter.PToHStoreStringRep(PTG.ptg[*vp.first].value);
+    cout << "HSStringRep: " << hsstringrep << "\n";
+    cout << "Re converted\n";
+    converter.HStoreStringRepToP(hsstringrep)->dump();
+    cout << "\n\n";
+  }
 	cout << "writing points-to graph into hexastore\n";
 }
 

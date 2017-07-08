@@ -9,8 +9,8 @@
 #define INTERMONOTONESOLVER_HH_
 
 #include "../../../utils/ContainerConfiguration.hh"
-#include "../InterMonotoneProblem.hh"
 #include "../CallString.hh"
+#include "../InterMonotoneProblem.hh"
 #include <deque>
 #include <iostream>
 #include <utility>
@@ -24,15 +24,15 @@ private:
 
 protected:
   InterMonotoneProblem<N, D, M, I> &IMProblem;
-  deque<pair<N, ctx_type>> Worklist;
-  MonoMap<N, MonoMap<ctx_type, MonoSet<D>>> Analysis;
+  deque<N> Worklist;
+  MonoMap<N, MonoSet<D>> Analysis;
   I ICFG;
   size_t prealloc_hint;
 
   void initialize() {
     for (auto &seed : IMProblem.initialSeeds()) {
-      Worklist.push_back(make_pair(seed.first, ICFG.getMethodOf(seed.first)));
-      Analysis[seed.first].insert(seed.second);
+      Worklist.push_back(seed.first);
+      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
     }
   }
 
@@ -41,30 +41,34 @@ public:
                       size_t prealloc_hint = 0)
       : IMProblem(IMP), ICFG(IMP.getICFG()), prealloc_hint(prealloc_hint) {}
   ~InterMonotoneSolver() = default;
-  
+
   virtual void solve() {
     cout << "starting the InterMonotoneSolver::solve() procedure!\n";
-    while(!Worklist.empty()) {
-      cout << "worklist size: " << Worklist.size() << "\n";
-      pair<N, ctx_type> src = Worklist.front();
-      N src_node = src.first;
-      ctx_type ctx = src.second;
-      Worklist.pop_front();
-      // if (ICFG.isCallStmt(src_node)) {
-      //   for (M callee : ICFG.getCalleesOfCallAt(src_node)) {
-      //     MonoSet<D> Out = IMProblem.callFlow(src_node, calle, Analysis[src_node][ctx]);
-
-      //   }
-      // } else if (ICFG.isExitStmt(src_node)) {
-      //   // MonoSet<D> Out = IMProblem.returnFlow()
-      // } else {
-      MonoSet<D> Out = IMProblem.normalFlow(src_node, Analysis[src_node][ctx]);
-      if (!IMProblem.sqSubSetEqual(Analysis[src_node][ctx], Out)) {
-        Analysis[src_node][ctx] = Out;
-        Worklist.push_back(src);
-      }
-      // }
-    }
+    initialize();
+    // while (!Worklist.empty()) {
+    //   cout << "worklist size: " << Worklist.size() << "\n";
+    //   N src_node = Worklist.front();
+    //   Worklist.pop_front();
+    //   // if (ICFG.isCallStmt(src_node) == CallType::call) {
+    //   //   for (M callee : ICFG.getCalleesOfCallAt(src_node)) {
+    //   //     // MonoSet<D> Out = IMProblem.callFlow(src_node, callee,
+    //   //     // Analysis[src_node]);
+    //   //   }
+    //   //   // recursive call
+    //   //   // the call
+    //   //   // MonoSet<D> Out = IMProblem.callToRetFlow();
+    //   // } else if (ICFG.isExitStmt(src_node)) {
+    //   //   // MonoSet<D> Out = IMProblem.returnFlow()
+    //   // } else {
+    //   auto target_nodes = ICFG.getSuccsOf(src_node);
+    //   MonoSet<D> Out = IMProblem.normalFlow(src_node, Analysis[src_node]);
+    //   for (auto target_node : target_nodes) {
+    //     if (!IMProblem.sqSubSetEqual(Out, Analysis[target_node])) {
+    //       Analysis[target_node] = Out;
+    //       Worklist.push_back(target_node);
+    //     }
+    //   }
+    // }
   }
 };
 
