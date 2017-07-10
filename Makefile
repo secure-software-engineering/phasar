@@ -25,6 +25,9 @@ CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 
+# Add header search paths
+CXX_INCL = -I ./json/src/
+
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
 
@@ -97,7 +100,7 @@ $(BIN)$(EXE): $(OBJ)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
-	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -c $< -o $@
 
 doc:
 	@echo "building the documentation of the source code ..."
