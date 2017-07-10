@@ -19,7 +19,7 @@ private:
 	array<T, K> callstring;
 
 public:
-
+	CallString() {}
 	friend bool operator< (const CallString<T,K>& Lhs, const CallString<T,K>& Rhs) {
 		return Lhs.callstring < Rhs.callstring;
 	}	

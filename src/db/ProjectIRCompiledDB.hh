@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <cassert>
 #include "../utils/utils.hh"
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 using namespace std;

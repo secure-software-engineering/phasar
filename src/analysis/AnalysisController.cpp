@@ -117,14 +117,22 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       // and construct the intra-procedural points-to graphs
       for (auto& function : M) {
       	IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
-      }
+			}
     }
     cout << "pre-analysis completed ...\n";
     IRDB.print();
 
     DBConn& db = DBConn::getInstance();
-    db.synchronize(&IRDB);
-		db << IRDB;
+		db.synchronize(&IRDB);
+		auto M = IRDB.getModuleDefiningFunction("main");
+		for (auto& F : *M) {
+			if (!F.isDeclaration()) {
+				cout << F.getName().str() << "\n";
+				db << *IRDB.getPointsToGraph(F.getName().str());
+			}
+		}
+
+    // db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
     cout << "reconstruction the class hierarchy ...\n";
@@ -175,9 +183,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IDE_TaintAnalysis\n";
-       			//IDETaintAnalysis taintanalysisproblem(icfg);
-       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-       			//llvmtaintsolver.solve();
+       			IDETaintAnalysis taintanalysisproblem(ICFG);
+       			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+       			llvmtaintsolver.solve();
        			break;
        		}
        		case AnalysisType::IFDS_TypeAnalysis:
@@ -212,9 +220,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        		case AnalysisType::IDE_SolverTest:
        		{
        			cout << "IDE_SolverTest\n";
-       			//IDESolverTest idetest(icfg);
-       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
-       			//llvmidetestsolver.solve();
+       			IDESolverTest idetest(ICFG);
+       			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
+       			llvmidetestsolver.solve();
        			break;
        		}
        		case AnalysisType::MONO_Intra_SolverTest:
@@ -458,7 +466,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						// G.print();
 						// G.printAsDot("main.dot");
 						// cout << "H\n";
-						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z8sanitizei"));
+						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z3foov"));
 						// H.print();
 						// H.printAsDot("src1.dot");
 						// cout << "after merge\n";

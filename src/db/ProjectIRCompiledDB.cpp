@@ -105,11 +105,7 @@ void ProjectIRCompiledDB::linkForWPA() {
 	// all modules.
   if (modules.size() > 1) {
 	  llvm::Module* MainMod = getModuleDefiningFunction("main");
-	  if (!MainMod) {
-	  	cout << "could not find main() function!\n";
-	  	HEREANDNOW;
-	  	DIE_HARD;
-	  }
+	  assert(MainMod && "could not find main function");
 	  for (auto& entry : modules) {
 	  	// we do not want to link a module with itself!
 	  	if (MainMod != entry.second.get()) {
@@ -168,8 +164,6 @@ void ProjectIRCompiledDB::linkForWPA() {
     // In this case we only have one module anyway, so we do not have
     // to link at all. But we have to the the WPAMOD pointer!
     WPAMOD = modules.begin()->second.get();
-  } else {
-    UNRECOVERABLE_CXX_ERROR_UNCOND("error: number of modules within ProjectIRCompiledDB cannot be used for WPA");
   }
 }
 
