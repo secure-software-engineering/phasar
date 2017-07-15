@@ -51,9 +51,9 @@ namespace hexastore
     "values (\"%3%\", (select id from pos_predicate where name=\"%2%\"));"
 
     "insert or ignore into pos_subject (name, oid, pid) " 
-    "values (\"%1%\", (select id from pos_object where name=\"%3%\"), "
-    "(select id from pos_object where name=\"%3%\" and pid=(select id from pos_predicate where name=\"%2%\")));";
-
+    "values (\"%1%\", (select id from pos_object where pos_object.name=\"%3%\" and "
+    "pos_object.pid=(select id from pos_predicate where name=\"%2%\")), "
+    "(select pid from pos_object where name=\"%3%\" and pid=(select id from pos_predicate where name=\"%2%\")));";
 
   const string OSP_INSERT =
     "insert or ignore into osp_object (name) "
@@ -63,9 +63,9 @@ namespace hexastore
     "values (\"%1%\", (select id from osp_object where name=\"%3%\"));"
 
     "insert or ignore into osp_predicate (name, sid, oid) " 
-    "values (\"%2%\", (select id from osp_subject where name=\"%1%\"), "
+    "values (\"%2%\", (select id from osp_subject where name=\"%1%\" and "
+    "oid=(select id from osp_object where name=\"%3%\")), "
     "(select id from osp_object where name=\"%3%\" and oid=(select id from osp_object where name=\"%3%\")));";
-
 
   const string OPS_INSERT =
     "insert or ignore into ops_object (name) "
@@ -99,11 +99,11 @@ namespace hexastore
     "where sop_subject.name=\"%1%\" and sop_object.name=\"%3%\";";
 
   const string SEARCH_XPO =
-    "-- %2%\n"
+    "-- %1%\n"
     "select pos_subject.name, pos_predicate.name, pos_object.name from pos_predicate "
-    "inner join pos_object on pos_subject.id=pos_object.sid "
-    "inner join pos_predicate on pos_object.id=pos_predicate.id and pos_subject.id=pos_predicate.sid "
-    "where pos_subject.name=\"%1%\" and pos_object.name=\"%3%\";";
+    "inner join pos_object on pos_object.pid=pos_predicate.id "
+    "inner join pos_subject on pos_subject.pid=pos_predicate.id and pos_subject.oid=pos_object.id "
+    "where pos_predicate.name=\"%2%\" and pos_object.name=\"%3%\";";
 
 
   const string SEARCH_SXX = 
@@ -123,9 +123,9 @@ namespace hexastore
     
   const string SEARCH_XXO = 
     "-- %1%%2%\n"
-    "select osp_subject.name, osp_predicate.name, osp_object.name from"
-    "osp_object inner join osp_subject on osp_object.id=osp_subject.oid"
-    "inner join osp_predicate on osp_subject.id=osp_predicate.sid and osp_object.id=osp_object.oid"
+    "select osp_subject.name, osp_predicate.name, osp_object.name from "
+    "osp_object inner join osp_subject on osp_object.id=osp_subject.oid "
+    "inner join osp_predicate on osp_subject.id=osp_predicate.sid and osp_object.id=osp_predicate.oid "
     "where osp_object.name=\"%3%\";";
 
   const string SEARCH_XXX = 

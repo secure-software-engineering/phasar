@@ -9,29 +9,117 @@
 using namespace std;
 using namespace hexastore;
 
+int hs_empty_fields_test() {
+  hexastore::Hexastore h("test1.sqlite");
+  // init with some stuff
+  h.put({{"one", "", ""}});
+  h.put({{"two", "", ""}});
+  h.put({{"", "three", ""}});
+  h.put({{"one", "", "four"}});
+  // queries
+  cout << "one:" << "\n";
+  auto result = h.get({{"one", "", ""}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  cout << "\n";
+  result = h.get({{"one", "?", "?"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  return 0;
+}
+
+int hs_more_tests() {
+  hexastore::Hexastore h("test.sqlite");
+  // init with some stuff
+  h.put({{"mary", "likes", "hexastores"}});
+  h.put({{"mary", "likes", "apples"}});
+  h.put({{"mary", "hates", "oranges"}});
+  h.put({{"peter", "likes", "apples"}});
+  h.put({{"peter", "hates", "hexastores"}});
+  h.put({{"frank", "admires", "bananas"}});
+  //query SPO (spo tables)
+  cout << "Does peter hate hexastores?" << "\n";
+  auto result = h.get({{"peter", "hates", "hexastores"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query SPX (spo tables)
+  cout << "\n";
+  cout << "What does Mary like?" << "\n";
+  result = h.get({{"mary", "likes", "?"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query SXO (sop tables)
+  cout << "\n";
+  cout << "What's Franks opinion on bananas?" << "\n";
+  result = h.get({{"frank", "?", "bananas"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query XPO (pos tables)
+  cout << "\n";
+  cout << "Who likes apples?" << "\n";
+  result = h.get({{"?", "likes", "apples"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query SXX (spo tables)
+  cout << "\n";
+  cout << "What's Marry up to?" << "\n";
+  result = h.get({{"mary", "?", "?"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query XPX (pso tables)
+  cout << "\n";
+  cout << "Who likes what?" << "\n";
+  result = h.get({{"?", "likes", "?"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query XXO (osp tables)
+  cout << "\n";
+  cout << "Who has what opinion on apples?" << "\n";
+  result = h.get({{"?", "?", "apples"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  //query XXX (spo tables)
+  cout << "\n";
+  cout << "All data in the Hexastore:" << "\n";
+  result = h.get({{"?", "?", "?"}});
+  for_each(result.begin(), result.end(), [](hs_result r){
+    cout << r << endl;
+  });
+  return 0;
+}
+
 int hs_test_main() {
   hexastore::Hexastore h("test.sqlite");
   // init with some stuff
-  h.put({"mary", "likes", "hexastores"});
-  h.put({"mary", "likes", "apples"});
-  h.put({"peter", "likes", "apples"});
-  h.put({"peter", "hates", "hexastores"});
-  h.put({"frank", "admires", "bananas"});
+  h.put({{"mary", "likes", "hexastores"}});
+  h.put({{"mary", "likes", "apples"}});
+  h.put({{"peter", "likes", "apples"}});
+  h.put({{"peter", "hates", "hexastores"}});
+  h.put({{"frank", "admires", "bananas"}});
   //query some stuff
   cout << "Who likes what?" << "\n";
-  auto result = h.get({"?", "likes", "?"});
+  auto result = h.get({{"?", "likes", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
   cout << "\n";
   cout << "What does peter hate?" << "\n";
-  result = h.get({"peter", "hates", "?"});
+  result = h.get({{"peter", "hates", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
   cout << "\n";
   cout << "Who admires something?" << "\n";
-  result = h.get({"?", "admires", "?"});
+  result = h.get({{"?", "admires", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
@@ -56,8 +144,8 @@ void hs_serialization_test() {
 	typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
 			Vertex, Edge> graph_t;
 	typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
-	typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
-	typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
+//	typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
+//	typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
 
 //	// define stuff for a directed graph
 //	typedef boost::adjacency_list<boost::setS, boost::vecS, boost::directedS,
@@ -96,13 +184,13 @@ void hs_serialization_test() {
 	for (tie(ei_start, e_end) = boost::edges(G); ei_start != e_end; ++ei_start) {
 		auto source = boost::source(*ei_start, G);
 		auto target = boost::target(*ei_start, G);
-		hs.put( { G[source].name, "no label", G[target].name });
+		hs.put({{ G[source].name, "no label", G[target].name}});
 	}
 	cout << "de-serialize H\n";
 	graph_t H;
 	set<string> recognized;
 	map<string, vertex_t> vertices;
-	vector<hexastore::hs_result> result_set = hs.get( { "?", "no label", "?" }, 20);
+	vector<hexastore::hs_result> result_set = hs.get({{ "?", "no label", "?" }}, 20);
 	for (auto entry : result_set) {
 		cout << entry << endl;
 		if (recognized.find(entry.subject) == recognized.end()) {
@@ -144,8 +232,8 @@ void hs_serialization_test() {
 	std::cout << "Graph I:" << std::endl;
 	boost::print_graph(I, boost::get(&Vertex::name, I));
 	for (tie(ei_start, e_end) = boost::edges(I); ei_start != e_end;	++ei_start) {
-		auto source = boost::source(*ei_start, I);
-		auto target = boost::target(*ei_start, I);
+//		auto source = boost::source(*ei_start, I);
+//		auto target = boost::target(*ei_start, I);
 		cout << boost::get(&Edge::edge_name, I, *ei_start) << endl;
 	}
 	hexastore::Hexastore hsi("hexastore_with_labels.sqlite");
@@ -154,13 +242,13 @@ void hs_serialization_test() {
 		auto source = boost::source(*ei_start, I);
 		auto target = boost::target(*ei_start, I);
 		string edge = boost::get(&Edge::edge_name, I, *ei_start);
-		hsi.put( { I[source].name, edge, I[target].name });
+		hsi.put( {{ I[source].name, edge, I[target].name }});
 	}
 	cout << "de-serialize I\n";
 	graph_t J;
 	set<string> recognized_vertices_hsi;
 	map<string, vertex_t> vertices_hsi;
-	vector<hexastore::hs_result> hsi_res = hsi.get({"?", "?", "?"}, 10);
+	vector<hexastore::hs_result> hsi_res = hsi.get({{"?", "?", "?"}}, 10);
 	for (auto entry : hsi_res) {
 		cout << entry << endl;
 		if (recognized_vertices_hsi.find(entry.subject) == recognized_vertices_hsi.end()) {
@@ -181,3 +269,10 @@ void hs_serialization_test() {
 		cout << boost::get(&Edge::edge_name, J, *ei_start) << endl;
 	}
 }
+// Uncomment the code below to do some independent testing
+// int main() {
+// 	hs_more_tests();
+//   cout << "\n";
+//   hs_empty_fields_test();
+// 	return 0;
+// }
