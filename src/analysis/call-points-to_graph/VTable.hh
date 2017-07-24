@@ -8,17 +8,20 @@
 #ifndef ANALYSIS_VTABLE_HH_
 #define ANALYSIS_VTABLE_HH_
 
-#include <llvm/IR/Type.h>
+#include "json.hpp"
 #include <algorithm>
+#include <iostream>
+#include <llvm/IR/Type.h>
 #include <string>
 #include <vector>
 using namespace std;
+using json = nlohmann::json;
 
 class VTable {
- private:
+private:
   vector<string> vtbl;
 
- public:
+public:
   VTable() = default;
   virtual ~VTable() = default;
   string getFunctionByIdx(unsigned i);
@@ -26,7 +29,8 @@ class VTable {
   void addEntry(string entry);
   bool empty();
   vector<string> getVTable() const;
-  friend ostream& operator<<(ostream& os, const VTable& t);
+  friend ostream &operator<<(ostream &os, const VTable &t);
+  json exportPATBCJSON();
 };
 
 #endif /* ANALYSIS_VTABLE_HH_ */

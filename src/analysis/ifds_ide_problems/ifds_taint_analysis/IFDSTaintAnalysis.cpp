@@ -278,3 +278,7 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
 	static ZeroValue *zero = new ZeroValue;
 	return zero;
 }
+
+string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
+}

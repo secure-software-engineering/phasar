@@ -22,7 +22,6 @@ CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-may
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
 CXX_FLAGS += -g
-CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 
 # Add header search paths
@@ -58,7 +57,9 @@ LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions
 
 # Libraries to link against
 SQLITE3_LIBS := -lsqlite3
-BOOST_LIBS := -lboost_filesystem -lboost_system -lboost_program_options
+BOOST_LIBS := -lboost_filesystem
+BOOST_LIBS += -lboost_system
+BOOST_LIBS += -lboost_program_options
 LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool

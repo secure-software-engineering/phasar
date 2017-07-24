@@ -1,5 +1,16 @@
 #include "AnalysisController.hh"
 
+const map<string, AnalysisType> AnalysisTypeMap = { { "ifds_uninit", AnalysisType::IFDS_UninitializedVariables },
+																										{ "ifds_taint", AnalysisType::IFDS_TaintAnalysis },
+																										{ "ifds_type", AnalysisType::IFDS_TypeAnalysis },
+																										{ "ide_taint", AnalysisType::IDE_TaintAnalysis },
+																										{ "ifds_solvertest", AnalysisType::IFDS_SolverTest },
+																										{ "ide_solvertest", AnalysisType::IDE_SolverTest },
+																										{ "mono_intra_fullconstpropagation", AnalysisType::MONO_Intra_FullConstantPropagation },
+																										{ "mono_intra_solvertest",AnalysisType::MONO_Intra_SolverTest },
+																										{ "mono_inter_solvertest",AnalysisType::MONO_Inter_SolverTest },
+																										{ "none", AnalysisType::None } };
+
 ostream& operator<<(ostream& os, const AnalysisType& k) {
 	switch (k) {
 	case AnalysisType::IFDS_UninitializedVariables:
@@ -19,6 +30,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 		break;
 	case AnalysisType::IDE_SolverTest:
 		os << "AnalysisType::IDE_SolverTest";
+		break;
+	case AnalysisType::MONO_Intra_FullConstantPropagation:
+		os << "AnalysisType::MONO_Intra_FullConstantPropagation";
 		break;
 	case AnalysisType::MONO_Intra_SolverTest:
 		os << "AnalysisType::MONO_Intra_SolverTest";
@@ -162,7 +176,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     if (WPA_MODE) {
    	  // There is only one module left, because we have linked earlier
 	  	llvm::Module& M = *IRDB.getWPAModule();
-      LLVMBasedICFG ICFG(CH, IRDB);
+      LLVMBasedICFG ICFG(CH, IRDB, CallGraphAnalysisType::OTF, {"main"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
 	  // CFG is only needed for intra-procedural monotone framework
@@ -225,6 +239,14 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmidetestsolver.solve();
        			break;
        		}
+					case AnalysisType::MONO_Intra_FullConstantPropagation:
+					{
+						cout << "MONO_Intra_FullConstantPropagation\n";
+						IntraMonoFullConstantPropagation intra(CFG, IRDB.getFunction("main"));
+						LLVMIntraMonotoneSolver<pair<const llvm::Value*, unsigned>, LLVMBasedCFG&> solver(intra, true);
+           	solver.solve();
+						break;
+					}
        		case AnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
@@ -469,7 +491,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z3foov"));
 						// H.print();
 						// H.printAsDot("src1.dot");
-						// cout << "after merge\n";
+						// cout << "NOW MERGING\n";
 						// G.mergeWith(H);
 						// G.print();
 						break;

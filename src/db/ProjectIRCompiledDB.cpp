@@ -254,3 +254,7 @@ void ProjectIRCompiledDB::print() {
     cout << entry.first << " defined in module " << entry.second << endl;
   }
 }
+
+void ProjectIRCompiledDB::exportPATBCJSON() {
+  cout << "ProjectIRCompiledDB::exportPATBCJSON\n";
+}

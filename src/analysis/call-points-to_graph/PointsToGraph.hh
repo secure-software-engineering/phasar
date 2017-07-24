@@ -71,6 +71,13 @@ inline void PrintLoadStoreResults(const char* Msg, bool P,
 // forward declare the DBConn class
 class DBConn;
 
+enum class PointerAnalysisType {
+  CFLSteens,
+  CFLAnders
+};
+
+extern const map<string, PointerAnalysisType> PointerAnalysisTypeMap;
+
 class PointsToGraph {
 public:
   struct VertexProperties {
@@ -138,10 +145,11 @@ public:
   inline bool isInterestingPointer(llvm::Value* V);
   vector<pair<unsigned, const llvm::Value*>> getPointersEscapingThroughParams();
   vector<const llvm::Value*> getPointersEscapingThroughReturns();
-  set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V);
+  set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V, vector<string> CallStack);
   set<const llvm::Type*> computeTypesFromAllocationSites(set<const llvm::Value*> AS);
   bool containsValue(llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
+  inline bool representsSingleFunction();
   void mergeWith(PointsToGraph& other,
   							 vector<pair<const llvm::Value*, const llvm::Value*>> v_in_first_u_in_second,
 								 const llvm::Value* callsite_value);

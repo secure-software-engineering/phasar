@@ -36,3 +36,11 @@ vector<string> VTable::getVTable() const {
 bool VTable::empty() {
   return vtbl.empty();
 }
+
+json VTable::exportPATBCJSON() {
+  json j = "{}"_json;
+  for (unsigned idx = 0; idx < vtbl.size(); ++idx) {
+    j.push_back({ to_string(idx), vtbl[idx] });
+  }
+  return j;
+}

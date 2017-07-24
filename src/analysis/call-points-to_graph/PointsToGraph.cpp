@@ -74,6 +74,9 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
 
+const map<string, PointerAnalysisType> PointerAnalysisTypeMap = { { "CFLSteens", PointerAnalysisType::CFLSteens },
+                                                                  { "CFLAnders", PointerAnalysisType::CFLAnders } };
+
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
   cout << "analyzing function: " << F->getName().str() << endl;
   merge_stack.push_back(F->getName().str());
@@ -195,7 +198,8 @@ vector<const llvm::Value*> PointsToGraph::getPointersEscapingThroughReturns() {
 	return escaping_pointers;
 }
 
-set<const llvm::Value*> PointsToGraph::getReachableAllocationSites(const llvm::Value* V) {
+set<const llvm::Value*> PointsToGraph::getReachableAllocationSites(const llvm::Value* V,
+                                                                   vector<string> CallStack) {
 	set<const llvm::Value*> alloc_sites;
 	allocation_site_dfs_visitor alloc_vis(alloc_sites);
 	vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
@@ -220,7 +224,8 @@ set<const llvm::Type*> PointsToGraph::computeTypesFromAllocationSites(set<const 
 			types.insert(alloc->getAllocatedType());
 		} else {
 			// usually if an allocating function is called, it is immediately bit-casted
-			// to the desired allocated value
+			// to the desired allocated value and hence we can determine it frome the 
+      // destination type of that cast instruction.
 			for (auto user : V->users()) {
 				if (const llvm::BitCastInst* cast = llvm::dyn_cast<llvm::BitCastInst>(user)) {
 					types.insert(cast->getDestTy());
@@ -246,6 +251,10 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
   }
   return result;
 }
+
+ bool PointsToGraph::representsSingleFunction() {
+  return merge_stack.size() == 1;
+ }
 
 void PointsToGraph::print() {
   cout << "PointsToGraph for ";
@@ -298,5 +307,6 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	}
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
 			(ptg, other.ptg, v_in_g1_u_in_g2, callsite_value);
+  // keep track of what has already been merged into this points-to graph
 	merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
 }

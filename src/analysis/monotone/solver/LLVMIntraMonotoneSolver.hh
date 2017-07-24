@@ -21,6 +21,7 @@ class LLVMIntraMonotoneSolver
                                  const llvm::Function *, C> {
 protected:
   bool DUMP_RESULTS;
+  IntraMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, C> &IMP;
 
 public:
   LLVMIntraMonotoneSolver();
@@ -32,7 +33,7 @@ public:
       bool dumpResults = false)
       : IntraMonotoneSolver<const llvm::Instruction *, D,
                             const llvm::Function *, C>(problem),
-        DUMP_RESULTS(dumpResults) {}
+        DUMP_RESULTS(dumpResults), IMP(problem) {}
 
   virtual void solve() override {
     // do the solving of the analaysis problem
@@ -55,7 +56,7 @@ public:
         cout << "\tEMPTY\n";
       } else {
         for (auto fact : entry.second) {
-          fact->dump();
+          cout << IMP.D_to_string(fact) << '\n';
         }
       }
       cout << "\n\n";

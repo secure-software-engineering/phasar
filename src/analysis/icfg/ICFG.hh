@@ -18,7 +18,19 @@ using namespace std;
 
 enum class CallType { none = 0, call = 1, unavailable = 2 };
 
+enum class CallGraphAnalysisType {
+  CHA,
+  RTA,
+  DTA,
+  VTA,
+  OTF
+};
+
+extern const map<string, CallGraphAnalysisType> CallGraphAnalysisTypeMap;
+
 ostream &operator<<(ostream &os, const CallType &CT);
+
+ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename M> class ICFG : public CFG<N, M> {
 public:

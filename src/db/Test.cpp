@@ -12,26 +12,26 @@ using namespace hexastore;
 int hs_test_main() {
   hexastore::Hexastore h("test.sqlite");
   // init with some stuff
-  h.put({"mary", "likes", "hexastores"});
-  h.put({"mary", "likes", "apples"});
-  h.put({"peter", "likes", "apples"});
-  h.put({"peter", "hates", "hexastores"});
-  h.put({"frank", "admires", "bananas"});
+  h.put({{"mary", "likes", "hexastores"}});
+  h.put({{"mary", "likes", "apples"}});
+  h.put({{"peter", "likes", "apples"}});
+  h.put({{"peter", "hates", "hexastores"}});
+  h.put({{"frank", "admires", "bananas"}});
   //query some stuff
   cout << "Who likes what?" << "\n";
-  auto result = h.get({"?", "likes", "?"});
+  auto result = h.get({{"?", "likes", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
   cout << "\n";
   cout << "What does peter hate?" << "\n";
-  result = h.get({"peter", "hates", "?"});
+  result = h.get({{"peter", "hates", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
   cout << "\n";
   cout << "Who admires something?" << "\n";
-  result = h.get({"?", "admires", "?"});
+  result = h.get({{"?", "admires", "?"}});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
@@ -96,13 +96,13 @@ void hs_serialization_test() {
 	for (tie(ei_start, e_end) = boost::edges(G); ei_start != e_end; ++ei_start) {
 		auto source = boost::source(*ei_start, G);
 		auto target = boost::target(*ei_start, G);
-		hs.put( { G[source].name, "no label", G[target].name });
+		hs.put( {{ G[source].name, "no label", G[target].name }});
 	}
 	cout << "de-serialize H\n";
 	graph_t H;
 	set<string> recognized;
 	map<string, vertex_t> vertices;
-	vector<hexastore::hs_result> result_set = hs.get( { "?", "no label", "?" }, 20);
+	vector<hexastore::hs_result> result_set = hs.get( {{ "?", "no label", "?" }}, 20);
 	for (auto entry : result_set) {
 		cout << entry << endl;
 		if (recognized.find(entry.subject) == recognized.end()) {
@@ -154,13 +154,13 @@ void hs_serialization_test() {
 		auto source = boost::source(*ei_start, I);
 		auto target = boost::target(*ei_start, I);
 		string edge = boost::get(&Edge::edge_name, I, *ei_start);
-		hsi.put( { I[source].name, edge, I[target].name });
+		hsi.put( {{ I[source].name, edge, I[target].name }} );
 	}
 	cout << "de-serialize I\n";
 	graph_t J;
 	set<string> recognized_vertices_hsi;
 	map<string, vertex_t> vertices_hsi;
-	vector<hexastore::hs_result> hsi_res = hsi.get({"?", "?", "?"}, 10);
+	vector<hexastore::hs_result> hsi_res = hsi.get({{"?", "?", "?"}}, 10);
 	for (auto entry : hsi_res) {
 		cout << entry << endl;
 		if (recognized_vertices_hsi.find(entry.subject) == recognized_vertices_hsi.end()) {

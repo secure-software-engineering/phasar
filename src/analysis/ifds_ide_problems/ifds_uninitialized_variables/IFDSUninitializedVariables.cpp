@@ -299,3 +299,7 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   static ZeroValue *zero = new ZeroValue;
 	return zero;
 }
+
+string IFDSUnitializedVariables::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
+}

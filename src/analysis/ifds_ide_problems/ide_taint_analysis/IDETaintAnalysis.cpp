@@ -38,11 +38,11 @@ IDETaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction* callStmt,
-																				 const llvm::Function* destMthd,
-																				 vector<const llvm::Value*> inputs,
-																				 vector<bool> context) {
-	return nullptr;
+IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
+                                         const llvm::Function *destMthd,
+                                         vector<const llvm::Value *> inputs,
+                                         vector<bool> context) {
+  return nullptr;
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
@@ -58,8 +58,8 @@ IDETaintAnalysis::initialSeeds() {
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-	static ZeroValue *zero = new ZeroValue;
-	return zero;
+  static ZeroValue *zero = new ZeroValue;
+  return zero;
 }
 
 // in addition provide specifications for the IDE parts
@@ -98,6 +98,12 @@ IDETaintAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
+shared_ptr<EdgeFunction<const llvm::Value *>> IDETaintAnalysis::getSummaryEdgeFunction(
+    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
+    vector<const llvm::Value *> inputs, vector<bool> context) {
+  return EdgeIdentity<const llvm::Value *>::v();
+}
+
 const llvm::Value *IDETaintAnalysis::topElement() { return nullptr; }
 
 const llvm::Value *IDETaintAnalysis::bottomElement() { return nullptr; }
@@ -132,4 +138,12 @@ IDETaintAnalysis::IDETainAnalysisAllTop::joinWith(
 bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
     shared_ptr<EdgeFunction<const llvm::Value *>> other) {
   return false;
+}
+
+string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
+  return "";
+}
+
+string IDETaintAnalysis::V_to_string(const llvm::Value *v) {
+  return "";
 }

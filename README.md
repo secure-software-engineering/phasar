@@ -186,7 +186,9 @@ two mechanisms:
 Just type 'make' and ourframework will be compiled. As usual 'make clean' will 
 delete all compiled and auto-generated files. Using 'make doc' will generate the
 doxygen code documentation. The compiled binary file can be found in the bin/ 
-directory.
+directory. You can use the -j switch to build in parallel reducing the compile time.
+
+$ make -j $(nproc)
 
 #### CMake {#cmake}
 If you are a fan of cmake you probably would like to go this route. 
@@ -199,6 +201,7 @@ $ cd build/
 $ cmake ..
 
 $ make -j $(nproc)
+
 
 After compilation using cmake the binary can be found right in the build 
 directory.
@@ -216,7 +219,7 @@ If errors occur when running the test example your compiler might be
 misconfigured or worse (please report if that happens).
 
 #### A remark on compile time {#a-remark-on-compile-time}
-C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. We plan to adjust our handwritten Makefile as well, so that it can be build using makes parallelization capabilities (currently it cannot run in parallel).
+C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. Our handwritten Makefile is able to run in parallel as well (as shown in the above).
 
 #### Creating the configuration files {#creating-the-configuration-files}
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:

@@ -63,3 +63,7 @@ IFDSTabulationProblemTestPlugin::initialSeeds() {
 //  return imap;
 	return {};
 }
+
+string IFDSTabulationProblemTestPlugin::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
+}

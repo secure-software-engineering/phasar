@@ -20,13 +20,14 @@ template<class D, class I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction*, D, const llvm::Function*, I> {
 private:
 	const bool DUMP_RESULTS;
+	IFDSTabulationProblem<const llvm::Instruction*,D,const llvm::Function*,I>& Problem;
 
 public:
 	virtual ~LLVMIFDSSolver() = default;
 
 	LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction*,D,const llvm::Function*,I>& problem, bool dumpResults=false)
 					: IFDSSolver<const llvm::Instruction*,D,const llvm::Function*,I>(problem),
-					  DUMP_RESULTS(dumpResults) {}
+					  DUMP_RESULTS(dumpResults), Problem(problem) {}
 
 	virtual void solve() override
 	{
@@ -177,6 +178,11 @@ public:
 				}
 			}
 		}
+	}
+
+
+	void exportPATBCJSON() {
+		cout << "LLVMIFDSSolver::exportPATBCJSON()\n";
 	}
 };
 

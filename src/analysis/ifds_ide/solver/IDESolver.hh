@@ -86,10 +86,6 @@ public:
 
 	virtual ~IDESolver() = default;
 
-	void exportPATBCJSON() {
-		cout << "IDESolver::exportPATBCJSON()\n";
-	}
-
 	/**
 	 * Runs the solver on the configured problem. This can take some time.
 	 */

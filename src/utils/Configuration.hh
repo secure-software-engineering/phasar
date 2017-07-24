@@ -21,5 +21,7 @@ extern const string GLIBCFunctionListFileName;
 extern const string LLVMIntrinsicFunctionListFileName;
 /// Name of the file storing all standard header search paths used for compilation.
 extern const string HeaderSearchPathsFileName;
+/// Name of the compile_commands.json file (in case we wish to rename)
+extern const string CompileCommandsJson;
 
 #endif /* SRC_UTILS_CONFIGURATION_HH_ */

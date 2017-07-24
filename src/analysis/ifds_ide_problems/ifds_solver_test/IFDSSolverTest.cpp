@@ -69,3 +69,7 @@ const llvm::Value *IFDSSolverTest::createZeroValue() {
 	static ZeroValue *zero = new ZeroValue;
 	return zero;
 }
+
+string IFDSSolverTest::D_to_string(const llvm::Value * d) {
+  return llvmIRToString(d);
+}

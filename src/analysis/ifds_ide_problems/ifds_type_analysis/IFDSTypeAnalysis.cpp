@@ -73,3 +73,7 @@ const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
 	static ZeroValue *zero = new ZeroValue;
 	return zero;
 }
+
+string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
+}

@@ -47,7 +47,10 @@
 #include "monotone/solver/LLVMInterMonotoneSolver.hh"
 #include "monotone_problems/intra_monotone_solver_test/IntraMonotoneSolverTest.hh"
 #include "monotone_problems/inter_monotone_solver_test/InterMonotoneSolverTest.hh"
+#include "monotone_problems/intra_full_constant_propagation/IntraMonoFullConstantPropagation.hh"
+#include "json.hpp"
 using namespace std;
+using json = nlohmann::json;
 
 enum class AnalysisType {
   IFDS_UninitializedVariables,
@@ -56,10 +59,13 @@ enum class AnalysisType {
   IFDS_TypeAnalysis,
 	IFDS_SolverTest,
 	IDE_SolverTest,
+	MONO_Intra_FullConstantPropagation,
 	MONO_Intra_SolverTest,
 	MONO_Inter_SolverTest,
 	None
 };
+
+extern const map<string, AnalysisType> AnalysisTypeMap;
 
 ostream& operator<<(ostream& os, const AnalysisType& k);
 

@@ -28,8 +28,8 @@ InterMonotoneSolverTest::normalFlow(const llvm::Instruction *Stmt,
   cout << "InterMonotoneSolverTest::normalFlow()\n";
   MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
-  if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
-    Result.insert(Store);
+  if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+    Result.insert(Alloc);
   }
   return Result;
 }
@@ -63,6 +63,11 @@ InterMonotoneSolverTest::initialSeeds() {
   cout << "InterMonotoneSolverTest::initialSeeds()\n";
   const llvm::Function *main = ICFG.getMethod("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
-  Seeds.insert(std::make_pair(&main->front().front(), MonoSet<const llvm::Value*>()));
+  Seeds.insert(
+      std::make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));
   return Seeds;
+}
+
+string InterMonotoneSolverTest::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
 }

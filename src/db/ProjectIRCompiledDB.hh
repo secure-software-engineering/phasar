@@ -77,6 +77,7 @@ private:
   llvm::Instruction* getInstruction(size_t id);
   PointsToGraph* getPointsToGraph(const string& FName);
   void print();
+  void exportPATBCJSON();
 };
 
 #endif /* ANALYSIS_PROJECTIRCOMPILEDDB_HH_ */

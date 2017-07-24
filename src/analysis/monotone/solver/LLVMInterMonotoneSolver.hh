@@ -5,9 +5,6 @@
  *      Author: philipp
  */
 
-#ifndef LLVMINTERMONOTONESOLVER_HH_
-#define LLVMINTERMONOTONESOLVER_HH_
-
 #ifndef SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_
 #define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_
 
@@ -23,6 +20,7 @@ class LLVMInterMonotoneSolver
                                  const llvm::Function *, I> {
 protected:
   bool DUMP_RESULTS;
+  InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, I> &IMP;
 
 public:
   LLVMInterMonotoneSolver();
@@ -34,7 +32,7 @@ public:
       bool dumpResults = false)
       : InterMonotoneSolver<const llvm::Instruction *, D,
                             const llvm::Function *, I>(problem),
-        DUMP_RESULTS(dumpResults) {}
+        DUMP_RESULTS(dumpResults), IMP(problem) {}
 
   virtual void solve() override {
     // do the solving of the analaysis problem
@@ -53,7 +51,7 @@ public:
 //        cout << "Context:\n";
         cout << "Facts:\n";
         for (auto elem : node_entry.second) {
-          elem->dump();
+          cout << IMP.D_to_string(elem) << '\n';
         }
         cout << "\n\n";
       }
@@ -61,5 +59,3 @@ public:
 };
 
 #endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_ */
-
-#endif

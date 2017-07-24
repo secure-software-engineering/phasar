@@ -45,6 +45,7 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
  private:
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
+  CallGraphAnalysisType CGA;
   PointsToGraph WholeModulePTG;
   set<const llvm::Function*> VisitedFunctions;
   vector<string> CallStack;
@@ -83,11 +84,13 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
  public:
   LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 				ProjectIRCompiledDB& IRDB,
+                CallGraphAnalysisType CGA = CallGraphAnalysisType::OTF,
                 const vector<string>& EntryPoints = {"main"});
 
   LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
                 ProjectIRCompiledDB& IRDB,
-                const llvm::Module& M);
+                const llvm::Module& M,
+                CallGraphAnalysisType CGA = CallGraphAnalysisType::OTF);
 
   virtual ~LLVMBasedICFG() = default;
 

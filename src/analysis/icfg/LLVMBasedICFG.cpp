@@ -7,7 +7,6 @@
 
 #include "LLVMBasedICFG.hh"
 
-
 LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function* f) : function(f),
 																																						 functionName(f->getName().str()) {
 
@@ -21,27 +20,28 @@ LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction* i) : call
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 														 ProjectIRCompiledDB& IRDB,
+														 CallGraphAnalysisType CGA,
 														 const vector<string>& EntryPoints)
-		: CH(STH), IRDB(IRDB) {
-	cout << "calling the walker ...\n";
-	cout << "entry points are:\n";
-	for (auto& function_name : EntryPoints) {
-		cout << function_name << "\n";
+		: CH(STH), IRDB(IRDB), CGA(CGA) {
+	cout << "starting call graph construction ...\n"
+					"entry points are:\n";
+	for (auto& EntryPoint : EntryPoints) {
+		cout << EntryPoint << "\n";
 	}
-	for (auto& function_name : EntryPoints) {
-			llvm::Function* function = IRDB.getFunction(function_name);
-			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
+	for (auto& EntryPoint : EntryPoints) {
+			llvm::Function* function = IRDB.getFunction(EntryPoint);
+			PointsToGraph& ptg = *IRDB.getPointsToGraph(EntryPoint);
 			WholeModulePTG.mergeWith(ptg, {}, nullptr);
 			resolveIndirectCallWalker(function);
 	}
-	cout << "constructed whole module ptg and resolved indirect calls ...\n";
+	cout << "constructed global points to graph and call graph ...\n";
 	WholeModulePTG.printAsDot("whole_module_ptg.dot");
-	cout << "virtual nodes:\n";
-	for (auto& entry : DirectCSTargetMethods) {
-		if (entry.second->isDeclaration()) {
-			entry.second->dump();
-		}
-	}
+	// cout << "virtual nodes:\n";
+	// for (auto& entry : DirectCSTargetMethods) {
+	// 	if (entry.second->isDeclaration()) {
+	// 		entry.second->dump();
+	// 	}
+	// }
 }
 
 /*
@@ -49,13 +49,14 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
  */
  LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 														 ProjectIRCompiledDB& IRDB,
-														 const llvm::Module& M)
-		: LLVMBasedICFG(STH, IRDB, [](const llvm::Module& M) {
-																	vector<string> result;
-																	for (auto& F : M) {
-																		result.push_back(F.getName().str());
-																	}
-																	return result;
+														 const llvm::Module& M,
+														 CallGraphAnalysisType CGA)
+		: LLVMBasedICFG(STH, IRDB, CGA, [](const llvm::Module& M) {
+																			vector<string> result;
+																			for (auto& F : M) {
+																				result.push_back(F.getName().str());
+																			}
+																			return result;
 		}(M)) {}
 
 void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
@@ -72,13 +73,13 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
     const llvm::Instruction& Inst = *I;
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
-      llvm::ImmutableCallSite cs(llvm::dyn_cast<llvm::CallInst>(&Inst));
+      llvm::ImmutableCallSite cs(&Inst);
       // function can be resolved statically
       if (cs.getCalledFunction() != nullptr) {
-      	// get the ptg of the function that is called
+      	// get the points-to graph of the function that is called
       	PointsToGraph& callee_ptg = *IRDB.getPointsToGraph(cs.getCalledFunction()->getName().str());
       	callee_ptg.printAsDot(cs.getCalledFunction()->getName().str()+".dot");
-      	// map the formals
+      	// map the actual into formal parameters from caller to callee
       	auto escaping_formal_params = callee_ptg.getPointersEscapingThroughParams();
       	vector<pair<const llvm::Value*, const llvm::Value*>> mapping;
       	for (auto& entry : escaping_formal_params) {
@@ -108,12 +109,14 @@ void LLVMBasedICFG::resolveIndirectCallWalker(const llvm::Function* F) {
       // we have to resolve the called function ourselves using the accessible points-to information
         cout << "FOUND INDIRECT CALL-SITE" << endl;
         cs->dump();
+				// The following resolve routine can be adjusted in order to tune performance versus precision.
+				// Depending on the chosen parameter a specialzed resoling function must be called.
         set<string> possible_target_names = resolveIndirectCall(cs);
         set<const llvm::Function*> possible_targets;
         for (auto& possible_target_name : possible_target_names) {
         	possible_targets.insert(IRDB.getFunction(possible_target_name));
         }
-        cout << "POSSIBLE TARGES: " << possible_targets.size() << endl;
+        cout << "POSSIBLE TARGETS: " << possible_targets.size() << endl;
         IndirectCSTargetMethods.insert(make_pair(cs.getInstruction(), possible_targets));
         // additionally add into boost graph
     		for (auto possible_target : possible_targets) {
@@ -142,12 +145,10 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     const llvm::LoadInst* load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
     const llvm::GetElementPtrInst* gep = llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
     unsigned vtable_index = llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-
     cout << "vtable entry: " << vtable_index << endl;
-
     const llvm::Value* receiver = CS.getArgOperand(0);
     const llvm::Type* receiver_type = receiver->getType();
-    auto alloc_sites = WholeModulePTG.getReachableAllocationSites(receiver);
+    auto alloc_sites = WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
     auto possible_types = WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
     if (possible_types.empty()) {
     	cout << "could not find any possible types" << endl;
@@ -160,7 +161,7 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     		//   %struct.A.base = type <{ i32 (...)**, i32 }>
     		// in such a case %struct.A and %struct.A.base are treated as aliases and the vtable for A is stored
     		// under the name %struct.A whereas in the class hierarchy %struct.A.base is used!
-    		// debasify() fixes that circumstance and returns id for all normal cases.
+    		// debasify() fixes that circumstance and returns it for all normal cases.
     		possible_call_targets.insert(CH.getVTableEntry(debasify(struct_type->getName().str()), vtable_index));
     		// also insert all possible subtypes
     		auto fallback_type_names = CH.getTransitivelyReachableTypes(struct_type->getName().str());
@@ -182,7 +183,6 @@ set<string> LLVMBasedICFG::resolveIndirectCall(llvm::ImmutableCallSite CS) {
     		}
     	}
     }
-
     cout << "possible targets are:" << endl;
     for (auto entry : possible_call_targets) {
     	cout << entry << endl;
@@ -461,8 +461,10 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG& other) {
 	// merge the boost graphs
 	vector<pair<LLVMBasedICFG::vertex_t, LLVMBasedICFG::vertex_t>> v_in_g1_u_in_g2;
 	for (auto& entry : DirectCSTargetMethods) {
-		if (entry.second->isDeclaration()) {
-			
+		if (entry.second->isDeclaration() && other.VisitedFunctions.find(entry.second) != other.VisitedFunctions.end()) {
+			// cout << "FOUND MERGE CANDIDATE()\n";
+			// cout << cg[function_vertex_map[entry.second->getName().str()]].functionName << "\n";
+			// v_in_g1_u_in_g2.push_back(make_pair(function_vertex_map[entry.second->getName().str()], other.function_vertex_map[entry.second->getName().str()]));
 		}
 	}
 	for (auto& entry : IndirectCSTargetMethods) {
@@ -477,6 +479,9 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG& other) {
 	IndirectCSTargetMethods.insert(other.IndirectCSTargetMethods.begin(), other.IndirectCSTargetMethods.end());
 	// merge visited functions
 	VisitedFunctions.insert(other.VisitedFunctions.begin(), other.VisitedFunctions.end());
+	// merge the boost graph
+//	void merge_graphs(GraphTy& g1, const GraphTy& g2, vector<pair<VertexTy, VertexTy>> v_in_g1_u_in_g2, Args&&... args)
+	//merge_graphs(cg, other.cg, v_in_g1_u_in_g2, /* call-site */ nullptr);
 }
 
 bool LLVMBasedICFG::isPrimitiveFunction(const string& name) {

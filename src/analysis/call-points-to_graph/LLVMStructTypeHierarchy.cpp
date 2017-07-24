@@ -113,6 +113,10 @@ string LLVMStructTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
   return "";
 }
 
+VTable LLVMStructTypeHierarchy::getVTable(string TypeName) {
+  return vtable_map[TypeName];
+}
+
 bool LLVMStructTypeHierarchy::hasSuperType(string TypeName,
                                            string SuperTypeName) {
   cout << "NOT SUPPORTED YET" << endl;
@@ -153,4 +157,8 @@ void LLVMStructTypeHierarchy::printTransitiveClosure() {
   boost::transitive_closure(g, tc);
   boost::print_graph(
       tc, boost::get(&LLVMStructTypeHierarchy::VertexProperties::name, g));
+}
+
+void LLVMStructTypeHierarchy::exportPATBCJSON() {
+		cout << "LLVMStructTypeHierarchy::exportPATBCJSON()\n";
 }

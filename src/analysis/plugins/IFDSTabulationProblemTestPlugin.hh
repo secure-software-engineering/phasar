@@ -37,6 +37,8 @@ public:
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
 	  initialSeeds() override;
+
+	string D_to_string(const llvm::Value *d) override;
 };
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */
