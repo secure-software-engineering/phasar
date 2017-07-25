@@ -52,7 +52,7 @@
 using namespace std;
 using json = nlohmann::json;
 
-enum class AnalysisType {
+enum class DataFlowAnalysisType {
   IFDS_UninitializedVariables,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
@@ -65,14 +65,22 @@ enum class AnalysisType {
 	None
 };
 
-extern const map<string, AnalysisType> AnalysisTypeMap;
+extern const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap;
 
-ostream& operator<<(ostream& os, const AnalysisType& k);
+ostream& operator<<(ostream& os, const DataFlowAnalysisType& k);
+
+enum class ExportType {
+	JSON
+};
+
+extern const map<string, ExportType> ExportTypeMap;
+
+ostream& operator<<(ostream& os, const ExportType& e);
 
 class AnalysisController {
  public:
   AnalysisController(ProjectIRCompiledDB& IRDB,
-  									 vector<AnalysisType> Analyses,
+  									 vector<DataFlowAnalysisType> Analyses,
 										 bool WPA_MODE=true,
 										 bool Mem2Reg_MODE=true,
 										 bool PrintEdgeRecorder=true);

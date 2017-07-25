@@ -55,22 +55,54 @@ void validateParamProject(const string &project) {
   }
 }
 
-void validateParamDataFlowAnalysis(const vector<string> &dfa) {}
+void validateParamDataFlowAnalysis(const vector<string> &dfa) {
+  for (const auto &analysis : dfa) {
+    if (DataFlowAnalysisTypeMap.count(analysis) == 0) {
+      throw bpo::error_with_option_name("'" + analysis + 
+                                        "' is not a valid data-flow analysis");
+    }
+  }
+}
 
-void validateParamPointerAnalysis(const string &pta) {}
+void validateParamPointerAnalysis(const string &pta) {
+  if (PointerAnalysisTypeMap.count(pta) == 0) {
+    throw bpo::error_with_option_name("'" + pta + 
+                                      "' is not a valid pointer analysis");
+  }
+}
 
-void validateParamCallGraphAnalysis(const string &cga) {}
+void validateParamCallGraphAnalysis(const string &cga) {
+  if (CallGraphAnalysisTypeMap.count(cga) == 0) {
+    throw bpo::error_with_option_name("'" + cga +
+                                      "' is not a valid call-graph analysis");
+  }
+}
 
-void validateParamExport(const string &exp) {}
+void validateParamExport(const string &exp) {
+  if (ExportTypeMap.count(exp) == 0) {
+    throw bpo::error_with_option_name("'" + exp +
+                                      "' is not a valid export parameter");
+  }
+}
 
-void validateParamAnalysisPlugin(const string &plugin) {}
+void validateParamAnalysisPlugin(const string &plugin) {
+  if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) && bfs::extension(plugin) == ".so")) {
+    throw bpo::error_with_option_name("'" + plugin +
+                                      "' is not a valid shared object library");
+  }
+}
 
-void validateParamAnalysisInterface(const string &iface) {}
+void validateParamAnalysisInterface(const string &iface) {
+  // TODO implement once the common plug-in interfaces are specified!
+}
 
-void validateParamConfig(const string &cfg) {}
+void validateParamConfig(const string &cfg) {
+  if (!(bfs::exists(cfg) && !bfs::is_directory(cfg))) {
+    throw bpo::error_with_option_name("'" + cfg + "' does not exist");
+  }
+}
 
 int main(int argc, const char **argv) {
-  bpo::variables_map VarMap;
   try {
     bpo::options_description GeneralOptions(MoreHelp +
                                             "\n\nCommand-line options");
@@ -113,28 +145,27 @@ int main(int argc, const char **argv) {
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
 			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)");
     // clang-format on
-    bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions), VarMap);
-    if (VarMap.count("config")) {
-      ifstream ifs(VarMap["config"].as<string>());
+    bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions), VariablesMap);
+    if (VariablesMap.count("config")) {
+      ifstream ifs(VariablesMap["config"].as<string>());
       if (ifs) {
-        bpo::store(bpo::parse_config_file(ifs, FileOptions), VarMap);
+        bpo::store(bpo::parse_config_file(ifs, FileOptions), VariablesMap);
       }
     }
     // validate command-line arguments using the validation functions
-    bpo::notify(VarMap);
+    bpo::notify(VariablesMap);
     // check if we have anything at all or a call for help
-    if (argc < 2 || VarMap.count("help")) {
+    if (argc < 2 || VariablesMap.count("help")) {
       cout << GeneralOptions << '\n';
       return 0;
     }
     // validate the logic of the command-line arguments
-    if (VarMap.count("project") > 0 == VarMap.count("module") > 0) {
+    if (VariablesMap.count("project") == VariablesMap.count("module")) {
       cerr << "Either a project OR a module must be specified for an "
               "analysis.\n";
       return 1;
     }
-    if (VarMap.count("analysis_plugin") > 0 !=
-        VarMap.count("analysis_interface") > 0) {
+    if (VariablesMap.count("analysis_plugin") != VariablesMap.count("analysis_interface")) {
       cerr << "If an analysis plug-in is specified the corresponding interface "
               "must be specified as well\n";
       return 1;
@@ -146,27 +177,27 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  vector<AnalysisType> ChosenDataFlowAnalyses;
-  if (VarMap.count("data_flow_analysis")) {
+  vector<DataFlowAnalysisType> ChosenDataFlowAnalyses;
+  if (VariablesMap.count("data_flow_analysis")) {
     for (auto &DataFlowAnalysis :
-         VarMap["data_flow_analysis"].as<vector<string>>()) {
-      if (AnalysisTypeMap.count(DataFlowAnalysis)) {
-        ChosenDataFlowAnalyses.push_back(AnalysisTypeMap.at(DataFlowAnalysis));
+         VariablesMap["data_flow_analysis"].as<vector<string>>()) {
+      if (DataFlowAnalysisTypeMap.count(DataFlowAnalysis)) {
+        ChosenDataFlowAnalyses.push_back(DataFlowAnalysisTypeMap.at(DataFlowAnalysis));
       }
     }
   }
 
-  if (VarMap.count("module")) {
+  if (VariablesMap.count("module")) {
     vector<const char *> CompileArgs;
-    ProjectIRCompiledDB IRDB(VarMap["module"].as<string>(), CompileArgs);
+    ProjectIRCompiledDB IRDB(VariablesMap["module"].as<string>(), CompileArgs);
     AnalysisController Controller(
-        IRDB, ChosenDataFlowAnalyses, VarMap["wpa"].as<bool>(),
-        VarMap["mem2reg"].as<bool>(), VarMap["printedgerec"].as<bool>());
+        IRDB, ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
+        VariablesMap["mem2reg"].as<bool>(), VariablesMap["printedgerec"].as<bool>());
   } else {
     // perform a little trick to make OptionsParser only responsible for the
     // project sources
     int OnlyTakeCareOfSources = 2;
-    const char *ProjectSources = VarMap["project"].as<string>().c_str();
+    const char *ProjectSources = VariablesMap["project"].as<string>().c_str();
     const char *DummyProgName = "not_important";
     const char *DummyArgs[] = {DummyProgName, ProjectSources};
     clang::tooling::CommonOptionsParser OptionsParser(
@@ -176,8 +207,8 @@ int main(int argc, const char **argv) {
         OptionsParser.getCompilations();
     ProjectIRCompiledDB IRDB(CompileDB);
     AnalysisController Controller(IRDB, ChosenDataFlowAnalyses,
-                                  VarMap["wpa"].as<bool>(),
-                                  VarMap["mem2reg"].as<bool>());
+                                  VariablesMap["wpa"].as<bool>(),
+                                  VariablesMap["mem2reg"].as<bool>());
   }
   llvm::llvm_shutdown();
   cout << "... shutdown analysis ...\n";

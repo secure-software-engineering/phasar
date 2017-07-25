@@ -1,46 +1,46 @@
 #include "AnalysisController.hh"
 
-const map<string, AnalysisType> AnalysisTypeMap = { { "ifds_uninit", AnalysisType::IFDS_UninitializedVariables },
-																										{ "ifds_taint", AnalysisType::IFDS_TaintAnalysis },
-																										{ "ifds_type", AnalysisType::IFDS_TypeAnalysis },
-																										{ "ide_taint", AnalysisType::IDE_TaintAnalysis },
-																										{ "ifds_solvertest", AnalysisType::IFDS_SolverTest },
-																										{ "ide_solvertest", AnalysisType::IDE_SolverTest },
-																										{ "mono_intra_fullconstpropagation", AnalysisType::MONO_Intra_FullConstantPropagation },
-																										{ "mono_intra_solvertest",AnalysisType::MONO_Intra_SolverTest },
-																										{ "mono_inter_solvertest",AnalysisType::MONO_Inter_SolverTest },
-																										{ "none", AnalysisType::None } };
+const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap = { { "ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables },
+																																	{ "ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis },
+																																	{ "ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis },
+																																	{ "ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis },
+																																	{ "ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest },
+																																	{ "ide_solvertest", DataFlowAnalysisType::IDE_SolverTest },
+																																	{ "mono_intra_fullconstpropagation", DataFlowAnalysisType::MONO_Intra_FullConstantPropagation },
+																																	{ "mono_intra_solvertest",DataFlowAnalysisType::MONO_Intra_SolverTest },
+																																	{ "mono_inter_solvertest",DataFlowAnalysisType::MONO_Inter_SolverTest },
+																																	{ "none", DataFlowAnalysisType::None } };
 
-ostream& operator<<(ostream& os, const AnalysisType& k) {
+ostream& operator<<(ostream& os, const DataFlowAnalysisType& k) {
 	switch (k) {
-	case AnalysisType::IFDS_UninitializedVariables:
+	case DataFlowAnalysisType::IFDS_UninitializedVariables:
 		os << "AnalysisType::IFDS_UninitializedVariables";
 		break;
-	case AnalysisType::IFDS_TaintAnalysis:
+	case DataFlowAnalysisType::IFDS_TaintAnalysis:
 		os << "AnalysisType::IFDS_TaintAnalysis";
 		break;
-	case AnalysisType::IDE_TaintAnalysis:
+	case DataFlowAnalysisType::IDE_TaintAnalysis:
 		os << "AnalysisType::IDE_TaintAnalysis";
 		break;
-	case AnalysisType::IFDS_TypeAnalysis:
+	case DataFlowAnalysisType::IFDS_TypeAnalysis:
 		os << "AnalysisType::IFDS_TypeAnalysis";
 		break;
-	case AnalysisType::IFDS_SolverTest:
+	case DataFlowAnalysisType::IFDS_SolverTest:
 		os << "AnalysisType::IFDS_SolverTest";
 		break;
-	case AnalysisType::IDE_SolverTest:
+	case DataFlowAnalysisType::IDE_SolverTest:
 		os << "AnalysisType::IDE_SolverTest";
 		break;
-	case AnalysisType::MONO_Intra_FullConstantPropagation:
+	case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation:
 		os << "AnalysisType::MONO_Intra_FullConstantPropagation";
 		break;
-	case AnalysisType::MONO_Intra_SolverTest:
+	case DataFlowAnalysisType::MONO_Intra_SolverTest:
 		os << "AnalysisType::MONO_Intra_SolverTest";
 		break;
-	case AnalysisType::MONO_Inter_SolverTest:
+	case DataFlowAnalysisType::MONO_Inter_SolverTest:
 		os << "AnalysisType::MONO_Inter_SoverTest";
 		break;
-	case AnalysisType::None:
+	case DataFlowAnalysisType::None:
 		os << "AnalysisType::None";
 		break;
 	default:
@@ -50,8 +50,22 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
   return os;
 }
 
+const map<string, ExportType> ExportTypeMap = { { "json" , ExportType::JSON } };
+
+ostream& operator<<(ostream& os, const ExportType& e) {
+	switch(e) {
+		case ExportType::JSON:
+			os << "ExportType::JSON";
+			break;
+		default:
+			os << "ExportType::error";
+			break;
+	}
+	return os;
+}
+
   AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
+                     vector<DataFlowAnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
 					 bool PrintEdgeRecorder) {
     cout << "constructed AnalysisController ...\n";
     cout << "found the following IR files for this project:" << endl;
@@ -184,9 +198,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       /*
        * Perform all the analysis that the user has chosen.
        */
-      for (AnalysisType analysis : Analyses) {
+      for (DataFlowAnalysisType analysis : Analyses) {
       	switch (analysis) {
-      		case AnalysisType::IFDS_TaintAnalysis:
+      		case DataFlowAnalysisType::IFDS_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_TaintAnalysis\n";
        			IFDSTaintAnalysis taintanalysisproblem(ICFG);
@@ -194,7 +208,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_TaintAnalysis:
+       		case DataFlowAnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IDE_TaintAnalysis\n";
        			IDETaintAnalysis taintanalysisproblem(ICFG);
@@ -202,7 +216,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_TypeAnalysis:
+       		case DataFlowAnalysisType::IFDS_TypeAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_TypeAnalysis\n";
        			IFDSTypeAnalysis typeanalysisproblem(ICFG);
@@ -210,7 +224,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmtypesolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_UninitializedVariables:
+       		case DataFlowAnalysisType::IFDS_UninitializedVariables:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_UninitalizedVariables\n";
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
@@ -223,7 +237,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						// }
        			break;
        		}
-       		case AnalysisType::IFDS_SolverTest:
+       		case DataFlowAnalysisType::IFDS_SolverTest:
        		{
        			cout << "IFDS_SovlerTest\n";
        			IFDSSolverTest ifdstest(ICFG);
@@ -231,7 +245,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmifdstestsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_SolverTest:
+       		case DataFlowAnalysisType::IDE_SolverTest:
        		{
        			cout << "IDE_SolverTest\n";
        			IDESolverTest idetest(ICFG);
@@ -239,7 +253,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        			llvmidetestsolver.solve();
        			break;
        		}
-					case AnalysisType::MONO_Intra_FullConstantPropagation:
+					case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation:
 					{
 						cout << "MONO_Intra_FullConstantPropagation\n";
 						IntraMonoFullConstantPropagation intra(CFG, IRDB.getFunction("main"));
@@ -247,7 +261,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
            	solver.solve();
 						break;
 					}
-       		case AnalysisType::MONO_Intra_SolverTest:
+       		case DataFlowAnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
            	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
@@ -255,7 +269,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
            	solver.solve();
        			break;
        		}
-					case AnalysisType::MONO_Inter_SolverTest:
+					case DataFlowAnalysisType::MONO_Inter_SolverTest:
 					{
 						cout << "MONO_Inter_SolverTest\n";
 						InterMonotoneSolverTest inter(ICFG);
@@ -263,7 +277,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 						solver.solve();
 						break;
 					}
-       		case AnalysisType::None:
+       		case DataFlowAnalysisType::None:
 					{
        			cout << "None\n";
 						break;
@@ -292,9 +306,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        /*
         * Perform all the analysis that the user has chosen.
         */
-       for (AnalysisType analysis : Analyses) {
+       for (DataFlowAnalysisType analysis : Analyses) {
        	switch (analysis) {
-       		case AnalysisType::IFDS_TaintAnalysis:
+       		case DataFlowAnalysisType::IFDS_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_TaintAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
@@ -321,7 +335,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_TaintAnalysis:
+       		case DataFlowAnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IDE_TaintAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
@@ -348,7 +362,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			//llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_TypeAnalysis:
+       		case DataFlowAnalysisType::IFDS_TypeAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_TypeAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
@@ -375,7 +389,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			llvmtypesolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_UninitializedVariables:
+       		case DataFlowAnalysisType::IFDS_UninitializedVariables:
        		{ // caution: observer '{' and '}' we work in another scope
        			cout << "IFDS_UninitalizedVariables\n";
 //       	    // Here we create our module-wise result storage that is needed
@@ -408,7 +422,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //   //      			auto summary = Generator.generateSummaryFlowFunction();
        			break;
        		}
-       		case AnalysisType::IFDS_SolverTest:
+       		case DataFlowAnalysisType::IFDS_SolverTest:
        		{
        			cout << "IFDS_SovlerTest\n";
 //       			map<const llvm::Module*, IFDSSummaryPool<const llvm::Value*>> MWIFDSSummaryPools;
@@ -418,7 +432,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       	    	llvmifdstestsolver.solve();
        	    	break;
        		}
-       		case AnalysisType::IDE_SolverTest:
+       		case DataFlowAnalysisType::IDE_SolverTest:
        		{
        			cout << "IDE_SolverTest\n";
 //       	    // Here we create our module-wise result storage that is needed
@@ -445,7 +459,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			//llvmidetestsolver.solve();
        			break;
        		}
-       		case AnalysisType::MONO_Intra_SolverTest:
+       		case DataFlowAnalysisType::MONO_Intra_SolverTest:
        		{
        			cout << "MONO_Intra_SolverTest\n";
 //       			LLVMBasedCFG cfg;
@@ -479,7 +493,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //           	cout << "yet to be implemented!\n";
        			break;
        		}
-       		case AnalysisType::None:
+       		case DataFlowAnalysisType::None:
 					{
        			cout << "None\n";
 						// cout << "LLVMBASEDICFG TEST\n";
