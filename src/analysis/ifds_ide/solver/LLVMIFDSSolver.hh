@@ -16,7 +16,7 @@
 #include "../../icfg/ICFG.hh"
 #include "../../../utils/Table.hh"
 #include "json.hpp"
-#include <sstream>
+#include <string>
 
 using json = nlohmann::json;
 using namespace std;
@@ -329,7 +329,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		return size * nmemb;
 	}
 	CURL *curl;
-	int getIdFromWebserver()
+	string getIdFromWebserver()
 	{
 		CURLcode res;
 		std::string readBuffer;
@@ -379,16 +379,14 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 	{
 
 		curl_global_init(CURL_GLOBAL_ALL);
-		int id = getIdFromWebserver();
+		string id = getIdFromWebserver();
 
 		/* get a curl handle */
 		curl = curl_easy_init();
+		string url = "http://localhost:3000/api/framework/addGraph/" + id;
+		cout << url << endl;
 
-		ostringstream convert;
-		convert << "http://localhost:3000/api/framework/addGraph/" << id;
-		const char *url = convert.str().c_str();
-
-		curl_easy_setopt(curl, CURLOPT_URL, url);
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
 		for (auto Seed : this->initialSeeds)
 		{
