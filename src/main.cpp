@@ -3,6 +3,7 @@
 #include "analysis/passes/ValueAnnotationPass.hh"
 #include "db/ProjectIRCompiledDB.hh"
 #include "utils/Configuration.hh"
+#include "utils/Logger.hh"
 #include "utils/utils.hh"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -103,6 +104,9 @@ void validateParamConfig(const string &cfg) {
 }
 
 int main(int argc, const char **argv) {
+  // set-up the logger
+  initializeLogger();
+  // handling the command line parameters
   try {
     bpo::options_description GeneralOptions(MoreHelp +
                                             "\n\nCommand-line options");
@@ -212,5 +216,7 @@ int main(int argc, const char **argv) {
   }
   llvm::llvm_shutdown();
   cout << "... shutdown analysis ...\n";
+  // flush the log core at last (performs flush on all registered sinks)
+  core::get()->flush();
   return 0;
 }

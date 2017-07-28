@@ -23,6 +23,7 @@ CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -DNDEBUG
+CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
 # Add header search paths
 CXX_INCL = -I ./json/src/
@@ -54,12 +55,15 @@ SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 
 # Further llvm compiler flags
 LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions
-
+# Thread model to use
+THREAD_MODEL := -pthread
 # Libraries to link against
 SQLITE3_LIBS := -lsqlite3
 BOOST_LIBS := -lboost_filesystem
 BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
+BOOST_LIBS += -lboost_log
+BOOST_LIBS += -lboost_thread
 LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
@@ -97,7 +101,7 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
-	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) -o $@
+	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
