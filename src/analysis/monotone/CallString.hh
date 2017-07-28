@@ -27,6 +27,10 @@ public:
                          const CallString<T, K> &Rhs) {
     return Lhs.callstring == Rhs.callstring;
   }
+  friend bool operator<(const CallString<T, K> &Lhs,
+                        const CallString<T, K> &Rhs) {
+    return Lhs.callstring < Rhs.callstring;
+  }
 };
 
 #endif /* SRC_ANALYSIS_MONOTONE_CALLSTRING_HH_ */

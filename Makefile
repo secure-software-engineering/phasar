@@ -59,6 +59,7 @@ LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions
 THREAD_MODEL := -pthread
 # Libraries to link against
 SQLITE3_LIBS := -lsqlite3
+CURL_LIBS := -lcurl
 BOOST_LIBS := -lboost_filesystem
 BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
@@ -101,7 +102,7 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
-	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
