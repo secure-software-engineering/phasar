@@ -1,7 +1,7 @@
 #include "IFDSUninitializedVariables.hh"
 
-IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg)
-    : DefaultIFDSTabulationProblem(icfg) {
+IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg, vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -286,12 +286,11 @@ IFDSUnitializedVariables::getSummaryFlowFunction(const llvm::Instruction *callSt
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSUnitializedVariables::initialSeeds() {
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IFDSUnitializedVariables::createZeroValue() {

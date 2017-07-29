@@ -4,8 +4,8 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIDETabulationProblem(icfg) {
+IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints)
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -48,12 +48,11 @@ IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {

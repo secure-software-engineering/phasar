@@ -27,6 +27,7 @@ public:
   typedef pair<const llvm::Value *, unsigned> DFF;
 
   IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
+  
   virtual ~IntraMonoFullConstantPropagation() = default;
 
   virtual MonoSet<DFF> join(const MonoSet<DFF> &Lhs,

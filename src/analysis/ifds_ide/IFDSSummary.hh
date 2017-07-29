@@ -8,32 +8,43 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_
 #define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_
 
+#include <llvm/IR/Instruction.h>
 #include <string>
 #include <vector>
-#include <llvm/IR/Instruction.h>
-#include "ZeroValue.hh"
 #include "FlowFunction.hh"
+#include "ZeroValue.hh"
 using namespace std;
 
-template<typename D>
+template <typename D, typename N>
 class IFDSSummary : FlowFunction<D> {
-private:
-	const llvm::Instruction* StartNode;
-	const llvm::Instruction* EndNode;
-	D ZeroValue;
-	set<D> Outputs;
+ private:
+  N StartNode;
+  N EndNode;
+  vector<bool> Context;
+  set<D> Outputs;
+  D ZeroValue;
 
-public:
-	IFDSSummary(const llvm::Instruction* Start, const llvm::Instruction* End, D ZV);
-	virtual ~IFDSSummary();
-	set<D> computeTargets(D source) override {
-		if (source == ZeroValue) {
-			Outputs.insert(source);
-			return Outputs;
-		} else {
-			return { source };
-		}
-	}
+ public:
+  IFDSSummary(N Start, N End,
+              vector<bool> C, set<D> Gen, D ZV)
+      : StartNode(Start),
+        EndNode(End),
+        Context(C),
+        Outputs(Gen),
+        ZeroValue(ZV) {}
+  virtual ~IFDSSummary() = default;
+  set<D> computeTargets(D source) override {
+    if (source == ZeroValue) {
+      Outputs.insert(source);
+      return Outputs;
+    } else {
+      return {source};
+    }
+  }
+
+  N getStartNode() const { return StartNode; }
+
+  N getEndNode() const { return EndNode; }
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_ */

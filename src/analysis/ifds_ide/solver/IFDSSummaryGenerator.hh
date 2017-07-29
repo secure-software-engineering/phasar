@@ -14,6 +14,7 @@
 #include "../FlowFunction.hh"
 #include "../flow_func/GenAll.hh"
 #include "../../../utils/utils.hh"
+#include "../ZeroValue.hh"
 using namespace std;
 
 
@@ -101,8 +102,12 @@ public:
       // get the result at the end of this function and
       // create a flow function from this set using the GenAll class
       set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
+      set<D> results;
+      for (auto fact : solver.resultsAt(*LastInsts.begin())) {
+        results.insert(fact.first);
+      }
       summary.insert(make_pair(generateBitPattern(inputs, subset),
-                               make_shared<GenAll<D>>(solver.resultsAt(*LastInsts.begin()), 0)));
+                                make_shared<GenAll<D>>(results, new ZeroValue)));
     }
     return summary;
   }

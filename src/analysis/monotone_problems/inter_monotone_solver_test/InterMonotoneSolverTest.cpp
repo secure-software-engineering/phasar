@@ -1,6 +1,7 @@
 #include "InterMonotoneSolverTest.hh"
 
-InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg)
+InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
+                                                 vector<string> Seeds)
     : InterMonotoneProblem<const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, LLVMBasedICFG &>(Icfg),
       ICFG(Icfg) {}
@@ -61,11 +62,11 @@ InterMonotoneSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 InterMonotoneSolverTest::initialSeeds() {
   cout << "InterMonotoneSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICFG.getMethod("main");
-  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
-  Seeds.insert(
-      std::make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));
-  return Seeds;
+  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&ICFG.getMethod(EntryPoint)->front().front(), MonoSet<const llvm::Value *>()));
+  }
+  return SeedMap;
 }
 
 string InterMonotoneSolverTest::D_to_string(const llvm::Value *d) {

@@ -64,13 +64,13 @@ private:
   }
 
 public:
-  LLVMIFDSSummaryGenerator(const llvm::Function *F, I icfg)
+  LLVMIFDSSummaryGenerator(const llvm::Function *F, I icfg, SummaryGenerationCTXStrategy S)
       : IFDSSummaryGenerator<const llvm::Instruction *,
         										 const llvm::Value *,
 														 const llvm::Function *,
 														 I,
 														 ConcreteIFDSTabulationProblem,
-														 LLVMIFDSSolver<const llvm::Value*, I>>(F, icfg) {}
+														 LLVMIFDSSolver<const llvm::Value*, I>>(F, icfg, S) {}
 
   virtual ~LLVMIFDSSummaryGenerator() = default;
 };
