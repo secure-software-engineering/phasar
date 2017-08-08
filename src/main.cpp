@@ -104,9 +104,11 @@ void validateParamConfig(const string &cfg) {
 }
 
 int main(int argc, const char **argv) {
-  // set-up the logger
-  initializeLogger();
+  // set-up the logger and get a reference to it
+  initializeLogger(true);
+  auto& lg = lg::get();
   // handling the command line parameters
+  BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
   try {
     bpo::options_description GeneralOptions(MoreHelp +
                                             "\n\nCommand-line options");
@@ -156,6 +158,8 @@ int main(int argc, const char **argv) {
         bpo::store(bpo::parse_config_file(ifs, FileOptions), VariablesMap);
       }
     }
+    BOOST_LOG_SEV(lg, INFO) << "Program options have been successfully parsed.";
+    BOOST_LOG_SEV(lg, INFO) << "Check program options for logical errors.";
     // validate command-line arguments using the validation functions
     bpo::notify(VariablesMap);
     // check if we have anything at all or a call for help
@@ -175,9 +179,8 @@ int main(int argc, const char **argv) {
       return 1;
     }
   } catch (const bpo::error &e) {
-    cerr << "error: could not parse command-line parameters\n"
-            "message: "
-         << e.what() << ", abort\n";
+    cerr << "error: could not parse program options\n"
+            "message: " << e.what() << ", abort\n";
     return 1;
   }
 
@@ -190,7 +193,7 @@ int main(int argc, const char **argv) {
       }
     }
   }
-
+  BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
   if (VariablesMap.count("module")) {
     vector<const char *> CompileArgs;
     ProjectIRCompiledDB IRDB(VariablesMap["module"].as<string>(), CompileArgs);
@@ -214,9 +217,10 @@ int main(int argc, const char **argv) {
                                   VariablesMap["wpa"].as<bool>(),
                                   VariablesMap["mem2reg"].as<bool>());
   }
+  // free all resources handled by llvm
   llvm::llvm_shutdown();
-  cout << "... shutdown analysis ...\n";
-  // flush the log core at last (performs flush on all registered sinks)
-  core::get()->flush();
+  BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.";
+  // flush the log core at last (performs flush() on all registered sinks)
+  bl::core::get()->flush();
   return 0;
 }

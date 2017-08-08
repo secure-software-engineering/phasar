@@ -133,6 +133,10 @@ bool LLVMStructTypeHierarchy::containsVTable(string TypeName) {
   return iter != vtable_map.end();
 }
 
+bool LLVMStructTypeHierarchy::containsType(string TypeName) {
+  return recognized_struct_types.count(TypeName);
+}
+
 void LLVMStructTypeHierarchy::print() {
   cout << "LLVMSructTypeHierarchy graph:\n";
   boost::print_graph(

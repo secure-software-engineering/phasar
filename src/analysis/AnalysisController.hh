@@ -29,6 +29,7 @@
 #include "../db/DBConn.hh"
 #include "../db/PHSStringConverter.hh"
 #include "../db/ProjectIRCompiledDB.hh"
+#include "../utils/Logger.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
 #include "icfg/LLVMBasedICFG.hh"
 #include "icfg/LLVMBasedCFG.hh"
@@ -53,7 +54,7 @@ using namespace std;
 using json = nlohmann::json;
 
 enum class DataFlowAnalysisType {
-  IFDS_UninitializedVariables,
+  IFDS_UninitializedVariables = 0,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,
@@ -70,7 +71,7 @@ extern const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap;
 ostream& operator<<(ostream& os, const DataFlowAnalysisType& k);
 
 enum class ExportType {
-	JSON
+	JSON = 0
 };
 
 extern const map<string, ExportType> ExportTypeMap;

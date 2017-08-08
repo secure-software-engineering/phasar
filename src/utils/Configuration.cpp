@@ -14,3 +14,4 @@ const string LLVMIntrinsicFunctionListFileName("llvm_intrinsics_function_list_v1
 const string HeaderSearchPathsFileName("standard_header_paths.conf");
 const string CompileCommandsJson("compile_commands.json");
 bpo::variables_map VariablesMap;
+const string LogFileDirectory("log/");

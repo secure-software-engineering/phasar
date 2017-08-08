@@ -39,6 +39,7 @@ BIN = bin/
 OBJDIR = obj/
 DOC = doc/
 SRC = src/
+TEST = test/
 ALL_SRC = $(sort $(dir $(call recwildcard,$(SRC)**/*/)))
 
 # Set the virtual (search) path
@@ -54,12 +55,13 @@ DEP = $(OBJ:.o=.d)
 SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 
 # Further llvm compiler flags
-LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions
+LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions -std=c++14
 # Thread model to use
 THREAD_MODEL := -pthread
 # Libraries to link against
 SQLITE3_LIBS := -lsqlite3
 CURL_LIBS := -lcurl
+GTEST_LIBS := -lgtest
 BOOST_LIBS := -lboost_filesystem
 BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
@@ -125,6 +127,9 @@ format-code:
 
 hello:
 	@echo "Hello World!"
+
+run_tests:
+	@echo "Unit tests using the Google C++ Testing Framework is under development"
 
 clean:
 	rm -rf $(BIN)

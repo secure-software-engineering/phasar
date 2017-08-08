@@ -15,11 +15,13 @@
 #include <string>
 using namespace std;
 
-template <typename T, unsigned long K> class CallString {
+template <typename T, unsigned K> class CallString {
 private:
   array<T, K> callstring;
 
 public:
+  CallString() = default;
+
   CallString(initializer_list<T> ilist) {
     copy_n(ilist.begin(), K, callstring.begin());
   }
@@ -30,6 +32,12 @@ public:
   friend bool operator<(const CallString<T, K> &Lhs,
                         const CallString<T, K> &Rhs) {
     return Lhs.callstring < Rhs.callstring;
+  }
+  friend ostream& operator<<(ostream& os, const CallString& CS) {
+    for (const auto &S : CS.callstring) {
+      os << S << ", ";
+    }
+    return os;
   }
 };
 

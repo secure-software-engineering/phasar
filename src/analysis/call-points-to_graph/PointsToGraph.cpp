@@ -72,13 +72,14 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 // points-to graph stuff
 
-const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
+const set<string> PointsToGraph::HeapAllocationFunctions = { "_Znwm", "_Znam", "malloc", "calloc", "realloc" };
 
 const map<string, PointerAnalysisType> PointerAnalysisTypeMap = { { "CFLSteens", PointerAnalysisType::CFLSteens },
                                                                   { "CFLAnders", PointerAnalysisType::CFLAnders } };
 
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
-  cout << "analyzing function: " << F->getName().str() << endl;
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
   merge_stack.push_back(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
@@ -199,9 +200,9 @@ vector<const llvm::Value*> PointsToGraph::getPointersEscapingThroughReturns() {
 }
 
 set<const llvm::Value*> PointsToGraph::getReachableAllocationSites(const llvm::Value* V,
-                                                                   vector<string> CallStack) {
+                                                                   vector<const llvm::Instruction *> CallStack) {
 	set<const llvm::Value*> alloc_sites;
-	allocation_site_dfs_visitor alloc_vis(alloc_sites);
+	allocation_site_dfs_visitor alloc_vis(alloc_sites, CallStack);
 	vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
 	boost::depth_first_visit(ptg, value_vertex_map[V], alloc_vis,
 													 boost::make_iterator_property_map(color_map.begin(),

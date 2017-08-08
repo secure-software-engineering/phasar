@@ -81,6 +81,7 @@ class LLVMStructTypeHierarchy {
   bool hasSuperType(string TypeName, string SuperTypeName);
   bool hasSubType(string TypeName, string SubTypeName);
   bool containsVTable(string TypeName);
+  bool containsType(string TypeName);
   void printTransitiveClosure();
   void print();
   void printAsDot(const string& path="struct_type_hierarchy.dot");
