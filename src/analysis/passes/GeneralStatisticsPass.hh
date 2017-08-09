@@ -20,6 +20,7 @@
 #include <llvm/IR/CallSite.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include "../../utils/utils.hh"
+#include "../../utils/Logger.hh"
 
 
 class GeneralStatisticsPass : public llvm::ModulePass {

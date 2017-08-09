@@ -27,5 +27,7 @@ extern const string HeaderSearchPathsFileName;
 extern const string CompileCommandsJson;
 /// Variables map of the parsed command-line parameters
 extern bpo::variables_map VariablesMap;
+/// Log file directory
+extern const string LogFileDirectory;
 
 #endif /* SRC_UTILS_CONFIGURATION_HH_ */

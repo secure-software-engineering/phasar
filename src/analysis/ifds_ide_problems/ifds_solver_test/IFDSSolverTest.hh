@@ -8,10 +8,11 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_
 #define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
-#include "../../ifds_ide/ZeroValue.hh"
+#include "../../ifds_ide/flow_func/Gen.hh"
+#include "../../ifds_ide/flow_func/Kill.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
@@ -55,7 +56,7 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
-  string D_to_string(const llvm::Value * d) override;
+  string D_to_string(const llvm::Value *d) override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_   \

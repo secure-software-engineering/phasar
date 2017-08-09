@@ -9,7 +9,6 @@
 #define INTERMONOTONESOLVER_HH_
 
 #include "../../../utils/ContainerConfiguration.hh"
-#include "../CSPrefixedDFF.hh"
 #include "../CallString.hh"
 #include "../InterMonotoneProblem.hh"
 #include <deque>

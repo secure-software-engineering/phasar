@@ -21,6 +21,7 @@
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_os_ostream.h>
 #include "../../utils/Configuration.hh"
+#include "../../utils/Logger.hh"
 
 
 class ValueAnnotationPass : public llvm::ModulePass {

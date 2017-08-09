@@ -3,6 +3,7 @@
 #include "analysis/passes/ValueAnnotationPass.hh"
 #include "db/ProjectIRCompiledDB.hh"
 #include "utils/Configuration.hh"
+#include "utils/Logger.hh"
 #include "utils/utils.hh"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
@@ -58,7 +59,7 @@ void validateParamProject(const string &project) {
 void validateParamDataFlowAnalysis(const vector<string> &dfa) {
   for (const auto &analysis : dfa) {
     if (DataFlowAnalysisTypeMap.count(analysis) == 0) {
-      throw bpo::error_with_option_name("'" + analysis + 
+      throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
   }
@@ -66,7 +67,7 @@ void validateParamDataFlowAnalysis(const vector<string> &dfa) {
 
 void validateParamPointerAnalysis(const string &pta) {
   if (PointerAnalysisTypeMap.count(pta) == 0) {
-    throw bpo::error_with_option_name("'" + pta + 
+    throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
@@ -86,7 +87,8 @@ void validateParamExport(const string &exp) {
 }
 
 void validateParamAnalysisPlugin(const string &plugin) {
-  if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) && bfs::extension(plugin) == ".so")) {
+  if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) &&
+        bfs::extension(plugin) == ".so")) {
     throw bpo::error_with_option_name("'" + plugin +
                                       "' is not a valid shared object library");
   }
@@ -102,7 +104,21 @@ void validateParamConfig(const string &cfg) {
   }
 }
 
+void validateParamOutput(const string &filename) {
+  if (bfs::exists(filename)) {
+    if (bfs::is_directory(filename)) {
+      throw bpo::error_with_option_name("'" + filename + "' is a directory");
+    }
+    throw bpo::error_with_option_name("'" + filename + "' already exists");
+  }
+}
+
 int main(int argc, const char **argv) {
+  // set-up the logger and get a reference to it
+  initializeLogger(true);
+  auto &lg = lg::get();
+  // handling the command line parameters
+  BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
   try {
     bpo::options_description GeneralOptions(MoreHelp +
                                             "\n\nCommand-line options");
@@ -124,7 +140,8 @@ int main(int argc, const char **argv) {
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
 			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
-			("config", bpo::value<string>()->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'");
+			("config", bpo::value<string>()->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
+      ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
     bpo::options_description FileOptions("Configuration file options");
     // clang-format off
@@ -143,35 +160,40 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)");
+			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
+      ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
-    bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions), VariablesMap);
+    bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions),
+               VariablesMap);
     if (VariablesMap.count("config")) {
       ifstream ifs(VariablesMap["config"].as<string>());
       if (ifs) {
         bpo::store(bpo::parse_config_file(ifs, FileOptions), VariablesMap);
       }
     }
-    // validate command-line arguments using the validation functions
-    bpo::notify(VariablesMap);
     // check if we have anything at all or a call for help
     if (argc < 2 || VariablesMap.count("help")) {
       cout << GeneralOptions << '\n';
       return 0;
     }
+    BOOST_LOG_SEV(lg, INFO) << "Program options have been successfully parsed.";
+    BOOST_LOG_SEV(lg, INFO) << "Check program options for logical errors.";
+    // validate command-line arguments using the validation functions
+    bpo::notify(VariablesMap);
     // validate the logic of the command-line arguments
     if (VariablesMap.count("project") == VariablesMap.count("module")) {
       cerr << "Either a project OR a module must be specified for an "
               "analysis.\n";
       return 1;
     }
-    if (VariablesMap.count("analysis_plugin") != VariablesMap.count("analysis_interface")) {
+    if (VariablesMap.count("analysis_plugin") !=
+        VariablesMap.count("analysis_interface")) {
       cerr << "If an analysis plug-in is specified the corresponding interface "
               "must be specified as well\n";
       return 1;
     }
   } catch (const bpo::error &e) {
-    cerr << "error: could not parse command-line parameters\n"
+    cerr << "error: could not parse program options\n"
             "message: "
          << e.what() << ", abort\n";
     return 1;
@@ -182,35 +204,48 @@ int main(int argc, const char **argv) {
     for (auto &DataFlowAnalysis :
          VariablesMap["data_flow_analysis"].as<vector<string>>()) {
       if (DataFlowAnalysisTypeMap.count(DataFlowAnalysis)) {
-        ChosenDataFlowAnalyses.push_back(DataFlowAnalysisTypeMap.at(DataFlowAnalysis));
+        ChosenDataFlowAnalyses.push_back(
+            DataFlowAnalysisTypeMap.at(DataFlowAnalysis));
       }
     }
   }
 
-  if (VariablesMap.count("module")) {
-    vector<const char *> CompileArgs;
-    ProjectIRCompiledDB IRDB(VariablesMap["module"].as<string>(), CompileArgs);
-    AnalysisController Controller(
-        IRDB, ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
-        VariablesMap["mem2reg"].as<bool>(), VariablesMap["printedgerec"].as<bool>());
-  } else {
-    // perform a little trick to make OptionsParser only responsible for the
-    // project sources
-    int OnlyTakeCareOfSources = 2;
-    const char *ProjectSources = VariablesMap["project"].as<string>().c_str();
-    const char *DummyProgName = "not_important";
-    const char *DummyArgs[] = {DummyProgName, ProjectSources};
-    clang::tooling::CommonOptionsParser OptionsParser(
-        OnlyTakeCareOfSources, DummyArgs, StaticAnalysisCategory,
-        OccurrencesFlag);
-    clang::tooling::CompilationDatabase &CompileDB =
-        OptionsParser.getCompilations();
-    ProjectIRCompiledDB IRDB(CompileDB);
-    AnalysisController Controller(IRDB, ChosenDataFlowAnalyses,
-                                  VariablesMap["wpa"].as<bool>(),
-                                  VariablesMap["mem2reg"].as<bool>());
-  }
+  AnalysisController Controller(
+      [&lg](bool singleModule) {
+        BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
+        if (singleModule) {
+          vector<const char *> CompileArgs;
+          ProjectIRCompiledDB IRDB(VariablesMap["module"].as<string>(),
+                                   CompileArgs);
+          return IRDB;
+        } else {
+          // perform a little trick to make OptionsParser only responsible for
+          // the
+          // project sources
+          int OnlyTakeCareOfSources = 2;
+          const char *ProjectSources =
+              VariablesMap["project"].as<string>().c_str();
+          const char *DummyProgName = "not_important";
+          const char *DummyArgs[] = {DummyProgName, ProjectSources};
+          clang::tooling::CommonOptionsParser OptionsParser(
+              OnlyTakeCareOfSources, DummyArgs, StaticAnalysisCategory,
+              OccurrencesFlag);
+          clang::tooling::CompilationDatabase &CompileDB =
+              OptionsParser.getCompilations();
+          ProjectIRCompiledDB IRDB(CompileDB);
+          return IRDB;
+        }
+      }(VariablesMap.count("module")),
+      ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
+      VariablesMap["mem2reg"].as<bool>(),
+      VariablesMap["printedgerec"].as<bool>());
+  BOOST_LOG_SEV(lg, INFO) << "Write results to file";
+  Controller.writeResults(VariablesMap["output"].as<string>());
+
+  // free all resources handled by llvm
   llvm::llvm_shutdown();
-  cout << "... shutdown analysis ...\n";
+  BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.";
+  // flush the log core at last (performs flush() on all registered sinks)
+  bl::core::get()->flush();
   return 0;
 }

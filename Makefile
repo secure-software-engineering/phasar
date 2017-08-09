@@ -23,6 +23,7 @@ CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -DNDEBUG
+CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
 # Add header search paths
 CXX_INCL = -I ./json/src/
@@ -38,6 +39,7 @@ BIN = bin/
 OBJDIR = obj/
 DOC = doc/
 SRC = src/
+TEST = test/
 ALL_SRC = $(sort $(dir $(call recwildcard,$(SRC)**/*/)))
 
 # Set the virtual (search) path
@@ -53,13 +55,18 @@ DEP = $(OBJ:.o=.d)
 SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 
 # Further llvm compiler flags
-LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions
-
+LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions -std=c++14
+# Thread model to use
+THREAD_MODEL := -pthread
 # Libraries to link against
 SQLITE3_LIBS := -lsqlite3
+CURL_LIBS := -lcurl
+GTEST_LIBS := -lgtest
 BOOST_LIBS := -lboost_filesystem
 BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
+BOOST_LIBS += -lboost_log
+BOOST_LIBS += -lboost_thread
 LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
@@ -97,7 +104,7 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
-	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) -o $@
+	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
@@ -120,6 +127,9 @@ format-code:
 
 hello:
 	@echo "Hello World!"
+
+run_tests:
+	@echo "Unit tests using the Google C++ Testing Framework is under development"
 
 clean:
 	rm -rf $(BIN)

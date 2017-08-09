@@ -31,8 +31,10 @@
 #include <string>
 #include <vector>
 #include "../../lib/GraphExtensions.hh"
+#include "../../lib/LLVMShorthands.hh"
 #include "../../utils/utils.hh"
 #include "../../utils/Configuration.hh"
+#include "../../utils/Logger.hh"
 #include "../../db/DBConn.hh"
 using namespace std;
 
@@ -80,6 +82,7 @@ extern const map<string, PointerAnalysisType> PointerAnalysisTypeMap;
 
 class PointsToGraph {
 public:
+  // The property definition of a vertex
   struct VertexProperties {
     const llvm::Value* value = nullptr;
     string ir_code;
@@ -88,6 +91,7 @@ public:
   	VertexProperties(llvm::Value* v);
   };
 
+  // The property definition of a edge
   struct EdgeProperties {
     const llvm::Value* value = nullptr;
     string ir_code;
@@ -96,33 +100,76 @@ public:
     EdgeProperties(const llvm::Value* v);
   };
 
+  // Define the graph to be used as a points-to graph
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
                                 VertexProperties, EdgeProperties>
       graph_t;
+
+  // Use some handy type definitions
   typedef boost::graph_traits<graph_t>::vertex_descriptor vertex_t;
   typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
 
-  // new, new[], malloc
-  const static set<string> allocating_functions;
+  /// Contains the function names for heap allocating functions new, new[], malloc, ...
+  const static set<string> HeapAllocationFunctions;
 
 private:
   struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
+    // collect the allocation sites that are found
   	set<const llvm::Value*>& allocation_sites;
-  	allocation_site_dfs_visitor(set<const llvm::Value*>& allocation_sizes)
-  			: allocation_sites(allocation_sizes) {}
-  	template <class Vertex, class Graph>
-  	void finish_vertex(Vertex u, const Graph& g) {
-  		if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
-  			allocation_sites.insert(g[u].value);
-  		}
-  		if (const llvm::CallInst* cs = llvm::dyn_cast<llvm::CallInst>(g[u].value)) {
-  			if (cs->getCalledFunction() != nullptr &&
-  					allocating_functions.find(cs->getCalledFunction()->getName().str()) != allocating_functions.end()) {
-  				allocation_sites.insert(g[u].value);
-  			}
-  		}
-  	}
+    // keeps track of the current path
+    vector<vertex_t> visitor_stack;
+    // the call stack that can be matched against the visitor stack
+    const vector<const llvm::Instruction *>& call_stack;
+
+  	allocation_site_dfs_visitor(set<const llvm::Value*>& allocation_sizes,
+                                const vector<const llvm::Instruction *>& call_stack)
+  			: allocation_sites(allocation_sizes),
+          call_stack(call_stack) {}
+
+    template <class Vertex, class Graph>
+    void discover_vertex(Vertex u, const Graph &g) {
+      visitor_stack.push_back(u);
+  }
+
+  template <class Vertex, class Graph>
+  void finish_vertex(Vertex u, const Graph &g) {
+    auto& lg = lg::get();
+    // check for stack allocation
+    if (const llvm::AllocaInst *Alloc = llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
+      // If the call stack is empty, we completely ignore the calling context
+      if (matches_stack(g) || call_stack.empty()) {
+        BOOST_LOG_SEV(lg, DEBUG) << "Found stack allocation: " << llvmIRToString(Alloc);
+        allocation_sites.insert(g[u].value);
+      }
+    }
+    // check for heap allocation
+    if (llvm::isa<llvm::CallInst>(g[u].value) || llvm::isa<llvm::InvokeInst>(g[u].value)) {
+      llvm::ImmutableCallSite CS(g[u].value);
+      if (CS.getCalledFunction() != nullptr && HeapAllocationFunctions.count(CS.getCalledFunction()->getName().str())) {
+        // If the call stack is empty, we completely ignore the calling context
+        if (matches_stack(g) || call_stack.empty()) {
+          BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: " << llvmIRToString(CS.getInstruction());
+          allocation_sites.insert(g[u].value);
+        }
+      }
+    }
+    visitor_stack.pop_back();
+  }
+
+  template <class Graph>
+  bool matches_stack(const Graph &g) {
+    size_t call_stack_idx = 0;
+    for (size_t i = 0, j = 1; i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
+      auto e = boost::edge(visitor_stack[i], visitor_stack[j], g);
+      if (g[e.first].value == nullptr) continue;
+      if (g[e.first].value != call_stack[call_stack.size() - call_stack_idx - 1]) {
+        return false;
+      }
+      call_stack_idx++;
+    }
+    return true;
+  }
   };
 
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
@@ -134,8 +181,11 @@ private:
     }
   };
 
+  /// The points to graph.
   graph_t ptg;
   map<const llvm::Value*, vertex_t> value_vertex_map;
+  /// A vector that keeps track of what has already been merged into this
+  /// points-to graph.
   vector<string> merge_stack;
 
 public:
@@ -145,7 +195,7 @@ public:
   inline bool isInterestingPointer(llvm::Value* V);
   vector<pair<unsigned, const llvm::Value*>> getPointersEscapingThroughParams();
   vector<const llvm::Value*> getPointersEscapingThroughReturns();
-  set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V, vector<string> CallStack);
+  set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V, vector<const llvm::Instruction *> CallStack);
   set<const llvm::Type*> computeTypesFromAllocationSites(set<const llvm::Value*> AS);
   bool containsValue(llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);

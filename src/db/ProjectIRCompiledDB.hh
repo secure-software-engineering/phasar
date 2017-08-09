@@ -57,6 +57,7 @@ private:
   map<string, unique_ptr<PointsToGraph>> ptgs;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
   ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
+  ProjectIRCompiledDB(ProjectIRCompiledDB&&) = default;
   ~ProjectIRCompiledDB() = default;
   void buildFunctionModuleMapping();
   void buildGlobalModuleMapping();

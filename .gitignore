@@ -12,6 +12,9 @@ obj/
 # doc/ directory
 doc/*
 
+# log/ directory
+log/*
+
 # CMake build dir
 build/*
 
