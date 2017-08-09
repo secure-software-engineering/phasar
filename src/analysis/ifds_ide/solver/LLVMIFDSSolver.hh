@@ -122,44 +122,22 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 		return jsonNode;
 	}
-	json getJsonRepresentationForCallsite(size_t id, const llvm::Instruction *node)
+	json getJsonRepresentationForCallsite(const llvm::Instruction *node)
 	{
 		json jsonNode = {
-			{"graph_id", getId("instructionNode_", id)},
 			{"method", node->getFunction()->getName().str().c_str()},
 			{"type", 1}};
 
 		return jsonNode;
 	}
-	json getJsonRepresentationForReturnsite(size_t id, const llvm::Instruction *node)
+	json getJsonRepresentationForReturnsite(const llvm::Instruction *node)
 	{
 		json jsonNode = {
-			{"graph_id", getId("instructionNode_", id)},
 			{"method", node->getFunction()->getName().str().c_str()},
 			{"type", 2}};
 
 		return jsonNode;
 	}
-	// size_t getJsonRepresentationForFlowFactNode(Document *document, size_t nodeid, D *node)
-	// {
-	// 	Document::AllocatorType &alloc = document->GetAllocator();
-	// 	Value &a = document->operator[]("firstSeed");
-	// 	Value &nodes = a["dataflowFacts"]["nodes"];
-	// 	Value jsonNode(kObjectType);
-
-	// 	Value id;
-	// 	id.SetString(getId("flowFactNode_", nodes.Size()), alloc);
-
-	// 	jsonNode.AddMember("instruction_id", (int)nodeid, alloc);
-	// 	jsonNode.AddMember("id", id, alloc);
-	// 	jsonNode.AddMember("type", "dataflowNode", alloc);
-	// 	jsonNode.AddMember("instruction", "string representing fact->dump()", alloc);
-
-	// 	Value data(kObjectType);
-	// 	data.AddMember("data", jsonNode, alloc);
-	// 	nodes.PushBack(data, alloc);
-	// 	return nodes.Size() - 1;
-	// }
 
 	const char *getId(string idName, size_t id)
 	{
@@ -168,37 +146,10 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		return oss.str().c_str();
 	}
 
-	// size_t getJsonRepresentationForDataFlowEdge(size_t from, size_t to)
-	// {
-	// 	Document::AllocatorType &alloc = document->GetAllocator();
-	// 	Value &a = document->operator[]("firstSeed");
-	// 	Value &edges = a["dataflowFacts"]["edges"];
-	// 	Value jsonNode(kObjectType);
-
-	// 	Value id;
-	// 	id.SetString(getId("flowFactEdge_", edges.Size()), alloc);
-
-	// 	Value s;
-	// 	s.SetString(getId("flowFactNode_", from), alloc);
-
-	// 	Value t;
-	// 	t.SetString(getId("flowFactNode_", to), alloc);
-
-	// 	jsonNode.AddMember("target", t, alloc);
-	// 	jsonNode.AddMember("source", s, alloc);
-	// 	jsonNode.AddMember("id", id, alloc);
-	// 	jsonNode.AddMember("type", "dataflowEdge", alloc);
-
-	// 	//a.PushBack(jsonNode, alloc);
-	// 	Value data(kObjectType);
-	// 	data.AddMember("data", jsonNode, alloc);
-	// 	edges.PushBack(data, alloc);
-	// 	return edges.Size() - 1;
-	// }
 	/**
 	* gets id for node from map or adds it if it doesn't exist
 	**/
-	json getJsonOfNode(const llvm::Instruction *node, std::map<const llvm::Instruction *, size_t> *instruction_id_map, size_t node_type)
+	json getJsonOfNode(const llvm::Instruction *node, std::map<const llvm::Instruction *, size_t> *instruction_id_map)
 	{
 		std::map<const llvm::Instruction *, size_t>::iterator it = instruction_id_map->find(node);
 		json jsonNode;
@@ -207,18 +158,9 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		{
 			cout << "adding new element to map " << endl;
 			id = instruction_id_map->size() + 1;
-			switch (node_type)
-			{
-			case 0:
-				jsonNode = getJsonRepresentationForInstructionNode(id, node);
-				break;
-			case 1:
-				jsonNode = getJsonRepresentationForCallsite(id, node);
-				break;
-			case 2:
-				jsonNode = getJsonRepresentationForReturnsite(id, node);
-				break;
-			}
+
+			jsonNode = getJsonRepresentationForInstructionNode(id, node);
+
 			sendToWebserver(jsonNode.dump().c_str());
 			instruction_id_map->insert(std::pair<const llvm::Instruction *, size_t>(node, id));
 		}
@@ -242,7 +184,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		// the pairs <SourceNode, TargetNode> the data flow map can be obtained easily.
 		//size_t from = getJsonRepresentationForInstructionNode(document, currentNode);
 
-		json fromNode = getJsonOfNode(currentNode, instruction_id_map, 0);
+		json fromNode = getJsonOfNode(currentNode, instruction_id_map);
 
 		auto TargetNodeMap = this->computedIntraPathEdges.row(currentNode);
 		cout << "node pointer current: " << currentNode << endl;
@@ -253,7 +195,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 			auto TargetNode = entry.first;
 			//use map to store key value and match node to json id
-			json toNode = getJsonOfNode(TargetNode, instruction_id_map, 0);
+			json toNode = getJsonOfNode(TargetNode, instruction_id_map);
 			cout << "node pointer target : " << TargetNode << endl;
 
 			//getJsonRepresentationForInstructionEdge(from, to, document);
@@ -279,8 +221,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 			if (this->computedInterPathEdges.containsRow(TargetNode))
 			{
-				//TODO: actually add interprocedural edges.
-				json callSite = getJsonOfNode(TargetNode, instruction_id_map, 1);
+
 				cout << "FOUND Inter path edge !!" << endl;
 				auto interEdgeTargetMap = this->computedInterPathEdges.row(TargetNode);
 
@@ -293,25 +234,29 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 					//for easier debugging of the graph
 					if (interEntry.first->getFunction()->getName().str().compare(callerFunction->getName().str()) != 0)
 					{
+						json callSiteNode = getJsonRepresentationForCallsite(interEntry.first);
 
-						fromNode = getJsonOfNode(TargetNode, instruction_id_map, 0);
-						toNode = getJsonOfNode(interEntry.first, instruction_id_map, 0);
+						sendToWebserver(callSiteNode.dump().c_str());
+
+						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
+						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
 
 						//getJsonRepresentationForInstructionEdge(from, to);
 
 						cout << "NODE (in function (inter)" << interEntry.first->getFunction()->getName().str() << ")\n";
 						interEntry.first->dump();
-
+						//add function start node here
 						iterateExplodedSupergraph(interEntry.first, TargetNode->getFunction(), instruction_id_map);
 					}
 					else
 					{
 						cout << "FOUND Return Side" << endl;
 						//TODO: insert returnsite
-						fromNode = getJsonOfNode(TargetNode, instruction_id_map, 0);
-						toNode = getJsonOfNode(interEntry.first, instruction_id_map, 0);
-						json returnSite = getJsonOfNode(interEntry.first, instruction_id_map, 2);
-						//getJsonRepresentationForInstructionEdge(from, to);
+						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
+						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
+						json returnSiteNode = getJsonRepresentationForReturnsite(interEntry.first);
+						//add function end node here
+						sendToWebserver(returnSiteNode.dump().c_str());
 					}
 				}
 			}
@@ -375,6 +320,27 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 			}
 		}
 	}
+
+	void sendWebserverFinish(const char *url)
+	{
+
+		curl = curl_easy_init();
+		if (curl)
+		{
+			curl_easy_setopt(curl, CURLOPT_URL, url);
+
+			CURLcode res = curl_easy_perform(curl);
+			/* Check for errors */
+			if (res != CURLE_OK)
+			{
+				fprintf(stderr, "curl_easy_perform() failed: %s\n",
+						curl_easy_strerror(res));
+			}
+
+			curl_easy_cleanup(curl);
+		}
+	}
+
 	void exportJSONDataModel()
 	{
 
@@ -401,6 +367,8 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 			iterateExplodedSupergraph(SourceNode, SourceNode->getFunction(), &instruction_id_map);
 		}
+		url = "http://localhost:3000/api/framework/graphFinish/" + id;
+		sendWebserverFinish(url.c_str());
 	}
 
 	void dumpAllInterPathEdges()
