@@ -12,6 +12,7 @@
 #include "../../lib/LLVMShorthands.hh"
 #include "../../utils/utils.hh"
 #include "../../utils/Logger.hh"
+#include "../../utils/Configuration.hh"
 #include "../call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../call-points-to_graph/PointsToGraph.hh"
 #include "ICFG.hh"
@@ -206,15 +207,18 @@ private:
       vector<pair<const llvm::Value *, const llvm::Value *>> mapping);
 
 public:
-  LLVMBasedICFG(LLVMStructTypeHierarchy &STH, ProjectIRCompiledDB &IRDB,
+  LLVMBasedICFG(LLVMStructTypeHierarchy &STH,
+                ProjectIRCompiledDB &IRDB,
                 WalkerStrategy W,
                 ResolveStrategy R,
                 const vector<string> &EntryPoints = {"main"});
 
-  LLVMBasedICFG(LLVMStructTypeHierarchy &STH, ProjectIRCompiledDB &IRDB,
-                const llvm::Module &M,
-                WalkerStrategy W,
-                ResolveStrategy R);
+  LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
+								ProjectIRCompiledDB& IRDB,
+								const llvm::Module& M,
+								WalkerStrategy W,
+                ResolveStrategy R,
+								vector<string> EntryPoints = {});
 
   virtual ~LLVMBasedICFG() = default;
 

@@ -36,9 +36,9 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 	return os << str.at(static_cast<underlying_type_t<ExportType>>(E));
 }
 
-  AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<DataFlowAnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
-					 bool PrintEdgeRecorder) {
+  AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
+                     vector<DataFlowAnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE, bool PrintEdgeRecorder) :
+										 		FinalResultsJson() {
 		auto& lg = lg::get();
 		BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
 		BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
@@ -124,13 +124,6 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 
     DBConn& db = DBConn::getInstance();
 		db.synchronize(&IRDB);
-		auto M = IRDB.getModuleDefiningFunction("main");
-		for (auto& F : *M) {
-			if (!F.isDeclaration()) {
-			//	cout << F.getName().str() << "\n";
-			//	db << *IRDB.getPointsToGraph(F.getName().str());
-			}
-		}
 
     // db << IRDB;
 
@@ -138,8 +131,9 @@ ostream& operator<<(ostream& os, const ExportType& E) {
     BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
     LLVMStructTypeHierarchy CH(IRDB);
     BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-    CH.print();
-    CH.printAsDot();
+    FinalResultsJson += CH.exportPATBCJSON();
+		cout << FinalResultsJson.dump(1) << '\n';
+		CH.printAsDot();
 
     // db << CH;
     // db >> CH;
@@ -160,8 +154,6 @@ ostream& operator<<(ostream& os, const ExportType& E) {
      * -----------
      */
     if (WPA_MODE) {
-   	  // There is only one module left, because we have linked earlier
-	  	llvm::Module& M = *IRDB.getWPAModule();
       LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, {"main"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
@@ -260,19 +252,32 @@ ostream& operator<<(ostream& os, const ExportType& E) {
        * We build all the call- and points-to graphs which can be used for
        * all of the analysis of course.
        */
-      
+			BOOST_LOG_SEV(lg, DEBUG) << "Performing module-wise computation";      
 			auto& Mod = *IRDB.getModuleDefiningFunction("main");
-			auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3foov");
-
+			cout << "MOD\n";
+			Mod.dump();
+			auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barR8MyStruct");
+			cout << "MOD_2\n";
+			Mod_2.dump();
 			LLVMBasedICFG ICFG(CH, IRDB, Mod, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			cout << "call graph defining main\n";
 			ICFG.print();
 			ICFG.printAsDot("icfg_main.dot");
 			LLVMBasedICFG ICFG_2(CH, IRDB, Mod_2, WalkerStrategy::Pointer, ResolveStrategy::OTF);
-			ICFG.print();
+			cout << "call graph defining foo\n";
+			ICFG_2.print();
 			ICFG_2.printAsDot("icfg_foo.dot");
 
+			cout << "@@@@@@@@@@@@@@@@@@@@@ call graph after merge @@@@@@@@@@@@@@@@@@@@@@\n";
 			ICFG.mergeWith(ICFG_2);
+			ICFG.print();
 			ICFG.printAsDot("icfg_after_merge.dot");
+
+    	// IFDSSolverTest ifdstest(ICFG);
+			// LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
+			// llvmifdstestsolver.solve();
+
+			return;
 
 			// for (auto M : IRDB.getAllModules()) {
       //  	LLVMBasedICFG ICFG(CH, IRDB, *M);
@@ -494,5 +499,10 @@ ostream& operator<<(ostream& os, const ExportType& E) {
         BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results done, computation completed!";
     }
     BOOST_LOG_SEV(lg, INFO) << "Data-flow analyses completed.";
+}
+
+void AnalysisController::writeResults(string filename) {
+	ofstream ofs(filename, ofstream::app);
+	ofs << FinalResultsJson.dump(1);
 }
 
