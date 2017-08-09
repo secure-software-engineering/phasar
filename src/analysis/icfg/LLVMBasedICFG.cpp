@@ -28,6 +28,11 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 	for (auto& function_name : EntryPoints) {
 		cout << function_name << "\n";
 	}
+  cout << "allocation sites set from WMPTG: ";
+  for (auto s: WholeModulePTG.allocating_functions) {
+    cout << s << " ";
+  }
+  cout << "\n\n";
 	for (auto& function_name : EntryPoints) {
 			llvm::Function* function = IRDB.getFunction(function_name);
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);
@@ -35,6 +40,29 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 			resolveIndirectCallWalker(function);
 	}
 	cout << "constructed whole module ptg and resolved indirect calls ...\n";
+//	typename boost::graph_traits<PointsToGraph::graph_t>::edge_iterator ei_start, e_end;
+//  cout << '\n' << '\n';
+//  static PHSStringConverter converter(IRDB);
+//  vector<string> names = WholeModulePTG.getMergeStack();
+//  for (const auto& fname : names) {
+//    cout << fname << " ";
+//  }
+//  for (tie(ei_start, e_end) = boost::edges(WholeModulePTG.ptg); ei_start != e_end; ++ei_start) {
+//		auto source = boost::source(*ei_start, WholeModulePTG.ptg);
+//		auto target = boost::target(*ei_start, WholeModulePTG.ptg);
+//    cout << WholeModulePTG.ptg[source].ir_code << " --> " << WholeModulePTG.ptg[target].ir_code << endl;
+//		cout << "edge ir_code:" << WholeModulePTG.ptg[*ei_start].ir_code << endl;
+//    if(WholeModulePTG.ptg[*ei_start].value) {
+//			string hsstringrep = converter.PToHStoreStringRep(WholeModulePTG.ptg[*ei_start].value);
+//			cout << "hex name: " << hsstringrep << '\n';
+//			cout << "edge id: " << WholeModulePTG.ptg[*ei_start].id << '\n';
+//			cout << "Re converted\n";
+//    	converter.HStoreStringRepToP(hsstringrep)->dump();
+//		}
+//    cout << "\n\n";
+//		string hs_source_rep = converter.PToHStoreStringRep(PTG.ptg[source].value);
+//		string hs_target_rep = converter.PToHStoreStringRep(PTG.ptg[target].value);
+//	}
 	WholeModulePTG.printAsDot("whole_module_ptg.dot");
 	cout << "virtual nodes:\n";
 	for (auto& entry : DirectCSTargetMethods) {

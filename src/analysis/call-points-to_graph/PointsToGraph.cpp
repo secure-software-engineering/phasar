@@ -48,7 +48,7 @@ void PrintLoadStoreResults(const char* Msg, bool P, const llvm::Value* V1,
 
 // points-to graph internal stuff
 
-PointsToGraph::VertexProperties::VertexProperties(llvm::Value* v) : value(v) {
+PointsToGraph::VertexProperties::VertexProperties(const llvm::Value* v) : value(v) {
 	// save the ir code
 	llvm::raw_string_ostream rso(ir_code);
 	value->print(rso);
@@ -309,4 +309,8 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
 			(ptg, other.ptg, v_in_g1_u_in_g2, callsite_value);
 	merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
+}
+
+vector<string> PointsToGraph::getMergeStack() {
+  return merge_stack;
 }

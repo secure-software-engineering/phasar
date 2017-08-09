@@ -9,23 +9,30 @@
 using namespace std;
 using namespace hexastore;
 
-int hs_test_main() {
+int main() {
   hexastore::Hexastore h("test.sqlite");
   // init with some stuff
   h.put({"mary", "likes", "hexastores"});
+	h.put({"mary", "likes", "hexastores"});
   h.put({"mary", "likes", "apples"});
   h.put({"peter", "likes", "apples"});
   h.put({"peter", "hates", "hexastores"});
   h.put({"frank", "admires", "bananas"});
+	// print the hexastore
+	cout << "hexastore content:\n";
+	auto result = h.get({"?", "?", "?"});
+	for_each(result.begin(), result.end(), [](hs_result r) {
+		cout << r << '\n';
+	});
   //query some stuff
   cout << "Who likes what?" << "\n";
-  auto result = h.get({"?", "likes", "?"});
+  result = h.get({"?", "likes", "?"});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });
   cout << "\n";
-  cout << "What does peter hate?" << "\n";
-  result = h.get({"peter", "hates", "?"});
+  cout << "Who's name contains the substring 'ter' ?" << "\n";
+  result = h.get({"?", "?", "app"});
   for_each(result.begin(), result.end(), [](hs_result r){
 	  cout << r << endl;
   });

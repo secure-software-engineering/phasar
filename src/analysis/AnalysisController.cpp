@@ -122,6 +122,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
     cout << "pre-analysis completed ...\n";
     IRDB.print();
 
+    // store points-to graphs in the hexastore
     DBConn& db = DBConn::getInstance();
 		db.synchronize(&IRDB);
 		auto M = IRDB.getModuleDefiningFunction("main");
@@ -129,8 +130,16 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 			if (!F.isDeclaration()) {
 				cout << F.getName().str() << "\n";
 				db << *IRDB.getPointsToGraph(F.getName().str());
-			}
-		}
+      }
+    }
+    // restore the points-to graphs from the hexastore for test purposes
+    for (auto& F: *M) {
+      if (!F.isDeclaration()) {
+        vector<string> mergeStack{F.getName().str()};
+        PointsToGraph ptg(mergeStack);
+        db >> ptg;
+      }
+    }
 
     // db << IRDB;
 
@@ -165,6 +174,10 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       LLVMBasedICFG ICFG(CH, IRDB);
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
+      // store and restore the WholeModulePTG for test purposes
+      db << ICFG.WholeModulePTG;
+      PointsToGraph wmptg(ICFG.WholeModulePTG.getMergeStack());
+      db >> wmptg;
 	  // CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*
