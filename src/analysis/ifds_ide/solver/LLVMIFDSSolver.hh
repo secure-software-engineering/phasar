@@ -115,58 +115,60 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 	json getJsonRepresentationForInstructionNode(size_t id, const llvm::Instruction *node)
 	{
 		json jsonNode = {
+			{"number", node_number},
 			{"number", id},
 			{"method", node->getFunction()->getName().str().c_str()},
 			{"instruction", llvmIRToString(node).c_str()},
 			{"type", 0}};
-
+		node_number = node_number + 1;
 		return jsonNode;
 	}
 	json getJsonRepresentationForCallsite(const llvm::Instruction *from, const llvm::Instruction *to)
 	{
 		json jsonNode = {
+			{"number", node_number},
 			{"from", from->getFunction()->getName().str().c_str()},
 			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 1}};
-
+		node_number = node_number + 1;
 		return jsonNode;
 	}
 	json getJsonRepresentationForReturnsite(const llvm::Instruction *from, const llvm::Instruction *to)
 	{
 		json jsonNode = {
+			{"number", node_number},
 			{"from", from->getFunction()->getName().str().c_str()},
 			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 2}};
-
+		node_number = node_number + 1;
 		return jsonNode;
 	}
 
+	int node_number = 0;
 	/**
 	* gets id for node from map or adds it if it doesn't exist
 	**/
-	json getJsonOfNode(const llvm::Instruction *node, std::map<const llvm::Instruction *, size_t> *instruction_id_map)
+	json getJsonOfNode(const llvm::Instruction *node, std::map<const llvm::Instruction *, int> *instruction_id_map)
 	{
-		std::map<const llvm::Instruction *, size_t>::iterator it = instruction_id_map->find(node);
+		std::map<const llvm::Instruction *, int>::iterator it = instruction_id_map->find(node);
 		json jsonNode;
-		size_t id;
+
 		if (it == instruction_id_map->end())
 		{
 			cout << "adding new element to map " << endl;
-			id = instruction_id_map->size() + 1;
 
-			jsonNode = getJsonRepresentationForInstructionNode(id, node);
+			jsonNode = getJsonRepresentationForInstructionNode(node_number, node);
 
 			sendToWebserver(jsonNode.dump().c_str());
-			instruction_id_map->insert(std::pair<const llvm::Instruction *, size_t>(node, id));
+			instruction_id_map->insert(std::pair<const llvm::Instruction *, int>(node, node_number));
 		}
 		else
 		{
 			cout << "found element in map(inter): " << it->second << endl;
-			id = it->second;
 		}
 		return jsonNode;
 	}
-	void iterateExplodedSupergraph(const llvm::Instruction *currentNode, const llvm::Function *callerFunction, std::map<const llvm::Instruction *, size_t> *instruction_id_map)
+	void iterateExplodedSupergraph(const llvm::Instruction *currentNode, const llvm::Function *callerFunction, std::map<const llvm::Instruction *, int> *instruction_id_map)
 	{
 		// In the next line we obtain the corresponding row map which maps (given a source node)
 		// the target node to the data flow fact map<D, set<D>. In the data flow fact map D is
@@ -223,8 +225,6 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 				for (auto interEntry : interEdgeTargetMap)
 				{
 
-					//TODO: insert callsite
-
 					//this doesn't seem to work right.. wait for instruction.dump().toString()
 					//for easier debugging of the graph
 					if (interEntry.first->getFunction()->getName().str().compare(callerFunction->getName().str()) != 0)
@@ -249,7 +249,6 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 					else
 					{
 						cout << "FOUND Return Side" << endl;
-						//TODO: insert returnsite
 						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
 						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
 						json returnSiteNode = getJsonRepresentationForReturnsite(TargetNode, interEntry.first);
@@ -354,7 +353,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 		for (auto Seed : this->initialSeeds)
 		{
-			std::map<const llvm::Instruction *, size_t> instruction_id_map;
+			std::map<const llvm::Instruction *, int> instruction_id_map;
 
 			auto SourceNode = Seed.first;
 
