@@ -115,7 +115,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 	json getJsonRepresentationForInstructionNode(size_t id, const llvm::Instruction *node)
 	{
 		json jsonNode = {
-			{"graph_id", getId("instructionNode_", id)},
+			{"number", id},
 			{"method", node->getFunction()->getName().str().c_str()},
 			{"instruction", llvmIRToString(node).c_str()},
 			{"type", 0}};
@@ -139,13 +139,6 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 			{"type", 2}};
 
 		return jsonNode;
-	}
-
-	const char *getId(string idName, size_t id)
-	{
-		std::ostringstream oss;
-		oss << idName << id;
-		return oss.str().c_str();
 	}
 
 	/**
