@@ -122,18 +122,20 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 		return jsonNode;
 	}
-	json getJsonRepresentationForCallsite(const llvm::Instruction *node)
+	json getJsonRepresentationForCallsite(const llvm::Instruction *from, const llvm::Instruction *to)
 	{
 		json jsonNode = {
-			{"method", node->getFunction()->getName().str().c_str()},
+			{"from", from->getFunction()->getName().str().c_str()},
+			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 1}};
 
 		return jsonNode;
 	}
-	json getJsonRepresentationForReturnsite(const llvm::Instruction *node)
+	json getJsonRepresentationForReturnsite(const llvm::Instruction *from, const llvm::Instruction *to)
 	{
 		json jsonNode = {
-			{"method", node->getFunction()->getName().str().c_str()},
+			{"from", from->getFunction()->getName().str().c_str()},
+			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 2}};
 
 		return jsonNode;
@@ -234,7 +236,10 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 					//for easier debugging of the graph
 					if (interEntry.first->getFunction()->getName().str().compare(callerFunction->getName().str()) != 0)
 					{
-						json callSiteNode = getJsonRepresentationForCallsite(interEntry.first);
+						cout << "callsite: " << endl;
+						TargetNode->dump();
+						interEntry.first->dump();
+						json callSiteNode = getJsonRepresentationForCallsite(TargetNode, interEntry.first);
 
 						sendToWebserver(callSiteNode.dump().c_str());
 
@@ -254,7 +259,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 						//TODO: insert returnsite
 						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
 						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
-						json returnSiteNode = getJsonRepresentationForReturnsite(interEntry.first);
+						json returnSiteNode = getJsonRepresentationForReturnsite(TargetNode, interEntry.first);
 						//add function end node here
 						sendToWebserver(returnSiteNode.dump().c_str());
 					}
