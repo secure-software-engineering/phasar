@@ -71,14 +71,16 @@ inline void PrintLoadStoreResults(const char* Msg, bool P,
 // forward declare the DBConn class
 class DBConn;
 
+// TODO: add a more high level description.
 /**
- * 	@brief Represents the points-to graph of a function.
- *
- *	It is possible to construct a points-to graph for a single function using the results of the
- *	llvm alias analysis or merge several points-to graphs into a single points-to graph, e.g. to
- *	construct a whole program points-to graph.
+ * 	This class is a representation of a points-to graph. It is possible to
+ * 	construct a points-to graph for a single function using the results of the
+ *	llvm alias analysis or merge several points-to graphs into a single
+ *	points-to graph, e.g. to onstruct a whole program points-to graph.
  *
  *	The graph itself is undirectional and can have labeled edges.
+ *
+ *	@brief Represents the points-to graph of a function.
  */
 class PointsToGraph {
 public:
@@ -86,29 +88,42 @@ public:
 	 * 	@brief Holds the information of a vertex in the points-to graph.
 	 */
   struct VertexProperties {
-		/**
-		 * 	This might be a llvm::Instruction (or an operand of an instruction), llvm::GlobalValue,
-		 * 	llvm::Argument or an operand.
-		 */
+
+    /**
+     * This might be an Instruction, an Operand of an Instruction, Global Variable
+     * or a formal Argument.
+     */
 		const llvm::Value* value = nullptr;
+
 		/// Holds the llvm IR code for that vertex.
     string ir_code;
+
     /**
      *  For an instruction the id is equal to the annotated id of the instruction.
      *  In all other cases it's zero.
      */
 		size_t id = 0;
-  	VertexProperties() = default;
-  	VertexProperties(const llvm::Value* v);
+
+    VertexProperties() = default;
+    VertexProperties(const llvm::Value* v);
   };
 
 	/**
 	 * 	@brief Holds the information of an edge in the points-to graph.
 	 */
   struct EdgeProperties {
+    /// This might be an Instruction, in particular a Call Instruction.
     const llvm::Value* value = nullptr;
+
+    /// Holds the llvm IR code for that edge.
     string ir_code;
+
+    /**
+     * For an instruction the id is equal to the annotated id of the instruction.
+     * In all other cases it's zero.
+     */
     size_t id = 0;
+
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value* v);
   };
@@ -127,7 +142,7 @@ public:
 	/// The type for a vertex iterator.
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
 
-  // new, new[], malloc
+  /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
   const static set<string> allocating_functions;
 
 private:
@@ -164,10 +179,9 @@ private:
 
 public:
   /**
+   * Creates a points-to graph based on the computed Alias results.
+   *
    * @brief Creates a points-to graph for a given function.
-   *
-   * Creates a points-to graph based on the computed Alias Results.
-   *
    * @param AA Contains the computed Alias Results.
    * @param F Points-to graph is created for this particular function.
    * @param onlyConsiderMustAlias True, if only Must Aliases should be considered.
@@ -176,24 +190,24 @@ public:
   PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias=false);
 
 	/**
-	 * This will create an empty points-to graph, except the functions names that are contained in the
-	 * points-to graph. It is used when a points-to graph is restored from the database.
+	 * It is used when a points-to graph is restored from the database.
 	 *
+	 * @brief This will create an empty points-to graph, except the functions names
+	 * that are contained in the points-to graph.
 	 * @param fnames Names of functions contained in the points-to graph.
 	 */
   PointsToGraph(vector<string> fnames) : merge_stack(fnames) {};
 
   /**
-   * This will create an empty points-to graph. It is used when points-to graphs are merged.
+   * @brief This will create an empty points-to graph. It is used when points-to graphs are merged.
    */
   PointsToGraph() = default;
 
   virtual ~PointsToGraph() = default;
 
   /**
-   * @brief Returns true if the given pointer is an interesting pointer.
-   *
-   * An pointer is interesting, if it's not a constant null pointer.
+   * @brief Returns true if the given pointer is an interesting pointer,
+   *        i.e. not a constant null pointer.
    */
   inline bool isInterestingPointer(llvm::Value* V);
 
@@ -213,19 +227,17 @@ public:
 
   /**
    * @brief Returns all reachable allocation sites from a given pointer.
-   *
-   * An allocation site can either be an AllocaInst or a call to an allocating function.
-   *
-   * @return Set of allocation sites.
+   * @note An allocation site can either be an Alloca Instruction or a call to
+   * an allocating function.
+   * @return Set of Allocation sites.
    */
   set<const llvm::Value*> getReachableAllocationSites(const llvm::Value* V);
 
   /**
    * @brief Computes all possible types from a given set of allocation sites.
-   *
-   * An allocation site can either be an AllocaInst or a call to an allocating function.
-   *
-   * @param AS Set of allocation site.
+   * @note An allocation site can either be an Alloca Instruction or a call to
+   * an allocating function.
+   * @param AS Set of Allocation site.
    * @return Set of Types.
    */
   set<const llvm::Type*> computeTypesFromAllocationSites(set<const llvm::Value*> AS);
@@ -237,15 +249,14 @@ public:
   bool containsValue(llvm::Value* V);
 
   /**
-   *
-   * @param V
-   * @return
+   * @brief Computes the Points-to set for a given pointer.
    */
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
 
+  // TODO add more detailed description
   /**
-   *
-   * @param other
+   * @brief Merges the points-to graph with a given points-to graph.
+   * @param other Points-to graph to merge with.
    * @param v_in_first_u_in_second
    * @param callsite_value
    */
@@ -254,17 +265,19 @@ public:
 								 const llvm::Value* callsite_value);
 
   /**
-   * @brief Returns names of all functions that are represented in this points-to graph.
-   *
    * If this is a merged points-to graph, the vector will contain the names of all functions
    * that were merged. Otherwise it will only contain a single function name.
    *
+   * @brief Returns names of all functions that are represented in this points-to graph.
    * @return Vector with function names.
    */
   vector<string> getMergeStack();
 
   /**
+   * The value-vertex-map maps each Value of the points-to graph to its
+   * corresponding Vertex in the points-to graph.
    *
+   * @brief Prints the value-vertex-map to the command-line.
    */
   void printValueVertexMap();
 
@@ -285,8 +298,7 @@ public:
   void printAsDot(const string& filename);
 
   /**
-   *
-   * @brief
+   * @brief NOT YET IMPLEMENTED
    */
   void exportPATBCJSON();
 
