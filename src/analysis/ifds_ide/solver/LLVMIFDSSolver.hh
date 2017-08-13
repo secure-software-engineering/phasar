@@ -140,6 +140,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 			{"from", from->getFunction()->getName().str().c_str()},
 			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 2}};
+
 		node_number = node_number + 1;
 		return jsonNode;
 	}
@@ -249,11 +250,11 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 					else
 					{
 						cout << "FOUND Return Side" << endl;
-						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
-						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
 						json returnSiteNode = getJsonRepresentationForReturnsite(TargetNode, interEntry.first);
 						//add function end node here
 						sendToWebserver(returnSiteNode.dump().c_str());
+						fromNode = getJsonOfNode(TargetNode, instruction_id_map);
+						toNode = getJsonOfNode(interEntry.first, instruction_id_map);
 					}
 				}
 			}
