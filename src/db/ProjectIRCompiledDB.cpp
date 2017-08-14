@@ -104,12 +104,8 @@ void ProjectIRCompiledDB::linkForWPA() {
 	// the linkage. This is still very fast compared to compiling and pre-processing
 	// all modules.
   if (modules.size() > 1) {
-	  llvm::Module* MainMod = getModuleContainingFunction("main");
-	  if (!MainMod) {
-	  	cout << "could not find main() function!\n";
-	  	HEREANDNOW;
-	  	DIE_HARD;
-	  }
+	  llvm::Module* MainMod = getModuleDefiningFunction("main");
+	  assert(MainMod && "could not find main function");
 	  for (auto& entry : modules) {
 	  	// we do not want to link a module with itself!
 	  	if (MainMod != entry.second.get()) {
@@ -168,8 +164,6 @@ void ProjectIRCompiledDB::linkForWPA() {
     // In this case we only have one module anyway, so we do not have
     // to link at all. But we have to the the WPAMOD pointer!
     WPAMOD = modules.begin()->second.get();
-  } else {
-    UNRECOVERABLE_CXX_ERROR_UNCOND("error: number of modules within ProjectIRCompiledDB cannot be used for WPA");
   }
 }
 
@@ -228,7 +222,7 @@ size_t ProjectIRCompiledDB::getNumberOfModules() {
   return modules.size();
 }
 
-llvm::Module* ProjectIRCompiledDB::getModuleContainingFunction(const string& name) {
+llvm::Module* ProjectIRCompiledDB::getModuleDefiningFunction(const string& name) {
 	return modules[functions[name]].get();
 }
 
@@ -259,4 +253,8 @@ void ProjectIRCompiledDB::print() {
   for (auto entry : functions) {
     cout << entry.first << " defined in module " << entry.second << endl;
   }
+}
+
+void ProjectIRCompiledDB::exportPATBCJSON() {
+  cout << "ProjectIRCompiledDB::exportPATBCJSON\n";
 }

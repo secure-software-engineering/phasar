@@ -265,7 +265,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
+  const llvm::Function *mainfunction = icfg.getMethod("main");
   const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
   map<const llvm::Instruction *, set<const llvm::Value *>> imap{
@@ -277,4 +277,8 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
 	static ZeroValue *zero = new ZeroValue;
 	return zero;
+}
+
+string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
 }

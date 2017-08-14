@@ -11,6 +11,8 @@
 #include <memory>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
+#include <string>
+#include "../../../lib/LLVMShorthands.hh"
 #include <llvm/IR/Function.h>
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"

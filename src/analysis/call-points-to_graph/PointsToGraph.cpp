@@ -72,10 +72,14 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 // points-to graph stuff
 
-const set<string> PointsToGraph::allocating_functions = { "_Znwm", "_Znam", "malloc" };
+const set<string> PointsToGraph::HeapAllocationFunctions = { "_Znwm", "_Znam", "malloc", "calloc", "realloc" };
+
+const map<string, PointerAnalysisType> PointerAnalysisTypeMap = { { "CFLSteens", PointerAnalysisType::CFLSteens },
+                                                                  { "CFLAnders", PointerAnalysisType::CFLAnders } };
 
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
-  cout << "analyzing function: " << F->getName().str() << endl;
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
   merge_stack.push_back(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
@@ -195,9 +199,10 @@ vector<const llvm::Value*> PointsToGraph::getPointersEscapingThroughReturns() {
 	return escaping_pointers;
 }
 
-set<const llvm::Value*> PointsToGraph::getReachableAllocationSites(const llvm::Value* V) {
+set<const llvm::Value*> PointsToGraph::getReachableAllocationSites(const llvm::Value* V,
+                                                                   vector<const llvm::Instruction *> CallStack) {
 	set<const llvm::Value*> alloc_sites;
-	allocation_site_dfs_visitor alloc_vis(alloc_sites);
+	allocation_site_dfs_visitor alloc_vis(alloc_sites, CallStack);
 	vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
 	boost::depth_first_visit(ptg, value_vertex_map[V], alloc_vis,
 													 boost::make_iterator_property_map(color_map.begin(),
@@ -220,7 +225,8 @@ set<const llvm::Type*> PointsToGraph::computeTypesFromAllocationSites(set<const 
 			types.insert(alloc->getAllocatedType());
 		} else {
 			// usually if an allocating function is called, it is immediately bit-casted
-			// to the desired allocated value
+			// to the desired allocated value and hence we can determine it frome the 
+      // destination type of that cast instruction.
 			for (auto user : V->users()) {
 				if (const llvm::BitCastInst* cast = llvm::dyn_cast<llvm::BitCastInst>(user)) {
 					types.insert(cast->getDestTy());
@@ -247,6 +253,10 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
   return result;
 }
 
+ bool PointsToGraph::representsSingleFunction() {
+  return merge_stack.size() == 1;
+ }
+
 void PointsToGraph::print() {
   cout << "PointsToGraph for ";
   for (const auto& fname : merge_stack) {
@@ -262,6 +272,10 @@ void PointsToGraph::printAsDot(const string& filename) {
 	boost::write_graphviz(ofs, ptg,
 	    boost::make_label_writer(boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
 	    boost::make_label_writer(boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
+}
+
+void PointsToGraph::exportPATBCJSON() {
+  cout << "PointsToGraph::exportPATBCJSON()\n";
 }
 
 void PointsToGraph::printValueVertexMap() {
@@ -294,5 +308,6 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	}
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
 			(ptg, other.ptg, v_in_g1_u_in_g2, callsite_value);
+  // keep track of what has already been merged into this points-to graph
 	merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
 }

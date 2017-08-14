@@ -7,65 +7,74 @@
 
 #include "IFDSSolverTest.hh"
 
-IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG& I) : DefaultIFDSTabulationProblem<const llvm::Instruction*,
-																																								const llvm::Value*,
-																																								const llvm::Function*,
-																																								LLVMBasedICFG&>(I) {
-	DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I)
+    : DefaultIFDSTabulationProblem<const llvm::Instruction *,
+                                   const llvm::Value *, const llvm::Function *,
+                                   LLVMBasedICFG &>(I) {
+  DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
-                                                const llvm::Instruction *succ) {
+                                      const llvm::Instruction *succ) {
   cout << "IFDSSolverTest::getNormalFlowFunction()\n";
+  if (llvm::isa<llvm::AllocaInst>(curr)) {
+    return make_shared<Gen<const llvm::Value *>>(curr, DefaultIFDSTabulationProblem::zerovalue);
+  }
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+    return make_shared<Kill<const llvm::Value *>>(Store->getPointerOperand());
+  }
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
-                                             const llvm::Function *destMthd) {
-	cout << "IFDSSolverTest::getCallFlowFuntion()\n";
+                                   const llvm::Function *destMthd) {
+  cout << "IFDSSolverTest::getCallFlowFuntion()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getRetFlowFunction(const llvm::Instruction *callSite,
-                                             const llvm::Function *calleeMthd,
-                                             const llvm::Instruction *exitStmt,
-                                             const llvm::Instruction *retSite) {
-	cout << "IFDSSolverTest::getRetFlowFunction()\n";
+                                   const llvm::Function *calleeMthd,
+                                   const llvm::Instruction *exitStmt,
+                                   const llvm::Instruction *retSite) {
+  cout << "IFDSSolverTest::getRetFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSolverTest::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite) {
-	cout << "IFDSSolverTest::getCallToRetFlowFunction()\n";
+IFDSSolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
+                                         const llvm::Instruction *retSite) {
+  cout << "IFDSSolverTest::getCallToRetFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-											 	 	 	 	 	 	 	 	 	 	 	 	 	 const llvm::Function *destMthd,
-																								 vector<const llvm::Value*> inputs,
-																								 vector<bool> context) {
-	cout << "IFDSSolverTest::getSummaryFlowFunction()\n";
+                                       const llvm::Function *destMthd,
+                                       vector<const llvm::Value *> inputs,
+                                       vector<bool> context) {
+  cout << "IFDSSolverTest::getSummaryFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSSolverTest::initialSeeds() {
-	cout << "IFDSSolverTest::initialSeeds()\n";
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
+  cout << "IFDSSolverTest::initialSeeds()\n";
+  const llvm::Function *mainfunction = icfg.getMethod("main");
   const llvm::Instruction *firstinst = &mainfunction->front().front();
   set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
+  map<const llvm::Instruction *, set<const llvm::Value *>> imap{{firstinst, iset}};
   return imap;
 }
 
 const llvm::Value *IFDSSolverTest::createZeroValue() {
   // create a special value to represent the zero value!
-	static ZeroValue *zero = new ZeroValue;
-	return zero;
+  static ZeroValue *zero = new ZeroValue;
+  return zero;
+}
+
+string IFDSSolverTest::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
 }

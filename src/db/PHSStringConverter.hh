@@ -17,8 +17,8 @@
 using namespace std;
 
 /**
- * Allows the (de-)serialization of Instructions, Arguments and GlobalValue
- * into HexaStore string representation.
+ * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
+ * Operands into HexaStore string representation.
  *
  * What values can be serialized and what scheme is used?
  *
@@ -37,6 +37,10 @@ using namespace std;
  *	4. ZeroValue
  *
  *		<ZeroValueInternalName>
+ *
+ *	5. Operand of an instruction
+ *
+ *		<function name>.<id>.o.<operand no>
  *
  */
 class PHSStringConverter {

@@ -9,6 +9,7 @@
 #define INTERMONOTONEPROBLEM_HH_
 
 #include "../../utils/ContainerConfiguration.hh"
+#include <string>
 using namespace std;
 
 template <typename N, typename D, typename M, typename I>
@@ -29,6 +30,7 @@ public:
   virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
                                    const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
+  virtual string D_to_string(D d) = 0;
 };
 
 #endif

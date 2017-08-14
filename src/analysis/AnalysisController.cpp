@@ -1,56 +1,53 @@
 #include "AnalysisController.hh"
 
-ostream& operator<<(ostream& os, const AnalysisType& k) {
-	switch (k) {
-	case AnalysisType::IFDS_UninitializedVariables:
-		os << "AnalysisType::IFDS_UninitializedVariables";
-		break;
-  case AnalysisType::IFDS_ConstnessAnalysis:
-		os << "AnalysisType::IFDS_ConstnessAnalysis";
-		break;
-	case AnalysisType::IFDS_TaintAnalysis:
-		os << "AnalysisType::IFDS_TaintAnalysis";
-		break;
-	case AnalysisType::IDE_TaintAnalysis:
-		os << "AnalysisType::IDE_TaintAnalysis";
-		break;
-	case AnalysisType::IFDS_TypeAnalysis:
-		os << "AnalysisType::IFDS_TypeAnalysis";
-		break;
-	case AnalysisType::IFDS_SolverTest:
-		os << "AnalysisType::IFDS_SolverTest";
-		break;
-	case AnalysisType::IDE_SolverTest:
-		os << "AnalysisType::IDE_SolverTest";
-		break;
-	case AnalysisType::MONO_Intra_SolverTest:
-		os << "AnalysisType::MONO_Intra_SolverTest";
-		break;
-	case AnalysisType::MONO_Inter_SolverTest:
-		os << "AnalysisType::MONO_Inter_SoverTest";
-		break;
-	case AnalysisType::None:
-		os << "AnalysisType::None";
-		break;
-	default:
-		os << "AnalysisType::error";
-		break;
-	}
-  return os;
+const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap = { { "ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables },
+																																	{ "ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis },
+																																	{ "ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis },
+																																	{ "ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis },
+																																	{ "ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest },
+																																	{ "ide_solvertest", DataFlowAnalysisType::IDE_SolverTest },
+																																	{ "mono_intra_fullconstpropagation", DataFlowAnalysisType::MONO_Intra_FullConstantPropagation },
+																																	{ "mono_intra_solvertest",DataFlowAnalysisType::MONO_Intra_SolverTest },
+																																	{ "mono_inter_solvertest",DataFlowAnalysisType::MONO_Inter_SolverTest },
+																																	{ "none", DataFlowAnalysisType::None } };
+
+ostream& operator<<(ostream& os, const DataFlowAnalysisType& D) {
+	static const array<string, 10> str {{
+		"AnalysisType::IFDS_UninitializedVariables",
+		"AnalysisType::IFDS_TaintAnalysis",
+		"AnalysisType::IDE_TaintAnalysis",
+		"AnalysisType::IFDS_TypeAnalysis",
+		"AnalysisType::IFDS_SolverTest",
+		"AnalysisType::IDE_SolverTest",
+		"AnalysisType::MONO_Intra_FullConstantPropagation",
+		"AnalysisType::MONO_Intra_SolverTest",
+		"AnalysisType::MONO_Inter_SoverTest",
+		"AnalysisType::None",
+	}};
+	return os << str.at(static_cast<underlying_type_t<DataFlowAnalysisType>>(D));
 }
 
-  AnalysisController::AnalysisController(ProjectIRCompiledDB& IRDB,
-                     vector<AnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE,
-					 bool PrintEdgeRecorder) {
-    cout << "constructed AnalysisController ...\n";
-    cout << "found the following IR files for this project:" << endl;
+const map<string, ExportType> ExportTypeMap = { { "json" , ExportType::JSON } };
+
+ostream& operator<<(ostream& os, const ExportType& E) {
+	static const array<string, 1> str {{
+		"ExportType::JSON"
+	}};
+	return os << str.at(static_cast<underlying_type_t<ExportType>>(E));
+}
+
+  AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
+                     vector<DataFlowAnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE, bool PrintEdgeRecorder) :
+										 		FinalResultsJson() {
+		auto& lg = lg::get();
+		BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
+		BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
     for (auto file : IRDB.source_files) {
-      cout << "\t" << file << endl;
+      BOOST_LOG_SEV(lg, INFO) << "\t" << file;
     }
-    cout << "WPA_MODE: " << WPA_MODE << "\n";
     if (WPA_MODE) {
     	 // here we link every llvm module into a single module containing the entire IR
-    	cout << "link all llvm modules into a single module for WPA ...\n";
+    	BOOST_LOG_SEV(lg, INFO) << "link all llvm modules into a single module for WPA ...\n";
     	IRDB.linkForWPA();
     }
     /*
@@ -63,9 +60,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 
     // here we perform a pre-analysis and run some very important passes over
     // all of the IR modules in order to perform various data flow analysis
-    cout << "start pre-analyzing modules ...\n";
+    BOOST_LOG_SEV(lg, INFO) << "Start pre-analyzing modules.";
     for (auto& module_entry : IRDB.modules) {
-      cout << "pre-analyzing module: " << module_entry.first << "\n";
+      BOOST_LOG_SEV(lg, INFO) << "Pre-analyzing module: " << module_entry.first;
       llvm::Module& M = *(module_entry.second.get());
       llvm::LLVMContext& C = *(IRDB.contexts[module_entry.first].get());
       // TODO Have a look at this stuff from the future at some point in time
@@ -111,36 +108,39 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       // just to be sure that none of the passes has messed up the module!
       bool broken_debug_info = false;
       if (llvm::verifyModule(M, &llvm::errs(), &broken_debug_info)) {
-        cout << "AnalysisController: module is broken!" << endl;
+        BOOST_LOG_SEV(lg, CRITICAL) << "AnalysisController: module is broken!";
       }
       if (broken_debug_info) {
-        cout << "AnalysisController: debug info is broken" << endl;
+        BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
       }
       // obtain the very important alias analysis results
       // and construct the intra-procedural points-to graphs
       for (auto& function : M) {
       	IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
-      }
+			}
     }
-    cout << "pre-analysis completed ...\n";
+    BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
     IRDB.print();
 
     DBConn& db = DBConn::getInstance();
+		db.synchronize(&IRDB);
+
     // db << IRDB;
 
     // reconstruct the inter-modular class hierarchy and virtual function tables
-    cout << "reconstruction the class hierarchy ...\n";
+    BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
     LLVMStructTypeHierarchy CH(IRDB);
-    cout << "reconstruction completed ...\n";
-    CH.print();
-    CH.printAsDot();
+    BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+    FinalResultsJson += CH.exportPATBCJSON();
+		cout << FinalResultsJson.dump(1) << '\n';
+		CH.printAsDot();
 
     // db << CH;
     // db >> CH;
 
     IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
     		IFDSSpecialSummaries<const llvm::Value*>::getInstance();
-    cout << specialSummaries << endl;
+    // cout << specialSummaries << endl;
 
 			// check and test the summary generation:
 //      			cout << "GENERATE SUMMARY" << endl;
@@ -154,9 +154,7 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
      * -----------
      */
     if (WPA_MODE) {
-   	  // There is only one module left, because we have linked earlier
-	  	llvm::Module& M = *IRDB.getWPAModule();
-      LLVMBasedICFG ICFG(M, CH, IRDB); // LLVMBasedICFG ICFG(M, CH, IRDB, {"sub_400550"});
+      LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, {"main"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
 	  // CFG is only needed for intra-procedural monotone framework
@@ -164,84 +162,84 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       /*
        * Perform all the analysis that the user has chosen.
        */
-      for (AnalysisType analysis : Analyses) {
+      for (DataFlowAnalysisType analysis : Analyses) {
+				BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
       	switch (analysis) {
-      		case AnalysisType::IFDS_TaintAnalysis:
+      		case DataFlowAnalysisType::IFDS_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_TaintAnalysis\n";
        			IFDSTaintAnalysis taintanalysisproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
        			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_TaintAnalysis:
+       		case DataFlowAnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IDE_TaintAnalysis\n";
-       			//IDETaintAnalysis taintanalysisproblem(icfg);
-       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-       			//llvmtaintsolver.solve();
+       			IDETaintAnalysis taintanalysisproblem(ICFG);
+       			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
+       			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_TypeAnalysis:
+       		case DataFlowAnalysisType::IFDS_TypeAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_TypeAnalysis\n";
        			IFDSTypeAnalysis typeanalysisproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
        			llvmtypesolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_UninitializedVariables:
+       		case DataFlowAnalysisType::IFDS_UninitializedVariables:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_UninitalizedVariables\n";
        			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
 						llvmunivsolver.solve();
-						llvmunivsolver.exportJSONDataModel();
+						if(PrintEdgeRecorder)
+							llvmunivsolver.exportJSONDataModel();
 						// if (PrintEdgeRecorder) {
 						// 	llvmunivsolver.dumpAllIntraPathEdges();
 						// 	llvmunivsolver.dumpAllInterPathEdges();
 						// }
        			break;
        		}
-       		case AnalysisType::IFDS_SolverTest:
+       		case DataFlowAnalysisType::IFDS_SolverTest:
        		{
-       			cout << "IFDS_SovlerTest\n";
        			IFDSSolverTest ifdstest(ICFG);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
        			llvmifdstestsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_SolverTest:
+       		case DataFlowAnalysisType::IDE_SolverTest:
        		{
-       			cout << "IDE_SolverTest\n";
-       			//IDESolverTest idetest(icfg);
-       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
-       			//llvmidetestsolver.solve();
+       			IDESolverTest idetest(ICFG);
+       			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
+       			llvmidetestsolver.solve();
        			break;
        		}
-       		case AnalysisType::MONO_Intra_SolverTest:
+					case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation:
+					{
+						IntraMonoFullConstantPropagation intra(CFG, IRDB.getFunction("main"));
+						LLVMIntraMonotoneSolver<pair<const llvm::Value*, unsigned>, LLVMBasedCFG&> solver(intra, true);
+           	solver.solve();
+						break;
+					}
+       		case DataFlowAnalysisType::MONO_Intra_SolverTest:
        		{
-       			cout << "MONO_Intra_SolverTest\n";
-           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main")); // IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("sub_400550"));
+           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
            	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
        		}
-					case AnalysisType::MONO_Inter_SolverTest:
+					case DataFlowAnalysisType::MONO_Inter_SolverTest:
 					{
-						cout << "MONO_Inter_SolverTest\n";
 						InterMonotoneSolverTest inter(ICFG);
 						LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
 						solver.solve();
 						break;
 					}
-       		case AnalysisType::None:
-					 {
-       			cout << "None\n";
+       		case DataFlowAnalysisType::None:
+					{
 						break;
-					 }
+					}
        		default:
-       			cout << "Chosen AnalysisType is not valid\n" << endl;
+       			BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
        			break;
        		}
        }
@@ -255,20 +253,47 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
        * We build all the call- and points-to graphs which can be used for
        * all of the analysis of course.
        */
-       for (auto M : IRDB.getAllModules()) {
-       	LLVMBasedICFG ICFG(*M, CH, IRDB);
-       	// store them away for later use
-       	MWICFGs.insert(make_pair(M, ICFG));
-       }
+			BOOST_LOG_SEV(lg, DEBUG) << "Performing module-wise computation";      
+			auto& Mod = *IRDB.getModuleDefiningFunction("main");
+			cout << "MOD\n";
+			Mod.dump();
+			auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barR8MyStruct");
+			cout << "MOD_2\n";
+			Mod_2.dump();
+			LLVMBasedICFG ICFG(CH, IRDB, Mod, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			cout << "call graph defining main\n";
+			ICFG.print();
+			ICFG.printAsDot("icfg_main.dot");
+			LLVMBasedICFG ICFG_2(CH, IRDB, Mod_2, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			cout << "call graph defining foo\n";
+			ICFG_2.print();
+			ICFG_2.printAsDot("icfg_foo.dot");
+
+			cout << "@@@@@@@@@@@@@@@@@@@@@ call graph after merge @@@@@@@@@@@@@@@@@@@@@@\n";
+			ICFG.mergeWith(ICFG_2);
+			ICFG.print();
+			ICFG.printAsDot("icfg_after_merge.dot");
+
+    	// IFDSSolverTest ifdstest(ICFG);
+			// LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
+			// llvmifdstestsolver.solve();
+
+			return;
+
+			// for (auto M : IRDB.getAllModules()) {
+      //  	LLVMBasedICFG ICFG(CH, IRDB, *M);
+      //   	// // store them away for later use
+      //   	// MWICFGs.insert(make_pair(M, ICFG));
+      // }
 
        /*
         * Perform all the analysis that the user has chosen.
         */
-       for (AnalysisType analysis : Analyses) {
+       for (DataFlowAnalysisType analysis : Analyses) {
+				 BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
        	switch (analysis) {
-       		case AnalysisType::IFDS_TaintAnalysis:
+       		case DataFlowAnalysisType::IFDS_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_TaintAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
 //       	    // when performing a module-wise analysis.
 //       	    ModuleWiseResults<const llvm::Value*> MWR;
@@ -293,9 +318,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IDE_TaintAnalysis:
+       		case DataFlowAnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IDE_TaintAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
 //       	    // when performing a module-wise analysis.
 //       	    ModuleWiseResults<const llvm::Value*> MWR;
@@ -320,9 +344,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			//llvmtaintsolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_TypeAnalysis:
+       		case DataFlowAnalysisType::IFDS_TypeAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_TypeAnalysis\n";
 //       	    // Here we create our module-wise result storage that is needed
 //       	    // when performing a module-wise analysis.
 //       	    ModuleWiseResults<const llvm::Value*> MWR;
@@ -347,9 +370,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			llvmtypesolver.solve();
        			break;
        		}
-       		case AnalysisType::IFDS_UninitializedVariables:
+       		case DataFlowAnalysisType::IFDS_UninitializedVariables:
        		{ // caution: observer '{' and '}' we work in another scope
-       			cout << "IFDS_UninitalizedVariables\n";
 //       	    // Here we create our module-wise result storage that is needed
 //       	    // when performing a module-wise analysis.
 //       	    ModuleWiseResults<const llvm::Value*> MWR;
@@ -380,9 +402,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //   //      			auto summary = Generator.generateSummaryFlowFunction();
        			break;
        		}
-       		case AnalysisType::IFDS_SolverTest:
+       		case DataFlowAnalysisType::IFDS_SolverTest:
        		{
-       			cout << "IFDS_SovlerTest\n";
 //       			map<const llvm::Module*, IFDSSummaryPool<const llvm::Value*>> MWIFDSSummaryPools;
 //       	    for (auto M : IRDB.getAllModules()) {
 //       	    	IFDSSolverTest ifdstest(ICFG);
@@ -390,9 +411,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       	    	llvmifdstestsolver.solve();
        	    	break;
        		}
-       		case AnalysisType::IDE_SolverTest:
+       		case DataFlowAnalysisType::IDE_SolverTest:
        		{
-       			cout << "IDE_SolverTest\n";
 //       	    // Here we create our module-wise result storage that is needed
 //       	    // when performing a module-wise analysis.
 //       	    ModuleWiseResults<const llvm::Value*> MWR;
@@ -417,9 +437,8 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //       			//llvmidetestsolver.solve();
        			break;
        		}
-       		case AnalysisType::MONO_Intra_SolverTest:
+       		case DataFlowAnalysisType::MONO_Intra_SolverTest:
        		{
-       			cout << "MONO_Intra_SolverTest\n";
 //       			LLVMBasedCFG cfg;
 //           	MonotoneSolverTest intra(cfg, IRDB.getFunction("main"));
 //           	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
@@ -451,24 +470,40 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
 //           	cout << "yet to be implemented!\n";
        			break;
        		}
-       		case AnalysisType::None:
-       			cout << "None\n";
-      			break;
+       		case DataFlowAnalysisType::None:
+					{
+						// cout << "LLVMBASEDICFG TEST\n";
+						// LLVMBasedICFG G(CH, IRDB, *IRDB.getModuleDefiningFunction("main"));
+						// cout << "G\n";
+						// G.print();
+						// G.printAsDot("main.dot");
+						// cout << "H\n";
+						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z3foov"));
+						// H.print();
+						// H.printAsDot("src1.dot");
+						// cout << "NOW MERGING\n";
+						// G.mergeWith(H);
+						// G.print();
+						break;
+					}
        		default:
-       			cout << "analysis not valid!" << endl;
+       			BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
        			break;
        	}
        }
        	// after every module has been analyzed the analyses results must be
-         // merged and the final results must be computed
-         cout << "combining module-wise results ...\n";
-         // start at the main function and iterate over the entire program combining
-         // all results!
-         llvm::Module& M = *IRDB.getModuleContainingFunction("main");
-         cout << "combining module-wise results done ...\n"
-          				"computation completed!\n";
+        // merged and the final results must be computed
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
+        // start at the main function and iterate over the entire program combining
+        // all results!
+        llvm::Module& M = *IRDB.getModuleDefiningFunction("main");
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results done, computation completed!";
     }
+    BOOST_LOG_SEV(lg, INFO) << "Data-flow analyses completed.";
+}
 
-    cout << "data-flow analyses completed ...\n";
+void AnalysisController::writeResults(string filename) {
+	ofstream ofs(filename, ofstream::app);
+	ofs << FinalResultsJson.dump(1);
 }
 

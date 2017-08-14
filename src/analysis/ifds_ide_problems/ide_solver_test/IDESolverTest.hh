@@ -8,13 +8,14 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_
 #define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_
 
+#include "../../icfg/LLVMBasedICFG.hh"
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultIDETabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/ZeroValue.hh"
 #include "../../ifds_ide/edge_func/EdgeIdentity.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
-#include "../../icfg/LLVMBasedICFG.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -24,6 +25,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <string>
 #include <string>
 #include <utility>
 #include <vector>
@@ -58,11 +60,9 @@ public:
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-	getSummaryFlowFunction(const llvm::Instruction* callStmt,
-												 const llvm::Function* destMthd,
-												 vector<const llvm::Value*> inputs,
-												 vector<bool> context) override;
+  shared_ptr<FlowFunction<const llvm::Value *>> getSummaryFlowFunction(
+      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
+      vector<const llvm::Value *> inputs, vector<bool> context) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;
@@ -92,6 +92,12 @@ public:
                               const llvm::Instruction *retSite,
                               const llvm::Value *retSiteNode) override;
 
+  shared_ptr<EdgeFunction<const llvm::Value *>>
+  getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                         const llvm::Function *destMthd,
+                         vector<const llvm::Value *> inputs,
+                         vector<bool> context) override;
+
   const llvm::Value *topElement() override;
 
   const llvm::Value *bottomElement() override;
@@ -116,6 +122,9 @@ public:
     bool equalTo(shared_ptr<EdgeFunction<const llvm::Value *>> other) override;
   };
 
+  string D_to_string(const llvm::Value *d) override;
+
+  string V_to_string(const llvm::Value *v) override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_ */

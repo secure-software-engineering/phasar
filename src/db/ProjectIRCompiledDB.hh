@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <cassert>
 #include "../utils/utils.hh"
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 using namespace std;
@@ -56,6 +57,7 @@ private:
   map<string, unique_ptr<PointsToGraph>> ptgs;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
   ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
+  ProjectIRCompiledDB(ProjectIRCompiledDB&&) = default;
   ~ProjectIRCompiledDB() = default;
   void buildFunctionModuleMapping();
   void buildGlobalModuleMapping();
@@ -70,12 +72,13 @@ private:
   llvm::Module* getModule(const string& ModName);
   set<llvm::Module*> getAllModules();
   size_t getNumberOfModules();
-  llvm::Module* getModuleContainingFunction(const string& FName);
+  llvm::Module* getModuleDefiningFunction(const string& FName);
   llvm::Function* getFunction(const string& FName);
   llvm::GlobalVariable* getGlobalVariable(const string& GName);
   llvm::Instruction* getInstruction(size_t id);
   PointsToGraph* getPointsToGraph(const string& FName);
   void print();
+  void exportPATBCJSON();
 };
 
 #endif /* ANALYSIS_PROJECTIRCOMPILEDDB_HH_ */

@@ -46,3 +46,7 @@ IntraMonotoneSolverTest::initialSeeds() {
   cout << "MonotoneSolverTest::initialSeeds()\n";
   return {};
 }
+
+string IntraMonotoneSolverTest::D_to_string(const llvm::Value* d) {
+  return llvmIRToString(d);
+}

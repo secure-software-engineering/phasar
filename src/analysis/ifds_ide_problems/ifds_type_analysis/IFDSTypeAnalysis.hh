@@ -8,9 +8,12 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 
+#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
+#include "../../ifds_ide/ZeroValue.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -19,13 +22,11 @@
 #include <map>
 #include <memory>
 #include <set>
-#include "../../ifds_ide/ZeroValue.hh"
-#include "../../icfg/LLVMBasedICFG.hh"
+#include <string>
 using namespace std;
-class IFDSTypeAnalysis
-    : public DefaultIFDSTabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedICFG &> {
+class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
+                             const llvm::Instruction *, const llvm::Value *,
+                             const llvm::Function *, LLVMBasedICFG &> {
 public:
   IFDSTypeAnalysis(LLVMBasedICFG &icfg);
 
@@ -53,6 +54,8 @@ public:
   initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
+
+  string D_to_string(const llvm::Value *d) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_   \

@@ -1,7 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 project (sse_dfa_llvm)
 set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libstdc++ -Wno-unknown-warning-option -O2 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
@@ -12,7 +12,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
 
 llvm_map_components_to_libnames(llvm_libs
-  coverage libdriver lto
+  coverage libdriver lto support analysis bitwriter core ipo irreader instcombine instrumentation linker objcarcopts scalaropts transformutils codegen vectorize
 )
 
 set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)

@@ -5,17 +5,13 @@
  *      Author: philipp
  */
 
-#ifndef LLVMINTERMONOTONESOLVER_HH_
-#define LLVMINTERMONOTONESOLVER_HH_
-
 #ifndef SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_
 #define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_
 
-#include <iostream>
-#include <llvm/IR/Instruction.h>
-
 #include "../InterMonotoneProblem.hh"
 #include "InterMonotoneSolver.hh"
+#include <iostream>
+#include <llvm/IR/Instruction.h>
 using namespace std;
 
 template <typename D, typename I>
@@ -24,6 +20,7 @@ class LLVMInterMonotoneSolver
                                  const llvm::Function *, I> {
 protected:
   bool DUMP_RESULTS;
+  InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, I> &IMP;
 
 public:
   LLVMInterMonotoneSolver();
@@ -35,12 +32,11 @@ public:
       bool dumpResults = false)
       : InterMonotoneSolver<const llvm::Instruction *, D,
                             const llvm::Function *, I>(problem),
-        DUMP_RESULTS(dumpResults) {}
+        DUMP_RESULTS(dumpResults), IMP(problem) {}
 
   virtual void solve() override {
     // do the solving of the analaysis problem
-    InterMonotoneSolver<const llvm::Instruction *, D, const llvm::Function *,
-                        I>::solve();
+    InterMonotoneSolver<const llvm::Instruction *, D, const llvm::Function *, I>::solve();
     if (DUMP_RESULTS)
       dumpResults();
   }
@@ -50,25 +46,16 @@ public:
     for (auto &node_entry :
          InterMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, I>::Analysis) {
-      for (auto &ctx_entry : node_entry.second) {
-        cout << "Instruction:\n";
+              cout << "Instruction:\n";
         node_entry.first->dump();
-        cout << "Context:\n";
-        //        cout << ctx_entry.first;
+//        cout << "Context:\n";
         cout << "Facts:\n";
-        if (ctx_entry.second.empty()) {
-          cout << "\tEMPTY\n";
-        } else {
-          for (auto fact : ctx_entry.second) {
-            fact->dump();
-          }
+        for (auto elem : node_entry.second) {
+          cout << IMP.D_to_string(elem) << '\n';
         }
         cout << "\n\n";
       }
     }
-  }
 };
 
 #endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_ */
-
-#endif

@@ -27,6 +27,7 @@
 #include <vector>
 #include "../../db/DBConn.hh"
 #include "../../db/ProjectIRCompiledDB.hh"
+#include "../../utils/Logger.hh"
 #include "VTable.hh"
 using namespace std;
 
@@ -77,12 +78,16 @@ class LLVMStructTypeHierarchy {
   vector<const llvm::Function*> constructVTable(const llvm::Type* T,
                                                 const llvm::Module* M);
   string getVTableEntry(string TypeName, unsigned idx);
+  VTable getVTable(string TypeName);
   bool hasSuperType(string TypeName, string SuperTypeName);
   bool hasSubType(string TypeName, string SubTypeName);
   bool containsVTable(string TypeName);
+  bool containsType(string TypeName);
   void printTransitiveClosure();
+  string getPlainTypename(string TypeName);
   void print();
   void printAsDot(const string& path="struct_type_hierarchy.dot");
+	json exportPATBCJSON();
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
   friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);

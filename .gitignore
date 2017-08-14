@@ -4,12 +4,16 @@
 bin/*
 
 # build directory for cmake
-build
+build/
 
 # obj/ directory
+obj/
 
 # doc/ directory
 doc/*
+
+# log/ directory
+log/*
 
 # CMake build dir
 build/*
@@ -30,6 +34,9 @@ build/*
 
 # ignore all auto-generated LLVM IR code
 *.ll
+
+# ignore all auto-generated compile command databases
+compile_commands.json
 
 # ignore all auto-generated dot files
 *.dot
