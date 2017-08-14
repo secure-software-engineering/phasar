@@ -28,11 +28,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 	for (auto& function_name : EntryPoints) {
 		cout << function_name << "\n";
 	}
-  cout << "allocation sites set from WMPTG: ";
-  for (auto s: WholeModulePTG.allocating_functions) {
-    cout << s << " ";
-  }
-  cout << "\n\n";
 	for (auto& function_name : EntryPoints) {
 			llvm::Function* function = IRDB.getFunction(function_name);
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(function_name);

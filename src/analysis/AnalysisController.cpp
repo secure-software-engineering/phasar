@@ -133,13 +133,13 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       }
     }
     // restore the points-to graphs from the hexastore for test purposes
-    for (auto& F: *M) {
-      if (!F.isDeclaration()) {
-        vector<string> mergeStack{F.getName().str()};
-        PointsToGraph ptg(mergeStack);
-        db >> ptg;
-      }
-    }
+//    for (auto& F: *M) {
+//      if (!F.isDeclaration()) {
+//        vector<string> mergeStack{F.getName().str()};
+//        PointsToGraph ptg(mergeStack);
+//        db >> ptg;
+//      }
+//    }
 
     // db << IRDB;
 
@@ -175,9 +175,9 @@ ostream& operator<<(ostream& os, const AnalysisType& k) {
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
       // store and restore the WholeModulePTG for test purposes
-      db << ICFG.WholeModulePTG;
-      PointsToGraph wmptg(ICFG.WholeModulePTG.getMergeStack());
-      db >> wmptg;
+//      db << ICFG.WholeModulePTG;
+//      PointsToGraph wmptg(ICFG.WholeModulePTG.getMergeStack());
+//      db >> wmptg;
 	  // CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*

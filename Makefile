@@ -120,13 +120,10 @@ format-code:
 hello:
 	@echo "Hello World!"
 
-rm-db-dot:
+clean-db-dot:
 	rm *.dot
 	rm ptg_hexastore.db
 	rm llheros_analyzer.db
-
-test-none-globals2:
-	bin/main -a none -m llvm_examples/globals/globals_2.cpp -w 1
 
 clean:
 	rm -rf $(BIN)

@@ -343,20 +343,15 @@ string DBConn::getModuleFunctionDefinition(const string& f_name) {
 }
 
 void operator<<(DBConn& db, const ProjectIRCompiledDB& irdb) {
-//  for (auto& entry : irdb.modules) {
-//    db.insertIRModule(entry.second.get());
-//  }
-//  for (auto& entry : irdb.functions) {
-//    db.insertFunctionModuleDefinition(entry.first, entry.second);
-//  }
-//  for (auto& entry : irdb.globals) {
-//  	db.insertGlobalVariableModuleDefinition(entry.first, entry.second);
-//  }
-  hexastore::Hexastore h("ptg_hexastore.db");
-  auto result = h.get({{"?", "?", "?"}});
-  for_each(result.begin(), result.end(), [](hexastore::hs_result r){
-    cout << r << endl;
-  });
+  for (auto& entry : irdb.modules) {
+    db.insertIRModule(entry.second.get());
+  }
+  for (auto& entry : irdb.functions) {
+    db.insertFunctionModuleDefinition(entry.first, entry.second);
+  }
+  for (auto& entry : irdb.globals) {
+  	db.insertGlobalVariableModuleDefinition(entry.first, entry.second);
+  }
 }
 
 void operator>>(DBConn& db, const ProjectIRCompiledDB& irdb) {}

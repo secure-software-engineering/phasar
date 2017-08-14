@@ -38,7 +38,6 @@
 #include "../../lib/LLVMShorthands.hh"
 #include "../../utils/utils.hh"
 #include "ICFG.hh"
-#include "../../db/PHSStringConverter.hh"
 
 using namespace std;
 
@@ -46,6 +45,7 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
  private:
   LLVMStructTypeHierarchy& CH;
   ProjectIRCompiledDB& IRDB;
+  PointsToGraph WholeModulePTG;
   set<const llvm::Function*> VisitedFunctions;
   vector<string> CallStack;
   map<const llvm::Instruction*, const llvm::Function*> DirectCSTargetMethods;
@@ -61,6 +61,7 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
     VertexProperties() = default;
   	VertexProperties(const llvm::Function* f);
   };
+
   struct EdgeProperties {
     const llvm::Instruction* callsite = nullptr;
     string ir_code;
@@ -75,13 +76,12 @@ class LLVMBasedICFG : public ICFG<const llvm::Instruction*, const llvm::Function
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
   bidigraph_t cg;
   map<string, vertex_t> function_vertex_map;
+
+
   set<string> resolveIndirectCall(llvm::ImmutableCallSite CS);
-
-
   void printPTGMapping(vector<pair<const llvm::Value*, const llvm::Value*>> mapping);
- public:
 
-  PointsToGraph WholeModulePTG;
+ public:
   LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 				ProjectIRCompiledDB& IRDB,
                 const vector<string>& EntryPoints = {"main"});
