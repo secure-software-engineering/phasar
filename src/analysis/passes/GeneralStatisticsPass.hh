@@ -24,7 +24,7 @@
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute
  * some statistics about a Module. This includes the number of
- *  - Functions
+ *  - Function calls
  *  - Global variables
  *  - Basic blocks
  *  - Allocation sites
@@ -34,7 +34,9 @@
  *
  *  and also a set of all allocated Types in that Module.
  *
- * @brief Computes general statistics for a llvm::Module.
+ *  This pass does not modify the analyzed Module in any way!
+ *
+ * @brief Computes general statistics for a Module.
  */
 class GeneralStatisticsPass : public llvm::ModulePass {
 private:
@@ -49,6 +51,7 @@ private:
 public:
   // TODO What's the ID good for?
 	static char ID;
+  // TODO What exactly does the constructor do?
 	GeneralStatisticsPass() : llvm::ModulePass(ID) { }
 
   /**
@@ -70,12 +73,44 @@ public:
    * @return Always false;
    */
 	bool doFinalization(llvm::Module& M) override;
+
+  /**
+   * @brief Sets that the pass does not transform its input at all.
+   */
 	void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
+
+  /**
+   * This pass holds onto memory for the entire duration of their lifetime
+   * (which is the entire compile time). This is the default behavior for
+   * passes.
+   *
+   * @brief The pass does not release any memory during their lifetime.
+   */
 	void releaseMemory() override;
+
+  /**
+   * @brief Returns the number of Allocation sites.
+   */
 	size_t getAllocationsites();
-	size_t getFunctioncalls();
-	size_t getInstructions();
-	size_t getPointers();
+
+  /**
+   * @brief Returns the number of Function calls.
+   */
+  size_t getFunctioncalls();
+
+  /**
+   * @brief Returns the number of Instructions.
+   */
+  size_t getInstructions();
+
+  /**
+   * @brief Returns the number of Pointers.
+   */
+  size_t getPointers();
+
+  /**
+   * @brief Returns all possible Types.
+   */
   set<const llvm::Type*> getAllocatedTypes();
 };
 
