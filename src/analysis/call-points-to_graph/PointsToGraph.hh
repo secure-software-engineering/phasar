@@ -82,6 +82,8 @@ extern const map<string, PointerAnalysisType> PointerAnalysisTypeMap;
 
 class PointsToGraph {
 public:
+  // Call-graphs are our friends
+  friend class LLVMBasedICFG;
   // The property definition of a vertex
   struct VertexProperties {
     const llvm::Value* value = nullptr;
@@ -186,7 +188,7 @@ private:
   map<const llvm::Value*, vertex_t> value_vertex_map;
   /// A vector that keeps track of what has already been merged into this
   /// points-to graph.
-  vector<string> merge_stack;
+  set<string> ContainedFunctions;
 
 public:
   PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias=false);
@@ -202,7 +204,9 @@ public:
   inline bool representsSingleFunction();
   void mergeWith(PointsToGraph& other,
   							 vector<pair<const llvm::Value*, const llvm::Value*>> v_in_first_u_in_second,
-								 const llvm::Value* callsite_value);
+                 const llvm::Value* callsite_value);
+  void mergeWith(const PointsToGraph &Other);
+  void mergeWith(PointsToGraph& Other, llvm::ImmutableCallSite CS, const llvm::Function* F);
   void printValueVertexMap();
   void print();
   void printAsDot(const string& filename);

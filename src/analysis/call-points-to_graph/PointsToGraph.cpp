@@ -80,7 +80,7 @@ const map<string, PointerAnalysisType> PointerAnalysisTypeMap = { { "CFLSteens",
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
   auto& lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
-  merge_stack.push_back(F->getName().str());
+  ContainedFunctions.insert(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
   // ModRef information
@@ -254,12 +254,12 @@ set<const llvm::Value*> PointsToGraph::getPointsToSet(const llvm::Value* V) {
 }
 
  bool PointsToGraph::representsSingleFunction() {
-  return merge_stack.size() == 1;
+  return ContainedFunctions.size() == 1;
  }
 
 void PointsToGraph::print() {
   cout << "PointsToGraph for ";
-  for (const auto& fname : merge_stack) {
+  for (const auto& fname : ContainedFunctions) {
   	cout << fname << " ";
   }
   cout << "\n";
@@ -309,5 +309,39 @@ void PointsToGraph::mergeWith(PointsToGraph& other,
 	merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
 			(ptg, other.ptg, v_in_g1_u_in_g2, callsite_value);
   // keep track of what has already been merged into this points-to graph
-	merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
+	//merge_stack.insert(merge_stack.end(), other.merge_stack.begin(), other.merge_stack.end());
+}
+
+void PointsToGraph::mergeWith(const PointsToGraph &Other) {
+  copy_graph<PointsToGraph::graph_t, PointsToGraph::vertex_t>(ptg, Other.ptg);
+  value_vertex_map.clear();
+  vertex_iterator_t vi, vi_end;
+  for (boost::tie(vi, vi_end) = boost::vertices(ptg); vi != vi_end; ++vi) {
+    value_vertex_map.insert(make_pair(ptg[*vi].value, *vi));
+  }
+}
+
+void PointsToGraph::mergeWith(PointsToGraph& Other,
+                              llvm::ImmutableCallSite CS,
+                              const llvm::Function* F) {
+  vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>> v_in_g1_u_in_g2;
+  for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
+    cout << "actual" << endl;
+    CS.getArgOperand(i)->dump();
+    cout << "formal" << endl;
+    auto FormalsIter = F->getArgumentList().begin();
+    for (unsigned j = 0; j < i; ++j) {
+      ++FormalsIter;
+    }
+    FormalsIter->dump();
+    v_in_g1_u_in_g2.push_back(make_pair(value_vertex_map[CS.getArgOperand(i)], Other.value_vertex_map[&*FormalsIter]));
+  }
+  merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t, PointsToGraph::EdgeProperties>
+      (ptg, Other.ptg, v_in_g1_u_in_g2, CS.getInstruction());
+  ContainedFunctions.insert(F->getName().str());
+  value_vertex_map.clear();
+  vertex_iterator_t vi, vi_end;
+  for (boost::tie(vi, vi_end) = boost::vertices(ptg); vi != vi_end; ++vi) {
+    value_vertex_map.insert(make_pair(ptg[*vi].value, *vi));
+  }
 }

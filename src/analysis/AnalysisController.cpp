@@ -131,8 +131,6 @@ ostream& operator<<(ostream& os, const ExportType& E) {
     BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
     LLVMStructTypeHierarchy CH(IRDB);
     BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-    FinalResultsJson += CH.exportPATBCJSON();
-		cout << FinalResultsJson.dump(1) << '\n';
 		CH.printAsDot();
 
     // db << CH;
@@ -253,29 +251,105 @@ ostream& operator<<(ostream& os, const ExportType& E) {
        * all of the analysis of course.
        */
 			BOOST_LOG_SEV(lg, DEBUG) << "Performing module-wise computation";      
-			auto& Mod = *IRDB.getModuleDefiningFunction("main");
-			cout << "MOD\n";
-			Mod.dump();
-			auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barR8MyStruct");
-			cout << "MOD_2\n";
-			Mod_2.dump();
-			LLVMBasedICFG ICFG(CH, IRDB, Mod, WalkerStrategy::Pointer, ResolveStrategy::OTF);
-			cout << "call graph defining main\n";
-			ICFG.print();
-			ICFG.printAsDot("icfg_main.dot");
-			LLVMBasedICFG ICFG_2(CH, IRDB, Mod_2, WalkerStrategy::Pointer, ResolveStrategy::OTF);
-			cout << "call graph defining foo\n";
-			ICFG_2.print();
-			ICFG_2.printAsDot("icfg_foo.dot");
 
-			cout << "@@@@@@@@@@@@@@@@@@@@@ call graph after merge @@@@@@@@@@@@@@@@@@@@@@\n";
-			ICFG.mergeWith(ICFG_2);
-			ICFG.print();
-			ICFG.printAsDot("icfg_after_merge.dot");
+			// auto& PTG = *IRDB.getPointsToGraph("main");
+			// PTG.printAsDot("ptg_main.dot");
+			// auto& PTG_2 = *IRDB.getPointsToGraph("_Z3funPiPdRc");
+			// PTG_2.printAsDot("ptg_fun.dot");
+
+			// for (auto& BB : *IRDB.getFunction("main")) {
+			// 	for (auto& I : BB) {
+			// 		if (auto CS = llvm::dyn_cast<llvm::CallInst>(&I)) {
+			// 			if (CS->getCalledFunction()->getName().str() == "_Z3funPiPdRc") {
+			// 				PTG.mergeWith(*IRDB.getPointsToGraph("_Z3funPiPdRc"), CS);
+			// 				PTG.printAsDot("ptg_merged.dot");
+			// 			}
+			// 		}
+			// 	}
+			// }
+
+			// // start: module_wise_5 test
+			// auto& Mod = *IRDB.getModuleDefiningFunction("main");
+			// auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barPi");
+			// LLVMBasedICFG ICFG(CH, IRDB, Mod, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// ICFG.printAsDot("icfg_main.dot");
+			// ICFG.printInternalPTGAsDot("wptg_main.dot");
+			// LLVMBasedICFG ICFG_2(CH, IRDB, Mod_2, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// ICFG_2.printAsDot("icfg_bar.dot");
+			// ICFG_2.printInternalPTGAsDot("wptg_bar.dot");
+			// cout << "@@@@@@@@@@@@@@@@@@@@@ call graph after merge @@@@@@@@@@@@@@@@@@@@@@\n";
+			// ICFG.mergeWith(ICFG_2);
+			// ICFG.printAsDot("icfg_after_merge.dot");
+			// ICFG.printInternalPTGAsDot("wptg_after_merge.dot");
+			// /// end: module_wise_5 test
+
+			// // start: module_wise_6 test
+			// auto& M_m = *IRDB.getModuleDefiningFunction("main");
+			// auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRi");
+			// auto& M_2 = *IRDB.getModuleDefiningFunction("_Z3barRi");
+			// LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// LLVMBasedICFG K(CH, IRDB, M_2, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// I.printAsDot("icfg_main.dot");
+			// I.printInternalPTGAsDot("ptg_main.dot");
+			// J.printAsDot("icfg_foo.dot");
+			// J.printInternalPTGAsDot("ptg_foo.dot");
+			// K.printAsDot("icfg_bar.dot");
+			// K.printInternalPTGAsDot("ptg_bar.dot");
+			// // merge once
+			// I.mergeWith(J);
+			// I.printAsDot("icfg_intermed.dot");
+			// I.printInternalPTGAsDot("ptg_intermed.dot");
+			// // merge twice
+			// I.mergeWith(K);
+			// I.printAsDot("icfg_final.dot");
+			// I.printInternalPTGAsDot("ptg_final.dot");
+			// // end: module_wise_6 test
+
+			// // start: module_wise_7 test
+			// auto P = *IRDB.getPointsToGraph("main");
+			// auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
+			// auto R = *IRDB.getPointsToGraph("_Z3barRi");
+			// P.printAsDot("pure_ptg_main.dot");
+			// Q.printAsDot("pure_ptg_foo.dot");
+			// R.printAsDot("pure_ptg_bar.dot");
+			
+			// int i = 0;
+			// for (auto &BB : *IRDB.getFunction("main")) {
+			// 	for (auto &I : BB) {
+			// 		if (auto *Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
+			// 			++i;
+			// 			if (i == 1)
+			// 				P.mergeWith(Q, llvm::ImmutableCallSite(Call), Call->getCalledFunction());
+			// 			else if (i == 2)
+			// 				P.mergeWith(R, llvm::ImmutableCallSite(Call), Call->getCalledFunction());
+			// 		}
+			// 	}
+			// }
+
+			// P.printAsDot("pure_final_ptg.dot");
+
+			auto& M_m = *IRDB.getModuleDefiningFunction("main");
+			auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRiS_S_");
+			LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			auto P = *IRDB.getPointsToGraph("main");
+			auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
+			auto R = *IRDB.getPointsToGraph("_Z3incRi");
+			Q.printAsDot("pure_ptg_foo.dot");
+			P.printAsDot("pure_ptg_main.dot");
+			R.printAsDot("pure_ptg_inc.dot");
+			I.printInternalPTGAsDot("ptg_mod_main.dot");
+			J.printInternalPTGAsDot("ptg_mod_foo.dot");
+			I.mergeWith(J);
+			I.printInternalPTGAsDot("ptg_mod_final.dot");
+			// // end: module_wise_7 test
+
 
     	// IFDSSolverTest ifdstest(ICFG);
 			// LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
 			// llvmifdstestsolver.solve();
+	
 
 			return;
 

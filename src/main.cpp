@@ -240,7 +240,7 @@ int main(int argc, const char **argv) {
       VariablesMap["mem2reg"].as<bool>(),
       VariablesMap["printedgerec"].as<bool>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";
-  Controller.writeResults(VariablesMap["output"].as<string>());
+  // Controller.writeResults(VariablesMap["output"].as<string>());
 
   // free all resources handled by llvm
   llvm::llvm_shutdown();

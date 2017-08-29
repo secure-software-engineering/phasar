@@ -43,6 +43,8 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <stdexcept>
+#include <tuple>
 
 using namespace std;
 
@@ -79,8 +81,6 @@ private:
   set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   vector<const llvm::Instruction *> CallStack;
-  /// Keeps track of what modules have already been contracted
-  vector<string> MergeStack;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
@@ -200,11 +200,7 @@ private:
     * @param F function to start in
     * @param R resolving function to use for an indirect call site
     */
-  void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F); //,
-  // function<set<string>(llvm::ImmutableCallSite CS)> R);
-
-  void printPTGMapping(
-      vector<pair<const llvm::Value *, const llvm::Value *>> mapping);
+  void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
 public:
   LLVMBasedICFG(LLVMStructTypeHierarchy &STH,
@@ -286,6 +282,8 @@ public:
   void print();
 
   void printAsDot(const string &filename);
+
+  void printInternalPTGAsDot(const string &filename);
 
   void exportPATBCJSON();
 };

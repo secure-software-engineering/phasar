@@ -18,11 +18,8 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
   cout << "IFDSSolverTest::getNormalFlowFunction()\n";
-  if (llvm::isa<llvm::AllocaInst>(curr)) {
-    return make_shared<Gen<const llvm::Value *>>(curr, DefaultIFDSTabulationProblem::zerovalue);
-  }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Kill<const llvm::Value *>>(Store->getPointerOperand());
+    return make_shared<Gen<const llvm::Value *>>(Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
   }
   return Identity<const llvm::Value *>::v();
 }
