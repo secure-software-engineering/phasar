@@ -186,8 +186,7 @@ private:
   /// The points to graph.
   graph_t ptg;
   map<const llvm::Value*, vertex_t> value_vertex_map;
-  /// A vector that keeps track of what has already been merged into this
-  /// points-to graph.
+  /// Keep track of what has already been merged into this points-to graph.
   set<string> ContainedFunctions;
 
 public:
@@ -202,10 +201,8 @@ public:
   bool containsValue(llvm::Value* V);
   set<const llvm::Value*> getPointsToSet(const llvm::Value* V);
   inline bool representsSingleFunction();
-  void mergeWith(PointsToGraph& other,
-  							 vector<pair<const llvm::Value*, const llvm::Value*>> v_in_first_u_in_second,
-                 const llvm::Value* callsite_value);
-  void mergeWith(const PointsToGraph &Other);
+  void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
+  void mergeWith(const PointsToGraph &Other, const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> &Calls);
   void mergeWith(PointsToGraph& Other, llvm::ImmutableCallSite CS, const llvm::Function* F);
   void printValueVertexMap();
   void print();

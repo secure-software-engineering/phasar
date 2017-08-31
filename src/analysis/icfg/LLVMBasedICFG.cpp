@@ -42,7 +42,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 	for (auto& EntryPoint : EntryPoints) {
 			llvm::Function* F = IRDB.getFunction(EntryPoint);
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(EntryPoint);
-			WholeModulePTG.mergeWith(ptg);
+			WholeModulePTG.mergeWith(ptg, F);
 			Walker.at(W)(this, F);
 	}
 	BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed";
@@ -71,9 +71,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 		llvm::Function* F = M.getFunction(EntryPoint);
 		if (F && !F->isDeclaration()) {
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(EntryPoint);
-			if (F->getName().str() == "_Z3fooRiS_S_") ptg.printAsDot("before.dot");
-			WholeModulePTG.mergeWith(ptg);
-			if (F->getName().str() == "_Z3fooRiS_S_") WholeModulePTG.printAsDot("after.dot");
+			WholeModulePTG.mergeWith(ptg, F);
 			Walker.at(W)(this, F);
 		}
 	}
@@ -170,9 +168,11 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(const llvm::Functio
 			}
       BOOST_LOG_SEV(lg, DEBUG) << "Found " << possible_targets.size() << " possible target(s)";
     	for (auto possible_target : possible_targets) {
-				// Do the merge of the points-to graphs for all possible targets
-				PointsToGraph& callee_ptg = *IRDB.getPointsToGraph(possible_target->getName().str());
-      	WholeModulePTG.mergeWith(callee_ptg, cs, possible_target);
+				// Do the merge of the points-to graphs for all possible targets, but only if they are available
+				if (!F->getParent()->getFunction(possible_target->getName().str())->isDeclaration()) {
+					PointsToGraph& callee_ptg = *IRDB.getPointsToGraph(possible_target->getName().str());
+      		WholeModulePTG.mergeWith(callee_ptg, cs, possible_target);
+				}
 				// add into boost graph
     		if (!function_vertex_map.count(possible_target->getName().str())) {
     			function_vertex_map[possible_target->getName().str()] = boost::add_vertex(cg);
@@ -552,7 +552,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG& other) {
 	IsoMap mapV = boost::make_iterator_property_map(orig2copy_data.begin(), get(boost::vertex_index, other.cg));
 	boost::copy_graph(other.cg, cg, boost::orig_to_copy(mapV)); //means g1 += g2
 	// This vector hols the call-sites that are used to merge the whole-module points-to graphs
-	vector<llvm::ImmutableCallSite> call_sites;
+	vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> Calls;
 	vertex_iterator vi_v, vi_v_end, vi_u, vi_u_end;
 	// Iterate the vertices of this graph 'v'
 	for (boost::tie(vi_v, vi_v_end) = boost::vertices(cg); vi_v != vi_v_end; ++vi_v) {
@@ -566,7 +566,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG& other) {
 					auto edge = cg[*ei];
 					// This becomes the new edge for this graph to the other graph
 					boost::add_edge(source, *vi_u, edge.callsite, cg);
-					call_sites.push_back(llvm::ImmutableCallSite(edge.callsite));
+					Calls.push_back(make_pair(llvm::ImmutableCallSite(edge.callsite), cg[*vi_u].function));
 					// Remove the old edge flowing into the virtual node
 					boost::remove_edge(source, *vi_v, cg);
 				}
@@ -583,8 +583,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG& other) {
  	// Merge the already visited functions
 	VisitedFunctions.insert(other.VisitedFunctions.begin(), other.VisitedFunctions.end());
 	// Merge the points-to graphs
-	// TODO
-	WholeModulePTG.mergeWith(other.WholeModulePTG);
+	WholeModulePTG.mergeWith(other.WholeModulePTG, Calls);
 }
 
 bool LLVMBasedICFG::isPrimitiveFunction(const string& name) {

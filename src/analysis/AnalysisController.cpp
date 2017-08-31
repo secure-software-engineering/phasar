@@ -113,10 +113,14 @@ ostream& operator<<(ostream& os, const ExportType& E) {
       if (broken_debug_info) {
         BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
       }
-      // obtain the very important alias analysis results
-      // and construct the intra-procedural points-to graphs
+      // Obtain the very important alias analysis results
+      // and construct the intra-procedural points-to graphs.
       for (auto& function : M) {
-      	IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
+				// When module-wise analysis is performed, declarations might occure
+				// causing meaningless points-to graphs to be produced.
+				if (!function.isDeclaration()) {
+      		IRDB.ptgs.insert(make_pair(function.getName().str(), unique_ptr<PointsToGraph>(new PointsToGraph(AARWP->getAAResults(), &function))));
+				}
 			}
     }
     BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
@@ -344,7 +348,8 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 			J.printInternalPTGAsDot("ptg_mod_foo.dot");
 			I.mergeWith(J);
 			I.printInternalPTGAsDot("ptg_mod_final.dot");
-			// // end: module_wise_7 test
+			I.printAsDot("icfg_final.dot");
+			// end: module_wise_7 test
 
 
     	// IFDSSolverTest ifdstest(ICFG);
