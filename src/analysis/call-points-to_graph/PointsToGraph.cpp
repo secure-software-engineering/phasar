@@ -48,7 +48,7 @@ void PrintLoadStoreResults(const char* Msg, bool P, const llvm::Value* V1,
 
 // points-to graph internal stuff
 
-PointsToGraph::VertexProperties::VertexProperties(llvm::Value* v) : value(v) {
+PointsToGraph::VertexProperties::VertexProperties(const llvm::Value* v) : value(v) {
 	// save the ir code
 	llvm::raw_string_ostream rso(ir_code);
 	value->print(rso);
@@ -265,6 +265,16 @@ void PointsToGraph::print() {
   cout << "\n";
   boost::print_graph(ptg,
   									 boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
+}
+
+void PointsToGraph::print() const {
+  cout << "PointsToGraph for ";
+  for (const auto& fname : ContainedFunctions) {
+    cout << fname << " ";
+  }
+  cout << "\n";
+  boost::print_graph(ptg,
+                     boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
 void PointsToGraph::printAsDot(const string& filename) {

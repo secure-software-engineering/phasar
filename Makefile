@@ -131,6 +131,11 @@ hello:
 run_tests:
 	@echo "Unit tests using the Google C++ Testing Framework is under development"
 
+#clean-db-dot:
+#	rm *.dot
+#	rm ptg_hexastore.db
+#	rm llheros_analyzer.db
+
 clean:
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)

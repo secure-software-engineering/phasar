@@ -430,24 +430,171 @@ void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH) {
 }
 
 void operator<<(DBConn& db, const PointsToGraph& PTG) {
-	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
-	static PHSStringConverter converter(*db.IRDB);
-  typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
-  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PTG.ptg); vp.first != vp.second; ++vp.first) {      
-    PTG.ptg[*vp.first].value->dump();
-    string hsstringrep = converter.PToHStoreStringRep(PTG.ptg[*vp.first].value);
-    cout << "HSStringRep: " << hsstringrep << "\n";
-    cout << "Re converted\n";
-    converter.HStoreStringRepToP(hsstringrep)->dump();
-    cout << "\n\n";
+  UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
+  static PHSStringConverter converter(*db.IRDB);
+  hexastore::Hexastore h("ptg_hexastore.db");
+  cout << "writing points-to graph of function ";
+  for (const auto& fname : PTG.ContainedFunctions) {
+    cout << fname << " ";
   }
-	cout << "writing points-to graph into hexastore\n";
+  cout << "into hexastore!\n";
+  typename boost::graph_traits<PointsToGraph::graph_t>::edge_iterator ei_start, e_end;
+  // iterate over all edges and store the vertices and edges (i.e. string rep. of the vertices/edges) in the hexastore
+  for (tie(ei_start, e_end) = boost::edges(PTG.ptg); ei_start != e_end; ++ei_start) {
+    auto source = boost::source(*ei_start, PTG.ptg);
+    auto target = boost::target(*ei_start, PTG.ptg);
+    string hs_source_rep = converter.PToHStoreStringRep(PTG.ptg[source].value);
+    string hs_target_rep = converter.PToHStoreStringRep(PTG.ptg[target].value);
+    cout << "source: " << PTG.ptg[source].ir_code << " | hex: " << hs_source_rep << '\n'
+         << "target: " << PTG.ptg[target].ir_code << " | hex: " << hs_target_rep << '\n';
+    if (PTG.ptg[*ei_start].value) {
+      string hs_edge_rep = converter.PToHStoreStringRep(PTG.ptg[*ei_start].value);
+      cout << "edge ir_code: " << PTG.ptg[*ei_start].ir_code << " | edge id: " << PTG.ptg[*ei_start].id
+           << " | edge hex: " << hs_edge_rep << '\n';
+      h.put({{hs_source_rep, hs_edge_rep, hs_target_rep}});
+    } else {
+      h.put({{hs_source_rep, "---", hs_target_rep}});
+    }
+    cout << '\n';
+  }
+  cout << "vertices without edges:\n";
+  typedef boost::graph_traits<PointsToGraph::graph_t>::vertex_iterator vertex_iterator_t;
+  typename boost::graph_traits<PointsToGraph::graph_t>::out_edge_iterator ei, ei_end;
+  // check for vertices without any adjacent edges and store them in the hexastore
+  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PTG.ptg); vp.first != vp.second; ++vp.first) {
+    boost::tie(ei, ei_end) = boost::out_edges(*vp.first, PTG.ptg);
+    if(ei == ei_end) {
+      string hs_vertex_rep = converter.PToHStoreStringRep(PTG.ptg[*vp.first].value);
+      cout << "id: " << PTG.ptg[*vp.first].id
+           << " | ir_code: " << PTG.ptg[*vp.first].ir_code
+           << " | hex: " << hs_vertex_rep << "\n\n";
+      h.put({{hs_vertex_rep,"---","---"}});
+    }
+  }
+  cout << "print the points-to graph:\n";
+  PTG.print();
+  cout << "\n\n\n";
 }
 
-void operator>>(DBConn& db, const PointsToGraph& PTG) {
+void operator>>(DBConn& db, PointsToGraph& PTG) {
 	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized with an ProjectIRCompiledDB object!");
 	static PHSStringConverter converter(*db.IRDB);
-	cout << "reading points-to graph from hexastore\n";
+  hexastore::Hexastore h("ptg_hexastore.db");
+  // using set instead of vector because searching in a set is easier
+	set<string> fnames(PTG.ContainedFunctions);
+  cout << "reading points-to graph ";
+  for (const auto& fname : PTG.ContainedFunctions) {
+    cout << fname << " ";
+  }
+  cout << "from hexastore!\n";
+  auto result = h.get({{"?", "?", "?"}});
+  for_each(result.begin(), result.end(), [fnames,&PTG](hexastore::hs_result r){
+//    cout << r << endl;
+    // holds the function name, if it's not a global variable; otherwise the name of
+    // the global variable
+    string curr_subject_fname = r.subject.substr(0, r.subject.find("."));
+    string curr_object_fname = r.object.substr(0, r.object.find("."));
+    bool mergedPTG = PTG.ContainedFunctions.size() > 1;
+    // check if the current result is part the PTG, i.e. the function name of the
+    // function name matches one of the functions from the PTG
+    if (fnames.find(curr_subject_fname) != fnames.end()) {
+      // if the PTG is not a merged points-to graph, one of the following is true:
+      // (1) subject fname and object fname are equal
+      // (2) object is global variable
+      // if the PTG is a merged points-to graph, then there are no single nodes
+      if ((mergedPTG && r.object != "---") ||
+        (!mergedPTG && ((curr_subject_fname == curr_object_fname) ||
+                        (curr_object_fname.find(".") == string::npos)))) {
+        const llvm::Value *source = converter.HStoreStringRepToP(r.subject);
+        // check if the node was already created
+        if (PTG.value_vertex_map.find(source) == PTG.value_vertex_map.end()) {
+          PTG.value_vertex_map[source] = boost::add_vertex(PTG.ptg);
+          PTG.ptg[PTG.value_vertex_map[source]] = PointsToGraph::VertexProperties(source);
+        }
+        // check if the target node (object) exists
+        if (r.object != "---") {
+          const llvm::Value *target = converter.HStoreStringRepToP(r.object);
+          if (PTG.value_vertex_map.find(target) == PTG.value_vertex_map.end()) {
+            PTG.value_vertex_map[target] = boost::add_vertex(PTG.ptg);
+            PTG.ptg[PTG.value_vertex_map[target]] = PointsToGraph::VertexProperties(target);
+          }
+          // create an (labeled) edge
+          if (r.predicate != "---") {
+            const llvm::Value *edge = converter.HStoreStringRepToP(r.predicate);
+            boost::add_edge(PTG.value_vertex_map[source],
+                            PTG.value_vertex_map[target],
+                            PointsToGraph::EdgeProperties(edge),
+                            PTG.ptg);
+          } else {
+            boost::add_edge(PTG.value_vertex_map[source], PTG.value_vertex_map[target],PTG.ptg);
+          }
+        }
+      }
+    }
+    // check if subject is a global variable
+    else if (r.subject.find(".") == string::npos) {
+      cout << "WE FOUND THE GLOBAL VARIABLE " << r.subject << '\n';
+      const llvm::Value *GV = converter.HStoreStringRepToP(r.subject);
+      // check if the global variable has no adjacent edges
+      if (r.object == "---") {
+        // check if the global variable is part of the PTG by looking at user of the global variable
+        for (auto User: GV->users()) {
+          if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(User)) {
+            string user_full_fname = I->getFunction()->getName().str();
+            string user_fname = user_full_fname.substr(0, user_full_fname.find("."));
+            cout << "GV user: " << user_fname << '\n';
+            if (fnames.find(user_fname) != fnames.end()) {
+              // create vertex without adjacent edges for the global variable
+              if (PTG.value_vertex_map.find(GV) == PTG.value_vertex_map.end()) {
+                PTG.value_vertex_map[GV] = boost::add_vertex(PTG.ptg);
+                PTG.ptg[PTG.value_vertex_map[GV]] = PointsToGraph::VertexProperties(GV);
+              }
+              break;
+            }
+          }
+        }
+      }
+      // check if the target node of the global variable (i.e. object) is not a global variable itself
+      else if (fnames.find(curr_object_fname) != fnames.end()) {
+        curr_object_fname = r.object.substr(0, r.object.find("."));
+        // check if the target node of the global variable is part the PTG
+        if (fnames.find(curr_object_fname) != fnames.end()) {
+          if (PTG.value_vertex_map.find(GV) == PTG.value_vertex_map.end()) {
+            PTG.value_vertex_map[GV] = boost::add_vertex(PTG.ptg);
+            PTG.ptg[PTG.value_vertex_map[GV]] = PointsToGraph::VertexProperties(GV);
+          }
+          const llvm::Value *target = converter.HStoreStringRepToP(r.object);
+          if (PTG.value_vertex_map.find(target) == PTG.value_vertex_map.end()) {
+            PTG.value_vertex_map[target] = boost::add_vertex(PTG.ptg);
+            PTG.ptg[PTG.value_vertex_map[target]] = PointsToGraph::VertexProperties(target);
+          }
+          // create an (labeled) edge
+          if (r.predicate != "---") {
+            const llvm::Value *edge = converter.HStoreStringRepToP(r.predicate);
+            boost::add_edge(PTG.value_vertex_map[GV],
+                            PTG.value_vertex_map[target],
+                            PointsToGraph::EdgeProperties(edge),
+                            PTG.ptg);
+          } else {
+            boost::add_edge(PTG.value_vertex_map[GV], PTG.value_vertex_map[target],PTG.ptg);
+          }
+        }
+      }
+//      else if (curr_object_fname.find(".") == string::npos) {
+//        cout << "subject and object are both global variables - is this possible??\n"
+//             << "if so, to what points-to graph does it belong??\n";
+//      }
+    }
+  });
+  cout << "print the restored points-to graph:\n";
+  PTG.print();
+  stringstream ss;
+  for (auto f : PTG.ContainedFunctions)
+    ss << f;
+  ss << "_restored.dot";
+  cout << ss.str() << '\n';
+  PTG.printAsDot(ss.str());
+  cout << "\n\n\n";
 }
 
 size_t DBConn::getIRHash(const string& mod_name) {

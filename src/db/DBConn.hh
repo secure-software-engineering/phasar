@@ -28,9 +28,11 @@
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 #include "../analysis/call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../analysis/call-points-to_graph/VTable.hh"
+#include <boost/graph/adjacency_list.hpp>
 #include "../utils/utils.hh"
 #include "../utils/IO.hh"
 #include "ProjectIRCompiledDB.hh"
+#include "Hexastore.hh"
 #include "PHSStringConverter.hh"
 
 #define CPREPARE(FUNCTION)                             \
@@ -148,7 +150,7 @@ class DBConn {
   // API for querying points-to information -----------------------------------
   // --------------------------------------------------------------------------
   friend void operator<<(DBConn& db, const PointsToGraph& PTG);
-  friend void operator>>(DBConn& db, const PointsToGraph& PTG);
+  friend void operator>>(DBConn& db, PointsToGraph& PTG);
 
   // API for querying call-graph information ----------------------------------
   // --------------------------------------------------------------------------

@@ -126,6 +126,7 @@ ostream& operator<<(ostream& os, const ExportType& E) {
     BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
     IRDB.print();
 
+    // store points-to graphs in the hexastore
     DBConn& db = DBConn::getInstance();
 		db.synchronize(&IRDB);
 
@@ -159,6 +160,10 @@ ostream& operator<<(ostream& os, const ExportType& E) {
       LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, {"main"});
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
+      // store and restore the WholeModulePTG for test purposes
+//      db << ICFG.WholeModulePTG;
+//      PointsToGraph wmptg(ICFG.WholeModulePTG.getMergeStack());
+//      db >> wmptg;
 	  // CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*
