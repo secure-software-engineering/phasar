@@ -298,22 +298,13 @@ void PointsToGraph::mergeWith(const PointsToGraph &Other, const llvm::Function *
 
 
  void PointsToGraph::mergeWith(const PointsToGraph &Other, const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> &Calls) {
-   // TODO this is not right yet
-   cout << "Perform inter-modular merge of points-to information" << endl;
    vector<tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t, const llvm::Instruction *>> v_in_g1_u_in_g2;
    for (auto Call : Calls) {
-    cout << "call-site:\n";
-    Call.first->dump();
-    cout << "calls:\n";
-    Call.second->dump();
      cout << "performing parameter mapping\n";
      for (unsigned i = 0; i < Call.first.getNumArgOperands(); ++i) {
-       cout << "actual" << endl;
-       Call.first.getArgOperand(i)->dump();
-       cout << "formal" << endl;
        auto Formal = getNthFunctionArgument(Call.second, i);
-       Formal->dump();
-       cout << "CONTAINS VALUE IN PARAMLIST: " << value_vertex_map.count(Formal) << endl;
+       //cout << "CONTAINS VALUE IN PARAMLIST: " << Other.value_vertex_map.count(Formal) << endl;
+       // Check if the value is of type pointer, therefore it must be contained in the value_vertex_maps
        if (value_vertex_map.count(Call.first.getArgOperand(i)) && Other.value_vertex_map.count(Formal)) {
         v_in_g1_u_in_g2.push_back(tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t, const llvm::Instruction *>( value_vertex_map[Call.first.getArgOperand(i)], Other.value_vertex_map.at(Formal), Call.first.getInstruction()));
        }
@@ -334,12 +325,11 @@ void PointsToGraph::mergeWith(PointsToGraph& Other,
   // Check if points-to graph of F is already within 'this' whole module points-to graph
   if (ContainedFunctions.count(F->getName().str())) {
     for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
-      //cout << "actual" << endl;
-      //CS.getArgOperand(i)->dump();
-      //cout << "formal" << endl;
       auto Formal = getNthFunctionArgument(F, i);
-      //Formal->dump();
-      boost::add_edge(value_vertex_map[CS.getArgOperand(i)], value_vertex_map[Formal], CS.getInstruction(), ptg);
+      // Only draw the edges, when these values are of type pointer and therefore contained in value_vertex_map
+      if (value_vertex_map.count(CS.getArgOperand(i)) && value_vertex_map.count(Formal)) {
+        boost::add_edge(value_vertex_map[CS.getArgOperand(i)], value_vertex_map[Formal], CS.getInstruction(), ptg);
+      }
     }
   } else {
     ContainedFunctions.insert(F->getName().str());
@@ -348,12 +338,10 @@ void PointsToGraph::mergeWith(PointsToGraph& Other,
     // time into 'this' ptg.
     vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>> v_in_g1_u_in_g2;
     for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
-      //cout << "actual" << endl;
-      //CS.getArgOperand(i)->dump();
-      //cout << "formal" << endl;
       auto Formal = getNthFunctionArgument(F, i);
-      //Formal->dump();
-      v_in_g1_u_in_g2.push_back(make_pair(value_vertex_map[CS.getArgOperand(i)], Other.value_vertex_map[Formal]));
+      if (value_vertex_map.count(CS.getArgOperand(i)) && Other.value_vertex_map.count(Formal)) {
+        v_in_g1_u_in_g2.push_back(make_pair(value_vertex_map[CS.getArgOperand(i)], Other.value_vertex_map[Formal]));
+      }
     }
     typedef typename boost::property_map<PointsToGraph::graph_t, boost::vertex_index_t>::type index_map_t;
     //for simple adjacency_list<> this type would be more efficient:

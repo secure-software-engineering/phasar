@@ -37,7 +37,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 	virtual void solve() override
 	{
-		// do the solving of the analaysis problem
+		// Solve the analaysis problem
 		IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>::solve();
 		if (DUMP_RESULTS)
 			dumpResults();

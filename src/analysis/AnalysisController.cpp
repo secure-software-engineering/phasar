@@ -254,25 +254,16 @@ ostream& operator<<(ostream& os, const ExportType& E) {
     	/*
        * We build all the call- and points-to graphs which can be used for
        * all of the analysis of course.
-       */
-			BOOST_LOG_SEV(lg, DEBUG) << "Performing module-wise computation";      
+			 */
+			BOOST_LOG_SEV(lg, INFO) << "Building module-wise icfgs";
+			for (auto M : IRDB.getAllModules()) {
+       	LLVMBasedICFG ICFG(CH, IRDB, *M, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+      	// store them away for later use
+      	MWICFGs.insert(make_pair(M, ICFG));
+      }
+			BOOST_LOG_SEV(lg, INFO) << "Performing module-wise analysis";      
 
-			// auto& PTG = *IRDB.getPointsToGraph("main");
-			// PTG.printAsDot("ptg_main.dot");
-			// auto& PTG_2 = *IRDB.getPointsToGraph("_Z3funPiPdRc");
-			// PTG_2.printAsDot("ptg_fun.dot");
-
-			// for (auto& BB : *IRDB.getFunction("main")) {
-			// 	for (auto& I : BB) {
-			// 		if (auto CS = llvm::dyn_cast<llvm::CallInst>(&I)) {
-			// 			if (CS->getCalledFunction()->getName().str() == "_Z3funPiPdRc") {
-			// 				PTG.mergeWith(*IRDB.getPointsToGraph("_Z3funPiPdRc"), CS);
-			// 				PTG.printAsDot("ptg_merged.dot");
-			// 			}
-			// 		}
-			// 	}
-			// }
-
+			// Some in-place testing
 			// // start: module_wise_5 test
 			// auto& Mod = *IRDB.getModuleDefiningFunction("main");
 			// auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barPi");
@@ -331,254 +322,98 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 			// 		}
 			// 	}
 			// }
-
 			// P.printAsDot("pure_final_ptg.dot");
-
-			auto& M_m = *IRDB.getModuleDefiningFunction("main");
-			auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRiS_S_");
-			LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer, ResolveStrategy::OTF);
-			LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer, ResolveStrategy::OTF);
-			auto P = *IRDB.getPointsToGraph("main");
-			auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
-			auto R = *IRDB.getPointsToGraph("_Z3incRi");
-			Q.printAsDot("pure_ptg_foo.dot");
-			P.printAsDot("pure_ptg_main.dot");
-			R.printAsDot("pure_ptg_inc.dot");
-			I.printInternalPTGAsDot("ptg_mod_main.dot");
-			J.printInternalPTGAsDot("ptg_mod_foo.dot");
-			I.mergeWith(J);
-			I.printInternalPTGAsDot("ptg_mod_final.dot");
-			I.printAsDot("icfg_final.dot");
-			// end: module_wise_7 test
-
-
-    	// IFDSSolverTest ifdstest(ICFG);
-			// LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
-			// llvmifdstestsolver.solve();
-	
-
-			return;
-
-			// for (auto M : IRDB.getAllModules()) {
-      //  	LLVMBasedICFG ICFG(CH, IRDB, *M);
-      //   	// // store them away for later use
-      //   	// MWICFGs.insert(make_pair(M, ICFG));
-      // }
+			// auto& M_m = *IRDB.getModuleDefiningFunction("main");
+			// auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRiS_S_");
+			// LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer, ResolveStrategy::OTF);
+			// auto P = *IRDB.getPointsToGraph("main");
+			// auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
+			// auto R = *IRDB.getPointsToGraph("_Z3incRi");
+			// Q.printAsDot("pure_ptg_foo.dot");
+			// P.printAsDot("pure_ptg_main.dot");
+			// R.printAsDot("pure_ptg_inc.dot");
+			// I.printInternalPTGAsDot("ptg_mod_main.dot");
+			// J.printInternalPTGAsDot("ptg_mod_foo.dot");
+			// I.mergeWith(J);
+			// I.printInternalPTGAsDot("ptg_mod_final.dot");
+			// I.printAsDot("icfg_final.dot");
+			// // end: module_wise_7 test
 
        /*
         * Perform all the analysis that the user has chosen.
         */
-       for (DataFlowAnalysisType analysis : Analyses) {
-				 BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
-       	switch (analysis) {
-       		case DataFlowAnalysisType::IFDS_TaintAnalysis:
-       		{ // caution: observer '{' and '}' we work in another scope
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//       			IFDSTaintAnalysis taintanalysisproblem(icfg);
-//       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-//       			llvmtaintsolver.solve();
+      for (DataFlowAnalysisType analysis : Analyses) {
+				for (auto &entry : MWICFGs) {
+					const llvm::Module *M = entry.first;
+					LLVMBasedICFG &I = entry.second;
+					BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis << " on module: " << M->getModuleIdentifier();
+					switch (analysis) {
+      			case DataFlowAnalysisType::IFDS_TaintAnalysis:
+       			{
+   	    			break;
+   	    		}
+   	    		case DataFlowAnalysisType::IDE_TaintAnalysis:
+   	    		{ 
+							 break;
+   	    		}
+   	    		case DataFlowAnalysisType::IFDS_TypeAnalysis:
+   	    		{
+   	    			break;
+   	    		}
+   	    		case DataFlowAnalysisType::IFDS_UninitializedVariables:
+   	    		{ 
+   	    			break;
+   	    		}
+   	    		case DataFlowAnalysisType::IFDS_SolverTest:
+   	    		{
+							IFDSSolverTest problem(I);
+							LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG&> solver(problem, true);
+							solver.solve();
+   	    			break;
+   	    		}
+   	    		case DataFlowAnalysisType::IDE_SolverTest:
+   	    		{
        			break;
-       		}
-       		case DataFlowAnalysisType::IDE_TaintAnalysis:
-       		{ // caution: observer '{' and '}' we work in another scope
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//       			//IDETaintAnalysis taintanalysisproblem(icfg);
-//       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
-//       			//llvmtaintsolver.solve();
-       			break;
-       		}
-       		case DataFlowAnalysisType::IFDS_TypeAnalysis:
-       		{ // caution: observer '{' and '}' we work in another scope
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//       			IFDSTypeAnalysis typeanalysisproblem(icfg);
-//       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
-//       			llvmtypesolver.solve();
-       			break;
-       		}
-       		case DataFlowAnalysisType::IFDS_UninitializedVariables:
-       		{ // caution: observer '{' and '}' we work in another scope
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//       			IFDSUnitializedVariables uninitializedvarproblem(icfg);
-//       			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
-//       			llvmunivsolver.solve();
-//
-//       			// check and test the summary generation:
-//   //      			cout << "GENERATE SUMMARY" << endl;
-//   //      			LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
-//   //      								Generator(M.getFunction("_Z6squarei"), icfg);
-//   //      			auto summary = Generator.generateSummaryFlowFunction();
-       			break;
-       		}
-       		case DataFlowAnalysisType::IFDS_SolverTest:
-       		{
-//       			map<const llvm::Module*, IFDSSummaryPool<const llvm::Value*>> MWIFDSSummaryPools;
-//       	    for (auto M : IRDB.getAllModules()) {
-//       	    	IFDSSolverTest ifdstest(ICFG);
-//       	    	LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
-//       	    	llvmifdstestsolver.solve();
-       	    	break;
-       		}
-       		case DataFlowAnalysisType::IDE_SolverTest:
-       		{
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//       			//IDESolverTest idetest(icfg);
-//       			//LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
-//       			//llvmidetestsolver.solve();
-       			break;
-       		}
-       		case DataFlowAnalysisType::MONO_Intra_SolverTest:
-       		{
-//       			LLVMBasedCFG cfg;
-//           	MonotoneSolverTest intra(cfg, IRDB.getFunction("main"));
-//           	LLVMMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
-//           	solver.solve();
-//       			break;
-//       		}
-//       		case AnalysisType::MONO_Inter_SolverTest:
-//       		{
-//       			cout << "MONO_Inter_SolverTest\n";
-//       	    // Here we create our module-wise result storage that is needed
-//       	    // when performing a module-wise analysis.
-//       	    ModuleWiseResults<const llvm::Value*> MWR;
-//       	   	// prepare the ICFG the data-flow analyses are build on
-//       	    cout << "starting the chosen data-flow analyses ...\n";
-//       	    for (auto& module_entry : IRDB.modules) {
-//       	    	// create the analyses problems queried by the user and start analyzing
-//       	    	llvm::Module& M = *(module_entry.second);
-//       	    	llvm::LLVMContext& C = *IRDB.getLLVMContext(M.getModuleIdentifier());
-//       	    	LLVMBasedICFG icfg(M, CH, IRDB);
-//       	    	cout << "call graph:\n";
-//       	    	icfg.print();
-//       	    	icfg.printAsDot("call_graph.dot");
-//
-//       	      // Store the information for the analyzed module away and combine them later
-//       	      if (!WPA_MODE) {
-//       	      	MWR.addModuleAnalysisInfo(M.getModuleIdentifier());
-//       	      }
-//       	    }
-//           	cout << "yet to be implemented!\n";
-       			break;
-       		}
-       		case DataFlowAnalysisType::None:
-					{
-						// cout << "LLVMBASEDICFG TEST\n";
-						// LLVMBasedICFG G(CH, IRDB, *IRDB.getModuleDefiningFunction("main"));
-						// cout << "G\n";
-						// G.print();
-						// G.printAsDot("main.dot");
-						// cout << "H\n";
-						// LLVMBasedICFG H(CH, IRDB, *IRDB.getModuleDefiningFunction("_Z3foov"));
-						// H.print();
-						// H.printAsDot("src1.dot");
-						// cout << "NOW MERGING\n";
-						// G.mergeWith(H);
-						// G.print();
+       			}
+						case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation:
+						{
 						break;
+						}
+       			case DataFlowAnalysisType::MONO_Intra_SolverTest:
+       			{
+       				break;
+					 	}
+					 	case DataFlowAnalysisType::MONO_Inter_SolverTest:
+						{
+						break;
+						}
+       			case DataFlowAnalysisType::None:
+						{
+							break;
+						}
+       			default:
+       				BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+       				break;
 					}
-       		default:
-       			BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
-       			break;
-       	}
-       }
-       	// after every module has been analyzed the analyses results must be
-        // merged and the final results must be computed
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
-        // start at the main function and iterate over the entire program combining
-        // all results!
-        llvm::Module& M = *IRDB.getModuleDefiningFunction("main");
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results done, computation completed!";
-    }
-    BOOST_LOG_SEV(lg, INFO) << "Data-flow analyses completed.";
+				}
+			}
+      // After every module has been analyzed the analyses results must be
+      // merged and the final results must be computed
+			BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
+			auto M = IRDB.getModuleDefiningFunction("main");
+			// LLVMBasedICFG I = MWICFGs[M];
+			// for (auto &entry : MWICFGs) {
+			// 	if (entry.first != M) {
+			// 		I.mergeWith(entry.second);
+			// 	}
+			// }
+			BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
+			// TODO Start at the main function and iterate over the entire program
+			// combining all results!
+      BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results done, computation completed!";
+    	BOOST_LOG_SEV(lg, INFO) << "Data-flow analyses completed.";
+	}
 }
 
 void AnalysisController::writeResults(string filename) {
