@@ -196,11 +196,20 @@ private:
     * indirect call resolving function R.
     *
     * @brief Walks along the control flow graph performing a precise pointer
-   * analysis.
+    * analysis.
     * @param F function to start in
     * @param R resolving function to use for an indirect call site
     */
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
+
+  struct dependency_visitor : boost::default_dfs_visitor {
+    vector<vertex_t> &vertices;
+    dependency_visitor(vector<vertex_t> &v) : vertices(v) {}
+    template <class Vertex, class Graph>
+    void finish_vertex(Vertex u, const Graph &g) {
+      vertices.push_back(u);
+    }
+  };
 
 public:
   LLVMBasedICFG(LLVMStructTypeHierarchy &STH,
@@ -286,6 +295,8 @@ public:
   void printInternalPTGAsDot(const string &filename);
 
   void exportPATBCJSON();
+
+  vector<string> getDependencyOrderedFunctions();
 };
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */

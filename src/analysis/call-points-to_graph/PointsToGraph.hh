@@ -249,9 +249,7 @@ public:
 	 * that are contained in the points-to graph.
 	 * @param fnames Names of functions contained in the points-to graph.
 	 */
-  PointsToGraph(vector<string> fnames) {
-    ContainedFunctions.insert(fnames.begin(), fnames.end());
-  }
+  PointsToGraph(vector<string> fnames);
 
   /**
    * @brief This will create an empty points-to graph. It is used when points-to graphs are merged.

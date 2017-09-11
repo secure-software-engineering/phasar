@@ -619,3 +619,14 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
 void LLVMBasedICFG::exportPATBCJSON() {
 	cout << "LLVMBasedICFG::exportPATBCJSON()\n";
 }
+
+vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
+	vector<vertex_t> vertices;
+	vector<string> functionNames;
+	dependency_visitor deps(vertices);
+	boost::depth_first_search(cg, visitor(deps));
+	for (auto v : vertices) {
+		functionNames.push_back(cg[v].functionName);
+	}
+	return functionNames;
+}

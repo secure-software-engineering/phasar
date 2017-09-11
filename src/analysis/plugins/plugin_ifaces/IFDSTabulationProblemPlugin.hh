@@ -31,10 +31,10 @@ public:
 	}
 
 	const llvm::Value *createZeroValue() {
-//		cout << "IFDSSolverTest::createZeroValue()\n";
-//	  // create a special value to represent the zero value!
-//	  static ZeroValue *zero = new ZeroValue;
-//		return zero;
+		// cout << "IFDSSolverTest::createZeroValue()\n";
+	  // // create a special value to represent the zero value!
+	  // static ZeroValue *zero = new ZeroValue;
+		// return zero;
 		return nullptr;
 	}
 };

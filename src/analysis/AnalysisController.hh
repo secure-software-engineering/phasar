@@ -65,6 +65,7 @@ enum class DataFlowAnalysisType {
   MONO_Intra_FullConstantPropagation,
   MONO_Intra_SolverTest,
   MONO_Inter_SolverTest,
+  Plugin,
   None
 };
 

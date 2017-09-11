@@ -7,12 +7,13 @@ const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap = { { "ifds_unin
 																																	{ "ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest },
 																																	{ "ide_solvertest", DataFlowAnalysisType::IDE_SolverTest },
 																																	{ "mono_intra_fullconstpropagation", DataFlowAnalysisType::MONO_Intra_FullConstantPropagation },
-																																	{ "mono_intra_solvertest",DataFlowAnalysisType::MONO_Intra_SolverTest },
-																																	{ "mono_inter_solvertest",DataFlowAnalysisType::MONO_Inter_SolverTest },
+																																	{ "mono_intra_solvertest", DataFlowAnalysisType::MONO_Intra_SolverTest },
+																																	{ "mono_inter_solvertest", DataFlowAnalysisType::MONO_Inter_SolverTest },
+																																	{ "plugin", DataFlowAnalysisType::Plugin },
 																																	{ "none", DataFlowAnalysisType::None } };
 
 ostream& operator<<(ostream& os, const DataFlowAnalysisType& D) {
-	static const array<string, 10> str {{
+	static const array<string, 11> str {{
 		"AnalysisType::IFDS_UninitializedVariables",
 		"AnalysisType::IFDS_TaintAnalysis",
 		"AnalysisType::IDE_TaintAnalysis",
@@ -22,6 +23,7 @@ ostream& operator<<(ostream& os, const DataFlowAnalysisType& D) {
 		"AnalysisType::MONO_Intra_FullConstantPropagation",
 		"AnalysisType::MONO_Intra_SolverTest",
 		"AnalysisType::MONO_Inter_SoverTest",
+		"AnalysisType::Plugin",
 		"AnalysisType::None",
 	}};
 	return os << str.at(static_cast<underlying_type_t<DataFlowAnalysisType>>(D));
@@ -36,7 +38,7 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 	return os << str.at(static_cast<underlying_type_t<ExportType>>(E));
 }
 
-  AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
+AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
                      vector<DataFlowAnalysisType> Analyses, bool WPA_MODE, bool Mem2Reg_MODE, bool PrintEdgeRecorder) :
 										 		FinalResultsJson() {
 		auto& lg = lg::get();
@@ -44,7 +46,23 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 		BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
     for (auto file : IRDB.source_files) {
       BOOST_LOG_SEV(lg, INFO) << "\t" << file;
-    }
+		}
+		// Check if the chosen entry points are valid
+		BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.";
+		if (VariablesMap.count("entry_points")) {
+			vector<string> invalidEntryPoints;
+			for (auto &entryPoint : VariablesMap["entry_points"].as<vector<string>>()) {
+				if (IRDB.getFunction(entryPoint) == nullptr) {
+					invalidEntryPoints.push_back(entryPoint);
+				}
+			}
+			if (invalidEntryPoints.size()) {
+				for (auto &invalidEntryPoint : invalidEntryPoints) {
+					BOOST_LOG_SEV(lg, ERROR) << "Entry point '" << invalidEntryPoint << "' is not valid.";
+				}
+				throw logic_error("invalid entry points");
+			}
+		}
     if (WPA_MODE) {
     	 // here we link every llvm module into a single module containing the entire IR
     	BOOST_LOG_SEV(lg, INFO) << "link all llvm modules into a single module for WPA ...\n";
@@ -125,25 +143,17 @@ ostream& operator<<(ostream& os, const ExportType& E) {
     }
     BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
     IRDB.print();
-
-    // store points-to graphs in the hexastore
     DBConn& db = DBConn::getInstance();
 		db.synchronize(&IRDB);
-
-    // db << IRDB;
-
-    // reconstruct the inter-modular class hierarchy and virtual function tables
+    // Reconstruct the inter-modular class hierarchy and virtual function tables
     BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
     LLVMStructTypeHierarchy CH(IRDB);
     BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
 		CH.printAsDot();
-
-    // db << CH;
-    // db >> CH;
-
-    IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
-    		IFDSSpecialSummaries<const llvm::Value*>::getInstance();
-    // cout << specialSummaries << endl;
+		// Set-up special summaries
+		// IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
+		//  		IFDSSpecialSummaries<const llvm::Value*>::getInstance();
+		//   cout << specialSummaries << endl;
 
 			// check and test the summary generation:
 //      			cout << "GENERATE SUMMARY" << endl;
@@ -151,20 +161,20 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 //      								Generator(M.getFunction("_Z6squarei"), icfg);
 //      			auto summary = Generator.generateSummaryFlowFunction();
 
-
     /*
      * Perform whole program analysis (WPA) analysis
      * -----------
      */
     if (WPA_MODE) {
-      LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, {"main"});
+      LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, [](){
+						if (VariablesMap["entry_points"].as<vector<string>>().size())
+							return VariablesMap["entry_points"].as<vector<string>>();
+						else 
+							return vector<string>({ "main" });
+			}());
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
-      // store and restore the WholeModulePTG for test purposes
-//      db << ICFG.WholeModulePTG;
-//      PointsToGraph wmptg(ICFG.WholeModulePTG.getMergeStack());
-//      db >> wmptg;
-	  // CFG is only needed for intra-procedural monotone framework
+	  	// CFG is only needed for intra-procedural monotone framework
       LLVMBasedCFG CFG;
       /*
        * Perform all the analysis that the user has chosen.
@@ -239,6 +249,10 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 						InterMonotoneSolverTest inter(ICFG);
 						LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
 						solver.solve();
+						break;
+					}
+					case DataFlowAnalysisType::Plugin:
+					{
 						break;
 					}
        		case DataFlowAnalysisType::None:

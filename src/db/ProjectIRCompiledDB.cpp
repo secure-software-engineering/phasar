@@ -203,11 +203,15 @@ bool ProjectIRCompiledDB::containsSourceFile(const string& src) {
 }
 
 llvm::LLVMContext* ProjectIRCompiledDB::getLLVMContext(const string& name) {
-	return contexts[name].get();
+  if (contexts.count(name))
+  	return contexts[name].get();
+  return nullptr;
 }
 
 llvm::Module* ProjectIRCompiledDB::getModule(const string& name) {
-	return modules[name].get();
+  if (modules.count(name))
+    return modules[name].get();
+  return nullptr;
 }
 
 set<llvm::Module*> ProjectIRCompiledDB::getAllModules() {
@@ -223,15 +227,22 @@ size_t ProjectIRCompiledDB::getNumberOfModules() {
 }
 
 llvm::Module* ProjectIRCompiledDB::getModuleDefiningFunction(const string& name) {
-	return modules[functions[name]].get();
+  if (functions.count(name)) {
+    return modules[functions[name]].get();
+  }
+	return nullptr;
 }
 
 llvm::Function* ProjectIRCompiledDB::getFunction(const string& name) {
-	return modules[functions[name]]->getFunction(name);
+  if (functions.count(name))
+  	return modules[functions[name]]->getFunction(name);
+  return nullptr;
 }
 
 llvm::GlobalVariable* ProjectIRCompiledDB::getGlobalVariable(const string& name) {
-	return modules[globals[name]]->getGlobalVariable(name);
+  if (globals.count(name))
+  	return modules[globals[name]]->getGlobalVariable(name);
+  return nullptr;
 }
 
 llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
@@ -240,7 +251,9 @@ llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
 }
 
 PointsToGraph* ProjectIRCompiledDB::getPointsToGraph(const string& name) {
-	return ptgs[name].get();
+  if (ptgs.count(name))
+    return ptgs[name].get();
+  return nullptr;
 }
 
 void ProjectIRCompiledDB::print() {

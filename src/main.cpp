@@ -130,7 +130,8 @@ int main(int argc, const char **argv) {
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
 			("data_flow_analysis,D", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Analysis")
 			("pointer_analysis,P", bpo::value<string>()->notifier(validateParamPointerAnalysis), "Points-to analysis (CFLSteens, CFLAnders)")
-			("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("entry_points", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing(), "Entry point(s)")
 			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
 			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
 			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
@@ -151,7 +152,8 @@ int main(int argc, const char **argv) {
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
 			("data_flow_analysis,D", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Analysis")
 			("pointer_analysis,P", bpo::value<string>()->notifier(validateParamPointerAnalysis), "Points-to analysis (CFLSteens, CFLAnders)")
-			("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("entry_points", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing(), "Entry point(s)")
 			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
 			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
 			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
@@ -220,8 +222,7 @@ int main(int argc, const char **argv) {
           return IRDB;
         } else {
           // perform a little trick to make OptionsParser only responsible for
-          // the
-          // project sources
+          // the project sources
           int OnlyTakeCareOfSources = 2;
           const char *ProjectSources =
               VariablesMap["project"].as<string>().c_str();

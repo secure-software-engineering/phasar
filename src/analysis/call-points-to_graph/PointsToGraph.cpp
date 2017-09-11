@@ -172,6 +172,10 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyCo
   }
 }
 
+PointsToGraph::PointsToGraph(vector<string> fnames) {
+  ContainedFunctions.insert(fnames.begin(), fnames.end());
+}
+
 bool PointsToGraph::isInterestingPointer(llvm::Value* V) {
   return V->getType()->isPointerTy() &&
          !llvm::isa<llvm::ConstantPointerNull>(V);
