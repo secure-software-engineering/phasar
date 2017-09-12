@@ -49,6 +49,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
 		}
 		// Check if the chosen entry points are valid
 		BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.";
+		vector<string> EntryPoints = { "main" };
 		if (VariablesMap.count("entry_points")) {
 			vector<string> invalidEntryPoints;
 			for (auto &entryPoint : VariablesMap["entry_points"].as<vector<string>>()) {
@@ -61,6 +62,9 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
 					BOOST_LOG_SEV(lg, ERROR) << "Entry point '" << invalidEntryPoint << "' is not valid.";
 				}
 				throw logic_error("invalid entry points");
+			}
+			if (VariablesMap["entry_points"].as<vector<string>>().size()) {
+				EntryPoints =	VariablesMap["entry_points"].as<vector<string>>();
 			}
 		}
     if (WPA_MODE) {
@@ -166,12 +170,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
      * -----------
      */
     if (WPA_MODE) {
-      LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, [](){
-						if (VariablesMap["entry_points"].as<vector<string>>().size())
-							return VariablesMap["entry_points"].as<vector<string>>();
-						else 
-							return vector<string>({ "main" });
-			}());
+      LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, EntryPoints);
       ICFG.print();
       ICFG.printAsDot("interproc_cfg.dot");
 	  	// CFG is only needed for intra-procedural monotone framework
@@ -184,28 +183,28 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
       	switch (analysis) {
       		case DataFlowAnalysisType::IFDS_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			IFDSTaintAnalysis taintanalysisproblem(ICFG);
+       			IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
        			llvmtaintsolver.solve();
        			break;
        		}
        		case DataFlowAnalysisType::IDE_TaintAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			IDETaintAnalysis taintanalysisproblem(ICFG);
+       			IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
        			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(taintanalysisproblem, true);
        			llvmtaintsolver.solve();
        			break;
        		}
        		case DataFlowAnalysisType::IFDS_TypeAnalysis:
        		{ // caution: observer '{' and '}' we work in another scope
-       			IFDSTypeAnalysis typeanalysisproblem(ICFG);
+       			IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(typeanalysisproblem, true);
        			llvmtypesolver.solve();
        			break;
        		}
        		case DataFlowAnalysisType::IFDS_UninitializedVariables:
        		{ // caution: observer '{' and '}' we work in another scope
-       			IFDSUnitializedVariables uninitializedvarproblem(ICFG);
+       			IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(uninitializedvarproblem, true);
 						llvmunivsolver.solve();
 						if(PrintEdgeRecorder)
@@ -218,35 +217,37 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB &&IRDB,
        		}
        		case DataFlowAnalysisType::IFDS_SolverTest:
        		{
-       			IFDSSolverTest ifdstest(ICFG);
+       			IFDSSolverTest ifdstest(ICFG, EntryPoints);
        			LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmifdstestsolver(ifdstest, true);
        			llvmifdstestsolver.solve();
        			break;
        		}
        		case DataFlowAnalysisType::IDE_SolverTest:
        		{
-       			IDESolverTest idetest(ICFG);
+       			IDESolverTest idetest(ICFG, EntryPoints);
        			LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&> llvmidetestsolver(idetest, true);
        			llvmidetestsolver.solve();
        			break;
        		}
 					case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation:
 					{
-						IntraMonoFullConstantPropagation intra(CFG, IRDB.getFunction("main"));
+						const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+						IntraMonoFullConstantPropagation intra(CFG, F);
 						LLVMIntraMonotoneSolver<pair<const llvm::Value*, unsigned>, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
 						break;
 					}
        		case DataFlowAnalysisType::MONO_Intra_SolverTest:
        		{
-           	IntraMonotoneSolverTest intra(CFG, IRDB.getFunction("main"));
+						const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+           	IntraMonotoneSolverTest intra(CFG, F);
            	LLVMIntraMonotoneSolver<const llvm::Value*, LLVMBasedCFG&> solver(intra, true);
            	solver.solve();
        			break;
        		}
 					case DataFlowAnalysisType::MONO_Inter_SolverTest:
 					{
-						InterMonotoneSolverTest inter(ICFG);
+						InterMonotoneSolverTest inter(ICFG, EntryPoints);
 						LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(inter, true);
 						solver.solve();
 						break;

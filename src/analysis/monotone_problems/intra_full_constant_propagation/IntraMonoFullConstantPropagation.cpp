@@ -28,7 +28,7 @@ IntraMonoFullConstantPropagation::flow(const llvm::Instruction *S,
 MonoMap<const llvm::Instruction *,
         MonoSet<IntraMonoFullConstantPropagation::DFF>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return MonoMap<const llvm::Instruction *, MonoSet<IntraMonoFullConstantPropagation::DFF>>();
+  return { { &Function->front().front(), MonoSet<IntraMonoFullConstantPropagation::DFF>{} } };
 }
 
 string IntraMonoFullConstantPropagation::D_to_string(

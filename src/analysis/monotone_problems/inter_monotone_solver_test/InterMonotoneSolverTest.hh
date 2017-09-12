@@ -17,6 +17,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <string>
+#include <vector>
 using namespace std;
 
 class InterMonotoneSolverTest
@@ -25,9 +26,10 @@ class InterMonotoneSolverTest
                                   LLVMBasedICFG &> {
 private:
   LLVMBasedICFG &ICFG;
+  vector<string> EntryPoints;
 
 public:
-  InterMonotoneSolverTest(LLVMBasedICFG &Icfg);
+  InterMonotoneSolverTest(LLVMBasedICFG &Icfg, vector<string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
   virtual MonoSet<const llvm::Value *>

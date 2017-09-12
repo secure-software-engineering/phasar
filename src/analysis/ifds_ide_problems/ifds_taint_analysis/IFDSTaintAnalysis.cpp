@@ -34,8 +34,8 @@ bool IFDSTaintAnalysis::isSinkFunction(const llvm::Function *f) {
   return false;
 }
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIFDSTabulationProblem(icfg) {
+IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -265,12 +265,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
