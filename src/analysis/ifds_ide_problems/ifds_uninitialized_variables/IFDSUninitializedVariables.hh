@@ -39,10 +39,10 @@ class IFDSUnitializedVariables
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
 private:
-  vector<string> EntryPoints;
+  IFDSSummaryPool<const llvm::Value *> dynSum;
 
 public:
-  IFDSUnitializedVariables(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IFDSUnitializedVariables(LLVMBasedICFG &icfg);
 
   virtual ~IFDSUnitializedVariables() = default;
 

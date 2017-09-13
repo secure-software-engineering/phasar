@@ -26,11 +26,8 @@ using namespace std;
 class IFDSSolverTest : public DefaultIFDSTabulationProblem<
                            const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, LLVMBasedICFG &> {
-private:
-  vector<string> EntryPoints;
-  
 public:
-  IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints = { "main" });
+  IFDSSolverTest(LLVMBasedICFG &I);
   virtual ~IFDSSolverTest() = default;
   shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,

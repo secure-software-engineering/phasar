@@ -44,7 +44,7 @@ IntraMonotoneSolverTest::flow(const llvm::Instruction *S,
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 IntraMonotoneSolverTest::initialSeeds() {
   cout << "MonotoneSolverTest::initialSeeds()\n";
-  return { { &Function->front().front(), MonoSet<const llvm::Value *>{} } };
+  return {};
 }
 
 string IntraMonotoneSolverTest::D_to_string(const llvm::Value* d) {

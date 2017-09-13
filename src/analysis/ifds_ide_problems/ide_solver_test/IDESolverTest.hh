@@ -35,11 +35,8 @@ class IDESolverTest
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, const llvm::Value *, LLVMBasedICFG &> {
-private:
-  vector<string> EntryPoints;
-
 public:
-  IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IDESolverTest(LLVMBasedICFG &icfg);
 
   virtual ~IDESolverTest() = default;
 

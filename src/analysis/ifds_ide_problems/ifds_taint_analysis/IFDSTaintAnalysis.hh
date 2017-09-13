@@ -35,9 +35,6 @@ using namespace std;
 class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
-private:
-  vector<string> EntryPoints;
-
 public:
   struct SourceFunction {
     string name;
@@ -84,7 +81,7 @@ public:
 
   bool isSinkFunction(const llvm::Function *f);
 
-  IFDSTaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IFDSTaintAnalysis(LLVMBasedICFG &icfg);
 
   virtual ~IFDSTaintAnalysis() = default;
 

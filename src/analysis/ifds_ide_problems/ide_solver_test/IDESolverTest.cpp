@@ -7,8 +7,8 @@
 
 #include "IDESolverTest.hh"
 
-IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
+IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg)
+    : DefaultIDETabulationProblem(icfg) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -53,11 +53,13 @@ IDESolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IDESolverTest::initialSeeds() {
   cout << "IDESolverTest::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
-  }
-  return SeedMap;
+  // just start in main()
+  const llvm::Function *mainfunction = icfg.getMethod("main");
+  const llvm::Instruction *firstinst = &mainfunction->front().front();
+  set<const llvm::Value *> iset{zeroValue()};
+  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
+      {firstinst, iset}};
+  return imap;
 }
 
 const llvm::Value *IDESolverTest::createZeroValue() {

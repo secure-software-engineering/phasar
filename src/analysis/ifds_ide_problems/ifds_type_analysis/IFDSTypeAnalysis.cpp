@@ -1,7 +1,7 @@
 #include "IFDSTypeAnalysis.hh"
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg)
+    : DefaultIFDSTabulationProblem(icfg) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -61,11 +61,12 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTypeAnalysis::initialSeeds() {
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
-  }
-  return SeedMap;
+  const llvm::Function *mainfunction = icfg.getMethod("main");
+  const llvm::Instruction *firstinst = &mainfunction->front().front();
+  set<const llvm::Value *> iset{zeroValue()};
+  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
+      {firstinst, iset}};
+  return imap;
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
