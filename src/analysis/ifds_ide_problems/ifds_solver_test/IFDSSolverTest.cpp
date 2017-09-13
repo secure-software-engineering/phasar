@@ -10,7 +10,8 @@
 IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
-                                   LLVMBasedICFG &>(I), EntryPoints(EntryPoints) {
+                                   LLVMBasedICFG &>(I),
+      EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -19,7 +20,8 @@ IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
   cout << "IFDSSolverTest::getNormalFlowFunction()\n";
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Gen<const llvm::Value *>>(Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
+    return make_shared<Gen<const llvm::Value *>>(
+        Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
   }
   return Identity<const llvm::Value *>::v();
 }
@@ -61,7 +63,8 @@ IFDSSolverTest::initialSeeds() {
   cout << "IFDSSolverTest::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
   }
   return SeedMap;
 }

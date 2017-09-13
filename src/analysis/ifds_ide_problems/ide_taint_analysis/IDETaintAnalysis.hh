@@ -8,9 +8,9 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIDETabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/ZeroValue.hh"
@@ -44,7 +44,7 @@ public:
   set<string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(set<string> s, string str);
 
-  IDETaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IDETaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IDETaintAnalysis() = default;
 

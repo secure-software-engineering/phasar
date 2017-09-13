@@ -8,8 +8,8 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_
 #define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_
 
-#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../../lib/LLVMShorthands.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIDETabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
@@ -39,7 +39,7 @@ private:
   vector<string> EntryPoints;
 
 public:
-  IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IDESolverTest() = default;
 
@@ -95,11 +95,9 @@ public:
                               const llvm::Instruction *retSite,
                               const llvm::Value *retSiteNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>>
-  getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd,
-                         vector<const llvm::Value *> inputs,
-                         vector<bool> context) override;
+  shared_ptr<EdgeFunction<const llvm::Value *>> getSummaryEdgeFunction(
+      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
+      vector<const llvm::Value *> inputs, vector<bool> context) override;
 
   const llvm::Value *topElement() override;
 

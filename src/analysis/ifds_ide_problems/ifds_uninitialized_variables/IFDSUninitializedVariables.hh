@@ -7,10 +7,11 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZED_VARIABLES_IFDSUNINITIALIZEDVARIABLES_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZED_VARIABLES_IFDSUNINITIALIZEDVARIABLES_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
+#include "../../../utils/Logger.hh"
 #include "../../../utils/utils.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/IFDSSpecialSummaries.hh"
@@ -42,7 +43,8 @@ private:
   vector<string> EntryPoints;
 
 public:
-  IFDSUnitializedVariables(LLVMBasedICFG &icfg, vector<string> EntryPoints = { "main" });
+  IFDSUnitializedVariables(LLVMBasedICFG &icfg,
+                           vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSUnitializedVariables() = default;
 

@@ -217,11 +217,12 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
                                                                    // work in
                                                                    // another
                                                                    // scope
+          cout << "HERE I AM!" << endl;
           IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
-          if (PrintEdgeRecorder) llvmunivsolver.exportJSONDataModel();
+          // if (PrintEdgeRecorder) llvmunivsolver.exportJSONDataModel();
           // if (PrintEdgeRecorder) {
           // 	llvmunivsolver.dumpAllIntraPathEdges();
           // 	llvmunivsolver.dumpAllInterPathEdges();
@@ -403,12 +404,13 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             // LLVMIFDSSummaryGenerator/ IFDSSummaryGenerator!
             // Check and test the summary generation:
             for (auto& Fname : I.getDependencyOrderedFunctions()) {
+              BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname << "'\n";
               LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
-                  Generator(M->getFunction(Fname), I,
-                            SummaryGenerationCTXStrategy::all_and_none);
+                 Generator(M->getFunction(Fname), I,
+                           SummaryGenerationCTXStrategy::all_and_none);
             }
             //Pool.insert(Generator.generateSummaryFlowFunction());
-            BOOST_LOG_SEV(lg, INFO) << "Generated summary!";
+            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
             break;
           }
           case DataFlowAnalysisType::IFDS_SolverTest: {

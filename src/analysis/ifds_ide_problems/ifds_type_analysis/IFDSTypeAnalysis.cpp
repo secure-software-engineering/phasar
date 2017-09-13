@@ -1,6 +1,7 @@
 #include "IFDSTypeAnalysis.hh"
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints)
+IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
+                                   vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
@@ -63,14 +64,15 @@ map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTypeAnalysis::initialSeeds() {
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
   }
   return SeedMap;
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-	static ZeroValue *zero = new ZeroValue;
-	return zero;
+  static ZeroValue *zero = new ZeroValue;
+  return zero;
 }
 
 string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {

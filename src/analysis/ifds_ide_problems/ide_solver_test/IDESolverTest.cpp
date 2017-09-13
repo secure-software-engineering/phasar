@@ -55,7 +55,8 @@ IDESolverTest::initialSeeds() {
   cout << "IDESolverTest::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(), set<const llvm::Value *>()));
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -107,9 +108,11 @@ IDESolverTest::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>> IDESolverTest::getSummaryEdgeFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-    vector<const llvm::Value *> inputs, vector<bool> context) {
+shared_ptr<EdgeFunction<const llvm::Value *>>
+IDESolverTest::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                                      const llvm::Function *destMthd,
+                                      vector<const llvm::Value *> inputs,
+                                      vector<bool> context) {
   cout << "IDESolverTest::getSummaryEdgeFunction()\n";
   return EdgeIdentity<const llvm::Value *>::v();
 }
@@ -161,10 +164,6 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::D_to_string(const llvm::Value *d) {
-  return "";
-}
+string IDESolverTest::D_to_string(const llvm::Value *d) { return ""; }
 
-string IDESolverTest::V_to_string(const llvm::Value *v) {
-  return "";
-}
+string IDESolverTest::V_to_string(const llvm::Value *v) { return ""; }
