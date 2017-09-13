@@ -1,9 +1,11 @@
 cmake_minimum_required (VERSION 3.0)
-project (sse_dfa_llvm)
-set(CMAKE_CXX_COMPILER "clang++")
+
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libstdc++ -Wno-unknown-warning-option -O2 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+project (sse_dfa_llvm)
 
 find_package(Boost COMPONENTS filesystem system program_options log REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
