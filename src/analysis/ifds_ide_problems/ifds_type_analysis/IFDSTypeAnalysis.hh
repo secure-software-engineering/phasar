@@ -8,9 +8,9 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/ZeroValue.hh"
@@ -27,8 +27,11 @@ using namespace std;
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
-  IFDSTypeAnalysis(LLVMBasedICFG &icfg);
+  IFDSTypeAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSTypeAnalysis() = default;
 

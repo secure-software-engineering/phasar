@@ -3,7 +3,8 @@
 IFDSTaintAnalysis::SourceFunction
 IFDSTaintAnalysis::findSourceFunction(const llvm::Function *f) {
   for (auto sourcefunction : source_functions) {
-    if (cxx_demangle(f->getName().str()).find(sourcefunction.name) != string::npos)
+    if (cxx_demangle(f->getName().str()).find(sourcefunction.name) !=
+        string::npos)
       return sourcefunction;
   }
   return SourceFunction();
@@ -12,7 +13,8 @@ IFDSTaintAnalysis::findSourceFunction(const llvm::Function *f) {
 IFDSTaintAnalysis::SinkFunction
 IFDSTaintAnalysis::findSinkFunction(const llvm::Function *f) {
   for (auto sinkfunction : sink_functions) {
-    if (cxx_demangle(f->getName().str()).find(sinkfunction.name) != string::npos)
+    if (cxx_demangle(f->getName().str()).find(sinkfunction.name) !=
+        string::npos)
       return sinkfunction;
   }
   return SinkFunction();
@@ -20,7 +22,8 @@ IFDSTaintAnalysis::findSinkFunction(const llvm::Function *f) {
 
 bool IFDSTaintAnalysis::isSourceFunction(const llvm::Function *f) {
   for (auto sourcefunction : source_functions) {
-    if (cxx_demangle(f->getName().str()).find(sourcefunction.name) != string::npos)
+    if (cxx_demangle(f->getName().str()).find(sourcefunction.name) !=
+        string::npos)
       return true;
   }
   return false;
@@ -28,14 +31,16 @@ bool IFDSTaintAnalysis::isSourceFunction(const llvm::Function *f) {
 
 bool IFDSTaintAnalysis::isSinkFunction(const llvm::Function *f) {
   for (auto sinkfunction : sink_functions) {
-    if (cxx_demangle(f->getName().str()).find(sinkfunction.name) != string::npos)
+    if (cxx_demangle(f->getName().str()).find(sinkfunction.name) !=
+        string::npos)
       return true;
   }
   return false;
 }
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIFDSTabulationProblem(icfg) {
+IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg,
+                                     vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -45,69 +50,71 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getNormalFlowFunction()"
        << endl;
   // Taint the commandline arguments
-  if (curr->getFunction()->getName().str() == "main" && icfg.isStartPoint(curr)) {
+  if (curr->getFunction()->getName().str() == "main" &&
+      icfg.isStartPoint(curr)) {
 
-  	// taint the command line arguments
+    // taint the command line arguments
     struct TAFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *function;
       const llvm::Value *zerovalue;
       TAFF(const llvm::Function *f, const llvm::Value *zv)
-      		: function(f), zerovalue(zv) {}
-      set<const llvm::Value *> computeTargets(const llvm::Value *source) override {
+          : function(f), zerovalue(zv) {}
+      set<const llvm::Value *>
+      computeTargets(const llvm::Value *source) override {
         if (source == zerovalue) {
           set<const llvm::Value *> res;
           for (auto &commandline_arg : function->getArgumentList()) {
-          	commandline_arg.dump();
+            commandline_arg.dump();
             res.insert(&commandline_arg);
           }
           res.insert(zerovalue);
           return res;
         } else {
-          return { source };
+          return {source};
         }
       }
     };
     return make_shared<TAFF>(curr->getFunction(), zeroValue());
   }
 
-
-//  // If a tainted value is stored, the store location is also tainted
-//  if (llvm::isa<llvm::StoreInst>(curr)) {
-//    const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(curr);
-//    struct TAFF : FlowFunction<const llvm::Value *> {
-//      const llvm::StoreInst *store;
-//      TAFF(const llvm::StoreInst *s) : store(s){};
-//      set<const llvm::Value *>
-//      computeTargets(const llvm::Value *source) override {
-//        if (store->getValueOperand() == source) {
-//          return set<const llvm::Value *>{store->getPointerOperand(), source};
-//        } else if (store->getValueOperand() != source &&
-//                   store->getPointerOperand() == source) {
-//          return set<const llvm::Value *>{};
-//        } else {
-//          return set<const llvm::Value *>{source};
-//        }
-//      }
-//    };
-//    return make_shared<TAFF>(store);
-//  }
-//  // If a tainted value is loaded, the loaded value is of course tainted
-//  if (llvm::isa<llvm::LoadInst>(curr)) {
-//    const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(curr);
-//    struct TAFF : FlowFunction<const llvm::Value *> {
-//      const llvm::LoadInst *load;
-//      TAFF(const llvm::LoadInst *l) : load(l) {}
-//      set<const llvm::Value *>
-//      computeTargets(const llvm::Value *source) override {
-//        if (source == load->getPointerOperand()) {
-//          return set<const llvm::Value *>{load, source};
-//        } else {
-//          return set<const llvm::Value *>{source};
-//        }
-//      }
-//    };
-//    return make_shared<TAFF>(load);
-//  }
+  //  // If a tainted value is stored, the store location is also tainted
+  //  if (llvm::isa<llvm::StoreInst>(curr)) {
+  //    const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(curr);
+  //    struct TAFF : FlowFunction<const llvm::Value *> {
+  //      const llvm::StoreInst *store;
+  //      TAFF(const llvm::StoreInst *s) : store(s){};
+  //      set<const llvm::Value *>
+  //      computeTargets(const llvm::Value *source) override {
+  //        if (store->getValueOperand() == source) {
+  //          return set<const llvm::Value *>{store->getPointerOperand(),
+  //          source};
+  //        } else if (store->getValueOperand() != source &&
+  //                   store->getPointerOperand() == source) {
+  //          return set<const llvm::Value *>{};
+  //        } else {
+  //          return set<const llvm::Value *>{source};
+  //        }
+  //      }
+  //    };
+  //    return make_shared<TAFF>(store);
+  //  }
+  //  // If a tainted value is loaded, the loaded value is of course tainted
+  //  if (llvm::isa<llvm::LoadInst>(curr)) {
+  //    const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(curr);
+  //    struct TAFF : FlowFunction<const llvm::Value *> {
+  //      const llvm::LoadInst *load;
+  //      TAFF(const llvm::LoadInst *l) : load(l) {}
+  //      set<const llvm::Value *>
+  //      computeTargets(const llvm::Value *source) override {
+  //        if (source == load->getPointerOperand()) {
+  //          return set<const llvm::Value *>{load, source};
+  //        } else {
+  //          return set<const llvm::Value *>{source};
+  //        }
+  //      }
+  //    };
+  //    return make_shared<TAFF>(load);
+  //  }
   // Otherwise we do not care and leave everything as it is
   return Identity<const llvm::Value *>::v();
 }
@@ -117,130 +124,133 @@ IFDSTaintAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
                                       const llvm::Function *destMthd) {
   cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% getCallFlowFunction()"
        << endl;
-  if (const llvm::CallInst* call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
-  	// check for functions generating tainted values
-  //	if (isSourceFunction(call->getCalledFunction())) {
+  if (const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
+    // check for functions generating tainted values
+    //	if (isSourceFunction(call->getCalledFunction())) {
 
-  //	} else if (isSinkFunction(call->getCalledFunction())) {
-  		// check for functions that lead to potential leaks
+    //	} else if (isSinkFunction(call->getCalledFunction())) {
+    // check for functions that lead to potential leaks
 
-  //	} else {
-  		// other functions
+    //	} else {
+    // other functions
 
-  //	}
+    //	}
 
-
-  } else if (const llvm::InvokeInst* invoke = llvm::dyn_cast<llvm::InvokeInst>(callStmt)) {
-
+  } else if (const llvm::InvokeInst *invoke =
+                 llvm::dyn_cast<llvm::InvokeInst>(callStmt)) {
   }
   cout << "error when getCallFlowFunction() was called\n"
-  				"instruction is neither a call- nor an invoke instruction!"
-  		<< endl;
+          "instruction is neither a call- nor an invoke instruction!"
+       << endl;
   DIE_HARD;
   return nullptr;
 
-//  if (llvm::isa<llvm::CallInst>(callStmt)) {
-//    const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt);
-//    if (isSourceFunction(call->getCalledFunction())) {
-//      // Generate the values, that are tainted by this call to a source function
-//      struct TAFF : FlowFunction<const llvm::Value *> {
-//        const llvm::CallInst *call;
-//        const llvm::Value *zerovalue;
-//        const SourceFunction sourcefunction;
-//        TAFF(const llvm::CallInst *cs, const llvm::Value *zv,
-//             const SourceFunction sf)
-//            : call(cs), zerovalue(zv), sourcefunction(sf) {}
-//        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-//          if (source == zerovalue) {
-//            set<const llvm::Value *> res;
-//            for (auto idx : sourcefunction.genargs) {
-//              res.insert(call->getArgOperand(idx));
-//            }
-//            if (sourcefunction.genreturn) {
-//              for (auto user : call->users()) {
-//                res.insert(user);
-//              }
-//            }
-//            res.insert(zerovalue);
-//            return res;
-//          } else {
-//            return set<const llvm::Value *>{source};
-//          }
-//        }
-//      };
-//      return make_shared<TAFF>(call, zeroValue(),
-//                               findSourceFunction(call->getCalledFunction()));
-//    } else if (isSinkFunction(call->getCalledFunction())) {
-//      struct TAFF : FlowFunction<const llvm::Value *> {
-//        const llvm::CallInst *call;
-//        const SinkFunction sinkfunction;
-//        TAFF(const llvm::CallInst *cs, const SinkFunction sf)
-//            : call(cs), sinkfunction(sf) {}
-//        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-//          for (auto idx : sinkfunction.sinkargs) {
-//            if (call->getArgOperand(idx) == source) {
-//              cout << "Uuups, found a taint!" << endl;
-//              return set<const llvm::Value *>{source};
-//            }
-//          }
-//          return set<const llvm::Value *>{source};
-//        }
-//      };
-//      return make_shared<TAFF>(call,
-//                               findSinkFunction(call->getCalledFunction()));
-//    } else {
-//      // Map the parameters to the 'normal' function
-//      struct TAFF : FlowFunction<const llvm::Value *> {
-//        const llvm::CallInst *call;
-//        const llvm::Value *zerovalue;
-//        TAFF(const llvm::CallInst *cs, const llvm::Value *zv)
-//            : call(cs), zerovalue(zv) {}
-//        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-//          // TODO: this needs some work!
-//          vector<const llvm::Value *> actuals;
-//          for (unsigned idx = 0; idx < call->getNumArgOperands(); ++idx) {
-//            actuals.push_back(call->getArgOperand(idx));
-//          }
-//          vector<const llvm::Value *> formals;
-//          for (unsigned idx = 0;
-//               idx < call->getCalledFunction()->getNumOperands(); ++idx) {
-//            formals.push_back(call->getCalledFunction()->getOperandUse(idx));
-//          }
-//
-//          set<const llvm::Value *> res;
-//          for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-//            if (source == actuals[idx]) {
-//              res.insert(formals[idx]);
-//              res.insert(source);
-//              res.insert(zerovalue);
-//            }
-//          }
-//          return res;
-//
-//          if (source == zerovalue) {
-//            unsigned argcounter = 0;
-//            set<const llvm::Value *> res;
-//            for (auto &actual : call->arg_operands()) {
-//              for (auto &formal : call->getCalledFunction()->args()) {
-//                //									if
-//                //(&actual == source) {
-//                //										res.insert(&formal);
-//                //									}
-//              }
-//            }
-//            res.insert(zerovalue);
-//            return res;
-//          }
-//          return set<const llvm::Value *>{source};
-//        }
-//      };
-//      return make_shared<TAFF>(call, zeroValue());
-//      return Identity<const llvm::Value *>::v();
-//    }
-//    //		} else if (llvm::isa<llvm::InvokeInst>(callStmt)) {
-//    //			// TODO handle invoke statement
-//    //			return Identity<const llvm::Value*>::v();
-//  }
+  //  if (llvm::isa<llvm::CallInst>(callStmt)) {
+  //    const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt);
+  //    if (isSourceFunction(call->getCalledFunction())) {
+  //      // Generate the values, that are tainted by this call to a source
+  //      function
+  //      struct TAFF : FlowFunction<const llvm::Value *> {
+  //        const llvm::CallInst *call;
+  //        const llvm::Value *zerovalue;
+  //        const SourceFunction sourcefunction;
+  //        TAFF(const llvm::CallInst *cs, const llvm::Value *zv,
+  //             const SourceFunction sf)
+  //            : call(cs), zerovalue(zv), sourcefunction(sf) {}
+  //        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+  //          if (source == zerovalue) {
+  //            set<const llvm::Value *> res;
+  //            for (auto idx : sourcefunction.genargs) {
+  //              res.insert(call->getArgOperand(idx));
+  //            }
+  //            if (sourcefunction.genreturn) {
+  //              for (auto user : call->users()) {
+  //                res.insert(user);
+  //              }
+  //            }
+  //            res.insert(zerovalue);
+  //            return res;
+  //          } else {
+  //            return set<const llvm::Value *>{source};
+  //          }
+  //        }
+  //      };
+  //      return make_shared<TAFF>(call, zeroValue(),
+  //                               findSourceFunction(call->getCalledFunction()));
+  //    } else if (isSinkFunction(call->getCalledFunction())) {
+  //      struct TAFF : FlowFunction<const llvm::Value *> {
+  //        const llvm::CallInst *call;
+  //        const SinkFunction sinkfunction;
+  //        TAFF(const llvm::CallInst *cs, const SinkFunction sf)
+  //            : call(cs), sinkfunction(sf) {}
+  //        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+  //          for (auto idx : sinkfunction.sinkargs) {
+  //            if (call->getArgOperand(idx) == source) {
+  //              cout << "Uuups, found a taint!" << endl;
+  //              return set<const llvm::Value *>{source};
+  //            }
+  //          }
+  //          return set<const llvm::Value *>{source};
+  //        }
+  //      };
+  //      return make_shared<TAFF>(call,
+  //                               findSinkFunction(call->getCalledFunction()));
+  //    } else {
+  //      // Map the parameters to the 'normal' function
+  //      struct TAFF : FlowFunction<const llvm::Value *> {
+  //        const llvm::CallInst *call;
+  //        const llvm::Value *zerovalue;
+  //        TAFF(const llvm::CallInst *cs, const llvm::Value *zv)
+  //            : call(cs), zerovalue(zv) {}
+  //        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+  //          // TODO: this needs some work!
+  //          vector<const llvm::Value *> actuals;
+  //          for (unsigned idx = 0; idx < call->getNumArgOperands(); ++idx) {
+  //            actuals.push_back(call->getArgOperand(idx));
+  //          }
+  //          vector<const llvm::Value *> formals;
+  //          for (unsigned idx = 0;
+  //               idx < call->getCalledFunction()->getNumOperands(); ++idx) {
+  //            formals.push_back(call->getCalledFunction()->getOperandUse(idx));
+  //          }
+  //
+  //          set<const llvm::Value *> res;
+  //          for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+  //            if (source == actuals[idx]) {
+  //              res.insert(formals[idx]);
+  //              res.insert(source);
+  //              res.insert(zerovalue);
+  //            }
+  //          }
+  //          return res;
+  //
+  //          if (source == zerovalue) {
+  //            unsigned argcounter = 0;
+  //            set<const llvm::Value *> res;
+  //            for (auto &actual : call->arg_operands()) {
+  //              for (auto &formal : call->getCalledFunction()->args()) {
+  //                //
+  //                if
+  //                //(&actual == source) {
+  //                //
+  //                res.insert(&formal);
+  //                //
+  //                }
+  //              }
+  //            }
+  //            res.insert(zerovalue);
+  //            return res;
+  //          }
+  //          return set<const llvm::Value *>{source};
+  //        }
+  //      };
+  //      return make_shared<TAFF>(call, zeroValue());
+  //      return Identity<const llvm::Value *>::v();
+  //    }
+  //    //		} else if (llvm::isa<llvm::InvokeInst>(callStmt)) {
+  //    //			// TODO handle invoke statement
+  //    //			return Identity<const llvm::Value*>::v();
+  //  }
   return Identity<const llvm::Value *>::v();
 }
 
@@ -265,18 +275,18 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-	static ZeroValue *zero = new ZeroValue;
-	return zero;
+  static ZeroValue *zero = new ZeroValue;
+  return zero;
 }
 
 string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {

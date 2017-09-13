@@ -4,8 +4,9 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIDETabulationProblem(icfg) {
+IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
+                                   vector<string> EntryPoints)
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -48,12 +49,12 @@ IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
@@ -98,9 +99,11 @@ IDETaintAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>> IDETaintAnalysis::getSummaryEdgeFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-    vector<const llvm::Value *> inputs, vector<bool> context) {
+shared_ptr<EdgeFunction<const llvm::Value *>>
+IDETaintAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                                         const llvm::Function *destMthd,
+                                         vector<const llvm::Value *> inputs,
+                                         vector<bool> context) {
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
@@ -140,10 +143,6 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
-  return "";
-}
+string IDETaintAnalysis::D_to_string(const llvm::Value *d) { return ""; }
 
-string IDETaintAnalysis::V_to_string(const llvm::Value *v) {
-  return "";
-}
+string IDETaintAnalysis::V_to_string(const llvm::Value *v) { return ""; }

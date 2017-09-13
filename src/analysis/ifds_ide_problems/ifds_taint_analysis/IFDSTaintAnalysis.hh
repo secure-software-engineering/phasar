@@ -7,9 +7,9 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../../utils/utils.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
@@ -35,6 +35,9 @@ using namespace std;
 class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
   struct SourceFunction {
     string name;
@@ -81,7 +84,7 @@ public:
 
   bool isSinkFunction(const llvm::Function *f);
 
-  IFDSTaintAnalysis(LLVMBasedICFG &icfg);
+  IFDSTaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSTaintAnalysis() = default;
 

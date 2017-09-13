@@ -7,10 +7,11 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZED_VARIABLES_IFDSUNINITIALIZEDVARIABLES_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZED_VARIABLES_IFDSUNINITIALIZEDVARIABLES_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
+#include "../../../utils/Logger.hh"
 #include "../../../utils/utils.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/IFDSSpecialSummaries.hh"
@@ -39,10 +40,12 @@ class IFDSUnitializedVariables
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
 private:
-  IFDSSummaryPool<const llvm::Value *> dynSum;
+  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
+  vector<string> EntryPoints;
 
 public:
-  IFDSUnitializedVariables(LLVMBasedICFG &icfg);
+  IFDSUnitializedVariables(LLVMBasedICFG &icfg,
+                           vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSUnitializedVariables() = default;
 
