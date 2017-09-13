@@ -7,15 +7,11 @@
 
 #include "IFDSSolverTest.hh"
 
-IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I)
+IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
-<<<<<<< HEAD
                                    LLVMBasedICFG &>(I),
       EntryPoints(EntryPoints) {
-=======
-                                   LLVMBasedICFG &>(I) {
->>>>>>> 57e0ca9c6b3073dc12435dd1a4b2eff0c970152f
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 

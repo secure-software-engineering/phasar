@@ -35,6 +35,9 @@ using namespace std;
 class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
   struct SourceFunction {
     string name;

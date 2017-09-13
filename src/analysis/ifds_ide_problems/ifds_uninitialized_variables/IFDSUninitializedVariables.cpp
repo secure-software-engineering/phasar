@@ -1,13 +1,8 @@
 #include "IFDSUninitializedVariables.hh"
 
-<<<<<<< HEAD
 IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg,
                                                    vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
-=======
-IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg)
-    : DefaultIFDSTabulationProblem(icfg) {
->>>>>>> 57e0ca9c6b3073dc12435dd1a4b2eff0c970152f
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 

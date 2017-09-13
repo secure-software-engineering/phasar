@@ -25,9 +25,10 @@ class InterMonotoneSolverTest
                                   LLVMBasedICFG &> {
 private:
   LLVMBasedICFG &ICFG;
+  vector<string> EntryPoints;
 
 public:
-  InterMonotoneSolverTest(LLVMBasedICFG &Icfg);
+  InterMonotoneSolverTest(LLVMBasedICFG &Icfg, vector<string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
   virtual MonoSet<const llvm::Value *>

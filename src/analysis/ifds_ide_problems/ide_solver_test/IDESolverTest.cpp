@@ -7,8 +7,8 @@
 
 #include "IDESolverTest.hh"
 
-IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg)
-    : DefaultIDETabulationProblem(icfg) {
+IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints)
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
