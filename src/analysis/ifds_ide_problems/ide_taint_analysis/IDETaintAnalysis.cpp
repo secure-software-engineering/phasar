@@ -4,9 +4,14 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
+<<<<<<< HEAD
 IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
                                    vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
+=======
+IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg)
+    : DefaultIDETabulationProblem(icfg) {
+>>>>>>> 57e0ca9c6b3073dc12435dd1a4b2eff0c970152f
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

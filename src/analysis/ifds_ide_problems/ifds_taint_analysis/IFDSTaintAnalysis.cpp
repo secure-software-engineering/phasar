@@ -38,9 +38,14 @@ bool IFDSTaintAnalysis::isSinkFunction(const llvm::Function *f) {
   return false;
 }
 
+<<<<<<< HEAD
 IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+=======
+IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg)
+    : DefaultIFDSTabulationProblem(icfg) {
+>>>>>>> 57e0ca9c6b3073dc12435dd1a4b2eff0c970152f
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
