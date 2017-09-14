@@ -69,9 +69,9 @@ public:
 	}
 
 	/**
-     * Returns, for a given target statement and value all associated
-     * source values, and for each the associated edge function.
-     * The return value is a mapping from source value to function.
+   * Returns, for a given target statement and value all associated
+   * source values, and for each the associated edge function.
+   * The return value is a mapping from source value to function.
 	 */
 	map<D, shared_ptr<EdgeFunction<L>>> reverseLookup(N target, D targetVal)
 	{
@@ -84,7 +84,7 @@ public:
 	/**
 	 * Returns, for a given source value and target statement all
 	 * associated target values, and for each the associated edge function.
-     * The return value is a mapping from target value to function.
+   * The return value is a mapping from target value to function.
 	 */
 	map<D, shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal, N target)
 	{

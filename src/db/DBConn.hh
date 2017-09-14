@@ -28,10 +28,13 @@
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 #include "../analysis/call-points-to_graph/LLVMStructTypeHierarchy.hh"
 #include "../analysis/call-points-to_graph/VTable.hh"
+#include <boost/graph/adjacency_list.hpp>
 #include "../utils/utils.hh"
 #include "../utils/IO.hh"
 #include "Hexastore.hh"
 #include "ProjectIRCompiledDB.hh"
+#include "Hexastore.hh"
+#include "PHSStringConverter.hh"
 
 #define CPREPARE(FUNCTION)                             \
   if (SQLITE_OK != FUNCTION) {                         \
@@ -105,6 +108,7 @@ class DBConn {
   //const string dbname;
   // Holds last return code from the database.
   int last_retcode;
+  ProjectIRCompiledDB* IRDB = nullptr;
   char* error_msg = 0;
   // static int resultSetCallBack(void* data, int argc, char** argv,
   //                              char** azColName);
@@ -152,6 +156,11 @@ class DBConn {
    * 	@return Error message.
    */
   string getLastErrorMsg();
+
+  // Function for ProjectIRCompiledDB / DBConn synchronization
+  void synchronize(ProjectIRCompiledDB* irdb);
+  void desynchronize();
+  bool isSynchronized();
 
   // API for querying the IR Modules ------------------------------------------
   // Functions for storing information away
@@ -339,7 +348,7 @@ class DBConn {
   // API for querying points-to information -----------------------------------
   // --------------------------------------------------------------------------
   friend void operator<<(DBConn& db, const PointsToGraph& PTG);
-  friend void operator>>(DBConn& db, const PointsToGraph& PTG);
+  friend void operator>>(DBConn& db, PointsToGraph& PTG);
 
   // API for querying call-graph information ----------------------------------
   // --------------------------------------------------------------------------

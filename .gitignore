@@ -12,6 +12,9 @@ obj/
 # doc/ directory
 doc/*
 
+# log/ directory
+log/*
+
 # CMake build dir
 build/*
 
@@ -24,10 +27,22 @@ build/*
 .settings/*
 .pydevproject
 
+# CLion
+.idea/*
+
 ##### ignored files
+
+# dot files
+*.dot
 
 # ignore all auto-generated LLVM IR code
 *.ll
+
+# ignore all auto-generated compile command databases
+compile_commands.json
+
+# ignore all auto-generated dot files
+*.dot
 
 # ignore all database files that the framework may creates
 *.db

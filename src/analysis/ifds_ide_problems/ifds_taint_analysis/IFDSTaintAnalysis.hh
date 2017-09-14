@@ -7,13 +7,16 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
+#include "../../../utils/utils.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
+#include "../../ifds_ide/ZeroValue.hh"
 #include "../../ifds_ide/flow_func/Gen.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
 #include "../../ifds_ide/flow_func/Kill.hh"
-#include "../../../utils/utils.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -24,16 +27,17 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string>
 #include <utility>
 #include <vector>
-#include "../../ifds_ide/ZeroValue.hh"
-#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
 using namespace std;
 
-class IFDSTaintAnalysis
-    : public DefaultIFDSTabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedICFG &> {
+class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
+                              const llvm::Instruction *, const llvm::Value *,
+                              const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
   struct SourceFunction {
     string name;
@@ -80,7 +84,7 @@ public:
 
   bool isSinkFunction(const llvm::Function *f);
 
-  IFDSTaintAnalysis(LLVMBasedICFG &icfg);
+  IFDSTaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSTaintAnalysis() = default;
 
@@ -106,6 +110,8 @@ public:
   initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
+
+  string D_to_string(const llvm::Value *d) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \

@@ -10,7 +10,7 @@
 
 #include <type_traits>
 #include <memory>
-#include "icfg/ICFG.hh"
+#include "../icfg/ICFG.hh"
 #include "IFDSTabulationProblem.hh"
 #include "EdgeFunctions.hh"
 #include "JoinLattice.hh"
@@ -22,6 +22,7 @@ class IDETabluationProblem : public IFDSTabulationProblem<N,D,M,I>,
 public:
 	virtual ~IDETabluationProblem() = default;
 	virtual shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
+	virtual string V_to_string(V v) = 0;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_IDETABLUATIONPROBLEM_HH_ */

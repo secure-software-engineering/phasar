@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <cassert>
 #include "../utils/utils.hh"
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
 using namespace std;
@@ -66,6 +67,7 @@ private:
    * 	@brief
    */
   ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
+  ProjectIRCompiledDB(ProjectIRCompiledDB&&) = default;
   ~ProjectIRCompiledDB() = default;
 
   /**
@@ -139,11 +141,18 @@ private:
    */
   PointsToGraph* getPointsToGraph(const string& name);
 
+  set<llvm::Module*> getAllModules();
+
+  size_t getNumberOfModules();
+
+  llvm::Module* getModuleDefiningFunction(const string& FName);
+
   /**
    * 	@brief Prints all modules and function identifier to the
    * 	       command-line.
    */
   void print();
+  void exportPATBCJSON();
 };
 
 #endif /* ANALYSIS_PROJECTIRCOMPILEDDB_HH_ */

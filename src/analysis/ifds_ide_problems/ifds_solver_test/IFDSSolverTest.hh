@@ -8,23 +8,29 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_
 #define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
+#include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../ifds_ide/icfg/LLVMBasedICFG.hh"
-#include "../../ifds_ide/ZeroValue.hh"
+#include "../../ifds_ide/flow_func/Gen.hh"
+#include "../../ifds_ide/flow_func/Kill.hh"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
-#include <memory>
-#include <vector>
 #include <map>
+#include <memory>
 #include <set>
+#include <string>
+#include <vector>
 using namespace std;
 
 class IFDSSolverTest : public DefaultIFDSTabulationProblem<
                            const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
-  IFDSSolverTest(LLVMBasedICFG &I);
+  IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints = {"main"});
   virtual ~IFDSSolverTest() = default;
   shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -52,6 +58,8 @@ public:
   initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
+
+  string D_to_string(const llvm::Value *d) override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_   \

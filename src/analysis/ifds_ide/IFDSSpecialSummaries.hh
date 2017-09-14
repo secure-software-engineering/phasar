@@ -27,6 +27,9 @@ private:
 	SSMap<string, shared_ptr<FlowFunction<D>>> SpecialSummaryMap;
 	vector<string> operators = {"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"};
 
+	// Constructs the SpecialSummaryMap such that it contains all glibc, 
+	// llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
+	// flow functions.
 	IFDSSpecialSummaries() {
 		string glibc = readFile(ConfigurationDirectory+GLIBCFunctionListFileName);
 		vector<string> glibcfunctions = splitString(glibc, "\n");
@@ -63,9 +66,9 @@ public:
 	 * Returns true, when an existing function is overwritten, false otherwise.
 	 */
 	bool provideCustomSpecialSummary(const string& name, shared_ptr<FlowFunction<D>> flowfunction) {
-		bool override = containsSpecialSummary(name);
+		bool Override = containsSpecialSummary(name);
 		SpecialSummaryMap[name] = flowfunction;
-		return override;
+		return Override;
 	}
 
 	bool containsSpecialSummary(const llvm::Function* function) {
@@ -73,7 +76,7 @@ public:
 	}
 
 	bool containsSpecialSummary(const string& name) {
-		return SpecialSummaryMap.find(name) != SpecialSummaryMap.end();
+		return SpecialSummaryMap.count(name);
 	}
 
 	shared_ptr<FlowFunction<D>> getSpecialSummary(const llvm::Function* function) {

@@ -1,7 +1,8 @@
 #include "IFDSTypeAnalysis.hh"
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIFDSTabulationProblem(icfg) {
+IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
+                                   vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -61,15 +62,19 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSTypeAnalysis::initialSeeds() {
-  const llvm::Function *mainfunction = icfg.getModule().getFunction("main");
-  const llvm::Instruction *firstinst = &(*(mainfunction->begin()->begin()));
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-	static ZeroValue *zero = new ZeroValue;
-	return zero;
+  static ZeroValue *zero = new ZeroValue;
+  return zero;
+}
+
+string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
 }

@@ -17,8 +17,8 @@
 using namespace std;
 
 /**
- * Allows the (de-)serialization of Instructions, Arguments and GlobalValue
- * into HexaStore string representation.
+ * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
+ * Operands into unique Hexastore string representation.
  *
  * What values can be serialized and what scheme is used?
  *
@@ -38,16 +38,36 @@ using namespace std;
  *
  *		<ZeroValueInternalName>
  *
+ *	5. Operand of an instruction
+ *
+ *		<function name>.<id>.o.<operand no>
+ *
+ * @brief Provides operations to create unique string representations of
+ *        llvm::Values (and vice versa) which are used in a Hexastore.
  */
 class PHSStringConverter {
 private:
 	ProjectIRCompiledDB& IRDB;
 
 public:
+	/**
+	 * @brief Creates an object of the converter.
+	 * @param IRDB Holds the neccessary information for (de-)serialization.
+	 */
 	PHSStringConverter(ProjectIRCompiledDB& IRDB);
+
 	~PHSStringConverter() = default;
+
+	/**
+	 * @brief Creates a unique string representation of a given llvm::Value.
+	 */
   string PToHStoreStringRep(const llvm::Value *V);
-  const llvm::Value *HStoreStringRepToP(const string &S);
+
+	/**
+	 * @brief Convertes the given string back into the llvm::Value it represents.
+	 * @return Pointer to the converted llvm::Value.
+	 */
+	const llvm::Value *HStoreStringRepToP(const string &S);
 };
 
 #endif

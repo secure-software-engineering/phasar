@@ -9,6 +9,8 @@
 
 LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
     const ProjectIRCompiledDB& IRDB) {
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy";
   for (auto& module_entry : IRDB.modules) {
     const llvm::Module& M = *(module_entry.second);
     analyzeModule(M);
@@ -22,6 +24,9 @@ LLVMStructTypeHierarchy::LLVMStructTypeHierarchy(
 }
 
 void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Reconstruct virtual function table for module: "
+                           << M.getModuleIdentifier();
   const static string vtable_for = "vtable for ";
   llvm::Module& m = const_cast<llvm::Module&>(M);
   for (auto& global : m.globals()) {
@@ -49,33 +54,6 @@ void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
                 // cout << struct_name << ": " << vfunc->getName().str() <<
                 // endl;
                 vtable_map[struct_name].addEntry(vfunc->getName().str());
-                // } else {
-                // here is another way to find the type name starting with the
-                // vtable
-                //   // if it is not a function, it is the corresponding
-                //   typeinfo
-                //   if (llvm::GlobalVariable* typeinfo =
-                //   llvm::dyn_cast<llvm::GlobalVariable>(constant_expr->getOperand(0)))
-                //   {
-                //     llvm::Constant* typeinfo_init =
-                //     typeinfo->getInitializer();
-                //     if (llvm::ConstantExpr* gep_typename =
-                //     llvm::dyn_cast<llvm::ConstantExpr>(typeinfo_init->getOperand(1)))
-                //     {
-                //       llvm::Value* name = gep_typename->getOperand(0);
-                //       if (llvm::GlobalVariable* glbl_name =
-                //       llvm::dyn_cast<llvm::GlobalVariable>(name)) {
-                //         llvm::ConstantDataArray* literal =
-                //         llvm::dyn_cast<llvm::ConstantDataArray>(glbl_name->getInitializer());
-                //         cout << "TYPE is: " << literal->getAsCString().str()
-                //         << endl;
-                //         string demangled_struct_prefixed_name = "struct." +
-                //         cxx_demangle(literal->getAsCString().str());
-                //         cout << "demangled TYPE is: " <<
-                //         demangled_struct_prefixed_name << endl;
-                //       }
-                //   }
-                // }
               }
             }
           }
@@ -86,6 +64,9 @@ void LLVMStructTypeHierarchy::reconstructVTable(const llvm::Module& M) {
 }
 
 void LLVMStructTypeHierarchy::analyzeModule(const llvm::Module& M) {
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Analyse types in module: "
+                           << M.getModuleIdentifier();
   auto StructTypes = M.getIdentifiedStructTypes();
   for (auto StructType : StructTypes) {
     // only add a new vertex to the graph if the type is currently unknown!
@@ -137,6 +118,10 @@ string LLVMStructTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
   return "";
 }
 
+VTable LLVMStructTypeHierarchy::getVTable(string TypeName) {
+  return vtable_map[TypeName];
+}
+
 bool LLVMStructTypeHierarchy::hasSuperType(string TypeName,
                                            string SuperTypeName) {
   cout << "NOT SUPPORTED YET" << endl;
@@ -153,17 +138,31 @@ bool LLVMStructTypeHierarchy::containsVTable(string TypeName) const {
   return iter != vtable_map.end();
 }
 
+bool LLVMStructTypeHierarchy::containsType(string TypeName) {
+  return recognized_struct_types.count(TypeName);
+}
+
+string LLVMStructTypeHierarchy::getPlainTypename(string TypeName) {
+  // types are named something like: 'struct.MyType' or 'struct.MyType.base'
+  string cutPrefix = TypeName.substr(TypeName.find(".") + 1, TypeName.size());
+  if (size_t dot = cutPrefix.find(".") != string::npos) {
+    // we also have to cut off the suffix
+    return cutPrefix.substr(dot + 1, cutPrefix.size());
+  }
+  return cutPrefix;
+}
+
 void LLVMStructTypeHierarchy::print() {
   cout << "LLVMSructTypeHierarchy graph:\n";
   boost::print_graph(
       g, boost::get(&LLVMStructTypeHierarchy::VertexProperties::name, g));
   cout << "\nVTables:\n";
   if (vtable_map.empty()) {
-  	cout << "EMPTY\n";
+    cout << "EMPTY\n";
   } else {
-  	for (auto entry : vtable_map) {
-    	cout << entry.first << " contains\n" << entry.second << endl;
-  	}
+    for (auto entry : vtable_map) {
+      cout << entry.first << " contains\n" << entry.second << endl;
+    }
   }
 }
 
@@ -178,4 +177,10 @@ void LLVMStructTypeHierarchy::printTransitiveClosure() {
   boost::transitive_closure(g, tc);
   boost::print_graph(
       tc, boost::get(&LLVMStructTypeHierarchy::VertexProperties::name, g));
+}
+
+json LLVMStructTypeHierarchy::exportPATBCJSON() {
+  auto& lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "LLVMStructTypeHierarchy::exportPATBCJSON()";
+  return "{ \"test\": \"example\" }"_json;
 }

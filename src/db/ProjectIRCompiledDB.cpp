@@ -105,66 +105,68 @@ void ProjectIRCompiledDB::linkForWPA() {
 	// Therefore we must load all modules into one single context and then perform
 	// the linkage. This is still very fast compared to compiling and pre-processing
 	// all modules.
-	llvm::Module* MainMod = getModuleContainingFunction("main");
-	if (!MainMod) {
-		cout << "could not find main() function!\n";
-		HEREANDNOW;
-		DIE_HARD;
-	}
-	for (auto& entry : modules) {
-		// we do not want to link a module with itself!
-		if (MainMod != entry.second.get()) {
-			// reload the modules into the module containing the main function
-			string IRBuffer;
-			llvm::raw_string_ostream RSO(IRBuffer);
-			llvm::WriteBitcodeToFile(entry.second.get(), RSO);
-			RSO.flush();
-			llvm::SMDiagnostic ErrorDiagnostics;
-			unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(IRBuffer);
-			unique_ptr<llvm::Module> TmpMod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
-			bool broken_debug_info = false;
-			if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
-				cout << "module is broken!\nabort!" << endl;
-				DIE_HARD;
-			}
-			if (broken_debug_info) {
-				cout << "debug info is broken" << endl;
-			}
-			// now we can safely perform the linking
-			if (llvm::Linker::linkModules(*MainMod, move(TmpMod), llvm::Linker::LinkOnlyNeeded)) {
-				cout << "ERROR when try to link modules for WPA module!" << endl;
-				DIE_HARD;
-			}
-		}
-	}
-	// Update the IRDB reflecting that we now only need 'MainMod' and its corresponding context!
-  // delete every other module
-  for (auto it = modules.begin(); it != modules.end();) {
-  	if (it->second.get() != MainMod) {
-  		it = modules.erase(it);
-  	} else {
-  		++it;
-  	}
+  if (modules.size() > 1) {
+	  llvm::Module* MainMod = getModuleDefiningFunction("main");
+	  assert(MainMod && "could not find main function");
+	  for (auto& entry : modules) {
+	  	// we do not want to link a module with itself!
+	  	if (MainMod != entry.second.get()) {
+	  		// reload the modules into the module containing the main function
+	  		string IRBuffer;
+	  		llvm::raw_string_ostream RSO(IRBuffer);
+	  		llvm::WriteBitcodeToFile(entry.second.get(), RSO);
+	  		RSO.flush();
+	  		llvm::SMDiagnostic ErrorDiagnostics;
+	  		unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(IRBuffer);
+	  		unique_ptr<llvm::Module> TmpMod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
+	  		bool broken_debug_info = false;
+	  		if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
+	  			cout << "module is broken!\nabort!" << endl;
+	  			DIE_HARD;
+	  		}
+	  		if (broken_debug_info) {
+	  			cout << "debug info is broken" << endl;
+	  		}
+	  		// now we can safely perform the linking
+	  		if (llvm::Linker::linkModules(*MainMod, move(TmpMod), llvm::Linker::LinkOnlyNeeded)) {
+	  			cout << "ERROR when try to link modules for WPA module!" << endl;
+	  			DIE_HARD;
+	  		}
+	  	}
+    }
+	  // Update the IRDB reflecting that we now only need 'MainMod' and its corresponding context!
+    // delete every other module
+    for (auto it = modules.begin(); it != modules.end();) {
+    	if (it->second.get() != MainMod) {
+    		it = modules.erase(it);
+    	} else {
+    		++it;
+    	}
+    }
+	  // delete every other context
+    for (auto it = contexts.begin(); it != contexts.end();) {
+    	if (it->second.get() != &MainMod->getContext()) {
+    		it = contexts.erase(it);
+    	} else {
+    		++it;
+    	}
+    }
+    // update functions
+    for (auto& entry : functions) {
+    	entry.second = MainMod->getModuleIdentifier();
+    }
+    // update globals
+    for (auto& entry : globals) {
+    	entry.second = MainMod->getModuleIdentifier();
+    }
+    cout << "remaining contexts: " << contexts.size() << endl;
+    cout << "remaining modules: " << modules.size() << endl;
+	  WPAMOD = MainMod;
+  } else if (modules.size() == 1) {
+    // In this case we only have one module anyway, so we do not have
+    // to link at all. But we have to the the WPAMOD pointer!
+    WPAMOD = modules.begin()->second.get();
   }
-	// delete every other context
-  for (auto it = contexts.begin(); it != contexts.end();) {
-  	if (it->second.get() != &MainMod->getContext()) {
-  		it = contexts.erase(it);
-  	} else {
-  		++it;
-  	}
-  }
-  // update functions
-  for (auto& entry : functions) {
-  	entry.second = MainMod->getModuleIdentifier();
-  }
-  // update globals
-  for (auto& entry : globals) {
-  	entry.second = MainMod->getModuleIdentifier();
-  }
-  cout << "remaining contexts: " << contexts.size() << endl;
-  cout << "remaining modules: " << modules.size() << endl;
-	WPAMOD = MainMod;
 }
 
 llvm::Module* ProjectIRCompiledDB::getWPAModule() {
@@ -203,23 +205,46 @@ bool ProjectIRCompiledDB::containsSourceFile(const string& src) {
 }
 
 llvm::LLVMContext* ProjectIRCompiledDB::getLLVMContext(const string& name) {
-	return contexts[name].get();
+  if (contexts.count(name))
+  	return contexts[name].get();
+  return nullptr;
 }
 
 llvm::Module* ProjectIRCompiledDB::getModule(const string& name) {
-	return modules[name].get();
+  if (modules.count(name))
+    return modules[name].get();
+  return nullptr;
 }
 
-llvm::Module* ProjectIRCompiledDB::getModuleContainingFunction(const string& name) {
-	return modules[functions[name]].get();
+set<llvm::Module*> ProjectIRCompiledDB::getAllModules() {
+	set<llvm::Module*> ModuleSet;
+	for (auto& entry : modules) {
+		ModuleSet.insert(entry.second.get());
+	}
+	return ModuleSet;
+}
+
+size_t ProjectIRCompiledDB::getNumberOfModules() {
+  return modules.size();
+}
+
+llvm::Module* ProjectIRCompiledDB::getModuleDefiningFunction(const string& name) {
+  if (functions.count(name)) {
+    return modules[functions[name]].get();
+  }
+	return nullptr;
 }
 
 llvm::Function* ProjectIRCompiledDB::getFunction(const string& name) {
-	return modules[functions[name]]->getFunction(name);
+  if (functions.count(name))
+  	return modules[functions[name]]->getFunction(name);
+  return nullptr;
 }
 
 llvm::GlobalVariable* ProjectIRCompiledDB::getGlobalVariable(const string& name) {
-	return modules[globals[name]]->getGlobalVariable(name);
+  if (globals.count(name))
+  	return modules[globals[name]]->getGlobalVariable(name);
+  return nullptr;
 }
 
 llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
@@ -228,7 +253,9 @@ llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
 }
 
 PointsToGraph* ProjectIRCompiledDB::getPointsToGraph(const string& name) {
-	return ptgs[name].get();
+  if (ptgs.count(name))
+    return ptgs[name].get();
+  return nullptr;
 }
 
 void ProjectIRCompiledDB::print() {
@@ -241,4 +268,8 @@ void ProjectIRCompiledDB::print() {
   for (auto entry : functions) {
     cout << entry.first << " defined in module " << entry.second << endl;
   }
+}
+
+void ProjectIRCompiledDB::exportPATBCJSON() {
+  cout << "ProjectIRCompiledDB::exportPATBCJSON\n";
 }

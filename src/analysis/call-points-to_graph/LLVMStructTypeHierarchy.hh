@@ -27,6 +27,7 @@
 #include <vector>
 #include "../../db/DBConn.hh"
 #include "../../db/ProjectIRCompiledDB.hh"
+#include "../../utils/Logger.hh"
 #include "VTable.hh"
 using namespace std;
 
@@ -148,6 +149,8 @@ class LLVMStructTypeHierarchy {
    */
   bool hasSuperType(string TypeName, string SuperTypeName);
 
+  VTable getVTable(string TypeName);
+
   /**
    * 	@brief Checks if one of the given types is a sub-type of the
    * 	       other given type.
@@ -181,6 +184,12 @@ class LLVMStructTypeHierarchy {
    * 	@param path Path where the .dot file is created.
    */
   void printAsDot(const string& path = "struct_type_hierarchy.dot");
+
+  bool containsType(string TypeName);
+  
+  string getPlainTypename(string TypeName);
+  
+  json exportPATBCJSON();
 
   // these are defined in the DBConn class
   /**

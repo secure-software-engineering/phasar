@@ -10,7 +10,7 @@
 
 #include "../IDETabluationProblem.hh"
 #include "IDESolver.hh"
-#include "../icfg/ICFG.hh"
+#include "../../icfg/ICFG.hh"
 
 template <class D, class V, class I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction*,
@@ -20,11 +20,12 @@ class LLVMIDESolver : public IDESolver<const llvm::Instruction*,
 									   I> {
 private:
 	const bool DUMP_RESULTS;
+	IDETabluationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& Problem;
 
 public:
 	LLVMIDESolver(IDETabluationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& problem, bool dumpResults=false)
 			    : IDESolver<const llvm::Instruction*,D,const llvm::Function*,V,I>(problem),
-				  DUMP_RESULTS(dumpResults) {}
+				  DUMP_RESULTS(dumpResults), Problem(problem) {}
 
 	virtual ~LLVMIDESolver() = default;
 
@@ -112,6 +113,9 @@ public:
 		}
 	}
 
+	void exportPATBCJSON() {
+		cout << "LLVMIDESolver::exportPATBCJSON()\n";
+	}
 };
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_ */

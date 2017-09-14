@@ -10,7 +10,8 @@
 
 bool  GeneralStatisticsPass::runOnModule(llvm::Module& M)
 {
-	std::cout << "running GeneralStatisticsPass ...\n";
+	auto& lg = lg::get();
+	BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
 	const std::set<std::string> mem_allocating_functions = { "operator new(unsigned long)",
 																												   "operator new[](unsigned long)",
 																													 "malloc",
@@ -23,6 +24,18 @@ bool  GeneralStatisticsPass::runOnModule(llvm::Module& M)
 		    for (auto& I : BB) {
 		    	// found one more instruction
 		    	++instructions;
+          // check for alloca instruction for possible types
+          if (const llvm::AllocaInst* alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            allocatedTypes.insert(alloc->getAllocatedType());
+          } // check bitcast instructions for possible types
+          else {
+            for (auto user : I.users()) {
+              if (const llvm::BitCastInst* cast = llvm::dyn_cast<llvm::BitCastInst>(user)) {
+                // types.insert(cast->getDestTy());
+              }
+            }
+          }
+
 		    	// check for function calls
 		    	if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
 		    		++callsites;
@@ -57,7 +70,12 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module& M)
 	llvm::outs() << "allocation sites: " << allocationsites << "\n";
 	llvm::outs() << "calls-sites: " << callsites << "\n";
 	llvm::outs() << "pointer variables: " << pointers << "\n";
-	llvm::outs() << "instructions: " << instructions << "\n\n";
+	llvm::outs() << "instructions: " << instructions << "\n";
+  llvm::outs() << "allocated types:\n";
+  for (auto type : allocatedTypes) {
+    type->dump();
+  }
+  llvm::outs() << "\n\n";
 	return false;
 }
 
@@ -72,4 +90,8 @@ size_t GeneralStatisticsPass::getFunctioncalls() { return callsites; }
 size_t GeneralStatisticsPass::getInstructions() { return instructions; }
 
 size_t GeneralStatisticsPass::getPointers() { return pointers; }
+
+set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
+	return allocatedTypes;
+}
 
