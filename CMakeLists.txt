@@ -7,7 +7,7 @@ set(CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libstdc++ -Wno-unknown-warning-option -O
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 project (sse_dfa_llvm)
 
-find_package(Boost COMPONENTS filesystem system program_options log REQUIRED)
+find_package(Boost COMPONENTS filesystem system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
