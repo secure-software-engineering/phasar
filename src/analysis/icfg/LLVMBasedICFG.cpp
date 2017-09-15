@@ -41,6 +41,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 														 "ResolveStragegy: " << R;
 	for (auto& EntryPoint : EntryPoints) {
 			llvm::Function* F = IRDB.getFunction(EntryPoint);
+			if(F == nullptr)
+			 throw ios_base::failure("Could not retrieve llvm::Function for entry point");
 			PointsToGraph& ptg = *IRDB.getPointsToGraph(EntryPoint);
 			WholeModulePTG.mergeWith(ptg, F);
 			Walker.at(W)(this, F);
