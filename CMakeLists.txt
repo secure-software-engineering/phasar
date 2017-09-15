@@ -91,6 +91,9 @@ file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils STATIC ${SRC_UTILS} )
 target_link_libraries(utils ${ALL_LIBS})
 
+file(GLOB_RECURSE SRC_PLUGIN src/analysis/plugins/*.cxx src/analysis/plugins/*.hh)
+add_library(IFDSTabulationProblemTestPlugin SHARED ${SRC_PLUGIN})
+set_target_properties(IFDSTabulationProblemTestPlugin PROPERTIES PREFIX "")
 
 add_executable(main  src/main.cpp)
 
