@@ -16,6 +16,7 @@
 #include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
+#include "../../ifds_ide/ZeroValue.hh"
 using namespace std;
 
 class IFDSTabulationProblemPlugin
@@ -36,6 +37,10 @@ class IFDSTabulationProblemPlugin
     // create a special value to represent the zero value!
     static ZeroValue *zero = new ZeroValue;
     return zero;
+  }
+
+  bool isZeroValue(const llvm::Value *d) override {
+    return isLLVMZeroValue(d);
   }
 
   string D_to_string(const llvm::Value *d) override {
