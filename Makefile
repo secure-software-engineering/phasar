@@ -18,6 +18,7 @@ CXX_FLAGS += -MP
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
 CXX_FLAGS += -O3 #-O4
 CXX_FLAGS += -march=native
+CXX_FLAGS += -fPIC
 CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
@@ -125,7 +126,7 @@ format-code:
 TEST_PLUGIN := src/analysis/plugins/IFDSTabulationProblemTestPlugin
 plugin: $(OBJ)
 	@echo "comiling plugins into shared object libraries ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined $^ $(TEST_PLUGIN).cxx $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $(TEST_PLUGIN).so $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined $^ $(TEST_PLUGIN).cxx $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) $(SOL_LIBS) -o $(TEST_PLUGIN).so $(THREAD_MODEL)
 
 # this target is testing only
 plugin-clean:
