@@ -18,6 +18,7 @@
 #include "../../../utils/Table.hh"
 #include "../EdgeFunction.hh"
 #include "../EdgeFunctions.hh"
+#include "../FlowEdgeFunctionCache.hh"
 #include "../FlowFunctions.hh"
 #include "../IDETabluationProblem.hh"
 #include "../IFDSSpecialSummaries.hh"
@@ -141,7 +142,7 @@ public:
 		unordered_map<D, V> result = valtab.row(stmt);
 		if (stripZero) {
     	for (auto& pair : result) {
-    		if (isZeroValue(pair.first))
+    		if (ideTabluationProblem.isZeroValue(pair.first))
     			result.erase(pair.first);
 			}
 		}
@@ -696,7 +697,7 @@ protected:
     // note: we propagate that way only values that originate from ZERO, as
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this condition
-    if (followReturnPastSeeds && inc.empty() && isZeroValue(d1)) {
+    if (followReturnPastSeeds && inc.empty() && ideTabluationProblem.isZeroValue(d1)) {
       set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
@@ -858,7 +859,7 @@ protected:
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       pathEdgeProcessingTask(edge);
-      if (targetVal != zeroValue) {
+      if (!ideTabluationProblem.isZeroValue(target)) {
         BOOST_LOG_SEV(lg, DEBUG) << "EDGE: targetVal != zeroValue";
         //            	cout << icfg.getMethodOf(target)->getName() << endl;
         //            	sourceVal->dump();

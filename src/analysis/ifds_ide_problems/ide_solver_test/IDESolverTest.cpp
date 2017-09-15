@@ -68,6 +68,10 @@ const llvm::Value *IDESolverTest::createZeroValue() {
   return zero;
 }
 
+bool IDESolverTest::isZeroValue(const llvm::Value* d) {
+  return isLLVMZeroValue(d);
+}
+
 // in addition provide specifications for the IDE parts
 
 shared_ptr<EdgeFunction<const llvm::Value *>>

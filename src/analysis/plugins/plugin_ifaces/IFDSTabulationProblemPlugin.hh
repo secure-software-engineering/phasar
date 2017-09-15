@@ -8,37 +8,42 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_
 
-#include <memory>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
+#include <memory>
 #include <string>
 #include "../../../lib/LLVMShorthands.hh"
-#include <llvm/IR/Function.h>
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
 using namespace std;
 
-class IFDSTabulationProblemPlugin : public DefaultIFDSTabulationProblem<const llvm::Instruction*,
-																																				const llvm::Value*,
-																																				const llvm::Function*,
-																																				LLVMBasedICFG&> {
-public:
-	IFDSTabulationProblemPlugin(LLVMBasedICFG& ICFG) : DefaultIFDSTabulationProblem<const llvm::Instruction*,
-																																									const llvm::Value*,
-																																									const llvm::Function*,
-																																									LLVMBasedICFG&>(ICFG) {
-		DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+class IFDSTabulationProblemPlugin
+    : public DefaultIFDSTabulationProblem<
+          const llvm::Instruction *, const llvm::Value *,
+          const llvm::Function *, LLVMBasedICFG &> {
+ public:
+  IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG)
+      : DefaultIFDSTabulationProblem<const llvm::Instruction *,
+                                     const llvm::Value *,
+                                     const llvm::Function *, LLVMBasedICFG &>(
+            ICFG) {
+    DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 	}
+	~IFDSTabulationProblemPlugin() = default;
 
-	const llvm::Value *createZeroValue() {
-		// cout << "IFDSSolverTest::createZeroValue()\n";
-	  // // create a special value to represent the zero value!
-	  // static ZeroValue *zero = new ZeroValue;
-		// return zero;
-		return nullptr;
-	}
+  const llvm::Value *createZeroValue() override {
+    // create a special value to represent the zero value!
+    static ZeroValue *zero = new ZeroValue;
+    return zero;
+  }
+
+  string D_to_string(const llvm::Value *d) override {
+    return llvmIRToString(d);
+  }
 };
 
-extern "C" unique_ptr<IFDSTabulationProblemPlugin> createIFDSTabulationProblemPlugin(LLVMBasedICFG& I);
+extern "C" unique_ptr<IFDSTabulationProblemPlugin>
+createIFDSTabulationProblemPlugin(LLVMBasedICFG &I);
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */

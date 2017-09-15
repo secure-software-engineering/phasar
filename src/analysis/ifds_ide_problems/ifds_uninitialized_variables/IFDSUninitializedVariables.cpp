@@ -321,6 +321,10 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   return zero;
 }
 
+bool IFDSUnitializedVariables::isZeroValue(const llvm::Value* d) {
+  return isLLVMZeroValue(d);
+}
+
 string IFDSUnitializedVariables::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }

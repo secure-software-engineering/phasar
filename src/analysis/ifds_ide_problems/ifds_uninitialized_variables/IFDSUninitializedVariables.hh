@@ -76,6 +76,8 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
+  bool isZeroValue(const llvm::Value* d) override;
+
   string D_to_string(const llvm::Value *d) override;
 };
 

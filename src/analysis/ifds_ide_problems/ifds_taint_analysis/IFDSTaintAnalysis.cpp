@@ -289,6 +289,10 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   return zero;
 }
 
+bool IFDSTaintAnalysis::isZeroValue(const llvm::Value* d) {
+  return isLLVMZeroValue(d);
+}
+
 string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }

@@ -4,7 +4,7 @@ PHSStringConverter::PHSStringConverter(ProjectIRCompiledDB &IRDB)
     : IRDB(IRDB) {}
 
 string PHSStringConverter::PToHStoreStringRep(const llvm::Value *V) {
-	if (isZeroValue(V)) {
+	if (isLLVMZeroValue(V)) {
 		return ZeroValueInternalName;
 	} else if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);

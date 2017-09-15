@@ -78,6 +78,10 @@ public:
 		return problem.zeroValue();
 	}
 
+	bool isZeroValue(D d) override {
+		return problem.isZeroValue(d);
+	}
+
 	BinaryDomain topElement() override {
 		return BinaryDomain::TOP;
 	}

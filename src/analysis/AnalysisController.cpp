@@ -177,6 +177,25 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
     ICFG.printAsDot("interproc_cfg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
+
+    // TODO PLUGIN TESTING
+    // Use test Makefile targets: 'plugin' and 'plugin-clean' to test
+    // The call to 'dlopen()' in the SOL constructor causes program 
+    // termination and error message:
+    // """
+    // : CommandLine Error: Option 'enable-value-profiling' registered more than once!
+    // LLVM ERROR: inconsistency in registered CommandLine options
+    // """
+    // This seems to be an internal compiler/ linker error :-/
+    // SOL PluginSOL("/home/philipp/GIT-Repos/sse_dfa_llvm/src/analysis/plugins/IFDSTabulationProblemTestPlugin.so");
+    // auto ProblemFactory = 
+    //    PluginSOL.loadSymbol<unique_ptr<IFDSTabulationProblemPlugin> (*)(LLVMBasedICFG&)>("createIFDSTabulationProblemPlugin");
+    // unique_ptr<IFDSTabulationProblemPlugin> AnalysisProblem = ProblemFactory(ICFG);
+    // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> PluginSolver(*AnalysisProblem, true);
+    // PluginSolver.solve();
+    // return;
+    // END PLUGIN TESTING
+
     /*
      * Perform all the analysis that the user has chosen.
      */

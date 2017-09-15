@@ -77,6 +77,8 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
+  bool isZeroValue(const llvm::Value* d) override;
+
   // in addition provide specifications for the IDE parts
 
   shared_ptr<EdgeFunction<const llvm::Value *>> getNormalEdgeFunction(

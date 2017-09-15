@@ -21,7 +21,7 @@ CXX_FLAGS += -march=native
 CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
-CXX_FLAGS += -g
+#CXX_FLAGS += -g
 CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
@@ -59,6 +59,7 @@ LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions -std=c++14
 # Thread model to use
 THREAD_MODEL := -pthread
 # Libraries to link against
+SOL_LIBS := -ldl
 SQLITE3_LIBS := -lsqlite3
 CURL_LIBS := -lcurl
 GTEST_LIBS := -lgtest
@@ -104,7 +105,7 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
-	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
@@ -120,10 +121,15 @@ format-code:
 	@echo "formatting the project using clang-format ..."
 	python3 $(SCRIPT_AUTOFORMAT)
 
-# this target currently exists just for testing purposes
-# plugins:
-#	@echo "comiling plugins into shared object libraries ..."
-#	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined src/analysis/plugins/IFDSTabulationProblemTestPlugin.cpp -L$(LIB_CXX) $(LLVM_LIBS) $(BOOST_LIBS) -o src/analysis/plugins/IFDSTabulationProblemTestPlugin.so
+# this target is testing only
+TEST_PLUGIN := src/analysis/plugins/IFDSTabulationProblemTestPlugin
+plugin: $(OBJ)
+	@echo "comiling plugins into shared object libraries ..."
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined $^ $(TEST_PLUGIN).cxx $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $(TEST_PLUGIN).so $(THREAD_MODEL)
+
+# this target is testing only
+plugin-clean:
+	rm -f $(TEST_PLUGIN).so
 
 hello:
 	@echo "Hello World!"
