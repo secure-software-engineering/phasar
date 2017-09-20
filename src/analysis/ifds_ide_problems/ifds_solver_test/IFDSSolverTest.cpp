@@ -75,7 +75,7 @@ const llvm::Value *IFDSSolverTest::createZeroValue() {
   return zero;
 }
 
-bool IFDSSolverTest::isZeroValue(const llvm::Value* d) {
+bool IFDSSolverTest::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

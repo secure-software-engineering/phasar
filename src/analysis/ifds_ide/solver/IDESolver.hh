@@ -21,11 +21,11 @@
 #include "../FlowEdgeFunctionCache.hh"
 #include "../FlowFunctions.hh"
 #include "../IDETabluationProblem.hh"
-#include "../IFDSSpecialSummaries.hh"
 #include "../JoinLattice.hh"
 #include "../ZeroedFlowFunction.hh"
 #include "../edge_func/EdgeIdentity.hh"
 #include "../solver/JumpFunctions.hh"
+#include "../../../lib/LLVMShorthands.hh"
 #include "JoinHandlingNode.hh"
 #include "LinkedNode.hh"
 #include "PathEdge.hh"
@@ -151,8 +151,6 @@ public:
 
 private:
   IDETabluationProblem<N, D, M, V, I> &ideTabluationProblem;
-  IFDSSpecialSummaries<D> &specialSummaries =
-      IFDSSpecialSummaries<D>::getInstance();
   bool recordEdges;
   size_t flowFunctionConstructionCount = 0;
   size_t flowFunctionApplicationCount = 0;
@@ -213,10 +211,7 @@ private:
         if (autoAddZero) {
           summary = make_shared<ZeroedFlowFunction<D>>(summary, zeroValue);
         }
-				BOOST_LOG_SEV(lg, DEBUG) << "Found special summary";
-				BOOST_LOG_SEV(lg, DEBUG) << "Process summary flow";
-        if (edge.factAtSource() == nullptr)
-					BOOST_LOG_SEV(lg, DEBUG) << "fact at source is nullptr";
+				BOOST_LOG_SEV(lg, DEBUG) << "Found and process special summary";
         shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
         auto successorInst = icfg.getSuccsOf(n);
         for (auto m : successorInst) {
@@ -488,8 +483,8 @@ private:
   {
 		auto &lg = lg::get();
 		propagationCount++;
-		auto calltype = icfg.isCallStmt(edge.getTarget());
-		if (calltype == CallType::none) {
+		bool isCall = icfg.isCallStmt(edge.getTarget());
+		if (!isCall) {
 			if (icfg.isExitStmt(edge.getTarget())) {
         BOOST_LOG_SEV(lg, DEBUG) << "process exit";
         processExit(edge);
@@ -498,31 +493,10 @@ private:
         BOOST_LOG_SEV(lg, DEBUG) << "process normal flow";
         processNormalFlow(edge);
       }
-		}
-		if (calltype == CallType::call) {
-    	// Just a normal function call.
-      /*
-       * Here we can do the following:
-       * 	1. Process as usual and just process the call
-       * 	2. Create a new summary for that function (which shall be done
-       * by the problem)
-       * 	3. Just use an existing summary provided by the problem
-       * 	4. If a special function is called, use a special summary
-       * function
-       */
+		} else {
 			BOOST_LOG_SEV(lg, DEBUG) << "process call";
       processCall(edge);
-		}
-		/*
-     * Here we have to plug-in place holders to denote that the
-     * called function is not yet available! As soon as it is available
-     * it should be plugged in and information may be re-propagated.
-     */
-    if (calltype == CallType::unavailable) {
-			BOOST_LOG_SEV(lg, DEBUG) << "called function not available";
-		}
-		// Everything else does not make sense!
-		BOOST_LOG_SEV(lg, CRITICAL) << "unrecognized call type";
+    }
   }
 
 	// should be made a callable at some point
@@ -535,7 +509,7 @@ private:
         unbalancedRetSites.count(n)) {
       propagateValueAtStart(nAndD, n);
     }
-    if (icfg.isCallStmt(n) == CallType::call) {
+    if (icfg.isCallStmt(n)) {
       propagateValueAtCall(nAndD, n);
     }
   }
@@ -860,14 +834,10 @@ protected:
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       pathEdgeProcessingTask(edge);
       if (!ideTabluationProblem.isZeroValue(target)) {
-        BOOST_LOG_SEV(lg, DEBUG) << "EDGE: targetVal != zeroValue";
-        //            	cout << icfg.getMethodOf(target)->getName() << endl;
-        //            	sourceVal->dump();
-        //            	target->dump();
-        //            	targetVal->dump();
-        // cout << "{} - EDGE: <{},{}> -> <{},{}> - {}" <<
-        // icfg.getMethodOf(target), sourceVal, target, targetVal, fPrime <<
-        // endl;
+        BOOST_LOG_SEV(lg, DEBUG) << "<" << target->getFunction()->getName().str() << ", " 
+                                 << llvmIRToString(sourceVal) << "> -> <"
+                                 << llvmIRToString(target) << ", "
+                                 << llvmIRToString(targetVal) << ">";
       }
     }
   }

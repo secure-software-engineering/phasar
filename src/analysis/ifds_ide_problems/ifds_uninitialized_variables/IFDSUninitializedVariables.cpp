@@ -321,7 +321,7 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   return zero;
 }
 
-bool IFDSUnitializedVariables::isZeroValue(const llvm::Value* d) {
+bool IFDSUnitializedVariables::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

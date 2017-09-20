@@ -39,7 +39,7 @@ class IFDSTabulationProblemPlugin
     return zero;
   }
 
-  bool isZeroValue(const llvm::Value *d) override {
+  bool isZeroValue(const llvm::Value *d) const override {
     return isLLVMZeroValue(d);
   }
 

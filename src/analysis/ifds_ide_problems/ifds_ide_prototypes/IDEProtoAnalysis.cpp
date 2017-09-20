@@ -71,7 +71,7 @@ const llvm::Value *IDEProtoAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IDEProtoAnalysis::isZeroValue(const llvm::Value* d) {
+bool IDEProtoAnalysis::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

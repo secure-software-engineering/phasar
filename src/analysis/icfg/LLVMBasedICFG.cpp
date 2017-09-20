@@ -461,12 +461,30 @@ set<const llvm::Instruction*> LLVMBasedICFG::getCallsFromWithin(
  */
 set<const llvm::Instruction*> LLVMBasedICFG::getStartPointsOf(
     const llvm::Function* m) {
-  return { &m->front().front() };
+	if (!m->isDeclaration()) {
+		return { &m->front().front() };
+	} else {
+		auto &lg = lg::get();
+		BOOST_LOG_SEV(lg, DEBUG) << 
+			"Could not get start points of '" 
+			<< m->getName().str() 
+			<< "' which is declaration!";
+		return {};
+	}
 }
 
 set<const llvm::Instruction*> LLVMBasedICFG::getExitPointsOf(
 		const llvm::Function* fun) {
+	if (!fun->isDeclaration()) {
 	return { &fun->back().back() };
+	} else {
+		auto &lg = lg::get();
+		BOOST_LOG_SEV(lg, DEBUG) << 
+			"Could not get exit points of '"
+			<< fun->getName().str()
+			<< "' which is declaration!";
+		return {};
+	}
 }
 
 /**
@@ -495,17 +513,11 @@ LLVMBasedICFG::getReturnSitesOfCallAt(
   return ReturnSites;
 }
 
-CallType LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
+bool LLVMBasedICFG::isCallStmt(const llvm::Instruction* stmt) {
 	if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
-		set<const llvm::Function*> Callees = getCalleesOfCallAt(stmt);
-		for (auto Callee : Callees) {
-			if (Callee->isDeclaration()) {
-				return CallType::unavailable;
-			}
-		}
-		return CallType::call;
+		return true;
 	} else {
-		return CallType::none;
+		return false;
 	}
 }
 
@@ -618,6 +630,10 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
 
 void LLVMBasedICFG::exportPATBCJSON() {
 	cout << "LLVMBasedICFG::exportPATBCJSON()\n";
+}
+
+PointsToGraph &LLVMBasedICFG::getWholeModulePTG() {
+	return WholeModulePTG;
 }
 
 vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {

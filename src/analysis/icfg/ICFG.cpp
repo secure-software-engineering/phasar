@@ -13,23 +13,6 @@ const map<string, CallGraphAnalysisType> CallGraphAnalysisTypeMap = { { "CHA", C
 																																			{ "VTA", CallGraphAnalysisType::VTA },
 																																			{ "OTF", CallGraphAnalysisType::OTF } };
 
-ostream& operator<<(ostream& os, const CallType& CT) {
-	switch (CT) {
-	case CallType::none:
-		return os << "CallType::none";
-		break;
-	case CallType::call:
-		return os << "CallType::call";
-		break;
-	case CallType::unavailable:
-		return os << "CallType::unavailable";
-		break;
-	default:
-		return os << "CallType::error";
-		break;
-	}
-}
-
 ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
 	switch (CGA) {
 		case CallGraphAnalysisType::CHA:

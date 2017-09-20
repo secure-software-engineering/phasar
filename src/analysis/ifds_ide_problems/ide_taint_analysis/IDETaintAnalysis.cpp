@@ -63,7 +63,7 @@ const llvm::Value *IDETaintAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IDETaintAnalysis::isZeroValue(const llvm::Value* d) {
+bool IDETaintAnalysis::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

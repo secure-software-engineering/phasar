@@ -68,7 +68,7 @@ const llvm::Value *IDESolverTest::createZeroValue() {
   return zero;
 }
 
-bool IDESolverTest::isZeroValue(const llvm::Value* d) {
+bool IDESolverTest::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

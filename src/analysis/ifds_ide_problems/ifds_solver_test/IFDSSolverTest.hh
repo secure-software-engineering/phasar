@@ -59,7 +59,7 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value* d) override;
+  bool isZeroValue(const llvm::Value* d) const override;
 
   string D_to_string(const llvm::Value *d) override;
 };

@@ -75,7 +75,7 @@ const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IFDSTypeAnalysis::isZeroValue(const llvm::Value* d) {
+bool IFDSTypeAnalysis::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

@@ -61,7 +61,7 @@ public:
 
       MonoSet<D> Out;
       // handle call and call-to-ret flow
-      if (ICFG.isCallStmt(src) == CallType::call) {
+      if (ICFG.isCallStmt(src)) {
         if (!isIntraEdge(edge)) {
           Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
         } else {
@@ -79,14 +79,14 @@ public:
                                    Analysis[src]);
       }
       // handle normal flow
-      if (ICFG.isCallStmt(src) != CallType::call && !ICFG.isExitStmt(src)) {
+      if (!ICFG.isCallStmt(src) && !ICFG.isExitStmt(src)) {
         Out = IMProblem.normalFlow(src, Analysis[src]);
       }
       // check if data-flow facts have changed
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         // handle function call
-        if (ICFG.isCallStmt(dst) == CallType::call) {
+        if (ICFG.isCallStmt(dst)) {
           for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
             // add call edges
             for (auto first_inst : ICFG.getStartPointsOf(callee)) {

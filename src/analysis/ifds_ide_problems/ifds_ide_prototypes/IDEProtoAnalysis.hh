@@ -70,7 +70,7 @@ class IDEProtoAnalysis
 
   const llvm::Value *createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value* d) override;
+  bool isZeroValue(const llvm::Value* d) const override;
 
   // in addition provide specifications for the IDE parts
 

@@ -180,18 +180,23 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
 
     // TODO PLUGIN TESTING
     // Use test Makefile targets: 'plugin' and 'plugin-clean' to test
-    // The call to 'dlopen()' in the SOL constructor causes program 
+    // The call to 'dlopen()' in the SOL constructor causes program
     // termination and error message:
     // """
-    // : CommandLine Error: Option 'enable-value-profiling' registered more than once!
+    // : CommandLine Error: Option 'enable-value-profiling' registered more than
+    // once!
     // LLVM ERROR: inconsistency in registered CommandLine options
     // """
     // This seems to be an internal compiler/ linker error :-/
-    // SOL PluginSOL("/home/philipp/GIT-Repos/sse_dfa_llvm/src/analysis/plugins/IFDSTabulationProblemTestPlugin.so");
-    // auto ProblemFactory = 
-    //    PluginSOL.loadSymbol<unique_ptr<IFDSTabulationProblemPlugin> (*)(LLVMBasedICFG&)>("createIFDSTabulationProblemPlugin");
-    // unique_ptr<IFDSTabulationProblemPlugin> AnalysisProblem = ProblemFactory(ICFG);
-    // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> PluginSolver(*AnalysisProblem, true);
+    // SOL
+    // PluginSOL("/home/philipp/GIT-Repos/sse_dfa_llvm/src/analysis/plugins/IFDSTabulationProblemTestPlugin.so");
+    // auto ProblemFactory =
+    //    PluginSOL.loadSymbol<unique_ptr<IFDSTabulationProblemPlugin>
+    //    (*)(LLVMBasedICFG&)>("createIFDSTabulationProblemPlugin");
+    // unique_ptr<IFDSTabulationProblemPlugin> AnalysisProblem =
+    // ProblemFactory(ICFG);
+    // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&>
+    // PluginSolver(*AnalysisProblem, true);
     // PluginSolver.solve();
     // return;
     // END PLUGIN TESTING
@@ -202,40 +207,46 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
       switch (analysis) {
-        case DataFlowAnalysisType::IFDS_TaintAnalysis: {  // caution: observer
-                                                          // '{' and '}' we work
-                                                          // in another scope
+        case DataFlowAnalysisType::IFDS_TaintAnalysis: {
           IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtaintsolver(
               taintanalysisproblem, true);
           llvmtaintsolver.solve();
+          // Here we can get the leaks
+          map<const llvm::Instruction*, set<const llvm::Value*>> Leaks =
+              taintanalysisproblem.Leaks;
+          BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+          if (Leaks.empty()) {
+            BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+          } else {
+            for (auto Leak : Leaks) {
+              string ModuleName = getModuleFromVal(Leak.first)->getModuleIdentifier();
+              BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
+                                      << llvmIRToString(Leak.first)
+                                      << "' in file: '"
+                                      << ModuleName << "'";
+              for (auto LeakValue : Leak.second) {
+                BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+              }
+            }
+          }
           break;
         }
-        case DataFlowAnalysisType::IDE_TaintAnalysis: {  // caution: observer
-                                                         // '{' and '}' we work
-                                                         // in another scope
+        case DataFlowAnalysisType::IDE_TaintAnalysis: {
           IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
           LLVMIDESolver<const llvm::Value*, const llvm::Value*, LLVMBasedICFG&>
               llvmtaintsolver(taintanalysisproblem, true);
           llvmtaintsolver.solve();
           break;
         }
-        case DataFlowAnalysisType::IFDS_TypeAnalysis: {  // caution: observer
-                                                         // '{' and '}' we work
-                                                         // in another scope
+        case DataFlowAnalysisType::IFDS_TypeAnalysis: {
           IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmtypesolver(
               typeanalysisproblem, true);
           llvmtypesolver.solve();
           break;
         }
-        case DataFlowAnalysisType::IFDS_UninitializedVariables: {  // caution:
-                                                                   // observer
-                                                                   // '{' and
-                                                                   // '}' we
-                                                                   // work in
-                                                                   // another
-                                                                   // scope
+        case DataFlowAnalysisType::IFDS_UninitializedVariables: {
           cout << "HERE I AM!" << endl;
           IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
@@ -423,12 +434,13 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             // LLVMIFDSSummaryGenerator/ IFDSSummaryGenerator!
             // Check and test the summary generation:
             for (auto& Fname : I.getDependencyOrderedFunctions()) {
-              BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname << "'\n";
+              BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname
+                                      << "'\n";
               LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
-                 Generator(M->getFunction(Fname), I,
-                           SummaryGenerationCTXStrategy::all_and_none);
+                  Generator(M->getFunction(Fname), I,
+                            SummaryGenerationCTXStrategy::all_and_none);
             }
-            //Pool.insert(Generator.generateSummaryFlowFunction());
+            // Pool.insert(Generator.generateSummaryFlowFunction());
             BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
             break;
           }

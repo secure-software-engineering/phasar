@@ -275,7 +275,7 @@ public:
   set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
-  CallType isCallStmt(const llvm::Instruction *stmt) override;
+  bool isCallStmt(const llvm::Instruction *stmt) override;
 
   set<const llvm::Instruction *> allNonCallStartNodes() override;
 
@@ -295,6 +295,8 @@ public:
   void printInternalPTGAsDot(const string &filename);
 
   void exportPATBCJSON();
+
+  PointsToGraph &getWholeModulePTG();
 
   vector<string> getDependencyOrderedFunctions();
 };

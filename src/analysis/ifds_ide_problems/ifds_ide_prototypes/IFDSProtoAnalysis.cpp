@@ -76,7 +76,7 @@ const llvm::Value *IFDSProtoAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IFDSProtoAnalysis::isZeroValue(const llvm::Value* d) {
+bool IFDSProtoAnalysis::isZeroValue(const llvm::Value* d) const {
   return isLLVMZeroValue(d);
 }
 

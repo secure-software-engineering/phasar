@@ -29,4 +29,6 @@ string getMetaDataID(const llvm::Instruction*);
 
 const llvm::Argument* getNthFunctionArgument(const llvm::Function* F, unsigned argNo);
 
+const llvm::Module* getModuleFromVal(const llvm::Value* V);
+
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

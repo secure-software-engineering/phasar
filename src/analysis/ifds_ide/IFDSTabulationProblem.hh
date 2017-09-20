@@ -26,7 +26,7 @@ public:
   virtual I interproceduralCFG() = 0;
   virtual map<N, set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
-  virtual bool isZeroValue(D d) = 0;
+  virtual bool isZeroValue(D d) const = 0;
   virtual string D_to_string(D d) = 0;
 };
 

@@ -78,7 +78,7 @@ public:
 		return problem.zeroValue();
 	}
 
-	bool isZeroValue(D d) override {
+	bool isZeroValue(D d) const override {
 		return problem.isZeroValue(d);
 	}
 
@@ -104,7 +104,7 @@ public:
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getNormalEdgeFunction(N src,D srcNode,N tgt,D tgtNode) override {
 		cout << "getNormalEdgeFunction()\n";
-		if(srcNode==problem.zeroValue())
+		if(problem.isZeroValue(srcNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
@@ -112,7 +112,7 @@ public:
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getCallEdgeFunction(N callStmt,D srcNode,M destinationMethod,D destNode) override {
 		cout << "getCallEdgeFunction()\n";
-		if(srcNode==problem.zeroValue())
+		if(problem.isZeroValue(srcNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
@@ -120,7 +120,7 @@ public:
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getReturnEdgeFunction(N callSite, M calleeMethod,N exitStmt,D exitNode,N returnSite,D retNode) override {
 		cout << "getReturnEdgeFunction()\n";
-		if(exitNode==problem.zeroValue())
+		if(problem.isZeroValue(exitNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
@@ -128,7 +128,7 @@ public:
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getCallToReturnEdgeFunction(N callStmt,D callNode,N returnSite,D returnSideNode) override {
 		cout << "getCallToReturnEdgeFunction()\n";
-		if(callNode==problem.zeroValue())
+		if(problem.isZeroValue(callNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
@@ -136,7 +136,7 @@ public:
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override {
 		cout << "getSummaryEdgeFunction()\n";
-		// if(srcNode==problem.zeroValue())
+		// if(problem.isZeroValue(srcNode))
 			// return ALL_BOTTOM;
 		// else
 			return EdgeIdentity<BinaryDomain>::v();
