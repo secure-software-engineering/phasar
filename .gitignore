@@ -55,6 +55,9 @@ compile_commands.json
 *.*~
 *.dwo
 
+# Header dependency files
+*.d
+
 # Object files
 *.slo
 *.lo
