@@ -177,30 +177,6 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
     ICFG.printAsDot("interproc_cfg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
-
-    // TODO PLUGIN TESTING
-    // Use test Makefile targets: 'plugin' and 'plugin-clean' to test
-    // The call to 'dlopen()' in the SOL constructor causes program
-    // termination and error message:
-    // """
-    // : CommandLine Error: Option 'enable-value-profiling' registered more than
-    // once!
-    // LLVM ERROR: inconsistency in registered CommandLine options
-    // """
-    // This seems to be an internal compiler/ linker error :-/
-    // SOL
-    // PluginSOL("/home/philipp/GIT-Repos/sse_dfa_llvm/src/analysis/plugins/IFDSTabulationProblemTestPlugin.so");
-    // auto ProblemFactory =
-    //    PluginSOL.loadSymbol<unique_ptr<IFDSTabulationProblemPlugin>
-    //    (*)(LLVMBasedICFG&)>("createIFDSTabulationProblemPlugin");
-    // unique_ptr<IFDSTabulationProblemPlugin> AnalysisProblem =
-    // ProblemFactory(ICFG);
-    // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&>
-    // PluginSolver(*AnalysisProblem, true);
-    // PluginSolver.solve();
-    // return;
-    // END PLUGIN TESTING
-
     /*
      * Perform all the analysis that the user has chosen.
      */
@@ -220,11 +196,11 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
           } else {
             for (auto Leak : Leaks) {
-              string ModuleName = getModuleFromVal(Leak.first)->getModuleIdentifier();
+              string ModuleName =
+                  getModuleFromVal(Leak.first)->getModuleIdentifier();
               BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
                                       << llvmIRToString(Leak.first)
-                                      << "' in file: '"
-                                      << ModuleName << "'";
+                                      << "' in file: '" << ModuleName << "'";
               for (auto LeakValue : Leak.second) {
                 BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
               }
@@ -298,6 +274,9 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           break;
         }
         case DataFlowAnalysisType::Plugin: {
+          AnalysisPlugin(VariablesMap["analysis_interface"].as<string>(),
+                         VariablesMap["analysis_plugin"].as<string>(), ICFG,
+                         EntryPoints);
           break;
         }
         case DataFlowAnalysisType::None: {
@@ -461,6 +440,10 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           }
           case DataFlowAnalysisType::MONO_Inter_SolverTest: {
             throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::Plugin: {
+            throw invalid_argument("Plugin summary generation not supported yet");
             break;
           }
           case DataFlowAnalysisType::None: {

@@ -95,7 +95,10 @@ void validateParamAnalysisPlugin(const string &plugin) {
 }
 
 void validateParamAnalysisInterface(const string &iface) {
-  // TODO implement once the common plug-in interfaces are specified!
+  if (!AvailablePluginInterfaces.count(iface)) {
+    throw bpo::error_with_option_name("'" + iface +
+                                      "' is not a valid plugin interface");
+  }
 }
 
 void validateParamConfig(const string &cfg) {
@@ -140,7 +143,7 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
+			("analysis_interface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
 			("config", bpo::value<string>()->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
@@ -162,7 +165,7 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
+			("analysis_interface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
     bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions),
@@ -188,11 +191,20 @@ int main(int argc, const char **argv) {
               "analysis.\n";
       return 1;
     }
-    if (VariablesMap.count("analysis_plugin") !=
-        VariablesMap.count("analysis_interface")) {
-      cerr << "If an analysis plug-in is specified the corresponding interface "
-              "must be specified as well\n";
-      return 1;
+    // validate plugin concept, if an analysis plugin is chosen, the plugin
+    // interface
+    // and plugin itself must also be specified.
+    if (VariablesMap.count("data_flow_analysis")) {
+      if (find(VariablesMap["data_flow_analysis"].as<vector<string>>().begin(),
+               VariablesMap["data_flow_analysis"].as<vector<string>>().end(),
+               "plugin") !=
+              VariablesMap["data_flow_analysis"].as<vector<string>>().end() &&
+          (!VariablesMap.count("analysis_plugin") ||
+           !VariablesMap.count("analysis_interface"))) {
+        cerr << "If an analysis plugin is chosen, the plugin interface and "
+                "plugin itself must also be specified.\n";
+        return 1;
+      }
     }
   } catch (const bpo::error &e) {
     cerr << "error: could not parse program options\n"
@@ -201,8 +213,10 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  vector<DataFlowAnalysisType> ChosenDataFlowAnalyses;
+  vector<DataFlowAnalysisType> ChosenDataFlowAnalyses = {
+      DataFlowAnalysisType::None};
   if (VariablesMap.count("data_flow_analysis")) {
+    ChosenDataFlowAnalyses.clear();
     for (auto &DataFlowAnalysis :
          VariablesMap["data_flow_analysis"].as<vector<string>>()) {
       if (DataFlowAnalysisTypeMap.count(DataFlowAnalysis)) {

@@ -13,6 +13,7 @@
 #include <llvm/IR/Value.h>
 #include <memory>
 #include <string>
+#include <vector>
 #include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
@@ -23,12 +24,15 @@ class IFDSTabulationProblemPlugin
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
+protected:
+  vector<string> EntryPoints;
+
  public:
-  IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG)
+  IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG, vector<string> EntryPoints = {"main"})
       : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                      const llvm::Value *,
                                      const llvm::Function *, LLVMBasedICFG &>(
-            ICFG) {
+            ICFG), EntryPoints(EntryPoints) {
     DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 	}
 	~IFDSTabulationProblemPlugin() = default;
@@ -49,6 +53,6 @@ class IFDSTabulationProblemPlugin
 };
 
 extern "C" unique_ptr<IFDSTabulationProblemPlugin>
-createIFDSTabulationProblemPlugin(LLVMBasedICFG &I);
+createIFDSTabulationProblemPlugin(LLVMBasedICFG &I, vector<string> EntryPoints);
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */

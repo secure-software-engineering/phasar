@@ -23,6 +23,7 @@ CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-may
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
 #CXX_FLAGS += -g
+#CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
@@ -126,10 +127,11 @@ format-code:
 TEST_PLUGIN := src/analysis/plugins/IFDSTabulationProblemTestPlugin
 plugin: $(OBJ)
 	@echo "comiling plugins into shared object libraries ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined $^ $(TEST_PLUGIN).cxx $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) $(SOL_LIBS) -o $(TEST_PLUGIN).so $(THREAD_MODEL)
+	clang++ $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $(TEST_PLUGIN).cxx -o $(TEST_PLUGIN).so
 
 # this target is testing only
 plugin-clean:
+	rm -f $(TEST_PLUGIN).d
 	rm -f $(TEST_PLUGIN).so
 
 hello:

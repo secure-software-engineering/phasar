@@ -12,7 +12,7 @@
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
  public:
-  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I);
+  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I, vector<string> EntryPoints);
   ~IFDSTabulationProblemTestPlugin() = default;
   shared_ptr<FlowFunction<const llvm::Value *>> getNormalFlowFunction(
       const llvm::Instruction *curr, const llvm::Instruction *succ) override;

@@ -1,20 +1,21 @@
 #include "SOL.hh"
 
-SOL::SOL(const string& path) {
-  cout << path.c_str() << endl;
-  cout << "TRYING TO LOAD SO LIB" << endl;
-  so_handle = dlopen(path.c_str(), RTLD_LAZY); // TODO this line causes crash :-(
+SOL::SOL(const string &path) : path(path) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Loading shared object library: '" << path << "'";
+  so_handle = dlopen(path.c_str(), RTLD_LAZY);
   if (!so_handle) {
     cerr << dlerror() << '\n';
-    throw runtime_error("could not open shared object library");
+    throw runtime_error("could not open shared object library: '" + path + "'");
   }
-  dlerror();  // clear existing errors
+  dlerror(); // clear existing errors
 }
 
 SOL::~SOL() {
   if ((error = dlerror()) != NULL) {
     cerr << error << '\n';
-    throw runtime_error("shared object library has problems");
+    throw runtime_error("encountered problems with shared object library: '" +
+                        path + "'");
   }
   dlclose(so_handle);
 }
