@@ -8,7 +8,7 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_
 #define ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_
 
-#include "../IDETabluationProblem.hh"
+#include "../IDETabulationProblem.hh"
 #include "IDESolver.hh"
 #include "../../icfg/ICFG.hh"
 
@@ -20,10 +20,10 @@ class LLVMIDESolver : public IDESolver<const llvm::Instruction*,
 									   I> {
 private:
 	const bool DUMP_RESULTS;
-	IDETabluationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& Problem;
+	IDETabulationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& Problem;
 
 public:
-	LLVMIDESolver(IDETabluationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& problem, bool dumpResults=false)
+	LLVMIDESolver(IDETabulationProblem<const llvm::Instruction*,D,const llvm::Function*,V,I>& problem, bool dumpResults=false)
 			    : IDESolver<const llvm::Instruction*,D,const llvm::Function*,V,I>(problem),
 				  DUMP_RESULTS(dumpResults), Problem(problem) {}
 

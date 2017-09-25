@@ -19,7 +19,7 @@ IDETaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IDETaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                      const llvm::Function *destMthd) {
   return Identity<const llvm::Value *>::v();
 }

@@ -28,9 +28,9 @@ IFDSProtoAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IFDSProtoAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                       const llvm::Function *destMthd) {
-  cout << "IFDSProtoAnalysis::getCallFlowFuntion()\n";
+  cout << "IFDSProtoAnalysis::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 

@@ -22,9 +22,9 @@ IDESolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDESolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IDESolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
                                   const llvm::Function *destMthd) {
-  cout << "IDESolverTest::getCallFlowFuntion()\n";
+  cout << "IDESolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 

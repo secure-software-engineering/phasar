@@ -23,9 +23,9 @@ IDEProtoAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDEProtoAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IDEProtoAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                      const llvm::Function *destMthd) {
-  cout << "IDEProtoAnalysis::getCallFlowFuntion()\n";
+  cout << "IDEProtoAnalysis::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 

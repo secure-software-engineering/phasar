@@ -34,7 +34,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 														 WalkerStrategy WS,
                 						 ResolveStrategy RS,
 														 const vector<string>& EntryPoints)
-		: CH(STH), IRDB(IRDB), W(WS), R(RS) {
+		: W(WS), R(RS), CH(STH), IRDB(IRDB) {
 	auto& lg = lg::get();
 	BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
 														 "WalkerStrategy: " << W << " and "
@@ -59,7 +59,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMStructTypeHierarchy& STH,
 														 WalkerStrategy WS,
                 						 ResolveStrategy RS,
 														 vector<string> EntryPoints)
-		: CH(STH), IRDB(IRDB), W(WS), R(RS) {
+		: W(WS), R(RS), CH(STH), IRDB(IRDB) {
 	auto& lg = lg::get();
 	BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
 														 "WalkerStrategy: " << W << " and "

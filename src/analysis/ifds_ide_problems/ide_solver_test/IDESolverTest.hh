@@ -50,7 +50,7 @@ public:
                         const llvm::Instruction *succ) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallFlowFuntion(const llvm::Instruction *callStmt,
+  getCallFlowFunction(const llvm::Instruction *callStmt,
                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>

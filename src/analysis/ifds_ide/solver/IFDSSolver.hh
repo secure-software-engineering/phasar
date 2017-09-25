@@ -15,7 +15,7 @@
 #include <set>
 #include <type_traits>
 #include "IDESolver.hh"
-#include "../IDETabluationProblem.hh"
+#include "../IDETabulationProblem.hh"
 #include "../IFDSTabulationProblem.hh"
 #include "../EdgeFunction.hh"
 #include "../edge_func/EdgeIdentity.hh"
@@ -34,7 +34,7 @@ extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
  * a binary lattice.
  */
 template<class N, class D, class M, class I>
-class IFDSToIDETabulationProblem : public IDETabluationProblem<N, D, M, BinaryDomain, I> {
+class IFDSToIDETabulationProblem : public IDETabulationProblem<N, D, M, BinaryDomain, I> {
 public:
 	IFDSTabulationProblem<N,D,M,I>& problem;
 
@@ -50,8 +50,8 @@ public:
 		return problem.getNormalFlowFunction(curr, succ);
 	}
 
-	shared_ptr<FlowFunction<D>> getCallFlowFuntion(N callStmt, M destMthd) override {
-		return problem.getCallFlowFuntion(callStmt, destMthd);
+	shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) override {
+		return problem.getCallFlowFunction(callStmt, destMthd);
 	}
 
 	shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) override {

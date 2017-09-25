@@ -20,7 +20,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IFDSTypeAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                      const llvm::Function *destMthd) {
   cout << "type analysis getCallFlowFunction()" << endl;
   struct TAFF : FlowFunction<const llvm::Value *> {

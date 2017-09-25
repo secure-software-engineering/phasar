@@ -27,9 +27,9 @@ IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IFDSSolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
                                    const llvm::Function *destMthd) {
-  cout << "IFDSSolverTest::getCallFlowFuntion()\n";
+  cout << "IFDSSolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 

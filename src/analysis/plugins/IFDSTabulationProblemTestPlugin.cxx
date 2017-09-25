@@ -26,9 +26,9 @@ IFDSTabulationProblemTestPlugin::getNormalFlowFunction(
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTabulationProblemTestPlugin::getCallFlowFuntion(
+IFDSTabulationProblemTestPlugin::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  cout << "IFDSTabulationProblemTestPlugin::getCallFlowFuntion()\n";
+  cout << "IFDSTabulationProblemTestPlugin::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 

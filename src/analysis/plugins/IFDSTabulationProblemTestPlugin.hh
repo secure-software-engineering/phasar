@@ -17,7 +17,7 @@ class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
   shared_ptr<FlowFunction<const llvm::Value *>> getNormalFlowFunction(
       const llvm::Instruction *curr, const llvm::Instruction *succ) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getCallFlowFuntion(
+  shared_ptr<FlowFunction<const llvm::Value *>> getCallFlowFunction(
       const llvm::Instruction *callStmt,
       const llvm::Function *destMthd) override;
 

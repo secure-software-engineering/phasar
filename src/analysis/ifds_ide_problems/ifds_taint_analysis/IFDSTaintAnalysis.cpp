@@ -119,7 +119,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
+IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                       const llvm::Function *destMthd) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallFlowFunction()";
