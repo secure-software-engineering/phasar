@@ -73,7 +73,7 @@ public:
         auto callsites = ICFG.getPredsOf(dst);
         auto callsite = (callsites.size() == 1) ? callsites[0] : nullptr;
         assert(callsite && "call-site not valid!");
-        assert(ICFG.isCallStmt(callsite) == CallType::call &&
+        assert(ICFG.isCallStmt(callsite) &&
                "call-site not found!");
         Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst,
                                    Analysis[src]);
