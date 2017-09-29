@@ -90,6 +90,20 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
               return {source, pointerop};
             }
           }
+	  if (const llvm::Instruction *inst =
+                  llvm::dyn_cast<llvm::Instruction>(use)) {
+	    for (auto &operand : inst->operands()) {
+	      if (operand == source) {
+		  return {source, pointerop};
+	      }
+	    }
+	    for (auto &operand : inst->operands()) {
+	      if (const llvm::UndefValue *undef =
+		  llvm::dyn_cast<llvm::UndefValue>(operand)) {
+		  return {source, pointerop};
+	      }
+	    }
+	  }
         }
         // otherwise the value is initialized through this store and thus can be
         // killed
