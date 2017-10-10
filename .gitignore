@@ -97,3 +97,7 @@ compile_commands.json
 
 # Emacs convenience metadata
 TAGS
+
+# config files
+config/compiler_info.txt
+config/standard_header_paths.conf
