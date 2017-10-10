@@ -292,10 +292,11 @@ IFDSUnitializedVariables::getSummaryFlowFunction(
     vector<const llvm::Value *> inputs, vector<bool> context) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getSummaryFlowFunction()";
-  IFDSSpecialSummaries<const llvm::Value *> &SpecialSum =
-      IFDSSpecialSummaries<const llvm::Value *>::getInstance();
+  SpecialSummaries<const llvm::Value *, BinaryDomain> &SpecialSum =
+      SpecialSummaries<const llvm::Value *, BinaryDomain>::getInstance();
   if (SpecialSum.containsSpecialSummary(destMthd)) {
-    return SpecialSum.getSpecialSummary(destMthd);
+    // return SpecialSum.getSpecialFlowFunctionSummary(destMthd);
+    return nullptr;
   } else {
     return nullptr;
   }
@@ -327,4 +328,12 @@ bool IFDSUnitializedVariables::isZeroValue(const llvm::Value* d) const {
 
 string IFDSUnitializedVariables::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
+}
+
+string IFDSUnitializedVariables::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSUnitializedVariables::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
 }

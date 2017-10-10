@@ -147,6 +147,18 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDETaintAnalysis::D_to_string(const llvm::Value *d) { return ""; }
+string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
+  return llvmIRToString(d);
+}
 
-string IDETaintAnalysis::V_to_string(const llvm::Value *v) { return ""; }
+string IDETaintAnalysis::V_to_string(const llvm::Value *v) { 
+  return llvmIRToString(v);
+}
+
+string IDETaintAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IDETaintAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
+}

@@ -24,7 +24,9 @@ enum class CallGraphAnalysisType {
   OTF
 };
 
-extern const map<string, CallGraphAnalysisType> CallGraphAnalysisTypeMap;
+extern const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType;
+
+extern const map<CallGraphAnalysisType, string> CallGraphAnalysisTypeToString;
 
 ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA);
 

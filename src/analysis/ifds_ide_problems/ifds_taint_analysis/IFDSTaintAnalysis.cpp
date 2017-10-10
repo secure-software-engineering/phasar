@@ -316,14 +316,14 @@ IFDSTaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
                                           const llvm::Function *destMthd,
                                           vector<const llvm::Value *> inputs,
                                           vector<bool> context) {
-  IFDSSpecialSummaries<const llvm::Value *> &specialSummaries =
-      IFDSSpecialSummaries<const llvm::Value *>::getInstance();
+  SpecialSummaries<const llvm::Value *> &specialSummaries =
+      SpecialSummaries<const llvm::Value *>::getInstance();
   string FunctionName = destMthd->getName().str();
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
   if (specialSummaries.containsSpecialSummary(FunctionName) &&
       !Sources.count(FunctionName) && !Sinks.count(FunctionName)) {
-    return specialSummaries.getSpecialSummary(FunctionName);
+    return specialSummaries.getSpecialFlowFunctionSummary(FunctionName);
   } else {
     // Otherwise we indicate, that not special summary exists
     // and the solver thus calls the call flow function instead
@@ -358,4 +358,12 @@ bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {
 
 string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
+}
+
+string IFDSTaintAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSTaintAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
 }

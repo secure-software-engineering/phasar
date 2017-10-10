@@ -82,3 +82,11 @@ bool IFDSTypeAnalysis::isZeroValue(const llvm::Value* d) const {
 string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }
+
+string IFDSTypeAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSTypeAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
+}

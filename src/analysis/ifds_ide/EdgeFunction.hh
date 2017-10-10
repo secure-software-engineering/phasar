@@ -9,6 +9,7 @@
 #define ANALYSIS_IFDS_IDE_EDGEFUNCTION_HH_
 
 #include <iostream>
+#include <string>
 
 template<class V>
 class EdgeFunction {
@@ -24,6 +25,8 @@ public:
 	virtual bool equalTo(shared_ptr<EdgeFunction<V>> other) = 0;
 
 	virtual void dump() { std::cout << "edge function\n"; }
+
+	virtual string toString() { return "edge function"; }
 };
 
 #endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTION_HH_ */

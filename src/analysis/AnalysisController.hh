@@ -10,8 +10,11 @@
 #include "icfg/LLVMBasedCFG.hh"
 #include "icfg/LLVMBasedICFG.hh"
 #include "ifds_ide/LLVMIFDSSummaryGenerator.hh"
+#include "ifds_ide/solver/IDESummaryGenerator.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"
+#include "misc/Summaries.hh"
+#include "ifds_ide/IDESummaries.hh"
 #include "ifds_ide_problems/ide_solver_test/IDESolverTest.hh"
 #include "ifds_ide_problems/ide_taint_analysis/IDETaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_solver_test/IFDSSolverTest.hh"
@@ -75,13 +78,17 @@ enum class DataFlowAnalysisType {
   None
 };
 
-extern const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap;
+extern const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
+
+extern const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString;
 
 ostream &operator<<(ostream &os, const DataFlowAnalysisType &k);
 
 enum class ExportType { JSON = 0 };
 
-extern const map<string, ExportType> ExportTypeMap;
+extern const map<string, ExportType> StringToExportType;
+
+extern const map<ExportType, string> ExportTypeToString;
 
 ostream &operator<<(ostream &os, const ExportType &e);
 

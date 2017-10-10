@@ -179,3 +179,11 @@ string IDEProtoAnalysis::D_to_string(const llvm::Value *d) {
 string IDEProtoAnalysis::V_to_string(const llvm::Value *v) {
   return llvmIRToString(v);
 }
+
+string IDEProtoAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IDEProtoAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
+}

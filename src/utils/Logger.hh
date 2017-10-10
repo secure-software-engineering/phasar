@@ -41,6 +41,10 @@ namespace bfs = boost::filesystem;
 
 enum severity_level { DEBUG = 0, INFO, WARNING, ERROR, CRITICAL };
 
+extern const map<string, severity_level> StringToSeverityLevel;
+
+extern const map<severity_level, string> SeverityLevelToString;
+
 ostream &operator<<(ostream &os, enum severity_level l);
 
 // Register the logger and use it a singleton then, get the logger with:

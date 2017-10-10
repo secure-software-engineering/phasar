@@ -7,10 +7,22 @@
 
 #include "Logger.hh"
 
+const map<string, severity_level> StringToSeverityLevel = {
+    {"DEBUG", DEBUG},
+    {"INFO", INFO},
+    {"WARNING", WARNING},
+    {"ERROR", ERROR},
+    {"CRITICAL", CRITICAL}};
+
+const map<severity_level, string> SeverityLevelToString = {
+    {DEBUG, "DEBUG"},
+    {INFO, "INFO"},
+    {WARNING, "WARNING"},
+    {ERROR, "ERROR"},
+    {CRITICAL, "CRITICAL"}};
+
 ostream &operator<<(ostream &os, enum severity_level l) {
-  static const array<string, 5> strings = {
-      {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}};
-  return os << strings.at(l);
+  return os << SeverityLevelToString.at(l);
 }
 
 bool LogFilter(const bl::attribute_value_set &set) {
@@ -32,7 +44,8 @@ void LoggerExceptionHandler::operator()(const std::exception &ex) const {
 void initializeLogger(bool use_logger) {
   // Using this call, logging can be enabled or disabled
   bl::core::get()->set_logging_enabled(use_logger);
-  typedef bl::sinks::asynchronous_sink<bl::sinks::text_ostream_backend> text_sink;
+  typedef bl::sinks::asynchronous_sink<bl::sinks::text_ostream_backend>
+      text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
   boost::shared_ptr<std::ostream> stream(&std::clog, boost::empty_deleter{});
@@ -47,13 +60,16 @@ void initializeLogger(bool use_logger) {
   //   bfs::create_directory(LogFileDirectory);
   // }
   // // we could also use a output file stream of course
-  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time + ".log");
+  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
+  // ".log");
   sink->locked_backend()->add_stream(stream);
   sink->set_filter(&LogFilter);
   sink->set_formatter(&LogFormatter);
   bl::core::get()->add_sink(sink);
-  bl::core::get()->add_global_attribute("LineCounter", bl::attributes::counter<int>{});
-  bl::core::get()->add_global_attribute("Timestamp", bl::attributes::local_clock{});
+  bl::core::get()->add_global_attribute("LineCounter",
+                                        bl::attributes::counter<int>{});
+  bl::core::get()->add_global_attribute("Timestamp",
+                                        bl::attributes::local_clock{});
   bl::core::get()->set_exception_handler(
       bl::make_exception_handler<std::exception>(LoggerExceptionHandler()));
 }

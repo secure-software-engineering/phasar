@@ -170,43 +170,52 @@ private:
       return;
     Table<N, N, map<D, set<D>>> &tgtMap =
         (interP) ? computedInterPathEdges : computedIntraPathEdges;
-    map<D, set<D>> &m = tgtMap.get(sourceNode, sinkStmt);
-    if (m.empty()) {
-      tgtMap.insert(sourceNode, sinkStmt, m);
-    }
-    m[sourceVal] = set<D>{destVals};
+    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
+                                                       destVals.end());
+    // map<D, set<D>> &m = tgtMap.get(sourceNode, sinkStmt);
+    // if (m.empty()) {
+    //   tgtMap.insert(sourceNode, sinkStmt, m);
+    // }
+    // m[sourceVal] = set<D>{destVals};
   }
 
   /**
    * Lines 13-20 of the algorithm; processing a call site in the caller's
-   *context.
+   * context.
    *
    * For each possible callee, registers incoming call edges.
    * Also propagates call-to-return flows and summarized callee flows within the
-   *caller.
+   * caller.
    *
    * 	The following cases must be considered and handled:
    *		1. Process as usual and just process the call
    *		2. Create a new summary for that function (which shall be done
-   *by
-   *the problem)
+   *       by the problem)
    *		3. Just use an existing summary provided by the problem
    *		4. If a special function is called, use a special summary
-   *function
+   *       function
    *
    * @param edge an edge whose target node resembles a method call
    */
   void processCall(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process call edge";
+    BOOST_LOG_SEV(lg, DEBUG) << "process call at target: "
+                             << ideTabulationProblem.N_to_string(edge.getTarget());
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
-
-    // for each possible callee
     set<M> callees = icfg.getCalleesOfCallAt(n);
+    BOOST_LOG_SEV(lg, DEBUG) << "possible callees:";
+    for (auto callee : callees) {
+      BOOST_LOG_SEV(lg, DEBUG) << callee->getName().str();
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "possible return sites:";
+    for (auto ret : returnSiteNs) {
+      BOOST_LOG_SEV(lg, DEBUG) << ideTabulationProblem.N_to_string(ret);
+    }
+    // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
       // check if a summary for the called procedure exists
       shared_ptr<FlowFunction<D>> summary =
@@ -235,6 +244,12 @@ private:
         set<D> res = computeCallFlowFunction(function, d1, d2);
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
+        if (startPointsOf.empty()) {
+          BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" + 
+              icfg.getMethodName(sCalledProcN) 
+              + "' currently not available!";
+        }
+        // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
           saveEdges(n, sP, d2, res, true);
           // for each result node of the call-flow function
@@ -242,17 +257,14 @@ private:
             // create initial self-loop
             propagate(d3, sP, d3, EdgeIdentity<V>::v(), n, false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
-            set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
-                endSumm;
-
             // line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(sP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
-            endSumm =
+            set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
+              endSumm =
                 set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
-
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
             // <sP,d3>, create new caller-side jump functions to the return
@@ -323,7 +335,8 @@ private:
    */
   void processNormalFlow(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process normal flow edge starting from";
+    BOOST_LOG_SEV(lg, DEBUG) << "process normal at target: "
+                             << ideTabulationProblem.N_to_string(edge.getTarget());
     if (edge.factAtSource() == nullptr)
       BOOST_LOG_SEV(lg, DEBUG) << "fact at source is nullptr";
     D d1 = edge.factAtSource();
@@ -440,31 +453,39 @@ private:
   }
 
   void setVal(N nHashN, D nHashD, V l) {
+    auto &lg = lg::get();
     // TOP is the implicit default value which we do not need to store.
-    if (l == ideTabulationProblem.topElement()) // do not store top values
+    if (l == ideTabulationProblem.topElement()) {
+      // do not store top values
       valtab.remove(nHashN, nHashD);
-    else
+    } else {
       valtab.insert(nHashN, nHashD, l);
-    // logger.debug("VALUE: {} {} {} {}", icfg.getMethodOf(nHashN, nHashN,
-    // nHashD, l));
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "VALUE: " 
+        << icfg.getMethodOf(nHashN)->getName().str() << " "
+        << "node: " << ideTabulationProblem.N_to_string(nHashN) << " "
+        << "fact: " << ideTabulationProblem.D_to_string(nHashD) << " "
+        << "val: " << ideTabulationProblem.V_to_string(l); 
   }
 
   shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge) {
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
-             .count(edge.factAtTarget()))
-      return allTop; // JumpFn initialized to all-top, see line [2] in SRH96
-                     // paper
+             .count(edge.factAtTarget())) {
+      // JumpFn initialized to all-top, see line [2] in SRH96 paper
+      return allTop; 
+    }
     return jumpFn->forwardLookup(edge.factAtSource(),
                                  edge.getTarget())[edge.factAtTarget()];
   }
 
   void addEndSummary(N sP, D d1, N eP, D d2, shared_ptr<EdgeFunction<V>> f) {
-    Table<N, D, shared_ptr<EdgeFunction<V>>> &summaries =
-        endsummarytab.get(sP, d1);
+    // Table<N, D, shared_ptr<EdgeFunction<V>>> &summaries =
+    //     endsummarytab.get(sP, d1);
+    //     summaries.insert(eP, d2, f);
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
-    summaries.insert(eP, d2, f);
+    endsummarytab.get(sP, d1).insert(eP, d2, f);
   }
 
   // should be made a callable at some point
@@ -474,15 +495,12 @@ private:
     bool isCall = icfg.isCallStmt(edge.getTarget());
     if (!isCall) {
       if (icfg.isExitStmt(edge.getTarget())) {
-        BOOST_LOG_SEV(lg, DEBUG) << "process exit";
         processExit(edge);
       }
       if (!icfg.getSuccsOf(edge.getTarget()).empty()) {
-        BOOST_LOG_SEV(lg, DEBUG) << "process normal flow";
         processNormalFlow(edge);
       }
     } else {
-      BOOST_LOG_SEV(lg, DEBUG) << "process call";
       processCall(edge);
     }
   }
@@ -548,8 +566,7 @@ protected:
   Table<N, D, map<N, set<D>>> incomingtab;
 
   // stores the return sites (inside callers) to which we have unbalanced
-  // returns
-  // if followReturnPastSeeds is enabled
+  // returns if followReturnPastSeeds is enabled
   set<N> unbalancedRetSites;
 
   map<N, set<D>> initialSeeds;
@@ -582,11 +599,12 @@ protected:
    * Also, at the side of the caller, propagates intra-procedural flows to
    * return sites using those newly computed summaries.
    *
-   * @param edge an edge whose target node resembles a method exits
+   * @param edge an edge whose target node resembles a method exit
    */
   void processExit(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process exit edge";
+    BOOST_LOG_SEV(lg, DEBUG) << "process exit at target: "
+                             << ideTabulationProblem.N_to_string(edge.getTarget());
     N n = edge.getTarget(); // an exit node; line 21...
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     M methodThatNeedsSummary = icfg.getMethodOf(n);
@@ -603,6 +621,8 @@ protected:
       for (auto entry : incoming(d1, sP))
         inc[entry.first] = set<D>{entry.second};
     }
+    printEndSummaryTab();
+    printIncomingTab();
     // for each incoming call edge already processed
     //(see processCall(..))
     for (auto entry : inc) {
@@ -678,7 +698,7 @@ protected:
         }
       }
       // in cases where there are no callers, the return statement would
-      // normally not be processed at all;cthis might be undesirable if
+      // normally not be processed at all; this might be undesirable if
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (callers.empty()) {
@@ -810,11 +830,11 @@ protected:
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       pathEdgeProcessingTask(edge);
-      if (!ideTabulationProblem.isZeroValue(target)) {
+      if (!ideTabulationProblem.isZeroValue(targetVal)) {
         BOOST_LOG_SEV(lg, DEBUG)
-            << "<" << target->getFunction()->getName().str() << ", "
-            << llvmIRToString(sourceVal) << "> -> <" << llvmIRToString(target)
-            << ", " << llvmIRToString(targetVal) << ">";
+            << "EDGE: <" << target->getFunction()->getName().str() << ", "
+            << ideTabulationProblem.D_to_string(sourceVal) << "> ---> <" << ideTabulationProblem.N_to_string(target)
+            << ", " << ideTabulationProblem.D_to_string(targetVal) << ">";
       }
     }
   }
@@ -825,25 +845,62 @@ protected:
 
   set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
   endSummary(N sP, D d3) {
-    Table<N, D, shared_ptr<EdgeFunction<V>>> &m = endsummarytab.get(sP, d3);
-    if (m.isEmpty())
-      return set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>{};
-    return m.cellSet();
+    // Table<N, D, shared_ptr<EdgeFunction<V>>> &m = endsummarytab.get(sP, d3);
+    // if (m.isEmpty())
+    //   return set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>{};
+    // return m.cellSet();
+    return endsummarytab.get(sP, d3).cellSet();
   }
 
   map<N, set<D>> incoming(D d1, N sP) {
-    map<N, set<D>> m = incomingtab.get(sP, d1);
-    if (m.empty())
-      return map<N, set<D>>{};
-    return m;
+    // map<N, set<D>> m = incomingtab.get(sP, d1);
+    // if (m.empty())
+    //   return map<N, set<D>>{};
+    // return m;
+    return incomingtab.get(sP, d1);
   }
 
   void addIncoming(N sP, D d3, N n, D d2) {
-    map<N, set<D>> summaries = incomingtab.get(sP, d3);
-    set<D> &s = summaries[n];
-    s.insert(d2);
-    incomingtab.insert(sP, d3, summaries);
+    // map<N, set<D>> summaries = incomingtab.get(sP, d3);
+    // set<D> &s = summaries[n];
+    // s.insert(d2);
+    // incomingtab.insert(sP, d3, summaries);
+    incomingtab.get(sP, d3)[n].insert(d2);
   }
+
+  void printIncomingTab() {
+    auto &lg = lg::get();
+    BOOST_LOG_SEV(lg, DEBUG) << "start incomingtab entry";
+    for (auto cell : incomingtab.cellSet()) {
+      BOOST_LOG_SEV(lg, DEBUG) << "sP: " << ideTabulationProblem.N_to_string(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG) << "d3: " << ideTabulationProblem.D_to_string(cell.c);
+      for (auto entry : cell.v) {
+        BOOST_LOG_SEV(lg, DEBUG) << "n: " << ideTabulationProblem.N_to_string(entry.first);
+        for (auto fact : entry.second) {
+          BOOST_LOG_SEV(lg, DEBUG) << "d2: " << ideTabulationProblem.D_to_string(fact);
+        }
+      }
+      BOOST_LOG_SEV(lg, DEBUG) << "-----";
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "end incomingtab entry";
+  }
+
+  void printEndSummaryTab() {
+    auto &lg = lg::get();
+    BOOST_LOG_SEV(lg, DEBUG) << "start endsummarytab entry";
+    for (auto cell : endsummarytab.cellVec()) {
+      BOOST_LOG_SEV(lg, DEBUG) << "sP: " << ideTabulationProblem.N_to_string(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG) << "d1: " << ideTabulationProblem.D_to_string(cell.c);
+        for (auto inner_cell : cell.v.cellVec()) {
+          BOOST_LOG_SEV(lg, DEBUG) << "eP: " << ideTabulationProblem.N_to_string(inner_cell.r);
+          BOOST_LOG_SEV(lg, DEBUG) << "d2: " << ideTabulationProblem.D_to_string(inner_cell.c);
+          BOOST_LOG_SEV(lg, DEBUG) << "edge fun: " << inner_cell.v->toString();
+       }
+       BOOST_LOG_SEV(lg, DEBUG) << "-----";
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "end endsummarytab entry";
+  }
+
 };
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_HH_ */

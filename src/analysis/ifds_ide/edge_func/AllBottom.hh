@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
 #include "../../../utils/utils.hh"
 #include "../EdgeFunction.hh"
 //#include "EdgeIdentity.hh"
@@ -69,6 +70,8 @@ public:
 	}
 
 	void dump() override { cout << "allbottom\n"; }
+
+	string toString() override { return "allbottom"; }
 };
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_HH_ */

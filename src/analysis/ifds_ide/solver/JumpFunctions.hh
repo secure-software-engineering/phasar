@@ -13,6 +13,7 @@
 
 #include "../../../utils/Table.hh"
 #include "../EdgeFunction.hh"
+#include "../../../lib/LLVMShorthands.hh"
 
 using namespace std;
 
@@ -46,26 +47,23 @@ public:
 	  */
 	void addFunction(D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<L>> function)
 	{
-		cout << "ADDING NEW JUMP FUNCTION" << endl;
-		cout << "Fact at source:" << endl;
-		if (sourceVal) sourceVal->dump();
-		cout << "Fact at target:" << endl;
-		if (targetVal) targetVal->dump();
-		cout << "Destination:" << endl;
-		target->dump();
-		cout << "EdgeFunction:" << endl;
-		function->dump();
+		auto &lg = lg::get();
+		BOOST_LOG_SEV(lg, DEBUG) << "Adding new jump function";
+		BOOST_LOG_SEV(lg, DEBUG) << "Fact at source: " << ((sourceVal) ? llvmIRToString(sourceVal) : "nullptr");
+		BOOST_LOG_SEV(lg, DEBUG) << "Fact at target: " << ((targetVal) ? llvmIRToString(targetVal) : "nullptr");
+		BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << llvmIRToString(target);
+		BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString();
 		// we do not store the default function (all-top)
 		if (function->equalTo(allTop)) return;
 		map<D,shared_ptr<EdgeFunction<L>>>& sourceValToFunc = nonEmptyReverseLookup.get(target, targetVal);
 		sourceValToFunc.insert( {sourceVal, function} );
-		printNonEmptyReverseLookup();
+	//	printNonEmptyReverseLookup();
 		map<D,shared_ptr<EdgeFunction<L>>>& targetValToFunc = nonEmptyForwardLookup.get(sourceVal, target);
 		targetValToFunc.insert( {targetVal, function} );
-		printNonEmptyForwardLookup();
+	//	printNonEmptyForwardLookup();
 		nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
-		printNonEmptyLookupByTargetNode();
-		cout << "DONE ADDING NEW JUMP FUNCTION" << endl;
+	//	printNonEmptyLookupByTargetNode();
+		BOOST_LOG_SEV(lg, DEBUG) << "Added new jump function";
 	}
 
 	/**
@@ -150,6 +148,20 @@ public:
 		nonEmptyReverseLookup.clear();
 		nonEmptyForwardLookup.clear();
 		nonEmptyLookupByTargetNode.clear();
+	}
+
+	void printJumpFunctions()
+	{
+		auto &lg = lg::get();
+		BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:";
+		for (auto &entry : nonEmptyLookupByTargetNode) {
+			BOOST_LOG_SEV(lg, DEBUG) << "Node: " << llvmIRToString(entry.first);
+			for (auto cell : entry.second.cellSet()) {
+				BOOST_LOG_SEV(lg, DEBUG) << "fact at src: " << llvmIRToString(cell.r);
+				BOOST_LOG_SEV(lg, DEBUG) << "fact at dst: " << llvmIRToString(cell.c);
+				BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString();
+			}
+		}
 	}
 
 	void printNonEmptyReverseLookup()

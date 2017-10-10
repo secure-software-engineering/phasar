@@ -15,20 +15,10 @@
  #include "../flow_func/GenAll.hh"
  #include "../../../utils/utils.hh"
  #include "../ZeroValue.hh"
+ #include "../../misc/Summaries.hh"
  using namespace std;
  
- 
- enum class SummaryGenerationCTXStrategy {
-   always_all = 0,
-   powerset,
-   all_and_none,
-   all_observed,
-   always_none
- };
- 
- ostream& operator<<(ostream& os, const SummaryGenerationCTXStrategy& s);
- 
- 
+
  template <typename N, typename D, typename M, typename I,
            typename ConcreteTabulationProblem, typename ConcreteSolver>
  class IFDSSummaryGenerator {

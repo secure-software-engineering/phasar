@@ -123,6 +123,10 @@ class IDEProtoAnalysis
   string D_to_string(const llvm::Value *d) override;
 
   string V_to_string(const llvm::Value *v) override;
+
+  string N_to_string(const llvm::Instruction *n) override;
+  
+  string M_to_string(const llvm::Function *m) override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */

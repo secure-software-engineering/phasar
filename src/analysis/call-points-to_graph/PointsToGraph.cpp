@@ -74,8 +74,11 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value* v) : value(v) {
 
 const set<string> PointsToGraph::HeapAllocationFunctions = { "_Znwm", "_Znam", "malloc", "calloc", "realloc" };
 
-const map<string, PointerAnalysisType> PointerAnalysisTypeMap = { { "CFLSteens", PointerAnalysisType::CFLSteens },
-                                                                  { "CFLAnders", PointerAnalysisType::CFLAnders } };
+const map<string, PointerAnalysisType> StringToPointerAnalysisType = { { "CFLSteens", PointerAnalysisType::CFLSteens },
+                                                                       { "CFLAnders", PointerAnalysisType::CFLAnders } };
+
+const map<PointerAnalysisType, string> PointerAnalysisTypeToString = { { PointerAnalysisType::CFLSteens, "CFLSteens" },
+                                                                       { PointerAnalysisType::CFLAnders, "CFLAnders" } };
 
 PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyConsiderMustAlias) {
   auto& lg = lg::get();

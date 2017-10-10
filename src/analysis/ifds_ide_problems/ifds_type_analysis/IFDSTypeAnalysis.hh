@@ -61,6 +61,10 @@ public:
   bool isZeroValue(const llvm::Value* d) const override;
 
   string D_to_string(const llvm::Value *d) override;
+
+  string N_to_string(const llvm::Instruction *n) override;
+  
+  string M_to_string(const llvm::Function *m) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_   \

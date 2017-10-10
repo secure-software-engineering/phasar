@@ -51,10 +51,18 @@ using namespace std;
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
 
+extern const map<string, WalkerStrategy> StringToWalkerStrategy;
+
+extern const map<WalkerStrategy, string> WalkerStrategyToString;
+
 ostream& operator<< (ostream& os, const WalkerStrategy W);
 
 // Describes the strategy that is used for resolving indirect call-sites;
 enum class ResolveStrategy { CHA = 0, RTA, TA, OTF };
+
+extern const map<string, ResolveStrategy> StringToResolveStrategy;
+
+extern const map<ResolveStrategy, string> ResolveStrategyToString;
 
 ostream& operator<< (ostream& os, const ResolveStrategy R);
 

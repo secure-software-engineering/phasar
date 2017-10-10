@@ -1,6 +1,6 @@
 #include "AnalysisController.hh"
 
-const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap = {
+const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
     {"ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis},
     {"ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis},
@@ -14,25 +14,30 @@ const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap = {
     {"plugin", DataFlowAnalysisType::Plugin},
     {"none", DataFlowAnalysisType::None}};
 
+const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
+    {DataFlowAnalysisType::IFDS_UninitializedVariables, "ifds_uninit"},
+    {DataFlowAnalysisType::IFDS_TaintAnalysis, "ifds_taint"},
+    {DataFlowAnalysisType::IFDS_TypeAnalysis, "ifds_type"},
+    {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
+    {DataFlowAnalysisType::IFDS_SolverTest, "ifds_solvertest"},
+    {DataFlowAnalysisType::IDE_SolverTest, "ide_solvertest"},
+    {DataFlowAnalysisType::MONO_Intra_FullConstantPropagation,
+     "mono_intra_fullconstpropagation"},
+    {DataFlowAnalysisType::MONO_Intra_SolverTest, "mono_intra_solvertest"},
+    {DataFlowAnalysisType::MONO_Inter_SolverTest, "mono_inter_solvertest"},
+    {DataFlowAnalysisType::Plugin, "plugin"},
+    {DataFlowAnalysisType::None, "none"}};
+
 ostream& operator<<(ostream& os, const DataFlowAnalysisType& D) {
-  static const array<string, 11> str{{
-      "AnalysisType::IFDS_UninitializedVariables",
-      "AnalysisType::IFDS_TaintAnalysis", "AnalysisType::IDE_TaintAnalysis",
-      "AnalysisType::IFDS_TypeAnalysis", "AnalysisType::IFDS_SolverTest",
-      "AnalysisType::IDE_SolverTest",
-      "AnalysisType::MONO_Intra_FullConstantPropagation",
-      "AnalysisType::MONO_Intra_SolverTest",
-      "AnalysisType::MONO_Inter_SoverTest", "AnalysisType::Plugin",
-      "AnalysisType::None",
-  }};
-  return os << str.at(static_cast<underlying_type_t<DataFlowAnalysisType>>(D));
+  return os << DataFlowAnalysisTypeToString.at(D);
 }
 
-const map<string, ExportType> ExportTypeMap = {{"json", ExportType::JSON}};
+const map<string, ExportType> StringToExportType = {{"json", ExportType::JSON}};
+
+const map<ExportType, string> ExportTypeToString = {{ExportType::JSON, "json"}};
 
 ostream& operator<<(ostream& os, const ExportType& E) {
-  static const array<string, 1> str{{"ExportType::JSON"}};
-  return os << str.at(static_cast<underlying_type_t<ExportType>>(E));
+  return os << ExportTypeToString.at(E);
 }
 
 AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
@@ -164,10 +169,6 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
   LLVMStructTypeHierarchy CH(IRDB);
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
   CH.printAsDot();
-  // Set-up special summaries
-  // IFDSSpecialSummaries<const llvm::Value*>& specialSummaries =
-  //  		IFDSSpecialSummaries<const llvm::Value*>::getInstance();
-  //   cout << specialSummaries << endl;
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
@@ -223,16 +224,10 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           break;
         }
         case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-          cout << "HERE I AM!" << endl;
           IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
-          // if (PrintEdgeRecorder) llvmunivsolver.exportJSONDataModel();
-          // if (PrintEdgeRecorder) {
-          // 	llvmunivsolver.dumpAllIntraPathEdges();
-          // 	llvmunivsolver.dumpAllInterPathEdges();
-          // }
           break;
         }
         case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -268,7 +263,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
         }
         case DataFlowAnalysisType::MONO_Inter_SolverTest: {
           InterMonotoneSolverTest inter(ICFG, EntryPoints);
-          LLVMInterMonotoneSolver<const llvm::Value*, LLVMBasedICFG&> solver(
+          LLVMInterMonotoneSolver<const llvm::Value*, 3, LLVMBasedICFG&> solver(
               inter, true);
           solver.solve();
           break;
@@ -399,6 +394,32 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
                                 << " on module: " << M->getModuleIdentifier();
         switch (analysis) {
           case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+            for (auto FunctionName : I.getDependencyOrderedFunctions()) {
+              IFDSTaintAnalysis taintanalysisproblem(I);
+              LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&>
+                  llvmtaintsolver(taintanalysisproblem, true);
+              llvmtaintsolver.solve();
+            }
+
+            // IDESummaries<const llvm::Instruction *,
+            //              const llvm::Value *,
+            //              const llvm::Function *,
+            //              const llvm::Value *> Summaries;
+            // for (auto& Fname : I.getDependencyOrderedFunctions()) {
+            //   BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname;
+            //   IFDSTaintAnalysis taintanalysisproblem(I, {"_Z2idi"});
+            //   IDESummaryGenerator<const llvm::Instruction *,
+            //                       const llvm::Value *,
+            //                       const llvm::Function *,
+            //                       LLVMBasedICFG &,
+            //                       const llvm::Value *,
+            //                       IFDSTaintAnalysis, LLVMIFDSSolver<
+            //                           const llvm::Value *,
+            //                           LLVMBasedICFG &>>
+            //                               Generator("_Z2idi", I, Summaries,
+            //                               SummaryGenerationCTXStrategy::always_all);
+            // }
+            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
             break;
           }
           case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -406,24 +427,27 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             break;
           }
           case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+            throw invalid_argument("IFDS summary generation not supported yet");
             break;
           }
           case DataFlowAnalysisType::IFDS_UninitializedVariables: {
             // This code is just for testing, it should be moved to the
             // LLVMIFDSSummaryGenerator/ IFDSSummaryGenerator!
             // Check and test the summary generation:
-            for (auto& Fname : I.getDependencyOrderedFunctions()) {
-              BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname
-                                      << "'\n";
-              LLVMIFDSSummaryGenerator<LLVMBasedICFG&, IFDSUnitializedVariables>
-                  Generator(M->getFunction(Fname), I,
-                            SummaryGenerationCTXStrategy::all_and_none);
-            }
+            // for (auto& Fname : I.getDependencyOrderedFunctions()) {
+            //   BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname
+            //                           << "'\n";
+            //   LLVMIFDSSummaryGenerator<LLVMBasedICFG&,
+            //   IFDSUnitializedVariables>
+            //       Generator(M->getFunction(Fname), I,
+            //                 SummaryGenerationCTXStrategy::all_and_none);
+            // }
             // Pool.insert(Generator.generateSummaryFlowFunction());
-            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            // BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
             break;
           }
           case DataFlowAnalysisType::IFDS_SolverTest: {
+            throw invalid_argument("IFDS summary generation not supported yet");
             break;
           }
           case DataFlowAnalysisType::IDE_SolverTest: {
@@ -443,7 +467,8 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             break;
           }
           case DataFlowAnalysisType::Plugin: {
-            throw invalid_argument("Plugin summary generation not supported yet");
+            throw invalid_argument(
+                "Plugin summary generation not supported yet");
             break;
           }
           case DataFlowAnalysisType::None: {
@@ -456,20 +481,20 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
       }
       // After every module has been analyzed the analyses results must be
       // merged and the final results must be computed
-      auto M = IRDB.getModuleDefiningFunction("main");
+      // auto M = IRDB.getModuleDefiningFunction("main");
       BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
-      LLVMBasedICFG I = MWICFGs.at(M);
-      for (auto& entry : MWICFGs) {
-        if (entry.first != M) {
-          I.mergeWith(entry.second);
-        }
-      }
+      // LLVMBasedICFG I = MWICFGs.at(M);
+      // for (auto& entry : MWICFGs) {
+      //   if (entry.first != M) {
+      //     I.mergeWith(entry.second);
+      //   }
+      // }
 
-      // TODO this is just testing!
-      IFDSUnitializedVariables uninitializedvarproblem(I, EntryPoints);
-      LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
-          uninitializedvarproblem, true);
-      llvmunivsolver.solve();
+      // // TODO this is just testing!
+      // IFDSUnitializedVariables uninitializedvarproblem(I, EntryPoints);
+      // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
+      //     uninitializedvarproblem, true);
+      // llvmunivsolver.solve();
 
       BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
       // TODO Start at the main function and iterate over the entire program

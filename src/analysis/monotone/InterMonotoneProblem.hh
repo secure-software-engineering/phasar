@@ -12,7 +12,7 @@
 #include <string>
 using namespace std;
 
-template <typename N, typename D, typename M, typename I>
+template <typename N, typename D, typename M, typename C, typename I>
 class InterMonotoneProblem {
 protected:
   I ICFG;
@@ -31,6 +31,7 @@ public:
                                    const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
   virtual string D_to_string(D d) = 0;
+  virtual string C_to_string(C c) = 0;
 };
 
 #endif

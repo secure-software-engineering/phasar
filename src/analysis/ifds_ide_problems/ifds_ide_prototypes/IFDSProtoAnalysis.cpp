@@ -83,3 +83,11 @@ bool IFDSProtoAnalysis::isZeroValue(const llvm::Value* d) const {
 string IFDSProtoAnalysis::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }
+
+string IFDSProtoAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSProtoAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
+}

@@ -78,7 +78,9 @@ enum class PointerAnalysisType {
   CFLAnders
 };
 
-extern const map<string, PointerAnalysisType> PointerAnalysisTypeMap;
+extern const map<string, PointerAnalysisType> StringToPointerAnalysisType;
+
+extern const map<PointerAnalysisType, string> PointerAnalysisTypeToString;
 
 // TODO: add a more high level description.
 /**

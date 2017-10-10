@@ -9,6 +9,7 @@
 #define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_HH_
 
 #include <iostream>
+#include <string>
 #include <memory>
 #include "../EdgeFunction.hh"
 
@@ -49,6 +50,8 @@ public:
 	}
 
 	void dump() override { cout << "alltop\n"; }
+
+	string toString() override { return "alltop"; }
 };
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_HH_ */

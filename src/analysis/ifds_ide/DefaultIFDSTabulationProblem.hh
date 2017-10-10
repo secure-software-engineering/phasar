@@ -12,7 +12,6 @@
 #include "IFDSTabulationProblem.hh"
 #include "FlowFunctions.hh"
 #include "flow_func/Identity.hh"
-#include "IFDSSpecialSummaries.hh"
 
 template<class N, class D, class M, class I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N,D,M,I> {

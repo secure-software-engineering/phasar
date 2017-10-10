@@ -12,6 +12,7 @@
 #include <set>
 #include <unordered_map>
 #include <tuple>
+#include <vector>
 using namespace std;
 
 
@@ -25,7 +26,7 @@ public:
 		R r;
 		C c;
 		V v;
-		Cell(R row, C col, V val) : r(row), c(col), v(val) { }
+		Cell(R row, C col, V val) : r(row), c(col), v(val) {}
 		R getRowKey() { return r; }
 		C getColumnKey() { return c; }
 		V getValue() { return v; }
@@ -69,6 +70,18 @@ public:
 			}
 		}
 		return s;
+	}
+
+	vector<Cell> cellVec()
+	{
+		// Returns a vector of all row key / column key / value triplets.
+		vector<Cell> v;
+		for (auto& m1 : table) {
+			for (auto& m2 : m1.second) {
+				v.push_back(Cell(m1.first, m2.first, m2.second));
+			}
+		}
+		return v;
 	}
 
 	unordered_map<R, V>	column(C columnKey)

@@ -168,6 +168,18 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::D_to_string(const llvm::Value *d) { return ""; }
+string IDESolverTest::D_to_string(const llvm::Value *d) { 
+  return llvmIRToString(d);
+}
 
-string IDESolverTest::V_to_string(const llvm::Value *v) { return ""; }
+string IDESolverTest::V_to_string(const llvm::Value *v) {
+  return llvmIRToString(v);
+}
+
+string IDESolverTest::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IDESolverTest::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
+}

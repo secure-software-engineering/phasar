@@ -14,13 +14,15 @@
 #include <llvm/IR/Instruction.h>
 using namespace std;
 
-template <typename D, typename I>
+template <typename D, unsigned K, typename I>
 class LLVMInterMonotoneSolver
     : public InterMonotoneSolver<const llvm::Instruction *, D,
-                                 const llvm::Function *, I> {
+                                 const llvm::Function *, const llvm::Value *,
+                                 K, I> {
 protected:
   bool DUMP_RESULTS;
-  InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, I> &IMP;
+  InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *,
+                       const llvm::Value *, I> &IMP;
 
 public:
   LLVMInterMonotoneSolver();
@@ -28,34 +30,46 @@ public:
 
   LLVMInterMonotoneSolver(
       InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *,
-                           I> &problem,
+                           const llvm::Value *, I> &problem,
       bool dumpResults = false)
       : InterMonotoneSolver<const llvm::Instruction *, D,
-                            const llvm::Function *, I>(problem),
+                            const llvm::Function *, const llvm::Value *, K, I>(
+            problem),
         DUMP_RESULTS(dumpResults), IMP(problem) {}
 
   virtual void solve() override {
     // do the solving of the analaysis problem
-    InterMonotoneSolver<const llvm::Instruction *, D, const llvm::Function *, I>::solve();
+    InterMonotoneSolver<const llvm::Instruction *, D, const llvm::Function *,
+                        const llvm::Value *, K, I>::solve();
     if (DUMP_RESULTS)
       dumpResults();
   }
 
   void dumpResults() {
     cout << "Monotone solver results:\n";
-    for (auto &node_entry :
-         InterMonotoneSolver<const llvm::Instruction *, D,
-                             const llvm::Function *, I>::Analysis) {
-              cout << "Instruction:\n";
-        node_entry.first->dump();
-//        cout << "Context:\n";
-        cout << "Facts:\n";
-        for (auto elem : node_entry.second) {
-          cout << IMP.D_to_string(elem) << '\n';
+    // Iterate instructions
+    for (auto &node : InterMonotoneSolver<const llvm::Instruction *, D,
+                                          const llvm::Function *,
+                                          const llvm::Value *, K, I>::Analysis) {
+      cout << "Instruction: " << llvmIRToString(node.first) << "\n";
+      // Iterate call-string - flow fact set pairs
+      for (auto &flowfacts : node.second) {
+        cout << "Context: ";
+        // Print the elements of the call string
+        for (auto cstring : flowfacts.first.getInternalCS()) {
+          cout << ((llvm::isa<llvm::Function>(cstring))
+          ? llvm::dyn_cast<llvm::Function>(cstring)->getName().str()
+          : IMP.C_to_string(cstring)) << " * ";
         }
-        cout << "\n\n";
+        cout << "\nFacts:\n";
+        // Print the elements of the corresponding set of flow facts
+        for (auto &flowfact : flowfacts.second) {
+          cout << IMP.D_to_string(flowfact) << '\n';
+        }
       }
+      cout << "\n\n";
     }
+  }
 };
 
 #endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_ */

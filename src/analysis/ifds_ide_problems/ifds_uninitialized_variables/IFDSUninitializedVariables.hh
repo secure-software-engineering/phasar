@@ -14,8 +14,8 @@
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
-#include "../../ifds_ide/IFDSSpecialSummaries.hh"
 #include "../../ifds_ide/IFDSSummaryPool.hh"
+#include "../../ifds_ide/SpecialSummaries.hh"
 #include "../../ifds_ide/ZeroValue.hh"
 #include "../../ifds_ide/flow_func/Gen.hh"
 #include "../../ifds_ide/flow_func/Identity.hh"
@@ -55,7 +55,7 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                     const llvm::Function *destMthd) override;
+                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
@@ -76,9 +76,13 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value* d) const override;
+  bool isZeroValue(const llvm::Value *d) const override;
 
   string D_to_string(const llvm::Value *d) override;
+
+  string N_to_string(const llvm::Instruction *n) override;
+
+  string M_to_string(const llvm::Function *m) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \

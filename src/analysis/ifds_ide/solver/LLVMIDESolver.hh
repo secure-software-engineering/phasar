@@ -32,14 +32,14 @@ public:
 	void solve() override
 	{
 		IDESolver<const llvm::Instruction*,D,const llvm::Function*,V,I>::solve();
+		bl::core::get()->flush();
 		if (DUMP_RESULTS)
 			dumpResults();
 	}
 
 	void dumpResults()
 	{
-		cout << "I am a LLVMIDESolver result" << endl;
-		cout << "### DUMP RESULTS" << endl;
+		cout << "### DUMP LLVMIDESolver results\n";
 		// TODO present results in a nicer way than just calling llvm's dump()
 		// for the following line have a look at:
 		// http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
@@ -47,20 +47,39 @@ public:
 		auto results = this->valtab.cellSet();
 		if (results.empty()) {
 			cout << "EMPTY" << endl;
-		} else {
-			for (auto cell : results) {
-				cout << "--- IDE START RESULT RECORD ---" << endl;
-				cout << "N" << endl;
-				cell.r->dump();
-				cout << "D" << endl;
-				if (cell.c != nullptr)
-					cell.c->dump();
-				cout << endl;
-				cout << "V\n\t";
-				cout << cell.v << endl;
-				cout << "--- IDE END RESULT RECORD ---" << endl;
+		}	else {
+			vector<typename Table<const llvm::Instruction *, const llvm::Value *, const llvm::Value *>::Cell> cells;
+			for (auto cell : results)
+			{
+				cells.push_back(cell);
 			}
-			cout << "### END DUMP RESULTS" << endl;
+			sort(cells.begin(), cells.end(),
+				 [](typename Table<const llvm::Instruction *, const llvm::Value *, const llvm::Value *>::Cell a,
+					typename Table<const llvm::Instruction *, const llvm::Value *, const llvm::Value *>::Cell b) {
+					 return a.r < b.r;
+				 });
+			const llvm::Instruction *prev = nullptr;
+			const llvm::Instruction *curr;
+			for (unsigned i = 0; i < cells.size(); ++i)
+			{
+				curr = cells[i].r;
+				if (prev != curr)
+				{
+					prev = curr;
+					cout << "--- IDE START RESULT RECORD ---\n";
+					cout << "N: " << Problem.N_to_string(cells[i].r) << " in function: ";
+					if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(cells[i].r))
+					{
+						cout << inst->getFunction()->getName().str() << "\n";
+					}
+				}
+				cout << "D:\t";
+				if (cells[i].c == nullptr)
+					cout << "  nullptr " << endl;
+				else
+					cout << Problem.D_to_string(cells[i].c) << " "
+				<< "\tV:  " << Problem.V_to_string(cells[i].v) << "\n";
+			}
 		}
 //		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
 //		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));

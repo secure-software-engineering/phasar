@@ -58,7 +58,7 @@ void validateParamProject(const string &project) {
 
 void validateParamDataFlowAnalysis(const vector<string> &dfa) {
   for (const auto &analysis : dfa) {
-    if (DataFlowAnalysisTypeMap.count(analysis) == 0) {
+    if (StringToDataFlowAnalysisType.count(analysis) == 0) {
       throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
@@ -66,21 +66,21 @@ void validateParamDataFlowAnalysis(const vector<string> &dfa) {
 }
 
 void validateParamPointerAnalysis(const string &pta) {
-  if (PointerAnalysisTypeMap.count(pta) == 0) {
+  if (StringToPointerAnalysisType.count(pta) == 0) {
     throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
 
 void validateParamCallGraphAnalysis(const string &cga) {
-  if (CallGraphAnalysisTypeMap.count(cga) == 0) {
+  if (StringToCallGraphAnalysisType.count(cga) == 0) {
     throw bpo::error_with_option_name("'" + cga +
                                       "' is not a valid call-graph analysis");
   }
 }
 
 void validateParamExport(const string &exp) {
-  if (ExportTypeMap.count(exp) == 0) {
+  if (StringToExportType.count(exp) == 0) {
     throw bpo::error_with_option_name("'" + exp +
                                       "' is not a valid export parameter");
   }
@@ -219,9 +219,9 @@ int main(int argc, const char **argv) {
     ChosenDataFlowAnalyses.clear();
     for (auto &DataFlowAnalysis :
          VariablesMap["data_flow_analysis"].as<vector<string>>()) {
-      if (DataFlowAnalysisTypeMap.count(DataFlowAnalysis)) {
+      if (StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
         ChosenDataFlowAnalyses.push_back(
-            DataFlowAnalysisTypeMap.at(DataFlowAnalysis));
+            StringToDataFlowAnalysisType.at(DataFlowAnalysis));
       }
     }
   }
