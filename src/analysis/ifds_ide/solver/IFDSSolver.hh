@@ -62,8 +62,8 @@ public:
 		return problem.getCallToRetFlowFunction(callSite, retSite);
 	}
 
-	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override {
-		return problem.getSummaryFlowFunction(callStmt, destMthd, inputs, context);
+	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) override {
+		return problem.getSummaryFlowFunction(callStmt, destMthd);
 	}
 
 	I interproceduralCFG() override {
@@ -130,7 +130,7 @@ public:
 			return EdgeIdentity<BinaryDomain>::v();
 	}
 
-	shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override {
+	shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(N callStmt, D callNode, N retSite, D retSiteNode) override {
 		// if(problem.isZeroValue(srcNode))
 			// return ALL_BOTTOM;
 		// else

@@ -20,7 +20,7 @@ IDETaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDETaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                     const llvm::Function *destMthd) {
+                                      const llvm::Function *destMthd) {
   return Identity<const llvm::Value *>::v();
 }
 
@@ -40,9 +40,7 @@ IDETaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd,
-                                         vector<const llvm::Value *> inputs,
-                                         vector<bool> context) {
+                                         const llvm::Function *destMthd) {
   return nullptr;
 }
 
@@ -63,7 +61,7 @@ const llvm::Value *IDETaintAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IDETaintAnalysis::isZeroValue(const llvm::Value* d) const {
+bool IDETaintAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
@@ -105,9 +103,9 @@ IDETaintAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
 IDETaintAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd,
-                                         vector<const llvm::Value *> inputs,
-                                         vector<bool> context) {
+                                         const llvm::Value *callNode,
+                                         const llvm::Instruction *retSite,
+                                         const llvm::Value *retSiteNode) {
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
@@ -151,7 +149,7 @@ string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IDETaintAnalysis::V_to_string(const llvm::Value *v) { 
+string IDETaintAnalysis::V_to_string(const llvm::Value *v) {
   return llvmIRToString(v);
 }
 

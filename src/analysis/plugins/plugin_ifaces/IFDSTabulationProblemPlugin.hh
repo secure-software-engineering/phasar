@@ -50,6 +50,14 @@ protected:
   string D_to_string(const llvm::Value *d) override {
     return llvmIRToString(d);
   }
+
+  string N_to_string(const llvm::Instruction *n) override {
+    return llvmIRToString(n);
+  }
+  
+  string M_to_string(const llvm::Function *m) override {
+    return llvmIRToString(m);
+  }
 };
 
 extern "C" unique_ptr<IFDSTabulationProblemPlugin>

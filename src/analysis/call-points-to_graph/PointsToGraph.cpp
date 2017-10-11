@@ -138,18 +138,17 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyCo
     uint64_t I1Size = llvm::MemoryLocation::UnknownSize;
     llvm::Type* I1ElTy =
         llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
-    if (I1ElTy->isSized()) I1Size = DL.getTypeStoreSize(I1ElTy);
-
+    //if (I1ElTy->isSized()) I1Size = DL.getTypeStoreSize(I1ElTy);
     for (llvm::SetVector<llvm::Value*>::iterator I2 = Pointers.begin();
          I2 != I1; ++I2) {
       uint64_t I2Size = llvm::MemoryLocation::UnknownSize;
       llvm::Type* I2ElTy =
           llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
-      if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
+      //if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
       if (!onlyConsiderMustAlias) {
       	switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
       		case llvm::NoAlias:
-      			PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+      	  	PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
       			break;
       		case llvm::MayAlias:
       			PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
@@ -157,13 +156,16 @@ PointsToGraph::PointsToGraph(llvm::AAResults& AA, llvm::Function* F, bool onlyCo
       			break;
       		case llvm::PartialAlias:
       			PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-      									 F->getParent());
+      	     						 F->getParent());
       			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
       			break;
       		case llvm::MustAlias:
-      			PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
+      		  PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
       			boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-      			break;
+            break;
+          default:
+            // Do nothing
+            break;
       	}
       } else {
       	if (AA.alias(*I1, I1Size, *I2, I2Size) == llvm::MustAlias) {

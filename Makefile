@@ -23,7 +23,7 @@ CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-may
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
 #CXX_FLAGS += -g
-#CXX_FLAGS += -rdynamic
+CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
@@ -42,6 +42,8 @@ OBJDIR = obj/
 DOC = doc/
 SRC = src/
 TEST = test/
+PLUGINDIR = src/analysis/plugins/
+PLUGINSODIR = so/
 ALL_SRC = $(sort $(dir $(call recwildcard,$(SRC)**/*/)))
 
 # Set the virtual (search) path
@@ -49,6 +51,9 @@ VPATH = $(SRC):$(ALL_SRC)
 
 # Determine all object files that we need in order to produce an executable
 OBJ = $(addprefix $(OBJDIR),$(notdir $(patsubst %.cpp,%.o,$(call recwildcard,src/,*.cpp))))
+
+# Determine all shared object files that we need to produce in order to process the plugins
+SO = $(addprefix $(PLUGINSODIR),$(notdir $(patsubst %.cxx,%.so,$(call recwildcard,src/,*.cxx))))
 
 # To determine source (.cpp) and header (.hh) dependencies
 DEP = $(OBJ:.o=.d)
@@ -107,6 +112,7 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
+	@echo "linking into executable file ..."
 	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
@@ -123,16 +129,16 @@ format-code:
 	@echo "formatting the project using clang-format ..."
 	python3 $(SCRIPT_AUTOFORMAT)
 
-# this target is testing only
-TEST_PLUGIN := src/analysis/plugins/IFDSTabulationProblemTestPlugin
-plugin: $(OBJ)
-	@echo "comiling plugins into shared object libraries ..."
-	clang++ $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $(TEST_PLUGIN).cxx -o $(TEST_PLUGIN).so
+$(PLUGINSODIR):
+	mkdir $@
 
-# this target is testing only
-plugin-clean:
-	rm -f $(TEST_PLUGIN).d
-	rm -f $(TEST_PLUGIN).so
+plugins: $(PLUGINSODIR) $(SO)
+
+$(PLUGINSODIR)%.so: %.cxx
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $< -o $@ 
+
+clean-plugins:
+	rm -rf $(PLUGINSODIR)
 
 hello:
 	@echo "Hello World!"
@@ -145,7 +151,7 @@ run_tests:
 #	rm ptg_hexastore.db
 #	rm llheros_analyzer.db
 
-clean:
+clean: clean-plugins
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)
 	rm -rf $(DOC)

@@ -29,7 +29,7 @@ IFDSProtoAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSProtoAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd) {
+                                       const llvm::Function *destMthd) {
   cout << "IFDSProtoAnalysis::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
@@ -52,9 +52,7 @@ IFDSProtoAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSProtoAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                          const llvm::Function *destMthd,
-                                          vector<const llvm::Value *> inputs,
-                                          vector<bool> context) {
+                                          const llvm::Function *destMthd) {
   cout << "IFDSProtoAnalysis::getSummaryFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
@@ -76,7 +74,7 @@ const llvm::Value *IFDSProtoAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IFDSProtoAnalysis::isZeroValue(const llvm::Value* d) const {
+bool IFDSProtoAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 

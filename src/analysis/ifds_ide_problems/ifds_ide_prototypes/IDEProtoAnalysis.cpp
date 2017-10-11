@@ -24,7 +24,7 @@ IDEProtoAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDEProtoAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                     const llvm::Function *destMthd) {
+                                      const llvm::Function *destMthd) {
   cout << "IDEProtoAnalysis::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
@@ -47,9 +47,7 @@ IDEProtoAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDEProtoAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd,
-                                         vector<const llvm::Value *> inputs,
-                                         vector<bool> context) {
+                                         const llvm::Function *destMthd) {
   return nullptr;
 }
 
@@ -71,7 +69,7 @@ const llvm::Value *IDEProtoAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IDEProtoAnalysis::isZeroValue(const llvm::Value* d) const {
+bool IDEProtoAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
@@ -116,10 +114,10 @@ IDEProtoAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
-IDEProtoAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd,
-                                         vector<const llvm::Value *> inputs,
-                                         vector<bool> context) {
+IDEProtoAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callSite,
+                                         const llvm::Value *callNode,
+                                         const llvm::Instruction *retSite,
+                                         const llvm::Value *retSiteNode) {
   cout << "IDEProtoAnalysis::getSummaryEdgeFunction()\n";
   return EdgeIdentity<const llvm::Value *>::v();
 }

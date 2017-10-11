@@ -8,44 +8,38 @@
 #ifndef ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_
 #define ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_
 
-#include <type_traits>
-#include "IFDSTabulationProblem.hh"
 #include "FlowFunctions.hh"
+#include "IFDSTabulationProblem.hh"
 #include "flow_func/Identity.hh"
+#include <type_traits>
 
-template<class N, class D, class M, class I>
-class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N,D,M,I> {
+template <class N, class D, class M, class I>
+class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
 protected:
-	I icfg;
-	virtual D createZeroValue() = 0;
-	D zerovalue;
+  I icfg;
+  virtual D createZeroValue() = 0;
+  D zerovalue;
 
 public:
-	DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {
-		// set to the default solver configuration
-		this->solver_config.followReturnsPastSeeds = false;
-		this->solver_config.autoAddZero = true;
-		this->solver_config.computeValues = true;
-		this->solver_config.recordEdges = true;
-		this->solver_config.computePersistedSummaries = true;
-	}
+  DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {
+    // set to the default solver configuration
+    this->solver_config.followReturnsPastSeeds = false;
+    this->solver_config.autoAddZero = true;
+    this->solver_config.computeValues = true;
+    this->solver_config.recordEdges = true;
+    this->solver_config.computePersistedSummaries = true;
+  }
 
-	virtual ~DefaultIFDSTabulationProblem() = default;
+  virtual ~DefaultIFDSTabulationProblem() = default;
 
-	virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
-																														 M destMthd,
-																														 vector<D> inputs,
-																														 vector<bool> context) override {
-		return nullptr;
-	}
+  virtual shared_ptr<FlowFunction<D>>
+  getSummaryFlowFunction(N callStmt, M destMthd) override {
+    return nullptr;
+  }
 
-	I interproceduralCFG() override	{
-		return icfg;
-	}
+  I interproceduralCFG() override { return icfg; }
 
-	D zeroValue() override {
-		return zerovalue;
-	}
+  D zeroValue() override { return zerovalue; }
 };
 
 #endif /* ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_ */

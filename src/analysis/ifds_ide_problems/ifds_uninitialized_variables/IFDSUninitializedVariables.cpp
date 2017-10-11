@@ -10,7 +10,8 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
                                                 const llvm::Instruction *succ) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getNormalFlowFunction()";
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getNormalFlowFunction()";
   // set every local variable as uninitialized, that is not a function parameter
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
@@ -90,20 +91,20 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
               return {source, pointerop};
             }
           }
-	  if (const llvm::Instruction *inst =
+          if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(use)) {
-	    for (auto &operand : inst->operands()) {
-	      if (operand == source) {
-		  return {source, pointerop};
-	      }
-	    }
-	    for (auto &operand : inst->operands()) {
-	      if (const llvm::UndefValue *undef =
-		  llvm::dyn_cast<llvm::UndefValue>(operand)) {
-		  return {source, pointerop};
-	      }
-	    }
-	  }
+            for (auto &operand : inst->operands()) {
+              if (operand == source) {
+                return {source, pointerop};
+              }
+            }
+            for (auto &operand : inst->operands()) {
+              if (const llvm::UndefValue *undef =
+                      llvm::dyn_cast<llvm::UndefValue>(operand)) {
+                return {source, pointerop};
+              }
+            }
+          }
         }
         // otherwise the value is initialized through this store and thus can be
         // killed
@@ -292,7 +293,8 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSUnitializedVariables::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getCallToRetFlowFunction()";
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getCallToRetFlowFunction()";
   // handle a normal use of an initialized return value
   for (auto user : callSite->users()) {
     return make_shared<Kill<const llvm::Value *>>(user);
@@ -302,10 +304,10 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSUnitializedVariables::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-    vector<const llvm::Value *> inputs, vector<bool> context) {
+    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getSummaryFlowFunction()";
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getSummaryFlowFunction()";
   SpecialSummaries<const llvm::Value *, BinaryDomain> &SpecialSum =
       SpecialSummaries<const llvm::Value *, BinaryDomain>::getInstance();
   if (SpecialSum.containsSpecialSummary(destMthd)) {
@@ -336,7 +338,7 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   return zero;
 }
 
-bool IFDSUnitializedVariables::isZeroValue(const llvm::Value* d) const {
+bool IFDSUnitializedVariables::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 

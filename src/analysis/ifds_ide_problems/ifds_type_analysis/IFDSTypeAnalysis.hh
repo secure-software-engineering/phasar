@@ -41,7 +41,7 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                     const llvm::Function *destMthd) override;
+                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
@@ -58,12 +58,12 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value* d) const override;
+  bool isZeroValue(const llvm::Value *d) const override;
 
   string D_to_string(const llvm::Value *d) override;
 
   string N_to_string(const llvm::Instruction *n) override;
-  
+
   string M_to_string(const llvm::Function *m) override;
 };
 

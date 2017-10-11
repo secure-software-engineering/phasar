@@ -49,8 +49,7 @@ IFDSTabulationProblemTestPlugin::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-    vector<const llvm::Value *> inputs, vector<bool> context) {
+    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   cout << "IFDSTabulationProblemTestPlugin::getSummaryFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }

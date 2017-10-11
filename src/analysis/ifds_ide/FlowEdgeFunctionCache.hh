@@ -57,8 +57,7 @@ struct FlowEdgeFunctionCache {
   map<tuple<N, M>, shared_ptr<FlowFunction<D>>> CallFlowFunctionCache;
   map<tuple<N, M, N, N>, shared_ptr<FlowFunction<D>>> ReturnFlowFunctionCache;
   map<tuple<N, N>, shared_ptr<FlowFunction<D>>> CallToRetFlowFunctionCache;
-  map<tuple<N, M, vector<D>, vector<bool>>, shared_ptr<FlowFunction<D>>>
-      SummaryFlowFunctionCache;
+  map<tuple<N, M>, shared_ptr<FlowFunction<D>>> SummaryFlowFunctionCache;
   // Caches for the edge functions
   map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>> NormalEdgeFunctionCache;
   map<tuple<N, D, M, D>, shared_ptr<EdgeFunction<V>>> CallEdgeFunctionCache;
@@ -66,8 +65,7 @@ struct FlowEdgeFunctionCache {
       ReturnEdgeFunctionCache;
   map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>>
       CallToRetEdgeFunctionCache;
-  map<tuple<N, M, vector<D>, vector<bool>>, shared_ptr<EdgeFunction<V>>>
-      SummaryEdgeFunctionCache;
+  map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>> SummaryEdgeFunctionCache;
 
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
@@ -145,17 +143,14 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd,
-                                                     vector<D> inputs,
-                                                     vector<bool> context) {
-    auto key = tie(callStmt, destMthd, inputs, context);
+  shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) {
+    auto key = tie(callStmt, destMthd);
     if (SummaryFlowFunctionCache.count(key)) {
       ++summaryFFCacheHit;
       return SummaryFlowFunctionCache.at(key);
     } else {
       ++summaryFFConstruction;
-      auto ff =
-          problem.getSummaryFlowFunction(callStmt, destMthd, inputs, context);
+      auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
       return ff;
     }
   }
@@ -221,17 +216,16 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N callStmt, M destMthd,
-                                                     vector<D> inputs,
-                                                     vector<bool> context) {
-    auto key = tie(callStmt, destMthd, inputs, context);
+  shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N callSite, D callNode,
+                                                     N retSite, D retSiteNode) {
+    auto key = tie(callSite, callNode, retSite, retSiteNode);
     if (SummaryEdgeFunctionCache.count(key)) {
       ++summaryEFCacheHit;
       return SummaryEdgeFunctionCache.at(key);
     } else {
       ++summaryEFConstruction;
-      auto ef =
-          problem.getSummaryEdgeFunction(callStmt, destMthd, inputs, context);
+      auto ef = problem.getSummaryEdgeFunction(callSite, callNode, retSite,
+                                               retSiteNode);
       SummaryEdgeFunctionCache.insert(make_pair(key, ef));
       return ef;
     }

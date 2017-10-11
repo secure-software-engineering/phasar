@@ -21,7 +21,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTypeAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                     const llvm::Function *destMthd) {
+                                      const llvm::Function *destMthd) {
   cout << "type analysis getCallFlowFunction()" << endl;
   struct TAFF : FlowFunction<const llvm::Value *> {
     set<const llvm::Value *>
@@ -75,7 +75,7 @@ const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
   return zero;
 }
 
-bool IFDSTypeAnalysis::isZeroValue(const llvm::Value* d) const {
+bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 

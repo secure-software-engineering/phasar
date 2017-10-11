@@ -19,16 +19,12 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
   cout << "IFDSSolverTest::getNormalFlowFunction()\n";
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Gen<const llvm::Value *>>(
-        Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
-  }
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                   const llvm::Function *destMthd) {
+                                    const llvm::Function *destMthd) {
   cout << "IFDSSolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
@@ -51,11 +47,8 @@ IFDSSolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                       const llvm::Function *destMthd,
-                                       vector<const llvm::Value *> inputs,
-                                       vector<bool> context) {
-  cout << "IFDSSolverTest::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+                                       const llvm::Function *destMthd) {
+  return nullptr;
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
@@ -75,7 +68,7 @@ const llvm::Value *IFDSSolverTest::createZeroValue() {
   return zero;
 }
 
-bool IFDSSolverTest::isZeroValue(const llvm::Value* d) const {
+bool IFDSSolverTest::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 

@@ -68,8 +68,8 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     struct TAFF : FlowFunction<const llvm::Value *> {
       const llvm::StoreInst *store;
       TAFF(const llvm::StoreInst *s) : store(s){};
-      set<const llvm::Value *> computeTargets(
-          const llvm::Value *source) override {
+      set<const llvm::Value *>
+      computeTargets(const llvm::Value *source) override {
         if (store->getValueOperand() == source) {
           return set<const llvm::Value *>{store->getPointerOperand(), source};
         } else if (store->getValueOperand() != source &&
@@ -87,8 +87,8 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     struct TAFF : FlowFunction<const llvm::Value *> {
       const llvm::LoadInst *load;
       TAFF(const llvm::LoadInst *l) : load(l) {}
-      set<const llvm::Value *> computeTargets(
-          const llvm::Value *source) override {
+      set<const llvm::Value *>
+      computeTargets(const llvm::Value *source) override {
         if (source == load->getPointerOperand()) {
           return {load, source};
         } else {
@@ -103,8 +103,8 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     struct TAFF : FlowFunction<const llvm::Value *> {
       const llvm::GetElementPtrInst *gep;
       TAFF(const llvm::GetElementPtrInst *g) : gep(g) {}
-      set<const llvm::Value *> computeTargets(
-          const llvm::Value *source) override {
+      set<const llvm::Value *>
+      computeTargets(const llvm::Value *source) override {
         if (source == gep->getPointerOperand()) {
           return {gep, source};
         } else {
@@ -120,7 +120,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd) {
+                                       const llvm::Function *destMthd) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallFlowFunction()";
   // Check if a source or sink function is called:
@@ -161,7 +161,7 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
           set<const llvm::Value *> res;
           for (unsigned idx = 0; idx < actuals.size(); ++idx) {
             if (source == actuals[idx]) {
-              res.insert(formals[idx]);  // corresponding formal
+              res.insert(formals[idx]); // corresponding formal
               // res.insert(source); // corresponding actual
               res.insert(zerovalue);
             }
@@ -198,10 +198,8 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
     TAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
          const llvm::Instruction *exitstmt, const llvm::Value *zv,
          const IFDSTaintAnalysis *ta)
-        : callSite(callsite),
-          calleeMthd(callemthd),
-          exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
-          zerovalue(zv),
+        : callSite(callsite), calleeMthd(callemthd),
+          exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)), zerovalue(zv),
           taintanalysis(ta) {
       // set up the actual parameters
       for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
@@ -213,8 +211,8 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
         formals.push_back(getNthFunctionArgument(calleeMthd, idx));
       }
     }
-    set<const llvm::Value *> computeTargets(
-        const llvm::Value *source) override {
+    set<const llvm::Value *>
+    computeTargets(const llvm::Value *source) override {
       if (!taintanalysis->isZeroValue(source)) {
         set<const llvm::Value *> res;
         res.insert(zerovalue);
@@ -282,10 +280,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
              SinkFunction s,
              map<const llvm::Instruction *, set<const llvm::Value *>> &leaks,
              const IFDSTaintAnalysis *ta)
-            : callSite(cs),
-              calledMthd(calledMthd),
-              sink(s),
-              Leaks(leaks),
+            : callSite(cs), calledMthd(calledMthd), sink(s), Leaks(leaks),
               taintanalysis(ta) {}
         set<const llvm::Value *> computeTargets(const llvm::Value *source) {
           // check if a tainted value flows into a sink
@@ -313,9 +308,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                          const llvm::Function *destMthd,
-                                          vector<const llvm::Value *> inputs,
-                                          vector<bool> context) {
+                                          const llvm::Function *destMthd) {
   SpecialSummaries<const llvm::Value *> &specialSummaries =
       SpecialSummaries<const llvm::Value *>::getInstance();
   string FunctionName = destMthd->getName().str();

@@ -199,8 +199,9 @@ private:
    */
   void processCall(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process call at target: "
-                             << ideTabulationProblem.N_to_string(edge.getTarget());
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "process call at target: "
+        << ideTabulationProblem.N_to_string(edge.getTarget());
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
@@ -217,23 +218,22 @@ private:
     }
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
-      // check if a summary for the called procedure exists
-      shared_ptr<FlowFunction<D>> summary =
-          cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN, {},
-                                                         {});
-      // if a summary is available, treat this as a normal flow
-      if (summary) {
+      // check if a special summary for the called procedure exists
+      shared_ptr<FlowFunction<D>> specialSum =
+          cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
+      // if a special summary is available, treat this as a normal flow
+      // and use the summary flow and edge functions
+      if (specialSum) {
         BOOST_LOG_SEV(lg, DEBUG) << "Found and process special summary";
-        shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
-        auto successorInst = icfg.getSuccsOf(n);
-        for (auto m : successorInst) {
+        for (N returnSiteN : returnSiteNs) {
           summaryFlowFunctionApplicationCount++;
-          set<D> res = computeNormalFlowFunction(summary, d1, d2);
-          saveEdges(n, m, d2, res, false);
+          set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
+          saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
-            shared_ptr<EdgeFunction<V>> fprime = f->composeWith(
-                cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3));
-            propagate(d1, m, d3, fprime, nullptr, false);
+            shared_ptr<EdgeFunction<V>> sumEdgFnE =
+                cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
+                                                               returnSiteN, d3);
+            propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
       } else {
@@ -245,9 +245,9 @@ private:
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
         if (startPointsOf.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" + 
-              icfg.getMethodName(sCalledProcN) 
-              + "' currently not available!";
+          BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
+                                          icfg.getMethodName(sCalledProcN) +
+                                          "' currently not available!";
         }
         // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
@@ -262,8 +262,8 @@ private:
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
             set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
-              endSumm =
-                set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
+                endSumm = set<
+                    typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
@@ -335,8 +335,9 @@ private:
    */
   void processNormalFlow(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process normal at target: "
-                             << ideTabulationProblem.N_to_string(edge.getTarget());
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "process normal at target: "
+        << ideTabulationProblem.N_to_string(edge.getTarget());
     if (edge.factAtSource() == nullptr)
       BOOST_LOG_SEV(lg, DEBUG) << "fact at source is nullptr";
     D d1 = edge.factAtSource();
@@ -411,24 +412,15 @@ private:
   void propagateValueAtCall(pair<N, D> nAndD, N n) {
     D d = nAndD.second;
     for (M q : icfg.getCalleesOfCallAt(n)) {
-
-      shared_ptr<FlowFunction<D>> summary =
-          cachedFlowEdgeFunctions.getSummaryFlowFunction(n, q, {}, {});
-      if (summary) {
-        propagateValue(n, d, EdgeIdentity<V>::v()->computeTarget(val(n, d)));
-      } else {
-
-        shared_ptr<FlowFunction<D>> callFlowFunction =
-            cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
-        flowFunctionConstructionCount++;
-        for (D dPrime : callFlowFunction->computeTargets(d)) {
-          shared_ptr<EdgeFunction<V>> edgeFn =
-              cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
-          for (N startPoint : icfg.getStartPointsOf(q)) {
-            propagateValue(startPoint, dPrime,
-                           edgeFn->computeTarget(val(n, d)));
-            flowFunctionApplicationCount++;
-          }
+      shared_ptr<FlowFunction<D>> callFlowFunction =
+          cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
+      flowFunctionConstructionCount++;
+      for (D dPrime : callFlowFunction->computeTargets(d)) {
+        shared_ptr<EdgeFunction<V>> edgeFn =
+            cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
+        for (N startPoint : icfg.getStartPointsOf(q)) {
+          propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n, d)));
+          flowFunctionApplicationCount++;
         }
       }
     }
@@ -461,18 +453,18 @@ private:
     } else {
       valtab.insert(nHashN, nHashD, l);
     }
-    BOOST_LOG_SEV(lg, DEBUG) << "VALUE: " 
-        << icfg.getMethodOf(nHashN)->getName().str() << " "
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "VALUE: " << icfg.getMethodOf(nHashN)->getName().str() << " "
         << "node: " << ideTabulationProblem.N_to_string(nHashN) << " "
         << "fact: " << ideTabulationProblem.D_to_string(nHashD) << " "
-        << "val: " << ideTabulationProblem.V_to_string(l); 
+        << "val: " << ideTabulationProblem.V_to_string(l);
   }
 
   shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge) {
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
              .count(edge.factAtTarget())) {
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
-      return allTop; 
+      return allTop;
     }
     return jumpFn->forwardLookup(edge.factAtSource(),
                                  edge.getTarget())[edge.factAtTarget()];
@@ -603,8 +595,9 @@ protected:
    */
   void processExit(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "process exit at target: "
-                             << ideTabulationProblem.N_to_string(edge.getTarget());
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "process exit at target: "
+        << ideTabulationProblem.N_to_string(edge.getTarget());
     N n = edge.getTarget(); // an exit node; line 21...
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     M methodThatNeedsSummary = icfg.getMethodOf(n);
@@ -756,6 +749,15 @@ protected:
   }
 
   /**
+    * TODO: comment
+    */
+  set<D>
+  computeSummaryFlowFunction(shared_ptr<FlowFunction<D>> SummaryFlowFunction,
+                             D d1, D d2) {
+    return SummaryFlowFunction->computeTargets(d2);
+  }
+
+  /**
    * Computes the call flow function for the given call-site abstraction
    * @param callFlowFunction The call flow function to compute
    * @param d1 The abstraction at the current method's start node.
@@ -833,8 +835,9 @@ protected:
       if (!ideTabulationProblem.isZeroValue(targetVal)) {
         BOOST_LOG_SEV(lg, DEBUG)
             << "EDGE: <" << target->getFunction()->getName().str() << ", "
-            << ideTabulationProblem.D_to_string(sourceVal) << "> ---> <" << ideTabulationProblem.N_to_string(target)
-            << ", " << ideTabulationProblem.D_to_string(targetVal) << ">";
+            << ideTabulationProblem.D_to_string(sourceVal) << "> ---> <"
+            << ideTabulationProblem.N_to_string(target) << ", "
+            << ideTabulationProblem.D_to_string(targetVal) << ">";
       }
     }
   }
@@ -872,12 +875,16 @@ protected:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start incomingtab entry";
     for (auto cell : incomingtab.cellSet()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: " << ideTabulationProblem.N_to_string(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d3: " << ideTabulationProblem.D_to_string(cell.c);
+      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
+                               << ideTabulationProblem.N_to_string(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG) << "d3: "
+                               << ideTabulationProblem.D_to_string(cell.c);
       for (auto entry : cell.v) {
-        BOOST_LOG_SEV(lg, DEBUG) << "n: " << ideTabulationProblem.N_to_string(entry.first);
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "n: " << ideTabulationProblem.N_to_string(entry.first);
         for (auto fact : entry.second) {
-          BOOST_LOG_SEV(lg, DEBUG) << "d2: " << ideTabulationProblem.D_to_string(fact);
+          BOOST_LOG_SEV(lg, DEBUG) << "d2: "
+                                   << ideTabulationProblem.D_to_string(fact);
         }
       }
       BOOST_LOG_SEV(lg, DEBUG) << "-----";
@@ -889,18 +896,21 @@ protected:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start endsummarytab entry";
     for (auto cell : endsummarytab.cellVec()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: " << ideTabulationProblem.N_to_string(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d1: " << ideTabulationProblem.D_to_string(cell.c);
-        for (auto inner_cell : cell.v.cellVec()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "eP: " << ideTabulationProblem.N_to_string(inner_cell.r);
-          BOOST_LOG_SEV(lg, DEBUG) << "d2: " << ideTabulationProblem.D_to_string(inner_cell.c);
-          BOOST_LOG_SEV(lg, DEBUG) << "edge fun: " << inner_cell.v->toString();
-       }
-       BOOST_LOG_SEV(lg, DEBUG) << "-----";
+      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
+                               << ideTabulationProblem.N_to_string(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG) << "d1: "
+                               << ideTabulationProblem.D_to_string(cell.c);
+      for (auto inner_cell : cell.v.cellVec()) {
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "eP: " << ideTabulationProblem.N_to_string(inner_cell.r);
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "d2: " << ideTabulationProblem.D_to_string(inner_cell.c);
+        BOOST_LOG_SEV(lg, DEBUG) << "edge fun: " << inner_cell.v->toString();
+      }
+      BOOST_LOG_SEV(lg, DEBUG) << "-----";
     }
     BOOST_LOG_SEV(lg, DEBUG) << "end endsummarytab entry";
   }
-
 };
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_HH_ */

@@ -23,7 +23,7 @@ IDESolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDESolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                  const llvm::Function *destMthd) {
+                                   const llvm::Function *destMthd) {
   cout << "IDESolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
@@ -44,9 +44,7 @@ IDESolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDESolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd,
-                                      vector<const llvm::Value *> inputs,
-                                      vector<bool> context) {
+                                      const llvm::Function *destMthd) {
   return nullptr;
 }
 
@@ -68,7 +66,7 @@ const llvm::Value *IDESolverTest::createZeroValue() {
   return zero;
 }
 
-bool IDESolverTest::isZeroValue(const llvm::Value* d) const {
+bool IDESolverTest::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
@@ -114,9 +112,9 @@ IDESolverTest::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
 IDESolverTest::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd,
-                                      vector<const llvm::Value *> inputs,
-                                      vector<bool> context) {
+                                      const llvm::Value *callNode,
+                                      const llvm::Instruction *retSite,
+                                      const llvm::Value *retSiteNode) {
   cout << "IDESolverTest::getSummaryEdgeFunction()\n";
   return EdgeIdentity<const llvm::Value *>::v();
 }
@@ -168,7 +166,7 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::D_to_string(const llvm::Value *d) { 
+string IDESolverTest::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 

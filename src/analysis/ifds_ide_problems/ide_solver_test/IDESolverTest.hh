@@ -51,7 +51,7 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                     const llvm::Function *destMthd) override;
+                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
@@ -63,16 +63,16 @@ public:
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getSummaryFlowFunction(
-      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-      vector<const llvm::Value *> inputs, vector<bool> context) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getSummaryFlowFunction(const llvm::Instruction *callStmt,
+                         const llvm::Function *destMthd) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value* d) const override;
+  bool isZeroValue(const llvm::Value *d) const override;
 
   // in addition provide specifications for the IDE parts
 
@@ -97,9 +97,11 @@ public:
                               const llvm::Instruction *retSite,
                               const llvm::Value *retSiteNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>> getSummaryEdgeFunction(
-      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-      vector<const llvm::Value *> inputs, vector<bool> context) override;
+  shared_ptr<EdgeFunction<const llvm::Value *>>
+  getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                         const llvm::Value *callNode,
+                         const llvm::Instruction *retSite,
+                         const llvm::Value *retSiteNode) override;
 
   const llvm::Value *topElement() override;
 
@@ -130,7 +132,7 @@ public:
   string V_to_string(const llvm::Value *v) override;
 
   string N_to_string(const llvm::Instruction *n) override;
-  
+
   string M_to_string(const llvm::Function *m) override;
 };
 
