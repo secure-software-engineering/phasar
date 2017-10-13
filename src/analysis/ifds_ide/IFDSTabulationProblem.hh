@@ -26,7 +26,10 @@ public:
   virtual I interproceduralCFG() = 0;
   virtual map<N, set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
-	virtual string D_to_string(D d) = 0;
+  virtual bool isZeroValue(D d) const = 0;
+  virtual string D_to_string(D d) = 0;
+  virtual string N_to_string(N n) = 0;
+  virtual string M_to_string(M m) = 0;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_HH_ */

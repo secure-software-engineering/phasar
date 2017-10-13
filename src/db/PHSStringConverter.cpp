@@ -4,13 +4,20 @@ PHSStringConverter::PHSStringConverter(ProjectIRCompiledDB &IRDB)
     : IRDB(IRDB) {}
 
 string PHSStringConverter::PToHStoreStringRep(const llvm::Value *V) {
-	if (isZeroValue(V)) {
+	if (isLLVMZeroValue(V)) {
 		return ZeroValueInternalName;
 	} else if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
   } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(V)) {
     return A->getParent()->getName().str() + ".f" + to_string(A->getArgNo());
   } else if (const llvm::GlobalValue *G = llvm::dyn_cast<llvm::GlobalValue>(V)) {
+    cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
+    cout << "all user:\n";
+    for (auto User: V->users()) {
+      if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(User)) {
+        cout << I->getFunction()->getName().str() << "\n";
+      }
+    }
     return G->getName().str();
   } else if (llvm::isa<llvm::Value>(V)) {
     // In this case we should have an operand of an instruction which can be

@@ -15,7 +15,7 @@
 #include <set>
 #include <type_traits>
 #include "IDESolver.hh"
-#include "../IDETabluationProblem.hh"
+#include "../IDETabulationProblem.hh"
 #include "../IFDSTabulationProblem.hh"
 #include "../EdgeFunction.hh"
 #include "../edge_func/EdgeIdentity.hh"
@@ -34,7 +34,7 @@ extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
  * a binary lattice.
  */
 template<class N, class D, class M, class I>
-class IFDSToIDETabulationProblem : public IDETabluationProblem<N, D, M, BinaryDomain, I> {
+class IFDSToIDETabulationProblem : public IDETabulationProblem<N, D, M, BinaryDomain, I> {
 public:
 	IFDSTabulationProblem<N,D,M,I>& problem;
 
@@ -50,8 +50,8 @@ public:
 		return problem.getNormalFlowFunction(curr, succ);
 	}
 
-	shared_ptr<FlowFunction<D>> getCallFlowFuntion(N callStmt, M destMthd) override {
-		return problem.getCallFlowFuntion(callStmt, destMthd);
+	shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) override {
+		return problem.getCallFlowFunction(callStmt, destMthd);
 	}
 
 	shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) override {
@@ -62,8 +62,8 @@ public:
 		return problem.getCallToRetFlowFunction(callSite, retSite);
 	}
 
-	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override {
-		return problem.getSummaryFlowFunction(callStmt, destMthd, inputs, context);
+	shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) override {
+		return problem.getSummaryFlowFunction(callStmt, destMthd);
 	}
 
 	I interproceduralCFG() override {
@@ -76,6 +76,10 @@ public:
 
 	D zeroValue() override {
 		return problem.zeroValue();
+	}
+
+	bool isZeroValue(D d) const override {
+		return problem.isZeroValue(d);
 	}
 
 	BinaryDomain topElement() override {
@@ -99,40 +103,35 @@ public:
 	}
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getNormalEdgeFunction(N src,D srcNode,N tgt,D tgtNode) override {
-		cout << "getNormalEdgeFunction()\n";
-		if(srcNode==problem.zeroValue())
+		if(problem.isZeroValue(srcNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
 	}
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getCallEdgeFunction(N callStmt,D srcNode,M destinationMethod,D destNode) override {
-		cout << "getCallEdgeFunction()\n";
-		if(srcNode==problem.zeroValue())
+		if(problem.isZeroValue(srcNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
 	}
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getReturnEdgeFunction(N callSite, M calleeMethod,N exitStmt,D exitNode,N returnSite,D retNode) override {
-		cout << "getReturnEdgeFunction()\n";
-		if(exitNode==problem.zeroValue())
+		if(problem.isZeroValue(exitNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
 	}
 
 	shared_ptr<EdgeFunction<BinaryDomain>> getCallToReturnEdgeFunction(N callStmt,D callNode,N returnSite,D returnSideNode) override {
-		cout << "getCallToReturnEdgeFunction()\n";
-		if(callNode==problem.zeroValue())
+		if(problem.isZeroValue(callNode))
 			return ALL_BOTTOM;
 		else
 			return EdgeIdentity<BinaryDomain>::v();
 	}
 
-	shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) override {
-		cout << "getSummaryEdgeFunction()\n";
-		// if(srcNode==problem.zeroValue())
+	shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(N callStmt, D callNode, N retSite, D retSiteNode) override {
+		// if(problem.isZeroValue(srcNode))
 			// return ALL_BOTTOM;
 		// else
 			return EdgeIdentity<BinaryDomain>::v();
@@ -144,8 +143,16 @@ public:
 
 	string V_to_string(BinaryDomain v) override {
 		ostringstream osst;
-    osst << v << '\n';
+    osst << v;
     return osst.str();
+	}
+
+	string M_to_string(M m) override {
+		return problem.M_to_string(m);
+	}
+
+	string N_to_string(N n) override {
+		return problem.N_to_string(n);
 	}
 
 };

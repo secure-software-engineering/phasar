@@ -22,12 +22,14 @@ using namespace std;
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *,
                                   LLVMBasedICFG &> {
 private:
   LLVMBasedICFG &ICFG;
+  vector<string> EntryPoints;
 
 public:
-  InterMonotoneSolverTest(LLVMBasedICFG &Icfg);
+  InterMonotoneSolverTest(LLVMBasedICFG &Icfg, vector<string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
   virtual MonoSet<const llvm::Value *>
@@ -59,6 +61,8 @@ public:
   initialSeeds() override;
 
   virtual string D_to_string(const llvm::Value *d) override;
+
+  virtual string C_to_string(const llvm::Value *c) override;
 };
 
 #endif

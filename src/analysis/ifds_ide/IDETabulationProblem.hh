@@ -1,12 +1,12 @@
 /*
- * IDETabluationProblem.hh
+ * IDETabulationProblem.hh
  *
  *  Created on: 04.08.2016
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_IDETABLUATIONPROBLEM_HH_
-#define ANALYSIS_IFDS_IDE_IDETABLUATIONPROBLEM_HH_
+#ifndef ANALYSIS_IFDS_IDE_IDETABULATIONPROBLEM_HH_
+#define ANALYSIS_IFDS_IDE_IDETABULATIONPROBLEM_HH_
 
 #include <type_traits>
 #include <memory>
@@ -16,11 +16,11 @@
 #include "JoinLattice.hh"
 
 template<typename N, typename D, typename M, typename V, typename I>
-class IDETabluationProblem : public IFDSTabulationProblem<N,D,M,I>,
+class IDETabulationProblem : public IFDSTabulationProblem<N,D,M,I>,
 							 public EdgeFunctions<N,D,M,V>,
 							 public JoinLattice<V> {
 public:
-	virtual ~IDETabluationProblem() = default;
+	virtual ~IDETabulationProblem() = default;
 	virtual shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
 	virtual string V_to_string(V v) = 0;
 };

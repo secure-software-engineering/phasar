@@ -8,9 +8,9 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/ZeroValue.hh"
@@ -27,8 +27,11 @@ using namespace std;
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
-  IFDSTypeAnalysis(LLVMBasedICFG &icfg);
+  IFDSTypeAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSTypeAnalysis() = default;
 
@@ -37,8 +40,8 @@ public:
                         const llvm::Instruction *succ) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallFlowFuntion(const llvm::Instruction *callStmt,
-                     const llvm::Function *destMthd) override;
+  getCallFlowFunction(const llvm::Instruction *callStmt,
+                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
@@ -55,7 +58,13 @@ public:
 
   const llvm::Value *createZeroValue() override;
 
+  bool isZeroValue(const llvm::Value *d) const override;
+
   string D_to_string(const llvm::Value *d) override;
+
+  string N_to_string(const llvm::Instruction *n) override;
+
+  string M_to_string(const llvm::Function *m) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_   \

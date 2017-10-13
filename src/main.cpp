@@ -58,7 +58,7 @@ void validateParamProject(const string &project) {
 
 void validateParamDataFlowAnalysis(const vector<string> &dfa) {
   for (const auto &analysis : dfa) {
-    if (DataFlowAnalysisTypeMap.count(analysis) == 0) {
+    if (StringToDataFlowAnalysisType.count(analysis) == 0) {
       throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
@@ -66,21 +66,21 @@ void validateParamDataFlowAnalysis(const vector<string> &dfa) {
 }
 
 void validateParamPointerAnalysis(const string &pta) {
-  if (PointerAnalysisTypeMap.count(pta) == 0) {
+  if (StringToPointerAnalysisType.count(pta) == 0) {
     throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
 
 void validateParamCallGraphAnalysis(const string &cga) {
-  if (CallGraphAnalysisTypeMap.count(cga) == 0) {
+  if (StringToCallGraphAnalysisType.count(cga) == 0) {
     throw bpo::error_with_option_name("'" + cga +
                                       "' is not a valid call-graph analysis");
   }
 }
 
 void validateParamExport(const string &exp) {
-  if (ExportTypeMap.count(exp) == 0) {
+  if (StringToExportType.count(exp) == 0) {
     throw bpo::error_with_option_name("'" + exp +
                                       "' is not a valid export parameter");
   }
@@ -95,7 +95,10 @@ void validateParamAnalysisPlugin(const string &plugin) {
 }
 
 void validateParamAnalysisInterface(const string &iface) {
-  // TODO implement once the common plug-in interfaces are specified!
+  if (!AvailablePluginInterfaces.count(iface)) {
+    throw bpo::error_with_option_name("'" + iface +
+                                      "' is not a valid plugin interface");
+  }
 }
 
 void validateParamConfig(const string &cfg) {
@@ -130,7 +133,8 @@ int main(int argc, const char **argv) {
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
 			("data_flow_analysis,D", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Analysis")
 			("pointer_analysis,P", bpo::value<string>()->notifier(validateParamPointerAnalysis), "Points-to analysis (CFLSteens, CFLAnders)")
-			("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("entry_points", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing(), "Entry point(s)")
 			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
 			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
 			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
@@ -139,7 +143,7 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
+			("analysis_interface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
 			("config", bpo::value<string>()->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
@@ -151,7 +155,8 @@ int main(int argc, const char **argv) {
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
 			("data_flow_analysis,D", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Analysis")
 			("pointer_analysis,P", bpo::value<string>()->notifier(validateParamPointerAnalysis), "Points-to analysis (CFLSteens, CFLAnders)")
-			("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("callgraph_analysis,C", bpo::value<string>()->notifier(validateParamCallGraphAnalysis), "Call-graph analysis (CHA, RTA, DTA, VTA, OTF)")
+      ("entry_points", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing(), "Entry point(s)")
 			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
 			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
 			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
@@ -160,7 +165,7 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_iterface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
+			("analysis_interface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin (TODO: yet to implement!)")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
     // clang-format on
     bpo::store(bpo::parse_command_line(argc, argv, GeneralOptions),
@@ -186,11 +191,20 @@ int main(int argc, const char **argv) {
               "analysis.\n";
       return 1;
     }
-    if (VariablesMap.count("analysis_plugin") !=
-        VariablesMap.count("analysis_interface")) {
-      cerr << "If an analysis plug-in is specified the corresponding interface "
-              "must be specified as well\n";
-      return 1;
+    // validate plugin concept, if an analysis plugin is chosen, the plugin
+    // interface
+    // and plugin itself must also be specified.
+    if (VariablesMap.count("data_flow_analysis")) {
+      if (find(VariablesMap["data_flow_analysis"].as<vector<string>>().begin(),
+               VariablesMap["data_flow_analysis"].as<vector<string>>().end(),
+               "plugin") !=
+              VariablesMap["data_flow_analysis"].as<vector<string>>().end() &&
+          (!VariablesMap.count("analysis_plugin") ||
+           !VariablesMap.count("analysis_interface"))) {
+        cerr << "If an analysis plugin is chosen, the plugin interface and "
+                "plugin itself must also be specified.\n";
+        return 1;
+      }
     }
   } catch (const bpo::error &e) {
     cerr << "error: could not parse program options\n"
@@ -199,13 +213,15 @@ int main(int argc, const char **argv) {
     return 1;
   }
 
-  vector<DataFlowAnalysisType> ChosenDataFlowAnalyses;
+  vector<DataFlowAnalysisType> ChosenDataFlowAnalyses = {
+      DataFlowAnalysisType::None};
   if (VariablesMap.count("data_flow_analysis")) {
+    ChosenDataFlowAnalyses.clear();
     for (auto &DataFlowAnalysis :
          VariablesMap["data_flow_analysis"].as<vector<string>>()) {
-      if (DataFlowAnalysisTypeMap.count(DataFlowAnalysis)) {
+      if (StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
         ChosenDataFlowAnalyses.push_back(
-            DataFlowAnalysisTypeMap.at(DataFlowAnalysis));
+            StringToDataFlowAnalysisType.at(DataFlowAnalysis));
       }
     }
   }
@@ -220,8 +236,7 @@ int main(int argc, const char **argv) {
           return IRDB;
         } else {
           // perform a little trick to make OptionsParser only responsible for
-          // the
-          // project sources
+          // the project sources
           int OnlyTakeCareOfSources = 2;
           const char *ProjectSources =
               VariablesMap["project"].as<string>().c_str();
@@ -240,7 +255,7 @@ int main(int argc, const char **argv) {
       VariablesMap["mem2reg"].as<bool>(),
       VariablesMap["printedgerec"].as<bool>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";
-  Controller.writeResults(VariablesMap["output"].as<string>());
+  // Controller.writeResults(VariablesMap["output"].as<string>());
 
   // free all resources handled by llvm
   llvm::llvm_shutdown();

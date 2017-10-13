@@ -8,9 +8,9 @@
 #ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_
 #define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_
 
+#include "../../../lib/LLVMShorthands.hh"
 #include "../../icfg/LLVMBasedICFG.hh"
 #include "../../ifds_ide/DefaultIDETabulationProblem.hh"
-#include "../../../lib/LLVMShorthands.hh"
 #include "../../ifds_ide/DefaultSeeds.hh"
 #include "../../ifds_ide/FlowFunction.hh"
 #include "../../ifds_ide/ZeroValue.hh"
@@ -34,6 +34,9 @@ class IDETaintAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, const llvm::Value *, LLVMBasedICFG &> {
+private:
+  vector<string> EntryPoints;
+
 public:
   set<string> source_functions = {"fread", "read"};
   // keep in mind that 'char** argv' of main is a source for tainted values as
@@ -41,7 +44,7 @@ public:
   set<string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(set<string> s, string str);
 
-  IDETaintAnalysis(LLVMBasedICFG &icfg);
+  IDETaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IDETaintAnalysis() = default;
 
@@ -52,8 +55,8 @@ public:
                         const llvm::Instruction *succ) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallFlowFuntion(const llvm::Instruction *callStmt,
-                     const llvm::Function *destMthd) override;
+  getCallFlowFunction(const llvm::Instruction *callStmt,
+                      const llvm::Function *destMthd) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
@@ -65,14 +68,16 @@ public:
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getSummaryFlowFunction(
-      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-      vector<const llvm::Value *> inputs, vector<bool> context) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getSummaryFlowFunction(const llvm::Instruction *callStmt,
+                         const llvm::Function *destMthd) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
+
+  bool isZeroValue(const llvm::Value *d) const override;
 
   // in addition provide specifications for the IDE parts
 
@@ -97,9 +102,11 @@ public:
                               const llvm::Instruction *retSite,
                               const llvm::Value *retSiteNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>> getSummaryEdgeFunction(
-      const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-      vector<const llvm::Value *> inputs, vector<bool> context) override;
+  shared_ptr<EdgeFunction<const llvm::Value *>>
+  getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                         const llvm::Value *callNode,
+                         const llvm::Instruction *retSite,
+                         const llvm::Value *retSiteNode) override;
 
   const llvm::Value *topElement() override;
 
@@ -128,6 +135,10 @@ public:
   string D_to_string(const llvm::Value *d) override;
 
   string V_to_string(const llvm::Value *v) override;
+
+  string N_to_string(const llvm::Instruction *n) override;
+
+  string M_to_string(const llvm::Function *m) override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_   \

@@ -43,16 +43,26 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <stdexcept>
+#include <tuple>
 
 using namespace std;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
 
+extern const map<string, WalkerStrategy> StringToWalkerStrategy;
+
+extern const map<WalkerStrategy, string> WalkerStrategyToString;
+
 ostream& operator<< (ostream& os, const WalkerStrategy W);
 
 // Describes the strategy that is used for resolving indirect call-sites;
 enum class ResolveStrategy { CHA = 0, RTA, TA, OTF };
+
+extern const map<string, ResolveStrategy> StringToResolveStrategy;
+
+extern const map<ResolveStrategy, string> ResolveStrategyToString;
 
 ostream& operator<< (ostream& os, const ResolveStrategy R);
 
@@ -79,8 +89,6 @@ private:
   set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   vector<const llvm::Instruction *> CallStack;
-  /// Keeps track of what modules have already been contracted
-  vector<string> MergeStack;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
@@ -100,7 +108,7 @@ private:
     EdgeProperties(const llvm::Instruction *i);
   };
 
-  // Specify the type of graph to be used.
+  /// Specify the type of graph to be used.
   typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
                                 VertexProperties, EdgeProperties>
       bidigraph_t;
@@ -196,15 +204,20 @@ private:
     * indirect call resolving function R.
     *
     * @brief Walks along the control flow graph performing a precise pointer
-   * analysis.
+    * analysis.
     * @param F function to start in
     * @param R resolving function to use for an indirect call site
     */
-  void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F); //,
-  // function<set<string>(llvm::ImmutableCallSite CS)> R);
+  void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
-  void printPTGMapping(
-      vector<pair<const llvm::Value *, const llvm::Value *>> mapping);
+  struct dependency_visitor : boost::default_dfs_visitor {
+    vector<vertex_t> &vertices;
+    dependency_visitor(vector<vertex_t> &v) : vertices(v) {}
+    template <class Vertex, class Graph>
+    void finish_vertex(Vertex u, const Graph &g) {
+      vertices.push_back(u);
+    }
+  };
 
 public:
   LLVMBasedICFG(LLVMStructTypeHierarchy &STH,
@@ -270,7 +283,7 @@ public:
   set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
-  CallType isCallStmt(const llvm::Instruction *stmt) override;
+  bool isCallStmt(const llvm::Instruction *stmt) override;
 
   set<const llvm::Instruction *> allNonCallStartNodes() override;
 
@@ -287,7 +300,13 @@ public:
 
   void printAsDot(const string &filename);
 
+  void printInternalPTGAsDot(const string &filename);
+
   void exportPATBCJSON();
+
+  PointsToGraph &getWholeModulePTG();
+
+  vector<string> getDependencyOrderedFunctions();
 };
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */

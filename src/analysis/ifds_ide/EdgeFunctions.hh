@@ -22,7 +22,7 @@ public:
 	virtual shared_ptr<EdgeFunction<V>> getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod, D destNode) = 0;
 	virtual shared_ptr<EdgeFunction<V>> getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt, D exitNode, N reSite, D retNode) = 0;
 	virtual shared_ptr<EdgeFunction<V>> getCallToReturnEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) = 0;
-	virtual shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N callStmt, M destMthd, vector<D> inputs, vector<bool> context) = 0;
+	virtual shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTIONS_HH_ */

@@ -62,9 +62,9 @@ quickly as possible, please help us achieving this goal.
 
 Installation {#installation}
 ------------
-The installation of ourframework is not that trivial, since it has some library 
+The installation of ourframework is not that trivial, since it has some library
 dependencies. The libraries needed in order to be able to compile and run
-ourframework successfully are the following (it is important that the exact 
+ourframework successfully are the following (it is important that the exact
 versions of these libraries are installed if not stated otherwise):
 
 + LLVM / Clang version 3.9.1
@@ -87,7 +87,7 @@ Installation guides for the libraries can be found here:
 [PYTHON](https://www.python.org/)
 
 ### Brief example using an Ubuntu system {#brief-example-using-an-ubuntu-system}
-In the following we would like to give an complete example of how to install 
+In the following we would like to give an complete example of how to install
 ourframework using an Ubuntu (16.04) or Unix-like system.
 
 #### Installing SQLITE3 {#installing-sqlite3}
@@ -128,7 +128,7 @@ $ cd boost_1_64_0/
 The next command which prepares the compilation process assumes that you have
 write permission in your system's /usr/local/ directory.
 
-$ ./boostrap.sh
+$ ./bootstrap.sh
 
 If no errors occur boost can now be installed using admin permission:
 
@@ -143,7 +143,7 @@ The result of the command
 
 $ ls /usr/local/include
 
-should contain one directory which is called 'boost'. Congratulations, now you 
+should contain one directory which is called 'boost'. Congratulations, now you
 have installed boost. The hardest part is yet to come.
 
 #### Installing LLVM {#installing-llvm}
@@ -158,7 +158,7 @@ $ sudo apt-get update
 
 Next you need to get the archives signature using:
 
-$ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+$ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
 
 (Fingerprint: 6084 F3CF 814B 57C1 CF12 EFD5 15CF 4D18 AF4F 7421)
 
@@ -169,7 +169,7 @@ $ apt-get install clang-3.9 clang-3.9-doc libclang-common-3.9-dev libclang-3.9-d
 
 (If your system complains about missing dependencies for the above packages, install them as suggested by your system. For instance, we know that on some systems libz must be installed, if not installed already.)
 
-It is important that the corresponding include/ and lib/ directories are added 
+It is important that the corresponding include/ and lib/ directories are added
 to the search path, such that ourframework is able to find them (but that is automatically the case if you perform the installation using apt packages). Important: The llvm / clang tools must be added to the search path using the following command:
 
 + export PATH="/usr/lib/llvm-3.9/bin:$PATH"
@@ -179,19 +179,19 @@ This line should be added to the end of your .bashrc as well. You can use this c
 $ echo -e "export PATH="/usr/lib/llvm-3.9/bin:$PATH" >> .bashrc
 
 Almost done! After having everything set-up correctly, you can now continue the
-installation by compiling ourframework. For the sake of compilation we provide 
+installation by compiling ourframework. For the sake of compilation we provide
 two mechanisms:
 
 #### Makefile {#makefile}
-Just type 'make' and ourframework will be compiled. As usual 'make clean' will 
+Just type 'make' and ourframework will be compiled. As usual 'make clean' will
 delete all compiled and auto-generated files. Using 'make doc' will generate the
-doxygen code documentation. The compiled binary file can be found in the bin/ 
+doxygen code documentation. The compiled binary file can be found in the bin/
 directory. You can use the -j switch to build in parallel reducing the compile time.
 
 $ make -j $(nproc)
 
 #### CMake {#cmake}
-If you are a fan of cmake you probably would like to go this route. 
+If you are a fan of cmake you probably would like to go this route.
 The following commands will do the job:
 
 $ mkdir build
@@ -203,7 +203,7 @@ $ cmake ..
 $ make -j $(nproc)
 
 
-After compilation using cmake the binary can be found right in the build 
+After compilation using cmake the binary can be found right in the build
 directory.
 
 Use the command:
@@ -215,7 +215,7 @@ in order to display the manual and help message.
 Please be careful and check if errors occure during the compilation of our framework.
 
 After having compiled ourframework running small test example seems adequate.
-If errors occur when running the test example your compiler might be 
+If errors occur when running the test example your compiler might be
 misconfigured or worse (please report if that happens).
 
 #### A remark on compile time {#a-remark-on-compile-time}
@@ -242,11 +242,11 @@ $ bin/main --module test_examples/installation_tests/module.ll --analysis ifds_u
 Here we check if pre-compiled modules work as expected.
 
 ##### Testing whole projects {#testing-whole-projects}
-C and C++ are notoriously hard to analyze. Because of the weak module system it is hard 
+C and C++ are notoriously hard to analyze. Because of the weak module system it is hard
 to tell which files belong to a specific project even! Usually every project
 comes with a build system. Often cmake or make is used to tell the compile how to compile
-the project. From these mechanisms a database containing the compile commands can be 
-generated. When you compile your project using cmake just add the additional switch 
+the project. From these mechanisms a database containing the compile commands can be
+generated. When you compile your project using cmake just add the additional switch
 -DCMAKE_EXPORT_COMPILE_COMMANDS=1 in order to generate a file named 'compile_commands.json'.
 If your project uses the Makefile mechanism you can use the 'bear' tool with which you prefix your
 make command:
@@ -272,8 +272,8 @@ Getting started {#getting-started}
 In the following we will describe how ourframework can be used to perform data-flow analyses.
 
 ### Choosing an existing analysis {#choosing-an-existing-analysis}
-The analysis that build into ourframework can be selected using the -a or 
---analysis command-line option. Note: more than one analysis can be selected to be 
+The analysis that build into ourframework can be selected using the -a or
+--analysis command-line option. Note: more than one analysis can be selected to be
 executed on the code under analsis. Example:
 
 $ bin/main -a ifds_uninit ...
@@ -2159,11 +2159,11 @@ This analysis can be used when inter-procedural data-flow problems must be solve
 #### Writing an IFDS analaysis {#writing-an-ifds-analaysis}
 When you would like to write your own data-flow analysis using IFDS you basically just have
 to implement a single class. Is is a good idea to create a new directory for your new analysis
-that lives below 'ifds_ide_problems' and is name after the naming conventions that you will find 
+that lives below 'ifds_ide_problems' and is name after the naming conventions that you will find
 there and contains the name of the analysis in one form or another.
 
 To make your class an analysis problem our solver is able to solve, you let your class inherit from
-'DefaultIFDSTabulationProblem'. The concrete analysis is formulated by overwriting all 
+'DefaultIFDSTabulationProblem'. The concrete analysis is formulated by overwriting all
 abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions you have to override are:
 
 * getNormalFlowFunction()
@@ -2171,7 +2171,7 @@ abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions y
       a functions body.
 
 * getCallFlowFunction()
-    - Here you express what the solver should do when it hits a call-site. In this flow function 
+    - Here you express what the solver should do when it hits a call-site. In this flow function
       the actual parameters are usually mapped to the formal parameters of the called function.
 
 * getRetFlowFunction()
@@ -2185,10 +2185,10 @@ abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions y
     - TODO add description
 
 * initialSeeds()
-    - The initial seeds are the starting points of your analysis. An analysis can start at one 
-      or more points in your program. The functions must return start points as well as a set 
+    - The initial seeds are the starting points of your analysis. An analysis can start at one
+      or more points in your program. The functions must return start points as well as a set
       of data-flow facts that hold at these program points. Unless your analysis requires otherwise
-      you would just give the first instruction of the main function as a starting point and 
+      you would just give the first instruction of the main function as a starting point and
       use the special zero fact that holds at the analysis start.
 
 * createZeroValue()
@@ -2241,7 +2241,7 @@ The member functions you have to provide some implementations for are:
 
 * join()
     - A function that defines how information is joined (the merge operator of the lattice),
-      which gets you higher up in the lattice. 
+      which gets you higher up in the lattice.
 
 * allTopFunction()
     - Function that returns the special allTop edge function.
@@ -2250,12 +2250,12 @@ The member functions you have to provide some implementations for are:
     - Here you formulate your edge function(s) that is (are) applied to every instruction within
 	  a functions body.
 
-* getCallEdgeFunction() 
-    - Here you express what the solver should do when it hits a call-site. In this edge function 
+* getCallEdgeFunction()
+    - Here you express what the solver should do when it hits a call-site. In this edge function
       the actual parameters are usually mapped to the formal parameters of the called function.
 
-* getReturnEdgeFunction() 
-    - Express the edge function that is applied to map data-flow facts that hold at the 
+* getReturnEdgeFunction()
+    - Express the edge function that is applied to map data-flow facts that hold at the
       end of a callee back to the caller.
 
 * getCallToReturnEdgeFunction()

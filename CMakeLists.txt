@@ -1,12 +1,15 @@
 cmake_minimum_required (VERSION 3.0)
-project (sse_dfa_llvm)
-set(CMAKE_CXX_COMPILER "clang++")
-set(CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libstdc++ -Wno-unknown-warning-option -O2 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+project (sse_dfa_llvm)
 
-find_package(Boost COMPONENTS filesystem system program_options REQUIRED)
+find_package(Boost COMPONENTS filesystem system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
+find_package(Threads)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
@@ -20,6 +23,7 @@ set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)
 find_path(CLANG_LIB_PATH clang)
 
 add_definitions(${LLVM_DEFINITIONS})
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 set(STATIC_LINKING false)
 
@@ -59,6 +63,7 @@ include_directories(
   ${SQLITE3_INCLUDE_DIR}
   ${BOOST_INCLUDE_DIR}
   ${LLVM_INCLUDE_DIRS}
+  json/src
   )
 
 
@@ -86,6 +91,9 @@ file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils STATIC ${SRC_UTILS} )
 target_link_libraries(utils ${ALL_LIBS})
 
+file(GLOB_RECURSE SRC_PLUGIN src/analysis/plugins/*.cxx src/analysis/plugins/*.hh)
+add_library(IFDSTabulationProblemTestPlugin SHARED ${SRC_PLUGIN})
+set_target_properties(IFDSTabulationProblemTestPlugin PROPERTIES PREFIX "")
 
 add_executable(main  src/main.cpp)
 
@@ -95,6 +103,9 @@ target_link_libraries(main
   analysis clang db flex lib utils
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  curl
   # LLVM
   )
 

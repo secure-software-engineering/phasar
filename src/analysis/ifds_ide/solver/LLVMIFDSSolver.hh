@@ -37,16 +37,16 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 
 	virtual void solve() override
 	{
-		// do the solving of the analaysis problem
+		// Solve the analaysis problem
 		IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>::solve();
+		bl::core::get()->flush();
 		if (DUMP_RESULTS)
 			dumpResults();
 	}
 
 	void dumpResults()
 	{
-		cout << "I am a LLVMIFDSSolver result" << endl;
-		cout << "### DUMP RESULTS" << endl;
+		cout << "### DUMP LLVMIFDSSolver results\n";
 		// TODO present results in a nicer way than just calling llvm's dump()
 		// for the following line have a look at:
 		// http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
@@ -54,10 +54,8 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		auto results = this->valtab.cellSet();
 		if (results.empty())
 		{
-			cout << "EMPTY" << endl;
-		}
-		else
-		{
+			cout << "EMPTY\n";
+		}	else {
 			vector<typename Table<const llvm::Instruction *, const llvm::Value *, BinaryDomain>::Cell> cells;
 			for (auto cell : results)
 			{
@@ -76,40 +74,21 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 				if (prev != curr)
 				{
 					prev = curr;
-					cout << "--- IFDS START RESULT RECORD ---" << endl;
-					cout << "N" << endl;
-					cells[i].r->dump();
-					cout << "of function: ";
+					cout << "--- IFDS START RESULT RECORD ---\n";
+					cout << "N: " << Problem.N_to_string(cells[i].r) << " in function: ";
 					if (const llvm::Instruction *inst = llvm::dyn_cast<llvm::Instruction>(cells[i].r))
 					{
-						cout << inst->getFunction()->getName().str() << endl;
+						cout << inst->getFunction()->getName().str() << "\n";
 					}
 				}
-				cout << "D" << endl;
+				cout << "D:\t";
 				if (cells[i].c == nullptr)
-					cout << "  nullptr" << endl;
+					cout << "  nullptr " << endl;
 				else
-					cells[i].c->dump();
-				cout << endl;
-				cout << "V\n  ";
-				cout << cells[i].v << endl;
+					cout << Problem.D_to_string(cells[i].c) << " "
+				<< "\tV:  " << cells[i].v << "\n";
 			}
 		}
-		//		cout << "### IFDS RESULTS AT LAST STATEMENT OF MAIN" << endl;
-		//		this->icfg.getLastInstructionOf("main")->dump();
-		//		auto resultAtEnd = this->resultsAt(this->icfg.getLastInstructionOf("main"));
-		//		if (resultAtEnd.empty()) {
-		//			cout << "EMPTY" << endl;
-		//		} else {
-		//			for (auto entry : resultAtEnd) {
-		//				cout << "\t--- begin entry ---" << endl;
-		//				entry.first->dump();
-		//				//cout << "from function: " << entry.first->getFunction().getName().str() << endl;
-		//				cout << entry.second << endl;
-		//				cout << "\t--- end entry ---" << endl;
-		//			}
-		//		}
-		//		cout << "### IFDS END RESULTS AT LAST STATEMENT OF MAIN" << endl;
 	}
 
 	json getJsonRepresentationForInstructionNode(size_t id, const llvm::Instruction *node)

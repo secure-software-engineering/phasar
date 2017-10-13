@@ -4,8 +4,9 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg)
-    : DefaultIDETabulationProblem(icfg) {
+IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
+                                   vector<string> EntryPoints)
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -18,8 +19,8 @@ IDETaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
-                                     const llvm::Function *destMthd) {
+IDETaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
+                                      const llvm::Function *destMthd) {
   return Identity<const llvm::Value *>::v();
 }
 
@@ -39,27 +40,29 @@ IDETaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd,
-                                         vector<const llvm::Value *> inputs,
-                                         vector<bool> context) {
+                                         const llvm::Function *destMthd) {
   return nullptr;
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{
-      {firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
   static ZeroValue *zero = new ZeroValue;
   return zero;
+}
+
+bool IDETaintAnalysis::isZeroValue(const llvm::Value *d) const {
+  return isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts
@@ -98,9 +101,11 @@ IDETaintAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>> IDETaintAnalysis::getSummaryEdgeFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd,
-    vector<const llvm::Value *> inputs, vector<bool> context) {
+shared_ptr<EdgeFunction<const llvm::Value *>>
+IDETaintAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
+                                         const llvm::Value *callNode,
+                                         const llvm::Instruction *retSite,
+                                         const llvm::Value *retSiteNode) {
   return EdgeIdentity<const llvm::Value *>::v();
 }
 
@@ -141,9 +146,17 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
 }
 
 string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
-  return "";
+  return llvmIRToString(d);
 }
 
 string IDETaintAnalysis::V_to_string(const llvm::Value *v) {
-  return "";
+  return llvmIRToString(v);
+}
+
+string IDETaintAnalysis::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IDETaintAnalysis::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
 }

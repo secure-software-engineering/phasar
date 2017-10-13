@@ -8,10 +8,10 @@
 #ifndef ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_HH_
 #define ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_HH_
 
-#include "IDETabluationProblem.hh"
+#include "IDETabulationProblem.hh"
 
 template<class N, class D, class M, class V, class I>
-class DefaultIDETabulationProblem : public IDETabluationProblem<N,D,M,V,I> {
+class DefaultIDETabulationProblem : public IDETabulationProblem<N,D,M,V,I> {
 protected:
 	I icfg;
 	virtual D createZeroValue() = 0;

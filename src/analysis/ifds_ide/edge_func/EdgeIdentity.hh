@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <memory>
+#include <string>
 #include "../EdgeFunction.hh"
 #include "AllTop.hh"
 
@@ -60,6 +61,8 @@ public:
 	friend ostream& operator<< (ostream& os, const EdgeIdentity& edgeIdentity) { return os << "edge identity"; }
 
 	void dump() override { cout << "edge identity\n"; }
+
+	string toString() override { return "edge identity"; }
 
 };
 

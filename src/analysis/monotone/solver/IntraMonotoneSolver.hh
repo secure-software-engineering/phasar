@@ -36,9 +36,9 @@ protected:
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }
     if (prealloc_hint) {
-      for (auto &AnalysisSet : Analysis) {
-        AnalysisSet.second.reserve(prealloc_hint);
-      }
+      // for (auto &AnalysisSet : Analysis) {
+      //   AnalysisSet.second.reserve(prealloc_hint);
+      // }
     }
   }
 

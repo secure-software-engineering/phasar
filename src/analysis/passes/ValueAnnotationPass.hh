@@ -23,19 +23,57 @@
 #include "../../utils/Configuration.hh"
 #include "../../utils/Logger.hh"
 
-
+/**
+ * This class uses the Module Pass Mechanism of LLVM to annotate every
+ * every Instruction and Global Variable of a Module with a unique ID.
+ *
+ * This pass obviously modifies the analyzed Module, but preserves the
+ * CFG.
+ *
+ * @brief Annotates every Instruction with a unique ID.
+ */
 class ValueAnnotationPass : public llvm::ModulePass {
 private:
 	static size_t unique_value_id;
 	llvm::LLVMContext& context;
 public:
+  // TODO What's the ID good for?
 	static char ID;
+  // TODO What exactly does the constructor do?
 	ValueAnnotationPass(llvm::LLVMContext& context) : llvm::ModulePass(ID), context(context) { }
-	bool runOnModule(llvm::Module& M) override;
-	bool doInitialization(llvm::Module& M) override;
-	bool doFinalization(llvm::Module& M) override;
-	void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
-	void releaseMemory() override;
+
+  /**
+   * @brief Does the annotation.
+   * @param M The analyzed Module.
+   * @return Always true.
+   */
+  bool runOnModule(llvm::Module& M) override;
+
+  /**
+   * @brief Not used in this context!
+   * @return Always false.
+   */
+  bool doInitialization(llvm::Module& M) override;
+
+  /**
+   * @brief Not used in this context!
+   * @return Always false.
+   */
+  bool doFinalization(llvm::Module& M) override;
+
+  /**
+   * @brief Sets that the pass preserves the CFG.
+   */
+  void getAnalysisUsage(llvm::AnalysisUsage& AU) const override;
+
+  /**
+   * This pass holds onto memory for the entire duration of their lifetime
+   * (which is the entire compile time). This is the default behavior for
+   * passes.
+   *
+   * @brief The pass does not release any memory during their lifetime.
+   */
+  void releaseMemory() override;
 };
 
 #endif /* ANALYSIS_VALUEANNOTATIONPASS_HH_ */

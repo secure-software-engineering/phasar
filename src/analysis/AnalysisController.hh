@@ -5,18 +5,27 @@
 #include "../db/PHSStringConverter.hh"
 #include "../db/ProjectIRCompiledDB.hh"
 #include "../utils/Logger.hh"
+#include "../utils/SOL.hh"
 #include "call-points-to_graph/PointsToGraph.hh"
 #include "icfg/LLVMBasedCFG.hh"
 #include "icfg/LLVMBasedICFG.hh"
 #include "ifds_ide/LLVMIFDSSummaryGenerator.hh"
+#include "ifds_ide/solver/IDESummaryGenerator.hh"
 #include "ifds_ide/solver/LLVMIDESolver.hh"
 #include "ifds_ide/solver/LLVMIFDSSolver.hh"
+#include "misc/Summaries.hh"
+#include "ifds_ide/IDESummaries.hh"
 #include "ifds_ide_problems/ide_solver_test/IDESolverTest.hh"
 #include "ifds_ide_problems/ide_taint_analysis/IDETaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_solver_test/IFDSSolverTest.hh"
 #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.hh"
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
+#include "plugins/plugin_ifaces/IFDSTabulationProblemPlugin.hh"
+#include "plugins/plugin_ifaces/IDETabulationProblemPlugin.hh"
+#include "plugins/plugin_ifaces/InterMonotoneProblemPlugin.hh"
+#include "plugins/plugin_ifaces/IntraMonotoneProblemPlugin.hh"
+#include "plugins/AnalysisPlugin.hh"
 #include "json.hpp"
 #include "monotone/solver/LLVMInterMonotoneSolver.hh"
 #include "monotone/solver/LLVMIntraMonotoneSolver.hh"
@@ -65,16 +74,21 @@ enum class DataFlowAnalysisType {
   MONO_Intra_FullConstantPropagation,
   MONO_Intra_SolverTest,
   MONO_Inter_SolverTest,
+  Plugin,
   None
 };
 
-extern const map<string, DataFlowAnalysisType> DataFlowAnalysisTypeMap;
+extern const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
+
+extern const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString;
 
 ostream &operator<<(ostream &os, const DataFlowAnalysisType &k);
 
 enum class ExportType { JSON = 0 };
 
-extern const map<string, ExportType> ExportTypeMap;
+extern const map<string, ExportType> StringToExportType;
+
+extern const map<ExportType, string> ExportTypeToString;
 
 ostream &operator<<(ostream &os, const ExportType &e);
 

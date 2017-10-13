@@ -7,10 +7,11 @@
 
 #include "IFDSSolverTest.hh"
 
-IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I)
+IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
-                                   LLVMBasedICFG &>(I) {
+                                   LLVMBasedICFG &>(I),
+      EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -18,19 +19,13 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
   cout << "IFDSSolverTest::getNormalFlowFunction()\n";
-  if (llvm::isa<llvm::AllocaInst>(curr)) {
-    return make_shared<Gen<const llvm::Value *>>(curr, DefaultIFDSTabulationProblem::zerovalue);
-  }
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Kill<const llvm::Value *>>(Store->getPointerOperand());
-  }
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
-                                   const llvm::Function *destMthd) {
-  cout << "IFDSSolverTest::getCallFlowFuntion()\n";
+IFDSSolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
+                                    const llvm::Function *destMthd) {
+  cout << "IFDSSolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
@@ -52,21 +47,19 @@ IFDSSolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                       const llvm::Function *destMthd,
-                                       vector<const llvm::Value *> inputs,
-                                       vector<bool> context) {
-  cout << "IFDSSolverTest::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+                                       const llvm::Function *destMthd) {
+  return nullptr;
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSSolverTest::initialSeeds() {
   cout << "IFDSSolverTest::initialSeeds()\n";
-  const llvm::Function *mainfunction = icfg.getMethod("main");
-  const llvm::Instruction *firstinst = &mainfunction->front().front();
-  set<const llvm::Value *> iset{zeroValue()};
-  map<const llvm::Instruction *, set<const llvm::Value *>> imap{{firstinst, iset}};
-  return imap;
+  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<const llvm::Value *>({zeroValue()})));
+  }
+  return SeedMap;
 }
 
 const llvm::Value *IFDSSolverTest::createZeroValue() {
@@ -75,6 +68,18 @@ const llvm::Value *IFDSSolverTest::createZeroValue() {
   return zero;
 }
 
+bool IFDSSolverTest::isZeroValue(const llvm::Value *d) const {
+  return isLLVMZeroValue(d);
+}
+
 string IFDSSolverTest::D_to_string(const llvm::Value *d) {
   return llvmIRToString(d);
+}
+
+string IFDSSolverTest::N_to_string(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSSolverTest::M_to_string(const llvm::Function *m) {
+  return m->getName().str();
 }

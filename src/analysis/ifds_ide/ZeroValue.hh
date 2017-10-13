@@ -31,7 +31,7 @@ extern const unique_ptr<llvm::Module> ZeroValueMod;
  * may be used, but isZeroValue() is much cheaper since it
  * does not have to traverse the class hierarchy to check this.
  */
-bool isZeroValue(const llvm::Value *V);
+bool isLLVMZeroValue(const llvm::Value *V);
 
 /**
  * This class may be used to represent the special zero value for IFDS

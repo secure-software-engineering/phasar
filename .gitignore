@@ -32,6 +32,9 @@ build/*
 
 ##### ignored files
 
+# dot files
+*.dot
+
 # ignore all auto-generated LLVM IR code
 *.ll
 
@@ -54,6 +57,9 @@ compile_commands.json
 # temporary files
 *.*~
 *.dwo
+
+# Header dependency files
+*.d
 
 # Object files
 *.slo
@@ -94,3 +100,7 @@ compile_commands.json
 
 # Emacs convenience metadata
 TAGS
+
+# config files
+config/compiler_info.txt
+config/standard_header_paths.conf

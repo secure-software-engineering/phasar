@@ -18,10 +18,12 @@ CXX_FLAGS += -MP
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
 CXX_FLAGS += -O3 #-O4
 CXX_FLAGS += -march=native
+CXX_FLAGS += -fPIC
 CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
-CXX_FLAGS += -g
+#CXX_FLAGS += -g
+CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
@@ -40,6 +42,8 @@ OBJDIR = obj/
 DOC = doc/
 SRC = src/
 TEST = test/
+PLUGINDIR = src/analysis/plugins/
+PLUGINSODIR = so/
 ALL_SRC = $(sort $(dir $(call recwildcard,$(SRC)**/*/)))
 
 # Set the virtual (search) path
@@ -47,6 +51,9 @@ VPATH = $(SRC):$(ALL_SRC)
 
 # Determine all object files that we need in order to produce an executable
 OBJ = $(addprefix $(OBJDIR),$(notdir $(patsubst %.cpp,%.o,$(call recwildcard,src/,*.cpp))))
+
+# Determine all shared object files that we need to produce in order to process the plugins
+SO = $(addprefix $(PLUGINSODIR),$(notdir $(patsubst %.cxx,%.so,$(call recwildcard,src/,*.cxx))))
 
 # To determine source (.cpp) and header (.hh) dependencies
 DEP = $(OBJ:.o=.d)
@@ -59,6 +66,7 @@ LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions -std=c++14
 # Thread model to use
 THREAD_MODEL := -pthread
 # Libraries to link against
+SOL_LIBS := -ldl
 SQLITE3_LIBS := -lsqlite3
 CURL_LIBS := -lcurl
 GTEST_LIBS := -lgtest
@@ -104,7 +112,8 @@ $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
-	$(CXX) $(CXX_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	@echo "linking into executable file ..."
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
@@ -120,10 +129,16 @@ format-code:
 	@echo "formatting the project using clang-format ..."
 	python3 $(SCRIPT_AUTOFORMAT)
 
-# this target currently exists just for testing purposes
-# plugins:
-#	@echo "comiling plugins into shared object libraries ..."
-#	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) -fPIC -shared -Wl,--no-undefined src/analysis/plugins/IFDSTabulationProblemTestPlugin.cpp -L$(LIB_CXX) $(LLVM_LIBS) $(BOOST_LIBS) -o src/analysis/plugins/IFDSTabulationProblemTestPlugin.so
+$(PLUGINSODIR):
+	mkdir $@
+
+plugins: $(PLUGINSODIR) $(SO)
+
+$(PLUGINSODIR)%.so: %.cxx
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $< -o $@ 
+
+clean-plugins:
+	rm -rf $(PLUGINSODIR)
 
 hello:
 	@echo "Hello World!"
@@ -131,7 +146,12 @@ hello:
 run_tests:
 	@echo "Unit tests using the Google C++ Testing Framework is under development"
 
-clean:
+#clean-db-dot:
+#	rm *.dot
+#	rm ptg_hexastore.db
+#	rm llheros_analyzer.db
+
+clean: clean-plugins
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)
 	rm -rf $(DOC)

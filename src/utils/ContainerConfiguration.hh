@@ -50,11 +50,11 @@ using DSMap = boost::container::flat_map<T, U>;
 // MonotoneSolver related container implementations ---------------------------
 // define the map implementation to use within the MonotoneSolver.hh ----------
 template<typename T, typename U>
-using MonoMap = boost::container::flat_map<T, U>;
+using MonoMap = std::map<T, U>; // boost::container::flat_map<T, U>;
 // ----------------------------------------------------------------------------
 // define the set implementation to use within the MonotoneSolver.hh ----------
 template<typename T>
-using MonoSet = boost::container::flat_set<T>;
+using MonoSet = std::set<T>; // boost::container::flat_set<T>;
 // ----------------------------------------------------------------------------
 
 #endif
