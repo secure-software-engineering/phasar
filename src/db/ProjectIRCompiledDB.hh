@@ -38,7 +38,10 @@ class PointsToGraph;
 class ProjectIRCompiledDB {
 private:
 	  llvm::Module* WPAMOD = nullptr;
-	  void compileAndAddToDB(vector<const char *> CompileCommand);
+    void compileAndAddToDB(vector<const char *> CompileCommand);
+    vector<string> header_search_paths;
+    static const set<string> unknown_flags;
+    void setupHeaderSearchPaths();
 
  public:
   // stores all source files that have been examined, in-memory only

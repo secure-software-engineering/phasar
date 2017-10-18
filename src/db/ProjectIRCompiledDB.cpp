@@ -1,17 +1,41 @@
 #include "ProjectIRCompiledDB.hh"
 
+const set<string> ProjectIRCompiledDB::unknown_flags = { "-g",
+                                                         "-g3",
+                                                         "-pipe",
+                                                         "-fomit-frame-pointer",
+                                                         "-fstrict-aliasing",
+                                                         "-march=core2",
+                                                         "-fPIC",
+                                                         "-msse2",
+                                                         "-fvisibility=hidden",
+                                                         "-fno-strict-overflow",
+                                                         "-fstack-protector-all",
+                                                         "--param",
+                                                         "-fPIE",
+                                                         "-fno-default-inline"
+                                                         "-MF",
+                                                         "-fno-exceptions",
+                                                         "-fdiagnostics-color",
+                                                        };
+
 ProjectIRCompiledDB::ProjectIRCompiledDB(
     const clang::tooling::CompilationDatabase &CompileDB) {
-  for (auto file : CompileDB.getAllFiles()) {
+    setupHeaderSearchPaths();
+    for (auto file : CompileDB.getAllFiles()) {
     auto compilecommands = CompileDB.getCompileCommands(file);
     for (auto compilecommand : compilecommands) {
       vector<const char *> args;
       // save the filename
       source_files.insert(compilecommand.Filename);
       // prepare the compile command for the clang compiler
-      args.push_back(
-          compilecommand.CommandLine[compilecommand.CommandLine.size() - 1]
+      // the compile command is not sanitized yet
+      args.push_back(compilecommand.Filename.c_str());
+      for (size_t i = 2; i < compilecommand.CommandLine.size() - 1; ++i) {
+        args.push_back(
+          compilecommand.CommandLine[i]
               .c_str());
+      }
       compileAndAddToDB(args);
     }
   }
@@ -21,6 +45,7 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
 
 ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
                                          vector<const char *> CompileArgs) {
+  setupHeaderSearchPaths();
   source_files.insert(Path);
   // if we have a file that is already compiled to llvm ir
   if (Path.find(".ll") != Path.npos) {
@@ -46,17 +71,50 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
   buildGlobalModuleMapping();
 }
 
-void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand) {
-	static vector<string> header_search_paths = splitString(readFile(ConfigurationDirectory+HeaderSearchPathsFileName), "\n");
-	static string minusI = "-I";
-	for_each(header_search_paths.begin(), header_search_paths.end(), [&CompileCommand](string& path) {
-		path = minusI + path;
-		CompileCommand.push_back(path.c_str());
-	});
-	cout << "Compile Commands\n";
-  for (auto s : CompileCommand) {
-  	cout << s << "\n";
+void ProjectIRCompiledDB::setupHeaderSearchPaths() {
+  header_search_paths = splitString(readFile(ConfigurationDirectory+HeaderSearchPathsFileName), "\n");
+  for (auto &path : header_search_paths) {
+    path = string("-I") + path;
   }
+}
+
+void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand) {
+  auto &lg = lg::get();
+  // sanitize the compile command
+  // kill all arguments that we are not interested in
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end(); ) {
+    if (unknown_flags.count(string(*it))) {
+      it = CompileCommand.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  // also remove the '-o some_filename.o' output options
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end(); ) {
+    if (string(*it) == "-o") {
+      it = CompileCommand.erase(it, it + 1);
+    } else {
+      ++it;
+    }
+  }
+  // also remove the '-o some_filename.o' output options
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end(); ) {
+    if (string(*it) == "-c") {
+      it = CompileCommand.erase(it, it + 1);
+    } else {
+      ++it;
+    }
+  }
+  // add the standard header search paths to the compile command
+  for_each(header_search_paths.begin(), header_search_paths.end(), [&CompileCommand](string& path) {
+    CompileCommand.push_back(path.c_str());
+  });
+  string commandstr;
+  for (auto s : CompileCommand) {
+    commandstr += s;
+    commandstr += ' ';
+  }
+  BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr;
   unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
   clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
   clang::TextDiagnosticPrinter* DiagPrinterClient(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
