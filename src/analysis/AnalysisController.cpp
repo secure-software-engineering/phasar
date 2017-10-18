@@ -249,6 +249,9 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
+          if(PrintEdgeRecorder){
+            llvmunivsolver.exportJSONDataModel();
+          }
           break;
         }
         case DataFlowAnalysisType::IFDS_SolverTest: {
