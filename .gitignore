@@ -99,5 +99,5 @@ compile_commands.json
 TAGS
 
 # config files
-config/compiler_info.txt
-config/standard_header_paths.conf
+compiler_info.txt
+standard_header_paths.conf
