@@ -55,7 +55,9 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		if (results.empty())
 		{
 			cout << "EMPTY\n";
-		}	else {
+		}
+		else
+		{
 			vector<typename Table<const llvm::Instruction *, const llvm::Value *, BinaryDomain>::Cell> cells;
 			for (auto cell : results)
 			{
@@ -86,17 +88,16 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 					cout << "  nullptr " << endl;
 				else
 					cout << Problem.D_to_string(cells[i].c) << " "
-				<< "\tV:  " << cells[i].v << "\n";
+						 << "\tV:  " << cells[i].v << "\n";
 			}
 		}
 	}
 
-	json getJsonRepresentationForInstructionNode(size_t id, const llvm::Instruction *node)
+	json getJsonRepresentationForInstructionNode(const llvm::Instruction *node)
 	{
 		json jsonNode = {
 			{"number", node_number},
-			{"number", id},
-			{"method", node->getFunction()->getName().str().c_str()},
+			{"method_name", node->getFunction()->getName().str().c_str()},
 			{"instruction", llvmIRToString(node).c_str()},
 			{"type", 0}};
 		node_number = node_number + 1;
@@ -106,7 +107,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 	{
 		json jsonNode = {
 			{"number", node_number},
-			{"from", from->getFunction()->getName().str().c_str()},
+			{"method_name", from->getFunction()->getName().str().c_str()},
 			{"to", to->getFunction()->getName().str().c_str()},
 			{"type", 1}};
 		node_number = node_number + 1;
@@ -117,7 +118,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		json jsonNode = {
 			{"number", node_number},
 			{"from", from->getFunction()->getName().str().c_str()},
-			{"to", to->getFunction()->getName().str().c_str()},
+			{"method_name", to->getFunction()->getName().str().c_str()},
 			{"type", 2}};
 
 		node_number = node_number + 1;
@@ -137,7 +138,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D, const llv
 		{
 			cout << "adding new element to map " << endl;
 
-			jsonNode = getJsonRepresentationForInstructionNode(node_number, node);
+			jsonNode = getJsonRepresentationForInstructionNode(node);
 
 			sendToWebserver(jsonNode.dump().c_str());
 			instruction_id_map->insert(std::pair<const llvm::Instruction *, int>(node, node_number));
