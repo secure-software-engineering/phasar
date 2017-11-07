@@ -128,6 +128,7 @@ int main(int argc, const char **argv) {
     // clang-format off
 		GeneralOptions.add_options()
 			("help,h", "Print help message")
+            ("graph_id, gid", bpo::value<string>(), "Graph Id used by the visulization framework")
 			("function,f", bpo::value<string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<string>()->notifier(validateParamModule), "Path to the module under analysis")
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
@@ -150,6 +151,7 @@ int main(int argc, const char **argv) {
     bpo::options_description FileOptions("Configuration file options");
     // clang-format off
 		FileOptions.add_options()
+            ("graph_id, gid", bpo::value<string>(), "Graph Id used by the visulization framework")
 			("function,f", bpo::value<string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<string>()->notifier(validateParamModule), "Path to the module under analysis")
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
@@ -253,7 +255,7 @@ int main(int argc, const char **argv) {
       }(VariablesMap.count("module")),
       ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
       VariablesMap["mem2reg"].as<bool>(),
-      VariablesMap["printedgerec"].as<bool>());
+      VariablesMap["printedgerec"].as<bool>(), VariablesMap["graph_id"].as<string>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";
   // Controller.writeResults(VariablesMap["output"].as<string>());
 

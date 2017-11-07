@@ -43,7 +43,7 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
                                        vector<DataFlowAnalysisType> Analyses,
                                        bool WPA_MODE, bool Mem2Reg_MODE,
-                                       bool PrintEdgeRecorder)
+                                       bool PrintEdgeRecorder, string graph_id)
     : FinalResultsJson() {
   auto& lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
@@ -250,7 +250,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
           if(PrintEdgeRecorder){
-            llvmunivsolver.exportJSONDataModel();
+            llvmunivsolver.exportJSONDataModel(graph_id);
           }
           break;
         }
