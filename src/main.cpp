@@ -119,6 +119,10 @@ void validateParamOutput(const string &filename) {
   }
 }
 
+void validateParamGraphID(const string &graphid) {
+  // TODO perform some validation
+}
+
 template <typename T>
 ostream &operator<<(ostream &os, const vector<T> &v) {
   copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
@@ -146,7 +150,7 @@ int main(int argc, const char **argv) {
     bpo::options_description Config("Configuration file options");
     // clang-format off
     Config.add_options()
-      ("graph_id, gid", bpo::value<string>()->default_value("123456"), "Graph Id used by the visulization framework")
+      ("graph_id,G", bpo::value<string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visulization framework")
 			("function,f", bpo::value<string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
