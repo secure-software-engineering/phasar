@@ -20,6 +20,7 @@ Table of Contents
         * [Installing LLVM](#installing-llvm)
         * [Makefile](#makefile)
         * [CMake](#cmake)
+    * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
     * [Creating the configuration files](#creating-the-configuration-files)
     * [Testing single modules](#testing-single-modules)
@@ -222,6 +223,19 @@ misconfigured or worse (please report if that happens).
 
 #### A remark on compile time {#a-remark-on-compile-time}
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. Our handwritten Makefile is able to run in parallel as well (as shown in the above).
+
+### Brief example using a MacOS system {#brief-example-using-a-MacOS-system}
+Mac OS 10.13.1 or higher only !
+To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
+
+The needed packages are
+$ brew install boost
+$ brew install python3
+$ brew install --with-toolchain llvm@3.9
+After installing llvm export the llvm variable to your .bash_profil using $ echo 'export PATH="/usr/local/opt/llvm@3.9/bin:$PATH"' >> ~/.bash_profile 
+
+Make sure to use the mac makefile and not the standard one.
+
 
 #### Creating the configuration files {#creating-the-configuration-files}
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:

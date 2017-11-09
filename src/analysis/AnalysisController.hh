@@ -100,7 +100,7 @@ public:
   AnalysisController(ProjectIRCompiledDB &&IRDB,
                      vector<DataFlowAnalysisType> Analyses,
                      bool WPA_MODE = true, bool Mem2Reg_MODE = true,
-                     bool PrintEdgeRecorder = true);
+                     bool PrintEdgeRecorder = true, string graph_id = "");
   ~AnalysisController() = default;
   void writeResults(string filename);
 };

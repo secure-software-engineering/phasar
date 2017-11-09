@@ -145,7 +145,8 @@ int main(int argc, const char **argv) {
     // in config file
     bpo::options_description Config("Configuration file options");
     // clang-format off
-		Config.add_options()
+    Config.add_options()
+      ("graph_id, gid", bpo::value<string>()->default_value("123456"), "Graph Id used by the visulization framework")
 			("function,f", bpo::value<string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
 			("project,p", bpo::value<string>()->notifier(validateParamProject), "Path to the project under analysis")
@@ -193,6 +194,9 @@ int main(int argc, const char **argv) {
     if (VariablesMap.count("config")) {
       cout << "Configuration fille: " << VariablesMap["config"].as<string>()
            << '\n';
+    }
+    if (VariablesMap.count("graph_id")) {
+      cout << "Graph ID: " << VariablesMap["graph_id"].as<string>() << '\n';
     }
     if (VariablesMap.count("function")) {
       cout << "Function: " << VariablesMap["function"].as<string>() << '\n';
@@ -322,7 +326,7 @@ int main(int argc, const char **argv) {
       }(VariablesMap.count("module")),
       ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
       VariablesMap["mem2reg"].as<bool>(),
-      VariablesMap["printedgerec"].as<bool>());
+      VariablesMap["printedgerec"].as<bool>(), VariablesMap["graph_id"].as<string>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";
   // Controller.writeResults(VariablesMap["output"].as<string>());
   // free all resources handled by llvm
