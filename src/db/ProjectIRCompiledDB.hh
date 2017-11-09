@@ -24,6 +24,7 @@
 #include <cassert>
 #include "../utils/utils.hh"
 #include "../analysis/call-points-to_graph/PointsToGraph.hh"
+#include "../lib/LLVMShorthands.hh"
 using namespace std;
 
 // forward declare the PointsToGraph
@@ -55,11 +56,11 @@ private:
   // maps globals to the module they are defined in, must be stored persistently
   map<string, string> globals;
   // maps a id range of llvm value to the module they can be found in, must be stored persistently
-  map<size_t, string> ids;
+  map<size_t, llvm::Instruction *> instructions;
   // maps a function to its points-to graph
   map<string, unique_ptr<PointsToGraph>> ptgs;
   ProjectIRCompiledDB(const clang::tooling::CompilationDatabase& CompileDB);
-  ProjectIRCompiledDB(const string Path, vector<const char*> CompileArgs);
+  ProjectIRCompiledDB(const vector<string> &Modules, vector<const char*> CompileArgs);
   ProjectIRCompiledDB(ProjectIRCompiledDB&&) = default;
   ~ProjectIRCompiledDB() = default;
   void buildFunctionModuleMapping();

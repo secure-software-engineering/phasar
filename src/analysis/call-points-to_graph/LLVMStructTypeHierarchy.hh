@@ -91,6 +91,8 @@ class LLVMStructTypeHierarchy {
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const LLVMStructTypeHierarchy& STH);
   friend void operator>>(DBConn& db, const LLVMStructTypeHierarchy& STH);
+  // bool store();
+  // static LLVMStructTypeHierarchy restore(const string &id);
 };
 
 #endif /* ANALYSIS_LLVMSTRUCTTYPEHIERARCHY_HH_ */

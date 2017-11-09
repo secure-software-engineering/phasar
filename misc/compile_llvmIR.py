@@ -33,16 +33,22 @@ with open(compile_db) as json_db:
         new_file_name = compilation_unit["file"].replace("/", ".")
         new_file_name = new_file_name.lstrip(".")
         command = compilation_unit["command"]
-        command = re.sub(r"cc\s", compiler + " -emit-llvm -S ", command)
+        #command = re.sub(r"cc\s", compiler + " -emit-llvm -S ", command)
         command = re.sub(r"c\+\+\s", compiler + " -emit-llvm -S ", command)
         command = re.sub(r"g\+\+\s", compiler + " -emit-llvm -S ", command)
+        command = re.sub(r"cc\s", compiler + " -emit-llvm -S ", command)
 		# check if compile command does not contain -o
         if command.find("-o") == -1:
           command = re.sub(re.escape(file_name), " -o " + llvm_ir_dir + new_file_name + ".ll " + compilation_unit["file"], command)
         else:
           command = re.sub(r"-o\s[A-Za-z0-9\/\.\_\-]+.?o?", "-o " + llvm_ir_dir + new_file_name + ".ll ", command)
           command = re.sub(r"\s[A-Za-z0-9\/\.\_\-]+.o\s", " ", command) # remove additional object files that would be linked
+          command = re.sub(r"\s[A-Za-z0-9\/\.\_\-]+.d\s", " ", command) # remove additional header dependency files
           command = re.sub(r"\s[A-Za-z0-9\/\.\_\-]+.a\s", " ", command) # remove additional archive files that would be linked
+        command = command.replace("clanclang++", "clang++")
+        command = command.replace("-MMD", "")
+        command = command.replace("-MT", "")
+        command = command.replace("-MF", "")
         print(command+'\n')
         output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
         processed_commands += 1

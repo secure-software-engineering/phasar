@@ -14,6 +14,8 @@ public:
 	void addSummary();
 	void getSummary();
 
+  // bool store();
+  // static IDESummaries restore(const string &id);
 };
 
 #endif

@@ -180,6 +180,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
       }
     }
   }
+  IRDB.buildIDModuleMapping();
   BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
   IRDB.print();
   DBConn& db = DBConn::getInstance();
@@ -192,9 +193,10 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
-    cout << "WPA HAPPENING" << endl;
+    cout << "WPA_MODE HAPPENING" << endl;
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
+    cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
     // CFG is only needed for intra-procedural monotone framework

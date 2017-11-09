@@ -346,6 +346,12 @@ public:
   // these are defined in the DBConn class
   friend void operator<<(DBConn& db, const PointsToGraph& PTG);
   friend void operator>>(DBConn& db, PointsToGraph& PTG);
+
+  
+
+  // bool store();
+
+  // static PointsToGraph restore(const string &id);
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

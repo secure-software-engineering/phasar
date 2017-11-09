@@ -44,3 +44,19 @@ json VTable::exportPATBCJSON() {
   }
   return j;
 }
+
+vector<string>::iterator VTable::begin() {
+  return vtbl.begin();
+}
+
+vector<string>::const_iterator VTable::begin() const {
+  return vtbl.begin();
+}
+
+vector<string>::iterator VTable::end() {
+  return vtbl.end();
+}
+
+vector<string>::const_iterator VTable::end() const {
+  return vtbl.end();
+}
