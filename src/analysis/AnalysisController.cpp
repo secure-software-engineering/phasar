@@ -2,6 +2,7 @@
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
+    {"ifds_const", DataFlowAnalysisType::IFDS_ConstAnalysis},
     {"ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis},
     {"ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis},
     {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
@@ -16,6 +17,7 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
 
 const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
     {DataFlowAnalysisType::IFDS_UninitializedVariables, "ifds_uninit"},
+    {DataFlowAnalysisType::IFDS_ConstAnalysis, "ifds_const"},
     {DataFlowAnalysisType::IFDS_TaintAnalysis, "ifds_taint"},
     {DataFlowAnalysisType::IFDS_TypeAnalysis, "ifds_type"},
     {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
@@ -228,6 +230,14 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
+          break;
+        }
+        case DataFlowAnalysisType::IFDS_ConstAnalysis: {
+          IFDSConstAnalysis constproblem(ICFG, EntryPoints);
+          LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
+            constproblem, true);
+          llvmconstsolver.solve();
+          constproblem.printInitilizedSet();
           break;
         }
         case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -444,6 +454,10 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
             // }
             // Pool.insert(Generator.generateSummaryFlowFunction());
             // BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_ConstAnalysis: {
+            throw invalid_argument("IFDS summary generation not supported yet");
             break;
           }
           case DataFlowAnalysisType::IFDS_SolverTest: {

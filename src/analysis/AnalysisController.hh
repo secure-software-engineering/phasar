@@ -21,6 +21,7 @@
 #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.hh"
 #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.hh"
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.hh"
+#include "ifds_ide_problems/ifds_const_analysis/IFDSConstAnalysis.hh"
 #include "plugins/plugin_ifaces/IFDSTabulationProblemPlugin.hh"
 #include "plugins/plugin_ifaces/IDETabulationProblemPlugin.hh"
 #include "plugins/plugin_ifaces/InterMonotoneProblemPlugin.hh"
@@ -66,6 +67,7 @@ using json = nlohmann::json;
 
 enum class DataFlowAnalysisType {
   IFDS_UninitializedVariables = 0,
+  IFDS_ConstAnalysis,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,
