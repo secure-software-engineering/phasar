@@ -1,7 +1,17 @@
 #include "ProjectIRCompiledDB.hh"
 
+const set<string> ProjectIRCompiledDB::unknown_flags = {
+    "-g", "-g3", "-pipe", "-fomit-frame-pointer", "-fstrict-aliasing",
+    "-march=core2", "-fPIC", "-msse2", "-fvisibility=hidden",
+    "-fno-strict-overflow", "-fstack-protector-all", "--param", "-fPIE",
+    "-fno-default-inline"
+    "-MF",
+    "-fno-exceptions", "-fdiagnostics-color",
+};
+
 ProjectIRCompiledDB::ProjectIRCompiledDB(
     const clang::tooling::CompilationDatabase &CompileDB) {
+  setupHeaderSearchPaths();
   for (auto file : CompileDB.getAllFiles()) {
     auto compilecommands = CompileDB.getCompileCommands(file);
     for (auto compilecommand : compilecommands) {
@@ -9,9 +19,11 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
       // save the filename
       source_files.insert(compilecommand.Filename);
       // prepare the compile command for the clang compiler
-      args.push_back(
-          compilecommand.CommandLine[compilecommand.CommandLine.size() - 1]
-              .c_str());
+      // the compile command is not sanitized yet
+      args.push_back(compilecommand.Filename.c_str());
+      for (size_t i = 2; i < compilecommand.CommandLine.size() - 1; ++i) {
+        args.push_back(compilecommand.CommandLine[i].c_str());
+      }
       compileAndAddToDB(args);
     }
   }
@@ -19,56 +31,102 @@ ProjectIRCompiledDB::ProjectIRCompiledDB(
   buildGlobalModuleMapping();
 }
 
-ProjectIRCompiledDB::ProjectIRCompiledDB(const string Path,
+ProjectIRCompiledDB::ProjectIRCompiledDB(const vector<string> &Modules,
                                          vector<const char *> CompileArgs) {
-  source_files.insert(Path);
-  // if we have a file that is already compiled to llvm ir
-  if (Path.find(".ll") != Path.npos) {
-    llvm::SMDiagnostic Diag;
-    unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
-    unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);
-    bool broken_debug_info = false;
-    if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
-      cout << "error: module not valid\n";
-      DIE_HARD;
+  setupHeaderSearchPaths();
+  for (auto &Path : Modules) {
+    source_files.insert(Path);
+    // if we have a file that is already compiled to llvm ir
+    if (Path.find(".ll") != Path.npos) {
+      llvm::SMDiagnostic Diag;
+      unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
+      unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);
+      bool broken_debug_info = false;
+      if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+        cout << "error: module not valid\n";
+        DIE_HARD;
+      }
+      if (broken_debug_info) {
+        cout << "caution: debug info is broken\n";
+      }
+      contexts.insert(make_pair(Path, move(C)));
+      modules.insert(make_pair(Path, move(M)));
+    } else {
+      // else we compile and then add to the database
+      CompileArgs.insert(CompileArgs.begin(), Path.c_str());
+      compileAndAddToDB(CompileArgs);
     }
-    if (broken_debug_info) {
-      cout << "caution: debug info is broken\n";
-    }
-    contexts.insert(make_pair(Path, move(C)));
-    modules.insert(make_pair(Path, move(M)));
-  } else {
-  	// else we compile and then add to the database
-    CompileArgs.insert(CompileArgs.begin(), Path.c_str());
-    compileAndAddToDB(CompileArgs);
   }
   buildFunctionModuleMapping();
   buildGlobalModuleMapping();
 }
 
-void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand) {
-	static vector<string> header_search_paths = splitString(readFile(ConfigurationDirectory+HeaderSearchPathsFileName), "\n");
-	static string minusI = "-I";
-	for_each(header_search_paths.begin(), header_search_paths.end(), [&CompileCommand](string& path) {
-		path = minusI + path;
-		CompileCommand.push_back(path.c_str());
-	});
-	cout << "Compile Commands\n";
-  for (auto s : CompileCommand) {
-  	cout << s << "\n";
+void ProjectIRCompiledDB::setupHeaderSearchPaths() {
+  header_search_paths = splitString(
+      readFile(ConfigurationDirectory + HeaderSearchPathsFileName), "\n");
+  for (auto &path : header_search_paths) {
+    path = string("-I") + path;
   }
-  unique_ptr<clang::CompilerInstance> ClangCompiler(new clang::CompilerInstance());
-  clang::DiagnosticOptions* DiagOpts(new clang::DiagnosticOptions());
-  clang::TextDiagnosticPrinter* DiagPrinterClient(new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
-  llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(new clang::DiagnosticIDs());
-  clang::DiagnosticsEngine* DiagEngine(new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
+}
+
+void ProjectIRCompiledDB::compileAndAddToDB(
+    vector<const char *> CompileCommand) {
+  auto &lg = lg::get();
+  // sanitize the compile command
+  // kill all arguments that we are not interested in
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
+    if (unknown_flags.count(string(*it))) {
+      it = CompileCommand.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  // also remove the '-o some_filename.o' output options
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
+    if (string(*it) == "-o") {
+      it = CompileCommand.erase(it, it + 1);
+    } else {
+      ++it;
+    }
+  }
+  // also remove the '-o some_filename.o' output options
+  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
+    if (string(*it) == "-c") {
+      it = CompileCommand.erase(it, it + 1);
+    } else {
+      ++it;
+    }
+  }
+  // add the standard header search paths to the compile command
+  for_each(header_search_paths.begin(), header_search_paths.end(),
+           [&CompileCommand](string &path) {
+             CompileCommand.push_back(path.c_str());
+           });
+  string commandstr;
+  for (auto s : CompileCommand) {
+    commandstr += s;
+    commandstr += ' ';
+  }
+  BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr;
+  unique_ptr<clang::CompilerInstance> ClangCompiler(
+      new clang::CompilerInstance());
+  clang::DiagnosticOptions *DiagOpts(new clang::DiagnosticOptions());
+  clang::TextDiagnosticPrinter *DiagPrinterClient(
+      new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
+  llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
+      new clang::DiagnosticIDs());
+  clang::DiagnosticsEngine *DiagEngine(
+      new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
   // prepare CodeGenAction and CompilerInvocation and compile!
   unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-  // Awesome, this does not need to be a smart-pointer, because some idiot thought it is a good
-  // idea that the CompilerInstance the CompilerInvocation is handed to owns it and CLEANS IT UP!
-  clang::CompilerInvocation* CI(new clang::CompilerInvocation);
-  clang::CompilerInvocation::CreateFromArgs(*CI, &CompileCommand[0],
-                                            &CompileCommand[0] + CompileCommand.size(), *DiagEngine);
+  // Awesome, this does not need to be a smart-pointer, because some idiot
+  // thought it is a good
+  // idea that the CompilerInstance the CompilerInvocation is handed to owns it
+  // and CLEANS IT UP!
+  clang::CompilerInvocation *CI(new clang::CompilerInvocation);
+  clang::CompilerInvocation::CreateFromArgs(
+      *CI, &CompileCommand[0], &CompileCommand[0] + CompileCommand.size(),
+      *DiagEngine);
   ClangCompiler->setDiagnostics(DiagEngine);
   ClangCompiler->setInvocation(CI);
   if (!ClangCompiler->hasDiagnostics()) {
@@ -89,7 +147,8 @@ void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand)
     if (broken_debug_info) {
       cout << "debug info is broken\n";
     }
-    contexts.insert(make_pair(name, unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
+    contexts.insert(make_pair(
+        name, unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
     modules.insert(make_pair(name, move(module)));
   } else {
     cout << "could not compile module!\nabort\n";
@@ -98,68 +157,73 @@ void ProjectIRCompiledDB::compileAndAddToDB(vector<const char *> CompileCommand)
 }
 
 void ProjectIRCompiledDB::linkForWPA() {
-	// Linking llvm modules:
-	// Unfortunately linking between different contexts is currently not possible.
-	// Therefore we must load all modules into one single context and then perform
-	// the linkage. This is still very fast compared to compiling and pre-processing
-	// all modules.
+  // Linking llvm modules:
+  // Unfortunately linking between different contexts is currently not possible.
+  // Therefore we must load all modules into one single context and then perform
+  // the linkage. This is still very fast compared to compiling and
+  // pre-processing
+  // all modules.
   if (modules.size() > 1) {
-	  llvm::Module* MainMod = getModuleDefiningFunction("main");
-	  assert(MainMod && "could not find main function");
-	  for (auto& entry : modules) {
-	  	// we do not want to link a module with itself!
-	  	if (MainMod != entry.second.get()) {
-	  		// reload the modules into the module containing the main function
-	  		string IRBuffer;
-	  		llvm::raw_string_ostream RSO(IRBuffer);
-	  		llvm::WriteBitcodeToFile(entry.second.get(), RSO);
-	  		RSO.flush();
-	  		llvm::SMDiagnostic ErrorDiagnostics;
-	  		unique_ptr<llvm::MemoryBuffer> MemBuffer = llvm::MemoryBuffer::getMemBuffer(IRBuffer);
-	  		unique_ptr<llvm::Module> TmpMod = llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
-	  		bool broken_debug_info = false;
-	  		if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
-	  			cout << "module is broken!\nabort!" << endl;
-	  			DIE_HARD;
-	  		}
-	  		if (broken_debug_info) {
-	  			cout << "debug info is broken" << endl;
-	  		}
-	  		// now we can safely perform the linking
-	  		if (llvm::Linker::linkModules(*MainMod, move(TmpMod), llvm::Linker::LinkOnlyNeeded)) {
-	  			cout << "ERROR when try to link modules for WPA module!" << endl;
-	  			DIE_HARD;
-	  		}
-	  	}
+    llvm::Module *MainMod = getModuleDefiningFunction("main");
+    assert(MainMod && "could not find main function");
+    for (auto &entry : modules) {
+      // we do not want to link a module with itself!
+      if (MainMod != entry.second.get()) {
+        // reload the modules into the module containing the main function
+        string IRBuffer;
+        llvm::raw_string_ostream RSO(IRBuffer);
+        llvm::WriteBitcodeToFile(entry.second.get(), RSO);
+        RSO.flush();
+        llvm::SMDiagnostic ErrorDiagnostics;
+        unique_ptr<llvm::MemoryBuffer> MemBuffer =
+            llvm::MemoryBuffer::getMemBuffer(IRBuffer);
+        unique_ptr<llvm::Module> TmpMod =
+            llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
+        bool broken_debug_info = false;
+        if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
+          cout << "module is broken!\nabort!" << endl;
+          DIE_HARD;
+        }
+        if (broken_debug_info) {
+          cout << "debug info is broken" << endl;
+        }
+        // now we can safely perform the linking
+        if (llvm::Linker::linkModules(*MainMod, move(TmpMod),
+                                      llvm::Linker::LinkOnlyNeeded)) {
+          cout << "ERROR when try to link modules for WPA module!" << endl;
+          DIE_HARD;
+        }
+      }
     }
-	  // Update the IRDB reflecting that we now only need 'MainMod' and its corresponding context!
+    // Update the IRDB reflecting that we now only need 'MainMod' and its
+    // corresponding context!
     // delete every other module
     for (auto it = modules.begin(); it != modules.end();) {
-    	if (it->second.get() != MainMod) {
-    		it = modules.erase(it);
-    	} else {
-    		++it;
-    	}
+      if (it->second.get() != MainMod) {
+        it = modules.erase(it);
+      } else {
+        ++it;
+      }
     }
-	  // delete every other context
+    // delete every other context
     for (auto it = contexts.begin(); it != contexts.end();) {
-    	if (it->second.get() != &MainMod->getContext()) {
-    		it = contexts.erase(it);
-    	} else {
-    		++it;
-    	}
+      if (it->second.get() != &MainMod->getContext()) {
+        it = contexts.erase(it);
+      } else {
+        ++it;
+      }
     }
     // update functions
-    for (auto& entry : functions) {
-    	entry.second = MainMod->getModuleIdentifier();
+    for (auto &entry : functions) {
+      entry.second = MainMod->getModuleIdentifier();
     }
     // update globals
-    for (auto& entry : globals) {
-    	entry.second = MainMod->getModuleIdentifier();
+    for (auto &entry : globals) {
+      entry.second = MainMod->getModuleIdentifier();
     }
     cout << "remaining contexts: " << contexts.size() << endl;
     cout << "remaining modules: " << modules.size() << endl;
-	  WPAMOD = MainMod;
+    WPAMOD = MainMod;
   } else if (modules.size() == 1) {
     // In this case we only have one module anyway, so we do not have
     // to link at all. But we have to the the WPAMOD pointer!
@@ -167,10 +231,10 @@ void ProjectIRCompiledDB::linkForWPA() {
   }
 }
 
-llvm::Module* ProjectIRCompiledDB::getWPAModule() {
-	if (!WPAMOD)
-		linkForWPA();
-	return WPAMOD;
+llvm::Module *ProjectIRCompiledDB::getWPAModule() {
+  if (!WPAMOD)
+    linkForWPA();
+  return WPAMOD;
 }
 
 void ProjectIRCompiledDB::buildFunctionModuleMapping() {
@@ -185,72 +249,81 @@ void ProjectIRCompiledDB::buildFunctionModuleMapping() {
 }
 
 void ProjectIRCompiledDB::buildGlobalModuleMapping() {
-  for (auto& entry : modules) {
+  for (auto &entry : modules) {
     const llvm::Module *M = entry.second.get();
-    for (auto& global : M->globals()) {
-        globals[global.getName().str()] = M->getModuleIdentifier();
+    for (auto &global : M->globals()) {
+      globals[global.getName().str()] = M->getModuleIdentifier();
     }
   }
 }
 
 void ProjectIRCompiledDB::buildIDModuleMapping() {
-	// determine first instruction of module
-	// determine last instruction of module (user reverse module iterator)
+  for (auto &entry : modules) {
+    llvm::Module *M = entry.second.get();
+    for (auto &F : *M) {
+      for (auto &BB : F) {
+        for (auto &I : BB) {
+          instructions[stol(getMetaDataID(&I))] = &I;
+        }
+      }
+    }
+  }
 }
 
-bool ProjectIRCompiledDB::containsSourceFile(const string& src) {
-	return source_files.find(src) != source_files.end();
+bool ProjectIRCompiledDB::containsSourceFile(const string &src) {
+  return source_files.find(src) != source_files.end();
 }
 
-llvm::LLVMContext* ProjectIRCompiledDB::getLLVMContext(const string& name) {
+llvm::LLVMContext *ProjectIRCompiledDB::getLLVMContext(const string &name) {
   if (contexts.count(name))
-  	return contexts[name].get();
+    return contexts[name].get();
   return nullptr;
 }
 
-llvm::Module* ProjectIRCompiledDB::getModule(const string& name) {
+llvm::Module *ProjectIRCompiledDB::getModule(const string &name) {
   if (modules.count(name))
     return modules[name].get();
   return nullptr;
 }
 
-set<llvm::Module*> ProjectIRCompiledDB::getAllModules() {
-	set<llvm::Module*> ModuleSet;
-	for (auto& entry : modules) {
-		ModuleSet.insert(entry.second.get());
-	}
-	return ModuleSet;
+set<llvm::Module *> ProjectIRCompiledDB::getAllModules() {
+  set<llvm::Module *> ModuleSet;
+  for (auto &entry : modules) {
+    ModuleSet.insert(entry.second.get());
+  }
+  return ModuleSet;
 }
 
-size_t ProjectIRCompiledDB::getNumberOfModules() {
-  return modules.size();
-}
+size_t ProjectIRCompiledDB::getNumberOfModules() { return modules.size(); }
 
-llvm::Module* ProjectIRCompiledDB::getModuleDefiningFunction(const string& name) {
+llvm::Module *
+ProjectIRCompiledDB::getModuleDefiningFunction(const string &name) {
   if (functions.count(name)) {
     return modules[functions[name]].get();
   }
-	return nullptr;
+  return nullptr;
 }
 
-llvm::Function* ProjectIRCompiledDB::getFunction(const string& name) {
+llvm::Function *ProjectIRCompiledDB::getFunction(const string &name) {
   if (functions.count(name))
-  	return modules[functions[name]]->getFunction(name);
+    return modules[functions[name]]->getFunction(name);
   return nullptr;
 }
 
-llvm::GlobalVariable* ProjectIRCompiledDB::getGlobalVariable(const string& name) {
+llvm::GlobalVariable *
+ProjectIRCompiledDB::getGlobalVariable(const string &name) {
   if (globals.count(name))
-  	return modules[globals[name]]->getGlobalVariable(name);
+    return modules[globals[name]]->getGlobalVariable(name);
   return nullptr;
 }
 
-llvm::Instruction* ProjectIRCompiledDB::getInstruction(size_t id) {
-	UNRECOVERABLE_CXX_ERROR_UNCOND("not implemented yet!");
-	return nullptr;
+llvm::Instruction *ProjectIRCompiledDB::getInstruction(size_t id) {
+  if (instructions.count(id))
+    return instructions[id];
+  return nullptr;
 }
 
-PointsToGraph* ProjectIRCompiledDB::getPointsToGraph(const string& name) {
+PointsToGraph *ProjectIRCompiledDB::getPointsToGraph(const string &name) {
   if (ptgs.count(name))
     return ptgs[name].get();
   return nullptr;

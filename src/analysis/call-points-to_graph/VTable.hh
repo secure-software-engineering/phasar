@@ -28,6 +28,10 @@ public:
   int getEntryByFunctionName(string fname) const;
   void addEntry(string entry);
   bool empty();
+  vector<string>::iterator begin();
+  vector<string>::const_iterator begin() const;
+  vector<string>::iterator end();
+  vector<string>::const_iterator end() const;
   vector<string> getVTable() const;
   friend ostream &operator<<(ostream &os, const VTable &t);
   json exportPATBCJSON();

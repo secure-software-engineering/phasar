@@ -45,7 +45,7 @@ ostream& operator<<(ostream& os, const ExportType& E) {
 AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
                                        vector<DataFlowAnalysisType> Analyses,
                                        bool WPA_MODE, bool Mem2Reg_MODE,
-                                       bool PrintEdgeRecorder)
+                                       bool PrintEdgeRecorder, string graph_id)
     : FinalResultsJson() {
   auto& lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
@@ -74,6 +74,7 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
       EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
     }
   }
+  IRDB.print();
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
@@ -129,18 +130,33 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
     ///   ...
     // But for now, stick to what is well debugged
     llvm::legacy::PassManager PM;
-    GeneralStatisticsPass* GSP = new GeneralStatisticsPass();
-    ValueAnnotationPass* VAP = new ValueAnnotationPass(C);
-    llvm::CFLSteensAAWrapperPass* SteensP = new llvm::CFLSteensAAWrapperPass();
-    llvm::AAResultsWrapperPass* AARWP = new llvm::AAResultsWrapperPass();
     if (Mem2Reg_MODE) {
       llvm::FunctionPass* Mem2Reg = llvm::createPromoteMemoryToRegisterPass();
       PM.add(Mem2Reg);
     }
+    GeneralStatisticsPass* GSP = new GeneralStatisticsPass();
+    ValueAnnotationPass* VAP = new ValueAnnotationPass(C);
+    // Mandatory passed for the alias analysis
+    auto BasicAAWP = llvm::createBasicAAWrapperPass();
+    auto TargetLibraryWP = new llvm::TargetLibraryInfoWrapperPass();
+    // Optional, more precise alias analysis
+    // auto ScopedNoAliasAAWP = llvm::createScopedNoAliasAAWrapperPass();
+    // auto TBAAWP = llvm::createTypeBasedAAWrapperPass();
+    // auto ObjCARCAAWP = llvm::createObjCARCAAWrapperPass();
+    // auto SCEVAAWP = llvm::createSCEVAAWrapperPass();
+    auto CFLAndersAAWP = llvm::createCFLAndersAAWrapperPass();
+    // auto CFLSteensAAWP = llvm::createCFLSteensAAWrapperPass();
+    // Add the passes
     PM.add(GSP);
     PM.add(VAP);
-    PM.add(SteensP);
-    PM.add(AARWP);
+    PM.add(BasicAAWP);
+    PM.add(TargetLibraryWP);
+    // PM.add(ScopedNoAliasAAWP);
+    // PM.add(TBAAWP);
+    // PM.add(ObjCARCAAWP);
+    // PM.add(SCEVAAWP);
+    PM.add(CFLAndersAAWP);
+    // PM.add(CFLSteensAAWP);
     PM.run(M);
     // just to be sure that none of the passes has messed up the module!
     bool broken_debug_info = false;
@@ -156,12 +172,17 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
       // When module-wise analysis is performed, declarations might occure
       // causing meaningless points-to graphs to be produced.
       if (!function.isDeclaration()) {
+        llvm::BasicAAResult BAAResult = 
+          createLegacyPMBasicAAResult(*BasicAAWP, function);
+        llvm::AAResults AARes = llvm::createLegacyPMAAResults(
+          *BasicAAWP, function, BAAResult);
         IRDB.ptgs.insert(make_pair(function.getName().str(),
                                    unique_ptr<PointsToGraph>(new PointsToGraph(
-                                       AARWP->getAAResults(), &function))));
+                                      AARes, &function))));
       }
     }
   }
+  IRDB.buildIDModuleMapping();
   BOOST_LOG_SEV(lg, INFO) << "Pre-analysis completed.";
   IRDB.print();
   DBConn& db = DBConn::getInstance();
@@ -174,8 +195,10 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
+    cout << "WPA_MODE HAPPENING" << endl;
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
+    cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
     // CFG is only needed for intra-procedural monotone framework
@@ -230,6 +253,9 @@ AnalysisController::AnalysisController(ProjectIRCompiledDB&& IRDB,
           LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
               uninitializedvarproblem, true);
           llvmunivsolver.solve();
+          if(PrintEdgeRecorder){
+            llvmunivsolver.exportJSONDataModel(graph_id);
+          }
           break;
         }
         case DataFlowAnalysisType::IFDS_ConstAnalysis: {

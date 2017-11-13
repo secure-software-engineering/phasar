@@ -235,7 +235,7 @@ public:
 
   virtual ~LLVMBasedICFG() = default;
 
-  bool isMemberFunctionCall(const llvm::Instruction *I);
+  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 
   const llvm::Function *
   getMethodOf(const llvm::Instruction *stmt) override;
@@ -307,6 +307,10 @@ public:
   PointsToGraph &getWholeModulePTG();
 
   vector<string> getDependencyOrderedFunctions();
+
+  // bool store();
+
+  // static LLVMBasedICFG restore(const string &id);
 };
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */
