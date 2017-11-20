@@ -1,4 +1,4 @@
-#include "IFDSTypeAnalysis.hh"
+#include "IFDSTypeAnalysis.h"
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
                                    vector<string> EntryPoints)
@@ -79,14 +79,14 @@ bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {
+string IFDSTypeAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSTypeAnalysis::N_to_string(const llvm::Instruction *n) {
+string IFDSTypeAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSTypeAnalysis::M_to_string(const llvm::Function *m) {
+string IFDSTypeAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

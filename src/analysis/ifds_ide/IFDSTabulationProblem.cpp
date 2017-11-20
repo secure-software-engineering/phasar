@@ -5,6 +5,4 @@
  *      Author: pdschbrt
  */
 
-#include "IFDSTabulationProblem.hh"
-
-
+#include "IFDSTabulationProblem.h"

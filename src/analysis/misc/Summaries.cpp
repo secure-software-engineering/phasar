@@ -1,4 +1,4 @@
-#include "Summaries.hh"
+#include "Summaries.h"
 
 const map<SummaryGenerationCTXStrategy, string>
     SummaryGenerationCTXStrategyToString = {
@@ -18,6 +18,6 @@ const map<string, SummaryGenerationCTXStrategy>
 
 };
 
-ostream& operator<<(ostream& os, const SummaryGenerationCTXStrategy& s) {
+ostream &operator<<(ostream &os, const SummaryGenerationCTXStrategy &s) {
   return os << SummaryGenerationCTXStrategyToString.at(s);
 }

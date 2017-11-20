@@ -1,4 +1,4 @@
-#include "IFDSUninitializedVariables.hh"
+#include "IFDSUninitializedVariables.h"
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg,
                                                    vector<string> EntryPoints)
@@ -342,14 +342,14 @@ bool IFDSUnitializedVariables::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSUnitializedVariables::D_to_string(const llvm::Value *d) {
+string IFDSUnitializedVariables::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSUnitializedVariables::N_to_string(const llvm::Instruction *n) {
+string IFDSUnitializedVariables::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSUnitializedVariables::M_to_string(const llvm::Function *m) {
+string IFDSUnitializedVariables::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "ZeroValue.hh"
+#include "ZeroValue.h"
 
 const string ZeroValueInternalName("zero_value");
 const string ZeroValueInternalModuleName("zero_module");

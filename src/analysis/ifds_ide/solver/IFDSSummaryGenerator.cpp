@@ -1,2 +1,1 @@
-#include "IFDSSummaryGenerator.hh"
-
+#include "IFDSSummaryGenerator.h"

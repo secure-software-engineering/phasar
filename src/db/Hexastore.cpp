@@ -1,4 +1,4 @@
-#include "Hexastore.hh"
+#include "Hexastore.h"
 
 using namespace boost;
 using namespace hexastore;
@@ -6,18 +6,17 @@ using namespace hexastore;
 Hexastore::Hexastore(string filename) {
   sqlite3_open(filename.c_str(), &hs_internal_db);
   const string query = hexastore::INIT;
-  char* err;
+  char *err;
   sqlite3_exec(hs_internal_db, query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err << "\n\n";
 }
 
-Hexastore::~Hexastore() {
-  sqlite3_close(hs_internal_db);
-}
+Hexastore::~Hexastore() { sqlite3_close(hs_internal_db); }
 
-int Hexastore::callback(void *NotUsed, int argc, char **argv, char **azColName){
-  for(int i = 0; i < argc; ++i){
+int Hexastore::callback(void *NotUsed, int argc, char **argv,
+                        char **azColName) {
+  for (int i = 0; i < argc; ++i) {
     cout << azColName[i] << " " << (argv[i] ? argv[i] : "NULL") << endl;
   }
   return 0;
@@ -34,13 +33,14 @@ void Hexastore::put(array<string, 3> edge) {
 
 void Hexastore::doPut(string query, array<string, 3> edge) {
   string compiled_query = str(format(query) % edge[0] % edge[1] % edge[2]);
-  char* err;
+  char *err;
   sqlite3_exec(hs_internal_db, compiled_query.c_str(), callback, 0, &err);
   if (err != NULL)
     cout << err;
 }
 
-vector<hs_result> Hexastore::get(array<string, 3> edge_query, size_t result_size_hint) {
+vector<hs_result> Hexastore::get(array<string, 3> edge_query,
+                                 size_t result_size_hint) {
   vector<hs_result> result;
   result.reserve(result_size_hint);
   string querystring;
@@ -73,16 +73,20 @@ vector<hs_result> Hexastore::get(array<string, 3> edge_query, size_t result_size
       }
     }
   }
-  string compiled_query = str(format(querystring) % edge_query[0] % edge_query[1] % edge_query[2]);
-  // this lambda will collect all of our results, since it is called on every row of the result set
-  auto sqlite_cb_result_collector = [] (void* cb, int argc, char **argv, char **azColName) {
-    vector<hs_result>* res = static_cast<vector<hs_result>*>(cb);
+  string compiled_query =
+      str(format(querystring) % edge_query[0] % edge_query[1] % edge_query[2]);
+  // this lambda will collect all of our results, since it is called on every
+  // row of the result set
+  auto sqlite_cb_result_collector = [](void *cb, int argc, char **argv,
+                                       char **azColName) {
+    vector<hs_result> *res = static_cast<vector<hs_result> *>(cb);
     res->emplace_back(argv[0], argv[1], argv[2]);
     return 0;
   };
-  char* err;
-  sqlite3_exec(hs_internal_db, compiled_query.c_str(), sqlite_cb_result_collector, &result, &err);
-  if(err != NULL) {
+  char *err;
+  sqlite3_exec(hs_internal_db, compiled_query.c_str(),
+               sqlite_cb_result_collector, &result, &err);
+  if (err != NULL) {
     cout << err;
   }
   return result;
