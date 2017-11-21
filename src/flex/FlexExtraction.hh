@@ -8,9 +8,6 @@
 #ifndef FLEX_EXTRACTION_HH_
 #define FLEX_EXTRACTION_HH_
 
-
-class FlexExtraction {
-
-};
+class FlexExtraction {};
 
 #endif /* FLEX_CCEXTRACTIONIFACE_HH_ */

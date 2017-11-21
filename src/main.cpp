@@ -1,21 +1,33 @@
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/CompilationDatabase.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made 
+ * available under the terms of the TODO: add suitable License ... which 
+ * accompanies this distribution, and is available at
+ * http://www.addlicense.de
+ * 
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#include "analysis/AnalysisController.h"
+#include "analysis/misc/DataFlowAnalysisType.h"
+#include "analysis/passes/GeneralStatisticsPass.h"
+#include "analysis/passes/ValueAnnotationPass.h"
+#include "db/ProjectIRDB.h"
+#include "config/Configuration.h"
+#include "utils/Logger.h"
+#include "utils/utils.h"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/throw_exception.hpp>
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <clang/Tooling/CompilationDatabase.h>
+#include <clang/Tooling/Tooling.h>
 #include <iostream>
+#include <llvm/Support/CommandLine.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
-#include "analysis/AnalysisController.hh"
-#include "analysis/passes/GeneralStatisticsPass.hh"
-#include "analysis/passes/ValueAnnotationPass.hh"
-#include "db/ProjectIRCompiledDB.hh"
-#include "utils/Configuration.hh"
-#include "utils/Logger.hh"
-#include "utils/utils.hh"
 
 // this project is pretty large at this point, to avoid
 // confusion only use the 'using namespace' command for the STL
@@ -26,16 +38,12 @@ namespace bfs = boost::filesystem;
 
 // setup programs command line options (via Clang)
 static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");
-static llvm::cl::extrahelp CommonHelp(
-    clang::tooling::CommonOptionsParser::HelpMessage);
+static llvm::cl::extrahelp
+    CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
 static const string MoreHelp =
 #include "more_help.txt"
     ;
-
-// // initialize the module passes ID's that we are using
-char GeneralStatisticsPass::ID = 0;
-char ValueAnnotationPass::ID = 13;
 
 namespace boost {
 void throw_exception(std::exception const &e) {}
@@ -123,8 +131,11 @@ void validateParamGraphID(const string &graphid) {
   // TODO perform some validation
 }
 
-template <typename T>
-ostream &operator<<(ostream &os, const vector<T> &v) {
+void validateParamProjectID(string id) {
+  // TODO perform some validation
+}
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
   copy(v.begin(), v.end(), ostream_iterator<T>(os, " "));
   return os;
 }
@@ -135,7 +146,6 @@ int main(int argc, const char **argv) {
   auto &lg = lg::get();
   // handling the command line parameters
   BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
-  bpo::variables_map VariablesMap;
   try {
     string ConfigFile;
     // Declare a group of options that will be allowed only on command line
@@ -150,6 +160,7 @@ int main(int argc, const char **argv) {
     bpo::options_description Config("Configuration file options");
     // clang-format off
     Config.add_options()
+      ("project_id", bpo::value<string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
       ("graph_id,G", bpo::value<string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visulization framework")
 			("function,f", bpo::value<string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<vector<string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
@@ -198,6 +209,9 @@ int main(int argc, const char **argv) {
     if (VariablesMap.count("config")) {
       cout << "Configuration fille: " << VariablesMap["config"].as<string>()
            << '\n';
+    }
+    if (VariablesMap.count("project_id")) {
+      cout << "Project ID: " << VariablesMap["project_id"].as<string>() << '\n';
     }
     if (VariablesMap.count("graph_id")) {
       cout << "Graph ID: " << VariablesMap["graph_id"].as<string>() << '\n';
@@ -304,12 +318,10 @@ int main(int argc, const char **argv) {
     }
   }
   AnalysisController Controller(
-      [&lg,&VariablesMap](bool usingModules) {
+      [&lg](bool usingModules) {
         BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
         if (usingModules) {
-          vector<const char *> CompileArgs;
-          ProjectIRCompiledDB IRDB(VariablesMap["module"].as<vector<string>>(),
-                                   CompileArgs);
+          ProjectIRDB IRDB(VariablesMap["module"].as<vector<string>>());
           return IRDB;
         } else {
           // perform a little trick to make OptionsParser only responsible for
@@ -324,13 +336,14 @@ int main(int argc, const char **argv) {
               OccurrencesFlag);
           clang::tooling::CompilationDatabase &CompileDB =
               OptionsParser.getCompilations();
-          ProjectIRCompiledDB IRDB(CompileDB);
+          ProjectIRDB IRDB(CompileDB);
           return IRDB;
         }
       }(VariablesMap.count("module")),
       ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
       VariablesMap["mem2reg"].as<bool>(),
-      VariablesMap["printedgerec"].as<bool>(), VariablesMap["graph_id"].as<string>());
+      VariablesMap["printedgerec"].as<bool>(),
+      VariablesMap["graph_id"].as<string>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";
   // Controller.writeResults(VariablesMap["output"].as<string>());
   // free all resources handled by llvm

@@ -1,4 +1,4 @@
-#include "IntraMonoFullConstantPropagation.hh"
+#include "IntraMonoFullConstantPropagation.h"
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     LLVMBasedCFG &Cfg, const llvm::Function *F)
@@ -28,10 +28,11 @@ IntraMonoFullConstantPropagation::flow(const llvm::Instruction *S,
 MonoMap<const llvm::Instruction *,
         MonoSet<IntraMonoFullConstantPropagation::DFF>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return MonoMap<const llvm::Instruction *, MonoSet<IntraMonoFullConstantPropagation::DFF>>();
+  return MonoMap<const llvm::Instruction *,
+                 MonoSet<IntraMonoFullConstantPropagation::DFF>>();
 }
 
-string IntraMonoFullConstantPropagation::D_to_string(
+string IntraMonoFullConstantPropagation::DtoString(
     pair<const llvm::Value *, unsigned> d) {
   string s = "< " + llvmIRToString(d.first);
   s += ", " + to_string(d.second) + " >";

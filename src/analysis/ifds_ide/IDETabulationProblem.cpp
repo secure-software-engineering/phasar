@@ -5,6 +5,4 @@
  *      Author: pdschbrt
  */
 
-#include "IDETabulationProblem.hh"
-
-
+#include "IDETabulationProblem.h"

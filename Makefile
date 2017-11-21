@@ -1,10 +1,13 @@
-###############################################################################
-# Name        : Makefile                                                      #
-# Author      : Philipp D. Schubert                                           #
-# Version     : 2.0                                                           #
-# Copyright   : see LICENSE.txt                                               #
-# Description : Data Flow Anlysis for LLVM                                    #
-###############################################################################
+#/*****************************************************************************
+#  * Copyright (c) 2017 Philipp Schubert.
+#  * All rights reserved. This program and the accompanying materials are made 
+#  * available under the terms of the TODO: add suitable License ... which 
+#  * accompanies this distribution, and is available at
+#  * http://www.addlicense.de
+#  * 
+#  * Contributors:
+#  *     Philipp Schubert
+#  ***************************************************************************/
 
 # Set-up the compiler
 CXX = clang++
@@ -30,6 +33,9 @@ CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 # Add header search paths
 CXX_INCL = -I ./json/src/
 
+# Define the google test run parameters
+GTEST_RUN_PARAMS = --gtest_repeat=3
+
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
 
@@ -39,9 +45,10 @@ EXE = main
 # Basic project directories
 BIN = bin/
 OBJDIR = obj/
+LLVMDIR = llvmir/
 DOC = doc/
 SRC = src/
-TEST = test/
+TEST = tests/
 PLUGINDIR = src/analysis/plugins/
 PLUGINSODIR = so/
 ALL_SRC = $(sort $(dir $(call recwildcard,$(SRC)**/*/)))
@@ -52,10 +59,19 @@ VPATH = $(SRC):$(ALL_SRC)
 # Determine all object files that we need in order to produce an executable
 OBJ = $(addprefix $(OBJDIR),$(notdir $(patsubst %.cpp,%.o,$(call recwildcard,src/,*.cpp))))
 
+# Determine all llvm files that we need in order to produce the complete llvm ir code
+LLVMIR = $(addprefix $(LLVMDIR),$(notdir $(patsubst %.cpp,%.ll,$(call recwildcard,src/,*.cpp))))
+
+# Determine all test files, that we are given
+TST = $(call recwildcard,$(TEST),*.cpp)
+
+# Determine the names of the test executables
+TSTEXE = $(patsubst %.cpp,%,$(TST))
+
 # Determine all shared object files that we need to produce in order to process the plugins
 SO = $(addprefix $(PLUGINSODIR),$(notdir $(patsubst %.cxx,%.so,$(call recwildcard,src/,*.cxx))))
 
-# To determine source (.cpp) and header (.hh) dependencies
+# To determine source (.cpp) and header (.h) dependencies
 DEP = $(OBJ:.o=.d)
 
 # Important scripts and binaries to use
@@ -68,6 +84,7 @@ THREAD_MODEL := -pthread
 # Libraries to link against
 SOL_LIBS := -ldl
 SQLITE3_LIBS := -lsqlite3
+MYSQL_LIBS := -lmysqlcppconn
 CURL_LIBS := -lcurl
 GTEST_LIBS := -lgtest
 BOOST_LIBS := -lboost_filesystem
@@ -108,12 +125,15 @@ all: $(OBJDIR) $(BIN) $(BIN)$(EXE)
 $(OBJDIR):
 	mkdir $@
 
+$(LLVMDIR):
+	mkdir $@
+
 $(BIN):
 	mkdir $@
 
 $(BIN)$(EXE): $(OBJ)
 	@echo "linking into executable file ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
@@ -125,7 +145,7 @@ doc:
 	doxygen doxy_config.conf
 	@echo "built documentation"
 
-format-code:
+clang-format-code:
 	@echo "formatting the project using clang-format ..."
 	python3 $(SCRIPT_AUTOFORMAT)
 
@@ -137,21 +157,35 @@ plugins: $(PLUGINSODIR) $(SO)
 $(PLUGINSODIR)%.so: %.cxx
 	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $< -o $@ 
 
-clean-plugins:
-	rm -rf $(PLUGINSODIR)
+tests: $(TSTEXE) $(TST)
+
+$(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
+	@echo "Compile test: $@"
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
+
+run_tests: tests
+	@echo "Run tests: $(TSTEXE)"
+	$(foreach test,$(TSTEXE),./$(test) $(GTEST_RUN_PARAMS);)
+
+llvmir: $(LLVMDIR) $(LLVMIR)
+
+$(LLVMDIR)%.ll: %.cpp
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -emit-llvm -S $< -o $@
 
 hello:
 	@echo "Hello World!"
 
-run_tests:
-	@echo "Unit tests using the Google C++ Testing Framework is under development"
+clean_plugins:
+	rm -rf $(PLUGINSODIR)
 
-#clean-db-dot:
-#	rm *.dot
-#	rm ptg_hexastore.db
-#	rm llheros_analyzer.db
+clean_tests:
+	rm -f $(TSTEXE)
+	rm -f $(patsubst %,%.d,$(TSTEXE))
 
-clean: clean-plugins
+clean_llvm:
+	rm -rf $(LLVMDIR)
+
+clean: clean_plugins clean_tests clean_llvm
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)
 	rm -rf $(DOC)

@@ -1,7 +1,7 @@
  R"(
-======================================================
-=== Data-flow Analysis for C and C++ - User Manual ===
-======================================================
+===================================================================
+=== Phasar a LLVM-based Static Analysis Framework - User Manual ===
+===================================================================
 
 There are currently two modes available to run a program analysis:
 1.) Single module analysis

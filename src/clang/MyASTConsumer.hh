@@ -8,20 +8,19 @@
 #ifndef CLANG_MYASTCONSUMER_HH_
 #define CLANG_MYASTCONSUMER_HH_
 
+#include "MyVisitor.hh"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/Frontend/CompilerInstance.h>
-#include "MyVisitor.hh"
 
 using namespace clang;
 using namespace llvm;
 
-
-//class MyASTConsumer : public ASTConsumer {
-//private:
+// class MyASTConsumer : public ASTConsumer {
+// private:
 //    MyVisitor *visitor; // doesn't have to be private
 //
-//public:
+// public:
 //    // override the constructor in order to pass CI
 //    explicit MyASTConsumer(CompilerInstance *CI);
 //
@@ -31,10 +30,13 @@ using namespace llvm;
 ///*
 //    // override this to call our ExampleVisitor on each top-level Decl
 //    virtual bool HandleTopLevelDecl(DeclGroupRef DG) {
-//        // a DeclGroupRef may have multiple Decls, so we iterate through each one
-//        for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++) {
+//        // a DeclGroupRef may have multiple Decls, so we iterate through each
+//        one
+//        for (DeclGroupRef::iterator i = DG.begin(), e = DG.end(); i != e; i++)
+//        {
 //            Decl *D = *i;
-//            visitor->TraverseDecl(D); // recursively visit each AST node in Decl "D"
+//            visitor->TraverseDecl(D); // recursively visit each AST node in
+//            Decl "D"
 //        }
 //        return true;
 //    }

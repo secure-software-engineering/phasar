@@ -1,4 +1,4 @@
-#include "IFDSTaintAnalysis.hh"
+#include "IFDSTaintAnalysis.h"
 
 // Source functions - critical argument(s) - signature:
 //  -fread - 0 - size_t fread(void *ptr, size_t size, size_t nmemb, FILE
@@ -349,14 +349,14 @@ bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTaintAnalysis::D_to_string(const llvm::Value *d) {
+string IFDSTaintAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSTaintAnalysis::N_to_string(const llvm::Instruction *n) {
+string IFDSTaintAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSTaintAnalysis::M_to_string(const llvm::Function *m) {
+string IFDSTaintAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

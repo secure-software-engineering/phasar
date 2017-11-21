@@ -1,10 +1,10 @@
-Data Flow Analysis in LLVM
-==========================
+Phasar a LLVM-based Static Analysis Framework
+=============================================
 
-Secure Software Engineering - Data Flow Analysis for C and C++
-----------------------------------------------------------------
+Secure Software Engineering
+---------------------------
 
-+ author: Philipp D. Schubert (philipp.schubert@upb.de)
++ author: Philipp Schubert (philipp@it-schubert.com)
 
 Table of Contents
 =================
@@ -14,6 +14,7 @@ Table of Contents
 * [Installation](#installation)
     * [Brief example using an Ubuntu system](#brief-example-using-an-ubuntu-system)
         * [Installing SQLITE3](#installing-sqlite3)
+        * [Installing MySQL](#installing-mysql)
         * [Installing BEAR](#installing-bear)
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
@@ -79,11 +80,13 @@ versions of these libraries are installed if not stated otherwise):
 In the following the authors assume that a unix-like system is used.
 Installation guides for the libraries can be found here:
 
-[LLVM / Clang (using apt)](http://apt.llvm.org/)
+[LLVM / Clang](http://apt.llvm.org/)
 
 [BOOST](http://www.boost.org/doc/libs/1_64_0/more/getting_started/unix-variants.html)
 
 [SQLITE3](https://www.sqlite.org/download.html)
+
+[MySQL](https://www.mysql.com/)
 
 [BEAR](https://github.com/rizsotto/Bear)
 
@@ -99,6 +102,11 @@ SQLITE3 can just be installed from the Ubuntu sources:
 $ sudo apt-get install sqlite3 libsqlite3-dev
 
 That's it - done.
+
+#### Installing MySQL {#installing-mysql}
+MySQL can be installed from the Ubuntu sources using:
+
+$ sudo apt-get install libmysqlcppconn-dev
 
 #### Installing BEAR {#installing-bear}
 BEAR can just be installed from the Ubuntu sources:
@@ -193,7 +201,23 @@ directory. You can use the -j switch to build in parallel reducing the compile t
 
 $ make -j $(nproc)
 
-#### CMake {#cmake}
+##### Some other useful targets for make
+$ make clean
+
+TODO
+
+
+$ make tests
+
+TODO
+
+
+$ make plugins
+
+TODO
+
+
+#### CMake (deprecated) {#cmake}
 If you are a fan of cmake you probably would like to go this route.
 The following commands will do the job:
 

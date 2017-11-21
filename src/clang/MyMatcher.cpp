@@ -7,22 +7,31 @@
 
 #include "MyMatcher.hh"
 
-//StatementMatcher myStmtMatcher = forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoop");
-////StatementMatcher myCallMatcher = callExpr(isExpansionInMainFile(), callee(cxxMethodDecl(hasName("foo"))), hasAncestor(recordDecl().bind("caller"))).bind("callee");
-//StatementMatcher myCallMatcher = callExpr(hasAncestor(functionDecl().bind("caller")), callee(functionDecl().bind("callee"))).bind("call");
+// StatementMatcher myStmtMatcher =
+// forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoop");
+////StatementMatcher myCallMatcher = callExpr(isExpansionInMainFile(),
+///callee(cxxMethodDecl(hasName("foo"))),
+///hasAncestor(recordDecl().bind("caller"))).bind("callee");
+// StatementMatcher myCallMatcher =
+// callExpr(hasAncestor(functionDecl().bind("caller")),
+// callee(functionDecl().bind("callee"))).bind("call");
 //
-//void MyMatcher::run(const MatchFinder::MatchResult &Result)
+// void MyMatcher::run(const MatchFinder::MatchResult &Result)
 //{
 //	if (const ForStmt *FS = Result.Nodes.getNodeAs<ForStmt>("forLoop"))
 //		FS->dump();
 ////	if (const CallExpr *callee = Result.Nodes.getNodeAs<CallExpr>("callee"))
-////		errs() << "CALLEE: " << callee->getDirectCallee()->getNameInfo().getAsString() << "\n";
-////	if (const CXXRecordDecl *caller = Result.Nodes.getNodeAs<CXXRecordDecl>("caller"))
+////		errs() << "CALLEE: " <<
+///callee->getDirectCallee()->getNameInfo().getAsString() << "\n";
+////	if (const CXXRecordDecl *caller =
+///Result.Nodes.getNodeAs<CXXRecordDecl>("caller"))
 ////		errs() << "CALLER: " << caller->getNameAsString() << "\n";
 //	if (auto Caller = Result.Nodes.getNodeAs<clang::FunctionDecl>("caller"))
-//		errs() << "### Caller:" << Caller->getNameInfo().getAsString() << "\n";
+//		errs() << "### Caller:" << Caller->getNameInfo().getAsString() <<
+//"\n";
 //	if (auto Callee = Result.Nodes.getNodeAs<clang::FunctionDecl>("callee"))
-//		errs() << "### Callee:" << Callee->getNameInfo().getAsString() << "\n";
+//		errs() << "### Callee:" << Callee->getNameInfo().getAsString() <<
+//"\n";
 //	if (auto Call = Result.Nodes.getNodeAs<clang::CallExpr>("call"))
 //		errs() << "### with num args: " << Call->getNumArgs() << "\n";
 //
@@ -32,6 +41,7 @@
 ////    clang::TextDiagnostic TD(llvm::outs(), AST->getLangOpts(),
 ////                             &AST->getDiagnostics().getDiagnosticOptions());
 ////    TD.emitDiagnostic(R.getBegin(), DiagnosticsEngine::Note,
-////                      "Occurance found here", CharSourceRange::getTokenRange(R),
+////                      "Occurance found here",
+///CharSourceRange::getTokenRange(R),
 ////                      None, &AST->getSourceManager());
 ////  }
