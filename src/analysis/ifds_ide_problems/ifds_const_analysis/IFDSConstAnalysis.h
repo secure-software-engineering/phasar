@@ -1,28 +1,28 @@
 /*
- * IFDSConstnessAnalysis.hh
+ * IFDSConstAnalysis.h
  *
  *  Created on: 07.06.2017
  *      Author: rleer
  */
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_HH_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_HH_
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_
 
-#include "../../../lib/LLVMShorthands.hh"
-#include "../../../utils/Logger.hh"
-#include "../../../utils/utils.hh"
-#include "../../icfg/LLVMBasedICFG.hh"
-#include "../../ifds_ide/DefaultIFDSTabulationProblem.hh"
-#include "../../ifds_ide/DefaultSeeds.hh"
-#include "../../ifds_ide/FlowFunction.hh"
-#include "../../ifds_ide/IFDSSummaryPool.hh"
-#include "../../ifds_ide/SpecialSummaries.hh"
-#include "../../ifds_ide/ZeroValue.hh"
-#include "../../ifds_ide/flow_func/Gen.hh"
-#include "../../ifds_ide/flow_func/Identity.hh"
-#include "../../ifds_ide/flow_func/Kill.hh"
-#include "../../ifds_ide/flow_func/KillAll.hh"
-#include <llvm/IR/Constant.h>
-#include <llvm/IR/Constants.h>
+#include "../../../lib/LLVMShorthands.h"
+#include "../../../utils/Logger.h"
+#include "../../../utils/utils.h"
+#include "../../control_flow/LLVMBasedICFG.h"
+#include "../../ifds_ide/DefaultIFDSTabulationProblem.h"
+#include "../../ifds_ide/DefaultSeeds.h"
+#include "../../ifds_ide/FlowFunction.h"
+#include "../../ifds_ide/SpecialSummaries.h"
+#include "../../ifds_ide/ZeroValue.h"
+#include "../../ifds_ide/flow_func/Gen.h"
+#include "../../ifds_ide/flow_func/GenAll.h"
+#include "../../ifds_ide/flow_func/Identity.h"
+#include "../../ifds_ide/flow_func/Kill.h"
+#include "../../ifds_ide/flow_func/KillAll.h"
+#include <algorithm>
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -33,13 +33,16 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string>
+#include <utility>
+#include <vector>
 using namespace std;
 
 class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
+//  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
   vector<string> EntryPoints;
   set<const llvm::Value *> storedOnce;
   PointsToGraph ptg;
@@ -78,14 +81,14 @@ public:
 
   bool isZeroValue(const llvm::Value *d) const override;
 
-  string D_to_string(const llvm::Value *d) override;
+  string DtoString(const llvm::Value *d) override;
 
-  string N_to_string(const llvm::Instruction *n) override;
+  string NtoString(const llvm::Instruction *n) override;
 
-  string M_to_string(const llvm::Function *m) override;
+  string MtoString(const llvm::Function *m) override;
 
   void printInitilizedSet();
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_HH_ \
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_ \
           */

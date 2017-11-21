@@ -1,4 +1,4 @@
-#include "IFDSConstAnalysis.hh"
+#include "IFDSConstAnalysis.h"
 
 IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
@@ -101,15 +101,15 @@ bool IFDSConstAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSConstAnalysis::D_to_string(const llvm::Value *d) {
+string IFDSConstAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSConstAnalysis::N_to_string(const llvm::Instruction *n) {
+string IFDSConstAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSConstAnalysis::M_to_string(const llvm::Function *m) {
+string IFDSConstAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }
 

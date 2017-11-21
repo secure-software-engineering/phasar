@@ -5,8 +5,8 @@
  *      Author: philipp
  */
 
-#ifndef SRC_UTILS_CONFIGURATION_H_
-#define SRC_UTILS_CONFIGURATION_H_
+#ifndef SRC_CONFIG_CONFIGURATION_H_
+#define SRC_CONFIG_CONFIGURATION_H_
 
 #include <boost/program_options.hpp>
 #include <string>
@@ -31,4 +31,4 @@ extern bpo::variables_map VariablesMap;
 /// Log file directory
 extern const string LogFileDirectory;
 
-#endif /* SRC_UTILS_CONFIGURATION_HH_ */
+#endif /* SRC_CONFIG_CONFIGURATION_H_ */
