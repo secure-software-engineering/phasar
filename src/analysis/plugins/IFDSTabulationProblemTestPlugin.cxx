@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IFDSTabulationProblemTestPlugin.hh"
+#include "IFDSTabulationProblemTestPlugin.h"
 
 unique_ptr<IFDSTabulationProblemPlugin>
 createIFDSTabulationProblemPlugin(LLVMBasedICFG &I,

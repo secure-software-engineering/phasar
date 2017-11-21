@@ -8,21 +8,21 @@
 #ifndef CLANG_MYVISITOR_HH_
 #define CLANG_MYVISITOR_HH_
 
-#include <string>
 #include <clang/AST/AST.h>
-#include <clang/AST/DeclBase.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
+#include <clang/AST/DeclBase.h>
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Tooling/Tooling.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/CodeGen/CodeGenAction.h>
-#include <llvm/Support/CommandLine.h>
+#include <clang/Frontend/ASTConsumers.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/FrontendActions.h>
+#include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <clang/Tooling/Tooling.h>
 #include <llvm/IR/Module.h>
+#include <llvm/Support/CommandLine.h>
+#include <string>
 
 using namespace std;
 using namespace clang;
@@ -30,12 +30,11 @@ using namespace clang::driver;
 using namespace clang::tooling;
 using namespace llvm;
 
-
-//class MyVisitor : public RecursiveASTVisitor<MyVisitor> {
-//private:
+// class MyVisitor : public RecursiveASTVisitor<MyVisitor> {
+// private:
 //    ASTContext *astContext; // used for getting additional AST info
 //
-//public:
+// public:
 //    explicit MyVisitor(CompilerInstance *CI);
 //    virtual bool VisitFunctionDecl(FunctionDecl *func);
 ////    virtual bool VisitStmt(Stmt *st);

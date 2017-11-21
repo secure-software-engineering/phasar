@@ -1,10 +1,10 @@
-Data Flow Analysis in LLVM
-==========================
+Phasar a LLVM-based Static Analysis Framework
+=============================================
 
-Secure Software Engineering - Data Flow Analysis for C and C++
-----------------------------------------------------------------
+Secure Software Engineering
+---------------------------
 
-+ author: Philipp D. Schubert (philipp.schubert@upb.de)
++ author: Philipp Schubert (philipp@it-schubert.com)
 
 Table of Contents
 =================
@@ -14,12 +14,14 @@ Table of Contents
 * [Installation](#installation)
     * [Brief example using an Ubuntu system](#brief-example-using-an-ubuntu-system)
         * [Installing SQLITE3](#installing-sqlite3)
+        * [Installing MySQL](#installing-mysql)
         * [Installing BEAR](#installing-bear)
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
         * [Installing LLVM](#installing-llvm)
         * [Makefile](#makefile)
         * [CMake](#cmake)
+    * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
     * [Creating the configuration files](#creating-the-configuration-files)
     * [Testing single modules](#testing-single-modules)
@@ -36,8 +38,10 @@ Table of Contents
         * [MONO_Intra_SolverTest](#mono_intra_solvertest)
         * [MONO_Inter_SolverTest](#mono_inter_solvertest)
         * [None](#none)
+    * [Command line interface](#command-line-interface)
     * [Running an analysis](#running-an-analysis)
     * [A concrete example and how to interpret the results](#a-concrete-example-and-how-to-interpret-the-results)
+    * [Analyzing a complex project](#analyzing-a-complex-project)
     * [Writing a static analysis](#writing-a-static-analysis)
         * [Choosing a control-flow graph](#choosing-a-control-flow-graph)
         * [Useful shortcuts](#useful-shortcuts)
@@ -76,11 +80,13 @@ versions of these libraries are installed if not stated otherwise):
 In the following the authors assume that a unix-like system is used.
 Installation guides for the libraries can be found here:
 
-[LLVM / Clang (using apt)](http://apt.llvm.org/)
+[LLVM / Clang](http://apt.llvm.org/)
 
 [BOOST](http://www.boost.org/doc/libs/1_64_0/more/getting_started/unix-variants.html)
 
 [SQLITE3](https://www.sqlite.org/download.html)
+
+[MySQL](https://www.mysql.com/)
 
 [BEAR](https://github.com/rizsotto/Bear)
 
@@ -96,6 +102,11 @@ SQLITE3 can just be installed from the Ubuntu sources:
 $ sudo apt-get install sqlite3 libsqlite3-dev
 
 That's it - done.
+
+#### Installing MySQL {#installing-mysql}
+MySQL can be installed from the Ubuntu sources using:
+
+$ sudo apt-get install libmysqlcppconn-dev
 
 #### Installing BEAR {#installing-bear}
 BEAR can just be installed from the Ubuntu sources:
@@ -190,7 +201,23 @@ directory. You can use the -j switch to build in parallel reducing the compile t
 
 $ make -j $(nproc)
 
-#### CMake {#cmake}
+##### Some other useful targets for make
+$ make clean
+
+TODO
+
+
+$ make tests
+
+TODO
+
+
+$ make plugins
+
+TODO
+
+
+#### CMake (deprecated) {#cmake}
 If you are a fan of cmake you probably would like to go this route.
 The following commands will do the job:
 
@@ -220,6 +247,19 @@ misconfigured or worse (please report if that happens).
 
 #### A remark on compile time {#a-remark-on-compile-time}
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. Our handwritten Makefile is able to run in parallel as well (as shown in the above).
+
+### Brief example using a MacOS system {#brief-example-using-a-MacOS-system}
+Mac OS 10.13.1 or higher only !
+To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
+
+The needed packages are
+$ brew install boost
+$ brew install python3
+$ brew install --with-toolchain llvm@3.9
+After installing llvm export the llvm variable to your .bash_profil using $ echo 'export PATH="/usr/local/opt/llvm@3.9/bin:$PATH"' >> ~/.bash_profile 
+
+Make sure to use the mac makefile and not the standard one.
+
 
 #### Creating the configuration files {#creating-the-configuration-files}
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
@@ -313,6 +353,59 @@ TODO: describe what it does!
 
 #### None {#none}
 TODO: describe what it does!
+
+### Command line interface {#command-line-interface}
+Ourframework provides a stable command line interface (CLI). In this section the frameworks command line parameters are presented and their characteristics are explained.
+
+TODO: add a more detailed description of what every parameter does and how they can be combined.
+
+Command-line options:
+  -h [ --help ]                       Print help message
+
+  -f [ --function ] arg               Function under analysis (a mangled 
+                                      function name)
+
+  -m [ --module ] arg                 Path to the module under analysis
+
+  -p [ --project ] arg                Path to the project under analysis
+
+  -D [ --data_flow_analysis ] arg     Analysis
+
+  -P [ --pointer_analysis ] arg       Points-to analysis (CFLSteens, CFLAnders)
+
+  -C [ --callgraph_analysis ] arg     Call-graph analysis (CHA, RTA, DTA, VTA, 
+                                      OTF)
+
+  --entry_points arg                  Entry point(s)
+
+  -H [ --classhierachy_analysis ] arg Class-hierarchy analysis
+
+  -V [ --vtable_analysis ] arg        Virtual function table analysis
+
+  -S [ --statistical_analysis ] arg   Statistics
+
+  -E [ --export ] arg                 Export mode (TODO: yet to implement!)
+
+  -W [ --wpa ] arg (=1)               WPA mode (1 or 0)
+
+  -M [ --mem2reg ] arg (=1)           Promote memory to register pass (1 or 0)
+
+  -R [ --printedgerec ] arg (=0)      Print exploded-super-graph edge recorder 
+                                      (1 or 0)
+
+  --analysis_plugin arg               Analysis plugin (absolute path to the 
+                                      shared object file)
+
+  --analysis_interface arg            Interface to be used for the plugin 
+                                      (TODO: yet to implement!)
+
+  --config arg                        Path to the configuration file, options 
+                                      can be specified as 'parameter = option'
+
+  -O [ --output ] arg (=results.json) Filename for the results
+
+
+
 
 ### Running an analysis {#running-an-analysis}
 When you have chosen an analysis, you can run it on some code. The code on which the analysis runs can be either C/C++ or LLVM IR code. The framework can even run on whole projects.
@@ -2058,6 +2151,45 @@ We visualized the recorded edges in the following figure in order to obtain the 
 
 ![alt text](img/ifds_uninit_exploded_supergraph/example_exploded_supergraph.png "Visualization of the recorded edges")
 
+
+### Analyzing a complex project {#analyzing-a-complex-project}
+When a more complex C/C++ project shall be analyzed, the help of a 'compile_commands.json' file is required. As mentioned earlier this database can be created with many of the common C/C++ build tools.
+
+With help of the compilation database one can tell which C/C++ source files belong to the project and with what parameters they have to be compiled. This includes macro definitions, compiler flags as well as include paths. While these information are essential in oder to analyze a project, other important information is missing. The compilation database does not contain any information about how to link the compiled source files. In this section it is described how to prepare a C/C++ project such that the framework is able to analyze it.
+
+There are three cases which are worth mentioning:
+
+**(i) single self-contained program**
+
+This is probably the easiest case. Here the project under analysis just consists of a bunch of C/C++ source files that can be - when compiled accordingly - directly linked into an executable file. No external libraries are used. Depending on the complexity of your compile commands you probably want to try to use the frameworks internal compile mechanism in oder to produce the desired LLVM IR (use the '-p' option). But since the API for internal compilation is very fragile errors might occur when dealing with non-common compiler flags. In this case you have to use the external python script that will compile all files registed in the 'compile_commands.json' file with the correct parameterization using the external clang(++) front-end. The script only needs one parameter specifying the project directory containing the 'compile_commands.json' file. The script creates a new directory containing the LLVM IR compiled sources. Using the command line and changing into this directory you should be able to compile all of the *.ll files into the executable using:
+
+$ clang++ *.ll -o main
+
+If no errors occur, these are all the source files in LLVM IR needed in order to produce the final program. When you would like to perform a simple whole program analysis, you can link all LLVM IR code from the .ll files into a single IR file using the following command:
+
+$ llvm-link -S *.ll -o main.ll
+
+This file can now be feed into the framework using the '-m' switch. When you would like to perform a module-wise analysis, you have to specify all *.ll files using the '-m' switch: like '-m file1.ll file2.ll ...'
+
+
+**(ii) single self-contained program using at least one library**
+
+The next case that might occur is not much more complicated than (i). Here your C/C++ project also encodes a single executable program, but this time you get the following linker error when trying to link all *.ll files into the executable program:
+
+[...] undefined reference: [...]
+
+This error tells you that the linker cannot find some symbols (functions or variables) that the program is using. Be aware of that and use the compilers error message to get the names of the symbols that are not defined at this point. Since the framework does not care about having an executable we continue as follows: Link all IR that you have into one sinlge .ll file containing your complete program (except for the missing symbols), when performing a whole program analysis. In case of module-wise analysis just call the framework and specify all *.ll files.
+Since the linker just told you, that some symbols are missing, you have to provide the framework with some summaries for the missing symbols if you want the project under analysis to be analyzed correctly. These summaries must describe the effects of the missing functions. TODO: describe how to specify a summary!.
+
+**(iii) multi-program project**
+
+This case is hard. Here your project encodes more than one program and may use external libraries. This case can be detected again by compiling all files in the 'compile_commands.json' into llvm IR using the external compilation script. Trying to link all .ll files into an executable file leads to violations of the one definition rule (ODR) and may result in unresolved reference errors. How to handle this case? Now your UNIX shell skills are required. The basic idea is to look for definitions of main() within the llvm IR files.
+
+$ grep -R "define i32 @main("
+
+The resulting list of files shows how many seperate programs your project actually contains. The idea now is to get rid of all but one file containing main in order to find what code belongs to that program. Now you try to relink the llvm IR code into an executable. If a again multiple definitions of the same symbol are found you have to use the UNIX commands in order to find what files to remove. Proceed until ODR is no more violated and only unresolved reference errors are shown by the linker. Make sure that these unresolved reference error really result from the use of external libraries and not from yourself having blindly removed too many .ll files. At this stage you can proceed as described in (ii), that is link all of your remaining .ll files into a single .ll file containig just the code for the program you have isolated. The remaining .ll code can now be analyzed using WPA or MWA. Provide summaries for the library functions if you want to have your code analyzed correctly. Of course you have to repeat the very same procedure with the other files defining a main() function that you previoursly got rid off.
+
+Addmittedly this procedure seems to be quite labor intensive and it sure is. But this is only tricky when analyzing foreign and previously unknown projects. However, when analyzing your own projects you most definitly know what is going on in your project; therfore you do not have to use your forensic skills to revers engineer what is happening.
 
 
 ### Writing a static analysis {#writing-a-static-analysis}

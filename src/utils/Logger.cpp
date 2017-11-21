@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "Logger.hh"
+#include "Logger.h"
 
 const map<string, severity_level> StringToSeverityLevel = {
     {"DEBUG", DEBUG},

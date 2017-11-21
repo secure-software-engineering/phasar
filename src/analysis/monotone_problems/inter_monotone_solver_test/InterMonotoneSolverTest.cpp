@@ -1,8 +1,10 @@
-#include "InterMonotoneSolverTest.hh"
+#include "InterMonotoneSolverTest.h"
 
-InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg, vector<string> EntryPoints)
+InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
+                                                 vector<string> EntryPoints)
     : InterMonotoneProblem<const llvm::Instruction *, const llvm::Value *,
-                           const llvm::Function *, const llvm::Value*, LLVMBasedICFG &>(Icfg),
+                           const llvm::Function *, const llvm::Value *,
+                           LLVMBasedICFG &>(Icfg),
       ICFG(Icfg), EntryPoints(EntryPoints) {}
 
 MonoSet<const llvm::Value *>
@@ -68,10 +70,10 @@ InterMonotoneSolverTest::initialSeeds() {
   return Seeds;
 }
 
-string InterMonotoneSolverTest::D_to_string(const llvm::Value *d) {
+string InterMonotoneSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string InterMonotoneSolverTest::C_to_string(const llvm::Value *c) {
+string InterMonotoneSolverTest::CtoString(const llvm::Value *c) {
   return llvmIRToString(c);
 }

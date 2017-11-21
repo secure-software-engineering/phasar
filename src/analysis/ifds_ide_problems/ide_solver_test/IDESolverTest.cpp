@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IDESolverTest.hh"
+#include "IDESolverTest.h"
 
 IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
@@ -166,18 +166,18 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::D_to_string(const llvm::Value *d) {
+string IDESolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IDESolverTest::V_to_string(const llvm::Value *v) {
+string IDESolverTest::VtoString(const llvm::Value *v) {
   return llvmIRToString(v);
 }
 
-string IDESolverTest::N_to_string(const llvm::Instruction *n) {
+string IDESolverTest::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IDESolverTest::M_to_string(const llvm::Function *m) {
+string IDESolverTest::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

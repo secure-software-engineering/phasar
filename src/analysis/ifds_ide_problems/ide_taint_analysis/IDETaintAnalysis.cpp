@@ -1,4 +1,4 @@
-#include "IDETaintAnalysis.hh"
+#include "IDETaintAnalysis.h"
 
 bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
@@ -145,18 +145,18 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDETaintAnalysis::D_to_string(const llvm::Value *d) {
+string IDETaintAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IDETaintAnalysis::V_to_string(const llvm::Value *v) {
+string IDETaintAnalysis::VtoString(const llvm::Value *v) {
   return llvmIRToString(v);
 }
 
-string IDETaintAnalysis::N_to_string(const llvm::Instruction *n) {
+string IDETaintAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IDETaintAnalysis::M_to_string(const llvm::Function *m) {
+string IDETaintAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

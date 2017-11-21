@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IntraMonotoneSolverTest.hh"
+#include "IntraMonotoneSolverTest.h"
 
 IntraMonotoneSolverTest::IntraMonotoneSolverTest(LLVMBasedCFG &Cfg,
                                                  const llvm::Function *F)
@@ -47,6 +47,6 @@ IntraMonotoneSolverTest::initialSeeds() {
   return {};
 }
 
-string IntraMonotoneSolverTest::D_to_string(const llvm::Value* d) {
+string IntraMonotoneSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }

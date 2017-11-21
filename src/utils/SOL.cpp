@@ -1,4 +1,4 @@
-#include "SOL.hh"
+#include "SOL.h"
 
 SOL::SOL(const string &path) : path(path) {
   auto &lg = lg::get();

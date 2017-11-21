@@ -5,5 +5,4 @@
  *      Author: pdschbrt
  */
 
-#include "FlowFunction.hh"
-
+#include "FlowFunction.h"

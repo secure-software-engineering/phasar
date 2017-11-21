@@ -1,30 +1,27 @@
-#include "AnalysisPlugin.hh"
+#include "AnalysisPlugin.h"
 
-const set<string> AvailablePluginInterfaces {
-	"IFDSTabulationProblemPlugin",
-	"IDETabulationProblemPlugin",
-	"IntraMonotoneProblemPlugin",
-	"InterMonotoneProblemPlugin"
-};
+const set<string> AvailablePluginInterfaces{
+    "IFDSTabulationProblemPlugin", "IDETabulationProblemPlugin",
+    "IntraMonotoneProblemPlugin", "InterMonotoneProblemPlugin"};
 
-AnalysisPlugin::AnalysisPlugin(const string& AnalysisIface,
-                               const string& AnalysisPlugin,
-                               LLVMBasedICFG& ICFG,
+AnalysisPlugin::AnalysisPlugin(const string &AnalysisIface,
+                               const string &AnalysisPlugin,
+                               LLVMBasedICFG &ICFG,
                                vector<string> EntryPoints) {
   SOL PluginSOL(AnalysisPlugin);
   if (AnalysisIface == "IFDSTabulationProblemPlugin") {
     auto ProblemFactory =
         PluginSOL.loadSymbol<unique_ptr<IFDSTabulationProblemPlugin> (*)(
-            LLVMBasedICFG&, vector<string>)>(
+            LLVMBasedICFG &, vector<string>)>(
             "createIFDSTabulationProblemPlugin");
     unique_ptr<IFDSTabulationProblemPlugin> AnalysisProblem =
         ProblemFactory(ICFG, EntryPoints);
-    LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> PluginSolver(
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> PluginSolver(
         *AnalysisProblem, true);
     PluginSolver.solve();
   } else if (AnalysisIface == "IDETabulationProblemPlugin") {
-		throw runtime_error(AnalysisIface + " not implemented yet!");
-		//   auto ProblemFactory =
+    throw runtime_error(AnalysisIface + " not implemented yet!");
+    //   auto ProblemFactory =
     //   PluginSOL.loadSymbol<unique_ptr<IDETabulationProblemPlugin>(*)(LLVMBasedICFG&,
     //   vector<string>)>("createIDETabulationProblemPlugin");
     //   unique_ptr<IDETabulationProblemPlugin> AnalysisProblem =
@@ -33,8 +30,8 @@ AnalysisPlugin::AnalysisPlugin(const string& AnalysisIface,
     //   PluginSolver(*AnalysisProblem, true);
     //   PluginSolver.solve();
   } else if (AnalysisIface == "IntraMonotoneProblemPlugin") {
-		throw runtime_error(AnalysisIface + " not implemented yet!");
-		//   auto ProblemFactory =
+    throw runtime_error(AnalysisIface + " not implemented yet!");
+    //   auto ProblemFactory =
     //   PluginSOL.loadSymbol<unique_ptr<IntraMonotoneProblemPlugin>(*)(LLVMBasedICFG&,
     //   vector<string>)>("createIntraMonotoneProblemPlugin");
     //   unique_ptr<IntraMonotoneProblemPlugin> AnalysisProblem =
@@ -43,7 +40,7 @@ AnalysisPlugin::AnalysisPlugin(const string& AnalysisIface,
     //   PluginSolver(*AnalysisProblem, true);
     //   PluginSolver.solve();
   } else if (AnalysisIface == "InterMonotoneProblemPlugin") {
-		throw runtime_error(AnalysisIface + " not implemented yet!");
+    throw runtime_error(AnalysisIface + " not implemented yet!");
     //   auto ProblemFactory =
     //   PluginSOL.loadSymbol<unique_ptr<InterProblemPlugin>(*)(LLVMBasedICFG&,
     //   vector<string>)>("createInterMonotoneProblemPlugin");

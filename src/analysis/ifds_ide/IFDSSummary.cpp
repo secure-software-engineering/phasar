@@ -5,5 +5,4 @@
  *      Author: philipp
  */
 
-#include "IFDSSummary.hh"
-
+#include "IFDSSummary.h"

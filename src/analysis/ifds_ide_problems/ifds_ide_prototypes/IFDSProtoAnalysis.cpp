@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IFDSProtoAnalysis.hh"
+#include "IFDSProtoAnalysis.h"
 
 IFDSProtoAnalysis::IFDSProtoAnalysis(LLVMBasedICFG &I,
                                      vector<string> EntryPoints)
@@ -78,14 +78,14 @@ bool IFDSProtoAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSProtoAnalysis::D_to_string(const llvm::Value *d) {
+string IFDSProtoAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSProtoAnalysis::N_to_string(const llvm::Instruction *n) {
+string IFDSProtoAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSProtoAnalysis::M_to_string(const llvm::Function *m) {
+string IFDSProtoAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

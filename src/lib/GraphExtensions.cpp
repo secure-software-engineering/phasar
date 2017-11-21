@@ -5,6 +5,4 @@
  *      Author: philipp
  */
 
-#include "GraphExtensions.hh"
-
-
+#include "GraphExtensions.h"

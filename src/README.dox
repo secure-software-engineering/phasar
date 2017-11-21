@@ -1,8 +1,8 @@
 /**
 
-@mainpage Data Flow Analysis in LLVM
+@mainpage Phasar a LLVM-based Static Analysis Framework
 
-@author Philipp D. Schubert (E-Mail: philipp.schubert@upb.de)
+@author Philipp Schubert (E-Mail: philipp@it-schubert.com)
 
 TODO: add detailed description.
 

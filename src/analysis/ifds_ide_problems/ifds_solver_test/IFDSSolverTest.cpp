@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IFDSSolverTest.hh"
+#include "IFDSSolverTest.h"
 
 IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
@@ -72,14 +72,14 @@ bool IFDSSolverTest::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSSolverTest::D_to_string(const llvm::Value *d) {
+string IFDSSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IFDSSolverTest::N_to_string(const llvm::Instruction *n) {
+string IFDSSolverTest::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IFDSSolverTest::M_to_string(const llvm::Function *m) {
+string IFDSSolverTest::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }

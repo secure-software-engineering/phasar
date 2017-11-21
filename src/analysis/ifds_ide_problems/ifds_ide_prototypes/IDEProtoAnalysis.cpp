@@ -5,7 +5,7 @@
  *      Author: philipp
  */
 
-#include "IDEProtoAnalysis.hh"
+#include "IDEProtoAnalysis.h"
 
 IDEProtoAnalysis::IDEProtoAnalysis(LLVMBasedICFG &icfg,
                                    vector<string> EntryPoints)
@@ -170,18 +170,18 @@ bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDEProtoAnalysis::D_to_string(const llvm::Value *d) {
+string IDEProtoAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
 
-string IDEProtoAnalysis::V_to_string(const llvm::Value *v) {
+string IDEProtoAnalysis::VtoString(const llvm::Value *v) {
   return llvmIRToString(v);
 }
 
-string IDEProtoAnalysis::N_to_string(const llvm::Instruction *n) {
+string IDEProtoAnalysis::NtoString(const llvm::Instruction *n) {
   return llvmIRToString(n);
 }
 
-string IDEProtoAnalysis::M_to_string(const llvm::Function *m) {
+string IDEProtoAnalysis::MtoString(const llvm::Function *m) {
   return m->getName().str();
 }
