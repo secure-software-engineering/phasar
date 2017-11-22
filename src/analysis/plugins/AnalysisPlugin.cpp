@@ -8,6 +8,8 @@ AnalysisPlugin::AnalysisPlugin(const string &AnalysisIface,
                                const string &AnalysisPlugin,
                                LLVMBasedICFG &ICFG,
                                vector<string> EntryPoints) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, INFO) << "Start analysis plugin";
   SOL PluginSOL(AnalysisPlugin);
   if (AnalysisIface == "IFDSTabulationProblemPlugin") {
     auto ProblemFactory =

@@ -115,7 +115,7 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::bidirectionalS,
+  typedef boost::adjacency_list<boost::multisetS, boost::vecS, boost::bidirectionalS,
                                 VertexProperties, EdgeProperties>
       bidigraph_t;
 

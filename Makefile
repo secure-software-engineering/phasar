@@ -161,7 +161,7 @@ tests: $(TSTEXE) $(TST)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
 
 run_tests: tests
 	@echo "Run tests: $(TSTEXE)"

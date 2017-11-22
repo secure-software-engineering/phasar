@@ -1,6 +1,7 @@
 #ifndef ANALYSIS_PLUGIN_H_
 #define ANALYSIS_PLUGIN_H_
 
+#include "../../utils/Logger.h"
 #include "../../utils/SOL.h"
 #include "../control_flow/LLVMBasedICFG.h"
 #include "../ifds_ide/solver/LLVMIDESolver.h"

@@ -99,6 +99,7 @@ public:
   llvm::Function *getFunction(const string &FunctionName);
   llvm::GlobalVariable *getGlobalVariable(const string &GlobalVariableName);
   llvm::Instruction *getInstruction(size_t id);
+  size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const string &FunctionName);
   void insertPointsToGraph(const string &FunctionName, PointsToGraph *ptg);
   void print();

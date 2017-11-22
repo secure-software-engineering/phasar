@@ -18,14 +18,16 @@ IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
-  cout << "IFDSSolverTest::getNormalFlowFunction()\n";
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getNormalFlowFunction()";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
                                     const llvm::Function *destMthd) {
-  cout << "IFDSSolverTest::getCallFlowFunction()\n";
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallFlowFunction()";
   return Identity<const llvm::Value *>::v();
 }
 
@@ -34,14 +36,16 @@ IFDSSolverTest::getRetFlowFunction(const llvm::Instruction *callSite,
                                    const llvm::Function *calleeMthd,
                                    const llvm::Instruction *exitStmt,
                                    const llvm::Instruction *retSite) {
-  cout << "IFDSSolverTest::getRetFlowFunction()\n";
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getRetFlowFunction()";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
                                          const llvm::Instruction *retSite) {
-  cout << "IFDSSolverTest::getCallToRetFlowFunction()\n";
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallToRetFlowFunction()";
   return Identity<const llvm::Value *>::v();
 }
 
@@ -53,7 +57,8 @@ IFDSSolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
 IFDSSolverTest::initialSeeds() {
-  cout << "IFDSSolverTest::initialSeeds()\n";
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::initialSeeds()";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
