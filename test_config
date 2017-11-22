@@ -1,4 +1,0 @@
-module=test_code/llvm_test_code/constness/basic/basic_01.ll
-data_flow_analysis=ifds_const
-wpa=1
-mem2reg=0
