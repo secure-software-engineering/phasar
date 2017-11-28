@@ -1,5 +1,5 @@
-/* mutable: i */
-void addTen(int& a) {
+/* mutable: - */
+void addTen(int a) {
 	a += 10;
 }
 

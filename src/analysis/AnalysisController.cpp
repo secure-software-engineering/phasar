@@ -64,6 +64,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
+    ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -127,6 +128,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
           constproblem, true);
         llvmconstsolver.solve();
         constproblem.printInitilizedSet();
+
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {

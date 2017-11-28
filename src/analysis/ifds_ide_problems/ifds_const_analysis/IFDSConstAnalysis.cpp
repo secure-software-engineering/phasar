@@ -16,8 +16,13 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   if (const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     const llvm::Value *pointerOp = store->getPointerOperand();
     set<const llvm::Value*> pointsToSet = ptg.getPointsToSet(pointerOp);
-    BOOST_LOG_SEV(lg, DEBUG) << "PRINTING POINTS-TO SET";
+    BOOST_LOG_SEV(lg, DEBUG) << "PRINTING POINTS-TO SET OF POINTER OPERATOR";
     for(auto stmt : pointsToSet) {
+      stmt->dump();
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "PRINTING POINTS-TO SET OF VALUE OPERATOR";
+    set<const llvm::Value *> pointsToSetValue = ptg.getPointsToSet(store->getValueOperand());
+    for(auto stmt : pointsToSetValue) {
       stmt->dump();
     }
     // check if the pointerOp is global variable; if so, generate a new data flow fact
@@ -28,11 +33,24 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
       return make_shared<Gen<const llvm::Value *>>(Global, DefaultIFDSTabulationProblem::zerovalue);
     } else {
       // check if it's a variables second store; if so, generate a new data flow fact
-      if (storedOnce.find(pointerOp) != storedOnce.end()) {
+      if (pointsToSet.size() == 1 && storedOnce.find(pointerOp) != storedOnce.end()) {
         return make_shared<Gen<const llvm::Value *>>(pointerOp, DefaultIFDSTabulationProblem::zerovalue);
+      } else {
+        for (auto value : pointsToSet) {
+          if (storedOnce.find(value) != storedOnce.end()) {
+            return make_shared<GenAll<const llvm::Value *>>(pointsToSet, DefaultIFDSTabulationProblem::zerovalue);
+          }
+        }
       }
       // put the pointer operator into storedOnce set
       storedOnce.insert(pointerOp);
+    }
+  }
+  if (const llvm::LoadInst *load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+    BOOST_LOG_SEV(lg, DEBUG) << "PRINTING POINTS-TO SET OF LOAD INSTRUCTION";
+    set<const llvm::Value *> loadPointsToSet = ptg.getPointsToSet(load->getPointerOperand());
+    for(auto stmt : loadPointsToSet) {
+      stmt->dump();
     }
   }
   return Identity<const llvm::Value *>::v();
