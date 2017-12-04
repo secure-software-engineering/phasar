@@ -14,27 +14,103 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
 #include <string>
 #include <vector>
+
 using namespace std;
 
+/**
+ * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
+ * @param V LLVM Value.
+ * @return True, if given LLVM Value is a LLVM Function Pointer. False,
+ * otherwise.
+ */
 bool isFunctionPointer(const llvm::Value *V) noexcept;
 
+// TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
+/**
+ * @brief Returns a string representation of a LLVM Value.
+ */
 string llvmIRToString(const llvm::Value *V);
 
+/**
+ * @brief Returns all LLVM Global Values that are used in the given LLVM
+ * Function.
+ */
 vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
 
+/**
+ * @brief Returns the meta data id of a given LLVM Instruction.
+ * @return Meta data id as a string.
+ */
 string getMetaDataID(const llvm::Instruction *);
 
+/**
+ * The Argument count starts with 0.
+ *
+ * @brief Returns the n-th LLVM Argument of a given LLVM Function.
+ * @param F Function to retrieve the Arguments from.
+ * @param argNo Argument number.
+ * @return LLVM Argument or nullptr, if argNo invalid.
+ */
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned argNo);
 
+/**
+ * The Instruction count starts with one (not zero, as in Function arguments).
+ *
+ * @brief Returns the n-th LLVM Instruction of a given LLVM Function.
+ * @param F Function to retrieve the Instruction from.
+ * @param instNo Instruction number.
+ * @return LLVM Instruction or nullptr, if instNo invalid.
+ */
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           unsigned instNo);
+
+/**
+ * The Termination Instruction count starts with one (not zero, as in Function
+ * arguments).
+ *
+ * @brief Returns the n-th LLVM Termination Instruction of a given LLVM
+ * Function.
+ * @param F Function to retrieve the Termination Instruction from.
+ * @param termInstNo Termination Instruction number.
+ * @return LLVM Termination Instruction or nullptr, if termInstNo invalid.
+ */
+const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
+                                                  unsigned termInstNo);
+/**
+ * The Store Instruction count starts with one (not zero, as in Function
+ * arguments).
+ *
+ * @brief Returns the n-th LLVM Store Instruction of a given LLVM
+ * Function.
+ * @param F Function to retrieve the Store Instruction from.
+ * @param termInstNo Store Instruction number.
+ * @return LLVM Store Instruction or nullptr, if stoNo invalid.
+ */
+const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
+                                              unsigned stoNo);
+
+/**
+ * @brief Returns the LLVM Module the given LLVM Value belongs to.
+ * @param V LLVM Value.
+ * @return LLVM Module or nullptr.
+ */
 const llvm::Module *getModuleFromVal(const llvm::Value *V);
 
+/**
+ * @brief Computes a hash value for a given LLVM Module.
+ * @param M LLVM Module.
+ * @param considerIdentifier If false, module identifier will be set to an empty
+ * string.
+ * @return Hash value.
+ */
 size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */
