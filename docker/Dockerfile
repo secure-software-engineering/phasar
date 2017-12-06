@@ -43,6 +43,7 @@ ADD . /opt/framework
 RUN cd /opt/framework && \
     export PATH="/usr/lib/llvm-3.9/bin:$PATH" && \
     echo $PATH && \
+    sed -i "s/\/home\/philipp\/GIT-Repos\/phasar/\/opt\/framework/g" /opt/framework/src/config/Configuration.cpp && \
     make clean && \
     make
 
