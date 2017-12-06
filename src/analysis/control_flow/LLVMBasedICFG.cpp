@@ -468,7 +468,7 @@ bool LLVMBasedICFG::isStartPoint(const llvm::Instruction *stmt) {
 
 bool LLVMBasedICFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
                                            const llvm::Instruction *succ) {
-  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(succ)) {
+  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == succ;
     } else {
