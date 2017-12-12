@@ -10,7 +10,6 @@ using namespace std;
 TEST(SecondTest1, SecondTestName1) {
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"}, IRDBOptions::NONE);
   IRDB.preprocessIR();
-  IRDB.print();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF, {"main"});
   IFDSTaintAnalysis TaintProblem(ICFG, {"main"});

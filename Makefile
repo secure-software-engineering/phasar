@@ -33,7 +33,7 @@ CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
 # Add header search paths
-CXX_INCL = -I ./json/src/
+CXX_INCL = -I ./lib/json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=3
@@ -50,6 +50,7 @@ OBJDIR = obj/
 LLVMDIR = llvmir/
 DOC = doc/
 SRC = src/
+LIBS = lib/
 TEST = tests/
 PLUGINDIR = src/analysis/plugins/
 PLUGINSODIR = so/
@@ -163,7 +164,7 @@ plugins: $(PLUGINSODIR) $(SO)
 $(PLUGINSODIR)%.so: %.cxx
 	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
 
-tests: gtest $(TSTEXE) $(TST)
+tests: $(OBJDIR) $(OBJ) gtest $(TSTEXE) $(TST) $(OBJ)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
@@ -183,9 +184,9 @@ hello:
 
 # Targets to build gtest (this is a modified version of 'googletest/googletest/make/Makefile')
 
-GTEST_DIR = googletest/googletest/
+GTEST_DIR = $(LIBS)googletest/googletest/
 
-GTEST_FLAGS := -Lgtest/
+GTEST_FLAGS := -L$(LIBS)/gtest/
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -201,13 +202,13 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 # Usually you shouldn't tweak such internal variables, indicated by a
 # trailing _.
-GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
+GTEST_SRCS_ = $(GTEST_DIR)src/*.cc $(GTEST_DIR)src/*.h $(GTEST_HEADERS)
 
 # Building the gtest library
 gtest: gtest.a
-	mkdir -p $@
+	mkdir -p $(LIBS)$@
 	mv gtest.a libgtest.a
-	mv gtest-* libgtest.a $@
+	mv gtest-* libgtest.a $(LIBS)$@
 
 # For simplicity and to avoid depending on Google Test's
 # implementation details, the dependencies specified below are
@@ -215,11 +216,11 @@ gtest: gtest.a
 # compiles fast and for ordinary users its source rarely changes.
 gtest-all.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXX_FLAGS) -c \
-            $(GTEST_DIR)/src/gtest-all.cc
+            $(GTEST_DIR)src/gtest-all.cc
 
 gtest_main.o : $(GTEST_SRCS_)
 	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXX_FLAGS) -c \
-            $(GTEST_DIR)/src/gtest_main.cc
+            $(GTEST_DIR)src/gtest_main.cc
 
 gtest.a : gtest-all.o
 	$(AR) $(ARFLAGS) $@ $^
@@ -229,20 +230,20 @@ gtest_main.a : gtest-all.o gtest_main.o
 
 # Targets to perform the clean-up
 
-clean_gtest :
-	rm -rf gtest/
+clean-gtest :
+	rm -rf $(LIBS)gtest/
 
-clean_plugins:
+clean-plugins:
 	rm -rf $(PLUGINSODIR)
 
-clean_tests:
+clean-tests: clean-gtest
 	rm -f $(TSTEXE)
 	rm -f $(patsubst %,%.d,$(TSTEXE))
 
-clean_llvm:
+clean-llvm:
 	rm -rf $(LLVMDIR)
 
-clean: clean_plugins clean_tests clean_llvm clean_gtest
+clean: clean-plugins clean-tests clean-llvm
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)
 	rm -rf $(DOC)
