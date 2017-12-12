@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMShorthands.h
  *
@@ -32,6 +41,9 @@ string getMetaDataID(const llvm::Instruction *);
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned argNo);
+
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           const unsigned idx);
 
 const llvm::Module *getModuleFromVal(const llvm::Value *V);
 

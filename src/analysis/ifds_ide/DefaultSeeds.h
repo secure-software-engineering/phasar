@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DefaultSeeds.h
  *
@@ -13,7 +22,7 @@
 
 using namespace std;
 
-template <class N, class D> class DefaultSeeds {
+template <typename N, typename D> class DefaultSeeds {
 public:
   static map<N, set<D>> make(vector<N> node, D zeroNode) {
     map<N, set<D>> res;

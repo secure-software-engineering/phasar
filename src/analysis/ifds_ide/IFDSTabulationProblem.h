@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSTabulationProblem.h
  *
@@ -28,9 +37,12 @@ public:
   virtual D zeroValue() = 0;
   virtual bool isZeroValue(D d) const = 0;
   virtual string DtoString(D d) = 0;
-  // virtual D StringtoD(const string &s) = 0;
   virtual string NtoString(N n) = 0;
   virtual string MtoString(M m) = 0;
+  void setSolverConfiguration(SolverConfiguration conf) {
+    solver_config = conf;
+  }
+  SolverConfiguration getSolverConfiguration() { return solver_config; }
 };
 
 #endif /* ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_HH_ */

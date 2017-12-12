@@ -1,17 +1,38 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "ProjectIRDB.h"
 
 const set<string> ProjectIRDB::unknown_flags = {
-    "-g", "-g3", "-pipe", "-fomit-frame-pointer", "-fstrict-aliasing",
-    "-march=core2", "-fPIC", "-msse2", "-fvisibility=hidden",
-    "-fno-strict-overflow", "-fstack-protector-all", "--param", "-fPIE",
+    "-g",
+    "-g3",
+    "-pipe",
+    "-fomit-frame-pointer",
+    "-fstrict-aliasing",
+    "-march=core2",
+    "-fPIC",
+    "-msse2",
+    "-fvisibility=hidden",
+    "-fno-strict-overflow",
+    "-fstack-protector-all",
+    "--param",
+    "-fPIE",
     "-fno-default-inline"
     "-MF",
-    "-fno-exceptions", "-fdiagnostics-color",
+    "-fno-exceptions",
+    "-fdiagnostics-color",
 };
 
-ProjectIRDB::ProjectIRDB() {}
+ProjectIRDB::ProjectIRDB(enum IRDBOptions Opt) : Options(Opt) {}
 
-ProjectIRDB::ProjectIRDB(const vector<string> &IRFiles) {
+ProjectIRDB::ProjectIRDB(const vector<string> &IRFiles, enum IRDBOptions Opt)
+    : Options(Opt) {
   setupHeaderSearchPaths();
   for (auto &File : IRFiles) {
     source_files.insert(File);
@@ -37,7 +58,9 @@ ProjectIRDB::ProjectIRDB(const vector<string> &IRFiles) {
   }
 }
 
-ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB) {
+ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
+                         enum IRDBOptions Opt)
+    : Options(Opt) {
   setupHeaderSearchPaths();
   for (auto file : CompileDB.getAllFiles()) {
     auto compilecommands = CompileDB.getCompileCommands(file);
@@ -57,7 +80,8 @@ ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB) {
 }
 
 ProjectIRDB::ProjectIRDB(const vector<string> &Modules,
-                         vector<const char *> CompileArgs) {
+                         vector<const char *> CompileArgs, enum IRDBOptions Opt)
+    : Options(Opt) {
   setupHeaderSearchPaths();
   for (auto &Path : Modules) {
     source_files.insert(Path);
@@ -216,7 +240,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   ///   ...
   // But for now, stick to what is well debugged
   llvm::legacy::PassManager PM;
-  if (VariablesMap["mem2reg"].as<bool>()) {
+  if (Options & IRDBOptions::MEM2REG) {
     llvm::FunctionPass *Mem2Reg = llvm::createPromoteMemoryToRegisterPass();
     PM.add(Mem2Reg);
   }
@@ -434,7 +458,8 @@ llvm::Instruction *ProjectIRDB::getInstruction(size_t id) {
 
 size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   size_t id = 0;
-  if (auto MD = llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))) {
+  if (auto MD = llvm::cast<llvm::MDString>(
+          I->getMetadata(MetaDataKind)->getOperand(0))) {
     id = stol(MD->getString().str());
   }
   return id;
@@ -464,35 +489,35 @@ void ProjectIRDB::exportPATBCJSON() {
 
 string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   /**
-* Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
-* Operands into unique Hexastore string representation.
-*
-* What values can be serialized and what scheme is used?
-*
-* 	1. Instructions
-*
-* 		<function name>.<id>
-*
-* 	2. Formal parameters
-*
-*		<function name>.f<arg-no>
-*
-*	3. Global variables
-*
-*		<global variable name>
-*
-*	4. ZeroValue
-*
-*		<ZeroValueInternalName>
-*
-*	5. Operand of an instruction
-*
-*		<function name>.<id>.o.<operand no>
-*/
+   * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
+   * Operands into unique Hexastore string representation.
+   *
+   * What values can be serialized and what scheme is used?
+   *
+   * 	1. Instructions
+   *
+   * 		<function name>.<id>
+   *
+   * 	2. Formal parameters
+   *
+   *		<function name>.f<arg-no>
+   *
+   *	3. Global variables
+   *
+   *		<global variable name>
+   *
+   *	4. ZeroValue
+   *
+   *		<ZeroValueInternalName>
+   *
+   *	5. Operand of an instruction
+   *
+   *		<function name>.<id>.o.<operand no>
+   */
   /**
-          * @brief Creates a unique string representation for any given
+   * @brief Creates a unique string representation for any given
    * llvm::Value.
-          */
+   */
   if (isLLVMZeroValue(V)) {
     return ZeroValueInternalName;
   } else if (const llvm::Instruction *I =
@@ -537,12 +562,12 @@ string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
 
 const llvm::Value *ProjectIRDB::persistedStringToValue(const string &S) {
   /**
-  * @brief Convertes the given string back into the llvm::Value it represents.
-  * @return Pointer to the converted llvm::Value.
-  */
+   * @brief Convertes the given string back into the llvm::Value it represents.
+   * @return Pointer to the converted llvm::Value.
+   */
   if (S == ZeroValueInternalName ||
       S.find(ZeroValueInternalName) != string::npos) {
-    return new ZeroValue;
+    return ZeroValue::getInstance();
   } else if (S.find(".") == string::npos) {
     return getGlobalVariable(S);
   } else if (S.find(".f") != string::npos) {

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "Hexastore.h"
 #include <algorithm>
 #include <array>
@@ -149,12 +158,12 @@ void hs_serialization_test() {
 
   //	// define stuff for a directed graph
   //	typedef boost::adjacency_list<boost::setS, boost::vecS,
-  //boost::directedS,
+  // boost::directedS,
   //			Vertex, Edge> digraph_t;
   //	typedef boost::graph_traits<digraph_t>::vertex_descriptor divertext_t;
   //	typedef boost::graph_traits<digraph_t>::edge_descriptor diedge_t;
   //	typedef boost::graph_traits<digraph_t>::vertex_iterator
-  //divertex_iterator_t;
+  // divertex_iterator_t;
 
   // graph with unlabeled edges
   graph_t G;

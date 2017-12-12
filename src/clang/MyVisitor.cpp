@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * MyVisitor.cpp
  *
@@ -27,17 +36,17 @@
 ////{
 ////	FunctionDecl *func = call->getDirectCallee();
 ////	errs() << "** Found function call of: " <<
-///func->getNameInfo().getName().getAsString() << "\n";
+/// func->getNameInfo().getName().getAsString() << "\n";
 ////	return true;
 ////}
 //
 ////bool MyVisitor::VisitCXXRecordDecl(CXXRecordDecl *Declaration)
 ////{
 ////		FullSourceLoc fullLocation =
-///astContext->getFullLoc(Declaration->getLocStart());
+/// astContext->getFullLoc(Declaration->getLocStart());
 ////        if (fullLocation.isValid())
 ////        	errs() << "Found declaration of record '"<<
-///Declaration->getQualifiedNameAsString() << "' at "
+/// Declaration->getQualifiedNameAsString() << "' at "
 ////            	<< fullLocation.getSpellingLineNumber() << ":"
 ////                << fullLocation.getSpellingColumnNumber() << "\n";
 ////       return true;

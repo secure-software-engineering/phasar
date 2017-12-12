@@ -1,10 +1,8 @@
 /******************************************************************************
  * Copyright (c) 2017 Philipp Schubert.
- * All rights reserved. This program and the accompanying materials are made 
- * available under the terms of the TODO: add suitable License ... which 
- * accompanies this distribution, and is available at
- * http://www.addlicense.de
- * 
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
@@ -13,8 +11,8 @@
 #include "analysis/misc/DataFlowAnalysisType.h"
 #include "analysis/passes/GeneralStatisticsPass.h"
 #include "analysis/passes/ValueAnnotationPass.h"
-#include "db/ProjectIRDB.h"
 #include "config/Configuration.h"
+#include "db/ProjectIRDB.h"
 #include "utils/Logger.h"
 #include "utils/utils.h"
 #include <boost/filesystem.hpp>
@@ -25,6 +23,7 @@
 #include <clang/Tooling/Tooling.h>
 #include <iostream>
 #include <llvm/Support/CommandLine.h>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -47,7 +46,7 @@ static const string MoreHelp =
 
 namespace boost {
 void throw_exception(std::exception const &e) {}
-}
+} // namespace boost
 
 // functions for parameter validation
 void validateParamModule(const vector<string> &modules) {
@@ -97,18 +96,13 @@ void validateParamExport(const string &exp) {
   }
 }
 
-void validateParamAnalysisPlugin(const string &plugin) {
-  if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) &&
-        bfs::extension(plugin) == ".so")) {
-    throw bpo::error_with_option_name("'" + plugin +
-                                      "' is not a valid shared object library");
-  }
-}
-
-void validateParamAnalysisInterface(const string &iface) {
-  if (!AvailablePluginInterfaces.count(iface)) {
-    throw bpo::error_with_option_name("'" + iface +
-                                      "' is not a valid plugin interface");
+void validateParamAnalysisPlugin(const vector<string> &plugins) {
+  for (const auto &plugin : plugins) {
+    if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) &&
+          bfs::extension(plugin) == ".so")) {
+      throw bpo::error_with_option_name(
+          "'" + plugin + "' is not a valid shared object library");
+    }
   }
 }
 
@@ -176,8 +170,7 @@ int main(int argc, const char **argv) {
 			("wpa,W", bpo::value<bool>()->default_value(1), "WPA mode (1 or 0)")
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
-			("analysis_plugin", bpo::value<string>()->notifier(validateParamAnalysisPlugin), "Analysis plugin (absolute path to the shared object file)")
-			("analysis_interface", bpo::value<string>()->notifier(validateParamAnalysisInterface), "Interface to be used for the plugin")
+			("analysis_plugin", bpo::value<vector<string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
       ;
     // clang-format on
@@ -268,12 +261,11 @@ int main(int argc, const char **argv) {
            << '\n';
     }
     if (VariablesMap.count("analysis_plugin")) {
-      cout << "Analysis plugin: "
-           << VariablesMap["analysis_plugin"].as<string>() << '\n';
-    }
-    if (VariablesMap.count("analysis_interface")) {
-      cout << "Analysis interface: "
-           << VariablesMap["analysis_interface"].as<string>() << '\n';
+      cout << "Analysis plugin(s): \n";
+      for (const auto &analysis_plugin :
+           VariablesMap["analysis_plugin"].as<vector<string>>()) {
+        cout << analysis_plugin << '\n';
+      }
     }
     if (VariablesMap.count("output")) {
       cout << "Output: " << VariablesMap["output"].as<string>() << '\n';
@@ -285,17 +277,15 @@ int main(int argc, const char **argv) {
               "analysis.\n";
       return 1;
     }
-    // validate plugin concept, if an analysis plugin is chosen, the plugin
-    // interface and plugin itself must also be specified.
+    // validate plugin concept
     if (VariablesMap.count("data_flow_analysis")) {
       if (find(VariablesMap["data_flow_analysis"].as<vector<string>>().begin(),
                VariablesMap["data_flow_analysis"].as<vector<string>>().end(),
                "plugin") !=
               VariablesMap["data_flow_analysis"].as<vector<string>>().end() &&
-          (!VariablesMap.count("analysis_plugin") ||
-           !VariablesMap.count("analysis_interface"))) {
-        cerr << "If an analysis plugin is chosen, the plugin interface and "
-                "plugin itself must also be specified.\n";
+          (!VariablesMap.count("analysis_plugin"))) {
+        cerr << "If an analysis plugin is chosen, the plugin itself must also "
+                "be specified.\n";
         return 1;
       }
     }
@@ -317,11 +307,25 @@ int main(int argc, const char **argv) {
       }
     }
   }
+  // Check if user has specified an analysis plugin
+  if (!IDETabulationProblemPluginFactory.empty() ||
+      !IFDSTabulationProblemPluginFactory.empty() ||
+      !IntraMonotoneProblemPluginFactory.empty() ||
+      !InterMonotoneProblemPluginFactory.empty()) {
+    ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
+  }
   AnalysisController Controller(
       [&lg](bool usingModules) {
         BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
+        IRDBOptions Opt = IRDBOptions::NONE;
+        if (VariablesMap["wpa"].as<bool>()) {
+          Opt |= IRDBOptions::WPA;
+        }
+        if (VariablesMap["mem2reg"].as<bool>()) {
+          Opt |= IRDBOptions::MEM2REG;
+        }
         if (usingModules) {
-          ProjectIRDB IRDB(VariablesMap["module"].as<vector<string>>());
+          ProjectIRDB IRDB(VariablesMap["module"].as<vector<string>>(), Opt);
           return IRDB;
         } else {
           // perform a little trick to make OptionsParser only responsible for
@@ -336,12 +340,11 @@ int main(int argc, const char **argv) {
               OccurrencesFlag);
           clang::tooling::CompilationDatabase &CompileDB =
               OptionsParser.getCompilations();
-          ProjectIRDB IRDB(CompileDB);
+          ProjectIRDB IRDB(CompileDB, Opt);
           return IRDB;
         }
       }(VariablesMap.count("module")),
       ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
-      VariablesMap["mem2reg"].as<bool>(),
       VariablesMap["printedgerec"].as<bool>(),
       VariablesMap["graph_id"].as<string>());
   BOOST_LOG_SEV(lg, INFO) << "Write results to file";

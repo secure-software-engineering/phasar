@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PointsToGraph.cpp
  *
@@ -323,11 +332,11 @@ void PointsToGraph::print() const {
 
 void PointsToGraph::printAsDot(const string &filename) {
   ofstream ofs(filename);
-  boost::write_graphviz(
-      ofs, ptg, boost::make_label_writer(
-                    boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
-      boost::make_label_writer(
-          boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
+  boost::write_graphviz(ofs, ptg,
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::VertexProperties::ir_code, ptg)),
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
 void PointsToGraph::exportPATBCJSON() {

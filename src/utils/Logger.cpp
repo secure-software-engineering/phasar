@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Logger.cpp
  *
@@ -32,9 +41,8 @@ bool LogFilter(const bl::attribute_value_set &set) {
 void LogFormatter(const bl::record_view &view, bl::formatting_ostream &os) {
   os << view.attribute_values()["LineCounter"].extract<int>() << " "
      << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
-     << " - level ["
-     << view.attribute_values()["Severity"].extract<severity_level>() << "] "
-     << view.attribute_values()["Message"].extract<std::string>();
+     << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
+     << "] " << view.attribute_values()["Message"].extract<std::string>();
 }
 
 void LoggerExceptionHandler::operator()(const std::exception &ex) const {
@@ -44,7 +52,7 @@ void LoggerExceptionHandler::operator()(const std::exception &ex) const {
 void initializeLogger(bool use_logger) {
   // Using this call, logging can be enabled or disabled
   bl::core::get()->set_logging_enabled(use_logger);
-  typedef bl::sinks::asynchronous_sink<bl::sinks::text_ostream_backend>
+  typedef bl::sinks::synchronous_sink<bl::sinks::text_ostream_backend>
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog

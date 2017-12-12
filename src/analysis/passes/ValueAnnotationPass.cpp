@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * ValueAnnotationPass.cpp
  *
@@ -17,7 +26,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
         context, llvm::MDString::get(context, std::to_string(unique_value_id)));
     global.setMetadata(MetaDataKind, node);
     //		std::cout <<
-    //llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
+    // llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
     //<< std::endl;
     ++unique_value_id;
   }
@@ -32,7 +41,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
             llvm::MDString::get(context, std::to_string(unique_value_id)));
         I.setMetadata(MetaDataKind, node);
         //		    	std::cout <<
-        //llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
+        // llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
         //<< std::endl;
         ++unique_value_id;
       }

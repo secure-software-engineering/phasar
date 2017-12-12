@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMShorthands.cpp
  *
@@ -40,6 +49,9 @@ string llvmIRToString(const llvm::Value *V) {
   string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
+  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    RSO << "=>ID:" << getMetaDataID(Inst);
+  }
   RSO.flush();
   return IRBuffer;
 }
@@ -75,6 +87,21 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
         return &A;
       }
       ++current;
+    }
+  }
+  return nullptr;
+}
+
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           unsigned idx) {
+  unsigned i = 0;
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      if (i == idx) {
+        return &I;
+      } else {
+        ++i;
+      }
     }
   }
   return nullptr;

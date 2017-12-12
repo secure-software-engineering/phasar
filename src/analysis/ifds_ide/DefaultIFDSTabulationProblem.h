@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DefaultIFDSTabulationProblem.h
  *
@@ -13,7 +22,7 @@
 #include "flow_func/Identity.h"
 #include <type_traits>
 
-template <class N, class D, class M, class I>
+template <typename N, typename D, typename M, typename I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
 protected:
   I icfg;
@@ -22,7 +31,6 @@ protected:
 
 public:
   DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {
-    // set to the default solver configuration
     this->solver_config.followReturnsPastSeeds = false;
     this->solver_config.autoAddZero = true;
     this->solver_config.computeValues = true;

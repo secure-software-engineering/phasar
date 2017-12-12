@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Table.h
  *
@@ -15,7 +24,7 @@
 #include <vector>
 using namespace std;
 
-template <class R, class C, class V> class Table {
+template <typename R, typename C, typename V> class Table {
 private:
   unordered_map<R, unordered_map<C, V>> table;
 
@@ -24,6 +33,12 @@ public:
     R r;
     C c;
     V v;
+    Cell() = default;
+    ~Cell() = default;
+    Cell(const Cell &) = default;
+    Cell &operator=(const Cell &) = default;
+    Cell(Cell &&) = default;
+    Cell &operator=(Cell &&) = default;
     Cell(R row, C col, V val) : r(row), c(col), v(val) {}
     R getRowKey() { return r; }
     C getColumnKey() { return c; }
@@ -57,9 +72,11 @@ public:
     return v;
   }
 
+  void insert(const Table &t) { table.insert(t.table.begin(), t.table.end()); }
+
   void clear() { table.clear(); }
 
-  bool isEmpty() { return table.empty(); }
+  bool empty() { return table.empty(); }
 
   size_t size() { return table.size(); }
 
@@ -158,6 +175,8 @@ public:
     table[rowKey].erase(columnKey);
     return v;
   }
+
+  void remove(R rowKey) { table.erase(rowKey); }
 
   unordered_map<C, V> &row(R rowKey) {
     // Returns a view of all mappings that have the given row key.

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * MyAliasAnalysis.cpp
  *
@@ -62,7 +71,7 @@ bool ExampleModulePass::runOnModule(llvm::Module &M) {
 //		return NoAlias;
 //	// could not determine a must or no-alias result
 //	return AAResultBase::alias(MemoryLocation(V1, V1Size),
-//MemoryLocation(V2, V2Size));
+// MemoryLocation(V2, V2Size));
 //}
 
 void ExampleModulePass::releaseMemory() {

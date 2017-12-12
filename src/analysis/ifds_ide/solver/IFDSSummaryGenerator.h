@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSSummaryGenerator.h
  *
@@ -9,7 +18,7 @@
 #define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYGENERATOR_H_
 
 #include "../../../utils/utils.h"
-#include "../../misc/Summaries.h"
+#include "../../misc/SummaryStrategy.h"
 #include "../FlowFunction.h"
 #include "../ZeroValue.h"
 #include "../flow_func/GenAll.h"
@@ -24,7 +33,7 @@ class IFDSSummaryGenerator {
 protected:
   const M toSummarize;
   const I icfg;
-  const SummaryGenerationCTXStrategy CTXStrategy;
+  const SummaryGenerationStrategy CTXStrategy;
 
   virtual vector<D> getInputs() = 0;
   virtual vector<bool> generateBitPattern(const vector<D> &inputs,
@@ -52,8 +61,7 @@ protected:
   };
 
 public:
-  IFDSSummaryGenerator(M Function, I icfg,
-                       SummaryGenerationCTXStrategy Strategy)
+  IFDSSummaryGenerator(M Function, I icfg, SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(icfg), CTXStrategy(Strategy) {}
   virtual ~IFDSSummaryGenerator() = default;
   virtual set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>>
@@ -65,20 +73,20 @@ public:
     set<set<D>> InputCombinations;
     // initialize the input combinations that should be considered
     switch (CTXStrategy) {
-    case SummaryGenerationCTXStrategy::always_all:
+    case SummaryGenerationStrategy::always_all:
       InputCombinations.insert(inputset);
       break;
-    case SummaryGenerationCTXStrategy::always_none:
+    case SummaryGenerationStrategy::always_none:
       InputCombinations.insert(set<D>());
       break;
-    case SummaryGenerationCTXStrategy::all_and_none:
+    case SummaryGenerationStrategy::all_and_none:
       InputCombinations.insert(inputset);
       InputCombinations.insert(set<D>());
       break;
-    case SummaryGenerationCTXStrategy::powerset:
+    case SummaryGenerationStrategy::powerset:
       InputCombinations = computePowerSet(inputset);
       break;
-    case SummaryGenerationCTXStrategy::all_observed:
+    case SummaryGenerationStrategy::all_observed:
       // TODO here we have to track what we have already observed first!
       break;
     }
@@ -96,8 +104,9 @@ public:
       for (auto fact : solver.resultsAt(*LastInsts.begin())) {
         results.insert(fact.first);
       }
-      summary.insert(make_pair(generateBitPattern(inputs, subset),
-                               make_shared<GenAll<D>>(results, new ZeroValue)));
+      summary.insert(
+          make_pair(generateBitPattern(inputs, subset),
+                    make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
     }
     return summary;
   }

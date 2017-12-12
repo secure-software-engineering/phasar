@@ -1,33 +1,35 @@
 #/*****************************************************************************
 #  * Copyright (c) 2017 Philipp Schubert.
 #  * All rights reserved. This program and the accompanying materials are made 
-#  * available under the terms of the TODO: add suitable License ... which 
-#  * accompanies this distribution, and is available at
-#  * http://www.addlicense.de
+#  * available under the terms of LICENSE.txt.
 #  * 
 #  * Contributors:
 #  *     Philipp Schubert
 #  ***************************************************************************/
 
 # Set-up the compiler
-CXX = clang++
+CXX = clang++-3.9
 
 # Set-up the basic compiler flags
 CXX_FLAGS = -std=c++14
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
+CXX_FLAGS += -Wpedantic
 CXX_FLAGS += -MMD
 CXX_FLAGS += -MP
 CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
-CXX_FLAGS += -O3 #-O4
-CXX_FLAGS += -march=native
+CXX_FLAGS += -O0 #-O4
+# CXX_FLAGS += -march=native
+# CXX_FLAGS += -fuse-ld=gold 
 CXX_FLAGS += -fPIC
+CXX_FLAGS += -Wno-unused-variable
+CXX_FLAGS += -Wno-unused-parameter
 CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
 CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
 CXX_FLAGS += -pipe
-#CXX_FLAGS += -g
+CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
-CXX_FLAGS += -DNDEBUG
+#CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 
 # Add header search paths
@@ -78,7 +80,11 @@ DEP = $(OBJ:.o=.d)
 SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 
 # Further llvm compiler flags
-LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -fcxx-exceptions -std=c++14
+#LLVM_FLAGS :=  `llvm-config-3.9 --cxxflags --ldflags` -fcxx-exceptions -std=c++14 -O0 -g
+# `llvm-config-3.9 --cxxflags --ldflags` usually gives:
+# -I/usr/lib/llvm-3.9/include -std=c++0x -gsplit-dwarf -Wl,-fuse-ld=gold -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -O2 -g -DNDEBUG -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-3.9/lib
+
+LLVM_FLAGS := -I/usr/lib/llvm-3.9/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-3.9/lib
 # Thread model to use
 THREAD_MODEL := -pthread
 # Libraries to link against
@@ -92,7 +98,7 @@ BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
-LLVM_LIBS := `llvm-config --system-libs --libs all`
+LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
 CLANG_LIBS += -lclangFrontend
@@ -155,13 +161,13 @@ $(PLUGINSODIR):
 plugins: $(PLUGINSODIR) $(SO)
 
 $(PLUGINSODIR)%.so: %.cxx
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -shared obj/ZeroValue.o $< -o $@ 
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
 
-tests: $(TSTEXE) $(TST)
+tests: gtest $(TSTEXE) $(TST)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
 
 run_tests: tests
 	@echo "Run tests: $(TSTEXE)"
@@ -175,6 +181,57 @@ $(LLVMDIR)%.ll: %.cpp
 hello:
 	@echo "Hello World!"
 
+# Targets to build gtest (this is a modified version of 'googletest/googletest/make/Makefile')
+
+GTEST_DIR = googletest/googletest/
+
+GTEST_FLAGS := -Lgtest/
+
+# Flags passed to the preprocessor.
+# Set Google Test's header directory as a system directory, such that
+# the compiler doesn't generate warnings in Google Test headers.
+CPPFLAGS += -isystem $(GTEST_DIR)/include
+
+# All Google Test headers.  Usually you shouldn't change this
+# definition.
+GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
+                $(GTEST_DIR)/include/gtest/internal/*.h
+
+# House-keeping build targets.
+
+# Usually you shouldn't tweak such internal variables, indicated by a
+# trailing _.
+GTEST_SRCS_ = $(GTEST_DIR)/src/*.cc $(GTEST_DIR)/src/*.h $(GTEST_HEADERS)
+
+# Building the gtest library
+gtest: gtest.a
+	mkdir -p $@
+	mv gtest.a libgtest.a
+	mv gtest-* libgtest.a $@
+
+# For simplicity and to avoid depending on Google Test's
+# implementation details, the dependencies specified below are
+# conservative and not optimized.  This is fine as Google Test
+# compiles fast and for ordinary users its source rarely changes.
+gtest-all.o : $(GTEST_SRCS_)
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXX_FLAGS) -c \
+            $(GTEST_DIR)/src/gtest-all.cc
+
+gtest_main.o : $(GTEST_SRCS_)
+	$(CXX) $(CPPFLAGS) -I$(GTEST_DIR) $(CXX_FLAGS) -c \
+            $(GTEST_DIR)/src/gtest_main.cc
+
+gtest.a : gtest-all.o
+	$(AR) $(ARFLAGS) $@ $^
+
+gtest_main.a : gtest-all.o gtest_main.o
+	$(AR) $(ARFLAGS) $@ $^
+
+# Targets to perform the clean-up
+
+clean_gtest :
+	rm -rf gtest/
+
 clean_plugins:
 	rm -rf $(PLUGINSODIR)
 
@@ -185,7 +242,7 @@ clean_tests:
 clean_llvm:
 	rm -rf $(LLVMDIR)
 
-clean: clean_plugins clean_tests clean_llvm
+clean: clean_plugins clean_tests clean_llvm clean_gtest
 	rm -rf $(BIN)
 	rm -rf $(OBJDIR)
 	rm -rf $(DOC)

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PluginTest.cpp
  *
@@ -7,9 +16,19 @@
 
 #include "IFDSTabulationProblemTestPlugin.h"
 
+__attribute__((constructor)) void init() {
+  cout << "init - IFDSTabulationProblemTestPlugin\n";
+  IFDSTabulationProblemPluginFactory["ifds_testplugin"] =
+      &makeIFDSTabulationProblemTestPlugin;
+}
+
+__attribute__((destructor)) void fini() {
+  cout << "fini - IFDSTabulationProblemTestPlugin\n";
+}
+
 unique_ptr<IFDSTabulationProblemPlugin>
-createIFDSTabulationProblemPlugin(LLVMBasedICFG &I,
-                                  vector<string> EntryPoints) {
+makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
+                                    vector<string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
       new IFDSTabulationProblemTestPlugin(I, EntryPoints));
 }

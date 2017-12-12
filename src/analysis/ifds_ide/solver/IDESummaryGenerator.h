@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSSummaryGenerator.h
  *
@@ -8,7 +17,7 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
 #define SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
 
-#include "../../misc/Summaries.h"
+#include "../../misc/SummaryStrategy.h"
 #include <iostream>
 #include <map>
 #include <set>
@@ -21,7 +30,7 @@ class IDESummaryGenerator {
 protected:
   const string toSummarize;
   const I icfg;
-  const SummaryGenerationCTXStrategy CTXStrategy;
+  const SummaryGenerationStrategy CTXStrategy;
 
   class CTXFunctionProblem : public ConcreteTabulationProblem {
   public:
@@ -46,25 +55,25 @@ protected:
 
 public:
   IDESummaryGenerator(string Function, I Icfg,
-                      SummaryGenerationCTXStrategy Strategy)
+                      SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(Icfg), CTXStrategy(Strategy) {}
   virtual ~IDESummaryGenerator() = default;
   void generateSummaries() {
     // initialize the input combinations that should be considered
     switch (CTXStrategy) {
-    case SummaryGenerationCTXStrategy::always_all:
+    case SummaryGenerationStrategy::always_all:
 
       break;
-    case SummaryGenerationCTXStrategy::always_none:
+    case SummaryGenerationStrategy::always_none:
 
       break;
-    case SummaryGenerationCTXStrategy::all_and_none:
+    case SummaryGenerationStrategy::all_and_none:
 
       break;
-    case SummaryGenerationCTXStrategy::powerset:
+    case SummaryGenerationStrategy::powerset:
 
       break;
-    case SummaryGenerationCTXStrategy::all_observed:
+    case SummaryGenerationStrategy::all_observed:
       // TODO here we have to track what we have already observed first!
       break;
     }

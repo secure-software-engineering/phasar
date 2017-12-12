@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * ClassHierarchy.h
  *
@@ -32,6 +41,8 @@
 using namespace std;
 
 class LLVMTypeHierarchy {
+  friend class DBConn;
+
 public:
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;
@@ -52,7 +63,7 @@ private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t> &subtypes;
     reachability_dfs_visitor(set<vertex_t> &types) : subtypes(types) {}
-    template <class Vertex, class Graph>
+    template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       subtypes.insert(u);
     }

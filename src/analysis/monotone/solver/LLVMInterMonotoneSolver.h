@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMInterMonotoneSolver.h
  *
@@ -52,7 +61,8 @@ public:
          InterMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, const llvm::Value *, K,
                              I>::Analysis) {
-      cout << "Instruction: " << llvmIRToString(node.first) << "\n";
+      cout << "Instruction: " << llvmIRToString(node.first) << " in "
+           << node.first->getFunction()->getName().str() << "\n";
       // Iterate call-string - flow fact set pairs
       for (auto &flowfacts : node.second) {
         cout << "Context: ";

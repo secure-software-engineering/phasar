@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PointsToGraph.h
  *
@@ -8,9 +17,9 @@
 #ifndef ANALYSIS_POINTSTOGRAPH_H_
 #define ANALYSIS_POINTSTOGRAPH_H_
 
+#include "../../config/Configuration.h"
 #include "../../lib/GraphExtensions.h"
 #include "../../lib/LLVMShorthands.h"
-#include "../../config/Configuration.h"
 #include "../../utils/Logger.h"
 #include "../../utils/utils.h"
 #include <boost/graph/adjacency_list.hpp>
@@ -169,12 +178,12 @@ private:
         const vector<const llvm::Instruction *> &call_stack)
         : allocation_sites(allocation_sizes), call_stack(call_stack) {}
 
-    template <class Vertex, class Graph>
+    template <typename Vertex, typename Graph>
     void discover_vertex(Vertex u, const Graph &g) {
       visitor_stack.push_back(u);
     }
 
-    template <class Vertex, class Graph>
+    template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       auto &lg = lg::get();
       // check for stack allocation
@@ -182,8 +191,8 @@ private:
               llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
         // If the call stack is empty, we completely ignore the calling context
         if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Found stack allocation: "
-                                   << llvmIRToString(Alloc);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "Found stack allocation: " << llvmIRToString(Alloc);
           allocation_sites.insert(g[u].value);
         }
       }
@@ -206,7 +215,7 @@ private:
       visitor_stack.pop_back();
     }
 
-    template <class Graph> bool matches_stack(const Graph &g) {
+    template <typename Graph> bool matches_stack(const Graph &g) {
       size_t call_stack_idx = 0;
       for (size_t i = 0, j = 1;
            i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
@@ -226,7 +235,7 @@ private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t> &points_to_set;
     reachability_dfs_visitor(set<vertex_t> &result) : points_to_set(result) {}
-    template <class Vertex, class Graph>
+    template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       points_to_set.insert(u);
     }

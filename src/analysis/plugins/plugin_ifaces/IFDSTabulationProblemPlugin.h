@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSTabulationProblemPlugin.h
  *
@@ -15,6 +24,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -41,8 +51,7 @@ public:
 
   const llvm::Value *createZeroValue() override {
     // create a special value to represent the zero value!
-    static ZeroValue *zero = new ZeroValue;
-    return zero;
+    return ZeroValue::getInstance();
   }
 
   bool isZeroValue(const llvm::Value *d) const override {
@@ -60,7 +69,8 @@ public:
   }
 };
 
-extern "C" unique_ptr<IFDSTabulationProblemPlugin>
-createIFDSTabulationProblemPlugin(LLVMBasedICFG &I, vector<string> EntryPoints);
+extern map<string, unique_ptr<IFDSTabulationProblemPlugin> (*)(
+                       LLVMBasedICFG &I, vector<string> EntryPoints)>
+    IFDSTabulationProblemPluginFactory;
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */

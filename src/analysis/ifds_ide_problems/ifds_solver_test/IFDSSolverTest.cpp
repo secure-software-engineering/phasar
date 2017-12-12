@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSSolverTest.cpp
  *
@@ -69,8 +78,7 @@ IFDSSolverTest::initialSeeds() {
 
 const llvm::Value *IFDSSolverTest::createZeroValue() {
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSSolverTest::isZeroValue(const llvm::Value *d) const {

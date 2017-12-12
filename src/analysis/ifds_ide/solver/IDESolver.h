@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IDESolver.h
  *
@@ -20,6 +29,7 @@
 #include "../ZeroedFlowFunction.h"
 #include "../edge_func/EdgeIdentity.h"
 #include "../solver/JumpFunctions.h"
+#include "IFDSToIDETabulationProblem.h"
 #include "JoinHandlingNode.h"
 #include "LinkedNode.h"
 #include "PathEdge.h"
@@ -31,6 +41,10 @@
 #include <utility>
 
 using namespace std;
+
+// Forward declare the Transformation
+template <typename N, typename D, typename M, typename I>
+class IFDSToIDETabulationProblem;
 
 /**
  * Solves the given IDETabulationProblem as described in the 1996 paper by
@@ -44,7 +58,8 @@ using namespace std;
  * @param <V> The type of values to be computed along flow edges.
  * @param <I> The type of inter-procedural control-flow graph being used.
  */
-template <class N, class D, class M, class V, class I> class IDESolver {
+template <typename N, typename D, typename M, typename V, typename I>
+class IDESolver {
 public:
   IDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
@@ -61,27 +76,7 @@ public:
         allTop(tabulationProblem.allTopFunction()),
         jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
         initialSeeds(tabulationProblem.initialSeeds()) {
-    cout << "called IDESolver ctor" << endl;
-    cout << tabulationProblem.solver_config << endl;
-  }
-
-  IDESolver(IDETabulationProblem<N, D, M, V, I> &&tabulationProblem)
-      : ideTabulationProblem(tabulationProblem),
-        cachedFlowEdgeFunctions(tabulationProblem),
-        recordEdges(tabulationProblem.solver_config.recordEdges),
-        zeroValue(tabulationProblem.zeroValue()),
-        icfg(tabulationProblem.interproceduralCFG()),
-        computevalues(tabulationProblem.solver_config.computeValues),
-        autoAddZero(tabulationProblem.solver_config.autoAddZero),
-        followReturnPastSeeds(
-            tabulationProblem.solver_config.followReturnsPastSeeds),
-        computePersistedSummaries(
-            tabulationProblem.solver_config.computePersistedSummaries),
-        allTop(tabulationProblem.allTopFunction()),
-        jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
-        initialSeeds(tabulationProblem.initialSeeds()) {
-    cout << "called IDESolver ctor" << endl;
-    cout << tabulationProblem.solver_config << endl;
+    cout << "called IDESolver::IDESolver() ctor with IDEProblem" << endl;
   }
 
   virtual ~IDESolver() = default;
@@ -117,14 +112,14 @@ public:
     BOOST_LOG_SEV(lg, INFO) << "Statistics:";
     BOOST_LOG_SEV(lg, INFO) << "@ flowFunctionsConstructionCount: "
                             << flowFunctionConstructionCount;
-    BOOST_LOG_SEV(lg, INFO) << "@ flowFunctionsApplicationCount: "
-                            << flowFunctionApplicationCount;
+    BOOST_LOG_SEV(lg, INFO)
+        << "@ flowFunctionsApplicationCount: " << flowFunctionApplicationCount;
     BOOST_LOG_SEV(lg, INFO) << "@ specialFlowFunctionUsageCount: "
                             << specialSummaryFlowFunctionApplicationCount;
     BOOST_LOG_SEV(lg, INFO) << "@ propagationCount: " << propagationCount;
-    BOOST_LOG_SEV(lg, INFO) << "@ flow function construction: "
-                            << durationFlowFunctionConstruction.count()
-                            << " ms";
+    BOOST_LOG_SEV(lg, INFO)
+        << "@ flow function construction: "
+        << durationFlowFunctionConstruction.count() << " ms";
     BOOST_LOG_SEV(lg, INFO) << "@ flow function application: "
                             << durationFlowFunctionApplication.count() << " ms";
     cachedFlowEdgeFunctions.print();
@@ -138,8 +133,8 @@ public:
 
   /**
    * Returns the resulting environment for the given statement.
-         * The artificial zero value can be automatically stripped.
-         * TOP values are never returned.
+   * The artificial zero value can be automatically stripped.
+   * TOP values are never returned.
    */
   unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
     unordered_map<D, V> result = valtab.row(stmt);
@@ -153,6 +148,7 @@ public:
   }
 
 private:
+  unique_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
   IDETabulationProblem<N, D, M, V, I> &ideTabulationProblem;
   FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
   bool recordEdges;
@@ -359,41 +355,6 @@ private:
     }
   }
 
-  /**
-   * Computes the final values for edge functions.
-   */
-  void computeValues() {
-    auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "start computing values";
-    // Phase II(i)
-    map<N, set<D>> allSeeds(initialSeeds);
-    for (N unbalancedRetSite : unbalancedRetSites) {
-      if (allSeeds[unbalancedRetSite].empty()) {
-        allSeeds.insert(make_pair(unbalancedRetSite, set<D>({zeroValue})));
-      }
-    }
-    // do processing
-    for (const auto &seed : allSeeds) {
-      N startPoint = seed.first;
-      for (D val : seed.second) {
-        setVal(startPoint, val, ideTabulationProblem.bottomElement());
-        pair<N, D> superGraphNode(startPoint, val);
-        valuePropagationTask(superGraphNode);
-      }
-    }
-    // Phase II(ii)
-    // we create an array of all nodes and then dispatch fractions of this array
-    // to multiple threads
-    set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
-    vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
-    size_t i = 0;
-    for (N n : allNonCallStartNodes) {
-      nonCallStartNodesArray[i] = n;
-      i++;
-    }
-    valueComputationTask(nonCallStartNodesArray);
-  }
-
   void propagateValueAtStart(pair<N, D> nAndD, N n) {
     D d = nAndD.second;
     M p = icfg.getMethodOf(n);
@@ -483,7 +444,16 @@ private:
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    propagationCount++;
+    cout << "IDESolver::pathEdgeProcessingTask()" << endl;
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Process path edge: <"
+        << "D source: " << ideTabulationProblem.DtoString(edge.factAtSource())
+        << ", "
+        << "N target: " << ideTabulationProblem.NtoString(edge.getTarget())
+        << ", "
+        << "D target: " << ideTabulationProblem.DtoString(edge.factAtTarget())
+        << ">";
+    ++propagationCount;
     bool isCall = icfg.isCallStmt(edge.getTarget());
     if (!isCall) {
       if (icfg.isExitStmt(edge.getTarget())) {
@@ -525,8 +495,9 @@ private:
           shared_ptr<EdgeFunction<V>> fPrime =
               sourceValTargetValAndFunction.getValue();
           V targetVal = val(sP, dPrime);
-          setVal(n, d, ideTabulationProblem.join(
-                           val(n, d), fPrime->computeTarget(targetVal)));
+          setVal(n, d,
+                 ideTabulationProblem.join(val(n, d),
+                                           fPrime->computeTarget(targetVal)));
           flowFunctionApplicationCount++;
         }
       }
@@ -565,16 +536,82 @@ protected:
 
   Table<N, D, V> valtab;
 
+  // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
+  // we need to allocate dynamically, otherwise the objects lifetime runs out -
+  // as a modifiable r-value reference created here that should be stored in a
+  // modifiable l-value reference within the IDESolver implementation leads to
+  // (massive) undefined behavior (and nightmares):
+  // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
+  IDESolver(IFDSTabulationProblem<N, D, M, I> &tabulationProblem)
+      : transformedProblem(
+            std::make_unique<IFDSToIDETabulationProblem<N, D, M, I>>(
+                tabulationProblem)),
+        ideTabulationProblem(*transformedProblem),
+        cachedFlowEdgeFunctions(ideTabulationProblem),
+        recordEdges(ideTabulationProblem.solver_config.recordEdges),
+        zeroValue(ideTabulationProblem.zeroValue()),
+        icfg(ideTabulationProblem.interproceduralCFG()),
+        computevalues(ideTabulationProblem.solver_config.computeValues),
+        autoAddZero(ideTabulationProblem.solver_config.autoAddZero),
+        followReturnPastSeeds(
+            ideTabulationProblem.solver_config.followReturnsPastSeeds),
+        computePersistedSummaries(
+            ideTabulationProblem.solver_config.computePersistedSummaries),
+        allTop(ideTabulationProblem.allTopFunction()),
+        jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
+        initialSeeds(ideTabulationProblem.initialSeeds()) {
+
+    cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
+  }
+
+  /**
+   * Computes the final values for edge functions.
+   */
+  void computeValues() {
+    auto &lg = lg::get();
+    BOOST_LOG_SEV(lg, DEBUG) << "start computing values";
+    // Phase II(i)
+    map<N, set<D>> allSeeds(initialSeeds);
+    for (N unbalancedRetSite : unbalancedRetSites) {
+      if (allSeeds[unbalancedRetSite].empty()) {
+        allSeeds.insert(make_pair(unbalancedRetSite, set<D>({zeroValue})));
+      }
+    }
+    // do processing
+    for (const auto &seed : allSeeds) {
+      N startPoint = seed.first;
+      for (D val : seed.second) {
+        setVal(startPoint, val, ideTabulationProblem.bottomElement());
+        pair<N, D> superGraphNode(startPoint, val);
+        valuePropagationTask(superGraphNode);
+      }
+    }
+    // Phase II(ii)
+    // we create an array of all nodes and then dispatch fractions of this array
+    // to multiple threads
+    set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
+    vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
+    size_t i = 0;
+    for (N n : allNonCallStartNodes) {
+      nonCallStartNodesArray[i] = n;
+      i++;
+    }
+    valueComputationTask(nonCallStartNodesArray);
+  }
+
   /**
    * Schedules the processing of initial seeds, initiating the analysis.
    * Clients should only call this methods if performing synchronization on
    * their own. Normally, solve() should be called instead.
    */
   void submitInitalSeeds() {
+    cout << "IDESolver::submitInitialSeeds()" << endl;
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
+      cout << "Start point:" << endl;
+      startPoint->dump();
       for (const D &value : seed.second) {
-        startPoint->dump();
+        cout << "Value(s):" << endl;
         value->dump();
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
                   false);
@@ -749,8 +786,8 @@ protected:
   }
 
   /**
-    * TODO: comment
-    */
+   * TODO: comment
+   */
   set<D>
   computeSummaryFlowFunction(shared_ptr<FlowFunction<D>> SummaryFlowFunction,
                              D d1, D d2) {
@@ -801,31 +838,34 @@ protected:
 
   /**
    * Propagates the flow further down the exploded super graph, merging any edge
-         * function that might already have been computed for targetVal at
+   * function that might already have been computed for targetVal at
    * target.
-         *
+   *
    * @param sourceVal the source value of the propagated summary edge
    * @param target the target statement
    * @param targetVal the target value at the target statement
    * @param f the new edge function computed from (s0,sourceVal) to
    * (target,targetVal)
    * @param relatedCallSite for call and return flows the related call
-         * statement, nullptr otherwise (this value is not used within this
-         * implementation but may be useful for subclasses of IDESolver)
+   * statement, nullptr otherwise (this value is not used within this
+   * implementation but may be useful for subclasses of IDESolver)
    * @param isUnbalancedReturn true if this edge is propagating an
-         * unbalanced return (this value is not used within this implementation
-         * but may be useful for subclasses of {@link IDESolver})
+   * unbalanced return (this value is not used within this implementation
+   * but may be useful for subclasses of {@link IDESolver})
    */
   void
   propagate(D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<V>> f,
             /* deliberately exposed to clients */ N relatedCallSite,
             /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     auto &lg = lg::get();
-    shared_ptr<EdgeFunction<V>> jumpFnE;
+    shared_ptr<EdgeFunction<V>> jumpFnE = nullptr;
     shared_ptr<EdgeFunction<V>> fPrime;
-    jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
-    if (jumpFnE == nullptr)
+    if (!jumpFn->reverseLookup(target, targetVal).empty()) {
+      jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
+    }
+    if (jumpFnE == nullptr) {
       jumpFnE = allTop; // jump function is initialized to all-top
+    }
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equalTo(jumpFnE));
     if (newFunction) {
@@ -834,10 +874,10 @@ protected:
       pathEdgeProcessingTask(edge);
       if (!ideTabulationProblem.isZeroValue(targetVal)) {
         BOOST_LOG_SEV(lg, DEBUG)
-            << "EDGE: <" << target->getFunction()->getName().str() << ", "
-            << ideTabulationProblem.DtoString(sourceVal) << "> ---> <"
-            << ideTabulationProblem.NtoString(target) << ", "
-            << ideTabulationProblem.DtoString(targetVal) << ">";
+            << "EDGE: <F: " << target->getFunction()->getName().str()
+            << ", D: " << ideTabulationProblem.DtoString(sourceVal)
+            << "> ---> <N: " << ideTabulationProblem.NtoString(target)
+            << ", D: " << ideTabulationProblem.DtoString(targetVal) << ">";
       }
     }
   }
@@ -849,7 +889,7 @@ protected:
   set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
   endSummary(N sP, D d3) {
     // Table<N, D, shared_ptr<EdgeFunction<V>>> &m = endsummarytab.get(sP, d3);
-    // if (m.isEmpty())
+    // if (m.empty())
     //   return set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>{};
     // return m.cellSet();
     return endsummarytab.get(sP, d3).cellSet();
@@ -875,16 +915,16 @@ protected:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start incomingtab entry";
     for (auto cell : incomingtab.cellSet()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
-                               << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d3: "
-                               << ideTabulationProblem.DtoString(cell.c);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "sP: " << ideTabulationProblem.NtoString(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "d3: " << ideTabulationProblem.DtoString(cell.c);
       for (auto entry : cell.v) {
-        BOOST_LOG_SEV(lg, DEBUG) << "n: "
-                                 << ideTabulationProblem.NtoString(entry.first);
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "n: " << ideTabulationProblem.NtoString(entry.first);
         for (auto fact : entry.second) {
-          BOOST_LOG_SEV(lg, DEBUG) << "d2: "
-                                   << ideTabulationProblem.DtoString(fact);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "d2: " << ideTabulationProblem.DtoString(fact);
         }
       }
       BOOST_LOG_SEV(lg, DEBUG) << "-----";
@@ -896,10 +936,10 @@ protected:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start endsummarytab entry";
     for (auto cell : endsummarytab.cellVec()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
-                               << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d1: "
-                               << ideTabulationProblem.DtoString(cell.c);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "sP: " << ideTabulationProblem.NtoString(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "d1: " << ideTabulationProblem.DtoString(cell.c);
       for (auto inner_cell : cell.v.cellVec()) {
         BOOST_LOG_SEV(lg, DEBUG)
             << "eP: " << ideTabulationProblem.NtoString(inner_cell.r);

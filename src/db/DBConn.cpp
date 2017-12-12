@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DBConn.cpp
  *
@@ -597,7 +606,7 @@ ProjectIRDB DBConn::loadProjectIRDB(const string &ProjectName) {
       "project_id FROM project WHERE identifier=?)"));
   pstmt->setString(1, ProjectName);
   unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   while (res->next()) {
     string module_identifier = res->getString("identifier");
     cout << "module identifier: " << module_identifier << endl;
@@ -644,9 +653,9 @@ void DBConn::buildDBScheme() {
       "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
       "`declaration` TINYINT(1) NULL DEFAULT NULL,"
       "`hash` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`function_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "PRIMARY KEY (`function_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_function);
 
@@ -1002,7 +1011,8 @@ void DBConn::buildDBScheme() {
 }
 
 void DBConn::dropDBAndRebuildScheme() {
-  unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement("DROP TABLE IF EXISTS ?"));
+  unique_ptr<sql::PreparedStatement> pstmt(
+      conn->prepareStatement("DROP TABLE IF EXISTS ?"));
   pstmt->setString(1, db_schema_name);
   pstmt->executeUpdate();
   buildDBScheme();
