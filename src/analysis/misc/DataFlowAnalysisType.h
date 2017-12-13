@@ -10,6 +10,7 @@
 #ifndef DATAFLOWANALYSISTYPE_H_
 #define DATAFLOWANALYSISTYPE_H_
 
+#include <iostream>
 #include <map>
 #include <string>
 using namespace std;

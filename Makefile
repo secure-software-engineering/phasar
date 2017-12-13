@@ -7,8 +7,17 @@
 #  *     Philipp Schubert
 #  ***************************************************************************/
 
-# Set-up the compiler
-CXX = clang++-3.9
+# Set-up the compiler and OS variables
+GCC = g++
+CLANG = clang++
+# Clang is used as the default compiler, but the compiler can be changed using
+# the commandline when calling make, e.g. '$ make -j4 CXX=g++' can be specified
+# in order to use the GCC compiler rather than Clang.
+CXX = $(CLANG) 
+SUPPORTED_COMPILERS = $(CLANG) $(GCC)
+OS = $(shell uname -s)
+LINUX = Linux
+MAC = Darwin
 
 # Set-up the basic compiler flags
 CXX_FLAGS = -std=c++14
@@ -17,20 +26,39 @@ CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wpedantic
 CXX_FLAGS += -MMD
 CXX_FLAGS += -MP
-CXX_FLAGS += -stdlib=libstdc++ 	# libstdc++ for GCC, libc++ for Clang
-CXX_FLAGS += -O0 #-O4
+# Use libstdc++ for GCC's - and libc++ for Clang's STL implementation
+ifneq ($(CXX),$(GCC))
+ifeq ($(OS),$(LINUX))
+CXX_FLAGS += -stdlib=libstdc++
+else ifeq ($(OS),$(MAC))
+CXX_FLAGS += -stdlib=libc++
+endif
+endif
+CXX_FLAGS += -fdata-sections
+CXX_FLAGS += -ffunction-sections
+CXX_FLAGS += -O0 # -O4
 # CXX_FLAGS += -march=native
+# CXX_FLAGS += -DNDEBUG
+# CXX_FLAGS += -flto=full # or use: -flto=thin
 # CXX_FLAGS += -fuse-ld=gold 
 CXX_FLAGS += -fPIC
 CXX_FLAGS += -Wno-unused-variable
 CXX_FLAGS += -Wno-unused-parameter
-CXX_FLAGS += -Wno-unknown-warning-option # ignore unknown warnings (as '-Wno-maybe-uninitialized' resulting from a bug in 'llvm-config')
-CXX_FLAGS += -Qunused-arguments # ignore unused compiler arguments
+ifneq ($(CXX),$(GCC))
+CXX_FLAGS += -Wno-unknown-warning-option
+CXX_FLAGS += -Qunused-arguments
+endif
 CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
-#CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
+ifeq ($(OS),$(LINUX))
+CXX_FLAGS += -L/usr/local/
+CXX_FLAGS += -L/usr/local/
+else ifeq ($(OS),$(MAC))
+CXX_FLAGS += -L/usr/local/opt/boost/lib
+CXX_FLAGS += -L/usr/local/opt/llvm@3.9/lib
+endif
 
 # Add header search paths
 CXX_INCL = -I ./lib/json/src/
@@ -94,11 +122,19 @@ SQLITE3_LIBS := -lsqlite3
 MYSQL_LIBS := -lmysqlcppconn
 CURL_LIBS := -lcurl
 GTEST_LIBS := -lgtest
+ifeq ($(OS),$(LINUX))
 BOOST_LIBS := -lboost_filesystem
 BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
+else ifeq ($(OS),$(MAC))
+BOOST_LIBS := -lboost_filesystem-mt
+BOOST_LIBS += -lboost_system-mt
+BOOST_LIBS += -lboost_program_options-mt
+BOOST_LIBS += -lboost_log-mt
+BOOST_LIBS += -lboost_thread-mt
+endif
 LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
@@ -124,7 +160,14 @@ CLANG_LIBS +=	-lcurses
 
 .PHONY: clean
 
-all: $(OBJDIR) $(BIN) $(BIN)$(EXE)
+all: check-used-compiler $(OBJDIR) $(BIN) $(BIN)$(EXE)
+
+check-used-compiler:
+ifneq ($(filter $(CXX),$(SUPPORTED_COMPILERS)),)
+	$(info $(CXX) compiler is supported.)
+else
+	$(error Compiler is not supported! Use $(CLANG) or $(GCC) instead.)
+endif
 
 # To resolve header dependencies
 -include $(DEP)
@@ -140,7 +183,7 @@ $(BIN):
 
 $(BIN)$(EXE): $(OBJ)
 	@echo "linking into executable file ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
@@ -180,7 +223,7 @@ $(LLVMDIR)%.ll: %.cpp
 	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -emit-llvm -S $< -o $@
 
 hello:
-	@echo "Hello World!"
+	@echo "Hello, World!"
 
 # Targets to build gtest (this is a modified version of 'googletest/googletest/make/Makefile')
 
