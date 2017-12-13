@@ -225,7 +225,7 @@ $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
 	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
 
-run_tests: tests
+run-tests: tests
 	@echo "Run tests: $(TSTEXE)"
 	$(foreach test,$(TSTEXE),./$(test) $(GTEST_RUN_PARAMS);)
 

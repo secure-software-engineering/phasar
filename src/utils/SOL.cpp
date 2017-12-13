@@ -22,9 +22,8 @@ SOL::SOL(const string &path) : path(path) {
 
 SOL::~SOL() {
   if ((error = dlerror()) != NULL) {
-    cerr << error << '\n';
-    throw runtime_error("encountered problems with shared object library: '" +
-                        path + "'");
+    cerr << "encountered problems with shared onject library ('" + path + "'): "
+         << error << '\n';
   }
   dlclose(so_handle);
 }
