@@ -113,7 +113,19 @@ SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 # `llvm-config-3.9 --cxxflags --ldflags` usually gives:
 # -I/usr/lib/llvm-3.9/include -std=c++0x -gsplit-dwarf -Wl,-fuse-ld=gold -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -O2 -g -DNDEBUG -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-3.9/lib
 
-LLVM_FLAGS := -I/usr/lib/llvm-3.9/include -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-3.9/lib
+LLVM_FLAGS = -fvisibility-inlines-hidden
+ifeq ($(OS),$(LINUX))
+LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
+LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+else ifeq ($(OS),$(MAC))
+LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
+LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+endif
+LLVM_FLAGS += -D_GNU_SOURCE 
+LLVM_FLAGS += -D__STDC_CONSTANT_MACROS 
+LLVM_FLAGS += -D__STDC_FORMAT_MACROS 
+LLVM_FLAGS += -D__STDC_LIMIT_MACROS
+
 # Thread model to use
 THREAD_MODEL := -pthread
 # Libraries to link against
