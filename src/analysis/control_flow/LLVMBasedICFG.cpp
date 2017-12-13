@@ -525,7 +525,14 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
       auto target = boost::target(*ei, cg);
       if (CS.getInstruction() == edge.callsite) {
         cout << "Name: " << cg[target].functionName << endl;
-        Callees.insert(IRDB.getFunction(cg[target].functionName));
+        if (IRDB.getFunction(cg[target].functionName)) {
+          Callees.insert(IRDB.getFunction(cg[target].functionName));
+        } else {
+          // Either we have a special function called like glibc- or
+          // llvm intrinsic functions or a function that is defined in
+          // a thrid party library which we have no access to.
+          Callees.insert(cg[target].function);
+        }
       }
     }
     return Callees;
@@ -575,6 +582,9 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) {
  */
 set<const llvm::Instruction *>
 LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
+  if (!m) {
+    return {};
+  }
   if (!m->isDeclaration()) {
     return {&m->front().front()};
   } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
