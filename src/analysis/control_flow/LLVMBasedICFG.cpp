@@ -620,27 +620,18 @@ LLVMBasedICFG::getExitPointsOf(const llvm::Function *fun) {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
   set<const llvm::Instruction *> ReturnSites;
-  if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
-    llvm::ImmutableCallSite CS(n);
-    for (auto user : CS->users()) {
-      if (const llvm::Instruction *inst =
-              llvm::dyn_cast<llvm::Instruction>(user)) {
-        ReturnSites.insert(inst);
-      }
-    }
-    if (ReturnSites.empty()) {
-      ReturnSites.insert(n->getNextNode());
-    }
+  if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
+    ReturnSites.insert(Call->getNextNode());
+  }
+  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
+    ReturnSites.insert(&Invoke->getNormalDest()->front());
+    ReturnSites.insert(&Invoke->getUnwindDest()->front());
   }
   return ReturnSites;
 }
 
 bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *stmt) {
-  if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
-    return true;
-  } else {
-    return false;
-  }
+  return llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt);
 }
 
 /**
