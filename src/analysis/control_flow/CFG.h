@@ -23,7 +23,9 @@
 #include <vector>
 using namespace std;
 
-template <typename N, typename M> class CFG {
+template <typename N, typename M>
+class CFG
+{
 public:
   virtual ~CFG() = default;
 
@@ -45,6 +47,7 @@ public:
 
   virtual bool isBranchTarget(N stmt, N succ) = 0;
 
+  virtual string getStatementId(N stmt) = 0;
   virtual string getMethodName(M fun) = 0;
 };
 

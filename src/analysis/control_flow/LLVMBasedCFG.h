@@ -17,6 +17,7 @@
 #ifndef SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 #define SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 
+#include "../../config/Configuration.h"
 #include "CFG.h"
 #include <iostream>
 #include <llvm/IR/Function.h>
@@ -28,7 +29,8 @@
 using namespace std;
 
 class LLVMBasedCFG
-    : public CFG<const llvm::Instruction *, const llvm::Function *> {
+    : public CFG<const llvm::Instruction *, const llvm::Function *>
+{
 public:
   LLVMBasedCFG() = default;
 
@@ -58,6 +60,8 @@ public:
 
   virtual bool isBranchTarget(const llvm::Instruction *stmt,
                               const llvm::Instruction *succ) override;
+
+  virtual string getStatementId(const llvm::Instruction *stmt) override;
 
   virtual string getMethodName(const llvm::Function *fun) override;
 };

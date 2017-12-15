@@ -58,7 +58,13 @@
 using namespace std;
 
 // Describes the strategy to be used for the instruction walker.
-enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
+enum class WalkerStrategy
+{
+  Simple = 0,
+  VariableType,
+  DeclaredType,
+  Pointer
+};
 
 extern const map<string, WalkerStrategy> StringToWalkerStrategy;
 
@@ -67,7 +73,13 @@ extern const map<WalkerStrategy, string> WalkerStrategyToString;
 ostream &operator<<(ostream &os, const WalkerStrategy W);
 
 // Describes the strategy that is used for resolving indirect call-sites;
-enum class ResolveStrategy { CHA = 0, RTA, TA, OTF };
+enum class ResolveStrategy
+{
+  CHA = 0,
+  RTA,
+  TA,
+  OTF
+};
 
 extern const map<string, ResolveStrategy> StringToResolveStrategy;
 
@@ -76,7 +88,8 @@ extern const map<ResolveStrategy, string> ResolveStrategyToString;
 ostream &operator<<(ostream &os, const ResolveStrategy R);
 
 class LLVMBasedICFG
-    : public ICFG<const llvm::Instruction *, const llvm::Function *> {
+    : public ICFG<const llvm::Instruction *, const llvm::Function *>
+{
 private:
   WalkerStrategy W;
   ResolveStrategy R;
@@ -104,7 +117,8 @@ private:
   vector<const llvm::Instruction *> CallStack;
 
   // The VertexProperties for our call-graph.
-  struct VertexProperties {
+  struct VertexProperties
+  {
     const llvm::Function *function = nullptr;
     string functionName;
     bool isDeclaration;
@@ -113,7 +127,8 @@ private:
   };
 
   // The EdgeProperties for our call-graph.
-  struct EdgeProperties {
+  struct EdgeProperties
+  {
     const llvm::Instruction *callsite = nullptr;
     string ir_code;
     size_t id = 0;
@@ -224,11 +239,13 @@ private:
    */
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
-  struct dependency_visitor : boost::default_dfs_visitor {
+  struct dependency_visitor : boost::default_dfs_visitor
+  {
     vector<vertex_t> &vertices;
     dependency_visitor(vector<vertex_t> &v) : vertices(v) {}
     template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
+    void finish_vertex(Vertex u, const Graph &g)
+    {
       vertices.push_back(u);
     }
   };
@@ -271,6 +288,7 @@ public:
                       const llvm::Instruction *succ) override;
 
   string getMethodName(const llvm::Function *fun) override;
+  string getStatementId(const llvm::Instruction *stmt) override;
 
   const llvm::Function *getMethod(const string &fun) override;
 

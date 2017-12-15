@@ -100,7 +100,8 @@ public:
     for (auto succ : succs)
     {
       //create statement node
-
+      cout << "ID: " << icfg.getStatementId(succ) << endl
+           << endl;
       auto currentMethodName = ideTabulationProblem.MtoString(icfg.getMethodOf(succ));
       auto content = ideTabulationProblem.NtoString(succ);
       cout << "n to string: " << content << endl;
