@@ -59,7 +59,8 @@ class IFDSToIDETabulationProblem;
  * @param <I> The type of inter-procedural control-flow graph being used.
  */
 template <typename N, typename D, typename M, typename V, typename I>
-class IDESolver {
+class IDESolver
+{
 public:
   IDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
@@ -75,16 +76,111 @@ public:
             tabulationProblem.solver_config.computePersistedSummaries),
         allTop(tabulationProblem.allTopFunction()),
         jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
-        initialSeeds(tabulationProblem.initialSeeds()) {
+        initialSeeds(tabulationProblem.initialSeeds())
+  {
     cout << "called IDESolver::IDESolver() ctor with IDEProblem" << endl;
   }
 
   virtual ~IDESolver() = default;
 
+  unordered_set<string> methodSet;
+
+  void exportJson()
+  {
+    cout << "new export" << endl;
+    for (auto seed : initialSeeds)
+    {
+      iterateMethod(icfg.getSuccsOf(seed.first));
+    }
+  }
+
+  void iterateMethod(vector<N> succs)
+  {
+
+    for (auto succ : succs)
+    {
+      //create statement node
+
+      auto currentMethodName = ideTabulationProblem.MtoString(icfg.getMethodOf(succ));
+      auto content = ideTabulationProblem.NtoString(succ);
+      cout << "n to string: " << content << endl;
+      // statement
+      // {
+      // methodName:
+      // currentMethodName,
+      // content : content,
+      // successors: [ideTabulationProblem.getSuccs(succ).id],
+      // dataflowFacts: [dvMap.id]
+      // }
+      if (icfg.isCallStmt(succ))
+      {
+        //if statement is call statement create call and returnsite
+        //connect statement with callsite, callsite with returnsite, returnsite with return statement
+        //annotate callsite and returnsite with method name (name is unique)
+        cout << "found call stmt" << endl;
+
+        //called methods
+        auto calledMethods = icfg.getCalleesOfCallAt(succ);
+        for (auto method : calledMethods)
+        {
+          auto methodName = ideTabulationProblem.MtoString(method);
+          cout << "method Name: " << methodName << endl;
+          if (methodSet.find(methodName) == methodSet.end())
+          {
+            //start points of called method
+            auto nodeSet = icfg.getStartPointsOf(method);
+            for (auto tmp : nodeSet)
+            {
+              cout << "called nodes: " << ideTabulationProblem.NtoString(tmp) << endl;
+
+              methodSet.insert(methodName);
+              iterateMethod(icfg.getSuccsOf(tmp));
+            }
+          }
+          else
+          {
+            cout << "I know this method" << endl;
+          }
+        }
+
+        //callsite{
+        // sourceMethod: currentMethodName,
+        // targetMethods: [calledMethods.id],
+        // returnsites: [returnsites.id],
+        // statementId: succ.id
+        // }
+
+        //returnsite{
+        // sourceMethod: currentMethodName,
+        // targetMethods: [calledMethods.id]
+        // statementIds: [returnsites.id]
+        // }
+        auto returnsites = icfg.getReturnSitesOfCallAt(succ);
+        for (auto returnsite : returnsites)
+        {
+          cout << "retrurnsite: " << ideTabulationProblem.NtoString(returnsite) << endl;
+        }
+      }
+
+      auto dVMap = resultsAt(succ);
+      //dataflowfact{
+      //   fact: ideTabulationProblem.DtoString(it.first),
+      //   value: ideTabulationProblem.VtoString(it.second),
+      //   statementId: succ.id
+      // }
+      for (auto it : dVMap)
+      {
+        cout << "map entry: " << ideTabulationProblem.DtoString(it.first) << ":" << ideTabulationProblem.VtoString(it.second) << endl;
+      }
+      iterateMethod(icfg.getSuccsOf(succ));
+    }
+  }
   /**
    * @brief Runs the solver on the configured problem. This can take some time.
    */
-  virtual void solve() {
+  virtual void
+  solve()
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
@@ -97,7 +193,8 @@ public:
     durationFlowFunctionConstruction =
         chrono::duration_cast<chrono::milliseconds>(
             endFlowFunctionConstruction - startFlowFunctionConstruction);
-    if (computevalues) {
+    if (computevalues)
+    {
       auto startFlowFunctionApplication = chrono::high_resolution_clock::now();
       // Computing the final values for the edge functions
       BOOST_LOG_SEV(lg, INFO)
@@ -136,10 +233,13 @@ public:
    * The artificial zero value can be automatically stripped.
    * TOP values are never returned.
    */
-  unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
+  unordered_map<D, V> resultsAt(N stmt, bool stripZero = false)
+  {
     unordered_map<D, V> result = valtab.row(stmt);
-    if (stripZero) {
-      for (auto &pair : result) {
+    if (stripZero)
+    {
+      for (auto &pair : result)
+      {
         if (ideTabulationProblem.isZeroValue(pair.first))
           result.erase(pair.first);
       }
@@ -161,7 +261,8 @@ private:
   chrono::milliseconds durationFlowFunctionApplication;
 
   void saveEdges(N sourceNode, N sinkStmt, D sourceVal, set<D> destVals,
-                 bool interP) {
+                 bool interP)
+  {
     if (!recordEdges)
       return;
     Table<N, N, map<D, set<D>>> &tgtMap =
@@ -193,7 +294,8 @@ private:
    *
    * @param edge an edge whose target node resembles a method call
    */
-  void processCall(PathEdge<N, D> edge) {
+  void processCall(PathEdge<N, D> edge)
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process call at target: "
@@ -205,34 +307,42 @@ private:
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
     set<M> callees = icfg.getCalleesOfCallAt(n);
     BOOST_LOG_SEV(lg, DEBUG) << "possible callees:";
-    for (auto callee : callees) {
+    for (auto callee : callees)
+    {
       BOOST_LOG_SEV(lg, DEBUG) << callee->getName().str();
     }
     BOOST_LOG_SEV(lg, DEBUG) << "possible return sites:";
-    for (auto ret : returnSiteNs) {
+    for (auto ret : returnSiteNs)
+    {
       BOOST_LOG_SEV(lg, DEBUG) << ideTabulationProblem.NtoString(ret);
     }
     // for each possible callee
-    for (M sCalledProcN : callees) { // still line 14
+    for (M sCalledProcN : callees)
+    { // still line 14
       // check if a special summary for the called procedure exists
       shared_ptr<FlowFunction<D>> specialSum =
           cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
-      if (specialSum) {
+      if (specialSum)
+      {
         BOOST_LOG_SEV(lg, DEBUG) << "Found and process special summary";
-        for (N returnSiteN : returnSiteNs) {
+        for (N returnSiteN : returnSiteNs)
+        {
           summaryFlowFunctionApplicationCount++;
           set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
           saveEdges(n, returnSiteN, d2, res, false);
-          for (D d3 : res) {
+          for (D d3 : res)
+          {
             shared_ptr<EdgeFunction<V>> sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
             propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
-      } else {
+      }
+      else
+      {
         // compute the call-flow function
         shared_ptr<FlowFunction<D>> function =
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
@@ -240,16 +350,19 @@ private:
         set<D> res = computeCallFlowFunction(function, d1, d2);
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
-        if (startPointsOf.empty()) {
+        if (startPointsOf.empty())
+        {
           BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
                                           icfg.getMethodName(sCalledProcN) +
                                           "' currently not available!";
         }
         // if startPointsOf is empty, the called function is a declaration
-        for (N sP : startPointsOf) {
+        for (N sP : startPointsOf)
+        {
           saveEdges(n, sP, d2, res, true);
           // for each result node of the call-flow function
-          for (D d3 : res) {
+          for (D d3 : res)
+          {
             // create initial self-loop
             propagate(d3, sP, d3, EdgeIdentity<V>::v(), n, false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
@@ -267,12 +380,14 @@ private:
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
             for (typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell entry :
-                 endSumm) {
+                 endSumm)
+            {
               N eP = entry.getRowKey();
               D d4 = entry.getColumnKey();
               shared_ptr<EdgeFunction<V>> fCalleeSummary = entry.getValue();
               // for each return site
-              for (N retSiteN : returnSiteNs) {
+              for (N retSiteN : returnSiteNs)
+              {
                 // compute return-flow function
                 shared_ptr<FlowFunction<D>> retFunction =
                     cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
@@ -282,7 +397,8 @@ private:
                     retFunction, d3, d4, n, set<D>{d2});
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
                 // for each target value of the function
-                for (D d5 : returnedFacts) {
+                for (D d5 : returnedFacts)
+                {
                   // update the caller-side summary function
                   // get call edge function
                   shared_ptr<EdgeFunction<V>> f4 =
@@ -307,14 +423,16 @@ private:
       }
       // line 17-19 of Naeem/Lhotak/Rodriguez
       // process intra-procedural flows along call-to-return flow functions
-      for (N returnSiteN : returnSiteNs) {
+      for (N returnSiteN : returnSiteNs)
+      {
         shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
             cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN);
         flowFunctionConstructionCount++;
         set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
         saveEdges(n, returnSiteN, d2, returnFacts, false);
-        for (D d3 : returnFacts) {
+        for (D d3 : returnFacts)
+        {
           shared_ptr<EdgeFunction<V>> edgeFnE =
               cachedFlowEdgeFunctions.getCallToReturnEdgeFunction(
                   n, d2, returnSiteN, d3);
@@ -329,7 +447,8 @@ private:
    * Simply propagate normal, intra-procedural flows.
    * @param edge
    */
-  void processNormalFlow(PathEdge<N, D> edge) {
+  void processNormalFlow(PathEdge<N, D> edge)
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process normal at target: "
@@ -341,13 +460,15 @@ private:
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     auto successorInst = icfg.getSuccsOf(n);
-    for (auto m : successorInst) {
+    for (auto m : successorInst)
+    {
       shared_ptr<FlowFunction<D>> flowFunction =
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
       flowFunctionConstructionCount++;
       set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
       saveEdges(n, m, d2, res, false);
-      for (D d3 : res) {
+      for (D d3 : res)
+      {
         shared_ptr<EdgeFunction<V>> fprime = f->composeWith(
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3));
         propagate(d1, m, d3, fprime, nullptr, false);
@@ -355,11 +476,14 @@ private:
     }
   }
 
-  void propagateValueAtStart(pair<N, D> nAndD, N n) {
+  void propagateValueAtStart(pair<N, D> nAndD, N n)
+  {
     D d = nAndD.second;
     M p = icfg.getMethodOf(n);
-    for (N c : icfg.getCallsFromWithin(p)) {
-      for (auto entry : jumpFn->forwardLookup(d, c)) {
+    for (N c : icfg.getCallsFromWithin(p))
+    {
+      for (auto entry : jumpFn->forwardLookup(d, c))
+      {
         D dPrime = entry.first;
         shared_ptr<EdgeFunction<V>> fPrime = entry.second;
         N sP = n;
@@ -370,16 +494,20 @@ private:
     }
   }
 
-  void propagateValueAtCall(pair<N, D> nAndD, N n) {
+  void propagateValueAtCall(pair<N, D> nAndD, N n)
+  {
     D d = nAndD.second;
-    for (M q : icfg.getCalleesOfCallAt(n)) {
+    for (M q : icfg.getCalleesOfCallAt(n))
+    {
       shared_ptr<FlowFunction<D>> callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
       flowFunctionConstructionCount++;
-      for (D dPrime : callFlowFunction->computeTargets(d)) {
+      for (D dPrime : callFlowFunction->computeTargets(d))
+      {
         shared_ptr<EdgeFunction<V>> edgeFn =
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
-        for (N startPoint : icfg.getStartPointsOf(q)) {
+        for (N startPoint : icfg.getStartPointsOf(q))
+        {
           propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n, d)));
           flowFunctionApplicationCount++;
         }
@@ -387,31 +515,41 @@ private:
     }
   }
 
-  void propagateValue(N nHashN, D nHashD, V v) {
+  void propagateValue(N nHashN, D nHashD, V v)
+  {
     V valNHash = val(nHashN, nHashD);
     V vPrime = joinValueAt(nHashN, nHashD, valNHash, v);
-    if (!(vPrime == valNHash)) {
+    if (!(vPrime == valNHash))
+    {
       setVal(nHashN, nHashD, vPrime);
       valuePropagationTask(pair<N, D>(nHashN, nHashD));
     }
   }
 
-  V val(N nHashN, D nHashD) {
-    if (valtab.contains(nHashN, nHashD)) {
+  V val(N nHashN, D nHashD)
+  {
+    if (valtab.contains(nHashN, nHashD))
+    {
       return valtab.get(nHashN, nHashD);
-    } else {
+    }
+    else
+    {
       // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
       return ideTabulationProblem.topElement();
     }
   }
 
-  void setVal(N nHashN, D nHashD, V l) {
+  void setVal(N nHashN, D nHashD, V l)
+  {
     auto &lg = lg::get();
     // TOP is the implicit default value which we do not need to store.
-    if (l == ideTabulationProblem.topElement()) {
+    if (l == ideTabulationProblem.topElement())
+    {
       // do not store top values
       valtab.remove(nHashN, nHashD);
-    } else {
+    }
+    else
+    {
       valtab.insert(nHashN, nHashD, l);
     }
     BOOST_LOG_SEV(lg, DEBUG)
@@ -421,9 +559,11 @@ private:
         << "val: " << ideTabulationProblem.VtoString(l);
   }
 
-  shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge) {
+  shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge)
+  {
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
-             .count(edge.factAtTarget())) {
+             .count(edge.factAtTarget()))
+    {
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
       return allTop;
     }
@@ -431,7 +571,8 @@ private:
                                  edge.getTarget())[edge.factAtTarget()];
   }
 
-  void addEndSummary(N sP, D d1, N eP, D d2, shared_ptr<EdgeFunction<V>> f) {
+  void addEndSummary(N sP, D d1, N eP, D d2, shared_ptr<EdgeFunction<V>> f)
+  {
     // Table<N, D, shared_ptr<EdgeFunction<V>>> &summaries =
     //     endsummarytab.get(sP, d1);
     //     summaries.insert(eP, d2, f);
@@ -442,7 +583,8 @@ private:
   }
 
   // should be made a callable at some point
-  void pathEdgeProcessingTask(PathEdge<N, D> edge) {
+  void pathEdgeProcessingTask(PathEdge<N, D> edge)
+  {
     auto &lg = lg::get();
     cout << "IDESolver::pathEdgeProcessingTask()" << endl;
     BOOST_LOG_SEV(lg, DEBUG)
@@ -455,41 +597,53 @@ private:
         << ">";
     ++propagationCount;
     bool isCall = icfg.isCallStmt(edge.getTarget());
-    if (!isCall) {
-      if (icfg.isExitStmt(edge.getTarget())) {
+    if (!isCall)
+    {
+      if (icfg.isExitStmt(edge.getTarget()))
+      {
         processExit(edge);
       }
-      if (!icfg.getSuccsOf(edge.getTarget()).empty()) {
+      if (!icfg.getSuccsOf(edge.getTarget()).empty())
+      {
         processNormalFlow(edge);
       }
-    } else {
+    }
+    else
+    {
       processCall(edge);
     }
   }
 
   // should be made a callable at some point
-  void valuePropagationTask(pair<N, D> nAndD) {
+  void valuePropagationTask(pair<N, D> nAndD)
+  {
     N n = nAndD.first;
     // our initial seeds are not necessarily method-start points but here they
     // should be treated as such the same also for unbalanced return sites in
     // an unbalanced problem
     if (icfg.isStartPoint(n) || initialSeeds.count(n) ||
-        unbalancedRetSites.count(n)) {
+        unbalancedRetSites.count(n))
+    {
       propagateValueAtStart(nAndD, n);
     }
-    if (icfg.isCallStmt(n)) {
+    if (icfg.isCallStmt(n))
+    {
       propagateValueAtCall(nAndD, n);
     }
   }
 
   // should be made a callable at some point
-  void valueComputationTask(vector<N> values) {
-    for (N n : values) {
-      for (N sP : icfg.getStartPointsOf(icfg.getMethodOf(n))) {
+  void valueComputationTask(vector<N> values)
+  {
+    for (N n : values)
+    {
+      for (N sP : icfg.getStartPointsOf(icfg.getMethodOf(n)))
+      {
         Table<D, D, shared_ptr<EdgeFunction<V>>> lookupByTarget;
         lookupByTarget = jumpFn->lookupByTarget(n);
         for (typename Table<D, D, shared_ptr<EdgeFunction<V>>>::Cell
-                 sourceValTargetValAndFunction : lookupByTarget.cellSet()) {
+                 sourceValTargetValAndFunction : lookupByTarget.cellSet())
+        {
           D dPrime = sourceValTargetValAndFunction.getRowKey();
           D d = sourceValTargetValAndFunction.getColumnKey();
           shared_ptr<EdgeFunction<V>> fPrime =
@@ -559,7 +713,8 @@ protected:
             ideTabulationProblem.solver_config.computePersistedSummaries),
         allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
-        initialSeeds(ideTabulationProblem.initialSeeds()) {
+        initialSeeds(ideTabulationProblem.initialSeeds())
+  {
 
     cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
   }
@@ -567,20 +722,25 @@ protected:
   /**
    * Computes the final values for edge functions.
    */
-  void computeValues() {
+  void computeValues()
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start computing values";
     // Phase II(i)
     map<N, set<D>> allSeeds(initialSeeds);
-    for (N unbalancedRetSite : unbalancedRetSites) {
-      if (allSeeds[unbalancedRetSite].empty()) {
+    for (N unbalancedRetSite : unbalancedRetSites)
+    {
+      if (allSeeds[unbalancedRetSite].empty())
+      {
         allSeeds.insert(make_pair(unbalancedRetSite, set<D>({zeroValue})));
       }
     }
     // do processing
-    for (const auto &seed : allSeeds) {
+    for (const auto &seed : allSeeds)
+    {
       N startPoint = seed.first;
-      for (D val : seed.second) {
+      for (D val : seed.second)
+      {
         setVal(startPoint, val, ideTabulationProblem.bottomElement());
         pair<N, D> superGraphNode(startPoint, val);
         valuePropagationTask(superGraphNode);
@@ -592,7 +752,8 @@ protected:
     set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
     vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
     size_t i = 0;
-    for (N n : allNonCallStartNodes) {
+    for (N n : allNonCallStartNodes)
+    {
       nonCallStartNodesArray[i] = n;
       i++;
     }
@@ -604,13 +765,16 @@ protected:
    * Clients should only call this methods if performing synchronization on
    * their own. Normally, solve() should be called instead.
    */
-  void submitInitalSeeds() {
+  void submitInitalSeeds()
+  {
     cout << "IDESolver::submitInitialSeeds()" << endl;
-    for (const auto &seed : initialSeeds) {
+    for (const auto &seed : initialSeeds)
+    {
       N startPoint = seed.first;
       cout << "Start point:" << endl;
       startPoint->dump();
-      for (const D &value : seed.second) {
+      for (const D &value : seed.second)
+      {
         cout << "Value(s):" << endl;
         value->dump();
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
@@ -630,7 +794,8 @@ protected:
    *
    * @param edge an edge whose target node resembles a method exit
    */
-  void processExit(PathEdge<N, D> edge) {
+  void processExit(PathEdge<N, D> edge)
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process exit at target: "
@@ -643,7 +808,8 @@ protected:
     // for each of the method's start points, determine incoming calls
     set<N> startPointsOf = icfg.getStartPointsOf(methodThatNeedsSummary);
     map<N, set<D>> inc;
-    for (N sP : startPointsOf) {
+    for (N sP : startPointsOf)
+    {
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
       addEndSummary(sP, d1, n, d2, f);
@@ -655,24 +821,28 @@ protected:
     printIncomingTab();
     // for each incoming call edge already processed
     //(see processCall(..))
-    for (auto entry : inc) {
+    for (auto entry : inc)
+    {
       // line 22
       N c = entry.first;
       // for each return site
-      for (N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
+      for (N retSiteC : icfg.getReturnSitesOfCallAt(c))
+      {
         // compute return-flow function
         shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 c, methodThatNeedsSummary, n, retSiteC);
         flowFunctionConstructionCount++;
         // for each incoming-call value
-        for (D d4 : entry.second) {
+        for (D d4 : entry.second)
+        {
           set<D> targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
           saveEdges(n, retSiteC, d2, targets, true);
           // for each target value at the return site
           // line 23
-          for (D d5 : targets) {
+          for (D d5 : targets)
+          {
             // compute composed function
             // get call edge function
             shared_ptr<EdgeFunction<V>> f4 =
@@ -687,9 +857,11 @@ protected:
                 f4->composeWith(f)->composeWith(f5);
             // for each jump function coming into the call, propagate to return
             // site using the composed function
-            for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
+            for (auto valAndFunc : jumpFn->reverseLookup(c, d4))
+            {
               shared_ptr<EdgeFunction<V>> f3 = valAndFunc.second;
-              if (!f3->equalTo(allTop)) {
+              if (!f3->equalTo(allTop))
+              {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                 propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
@@ -706,10 +878,13 @@ protected:
     // conditionally generated values should only
     // be propagated into callers that have an incoming edge for this condition
     if (followReturnPastSeeds && inc.empty() &&
-        ideTabulationProblem.isZeroValue(d1)) {
+        ideTabulationProblem.isZeroValue(d1))
+    {
       set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
-      for (N c : callers) {
-        for (N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
+      for (N c : callers)
+      {
+        for (N retSiteC : icfg.getReturnSitesOfCallAt(c))
+        {
           shared_ptr<FlowFunction<D>> retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
                   c, methodThatNeedsSummary, n, retSiteC);
@@ -717,7 +892,8 @@ protected:
           set<D> targets = computeReturnFlowFunction(retFunction, d1, d2, c,
                                                      set<D>{zeroValue});
           saveEdges(n, retSiteC, d2, targets, true);
-          for (D d5 : targets) {
+          for (D d5 : targets)
+          {
             shared_ptr<EdgeFunction<V>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
@@ -731,7 +907,8 @@ protected:
       // normally not be processed at all; this might be undesirable if
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
-      if (callers.empty()) {
+      if (callers.empty())
+      {
         shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 nullptr, methodThatNeedsSummary, n, nullptr);
@@ -743,7 +920,8 @@ protected:
 
   void propagteUnbalancedReturnFlow(N retSiteC, D targetVal,
                                     shared_ptr<EdgeFunction<V>> edgeFunction,
-                                    N relatedCallSite) {
+                                    N relatedCallSite)
+  {
     propagate(zeroValue, retSiteC, targetVal, edgeFunction, relatedCallSite,
               true);
   }
@@ -761,7 +939,8 @@ protected:
    *            Fact that originally should be propagated to the caller.
    * @return Fact that will be propagated to the caller.
    */
-  D restoreContextOnReturnedFact(N callSite, D d4, D d5) {
+  D restoreContextOnReturnedFact(N callSite, D d4, D d5)
+  {
     // TODO support LinkedNode and JoinHandlingNode
     //		if (d5 instanceof LinkedNode) {
     //			((LinkedNode<D>) d5).setCallingContext(d4);
@@ -781,7 +960,8 @@ protected:
    * @return The set of abstractions at the successor node
    */
   set<D> computeNormalFlowFunction(shared_ptr<FlowFunction<D>> flowFunction,
-                                   D d1, D d2) {
+                                   D d1, D d2)
+  {
     return flowFunction->computeTargets(d2);
   }
 
@@ -790,7 +970,8 @@ protected:
    */
   set<D>
   computeSummaryFlowFunction(shared_ptr<FlowFunction<D>> SummaryFlowFunction,
-                             D d1, D d2) {
+                             D d1, D d2)
+  {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -802,7 +983,8 @@ protected:
    * @return The set of caller-side abstractions at the callee's start node
    */
   set<D> computeCallFlowFunction(shared_ptr<FlowFunction<D>> callFlowFunction,
-                                 D d1, D d2) {
+                                 D d1, D d2)
+  {
     return callFlowFunction->computeTargets(d2);
   }
 
@@ -816,7 +998,8 @@ protected:
    * @return The set of caller-side abstractions at the return site
    */
   set<D> computeCallToReturnFlowFunction(
-      shared_ptr<FlowFunction<D>> callToReturnFlowFunction, D d1, D d2) {
+      shared_ptr<FlowFunction<D>> callToReturnFlowFunction, D d1, D d2)
+  {
     return callToReturnFlowFunction->computeTargets(d2);
   }
 
@@ -832,7 +1015,8 @@ protected:
    */
   set<D> computeReturnFlowFunction(shared_ptr<FlowFunction<D>> retFunction,
                                    D d1, D d2, N callSite,
-                                   set<D> callerSideDs) {
+                                   set<D> callerSideDs)
+  {
     return retFunction->computeTargets(d2);
   }
 
@@ -853,26 +1037,30 @@ protected:
    * unbalanced return (this value is not used within this implementation
    * but may be useful for subclasses of {@link IDESolver})
    */
-  void
-  propagate(D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<V>> f,
-            /* deliberately exposed to clients */ N relatedCallSite,
-            /* deliberately exposed to clients */ bool isUnbalancedReturn) {
+  void propagate(D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<V>> f,
+                 /* deliberately exposed to clients */ N relatedCallSite,
+                 /* deliberately exposed to clients */ bool isUnbalancedReturn)
+  {
     auto &lg = lg::get();
     shared_ptr<EdgeFunction<V>> jumpFnE = nullptr;
     shared_ptr<EdgeFunction<V>> fPrime;
-    if (!jumpFn->reverseLookup(target, targetVal).empty()) {
+    if (!jumpFn->reverseLookup(target, targetVal).empty())
+    {
       jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
     }
-    if (jumpFnE == nullptr) {
+    if (jumpFnE == nullptr)
+    {
       jumpFnE = allTop; // jump function is initialized to all-top
     }
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equalTo(jumpFnE));
-    if (newFunction) {
+    if (newFunction)
+    {
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       pathEdgeProcessingTask(edge);
-      if (!ideTabulationProblem.isZeroValue(targetVal)) {
+      if (!ideTabulationProblem.isZeroValue(targetVal))
+      {
         BOOST_LOG_SEV(lg, DEBUG)
             << "EDGE: <F: " << target->getFunction()->getName().str()
             << ", D: " << ideTabulationProblem.DtoString(sourceVal)
@@ -882,12 +1070,14 @@ protected:
     }
   }
 
-  V joinValueAt(N unit, D fact, V curr, V newVal) {
+  V joinValueAt(N unit, D fact, V curr, V newVal)
+  {
     return ideTabulationProblem.join(curr, newVal);
   }
 
   set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
-  endSummary(N sP, D d3) {
+  endSummary(N sP, D d3)
+  {
     // Table<N, D, shared_ptr<EdgeFunction<V>>> &m = endsummarytab.get(sP, d3);
     // if (m.empty())
     //   return set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>{};
@@ -895,7 +1085,8 @@ protected:
     return endsummarytab.get(sP, d3).cellSet();
   }
 
-  map<N, set<D>> incoming(D d1, N sP) {
+  map<N, set<D>> incoming(D d1, N sP)
+  {
     // map<N, set<D>> m = incomingtab.get(sP, d1);
     // if (m.empty())
     //   return map<N, set<D>>{};
@@ -903,7 +1094,8 @@ protected:
     return incomingtab.get(sP, d1);
   }
 
-  void addIncoming(N sP, D d3, N n, D d2) {
+  void addIncoming(N sP, D d3, N n, D d2)
+  {
     // map<N, set<D>> summaries = incomingtab.get(sP, d3);
     // set<D> &s = summaries[n];
     // s.insert(d2);
@@ -911,18 +1103,22 @@ protected:
     incomingtab.get(sP, d3)[n].insert(d2);
   }
 
-  void printIncomingTab() {
+  void printIncomingTab()
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start incomingtab entry";
-    for (auto cell : incomingtab.cellSet()) {
+    for (auto cell : incomingtab.cellSet())
+    {
       BOOST_LOG_SEV(lg, DEBUG)
           << "sP: " << ideTabulationProblem.NtoString(cell.r);
       BOOST_LOG_SEV(lg, DEBUG)
           << "d3: " << ideTabulationProblem.DtoString(cell.c);
-      for (auto entry : cell.v) {
+      for (auto entry : cell.v)
+      {
         BOOST_LOG_SEV(lg, DEBUG)
             << "n: " << ideTabulationProblem.NtoString(entry.first);
-        for (auto fact : entry.second) {
+        for (auto fact : entry.second)
+        {
           BOOST_LOG_SEV(lg, DEBUG)
               << "d2: " << ideTabulationProblem.DtoString(fact);
         }
@@ -932,15 +1128,18 @@ protected:
     BOOST_LOG_SEV(lg, DEBUG) << "end incomingtab entry";
   }
 
-  void printEndSummaryTab() {
+  void printEndSummaryTab()
+  {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start endsummarytab entry";
-    for (auto cell : endsummarytab.cellVec()) {
+    for (auto cell : endsummarytab.cellVec())
+    {
       BOOST_LOG_SEV(lg, DEBUG)
           << "sP: " << ideTabulationProblem.NtoString(cell.r);
       BOOST_LOG_SEV(lg, DEBUG)
           << "d1: " << ideTabulationProblem.DtoString(cell.c);
-      for (auto inner_cell : cell.v.cellVec()) {
+      for (auto inner_cell : cell.v.cellVec())
+      {
         BOOST_LOG_SEV(lg, DEBUG)
             << "eP: " << ideTabulationProblem.NtoString(inner_cell.r);
         BOOST_LOG_SEV(lg, DEBUG)
