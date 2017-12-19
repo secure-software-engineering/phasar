@@ -116,6 +116,13 @@ bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *stmt,
   return false;
 }
 
+string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) {
+  return llvm::cast<llvm::MDString>(
+             stmt->getMetadata(MetaDataKind)->getOperand(0))
+      ->getString()
+      .str();
+}
+
 string LLVMBasedCFG::getMethodName(const llvm::Function *fun) {
   return fun->getName().str();
 }

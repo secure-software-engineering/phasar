@@ -271,6 +271,7 @@ public:
                       const llvm::Instruction *succ) override;
 
   string getMethodName(const llvm::Function *fun) override;
+  string getStatementId(const llvm::Instruction *stmt) override;
 
   const llvm::Function *getMethod(const string &fun) override;
 

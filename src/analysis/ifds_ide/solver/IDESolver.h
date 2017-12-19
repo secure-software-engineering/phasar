@@ -81,6 +81,91 @@ public:
 
   virtual ~IDESolver() = default;
 
+  unordered_set<string> methodSet;
+
+  void exportJson() {
+    cout << "new export" << endl;
+    for (auto seed : initialSeeds) {
+      iterateMethod(icfg.getSuccsOf(seed.first));
+    }
+  }
+
+  void iterateMethod(vector<N> succs) {
+
+    for (auto succ : succs) {
+      // create statement node
+      cout << "ID: " << icfg.getStatementId(succ) << endl << endl;
+      auto currentMethodName =
+          ideTabulationProblem.MtoString(icfg.getMethodOf(succ));
+      auto content = ideTabulationProblem.NtoString(succ);
+      cout << "n to string: " << content << endl;
+      // statement
+      // {
+      // methodName:
+      // currentMethodName,
+      // content : content,
+      // successors: [ideTabulationProblem.getSuccs(succ).id],
+      // dataflowFacts: [dvMap.id]
+      // }
+      if (icfg.isCallStmt(succ)) {
+        // if statement is call statement create call and returnsite
+        // connect statement with callsite, callsite with returnsite, returnsite
+        // with return statement annotate callsite and returnsite with method
+        // name (name is unique)
+        cout << "found call stmt" << endl;
+
+        // called methods
+        auto calledMethods = icfg.getCalleesOfCallAt(succ);
+        for (auto method : calledMethods) {
+          auto methodName = ideTabulationProblem.MtoString(method);
+          cout << "method Name: " << methodName << endl;
+          if (methodSet.find(methodName) == methodSet.end()) {
+            // start points of called method
+            auto nodeSet = icfg.getStartPointsOf(method);
+            for (auto tmp : nodeSet) {
+              cout << "called nodes: " << ideTabulationProblem.NtoString(tmp)
+                   << endl;
+
+              methodSet.insert(methodName);
+              iterateMethod(icfg.getSuccsOf(tmp));
+            }
+          } else {
+            cout << "I know this method" << endl;
+          }
+        }
+
+        // callsite{
+        // sourceMethod: currentMethodName,
+        // targetMethods: [calledMethods.id],
+        // returnsites: [returnsites.id],
+        // statementId: succ.id
+        // }
+
+        // returnsite{
+        // sourceMethod: currentMethodName,
+        // targetMethods: [calledMethods.id]
+        // statementIds: [returnsites.id]
+        // }
+        auto returnsites = icfg.getReturnSitesOfCallAt(succ);
+        for (auto returnsite : returnsites) {
+          cout << "retrurnsite: " << ideTabulationProblem.NtoString(returnsite)
+               << endl;
+        }
+      }
+
+      auto dVMap = resultsAt(succ);
+      // dataflowfact{
+      //   fact: ideTabulationProblem.DtoString(it.first),
+      //   value: ideTabulationProblem.VtoString(it.second),
+      //   statementId: succ.id
+      // }
+      for (auto it : dVMap) {
+        cout << "map entry: " << ideTabulationProblem.DtoString(it.first) << ":"
+             << ideTabulationProblem.VtoString(it.second) << endl;
+      }
+      iterateMethod(icfg.getSuccsOf(succ));
+    }
+  }
   /**
    * @brief Runs the solver on the configured problem. This can take some time.
    */
