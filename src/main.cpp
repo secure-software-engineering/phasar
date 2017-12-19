@@ -15,6 +15,7 @@
 #include "db/ProjectIRDB.h"
 #include "utils/Logger.h"
 #include "utils/utils.h"
+#include "clang/ClangController.h"
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/throw_exception.hpp>
@@ -98,11 +99,27 @@ void validateParamExport(const string &exp) {
 
 void validateParamAnalysisPlugin(const vector<string> &plugins) {
   for (const auto &plugin : plugins) {
-    if (!(bfs::exists(plugin) && !bfs::is_directory(plugin) &&
-          bfs::extension(plugin) == ".so")) {
+    if (!bfs::exists(plugin) && !bfs::is_directory(plugin) &&
+        bfs::extension(plugin) == ".so") {
       throw bpo::error_with_option_name(
           "'" + plugin + "' is not a valid shared object library");
     }
+  }
+}
+
+void validateParamICFGPlugin(const string &plugin) {
+  if (!bfs::exists(plugin) && !bfs::is_directory(plugin) &&
+      bfs::extension(plugin) == ".so") {
+    throw bpo::error_with_option_name("'" + plugin +
+                                      "' is not a valid shared object library");
+  }
+  if (VariablesMap.count("callgraph_analysis")) {
+    throw bpo::error_with_option_name("Cannot choose a built-in callgraph AND "
+                                      "a plug-in for callgraph construction.");
+  }
+  if (VariablesMap.count("wpa") && !VariablesMap["wpa"].as<bool>()) {
+    throw bpo::error_with_option_name(
+        "Plug-in for callgraph construction can only be used in 'wpa' mode.");
   }
 }
 
@@ -171,6 +188,7 @@ int main(int argc, const char **argv) {
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
 			("analysis_plugin", bpo::value<vector<string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
+      ("callgraph_plugin", bpo::value<string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       ("output,O", bpo::value<string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
       ;
     // clang-format on
@@ -314,6 +332,18 @@ int main(int argc, const char **argv) {
       !InterMonotoneProblemPluginFactory.empty()) {
     ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
   }
+
+  // Bring Clang source-to-source transformation to life
+  // int OnlyTakeCareOfSources = 2;
+  // const char *ProjectSources = VariablesMap["project"].as<string>().c_str();
+  // const char *DummyProgName = "not_important";
+  // const char *DummyArgs[] = {DummyProgName, ProjectSources};
+  // clang::tooling::CommonOptionsParser OptionsParser(
+  //     OnlyTakeCareOfSources, DummyArgs, StaticAnalysisCategory,
+  //     OccurrencesFlag);
+  // ClangController CC(OptionsParser);
+  // return 0;
+
   AnalysisController Controller(
       [&lg](bool usingModules) {
         BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";

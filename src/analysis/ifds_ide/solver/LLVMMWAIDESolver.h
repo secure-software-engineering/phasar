@@ -18,19 +18,18 @@
 template <typename D, typename V, typename I>
 class LLVMMWAIDESolver : public MWAIDESolver<const llvm::Instruction *, D,
                                              const llvm::Function *, V, I> {
- private:
+private:
   const bool DUMP_RESULTS;
   IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *, V,
                        I> &Problem;
 
- public:
+public:
   LLVMMWAIDESolver(IDETabulationProblem<const llvm::Instruction *, D,
                                         const llvm::Function *, V, I> &problem,
                    enum SummaryGenerationStrategy S, bool dumpResults = false)
       : IDESolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
             problem, S),
-        DUMP_RESULTS(dumpResults),
-        Problem(problem) {}
+        DUMP_RESULTS(dumpResults), Problem(problem) {}
 
   virtual ~LLVMMWAIDESolver() = default;
 
@@ -38,7 +37,8 @@ class LLVMMWAIDESolver : public MWAIDESolver<const llvm::Instruction *, D,
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) dumpResults();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   void combine() override {

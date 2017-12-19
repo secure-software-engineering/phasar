@@ -18,7 +18,7 @@
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 
 #include "../ifds_ide/flow_func/Gen.h"
-#include "plugin_ifaces/IFDSTabulationProblemPlugin.h"
+#include "plugin_ifaces/ifds_ide/IFDSTabulationProblemPlugin.h"
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:

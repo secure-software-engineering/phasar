@@ -17,26 +17,26 @@
  *      Author: pdschbrt
  */
 
-#include <algorithm>
-#include <map>
-#include <string>
 #include "../../../utils/Table.h"
 #include "../../control_flow/ICFG.h"
 #include "../../misc/SummaryStrategy.h"
 #include "../IFDSTabulationProblem.h"
 #include "MWAIFDSSolver.h"
+#include <algorithm>
+#include <map>
+#include <string>
 
 using namespace std;
 
 template <typename D, typename I>
 class LLVMMWAIFDSSolver : public MWAIFDSSolver<const llvm::Instruction *, D,
                                                const llvm::Function *, I> {
- private:
+private:
   const bool DUMP_RESULTS;
   IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I>
       &Problem;
 
- public:
+public:
   virtual ~LLVMMWAIFDSSolver() = default;
 
   LLVMMWAIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
@@ -44,22 +44,23 @@ class LLVMMWAIFDSSolver : public MWAIFDSSolver<const llvm::Instruction *, D,
                     enum SummaryGenerationStrategy S, bool dumpResults = false)
       : MWAIFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem, S),
-        DUMP_RESULTS(dumpResults),
-        Problem(problem) {}
+        DUMP_RESULTS(dumpResults), Problem(problem) {}
 
   virtual void solve() override {
     // Solve the analaysis problem
     MWAIFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                   I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) dumpResults();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   virtual void combine() override {
     cout << "LLVMMWAIFDSSolver::combine()\n";
     MWAIFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                   I>::combine();
-    if (DUMP_RESULTS) dumpResults();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   void dumpResults() {

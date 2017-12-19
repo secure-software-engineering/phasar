@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYVISITOR_HH_
-#define CLANG_MYVISITOR_HH_
+#ifndef CLANG_RANDOMCHANGEVISITOR_H_
+#define CLANG_RANDOMCHANGEVISITOR_H_
 
 #include <clang/AST/AST.h>
 #include <clang/AST/ASTConsumer.h>
@@ -29,36 +29,34 @@
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
+#include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/CommandLine.h>
+#include <random>
+#include <sstream>
 #include <string>
 
-using namespace std;
-using namespace clang;
-using namespace clang::driver;
-using namespace clang::tooling;
-using namespace llvm;
+// std::random_device rd;
+// std::mt19937_64 mt(rd());
+// std::uniform_int_distribution<int> dist(0, 2);
+// for (int i = 0; i < 10; ++i) {
+//   cout << dist(mt) << ' ';
+// }
+// cout << '\n';
 
-// class MyVisitor : public RecursiveASTVisitor<MyVisitor> {
-// private:
-//    ASTContext *astContext; // used for getting additional AST info
-//
-// public:
-//    explicit MyVisitor(CompilerInstance *CI);
-//    virtual bool VisitFunctionDecl(FunctionDecl *func);
-////    virtual bool VisitStmt(Stmt *st);
-//
-///*
-//    virtual bool VisitReturnStmt(ReturnStmt *ret) {
-//        rewriter.ReplaceText(ret->getRetValue()->getLocStart(), 6, "val");
-//        errs() << "** Rewrote ReturnStmt\n";
-//        return true;
-//    }
-//*/
-////    virtual bool VisitCallExpr(CallExpr *call);
-////    virtual bool VisitCXXRecordDecl(CXXRecordDecl *Declaration);
-//    virtual bool VisitRecordDecl(RecordDecl *Declaration);
-//
-//};
+class RandomChangeVisitor
+    : public clang::RecursiveASTVisitor<RandomChangeVisitor> {
+private:
+  clang::Rewriter &RW;
+
+public:
+  RandomChangeVisitor(clang::Rewriter &R);
+  virtual bool VisitStmt(clang::Stmt *st);
+  virtual bool VisitFunctionDecl(clang::FunctionDecl *f);
+  virtual bool VisitTypeDecl(clang::TypeDecl *t);
+  // virtual bool VisitCallExpr(CallExpr *call);
+  // virtual bool VisitCXXRecordDecl(CXXRecordDecl *Declaration);
+  // virtual bool VisitRecordDecl(RecordDecl *Declaration);
+};
 
 #endif /* CLANG_MYVISITOR_HH_ */

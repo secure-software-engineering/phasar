@@ -38,10 +38,7 @@
 #include "monotone_problems/intra_full_constant_propagation/IntraMonoFullConstantPropagation.h"
 #include "monotone_problems/intra_monotone_solver_test/IntraMonotoneSolverTest.h"
 #include "plugins/AnalysisPluginController.h"
-#include "plugins/plugin_ifaces/IDETabulationProblemPlugin.h"
-#include "plugins/plugin_ifaces/IFDSTabulationProblemPlugin.h"
-#include "plugins/plugin_ifaces/InterMonotoneProblemPlugin.h"
-#include "plugins/plugin_ifaces/IntraMonotoneProblemPlugin.h"
+#include "plugins/plugin_ifaces/control_flow/ICFGPlugin.h"
 #include "points-to/PointsToGraph.h"
 #include <array>
 #include <fstream>

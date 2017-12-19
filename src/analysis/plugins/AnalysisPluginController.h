@@ -17,19 +17,16 @@
 #include "../ifds_ide/solver/LLVMIFDSSolver.h"
 #include "../monotone/solver/LLVMInterMonotoneSolver.h"
 #include "../monotone/solver/LLVMIntraMonotoneSolver.h"
-#include "plugin_ifaces/IDETabulationProblemPlugin.h"
-#include "plugin_ifaces/IFDSTabulationProblemPlugin.h"
-#include "plugin_ifaces/InterMonotoneProblemPlugin.h"
-#include "plugin_ifaces/IntraMonotoneProblemPlugin.h"
+#include "plugin_ifaces/ifds_ide/IDETabulationProblemPlugin.h"
+#include "plugin_ifaces/ifds_ide/IFDSTabulationProblemPlugin.h"
+#include "plugin_ifaces/monotone/InterMonotoneProblemPlugin.h"
+#include "plugin_ifaces/monotone/IntraMonotoneProblemPlugin.h"
 #include <set>
 #include <string>
 #include <vector>
 using namespace std;
 
 class AnalysisPluginController {
-private:
-  vector<SOL> SharedObjectLibraries;
-
 public:
   AnalysisPluginController(vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
                            vector<string> EntryPoints);

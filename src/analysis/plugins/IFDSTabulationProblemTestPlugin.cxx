@@ -16,6 +16,13 @@
 
 #include "IFDSTabulationProblemTestPlugin.h"
 
+unique_ptr<IFDSTabulationProblemPlugin>
+makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
+                                    vector<string> EntryPoints) {
+  return unique_ptr<IFDSTabulationProblemPlugin>(
+      new IFDSTabulationProblemTestPlugin(I, EntryPoints));
+}
+
 __attribute__((constructor)) void init() {
   cout << "init - IFDSTabulationProblemTestPlugin\n";
   IFDSTabulationProblemPluginFactory["ifds_testplugin"] =
@@ -24,13 +31,6 @@ __attribute__((constructor)) void init() {
 
 __attribute__((destructor)) void fini() {
   cout << "fini - IFDSTabulationProblemTestPlugin\n";
-}
-
-unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
-                                    vector<string> EntryPoints) {
-  return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSTabulationProblemTestPlugin(I, EntryPoints));
 }
 
 IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
@@ -56,9 +56,6 @@ IFDSTabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   cout << "IFDSTabulationProblemTestPlugin::getRetFlowFunction()\n";
-  cout << "HIT RETURN" << endl;
-  exitStmt->dump();
-  retSite->dump();
   return Identity<const llvm::Value *>::v();
 }
 

@@ -144,7 +144,9 @@ void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
         // call the resolve routine
         set<string> possible_target_names = Resolver.at(R)(this, cs);
         for (auto &possible_target_name : possible_target_names) {
-          possible_targets.insert(IRDB.getFunction(possible_target_name));
+          if (IRDB.getFunction(possible_target_name)) {
+            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          }
         }
       }
       BOOST_LOG_SEV(lg, DEBUG)
@@ -214,7 +216,9 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
         // call the resolve routine
         set<string> possible_target_names = Resolver.at(R)(this, cs);
         for (auto &possible_target_name : possible_target_names) {
-          possible_targets.insert(IRDB.getFunction(possible_target_name));
+          if (IRDB.getFunction(possible_target_name)) {
+            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          }
         }
       }
       BOOST_LOG_SEV(lg, DEBUG)

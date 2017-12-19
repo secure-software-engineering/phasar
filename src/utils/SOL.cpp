@@ -20,6 +20,21 @@ SOL::SOL(const string &path) : path(path) {
   dlerror(); // clear existing errors
 }
 
+SOL::SOL(SOL &&so) {
+  error = so.error;
+  so_handle = so.so_handle;
+  so.error = nullptr;
+  so.so_handle = nullptr;
+}
+
+SOL &SOL::operator=(SOL &&so) {
+  error = so.error;
+  so_handle = so.so_handle;
+  so.error = nullptr;
+  so.so_handle = nullptr;
+  return *this;
+}
+
 SOL::~SOL() {
   if ((error = dlerror()) != NULL) {
     cerr << "encountered problems with shared onject library ('" + path + "'): "

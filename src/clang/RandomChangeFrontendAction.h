@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYFRONTENDACTION_HH_
-#define CLANG_MYFRONTENDACTION_HH_
+#ifndef CLANG_MYFRONTENDACTION_H_
+#define CLANG_MYFRONTENDACTION_H_
 
-#include "MyASTConsumer.hh"
+#include "RandomChangeASTConsumer.h"
 #include <clang/AST/AST.h>
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
@@ -32,16 +32,17 @@
 #include <llvm/Support/CommandLine.h>
 #include <memory>
 
-using namespace std;
-using namespace clang;
-using namespace clang::driver;
-using namespace clang::tooling;
-using namespace llvm;
+class RandomChangeFrontendAction : public clang::ASTFrontendAction {
+private:
+  clang::Rewriter RW;
 
-class MyFrontendAction : public ASTFrontendAction {
 public:
-  virtual unique_ptr<ASTConsumer> CreateASTConsumer(CompilerInstance &CI,
-                                                    StringRef file);
+  RandomChangeFrontendAction();
+
+  void EndSourceFileAction() override;
+
+  std::unique_ptr<clang::ASTConsumer>
+  CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef file) override;
 };
 
 #endif /* CLANG_MYFRONTENDACTION_HH_ */

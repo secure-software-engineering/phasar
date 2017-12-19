@@ -8,17 +8,20 @@
  *****************************************************************************/
 
 /*
- * MyFrontendAction.cpp
+ * MyASTConsumer.cpp
  *
  *  Created on: 09.06.2016
  *      Author: pdschbrt
  */
 
-#include "MyFrontendAction.hh"
+#include "RandomChangeASTConsumer.h"
+#include "RandomChangeVisitor.h"
 
-// unique_ptr<ASTConsumer> MyFrontendAction::CreateASTConsumer(CompilerInstance
-// &CI, StringRef file)
-//{
-//        return unique_ptr<ASTConsumer>(new MyASTConsumer(&CI)); // pass CI
-//        pointer to ASTConsumer
-//}
+// override the constructor in order to pass CI
+RandomChangeASTConsumer::RandomChangeASTConsumer(clang::Rewriter &R)
+    : Visitor(R) {}
+
+void RandomChangeASTConsumer::HandleTranslationUnit(
+    clang::ASTContext &Context) {
+  Visitor.TraverseDecl(Context.getTranslationUnitDecl());
+}

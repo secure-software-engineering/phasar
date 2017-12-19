@@ -39,7 +39,8 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
     if (llvm::isa<llvm::Constant>(global) &&
         demangled.find(vtable_for) != demangled.npos) {
       string struct_name = "struct." + demangled.erase(0, vtable_for.size());
-      llvm::Constant *initializer = (global.hasInitializer()) ? global.getInitializer() : nullptr;
+      llvm::Constant *initializer =
+          (global.hasInitializer()) ? global.getInitializer() : nullptr;
       // ignore 'vtable for __cxxabiv1::__si_class_type_info', also the vtable
       // might be marked as external!
       if (!initializer)

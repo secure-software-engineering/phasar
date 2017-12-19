@@ -27,6 +27,10 @@ private:
 public:
   SOL(const string &path);
   ~SOL();
+  SOL(SOL &&);
+  SOL &operator=(SOL &&);
+  SOL(const SOL &) = delete;
+  SOL &operator=(const SOL &) = delete;
   template <typename Signature> auto loadSymbol(const string &name) {
     auto sym = reinterpret_cast<Signature>(dlsym(so_handle, name.c_str()));
     if (!sym)

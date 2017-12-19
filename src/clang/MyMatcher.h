@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYMATCHER_HH_
-#define CLANG_MYMATCHER_HH_
+#ifndef CLANG_MYMATCHER_H_
+#define CLANG_MYMATCHER_H_
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 #include <clang/ASTMatchers/ASTMatchers.h>

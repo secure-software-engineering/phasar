@@ -168,11 +168,6 @@ private:
         (interP) ? computedInterPathEdges : computedIntraPathEdges;
     tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
                                                        destVals.end());
-    // map<D, set<D>> &m = tgtMap.get(sourceNode, sinkStmt);
-    // if (m.empty()) {
-    //   tgtMap.insert(sourceNode, sinkStmt, m);
-    // }
-    // m[sourceVal] = set<D>{destVals};
   }
 
   /**
@@ -432,9 +427,6 @@ private:
   }
 
   void addEndSummary(N sP, D d1, N eP, D d2, shared_ptr<EdgeFunction<V>> f) {
-    // Table<N, D, shared_ptr<EdgeFunction<V>>> &summaries =
-    //     endsummarytab.get(sP, d1);
-    //     summaries.insert(eP, d2, f);
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
@@ -888,26 +880,12 @@ protected:
 
   set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
   endSummary(N sP, D d3) {
-    // Table<N, D, shared_ptr<EdgeFunction<V>>> &m = endsummarytab.get(sP, d3);
-    // if (m.empty())
-    //   return set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>{};
-    // return m.cellSet();
     return endsummarytab.get(sP, d3).cellSet();
   }
 
-  map<N, set<D>> incoming(D d1, N sP) {
-    // map<N, set<D>> m = incomingtab.get(sP, d1);
-    // if (m.empty())
-    //   return map<N, set<D>>{};
-    // return m;
-    return incomingtab.get(sP, d1);
-  }
+  map<N, set<D>> incoming(D d1, N sP) { return incomingtab.get(sP, d1); }
 
   void addIncoming(N sP, D d3, N n, D d2) {
-    // map<N, set<D>> summaries = incomingtab.get(sP, d3);
-    // set<D> &s = summaries[n];
-    // s.insert(d2);
-    // incomingtab.insert(sP, d3, summaries);
     incomingtab.get(sP, d3)[n].insert(d2);
   }
 

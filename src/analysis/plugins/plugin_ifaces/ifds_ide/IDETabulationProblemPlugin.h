@@ -10,7 +10,7 @@
 #ifndef IDETABULATIONPROBLEMPLUGIN_H_
 #define IDETABULATIONPROBLEMPLUGIN_H_
 
-#include "../../control_flow/LLVMBasedICFG.h"
+#include "../../../control_flow/LLVMBasedICFG.h"
 #include <map>
 #include <memory>
 #include <string>

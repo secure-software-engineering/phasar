@@ -17,10 +17,10 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
 
-#include "../../../lib/LLVMShorthands.h"
-#include "../../control_flow/LLVMBasedICFG.h"
-#include "../../ifds_ide/DefaultIFDSTabulationProblem.h"
-#include "../../ifds_ide/ZeroValue.h"
+#include "../../../../lib/LLVMShorthands.h"
+#include "../../../control_flow/LLVMBasedICFG.h"
+#include "../../../ifds_ide/DefaultIFDSTabulationProblem.h"
+#include "../../../ifds_ide/ZeroValue.h"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
