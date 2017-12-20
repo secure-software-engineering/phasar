@@ -35,6 +35,7 @@ CXX_INCL = -I ./json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1
+GTEST_RUN_PARAMS += --gtest_filter=GetSuccsTest.*
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
@@ -92,6 +93,7 @@ BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
+BOOST_LIBS += -lboost_graph
 LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool

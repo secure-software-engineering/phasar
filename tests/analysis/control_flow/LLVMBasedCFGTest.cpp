@@ -156,7 +156,7 @@ TEST(GetSuccsTest, HandlesSingleOrEmptySuccessor) {
   ASSERT_EQ(succsOfTermInst, Successors);
 }
 
-TEST(GetSuccTest, HandlesCallSuccessor) {
+TEST(GetSuccsTest, HandlesCallSuccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"});
   auto F = IRDB.getFunction("main");
