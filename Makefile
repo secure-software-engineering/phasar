@@ -35,7 +35,7 @@ CXX_INCL = -I ./json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1
-GTEST_RUN_PARAMS += --gtest_filter=GetSuccsTest.*
+GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.*
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))

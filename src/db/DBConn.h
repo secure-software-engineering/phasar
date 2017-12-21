@@ -43,6 +43,8 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <typeinfo>
+#include <thread>
 using namespace std;
 
 #define SQL_STD_ERROR_HANDLING                                                 \
@@ -67,25 +69,31 @@ private:
   const static string db_password;
   const static string db_schema_name;
   const static string db_server_address;
-
   // Functions for internal use only
   int getNextAvailableID(const string &TableName);
+
   int getProjectID(const string &Identifier);
   int getModuleID(const string &Identifier);
-  int getFunctionID(const string &Identifier);
-  int getGlobalVariableID(const string &Identifier);
+  set<int> getFunctionID(const string &Identifier);
   int getTypeID(const string &Identifier);
-
   bool schemeExists();
   void buildDBScheme();
-  void dropDBAndRebuildScheme();
-
   bool insertModule(const string &ProjectIdentifier,
                     const llvm::Module *module);
   unique_ptr<llvm::Module> getModule(const string &mod_name,
                                      llvm::LLVMContext &Context);
-
 public:
+  /**
+   * @brief Checks, if the Module, corresponding to the given ID, is associated with a stored LLVMTypeHierarchy.
+   * @param moduleID of the LLVM Module that is checked.
+   * @return True, if a LLVMTypeHierarchy, that contains the Module, is already stored in the database.
+   */
+  bool moduleHasTypeHierarchy(const unsigned moduleID);
+  size_t getFunctionHash(const unsigned functionID);
+  set<int> getGlobalVariableID(const string &Identifier);
+  bool globalVariableIsDeclaration(const unsigned globalVariableID);
+  void dropDBAndRebuildScheme();
+  set<int> getModuleIDsFromProject(const string &Identifier);
   DBConn(const DBConn &db) = delete;
   DBConn(DBConn &&db) = delete;
   DBConn &operator=(const DBConn &db) = delete;

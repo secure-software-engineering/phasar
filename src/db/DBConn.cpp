@@ -19,7 +19,7 @@ DBConn::DBConn() {
     driver = get_driver_instance();
     conn = driver->connect(db_server_address, db_user, db_password);
     if (!schemeExists()) {
-      // buildDBScheme();
+      buildDBScheme();
     }
     conn->setSchema(db_schema_name);
     unique_ptr<sql::PreparedStatement> pstmt(
@@ -117,42 +117,61 @@ int DBConn::getModuleID(const string &Identifier) {
   return moduleID;
 }
 
-int DBConn::getFunctionID(const string &Identifier) {
-  int functionID = -1;
+set<int> DBConn::getFunctionID(const string &Identifier) {
+  set<int> functionIDs;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
         "SELECT function_id FROM function WHERE identifier=(?)"));
     pstmt->setString(1, Identifier);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-    if (res->next()) {
-      functionID = res->getInt(1);
+    while (res->next()) {
+      functionIDs.insert(res->getInt(1));
     }
-    return functionID;
+    return functionIDs;
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  return functionID;
+  return functionIDs;
 }
 
-int DBConn::getGlobalVariableID(const string &Identifier) {
-  int globalVariableID = 0;
+size_t DBConn::getFunctionHash(const unsigned functionID) {
+  size_t hash_value = 0;
+  try {
+    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+      "SELECT hash FROM function WHERE function_id=(?)"));
+    pstmt->setInt(1, functionID);
+    unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    if (res->next()) {
+      string hash_string = res->getString(1);
+      stringstream sstream(hash_string);
+      sstream >> hash_value;
+    }
+    return hash_value;
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return hash_value;
+}
+
+set<int> DBConn::getGlobalVariableID(const string &Identifier) {
+  set<int> globalVariableIDs;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
         "SELECT global_variable_id FROM global_variable WHERE identifier=(?)"));
     pstmt->setString(1, Identifier);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-    if (res->next()) {
-      globalVariableID = res->getInt(1);
+    while (res->next()) {
+      globalVariableIDs.insert(res->getInt(1));
     }
-    return globalVariableID;
+    return globalVariableIDs;
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  return globalVariableID;
+  return globalVariableIDs;
 }
 
 int DBConn::getTypeID(const string &Identifier) {
-  int typeID = 0;
+  int typeID = -1;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
         "SELECT type_id FROM type WHERE identifier=(?)"));
@@ -173,12 +192,60 @@ DBConn &DBConn::getInstance() {
   return instance;
 }
 
+set<int> DBConn::getModuleIDsFromProject(const string &Identifier) {
+  set<int> moduleIDs;
+  try {
+    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+        "SELECT module_id "
+        "FROM project_has_module WHERE project_id=(SELECT "
+        "project_id FROM phasardb.project WHERE identifier=?)"));
+    pstmt->setString(1, Identifier);
+    unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    while (res->next()) {
+      moduleIDs.insert(res->getInt(1));
+    }
+    return moduleIDs;
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return moduleIDs;
+}
+
+bool DBConn::moduleHasTypeHierarchy(const unsigned moduleID) {
+  try {
+    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+        "SELECT module_id FROM module_has_type_hierarchy WHERE module_id=?"));
+    pstmt->setInt(1, moduleID);
+    unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    return res->next();
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return false;
+}
+
+bool DBConn::globalVariableIsDeclaration(const unsigned globalVariableID) {
+  try {
+    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
+        "SELECT declaration FROM global_variable WHERE global_variable_id=?"));
+    pstmt->setInt(1, globalVariableID);
+    unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
+    if (res->next()) {
+      return res->getBoolean("declaration");
+    }
+    return false;
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return false;
+}
+
 string DBConn::getDBName() { return db_schema_name; }
 
 bool DBConn::insertModule(const string &ProjectName,
                           const llvm::Module *module) {
   try {
-    // Initi the transaction
+    // Initialize the transaction
     unique_ptr<sql::Statement> stmt(conn->createStatement());
     stmt->execute("START TRANSACTION");
     // Check if the project already exists, otherwise add a new entry
@@ -215,55 +282,107 @@ bool DBConn::insertModule(const string &ProjectName,
     pmrstmt->setInt(2, moduleID);
     pmrstmt->executeUpdate();
     // Write globals
-    for (auto &G : module->globals()) {
-      int globalID = getNextAvailableID("global_variable");
-      unique_ptr<sql::PreparedStatement> gpstmt(conn->prepareStatement(
+    for (const llvm::GlobalVariable &G : module->globals()) {
+      set<int> globalVariableIDs = getGlobalVariableID(G.getGlobalIdentifier());
+      int newGlobalID = getNextAvailableID("global_variable");
+      bool GIsDeclarataion = G.isDeclaration();
+      bool newGlobVar = false;
+      // Do not write duplicate global variables
+      if (globalVariableIDs.size() == 0 ||
+          (globalVariableIDs.size() == 1 &&
+           globalVariableIsDeclaration(*globalVariableIDs.begin()) !=
+           GIsDeclarataion)) {
+        unique_ptr <sql::PreparedStatement> gpstmt(conn->prepareStatement(
           "INSERT INTO global_variable "
-          "(global_variable_id,identifier,declaration) VALUES (?,?,?)"));
-      gpstmt->setInt(1, globalID);
-      gpstmt->setString(2, G.getName().str());
-      gpstmt->setBoolean(3, G.isDeclaration());
-      gpstmt->executeUpdate();
+            "(global_variable_id,identifier,declaration) VALUES (?,?,?)"));
+        gpstmt->setInt(1, newGlobalID);
+        gpstmt->setString(2, G.getName().str());
+        gpstmt->setBoolean(3, GIsDeclarataion);
+        gpstmt->executeUpdate();
+        newGlobVar = true;
+      }
       // Fill module - global relation
       unique_ptr<sql::PreparedStatement> grpstmt(conn->prepareStatement(
-          "INSERT INTO module_has_global_variable "
+        "INSERT INTO module_has_global_variable "
           "(module_id,global_variable_id) VALUES (?,?)"));
       grpstmt->setInt(1, moduleID);
-      grpstmt->setInt(2, globalID);
+      // Find the ID of the global variable
+      if (newGlobVar) {
+        grpstmt->setInt(2, newGlobalID);
+      } else if (globalVariableIDs.size() == 1) {
+        grpstmt->setInt(2, *globalVariableIDs.begin());
+      } else {
+        if (GIsDeclarataion == globalVariableIsDeclaration(*globalVariableIDs.begin())) {
+          grpstmt->setInt(2, *globalVariableIDs.begin());
+        } else {
+          grpstmt->setInt(2, *(globalVariableIDs.begin()++));
+        }
+      }
       grpstmt->executeUpdate();
     }
     // Write functions
     for (auto &F : *module) {
-      int functionID = getNextAvailableID("function");
+      set<int> functionIDs = getFunctionID(F.getName().str());
+      int newFunctionID = getNextAvailableID("function");
+      int matchingFID = -1;
+      bool newFunc = true;
       string ir_fun_buffer = llvmIRToString(&F);
       hash_value = hash<string>()(ir_fun_buffer);
-      unique_ptr<sql::PreparedStatement> fpstmt(conn->prepareStatement(
-          "INSERT INTO function (identifier,declaration,hash) VALUES (?,?,?)"));
-      fpstmt->setString(1, F.getName().str());
-      fpstmt->setBoolean(2, F.isDeclaration());
-      fpstmt->setString(3, to_string(hash_value));
-      fpstmt->executeUpdate();
+      // Check if there is already a function with the same identifier AND hash value
+      for (auto fid : functionIDs) {
+        if (hash_value == getFunctionHash(fid)) {
+          newFunc = false;
+          matchingFID = fid;
+          break;
+        }
+      }
+      // Do not write duplicate functions
+      if (newFunc) {
+        unique_ptr<sql::PreparedStatement> fpstmt(conn->prepareStatement(
+          "INSERT INTO function (function_id,identifier,declaration,hash) VALUES (?,?,?,?)"));
+        fpstmt->setInt(1, newFunctionID);
+        fpstmt->setString(2, F.getName().str());
+        fpstmt->setBoolean(3, F.isDeclaration());
+        fpstmt->setString(4, to_string(hash_value));
+        fpstmt->executeUpdate();
+      }
       // Fill module - function relation
       unique_ptr<sql::PreparedStatement> frpstmt(
           conn->prepareStatement("INSERT INTO module_has_function "
                                  "(module_id,function_id) VALUES (?,?)"));
       frpstmt->setInt(1, moduleID);
-      frpstmt->setInt(2, functionID);
+      if (newFunc) {
+        frpstmt->setInt(2, newFunctionID);
+      } else {
+        frpstmt->setInt(2, matchingFID);
+      }
       frpstmt->executeUpdate();
     }
-    // // Write types
+    // Write types
     for (auto &ST : module->getIdentifiedStructTypes()) {
-      int typeID = getNextAvailableID("type");
-      unique_ptr<sql::PreparedStatement> stpstmt(
-          conn->prepareStatement("INSERT INTO type (identifier) VALUES (?)"));
-      stpstmt->setString(1, ST->getName().str());
-      stpstmt->executeUpdate();
+      int newTypeID = getNextAvailableID("type");
+      int typeID = getTypeID(ST->getName().str());
+      bool newType = false;
+      // Do not write duplicate types
+      if (typeID == -1) {
+        // TODO: what about the hash value of the type?
+        unique_ptr<sql::PreparedStatement> stpstmt(
+          conn->prepareStatement("INSERT INTO type (type_id, identifier) VALUES (?,?)"));
+        stpstmt->setInt(1, newTypeID);
+        stpstmt->setString(2, ST->getName().str());
+        stpstmt->executeUpdate();
+        newType = true;
+      }
       // Fill module - type relation
       unique_ptr<sql::PreparedStatement> trpstmt(
           conn->prepareStatement("INSERT INTO module_has_type "
                                  "(module_id,type_id) VALUES (?,?)"));
       trpstmt->setInt(1, moduleID);
-      trpstmt->setInt(2, typeID);
+      if (newType) {
+        trpstmt->setInt(2, newTypeID);
+      } else {
+        trpstmt->setInt(2, typeID);
+      }
       trpstmt->executeUpdate();
     }
     // Perform the commit
@@ -274,6 +393,7 @@ bool DBConn::insertModule(const string &ProjectName,
   return false;
 }
 
+// TODO use module id instead of the module identifier to avoid ambiguity
 unique_ptr<llvm::Module> DBConn::getModule(const string &identifier,
                                            llvm::LLVMContext &Context) {
   try {
@@ -538,55 +658,191 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //   cout << "\n\n\n";
 }
 
-// void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
-//                                 bool use_hs = false) {}
+void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, bool use_hs) {
+  try {
 
-// LLVMBasedICFG
-// DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
-//                                     bool use_hs = false) {}
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+}
 
-// LLVMBasedICFG
-// DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
-//                                      bool use_hs = false) {}
+LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
+                                                  bool use_hs) {
+  try {
 
-// LLVMBasedICFG
-// DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
-//                                      bool use_hs = false) {}
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  ProjectIRDB IRDB;
+  LLVMTypeHierarchy TH;
+  return LLVMBasedICFG(TH, IRDB);
+}
 
-// void DBConn::storePointsToGraph(const PointsToGraph &PTG, bool use_hs =
-// false) {
+LLVMBasedICFG
+DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
+                                     bool use_hs) {
+  try {
 
-// }
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  ProjectIRDB IRDB;
+  LLVMTypeHierarchy TH;
+  return LLVMBasedICFG(TH, IRDB);
+}
 
-// PointsToGraph
-// DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
-//                                       bool use_hs = false) {}
+LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
+                                                   bool use_hs) {
+  try {
 
-// void DBConn::storeLLVMTypeHierarchy(const LLVMTypeHierarchy &TH,
-//                                     bool use_hs = false) {}
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  ProjectIRDB IRDB;
+  LLVMTypeHierarchy TH;
+  return LLVMBasedICFG(TH, IRDB);
+}
 
-// LLVMTypeHierarchy
-// DBConn::loadLLVMTypeHierarchyFromModule(const string &ModuleName,
-//                                         bool use_hs = false) {}
+void DBConn::storePointsToGraph(const PointsToGraph &PTG, bool use_hs) {
+  try {
 
-// LLVMTypeHierarchy
-// DBConn::loadLLVMTypeHierarchyFromModules(initializer_list<string>
-// ModuleNames,
-//                                          bool use_hs = false) {}
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+}
 
-// LLVMTypeHierarchy
-// DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
-//                                          bool use_hs = false) {}
+PointsToGraph DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
+                                                    bool use_hs) {
+  try {
 
-// void DBConn::storeIDESummary(const IDESummary &S) {}
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return PointsToGraph();
+}
 
-// IDESummary DBConn::loadIDESummary(const string &FunctionName,
-//                                          const string &AnalysisName) {}
+void DBConn::storeLLVMTypeHierarchy(const LLVMTypeHierarchy &TH, bool use_hs) {
+  try {
+    // TH contains new information if one of the following is true:
+    // (1) one or more modules are not stored in the database
+    // (2) one or more modules are not listed in the
+    //     module - type_hierarchy relation
+    // If one of the above is true, the TH will be stored and all missing
+    // or new information (e.g. modules, VTables) will be stored as well.
+    bool THContainsNewInformation = false;
+    for (auto M : TH.contained_modules) {
+      // Check if all modules contained in the TH are already stored in the
+      // database. At the same time, all types contained in the modules will
+      // be stored (if not already stored).
+      // TODO check the hash value as well
+      int moduleID = getModuleID(M->getModuleIdentifier());
+      if (moduleID == -1) {
+        // TODO change the hard-coded project name
+        // insertModule(VariablesMap["project_id"].as<string>(), M);
+        insertModule("phasardbtest", M);
+        THContainsNewInformation = true;
+      } else if (!moduleHasTypeHierarchy(moduleID)) {
+        THContainsNewInformation = true;
+      }
+    }
+    if (THContainsNewInformation) {
+      // Initialize the transaction
+//      unique_ptr<sql::Statement> stmt(conn->createStatement());
+//      stmt->execute("START TRANSACTION");
+      // Write type hierarchy
+      int THID = getNextAvailableID("type_hierarchy");
+      if (use_hs) {
+        // Write type hierarchy graph to hexastore
+        string hex_id("LTH." + to_string(THID) + ".hex.db");
+        hexastore::Hexastore h(hex_id);
+        typename boost::graph_traits<LLVMTypeHierarchy::bidigraph_t>::edge_iterator ei_start, e_end;
+        for (tie(ei_start, e_end) = boost::edges(TH.g); ei_start != e_end; ++ei_start) {
+          auto source = boost::source(*ei_start, TH.g);
+          auto target = boost::target(*ei_start, TH.g);
+          h.put({{TH.g[source].name, "-->", TH.g[target].name}});
+        }
+        auto result = h.get({{"", "", ""}});
+        for_each(result.begin(), result.end(),
+                 [](hexastore::hs_result r) { cout << r << endl; });
+      } else {
+        // Write type hierarchy graph as dot
+        ostringstream osstream;
+        ofstream myfile("LTHGraph.dot");
+        LLVMTypeHierarchy &TH1 = const_cast<LLVMTypeHierarchy &>(TH);
+        TH1.printGraphAsDot(osstream);
+        osstream.flush();
+        TH1.printGraphAsDot(myfile);
+        string dot_graph = osstream.str();
+        cout << dot_graph << endl;
+      }
+      // Fill type hierarchy - type relation
+      // Fill module - type hierarchy relation
+      // Store VTables
+      // Perform the commit
+//      conn->commit();
+    }
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+}
+
+LLVMTypeHierarchy
+DBConn::loadLLVMTypeHierarchyFromModule(const string &ModuleName, bool use_hs) {
+  try {
+
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return LLVMTypeHierarchy();
+}
+
+LLVMTypeHierarchy
+DBConn::loadLLVMTypeHierarchyFromModules(initializer_list<string> ModuleNames,
+                                         bool use_hs) {
+  try {
+
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return LLVMTypeHierarchy();
+}
+
+LLVMTypeHierarchy
+DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
+                                         bool use_hs) {
+  try {
+
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return LLVMTypeHierarchy();
+}
+
+void DBConn::storeIDESummary(const IDESummary &S) {
+  try {
+
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+}
+
+IDESummary DBConn::loadIDESummary(const string &FunctionName,
+                                  const string &AnalysisName) {
+  try {
+
+  } catch (sql::SQLException &e) {
+    SQL_STD_ERROR_HANDLING;
+  }
+  return IDESummary();
+}
 
 void DBConn::storeProjectIRDB(const string &ProjectName,
                               const ProjectIRDB &IRDB) {
   for (auto M : IRDB.getAllModules()) {
-    insertModule(ProjectName, M);
+    // TODO check the modules hash value as well
+    if (getModuleID(M->getModuleIdentifier()) == -1) {
+      insertModule(ProjectName, M);
+    }
   }
 }
 
@@ -639,354 +895,354 @@ void DBConn::buildDBScheme() {
   stmt->execute(create_schema);
 
   static const string create_function(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`function` ("
-      "`function_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
-      "`declaration` TINYINT(1) NULL DEFAULT NULL,"
-      "`hash` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`function_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`function` ( "
+      "`function_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
+      "`declaration` TINYINT(1) NULL DEFAULT NULL, "
+      "`hash` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`function_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_function);
 
   static const string create_ifds_ide_summary(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`ifds_ide_summary` ("
-      "`ifds_ide_summary_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`analysis` VARCHAR(512) NULL DEFAULT NULL,"
-      "`representation` BLOB NULL DEFAULT NULL,"
-      "PRIMARY KEY (`ifds_ide_summary_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`ifds_ide_summary` ( "
+      "`ifds_ide_summary_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`analysis` VARCHAR(512) NULL DEFAULT NULL, "
+      "`representation` BLOB NULL DEFAULT NULL, "
+      "PRIMARY KEY (`ifds_ide_summary_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_ifds_ide_summary);
 
   static const string create_module(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module` ("
-      "`module_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
-      "`hash` VARCHAR(512) NULL DEFAULT NULL,"
-      "`code` BLOB NULL DEFAULT NULL,"
-      "PRIMARY KEY (`module_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module` ( "
+      "`module_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
+      "`hash` VARCHAR(512) NULL DEFAULT NULL, "
+      "`code` BLOB NULL DEFAULT NULL, "
+      "PRIMARY KEY (`module_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module);
 
   static const string create_type(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`type` ("
-      "`type_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
-      "`hash` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`type_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`type` ( "
+      "`type_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
+      "`hash` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`type_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_type);
 
   static const string create_type_hierarchy(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy` ("
-      "`type_hierarchy_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`representation` BLOB NULL DEFAULT NULL,"
-      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`type_hierarchy_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy` ( "
+      "`type_hierarchy_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`type_hierarchy_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_type_hierarchy);
 
   static const string create_global_variable(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`global_variable` ("
-      "`global_variable_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
-      "`declaration` TINYINT(1) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`global_variable_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`global_variable` ( "
+      "`global_variable_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
+      "`declaration` TINYINT(1) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`global_variable_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_global_variable);
 
   static const string create_callgraph(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph` ("
-      "`callgraph_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`representation` BLOB NULL DEFAULT NULL,"
-      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`callgraph_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph` ( "
+      "`callgraph_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`callgraph_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_callgraph);
 
   static const string create_points_to_graph(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`points-to_graph` ("
-      "`points-to_graph_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`representation` BLOB NULL DEFAULT NULL,"
-      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`points-to_graph_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`points-to_graph` ( "
+      "`points-to_graph_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`points-to_graph_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_points_to_graph);
 
   static const string create_project(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`project` ("
-      "`project_id` INT(11) NOT NULL AUTO_INCREMENT,"
-      "`identifier` VARCHAR(512) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`project_id`))"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`project` ( "
+      "`project_id` INT(11) NOT NULL AUTO_INCREMENT, "
+      "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`project_id`)) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_project);
 
   static const string create_project_has_module(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`project_has_module` ("
-      "`project_id` INT(11) NOT NULL,"
-      "`module_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`project_id`, `module_id`),"
-      "INDEX `fk_project_has_module_module1_idx` (`module_id` ASC),"
-      "INDEX `fk_project_has_module_project1_idx` (`project_id` ASC),"
-      "CONSTRAINT `fk_project_has_module_project1`"
-      "FOREIGN KEY (`project_id`)"
-      "REFERENCES `phasardb`.`project` (`project_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_project_has_module_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`project_has_module` ( "
+      "`project_id` INT(11) NOT NULL, "
+      "`module_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`project_id`, `module_id`), "
+      "INDEX `fk_project_has_module_module1_idx` (`module_id` ASC), "
+      "INDEX `fk_project_has_module_project1_idx` (`project_id` ASC), "
+      "CONSTRAINT `fk_project_has_module_project1` "
+      "FOREIGN KEY (`project_id`) "
+      "REFERENCES `phasardb`.`project` (`project_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_project_has_module_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_project_has_module);
 
   static const string create_module_has_callgraph(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_callgraph` ("
-      "`module_id` INT(11) NOT NULL,"
-      "`callgraph_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`module_id`, `callgraph_id`),"
-      "INDEX `fk_module_has_callgraph_callgraph1_idx` (`callgraph_id` ASC),"
-      "INDEX `fk_module_has_callgraph_module1_idx` (`module_id` ASC),"
-      "CONSTRAINT `fk_module_has_callgraph_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_module_has_callgraph_callgraph1`"
-      "FOREIGN KEY (`callgraph_id`)"
-      "REFERENCES `phasardb`.`callgraph` (`callgraph_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_callgraph` ( "
+      "`module_id` INT(11) NOT NULL, "
+      "`callgraph_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`module_id`, `callgraph_id`), "
+      "INDEX `fk_module_has_callgraph_callgraph1_idx` (`callgraph_id` ASC), "
+      "INDEX `fk_module_has_callgraph_module1_idx` (`module_id` ASC), "
+      "CONSTRAINT `fk_module_has_callgraph_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_module_has_callgraph_callgraph1` "
+      "FOREIGN KEY (`callgraph_id`) "
+      "REFERENCES `phasardb`.`callgraph` (`callgraph_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module_has_callgraph);
 
   static const string create_callgraph_has_points_to_graph(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph_has_points-to_graph` ("
-      "`callgraph_id` INT(11) NOT NULL,"
-      "`points-to_graph_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`callgraph_id`, `points-to_graph_id`),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph_has_points-to_graph` ( "
+      "`callgraph_id` INT(11) NOT NULL, "
+      "`points-to_graph_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`callgraph_id`, `points-to_graph_id`), "
       "INDEX `fk_callgraph_has_points-to_graph_points-to_graph1_idx` "
-      "(`points-to_graph_id` ASC),"
+      "(`points-to_graph_id` ASC), "
       "INDEX `fk_callgraph_has_points-to_graph_callgraph1_idx` (`callgraph_id` "
-      "ASC),"
-      "CONSTRAINT `fk_callgraph_has_points-to_graph_callgraph1`"
-      "FOREIGN KEY (`callgraph_id`)"
-      "REFERENCES `phasardb`.`callgraph` (`callgraph_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_callgraph_has_points-to_graph_points-to_graph1`"
-      "FOREIGN KEY (`points-to_graph_id`)"
-      "REFERENCES `phasardb`.`points-to_graph` (`points-to_graph_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "ASC), "
+      "CONSTRAINT `fk_callgraph_has_points-to_graph_callgraph1` "
+      "FOREIGN KEY (`callgraph_id`) "
+      "REFERENCES `phasardb`.`callgraph` (`callgraph_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_callgraph_has_points-to_graph_points-to_graph1` "
+      "FOREIGN KEY (`points-to_graph_id`) "
+      "REFERENCES `phasardb`.`points-to_graph` (`points-to_graph_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_callgraph_has_points_to_graph);
 
   static const string create_module_has_function(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_function` ("
-      "`module_id` INT(11) NOT NULL,"
-      "`function_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`module_id`, `function_id`),"
-      "INDEX `fk_module_has_function_function1_idx` (`function_id` ASC),"
-      "INDEX `fk_module_has_function_module1_idx` (`module_id` ASC),"
-      "CONSTRAINT `fk_module_has_function_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE NO ACTION"
-      "ON UPDATE NO ACTION,"
-      "CONSTRAINT `fk_module_has_function_function1`"
-      "FOREIGN KEY (`function_id`)"
-      "REFERENCES `phasardb`.`function` (`function_id`)"
-      "ON DELETE NO ACTION"
-      "ON UPDATE NO ACTION)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_function` ( "
+      "`module_id` INT(11) NOT NULL, "
+      "`function_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`module_id`, `function_id`), "
+      "INDEX `fk_module_has_function_function1_idx` (`function_id` ASC), "
+      "INDEX `fk_module_has_function_module1_idx` (`module_id` ASC), "
+      "CONSTRAINT `fk_module_has_function_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE NO ACTION "
+      "ON UPDATE NO ACTION, "
+      "CONSTRAINT `fk_module_has_function_function1` "
+      "FOREIGN KEY (`function_id`) "
+      "REFERENCES `phasardb`.`function` (`function_id`) "
+      "ON DELETE NO ACTION "
+      "ON UPDATE NO ACTION) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module_has_function);
 
   static const string create_module_has_global_variable(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_global_variable` ("
-      "`module_id` INT(11) NOT NULL,"
-      "`global_variable_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`module_id`, `global_variable_id`),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_global_variable` ( "
+      "`module_id` INT(11) NOT NULL, "
+      "`global_variable_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`module_id`, `global_variable_id`), "
       "INDEX `fk_module_has_global_variable_global_variable1_idx` "
-      "(`global_variable_id` ASC),"
-      "INDEX `fk_module_has_global_variable_module1_idx` (`module_id` ASC),"
-      "CONSTRAINT `fk_module_has_global_variable_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_module_has_global_variable_global_variable1`"
-      "FOREIGN KEY (`global_variable_id`)"
-      "REFERENCES `phasardb`.`global_variable` (`global_variable_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "(`global_variable_id` ASC), "
+      "INDEX `fk_module_has_global_variable_module1_idx` (`module_id` ASC), "
+      "CONSTRAINT `fk_module_has_global_variable_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_module_has_global_variable_global_variable1` "
+      "FOREIGN KEY (`global_variable_id`) "
+      "REFERENCES `phasardb`.`global_variable` (`global_variable_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module_has_global_variable);
 
   static const string create_module_has_type_hierarchy(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_type_hierarchy` ("
-      "`module_id` INT(11) NOT NULL,"
-      "`type_hierarchy_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`module_id`, `type_hierarchy_id`),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_type_hierarchy` ( "
+      "`module_id` INT(11) NOT NULL, "
+      "`type_hierarchy_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`module_id`, `type_hierarchy_id`), "
       "INDEX `fk_module_has_type_hierarchy_type_hierarchy1_idx` "
-      "(`type_hierarchy_id` ASC),"
-      "INDEX `fk_module_has_type_hierarchy_module1_idx` (`module_id` ASC),"
-      "CONSTRAINT `fk_module_has_type_hierarchy_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_module_has_type_hierarchy_type_hierarchy1`"
-      "FOREIGN KEY (`type_hierarchy_id`)"
-      "REFERENCES `phasardb`.`type_hierarchy` (`type_hierarchy_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "(`type_hierarchy_id` ASC), "
+      "INDEX `fk_module_has_type_hierarchy_module1_idx` (`module_id` ASC), "
+      "CONSTRAINT `fk_module_has_type_hierarchy_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_module_has_type_hierarchy_type_hierarchy1` "
+      "FOREIGN KEY (`type_hierarchy_id`) "
+      "REFERENCES `phasardb`.`type_hierarchy` (`type_hierarchy_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module_has_type_hierarchy);
 
   static const string create_module_has_type(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_type` ("
-      "`module_id` INT(11) NOT NULL,"
-      "`type_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`module_id`, `type_id`),"
-      "INDEX `fk_module_has_type_type1_idx` (`type_id` ASC),"
-      "INDEX `fk_module_has_type_module1_idx` (`module_id` ASC),"
-      "CONSTRAINT `fk_module_has_type_module1`"
-      "FOREIGN KEY (`module_id`)"
-      "REFERENCES `phasardb`.`module` (`module_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_module_has_type_type1`"
-      "FOREIGN KEY (`type_id`)"
-      "REFERENCES `phasardb`.`type` (`type_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`module_has_type` ( "
+      "`module_id` INT(11) NOT NULL, "
+      "`type_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`module_id`, `type_id`), "
+      "INDEX `fk_module_has_type_type1_idx` (`type_id` ASC), "
+      "INDEX `fk_module_has_type_module1_idx` (`module_id` ASC), "
+      "CONSTRAINT `fk_module_has_type_module1` "
+      "FOREIGN KEY (`module_id`) "
+      "REFERENCES `phasardb`.`module` (`module_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_module_has_type_type1` "
+      "FOREIGN KEY (`type_id`) "
+      "REFERENCES `phasardb`.`type` (`type_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_module_has_type);
 
   static const string create_type_hierarchy_has_type(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy_has_type` ("
-      "`type_hierarchy_id` INT(11) NOT NULL,"
-      "`type_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`type_hierarchy_id`, `type_id`),"
-      "INDEX `fk_type_hierarchy_has_type_type1_idx` (`type_id` ASC),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy_has_type` ( "
+      "`type_hierarchy_id` INT(11) NOT NULL, "
+      "`type_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`type_hierarchy_id`, `type_id`), "
+      "INDEX `fk_type_hierarchy_has_type_type1_idx` (`type_id` ASC), "
       "INDEX `fk_type_hierarchy_has_type_type_hierarchy1_idx` "
-      "(`type_hierarchy_id` ASC),"
-      "CONSTRAINT `fk_type_hierarchy_has_type_type_hierarchy1`"
-      "FOREIGN KEY (`type_hierarchy_id`)"
-      "REFERENCES `phasardb`.`type_hierarchy` (`type_hierarchy_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_type_hierarchy_has_type_type1`"
-      "FOREIGN KEY (`type_id`)"
-      "REFERENCES `phasardb`.`type` (`type_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "(`type_hierarchy_id` ASC), "
+      "CONSTRAINT `fk_type_hierarchy_has_type_type_hierarchy1` "
+      "FOREIGN KEY (`type_hierarchy_id`) "
+      "REFERENCES `phasardb`.`type_hierarchy` (`type_hierarchy_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_type_hierarchy_has_type_type1` "
+      "FOREIGN KEY (`type_id`) "
+      "REFERENCES `phasardb`.`type` (`type_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_type_hierarchy_has_type);
 
   static const string create_function_has_ifds_ide_summary(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`function_has_ifds_ide_summary` ("
-      "`function_id` INT(11) NOT NULL,"
-      "`ifds_ide_summary_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`function_id`, `ifds_ide_summary_id`),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`function_has_ifds_ide_summary` ( "
+      "`function_id` INT(11) NOT NULL, "
+      "`ifds_ide_summary_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`function_id`, `ifds_ide_summary_id`), "
       "INDEX `fk_function_has_ifds_ide_summary_ifds_ide_summary1_idx` "
-      "(`ifds_ide_summary_id` ASC),"
+      "(`ifds_ide_summary_id` ASC), "
       "INDEX `fk_function_has_ifds_ide_summary_function1_idx` (`function_id` "
-      "ASC),"
-      "CONSTRAINT `fk_function_has_ifds_ide_summary_function1`"
-      "FOREIGN KEY (`function_id`)"
-      "REFERENCES `phasardb`.`function` (`function_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_function_has_ifds_ide_summary_ifds_ide_summary1`"
-      "FOREIGN KEY (`ifds_ide_summary_id`)"
-      "REFERENCES `phasardb`.`ifds_ide_summary` (`ifds_ide_summary_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "ASC), "
+      "CONSTRAINT `fk_function_has_ifds_ide_summary_function1` "
+      "FOREIGN KEY (`function_id`) "
+      "REFERENCES `phasardb`.`function` (`function_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_function_has_ifds_ide_summary_ifds_ide_summary1` "
+      "FOREIGN KEY (`ifds_ide_summary_id`) "
+      "REFERENCES `phasardb`.`ifds_ide_summary` (`ifds_ide_summary_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_function_has_ifds_ide_summary);
 
   static const string create_function_has_points_to_graph(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`function_has_points-to_graph` ("
-      "`function_id` INT(11) NOT NULL,"
-      "`points-to_graph_id` INT(11) NOT NULL,"
-      "PRIMARY KEY (`function_id`, `points-to_graph_id`),"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`function_has_points-to_graph` ( "
+      "`function_id` INT(11) NOT NULL, "
+      "`points-to_graph_id` INT(11) NOT NULL, "
+      "PRIMARY KEY (`function_id`, `points-to_graph_id`), "
       "INDEX `fk_function_has_points-to_graph_points-to_graph1_idx` "
-      "(`points-to_graph_id` ASC),"
+      "(`points-to_graph_id` ASC), "
       "INDEX `fk_function_has_points-to_graph_function1_idx` (`function_id` "
-      "ASC),"
-      "CONSTRAINT `fk_function_has_points-to_graph_function1`"
-      "FOREIGN KEY (`function_id`)"
-      "REFERENCES `phasardb`.`function` (`function_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_function_has_points-to_graph_points-to_graph1`"
-      "FOREIGN KEY (`points-to_graph_id`)"
-      "REFERENCES `phasardb`.`points-to_graph` (`points-to_graph_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "ASC), "
+      "CONSTRAINT `fk_function_has_points-to_graph_function1` "
+      "FOREIGN KEY (`function_id`) "
+      "REFERENCES `phasardb`.`function` (`function_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_function_has_points-to_graph_points-to_graph1` "
+      "FOREIGN KEY (`points-to_graph_id`) "
+      "REFERENCES `phasardb`.`points-to_graph` (`points-to_graph_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_function_has_points_to_graph);
 
   static const string create_type_has_virtual_function(
-      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_has_virtual_function` ("
-      "`type_id` INT(11) NOT NULL,"
-      "`function_id` INT(11) NOT NULL,"
-      "`vtable_index` INT(11) NULL DEFAULT NULL,"
-      "PRIMARY KEY (`type_id`, `function_id`),"
-      "INDEX `fk_type_has_function_function1_idx` (`function_id` ASC),"
-      "INDEX `fk_type_has_function_type1_idx` (`type_id` ASC),"
-      "CONSTRAINT `fk_type_has_function_type1`"
-      "FOREIGN KEY (`type_id`)"
-      "REFERENCES `phasardb`.`type` (`type_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE,"
-      "CONSTRAINT `fk_type_has_function_function1`"
-      "FOREIGN KEY (`function_id`)"
-      "REFERENCES `phasardb`.`function` (`function_id`)"
-      "ON DELETE CASCADE"
-      "ON UPDATE CASCADE)"
-      "ENGINE = InnoDB"
-      "DEFAULT CHARACTER SET = utf8"
+      "CREATE TABLE IF NOT EXISTS `phasardb`.`type_has_virtual_function` ( "
+      "`type_id` INT(11) NOT NULL, "
+      "`function_id` INT(11) NOT NULL, "
+      "`vtable_index` INT(11) NULL DEFAULT NULL, "
+      "PRIMARY KEY (`type_id`, `function_id`), "
+      "INDEX `fk_type_has_function_function1_idx` (`function_id` ASC), "
+      "INDEX `fk_type_has_function_type1_idx` (`type_id` ASC), "
+      "CONSTRAINT `fk_type_has_function_type1` "
+      "FOREIGN KEY (`type_id`) "
+      "REFERENCES `phasardb`.`type` (`type_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE, "
+      "CONSTRAINT `fk_type_has_function_function1` "
+      "FOREIGN KEY (`function_id`) "
+      "REFERENCES `phasardb`.`function` (`function_id`) "
+      "ON DELETE CASCADE "
+      "ON UPDATE CASCADE) "
+      "ENGINE = InnoDB "
+      "DEFAULT CHARACTER SET = utf8 "
       "COLLATE = utf8_unicode_ci;");
   stmt->execute(create_type_has_virtual_function);
 
@@ -999,11 +1255,14 @@ void DBConn::buildDBScheme() {
 
   static const string unique_checks("SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;");
   stmt->execute(unique_checks);
+  cout << "BUILD DATABASE SCHEMA" << endl;
 }
 
 void DBConn::dropDBAndRebuildScheme() {
-  unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement("DROP TABLE IF EXISTS ?"));
-  pstmt->setString(1, db_schema_name);
-  pstmt->executeUpdate();
+  unique_ptr<sql::Statement> stmt(conn->createStatement());
+  const string drop_database("DROP DATABASE IF EXISTS `phasardb`");
+  stmt->execute(drop_database);
+  cout << "DROPED DATABASE SCHEMA" << endl;
+  this_thread::sleep_for(5s);
   buildDBScheme();
 }
