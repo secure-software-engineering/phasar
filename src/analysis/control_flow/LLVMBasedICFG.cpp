@@ -51,6 +51,9 @@ LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction *i)
                     ->getString()
                     .str())) {}
 
+LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB)
+    : CH(STH), IRDB(IRDB) {}
+
 LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              WalkerStrategy WS, ResolveStrategy RS,
                              const vector<string> &EntryPoints)
