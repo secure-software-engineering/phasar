@@ -26,12 +26,14 @@
 #include <clang/Frontend/ASTConsumers.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
+#include <clang/Lex/Lexer.h>
+#include <clang/Lex/Preprocessor.h>
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
-#include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/CommandLine.h>
+#include <iostream>
 #include <random>
 #include <sstream>
 #include <string>
@@ -46,17 +48,15 @@
 
 class RandomChangeVisitor
     : public clang::RecursiveASTVisitor<RandomChangeVisitor> {
-private:
+ private:
   clang::Rewriter &RW;
 
-public:
+ public:
   RandomChangeVisitor(clang::Rewriter &R);
-  virtual bool VisitStmt(clang::Stmt *st);
-  virtual bool VisitFunctionDecl(clang::FunctionDecl *f);
-  virtual bool VisitTypeDecl(clang::TypeDecl *t);
-  // virtual bool VisitCallExpr(CallExpr *call);
-  // virtual bool VisitCXXRecordDecl(CXXRecordDecl *Declaration);
-  // virtual bool VisitRecordDecl(RecordDecl *Declaration);
+  virtual bool VisitVarDecl(clang::VarDecl *V);
+  virtual bool VisitTypeDecl(clang::TypeDecl *T);
+  virtual bool VisitStmt(clang::Stmt *S);
+  virtual bool VisitFunctionDecl(clang::FunctionDecl *F);
 };
 
 #endif /* CLANG_MYVISITOR_HH_ */

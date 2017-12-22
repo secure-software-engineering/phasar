@@ -17,7 +17,6 @@
 #include "RandomChangeASTConsumer.h"
 #include "RandomChangeVisitor.h"
 
-// override the constructor in order to pass CI
 RandomChangeASTConsumer::RandomChangeASTConsumer(clang::Rewriter &R)
     : Visitor(R) {}
 

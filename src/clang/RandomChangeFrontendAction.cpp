@@ -22,8 +22,6 @@ void RandomChangeFrontendAction::EndSourceFileAction() {
   clang::SourceManager &SM = RW.getSourceMgr();
   llvm::errs() << "** EndSourceFileAction for: "
                << SM.getFileEntryForID(SM.getMainFileID())->getName() << "\n";
-
-  // Now emit the rewritten buffer.
   RW.getEditBuffer(SM.getMainFileID()).write(llvm::outs());
 }
 

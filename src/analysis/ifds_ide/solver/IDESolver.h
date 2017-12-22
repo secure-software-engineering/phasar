@@ -341,6 +341,10 @@ private:
                 endSumm = set<
                     typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
+            // cout << "ENDSUMM" << endl;
+            // sP->dump();
+            // d3->dump();
+            // printEndSummaryTab();
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
             // <sP,d3>, create new caller-side jump functions to the return
@@ -521,7 +525,6 @@ private:
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<N, D> edge) {
     auto &lg = lg::get();
-    cout << "IDESolver::pathEdgeProcessingTask()" << endl;
     BOOST_LOG_SEV(lg, DEBUG)
         << "Process path edge: <"
         << "D source: " << ideTabulationProblem.DtoString(edge.factAtSource())
@@ -685,10 +688,10 @@ protected:
     cout << "IDESolver::submitInitialSeeds()" << endl;
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
-      cout << "Start point:" << endl;
+      cout << "submitInitialSeeds - Start point:" << endl;
       startPoint->dump();
       for (const D &value : seed.second) {
-        cout << "Value(s):" << endl;
+        cout << "submitInitialSeeds - Value:" << endl;
         value->dump();
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
                   false);
@@ -724,7 +727,6 @@ protected:
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
       addEndSummary(sP, d1, n, d2, f);
-      // copy to avoid concurrent modification exceptions by other threads
       for (auto entry : incoming(d1, sP))
         inc[entry.first] = set<D>{entry.second};
     }

@@ -598,13 +598,13 @@ LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
   }
   if (!m->isDeclaration()) {
     return {&m->front().front()};
-  } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
-    return getStartPointsOf(getMethod(m->getName().str()));
+  // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
+    // return getStartPointsOf(getMethod(m->getName().str()));
   } else {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "Could not get starting points of '" << m->getName().str()
-        << "' because it is a declaration!";
+        << "' because it is a declaration";
     return {};
   }
 }
