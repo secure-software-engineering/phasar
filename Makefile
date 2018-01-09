@@ -34,7 +34,8 @@ CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 CXX_INCL = -I ./json/src/
 
 # Define the google test run parameters
-GTEST_RUN_PARAMS = --gtest_repeat=3
+GTEST_RUN_PARAMS = --gtest_repeat=1
+GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
@@ -92,6 +93,7 @@ BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
+BOOST_LIBS += -lboost_graph
 LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
@@ -161,7 +163,7 @@ tests: $(TSTEXE) $(TST)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
 
 run_tests: tests
 	@echo "Run tests: $(TSTEXE)"

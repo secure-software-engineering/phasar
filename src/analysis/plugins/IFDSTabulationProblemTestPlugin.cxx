@@ -37,6 +37,9 @@ IFDSTabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   cout << "IFDSTabulationProblemTestPlugin::getRetFlowFunction()\n";
+  cout << "HIT RETURN" << endl;
+  exitStmt->dump();
+  retSite->dump();
   return Identity<const llvm::Value *>::v();
 }
 
@@ -51,7 +54,7 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   cout << "IFDSTabulationProblemTestPlugin::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return nullptr;
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>

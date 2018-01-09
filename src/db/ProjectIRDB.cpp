@@ -432,6 +432,14 @@ llvm::Instruction *ProjectIRDB::getInstruction(size_t id) {
   return nullptr;
 }
 
+size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
+  size_t id = 0;
+  if (auto MD = llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))) {
+    id = stol(MD->getString().str());
+  }
+  return id;
+}
+
 PointsToGraph *ProjectIRDB::getPointsToGraph(const string &name) {
   if (ptgs.count(name))
     return ptgs[name].get();

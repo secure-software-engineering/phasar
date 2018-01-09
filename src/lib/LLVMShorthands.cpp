@@ -40,6 +40,9 @@ string llvmIRToString(const llvm::Value *V) {
   string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
+  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    RSO << "=> ID: " << getMetaDataID(Inst);
+  }
   RSO.flush();
   return IRBuffer;
 }
@@ -119,4 +122,57 @@ size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
     M->setModuleIdentifier(Identifier);
   }
   return hash<string>{}(SourceCode);
+}
+
+size_t computeModuleHash(const llvm::Module *M) {
+  string SourceCode;
+  llvm::raw_string_ostream RSO(SourceCode);
+  llvm::WriteBitcodeToFile(M, RSO);
+  RSO.flush();
+  return hash<string>{}(SourceCode);
+}
+
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           unsigned instNo) {
+  unsigned current = 1;
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      if (current == instNo) {
+        return &I;
+      }
+      current++;
+    }
+  }
+  return nullptr;
+}
+
+const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
+                                                  unsigned termInstNo) {
+  unsigned current = 1;
+  for (auto &BB : *F) {
+    if (const llvm::TerminatorInst *T =
+            llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+      if (current == termInstNo) {
+        return T;
+      }
+      current++;
+    }
+  }
+  return nullptr;
+}
+
+const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
+                                              unsigned stoNo) {
+  unsigned current = 1;
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      if (const llvm::StoreInst *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
+        if (current == stoNo) {
+          return S;
+        }
+        current++;
+      }
+    }
+  }
+  return nullptr;
 }

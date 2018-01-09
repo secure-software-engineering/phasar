@@ -54,7 +54,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
   LLVMTypeHierarchy CH(IRDB);
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-  CH.printAsDot();
+//  CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {

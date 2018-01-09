@@ -1,0 +1,177 @@
+#include "../../../src/analysis/control_flow/LLVMBasedCFG.h"
+#include "../../../src/db/ProjectIRDB.h"
+#include <gtest/gtest.h>
+#include <llvm/IR/InstIterator.h>
+using namespace std;
+
+TEST(FallThroughSuccTest, FallThroughSuccTest) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING CONDITIONAL BRANCH
+  // br i1 %5, label %6, label %9
+  auto BranchInst = getNthTermInstruction(F, 1);
+  // %7 = load i32, i32* %3, align 4
+  ASSERT_FALSE(
+      cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F, 10)));
+  // %10 = load i32, i32* %3, align 4
+  ASSERT_TRUE(cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F, 14)));
+
+  // HANDLING UNCONDITIONAL BRANCH
+  // br label %12
+  BranchInst = getNthTermInstruction(F, 2);
+  // ret i32 0
+  ASSERT_TRUE(
+      cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
+}
+
+TEST(BranchTargetTest, BranchTargetTest) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/switch.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING SWITCH INSTRUCTION
+  // switch i32 %4, label %8 [
+  //   i32 65, label %5
+  //   i32 66, label %6
+  //   i32 67, label %6
+  //   i32 68, label %7
+  // ]
+  auto SwitchInst = getNthTermInstruction(F, 1);
+  // store i32 0, i32* %2, align 4
+  ASSERT_FALSE(cfg.isBranchTarget(SwitchInst, getNthStoreInstruction(F, 2)));
+  // store i32 10, i32* %2, align 4
+  ASSERT_TRUE(cfg.isBranchTarget(SwitchInst, getNthStoreInstruction(F, 3)));
+  // store i32 20, i32* %2, align 4
+  ASSERT_TRUE(cfg.isBranchTarget(SwitchInst, getNthStoreInstruction(F, 4)));
+  // store i32 30, i32* %2, align 4
+  ASSERT_TRUE(cfg.isBranchTarget(SwitchInst, getNthStoreInstruction(F, 5)));
+  // store i32 -1, i32* %2, align 4
+  ASSERT_TRUE(cfg.isBranchTarget(SwitchInst, getNthStoreInstruction(F, 6)));
+  // ret i32 0
+  ASSERT_FALSE(cfg.isBranchTarget(SwitchInst, getNthTermInstruction(F, 6)));
+
+  // HANDLING BRANCH INSTRUCTION
+  // br label %9
+  auto BranchInst = getNthTermInstruction(F, 2);
+  // store i32 20, i32* %2, align 4
+  ASSERT_FALSE(cfg.isBranchTarget(BranchInst, getNthStoreInstruction(F, 4)));
+  // ret i32 0
+  ASSERT_TRUE(cfg.isBranchTarget(BranchInst, getNthTermInstruction(F, 6)));
+}
+
+TEST(GetPredsTest, HandlesMulitplePredeccessors) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // ret i32 0
+  auto TermInst = getNthTermInstruction(F, 4);
+  vector<const llvm::Instruction *> Predeccessor;
+  // br label %12
+  Predeccessor.push_back(getNthTermInstruction(F, 2));
+  // br label %12
+  Predeccessor.push_back(getNthTermInstruction(F, 3));
+  auto predsOfTermInst = cfg.getPredsOf(TermInst);
+  ASSERT_EQ(predsOfTermInst, Predeccessor);
+}
+
+TEST(GetPredsTest, HandlesSingleOrEmptyPredeccessor) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING SINGLE PREDECCESSOR
+  // store i32 0, i32* %1, align 4
+  const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
+  // %3 = alloca i32, align 4)
+  auto Pred = getNthInstruction(F, 3);
+  vector<const llvm::Instruction *> Predeccessor{Pred};
+  auto predsOfInst = cfg.getPredsOf(Inst);
+  ASSERT_EQ(predsOfInst, Predeccessor);
+
+  // br i1 %11, label %12, label %16
+  Inst = getNthTermInstruction(F, 1);
+  // %5 = icmp sgt i32 1, %4
+  Pred = getNthInstruction(F, 8);
+  Predeccessor.clear();
+  Predeccessor.push_back(Pred);
+  predsOfInst = cfg.getPredsOf(Inst);
+  ASSERT_EQ(predsOfInst, Predeccessor);
+
+  // HANDLING EMPTY PREDECCESSOR
+  // %1 = alloca i32, align 4
+  Inst = getNthInstruction(F, 1);
+  predsOfInst = cfg.getPredsOf(Inst);
+  Predeccessor.clear();
+  ASSERT_EQ(predsOfInst, Predeccessor);
+}
+
+TEST(GetSuccsTest, HandlesMultipleSuccessors) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING CONDITIONAL BRANCH
+  // br i1 %5, label %6, label %9
+  auto BRInst = getNthTermInstruction(F, 1);
+  vector<const llvm::Instruction *> Successors;
+  // %7 = load i32, i32* %3, align 4
+  Successors.push_back(getNthInstruction(F, 10));
+  // %10 = load i32, i32* %3, align 4
+  Successors.push_back(getNthInstruction(F, 14));
+  auto succsOfBRInst = cfg.getSuccsOf(BRInst);
+  ASSERT_EQ(succsOfBRInst, Successors);
+
+  // HANDLING UNCONDITIONAL BRANCH
+  // br label %12
+  BRInst = getNthTermInstruction(F, 3);
+  Successors.clear();
+  // ret i32 0
+  Successors.push_back(getNthTermInstruction(F, 4));
+  succsOfBRInst = cfg.getSuccsOf(BRInst);
+  ASSERT_EQ(succsOfBRInst, Successors);
+}
+
+TEST(GetSuccsTest, HandlesSingleOrEmptySuccessor) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING SINGLE SUCCESSOR
+  // store i32 0, i32* %1, align 4
+  const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
+  // %4 = call i32 @_Z4multii(i32 2, i32 4)
+  auto Succ = getNthInstruction(F, 5);
+  vector<const llvm::Instruction *> Successors{Succ};
+  auto succsOfInst = cfg.getSuccsOf(Inst);
+  ASSERT_EQ(succsOfInst, Successors);
+
+  // HANDLING EMPTY SUCCESSOR
+  // ret i32 0
+  auto termInst = getNthTermInstruction(F, 1);
+  auto succsOfTermInst = cfg.getSuccsOf(termInst);
+  Successors.clear();
+  ASSERT_EQ(succsOfTermInst, Successors);
+}
+
+TEST(GetSuccsTest, HandlesCallSuccessor) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"});
+  auto F = IRDB.getFunction("main");
+
+  // HANDLING CALL INSTRUCTION SUCCESSOR
+  // %4 = call i32 @_Z4multii(i32 2, i32 4)
+  auto callInst = getNthInstruction(F, 5);
+  // store i32 %4, i32* %2, align 4
+  auto Succ = getNthStoreInstruction(F, 2);
+  auto succsOfCallInst = cfg.getSuccsOf(callInst);
+  vector<const llvm::Instruction *> Successors{Succ};
+  ASSERT_EQ(succsOfCallInst, Successors);
+}
+
+int main(int argc, char **argv) {
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
