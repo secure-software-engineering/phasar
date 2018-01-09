@@ -107,10 +107,18 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
 /**
  * @brief Computes a hash value for a given LLVM Module.
  * @param M LLVM Module.
- * @param considerIdentifier If false, module identifier will be set to an empty
- * string.
+ * @param considerIdentifier If true, module identifier will be considered for
+ * hash computation.
  * @return Hash value.
  */
 size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
+
+/**
+ * @brief Computes a hash value for a given LLVM Module.
+ * @note Hash computation will consider the module identifier.
+ * @param M
+ * @return
+ */
+size_t computeModuleHash(const llvm::Module *M);
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

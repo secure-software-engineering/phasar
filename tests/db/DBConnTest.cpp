@@ -1,46 +1,74 @@
 #include "../../src/db/DBConn.h"
 #include "../../src/db/ProjectIRDB.h"
-//#include <thread>
-//#include "../../src/analysis/points-to/LLVMTypeHierarchy.h"
-//#include <boost/graph/adjacency_list.hpp>
-//#include <boost/graph/graph_utility.hpp>
-//#include <boost/graph/graphviz.hpp>
-//#include <boost/property_map/dynamic_property_map.hpp>
 #include <gtest/gtest.h>
 using namespace std;
 
-TEST(StoreLLVMTypeHierarchyTest, HandleMultipleModuleLTH) {
-  ProjectIRDB IRDB(
+const vector<vector<string>> IRFiles{
+    /* IRFiles[0] */
+    {"test_code/llvm_test_code/virtual_callsites/cross_module/base.ll"},
+    /* IRFiles[1] */
+    {"test_code/llvm_test_code/virtual_callsites/cross_module/main.ll",
+     "test_code/llvm_test_code/virtual_callsites/cross_module/utils.ll",
+     "test_code/llvm_test_code/virtual_callsites/cross_module/base.ll",
+     "test_code/llvm_test_code/virtual_callsites/cross_module/derived.ll"},
+    /* IRFiles[2] */
     {"test_code/llvm_test_code/module_wise/module_wise_9/src1.ll",
      "test_code/llvm_test_code/module_wise/module_wise_9/src2.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_9/src3.ll"});
-  LLVMTypeHierarchy TH(IRDB);
-  TH.print();
-  cout << '\n';
+     "test_code/llvm_test_code/module_wise/module_wise_9/src3.ll"},
+    /* IRFiles[3] */
+    {"test_code/llvm_test_code/module_wise/module_wise_12/src1.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_12/src2.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_12/main.ll"},
+    /* IRFiles[4] */
+    {"test_code/llvm_test_code/module_wise/module_wise_13/src1.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_13/src2.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_13/main.ll"},
+    /* IRFiles[5] */
+    {"test_code/llvm_test_code/module_wise/module_wise_14/src1.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_14/src2.ll",
+     "test_code/llvm_test_code/module_wise/module_wise_14/main.ll"}};
+
+TEST(StoreLLVMTypeHierarchyTest, HandleMultipleProjects) {
+  ProjectIRDB firstIRDB(IRFiles[4]);
+  ProjectIRDB secondIRDB(IRFiles[5]);
+
+  DBConn &db = DBConn::getInstance();
+  LLVMTypeHierarchy TH1(firstIRDB);
+  LLVMTypeHierarchy TH2(secondIRDB);
+  cout << "\n\n";
+  TH1.print();
+  cout << "\n\n";
+  TH2.print();
+  db.storeProjectIRDB("first_project", firstIRDB);
+  db.storeProjectIRDB("second_project", secondIRDB);
+}
+
+TEST(StoreLLVMTypeHierarchyTest, HandleWriteToHex) {
+  ProjectIRDB IRDB(IRFiles[2]);
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
-//  this_thread::sleep_for(10s);
-  db.storeLLVMTypeHierarchy(TH, false);
-//  db.dropDBAndRebuildScheme();
-//  db.storeLLVMTypeHierarchy(TH, true);
+  LLVMTypeHierarchy TH(IRDB);
+  cout << "\n\n";
+  TH.print();
+  cout << '\n';
+  db.storeLLVMTypeHierarchy(TH, "phasardbtest", true);
+}
+
+TEST(StoreLLVMTypeHierarchyTest, HandleWriteToDot) {
+  ProjectIRDB IRDB(IRFiles[2]);
+  DBConn &db = DBConn::getInstance();
+  db.storeProjectIRDB("phasardbtest", IRDB);
+  LLVMTypeHierarchy TH(IRDB);
+  cout << '\n';
+  TH.print();
+  cout << '\n';
+  db.storeLLVMTypeHierarchy(TH, "phasardbtest", false);
 }
 
 TEST(StoreProjectIRDBTest, StoreProjectIRDBTest) {
-  ProjectIRDB IRDB(
-      {"test_code/llvm_test_code/module_wise/module_wise_9/src1.ll",
-       "test_code/llvm_test_code/module_wise/module_wise_9/src2.ll",
-       "test_code/llvm_test_code/module_wise/module_wise_9/src3.ll"});
+  ProjectIRDB IRDB(IRFiles[2]);
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
-  cout << db.getFunctionHash(10) << endl;
-  cout << db.getFunctionHash(1) << endl;
-  cout << db.getFunctionHash(3) << endl;
-//  for (auto g : db.getGlobalVariableID("_ZTV13OtherConcrete")) {
-//    cout << g << ":" << db.globalVariableIsDeclaration(g) << endl;
-//  }
-//  cout << std::boolalpha << db.globalVariableIsDeclaration(1) << endl;
-//  cout << std::boolalpha << db.globalVariableIsDeclaration(2) << endl;
-//  cout << std::boolalpha << db.globalVariableIsDeclaration(3) << endl;
 }
 
 int main(int argc, char **argv) {

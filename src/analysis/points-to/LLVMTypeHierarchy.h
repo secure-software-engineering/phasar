@@ -18,6 +18,7 @@
 #include <boost/graph/transitive_closure.hpp>
 #include <boost/property_map/dynamic_property_map.hpp>
 #include <fstream>
+#include <gtest/gtest_prod.h>
 #include <initializer_list>
 #include <iostream>
 #include <llvm/IR/CallSite.h>
@@ -71,6 +72,7 @@ private:
   set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
+  FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
 
 public:
   LLVMTypeHierarchy() = default;

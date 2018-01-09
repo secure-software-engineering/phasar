@@ -124,6 +124,14 @@ size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
   return hash<string>{}(SourceCode);
 }
 
+size_t computeModuleHash(const llvm::Module *M) {
+  string SourceCode;
+  llvm::raw_string_ostream RSO(SourceCode);
+  llvm::WriteBitcodeToFile(M, RSO);
+  RSO.flush();
+  return hash<string>{}(SourceCode);
+}
+
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned instNo) {
   unsigned current = 1;
