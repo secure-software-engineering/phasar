@@ -13,6 +13,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
                                        bool WPA_MODE, bool Mem2Reg_MODE,
                                        bool PrintEdgeRecorder, string graph_id)
     : FinalResultsJson() {
+  PAMM &p = PAMM::getInstance();
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
   BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
@@ -45,25 +46,33 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
+//    START_TIMER("WPA link time");
     IRDB.linkForWPA();
+//    STOP_TIMER("WPA link time");
   }
+  START_TIMER("IR preprocessing");
   IRDB.preprocessIR();
-  IRDB.print();
+  STOP_TIMER("IR preprocessing");
+//  IRDB.print();
 //  DBConn::getInstance();
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  START_TIMER("LTH construction");
   LLVMTypeHierarchy CH(IRDB);
+  STOP_TIMER("LTH construction");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
 //  CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     cout << "WPA_MODE HAPPENING" << endl;
+    START_TIMER("ICFG construction");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
+    STOP_TIMER("ICFG construction");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
-    ICFG.print();
-    ICFG.printAsDot("interproc_cfg.dot");
+//    ICFG.print();
+//    ICFG.printAsDot("interproc_cfg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -71,6 +80,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
+      START_TIMER("Analysis runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -172,6 +182,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
+      STOP_TIMER("Analysis runtime");
     }
   }
   // Perform module-wise (MW) analysis

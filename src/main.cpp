@@ -141,6 +141,8 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
+  PAMM &p = PAMM::getInstance();
+  START_TIMER("Total runtime");
   // set-up the logger and get a reference to it
   initializeLogger(true);
   auto &lg = lg::get();
@@ -351,5 +353,8 @@ int main(int argc, const char **argv) {
   BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.";
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
+  STOP_TIMER("Total runtime");
+//  PRINT_EVA_RESULTS(VariablesMap["config"].as<string>());
+  EXPORT_EVA_RESULTS(VariablesMap["config"].as<string>());
   return 0;
 }

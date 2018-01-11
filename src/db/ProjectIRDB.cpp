@@ -181,6 +181,7 @@ void ProjectIRDB::compileAndAddToDB(vector<const char *> CompileCommand) {
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
+  PAMM &p = PAMM::getInstance();
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier();
   // TODO Have a look at this stuff from the future at some point in time
@@ -215,6 +216,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   ///                        addMyLoopPass);
   ///   ...
   // But for now, stick to what is well debugged
+  START_TIMER("Pass " + M->getModuleIdentifier());
   llvm::legacy::PassManager PM;
   if (VariablesMap["mem2reg"].as<bool>()) {
     llvm::FunctionPass *Mem2Reg = llvm::createPromoteMemoryToRegisterPass();
@@ -244,6 +246,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PM.add(CFLAndersAAWP);
   // PM.add(CFLSteensAAWP);
   PM.run(*M);
+  STOP_TIMER("Pass " + M->getModuleIdentifier());
   // just to be sure that none of the passes has messed up the module!
   bool broken_debug_info = false;
   if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
@@ -252,6 +255,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   if (broken_debug_info) {
     BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
   }
+  START_TIMER("Points-to analysis");
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
   for (auto &F : *M) {
@@ -262,9 +266,12 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
           createLegacyPMBasicAAResult(*BasicAAWP, F);
       llvm::AAResults AARes =
           llvm::createLegacyPMAAResults(*BasicAAWP, F, BAAResult);
+//      START_TIMER("PTG " + F.getName().str());
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
+//      STOP_TIMER("PTG " + F.getName().str());
     }
   }
+  STOP_TIMER("Points-to analysis");
   buildIDModuleMapping(M);
 }
 

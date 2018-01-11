@@ -29,6 +29,7 @@ CXX_FLAGS += -pipe
 CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DNDEBUG
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
+CXX_FLAGS += -DPERFORMANCE_EVA
 
 # Add header search paths
 CXX_INCL = -I ./json/src/
