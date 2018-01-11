@@ -86,6 +86,8 @@ private:
   size_t getModuleHash(const unsigned moduleID);
   QueryReturnCode moduleHasTypeHierarchy(const unsigned moduleID);
   QueryReturnCode globalVariableIsDeclaration(const unsigned globalVariableID);
+  set<int> getAllTypeHierarchyIDs();
+  set<int> getAllModuleIDsFromTH(const unsigned typeHierarchyID);
 
   bool schemeExists();
   void buildDBScheme();
