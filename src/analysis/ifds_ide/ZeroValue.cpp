@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * ZeroValue.cpp
  *
@@ -5,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "ZeroValue.hh"
+#include "ZeroValue.h"
 
 const string ZeroValueInternalName("zero_value");
 const string ZeroValueInternalModuleName("zero_module");
@@ -13,7 +22,7 @@ const unique_ptr<llvm::LLVMContext> ZeroValueCTX(new llvm::LLVMContext);
 const unique_ptr<llvm::Module>
     ZeroValueMod(new llvm::Module(ZeroValueInternalModuleName, *ZeroValueCTX));
 
-bool isZeroValue(const llvm::Value *V) {
+bool isLLVMZeroValue(const llvm::Value *V) {
   if (V->hasName()) {
     // checks if V's name start with "zero_value"
     return V->getName().str().find(ZeroValueInternalName) == 0;
@@ -30,4 +39,9 @@ ZeroValue::ZeroValue()
                                                             /*signed*/ true)),
           ZeroValueInternalName) {
   setAlignment(4);
+}
+
+ZeroValue *ZeroValue::getInstance() {
+  static ZeroValue *zv = new ZeroValue;
+  return zv;
 }

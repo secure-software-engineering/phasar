@@ -1,4 +1,13 @@
-#include "IFDSTypeAnalysis.hh"
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#include "IFDSTypeAnalysis.h"
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
                                    vector<string> EntryPoints)
@@ -20,8 +29,8 @@ IFDSTypeAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getCallFlowFuntion(const llvm::Instruction *callStmt,
-                                     const llvm::Function *destMthd) {
+IFDSTypeAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
+                                      const llvm::Function *destMthd) {
   cout << "type analysis getCallFlowFunction()" << endl;
   struct TAFF : FlowFunction<const llvm::Value *> {
     set<const llvm::Value *>
@@ -71,10 +80,21 @@ IFDSTypeAnalysis::initialSeeds() {
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
-string IFDSTypeAnalysis::D_to_string(const llvm::Value *d) {
+bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {
+  return isLLVMZeroValue(d);
+}
+
+string IFDSTypeAnalysis::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
+}
+
+string IFDSTypeAnalysis::NtoString(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IFDSTypeAnalysis::MtoString(const llvm::Function *m) {
+  return m->getName().str();
 }

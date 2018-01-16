@@ -1,0 +1,60 @@
+ R"(
+===================================================================
+=== Phasar a LLVM-based Static Analysis Framework - User Manual ===
+===================================================================
+
+There are currently two modes available to run a program analysis:
+1.) Single module analysis
+--------------------------
+Using the single module analysis the analysis tool expects at least the path
+to a C or C++ module. The module can be a plain C or C++ file (.c/.cpp),
+LLVM IR as a human readable .ll file or as bitcode format .bc.
+
+2.) Whole project analysis
+--------------------------
+This mode analyzes a whole C or C++ project consisting of multiple modules.
+It expects at least the path to a C or C++ project containing a
+'compile_commands.json' file, which contains all compile commands of the
+project. This database can be generated automatically by using the cmake
+flag 'CMAKE_EXPORT_COMPILE_COMMANDS'. When make is used the bear tool can
+be used in order to generate the compile commands database. Our analysis tool
+reads the generated database to understand the project structure. It then
+compiles every C or C++ module that belongs to the project under analysis
+and compiles it to LLVM IR which is then stored in-memory for further
+pre-processing.
+
+Analysis Modes
+--------------
+Without specifying further parameters, our analysis tool tries to run all
+available test analyses on the user provided code. If the user wishes
+otherwise, they must provide further parameters specifying the specific
+analysis to run. Currently the following analyses are available and can be
+chosen by using the parameters as shown in the following:
+
+	=== These analyses are only for testing purposes ===
+	none, no analysis - 'none'
+	IFDS solver test, IFDS - 'ifds_solvertest'
+	IDE solver test, IDE - 'ide_sovertest'
+	MONOTONE intra solver test, MONO - 'mono_intra_solvertest'
+	MONOTONE inter solver test, MONO - 'mono_inter_solvertest'
+	=== The actual analyses ===
+	uninitialized variable analysis, IFDS - 'ifds_uninit'
+	taint analysis, IFDS - 'ifds_taint'
+	taint analysis, IDE - 'ide_taint'
+	type analysis, IFDS - 'ifds_type'
+	=== The analysis plugin mechanism ===
+	-D plugin --analysis_interface <?> --analysis_plugin <?>
+
+Currently the following analysis plugins are available:
+	
+	* IFDSTabulationProblemPlugin
+
+Of course the user can choose more than one analysis to be run on the code.
+
+General tool work-flow
+----------------------
+TODO: describe the general workflow!
+
+Command-line options
+====================
+TODO : add further detailed description of the command-line args)"

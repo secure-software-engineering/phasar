@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IDESolverTest.cpp
  *
@@ -5,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "IDESolverTest.hh"
+#include "IDESolverTest.h"
 
 IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
@@ -22,9 +31,9 @@ IDESolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDESolverTest::getCallFlowFuntion(const llvm::Instruction *callStmt,
-                                  const llvm::Function *destMthd) {
-  cout << "IDESolverTest::getCallFlowFuntion()\n";
+IDESolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
+                                   const llvm::Function *destMthd) {
+  cout << "IDESolverTest::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
@@ -44,9 +53,7 @@ IDESolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDESolverTest::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd,
-                                      vector<const llvm::Value *> inputs,
-                                      vector<bool> context) {
+                                      const llvm::Function *destMthd) {
   return nullptr;
 }
 
@@ -64,8 +71,11 @@ IDESolverTest::initialSeeds() {
 const llvm::Value *IDESolverTest::createZeroValue() {
   cout << "IDESolverTest::createZeroValue()\n";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
+}
+
+bool IDESolverTest::isZeroValue(const llvm::Value *d) const {
+  return isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts
@@ -110,9 +120,9 @@ IDESolverTest::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
 IDESolverTest::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd,
-                                      vector<const llvm::Value *> inputs,
-                                      vector<bool> context) {
+                                      const llvm::Value *callNode,
+                                      const llvm::Instruction *retSite,
+                                      const llvm::Value *retSiteNode) {
   cout << "IDESolverTest::getSummaryEdgeFunction()\n";
   return EdgeIdentity<const llvm::Value *>::v();
 }
@@ -164,6 +174,19 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::D_to_string(const llvm::Value *d) { return ""; }
+string IDESolverTest::DtoString(const llvm::Value *d) {
+  return llvmIRToString(d);
+}
 
-string IDESolverTest::V_to_string(const llvm::Value *v) { return ""; }
+string IDESolverTest::VtoString(const llvm::Value *v) {
+  // return llvmIRToString(v);
+  return "empty V test";
+}
+
+string IDESolverTest::NtoString(const llvm::Instruction *n) {
+  return llvmIRToString(n);
+}
+
+string IDESolverTest::MtoString(const llvm::Function *m) {
+  return m->getName().str();
+}

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * BinaryDomain.cpp
  *
@@ -5,20 +14,14 @@
  *      Author: philipp
  */
 
-#include "BinaryDomain.hh"
+#include "BinaryDomain.h"
 
-ostream& operator<< (ostream& os, const BinaryDomain& b)
-{
-	switch (static_cast<underlying_type<BinaryDomain>::type>(b)) {
-	case 0:
-		return os << "BinaryDomain::BOTTOM";
-		break;
-	case 1:
-		return os << "BinaryDomain::TOP";
-		break;
-	default:
-		return os << "BinaryDomain::error";
-		break;
-	}
+const map<string, BinaryDomain> StringToBinaryDomain = {
+    {"BOTTOM", BinaryDomain::BOTTOM}, {"TOP", BinaryDomain::TOP}};
+
+const map<BinaryDomain, string> BinaryDomainToString = {
+    {BinaryDomain::BOTTOM, "BOTTOM"}, {BinaryDomain::TOP, "TOP"}};
+
+ostream &operator<<(ostream &os, const BinaryDomain &b) {
+  return os << BinaryDomainToString.at(b);
 }
-

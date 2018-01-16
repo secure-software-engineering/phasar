@@ -1,4 +1,13 @@
-#include "IntraMonoFullConstantPropagation.hh"
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#include "IntraMonoFullConstantPropagation.h"
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     LLVMBasedCFG &Cfg, const llvm::Function *F)
@@ -28,10 +37,11 @@ IntraMonoFullConstantPropagation::flow(const llvm::Instruction *S,
 MonoMap<const llvm::Instruction *,
         MonoSet<IntraMonoFullConstantPropagation::DFF>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return MonoMap<const llvm::Instruction *, MonoSet<IntraMonoFullConstantPropagation::DFF>>();
+  return MonoMap<const llvm::Instruction *,
+                 MonoSet<IntraMonoFullConstantPropagation::DFF>>();
 }
 
-string IntraMonoFullConstantPropagation::D_to_string(
+string IntraMonoFullConstantPropagation::DtoString(
     pair<const llvm::Value *, unsigned> d) {
   string s = "< " + llvmIRToString(d.first);
   s += ", " + to_string(d.second) + " >";

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * MonotoneSolverTest.cpp
  *
@@ -5,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "IntraMonotoneSolverTest.hh"
+#include "IntraMonotoneSolverTest.h"
 
 IntraMonotoneSolverTest::IntraMonotoneSolverTest(LLVMBasedCFG &Cfg,
                                                  const llvm::Function *F)
@@ -47,6 +56,6 @@ IntraMonotoneSolverTest::initialSeeds() {
   return {};
 }
 
-string IntraMonotoneSolverTest::D_to_string(const llvm::Value* d) {
+string IntraMonotoneSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
