@@ -5,7 +5,7 @@ stages:
 
 # install the necessary build tools 
 before_script: 
-  - apt update && apt-get install -y clang-3.9 libclang-3.9-dev llvm-3.9 libboost1.63-all-dev sqlite3 libsqlite3-dev bear python3 cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost-dev libmysqlcppconn-dev
+  - apt update && apt-get install -y clang-3.9 libclang-3.9-dev llvm-3.9 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
   - export PATH="/usr/lib/llvm-3.9/bin:$PATH"
   - apt install -y git
   - mkdir -p lib/
