@@ -71,6 +71,8 @@ recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,
 
 # Name of the executable
 EXE = main
+# Suffix for the test executables
+TEST_SUFFIX = .test
 
 # Basic project directories
 BIN = bin/
@@ -223,11 +225,11 @@ tests: $(OBJDIR) $(OBJ) gtest $(TSTEXE) $(TST) $(OBJ)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(GTEST_LIBS) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@$(TEST_SUFFIX) $(GTEST_LIBS) $(THREAD_MODEL)
 
 run-tests: tests
 	@echo "Run tests: $(TSTEXE)"
-	$(foreach test,$(TSTEXE),./$(test) $(GTEST_RUN_PARAMS);)
+	$(foreach test,$(TSTEXE),./$(test)$(TEST_SUFFIX) $(GTEST_RUN_PARAMS);)
 
 llvmir: $(LLVMDIR) $(LLVMIR)
 
@@ -292,7 +294,7 @@ clean-plugins:
 	rm -rf $(PLUGINSODIR)
 
 clean-tests: clean-gtest
-	rm -f $(TSTEXE)
+	rm -f $(patsubst %,%$(TEST_SUFFIX),$(TSTEXE))
 	rm -f $(patsubst %,%.d,$(TSTEXE))
 
 clean-llvm:

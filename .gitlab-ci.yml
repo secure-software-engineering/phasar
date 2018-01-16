@@ -11,10 +11,11 @@ before_script:
   - mkdir -p lib/
   - git clone https://github.com/google/googletest.git lib/googletest
   - git clone https://github.com/nlohmann/json.git lib/json
+  - misc/make_config.sh
   
 build:
   stage: build
-  # build doc and the binary
+  # build all interesting targets
   script: 
     - make doc
     - make check-used-compiler
@@ -26,7 +27,7 @@ build:
     - master
   tags:
     - shared
-  #save the documentation and binary
+  # save the documentation and binary
   artifacts:
     name: "analysisFramework-$CI_BUILD_ID-$CI_BUILD_REF"
     expire_in: 1 week

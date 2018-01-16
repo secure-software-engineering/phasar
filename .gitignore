@@ -38,6 +38,9 @@ build/*
 # ignore all auto-generated LLVM IR code
 *.ll
 
+# auto generated test files
+*.test
+
 # ignore all auto-generated compile command and symbol databases
 compile_commands.json
 find_all_symbols_db.yaml

@@ -25,6 +25,6 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then
 else
 	echo "OS not supported yet, abort!"
 fi
-mv ${CompilerInfoFile} ../${ConfigDir}
-mv ${StdHeaderPathFile} ../${ConfigDir}
+mv ${CompilerInfoFile} ${ConfigDir}
+mv ${StdHeaderPathFile} ${ConfigDir}
 
