@@ -54,7 +54,6 @@ CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
 ifeq ($(OS),$(LINUX))
 CXX_FLAGS += -L/usr/local/
-CXX_FLAGS += -L/usr/local/
 else ifeq ($(OS),$(MAC))
 CXX_FLAGS += -L/usr/local/opt/boost/lib
 CXX_FLAGS += -L/usr/local/opt/llvm@3.9/lib
