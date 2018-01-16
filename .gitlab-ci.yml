@@ -9,8 +9,8 @@ before_script:
   - export PATH="/usr/lib/llvm-3.9/bin:$PATH"
   - apt install -y git
   - mkdir -p lib/
-  - git clone https://github.com/google/googletest.git lib/
-  - git clone https://github.com/nlohmann/json.git lib/
+  - git clone https://github.com/google/googletest.git lib/googletest
+  - git clone https://github.com/nlohmann/json.git lib/json
   
 build:
   stage: build
