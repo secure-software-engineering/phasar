@@ -134,7 +134,7 @@ ICFGTestPlugin::getReturnSitesOfCallAt(const llvm::Instruction *stmt) {
 }
 
 string ICFGTestPlugin::getStatementId(const llvm::Instruction *stmt) {
-    return llvm::cast<llvm::MDString>(
+  return llvm::cast<llvm::MDString>(
              stmt->getMetadata(MetaDataKind)->getOperand(0))
       ->getString()
       .str();

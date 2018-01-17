@@ -17,12 +17,12 @@
 #ifndef ANALYSIS_VTABLE_H_
 #define ANALYSIS_VTABLE_H_
 
-#include <llvm/IR/Type.h>
+#include "json.hpp"
 #include <algorithm>
 #include <iostream>
+#include <llvm/IR/Type.h>
 #include <string>
 #include <vector>
-#include "json.hpp"
 using namespace std;
 using json = nlohmann::json;
 
@@ -33,10 +33,10 @@ using json = nlohmann::json;
  * 	virtual method table matters.
  */
 class VTable {
- private:
+private:
   vector<string> vtbl;
 
- public:
+public:
   VTable() = default;
   virtual ~VTable() = default;
 
@@ -73,9 +73,9 @@ class VTable {
   vector<string>::iterator end();
   vector<string>::const_iterator end() const;
   /**
- * 	@brief Returns the VTable as a std::vector.
- * 	@return std::vector holding all information of the VTable.
- */
+   * 	@brief Returns the VTable as a std::vector.
+   * 	@return std::vector holding all information of the VTable.
+   */
   vector<string> getVTable() const;
 
   /**
@@ -83,7 +83,7 @@ class VTable {
    * 	@param os A character output stream.
    * 	@param t A VTable to be printed.
    */
-  friend ostream& operator<<(ostream& os, const VTable& t);
+  friend ostream &operator<<(ostream &os, const VTable &t);
 
   json exportPATBCJSON();
 };

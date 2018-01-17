@@ -10,13 +10,6 @@
 #ifndef MWAIDESolver_H_
 #define MWAIDESolver_H_
 
-#include <chrono>
-#include <iostream>
-#include <map>
-#include <memory>
-#include <set>
-#include <type_traits>
-#include <utility>
 #include "../../../lib/LLVMShorthands.h"
 #include "../../../utils/Logger.h"
 #include "../../../utils/Table.h"
@@ -34,15 +27,22 @@
 #include "JoinHandlingNode.h"
 #include "LinkedNode.h"
 #include "PathEdge.h"
+#include <chrono>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <set>
+#include <type_traits>
+#include <utility>
 
 using namespace std;
 
 template <typename N, typename D, typename M, typename V, typename I>
 class MWAIDESolver : public IDESolver<N, D, M, V, I> {
- private:
+private:
   enum SummaryGenerationStrategy genStrategy;
 
- public:
+public:
   MWAIDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem,
                enum SummaryGenerationStrategy S)
       : IDESolver<N, D, M, V, I>(tabulationProblem), genStrategy(S) {
@@ -103,10 +103,10 @@ class MWAIDESolver : public IDESolver<N, D, M, V, I> {
         cout << "submitInitalSeedsForSummary - Value:" << endl;
         value->dump();
         this->propagate(value, startPoint, value, EdgeIdentity<V>::v(), nullptr,
-                  false);
+                        false);
       }
       this->jumpFn->addFunction(this->zeroValue, startPoint, this->zeroValue,
-                          EdgeIdentity<V>::v());
+                                EdgeIdentity<V>::v());
     }
   }
 
@@ -134,7 +134,7 @@ class MWAIDESolver : public IDESolver<N, D, M, V, I> {
     return IDESolver<N, D, M, V, I>::endsummarytab;
   }
 
- protected:
+protected:
   MWAIDESolver(IFDSTabulationProblem<N, D, M, I> &tabulationProblem,
                enum SummaryGenerationStrategy S)
       : IDESolver<N, D, M, BinaryDomain, I>(tabulationProblem), genStrategy(S) {

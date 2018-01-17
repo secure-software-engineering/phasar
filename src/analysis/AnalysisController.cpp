@@ -40,8 +40,8 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     }
     if (invalidEntryPoints.size()) {
       for (auto &invalidEntryPoint : invalidEntryPoints) {
-        BOOST_LOG_SEV(lg, ERROR) << "Entry point '" << invalidEntryPoint
-                                 << "' is not valid.";
+        BOOST_LOG_SEV(lg, ERROR)
+            << "Entry point '" << invalidEntryPoint << "' is not valid.";
       }
       throw logic_error("invalid entry points");
     }
@@ -86,108 +86,106 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
       switch (analysis) {
-        case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-          IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
-          LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-              taintanalysisproblem, true);
-          llvmtaintsolver.solve();
-          // Here we can get the leaks
-          map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-              taintanalysisproblem.Leaks;
-          BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
-          if (Leaks.empty()) {
-            BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
-          } else {
-            for (auto Leak : Leaks) {
-              string ModuleName =
-                  getModuleFromVal(Leak.first)->getModuleIdentifier();
-              BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
-                                      << llvmIRToString(Leak.first)
-                                      << "' in file: '" << ModuleName << "'";
-              for (auto LeakValue : Leak.second) {
-                BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
-              }
+      case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+        IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
+            taintanalysisproblem, true);
+        llvmtaintsolver.solve();
+        // Here we can get the leaks
+        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
+            taintanalysisproblem.Leaks;
+        BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+        if (Leaks.empty()) {
+          BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+        } else {
+          for (auto Leak : Leaks) {
+            string ModuleName =
+                getModuleFromVal(Leak.first)->getModuleIdentifier();
+            BOOST_LOG_SEV(lg, INFO)
+                << "At instruction: '" << llvmIRToString(Leak.first)
+                << "' in file: '" << ModuleName << "'";
+            for (auto LeakValue : Leak.second) {
+              BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
             }
           }
-          break;
         }
-        case DataFlowAnalysisType::IDE_TaintAnalysis: {
-          IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
-          LLVMIDESolver<const llvm::Value *, const llvm::Value *,
-                        LLVMBasedICFG &>
-              llvmtaintsolver(taintanalysisproblem, true);
-          llvmtaintsolver.solve();
-          break;
+        break;
+      }
+      case DataFlowAnalysisType::IDE_TaintAnalysis: {
+        IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
+        LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+            llvmtaintsolver(taintanalysisproblem, true);
+        llvmtaintsolver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+        IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
+            typeanalysisproblem, true);
+        llvmtypesolver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+        IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
+            uninitializedvarproblem, true);
+        llvmunivsolver.solve();
+        if (PrintEdgeRecorder) {
+          llvmunivsolver.exportJSONDataModel(graph_id);
         }
-        case DataFlowAnalysisType::IFDS_TypeAnalysis: {
-          IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
-          LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
-              typeanalysisproblem, true);
-          llvmtypesolver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-          IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
-          LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-              uninitializedvarproblem, true);
-          llvmunivsolver.solve();
-          if (PrintEdgeRecorder) {
-            llvmunivsolver.exportJSONDataModel(graph_id);
-          }
-          break;
-        }
-        case DataFlowAnalysisType::IFDS_SolverTest: {
-          IFDSSolverTest ifdstest(ICFG, EntryPoints);
-          LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
-              llvmifdstestsolver(ifdstest, true);
-          llvmifdstestsolver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::IDE_SolverTest: {
-          IDESolverTest idetest(ICFG, EntryPoints);
-          LLVMIDESolver<const llvm::Value *, const llvm::Value *,
-                        LLVMBasedICFG &>
-              llvmidetestsolver(idetest, true);
-          llvmidetestsolver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
-          const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-          IntraMonoFullConstantPropagation intra(CFG, F);
-          LLVMIntraMonotoneSolver<pair<const llvm::Value *, unsigned>,
-                                  LLVMBasedCFG &>
-              solver(intra, true);
-          solver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Intra_SolverTest: {
-          const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-          IntraMonotoneSolverTest intra(CFG, F);
-          LLVMIntraMonotoneSolver<const llvm::Value *, LLVMBasedCFG &> solver(
-              intra, true);
-          solver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-          InterMonotoneSolverTest inter(ICFG, EntryPoints);
-          LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &>
-              solver(inter, true);
-          solver.solve();
-          break;
-        }
-        case DataFlowAnalysisType::Plugin: {
-          vector<string> AnalysisPlugins =
-              VariablesMap["analysis_plugin"].as<vector<string>>();
-          AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                                    EntryPoints);
-          break;
-        }
-        case DataFlowAnalysisType::None: {
-          break;
-        }
-        default:
-          BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
-          break;
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_SolverTest: {
+        IFDSSolverTest ifdstest(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
+            ifdstest, true);
+        llvmifdstestsolver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::IDE_SolverTest: {
+        IDESolverTest idetest(ICFG, EntryPoints);
+        LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+            llvmidetestsolver(idetest, true);
+        llvmidetestsolver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        IntraMonoFullConstantPropagation intra(CFG, F);
+        LLVMIntraMonotoneSolver<pair<const llvm::Value *, unsigned>,
+                                LLVMBasedCFG &>
+            solver(intra, true);
+        solver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        IntraMonotoneSolverTest intra(CFG, F);
+        LLVMIntraMonotoneSolver<const llvm::Value *, LLVMBasedCFG &> solver(
+            intra, true);
+        solver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+        InterMonotoneSolverTest inter(ICFG, EntryPoints);
+        LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &> solver(
+            inter, true);
+        solver.solve();
+        break;
+      }
+      case DataFlowAnalysisType::Plugin: {
+        vector<string> AnalysisPlugins =
+            VariablesMap["analysis_plugin"].as<vector<string>>();
+        AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
+                                                  EntryPoints);
+        break;
+      }
+      case DataFlowAnalysisType::None: {
+        break;
+      }
+      default:
+        BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+        break;
       }
     }
   }
@@ -217,65 +215,58 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
           BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis
                                   << " on module: " << M->getModuleIdentifier();
           switch (analysis) {
-            case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-              IFDSTaintAnalysis taintanalysisproblem(I, {});
-              LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
-                  llvmtaintsolver(taintanalysisproblem,
-                                  SummaryGenerationStrategy::always_all, false);
-              llvmtaintsolver.summarize();
-              Summaries.addSummaries(llvmtaintsolver.getSummaries());
-              BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
-              break;
-            }
-            case DataFlowAnalysisType::IDE_TaintAnalysis: {
-              throw invalid_argument(
-                  "IDE summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::IFDS_TypeAnalysis: {
-              throw invalid_argument(
-                  "IFDS summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-              break;
-            }
-            case DataFlowAnalysisType::IFDS_SolverTest: {
-              throw invalid_argument(
-                  "IFDS summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::IDE_SolverTest: {
-              throw invalid_argument(
-                  "IDE summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
-              throw invalid_argument(
-                  "Mono summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::MONO_Intra_SolverTest: {
-              throw invalid_argument(
-                  "Mono summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-              throw invalid_argument(
-                  "Mono summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::Plugin: {
-              throw invalid_argument(
-                  "Plugin summary generation not supported yet");
-              break;
-            }
-            case DataFlowAnalysisType::None: {
-              break;
-            }
-            default:
-              BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
-              break;
+          case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+            IFDSTaintAnalysis taintanalysisproblem(I, {});
+            LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
+                llvmtaintsolver(taintanalysisproblem,
+                                SummaryGenerationStrategy::always_all, false);
+            llvmtaintsolver.summarize();
+            Summaries.addSummaries(llvmtaintsolver.getSummaries());
+            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            break;
+          }
+          case DataFlowAnalysisType::IDE_TaintAnalysis: {
+            throw invalid_argument("IDE summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+            throw invalid_argument("IFDS summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_SolverTest: {
+            throw invalid_argument("IFDS summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IDE_SolverTest: {
+            throw invalid_argument("IDE summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::Plugin: {
+            throw invalid_argument(
+                "Plugin summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::None: {
+            break;
+          }
+          default:
+            BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+            break;
           }
         }
       }

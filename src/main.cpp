@@ -7,35 +7,35 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/CompilationDatabase.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/throw_exception.hpp>
-#include <iostream>
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <vector>
 #include "analysis/AnalysisController.h"
 #include "analysis/misc/DataFlowAnalysisType.h"
 #include "analysis/passes/GeneralStatisticsPass.h"
 #include "analysis/passes/ValueAnnotationPass.h"
-#include "clang/ClangController.h"
 #include "config/Configuration.h"
 #include "db/ProjectIRDB.h"
 #include "utils/Logger.h"
 #include "utils/utils.h"
+#include "clang/ClangController.h"
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <boost/throw_exception.hpp>
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <clang/Tooling/CompilationDatabase.h>
+#include <clang/Tooling/Tooling.h>
+#include <iostream>
+#include <llvm/Support/CommandLine.h>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
 
 // setup programs command line options (via Clang)
 static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");
-static llvm::cl::extrahelp CommonHelp(
-    clang::tooling::CommonOptionsParser::HelpMessage);
+static llvm::cl::extrahelp
+    CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage);
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
 static const std::string PhasarLLVMMoreHelp =
 #include "phasar-llvm_more_help.txt"
@@ -46,7 +46,7 @@ static const std::string PhasarClangMoreHelp =
 
 namespace boost {
 void throw_exception(std::exception const &e) {}
-}  // namespace boost
+} // namespace boost
 
 // functions for parameter validation
 void validateParamModule(const std::vector<std::string> &modules) {
@@ -113,9 +113,8 @@ void validateParamICFGPlugin(const std::string &plugin) {
                                       "' is not a valid shared object library");
   }
   if (VariablesMap.count("callgraph_analysis")) {
-    throw bpo::error_with_option_name(
-        "Cannot choose a built-in callgraph AND "
-        "a plug-in for callgraph construction.");
+    throw bpo::error_with_option_name("Cannot choose a built-in callgraph AND "
+                                      "a plug-in for callgraph construction.");
   }
   if (VariablesMap.count("wpa") && !VariablesMap["wpa"].as<bool>()) {
     throw bpo::error_with_option_name(
@@ -195,7 +194,8 @@ int main(int argc, const char **argv) {
   }
   // Make sure an operation mode has been set!
   if (!ModeMap.count("mode")) {
-    std::cout << "Phasar operation mode is not set. Set the operation mode '--mode' to "
+    std::cout << "Phasar operation mode is not set. Set the operation mode "
+                 "'--mode' to "
                  "'phasarLLVM' or 'phasarClang'.\n";
     return 1;
   }
@@ -361,10 +361,9 @@ int main(int argc, const char **argv) {
                  VariablesMap["data_flow_analysis"]
                      .as<std::vector<std::string>>()
                      .end(),
-                 "plugin") !=
-                VariablesMap["data_flow_analysis"]
-                    .as<std::vector<std::string>>()
-                    .end() &&
+                 "plugin") != VariablesMap["data_flow_analysis"]
+                                  .as<std::vector<std::string>>()
+                                  .end() &&
             (!VariablesMap.count("analysis_plugin"))) {
           std::cerr
               << "If an analysis plugin is chosen, the plugin itself must also "

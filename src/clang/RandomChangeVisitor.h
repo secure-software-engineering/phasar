@@ -31,9 +31,9 @@
 #include <clang/Rewrite/Core/Rewriter.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
+#include <iostream>
 #include <llvm/IR/Module.h>
 #include <llvm/Support/CommandLine.h>
-#include <iostream>
 #include <random>
 #include <sstream>
 #include <string>
@@ -48,10 +48,10 @@
 
 class RandomChangeVisitor
     : public clang::RecursiveASTVisitor<RandomChangeVisitor> {
- private:
+private:
   clang::Rewriter &RW;
 
- public:
+public:
   RandomChangeVisitor(clang::Rewriter &R);
   virtual bool VisitVarDecl(clang::VarDecl *V);
   virtual bool VisitTypeDecl(clang::TypeDecl *T);

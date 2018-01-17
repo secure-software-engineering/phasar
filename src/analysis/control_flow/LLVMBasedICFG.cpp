@@ -598,7 +598,7 @@ LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
   }
   if (!m->isDeclaration()) {
     return {&m->front().front()};
-  // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
+    // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
     // return getStartPointsOf(getMethod(m->getName().str()));
   } else {
     auto &lg = lg::get();
