@@ -297,6 +297,28 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   return result;
 }
 
+set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
+  auto &lg = lg::get();
+  set<const llvm::Value *> result;
+  if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
+    const llvm::Function *F = IV->getFunction();
+    BOOST_LOG_SEV(lg, DEBUG) << "INSIDE";
+    for (auto alias : getPointsToSet(V)) {
+      if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
+        if (I->getFunction() == F) {
+          result.insert(alias);
+        }
+      } else if (llvm::isa<llvm::GlobalValue>(alias) || llvm::isa<llvm::Argument>(alias)) {
+        result.insert(alias);
+      } else {
+        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
+                                 << V->getName().str();
+      }
+    }
+  }
+  return result;
+}
+
 bool PointsToGraph::representsSingleFunction() {
   return ContainedFunctions.size() == 1;
 }

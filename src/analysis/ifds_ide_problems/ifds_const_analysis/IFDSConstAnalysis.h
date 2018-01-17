@@ -39,7 +39,7 @@
 using namespace std;
 
 class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
-                              const llvm::Instruction *, const llvm::Value *,
+                              const llvm::Instruction *, pair<llvm::Value *,bool>,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
 //  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;

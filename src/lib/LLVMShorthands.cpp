@@ -41,7 +41,7 @@ string llvmIRToString(const llvm::Value *V) {
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    RSO << "=> ID: " << getMetaDataID(Inst);
+    RSO << ", ID: " << getMetaDataID(Inst);
   }
   RSO.flush();
   return IRBuffer;

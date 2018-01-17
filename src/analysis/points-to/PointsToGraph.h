@@ -325,6 +325,8 @@ public:
    */
   set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
 
+  set<const llvm::Value *> getAliasWithinFunction(const llvm::Value *V);
+
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph &Other, const llvm::Function *F);

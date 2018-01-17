@@ -48,7 +48,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     IRDB.linkForWPA();
   }
   IRDB.preprocessIR();
-  IRDB.print();
+//  IRDB.print();
 //  DBConn::getInstance();
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
@@ -62,7 +62,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
-    ICFG.print();
+//    ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
     ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework

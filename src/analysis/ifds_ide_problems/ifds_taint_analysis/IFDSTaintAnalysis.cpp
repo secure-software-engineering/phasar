@@ -60,6 +60,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     set<const llvm::Value *> CmdArgs;
     for (auto &Arg : curr->getFunction()->getArgumentList()) {
       CmdArgs.insert(&Arg);
+      Arg.dump();
     }
     return make_shared<GenAll<const llvm::Value *>>(CmdArgs, zeroValue());
   }
