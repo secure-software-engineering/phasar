@@ -302,14 +302,17 @@ set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(const llvm::Value
   set<const llvm::Value *> result;
   if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
     const llvm::Function *F = IV->getFunction();
-    BOOST_LOG_SEV(lg, DEBUG) << "INSIDE";
     for (auto alias : getPointsToSet(V)) {
       if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == F) {
           result.insert(alias);
         }
-      } else if (llvm::isa<llvm::GlobalValue>(alias) || llvm::isa<llvm::Argument>(alias)) {
+      } else if (llvm::isa<llvm::GlobalValue>(alias)) {
         result.insert(alias);
+      } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(alias)) {
+        if (A->getParent() == F) {
+          result.insert(alias);
+        }
       } else {
         BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
                                  << V->getName().str();

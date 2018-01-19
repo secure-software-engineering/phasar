@@ -1,11 +1,8 @@
-/* mutable: gint */
+/* mutable: i, gint */
 int gint = 10;
 
-void foo() {
-	gint = gint + 1;
-}
-
 int main() {
-	foo();
+	int *p = &gint;
+	*p = 20;
 	return 0;
 }
