@@ -1,10 +1,11 @@
 /* mutable: i */
-int foo() {
-	return 20;
+void foo() {
+	int a = 42;
 }
 
 int main() {
-	int i = 10;
-	i = foo();
+	int i = 13;
+	i += 42;
+	foo();
 	return 0;
 }

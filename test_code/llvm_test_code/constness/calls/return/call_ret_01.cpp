@@ -1,10 +1,10 @@
-/* mutable: a */
+/* mutable: i */
 int foo() {
 	return 42;
 }
 
 int main() {
-	int a = 10;
-	a = foo();
+	int i = 10;
+	i = foo();
 	return 0;
 }
