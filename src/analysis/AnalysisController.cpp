@@ -128,7 +128,6 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
           constproblem, true);
         llvmconstsolver.solve();
         constproblem.printInitilizedSet();
-
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
