@@ -1,5 +1,10 @@
+// #include <iostream>
+/* mutable: - */
 int main() {
-  int *ptr = new int(42); // ptr is assigned 4 bytes in the heap
-  delete ptr;
+  int i = 13;
+  int *p1 = &i;
+  int *p2 = p1;
+  *p2 = 42;
+  // std::cout << i << std::endl;
   return 0;
 }

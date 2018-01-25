@@ -169,7 +169,7 @@ public:
 
   set<D> ifdsResultsAt(N stmt) {
     set<D> keyset;
-    unordered_map<D, BinaryDomain> map = this->resultsAt(stmt, true);
+    unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
     for (auto d : map) {
       keyset.insert(d.first);
     }

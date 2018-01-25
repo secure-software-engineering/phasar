@@ -1,4 +1,4 @@
-/* mutable: i, gint */
+/* mutable: gint */
 int gint = 10;
 
 int main() {

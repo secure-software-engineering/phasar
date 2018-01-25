@@ -1,3 +1,4 @@
+/* mutable: i */
 int main() {
   int i = 12;
   int *pi = &i;

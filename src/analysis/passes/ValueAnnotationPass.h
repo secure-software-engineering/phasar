@@ -76,6 +76,11 @@ public:
    * @brief The pass does not release any memory during their lifetime.
    */
   void releaseMemory() override;
+
+  /**
+   * @brief Resets the global ID - only used for unit testing!
+   */
+  static void resetValueID();
 };
 
 #endif /* ANALYSIS_VALUEANNOTATIONPASS_HH_ */
