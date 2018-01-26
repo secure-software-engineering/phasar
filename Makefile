@@ -39,11 +39,12 @@ CXX_FLAGS += -ffunction-sections
 CXX_FLAGS += -O0 # -O4
 # CXX_FLAGS += -march=native
 # CXX_FLAGS += -DNDEBUG
-# CXX_FLAGS += -flto=full # or use: -flto=thin
 # CXX_FLAGS += -fuse-ld=gold 
+# CXX_FLAGS += -flto=full # or use: -flto=thin
 CXX_FLAGS += -fPIC
 CXX_FLAGS += -Wno-unused-variable
 CXX_FLAGS += -Wno-unused-parameter
+CXX_FLAGS += -Wno-return-type-c-linkage
 ifneq ($(CXX),$(GCC))
 CXX_FLAGS += -Wno-unknown-warning-option
 CXX_FLAGS += -Qunused-arguments

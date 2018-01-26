@@ -160,6 +160,7 @@ public:
     //				nonEmptyLookupByTargetNode.remove(target);
     //
     //			return true;
+    return false;
   }
 
   /**
