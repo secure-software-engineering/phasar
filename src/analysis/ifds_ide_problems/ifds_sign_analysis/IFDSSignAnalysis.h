@@ -33,8 +33,8 @@
 using namespace std;
 
 class IFDSSignAnalysis : public DefaultIFDSTabulationProblem<
-                              const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG &> {
+                             const llvm::Instruction *, const llvm::Value *,
+                             const llvm::Function *, LLVMBasedICFG &> {
 private:
   vector<string> EntryPoints;
 

@@ -16,8 +16,7 @@
 
 #include "IFDSSignAnalysis.h"
 
-IFDSSignAnalysis::IFDSSignAnalysis(LLVMBasedICFG &I,
-                                     vector<string> EntryPoints)
+IFDSSignAnalysis::IFDSSignAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
                                    LLVMBasedICFG &>(I),
@@ -27,37 +26,37 @@ IFDSSignAnalysis::IFDSSignAnalysis(LLVMBasedICFG &I,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                         const llvm::Instruction *succ) {
+                                        const llvm::Instruction *succ) {
   cout << "IFDSSignAnalysis::getNormalFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                       const llvm::Function *destMthd) {
+                                      const llvm::Function *destMthd) {
   cout << "IFDSSignAnalysis::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                      const llvm::Function *calleeMthd,
-                                      const llvm::Instruction *exitStmt,
-                                      const llvm::Instruction *retSite) {
+                                     const llvm::Function *calleeMthd,
+                                     const llvm::Instruction *exitStmt,
+                                     const llvm::Instruction *retSite) {
   cout << "IFDSSignAnalysis::getRetFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                            const llvm::Instruction *retSite) {
+                                           const llvm::Instruction *retSite) {
   cout << "IFDSSignAnalysis::getCallToRetFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                          const llvm::Function *destMthd) {
+                                         const llvm::Function *destMthd) {
   cout << "IFDSSignAnalysis::getSummaryFlowFunction()\n";
   return Identity<const llvm::Value *>::v();
 }

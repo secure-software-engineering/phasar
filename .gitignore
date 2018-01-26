@@ -6,6 +6,9 @@ bin/*
 # build directory for cmake
 build/
 
+# llvm installation
+lib/llvm/*
+
 # obj/ directory
 obj/
 

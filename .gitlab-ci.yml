@@ -30,15 +30,15 @@ build:
     - shared
   # save the documentation and binary
   artifacts:
-    name: "analysisFramework-$CI_BUILD_ID-$CI_BUILD_REF"
+    name: "PhasarFramework-$CI_BUILD_ID-$CI_BUILD_REF"
     expire_in: 1 week
     paths:
       - doc/*
       - bin/*
   # depending on the build setup it's a good idea to cache outputs to reduce the build time
-  # cache:
-  #   paths:
-  #     - "*.o"
+  cache:
+    paths:
+      - "*.o"
 
 # run tests using the binary built before
 #test:
