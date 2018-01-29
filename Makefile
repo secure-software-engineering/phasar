@@ -200,7 +200,7 @@ $(BIN):
 
 $(BIN)$(EXE): $(OBJ)
 	@echo "linking into executable file ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
