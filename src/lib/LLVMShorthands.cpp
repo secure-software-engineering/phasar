@@ -156,20 +156,6 @@ size_t computeModuleHash(const llvm::Module *M) {
   return hash<string>{}(SourceCode);
 }
 
-const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo) {
-  unsigned current = 1;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
-      if (current == instNo) {
-        return &I;
-      }
-      current++;
-    }
-  }
-  return nullptr;
-}
-
 const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
                                                   unsigned termInstNo) {
   unsigned current = 1;

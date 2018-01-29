@@ -173,6 +173,12 @@ void LLVMTypeHierarchy::print() {
   }
 }
 
+void LLVMTypeHierarchy::printAsDot(const string &path) {
+  ofstream ofs(path);
+  boost::write_graphviz(
+      ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+}
+
 void LLVMTypeHierarchy::printGraphAsDot(ostream& out) {
   boost::dynamic_properties dp;
   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, g));

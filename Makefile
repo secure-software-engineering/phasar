@@ -143,12 +143,14 @@ BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
+BOOST_LIBS += -lboost_graph
 else ifeq ($(OS),$(MAC))
 BOOST_LIBS := -lboost_filesystem-mt
 BOOST_LIBS += -lboost_system-mt
 BOOST_LIBS += -lboost_program_options-mt
 BOOST_LIBS += -lboost_log-mt
 BOOST_LIBS += -lboost_thread-mt
+BOOST_LIBS += -lboost_graph-mt
 endif
 LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
 CLANG_LIBS := -lclangTooling

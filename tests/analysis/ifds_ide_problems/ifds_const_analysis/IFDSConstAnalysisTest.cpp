@@ -330,7 +330,7 @@ protected:
     //    LLVMBasedICFG&>(*constproblem, true);
   }
 
-  virtual void TearDown() {
+  virtual void TearDown() override {
     delete IRDB;
     delete TH;
     delete ICFG;

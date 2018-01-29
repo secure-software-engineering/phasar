@@ -842,7 +842,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -855,7 +855,7 @@ DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -867,7 +867,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }

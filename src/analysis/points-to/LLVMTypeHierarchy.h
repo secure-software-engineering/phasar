@@ -197,6 +197,7 @@ public:
   string getPlainTypename(string TypeName);
 
   void printGraphAsDot(ostream& out);
+  
   static bidigraph_t loadGraphFormDot(istream& in);
 
   json exportPATBCJSON();
