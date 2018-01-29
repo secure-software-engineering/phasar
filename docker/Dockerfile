@@ -30,18 +30,22 @@ RUN apt-get -y install software-properties-common python-software-properties
 RUN add-apt-repository 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main' && \
     wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
     apt-get update && \
-    apt-get -y install clang-3.9 clang-3.9-doc libclang-common-3.9-dev libclang-3.9-dev libclang1-3.9 libclang1-3.9-dbg libllvm-3.9-ocaml-dev libllvm3.9 libllvm3.9-dbg lldb-3.9 llvm-3.9 llvm-3.9-dev llvm-3.9-doc llvm-3.9-examples llvm-3.9-runtime clang-format-3.9 python-clang-3.9 libfuzzer-3.9-dev && \
+    apt-get -y install clang-3.9 clang-3.9-doc libclang-common-3.9-dev libclang-3.9-dev libclang1-3.9 libclang1-3.9-dbg libllvm-3.9-ocaml-dev libllvm3.9 libllvm3.9-dbg lldb-3.9 llvm-3.9 llvm-3.9-dev llvm-3.9-doc llvm-3.9-examples llvm-3.9-runtime clang-format-3.9 python-clang-3.9 libfuzzer-3.9-dev libmysqlcppconn-dev && \
     echo "export PATH="/usr/lib/llvm-3.9/bin:$PATH"" >> /root/.bashrc
 
 # framework dependencies
-RUN apt-get -y install make libcurl4-gnutls-dev
+RUN apt-get -y install make libcurl4-gnutls-dev git
 
 # copy source code
-COPY . /opt/framework
+ADD . /opt/framework
 
 # build framework
 RUN cd /opt/framework && \
     export PATH="/usr/lib/llvm-3.9/bin:$PATH" && \
     echo $PATH && \
+    sed -i "s/\/home\/philipp\/GIT-Repos\/phasar/\/opt\/framework/g" /opt/framework/src/config/Configuration.cpp && \
     make clean && \
     make
+
+RUN cd /opt/framework/misc && \
+    ./make_config.sh

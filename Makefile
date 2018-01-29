@@ -64,7 +64,8 @@ endif
 CXX_INCL = -I ./lib/json/src/
 
 # Define the google test run parameters
-GTEST_RUN_PARAMS = --gtest_repeat=3
+GTEST_RUN_PARAMS = --gtest_repeat=1
+GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))

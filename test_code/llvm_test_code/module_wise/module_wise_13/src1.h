@@ -2,6 +2,7 @@
 #define SRC1_H_
 
 struct A {
+<<<<<<< HEAD
 	virtual int id(int i);
 };
 
@@ -10,3 +11,10 @@ struct B : A {
 };
 
 #endif
+=======
+	virtual int foo(int &i);
+	virtual void bar(double &d);
+};
+
+#endif
+>>>>>>> const-analysis

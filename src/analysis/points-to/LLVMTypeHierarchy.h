@@ -25,7 +25,9 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/transitive_closure.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
 #include <fstream>
+#include <gtest/gtest_prod.h>
 #include <initializer_list>
 #include <iostream>
 #include <llvm/IR/CallSite.h>
@@ -48,12 +50,10 @@ using namespace std;
  * 	and reconstructing the virtual method tables.
  */
 class LLVMTypeHierarchy {
+public:
+  /// necessary for storing/loading the LLVMTypeHierarchy to/from database
   friend class DBConn;
 
-  /**
-   * 	@brief Holds additional information for each vertex in the class
-   * 	       hierarchy graph.
-   */
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;
     /// always StructType so far - is it used anywhere???
@@ -93,8 +93,11 @@ private:
   // maps type names to the corresponding vtable
   map<string, VTable> vtable_map;
   set<string> recognized_struct_types;
+  // holds all modules that are included in the type hierarchy
+  set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
+  FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
 
 public:
   /**
@@ -183,7 +186,6 @@ public:
    * 	@brief Prints the class hierarchy to the command-line.
    */
   void print();
-
   /**
    * 	@brief Prints the class hierarchy to a .dot file.
    * 	@param path Path where the .dot file is created.
@@ -193,6 +195,9 @@ public:
   bool containsType(string TypeName);
 
   string getPlainTypename(string TypeName);
+
+  void printGraphAsDot(ostream& out);
+  static bidigraph_t loadGraphFormDot(istream& in);
 
   json exportPATBCJSON();
 

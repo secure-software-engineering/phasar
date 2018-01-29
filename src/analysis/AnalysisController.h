@@ -29,6 +29,7 @@
 #include "ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.h"
 #include "ifds_ide_problems/ifds_type_analysis/IFDSTypeAnalysis.h"
 #include "ifds_ide_problems/ifds_uninitialized_variables/IFDSUninitializedVariables.h"
+#include "ifds_ide_problems/ifds_const_analysis/IFDSConstAnalysis.h"
 #include "json.hpp"
 #include "misc/DataFlowAnalysisType.h"
 #include "misc/SummaryStrategy.h"

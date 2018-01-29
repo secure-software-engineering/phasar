@@ -37,9 +37,10 @@ public:
 
   set<D> ifdsResultsAt(N stmt) {
     set<D> keyset;
-    map<D, BinaryDomain> map = resultsAt(stmt);
-    for_each(map.begin(), map.end(),
-             [&keyset](D d) { keyset.insert(d.first); });
+    unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
+    for (auto d : map) {
+      keyset.insert(d.first);
+    }
     return keyset;
   }
 };

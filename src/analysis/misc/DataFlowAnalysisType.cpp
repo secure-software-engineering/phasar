@@ -11,6 +11,7 @@
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
+    {"ifds_const", DataFlowAnalysisType::IFDS_ConstAnalysis},
     {"ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis},
     {"ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis},
     {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
@@ -25,6 +26,7 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
 
 const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
     {DataFlowAnalysisType::IFDS_UninitializedVariables, "ifds_uninit"},
+    {DataFlowAnalysisType::IFDS_ConstAnalysis, "ifds_const"},
     {DataFlowAnalysisType::IFDS_TaintAnalysis, "ifds_taint"},
     {DataFlowAnalysisType::IFDS_TypeAnalysis, "ifds_type"},
     {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},

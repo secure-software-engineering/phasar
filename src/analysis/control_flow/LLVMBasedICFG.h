@@ -234,6 +234,8 @@ private:
   };
 
 public:
+  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
+
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, WalkerStrategy W,
                 ResolveStrategy R,
                 const vector<string> &EntryPoints = {"main"});

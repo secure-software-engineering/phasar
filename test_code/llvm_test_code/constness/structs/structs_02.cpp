@@ -1,11 +1,11 @@
-struct X {
+/* mutable: x */
+struct A {
 	int i = 0;
 };
 
 int main() {
-	// x is not const
-	X x;
-	X y;
+	A x;
+	A y;
 	x = y;
 	return 0;
 }

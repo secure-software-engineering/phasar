@@ -58,6 +58,9 @@ find_all_symbols_db.yaml
 *.sqlite
 *.sqlite3
 
+# dot files
+*.dot
+
 # temporary files
 *.*~
 *.dwo

@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 -- MySQL Workbench Synchronization
--- Generated: 2017-11-15 13:40
+-- Generated: 2017-12-22 10:34
 -- Model: New Model
 -- Version: 1.0
 -- Project: Name of the project
@@ -52,7 +52,6 @@ COLLATE = utf8_unicode_ci;
 CREATE TABLE IF NOT EXISTS `phasardb`.`type` (
   `type_id` INT(11) NOT NULL AUTO_INCREMENT,
   `identifier` VARCHAR(512) NULL DEFAULT NULL,
-  `hash` VARCHAR(512) NULL DEFAULT NULL,
   PRIMARY KEY (`type_id`))
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8

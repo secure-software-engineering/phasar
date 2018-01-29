@@ -1,12 +1,10 @@
 #include "src1.h"
-
-int main(int argc, char **argv) {
-	int a = argc;
-	// id() sei unbekannt
-	// Alle dff die vor dem call gelten müssen nach dem call weitergetrackt werden
-	// id() selbst kann durch den Aufruf weitere neue dffs generieren bzw. killen
-	int b = id(a);
-	int c = 42;
-	int d = id(a);
+#include "src2.h"
+// similar to module_wise_13 for testing projects with
+// overlaping functions and types 
+int main() {
+	int k = 2;
+	B bb;
+	int i = bb.foo(k);
 	return 0;
 }

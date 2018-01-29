@@ -1,5 +1,9 @@
 #include "src1.h"
 
-int id(int i) {
-	return i;
+int A::foo(int &i) {
+	return i+11;
+}
+
+void A::bar(double &d) {
+	double a = 2.12 + d;
 }

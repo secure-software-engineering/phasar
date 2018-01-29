@@ -73,6 +73,8 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Analyse types in module: "
                            << M.getModuleIdentifier();
+  // store analyzed module
+  contained_modules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();
   for (auto StructType : StructTypes) {
     // only add a new vertex to the graph if the type is currently unknown!
@@ -84,6 +86,7 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
           StructType->getName().str();
     }
   }
+  // construct the edges between a type and its subtypes
   for (auto StructType : StructTypes) {
     for (auto Subtype : StructType->subtypes()) {
       if (Subtype->isStructTy()) {
@@ -170,10 +173,18 @@ void LLVMTypeHierarchy::print() {
   }
 }
 
-void LLVMTypeHierarchy::printAsDot(const string &path) {
-  ofstream ofs(path);
-  boost::write_graphviz(
-      ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+void LLVMTypeHierarchy::printGraphAsDot(ostream& out) {
+  boost::dynamic_properties dp;
+  dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, g));
+  boost::write_graphviz_dp(out, g, dp);
+}
+
+LLVMTypeHierarchy::bidigraph_t LLVMTypeHierarchy::loadGraphFormDot(istream& in) {
+  LLVMTypeHierarchy::bidigraph_t G(0);
+  boost::dynamic_properties dp;
+  dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, G));
+  boost::read_graphviz(in, G, dp);
+  return G;
 }
 
 void LLVMTypeHierarchy::printTransitiveClosure() {

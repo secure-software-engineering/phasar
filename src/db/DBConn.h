@@ -51,8 +51,12 @@
 #include <sqlite3.h>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <typeinfo>
 #include <vector>
 using namespace std;
+
+enum class QueryReturnCode { TRUE, FALSE, ERROR };
 
 #define SQL_STD_ERROR_HANDLING                                                 \
   cout << "# ERR: SQLException in " << __FILE__;                               \
@@ -81,9 +85,18 @@ private:
   int getNextAvailableID(const string &TableName);
   int getProjectID(const string &Identifier);
   int getModuleID(const string &Identifier);
-  int getFunctionID(const string &Identifier);
-  int getGlobalVariableID(const string &Identifier);
+  set<int> getModuleIDsFromProject(const string &Identifier);
+  int getModuleIDFromFunctionID(const unsigned functionID);
+  int getModuleIDFromTypeID(const unsigned typeID);
+  set<int> getFunctionID(const string &Identifier);
+  set<int> getGlobalVariableID(const string &Identifier);
   int getTypeID(const string &Identifier);
+  size_t getFunctionHash(const unsigned functionID);
+  size_t getModuleHash(const unsigned moduleID);
+  QueryReturnCode moduleHasTypeHierarchy(const unsigned moduleID);
+  QueryReturnCode globalVariableIsDeclaration(const unsigned globalVariableID);
+  set<int> getAllTypeHierarchyIDs();
+  set<int> getAllModuleIDsFromTH(const unsigned typeHierarchyID);
 
   bool schemeExists();
   void buildDBScheme();
@@ -93,6 +106,16 @@ private:
                     const llvm::Module *module);
   unique_ptr<llvm::Module> getModule(const string &mod_name,
                                      llvm::LLVMContext &Context);
+  bool insertGlobalVariable(const llvm::GlobalVariable &G,
+                            const unsigned moduleID);
+  bool insertFunction(const llvm::Function &F, const unsigned moduleID);
+  bool insertType(const llvm::StructType &ST, const unsigned moduleID);
+  bool insertVTable(const VTable &VTBL, const string &TypeName,
+                    const string &ProjectName);
+  void storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
+                          const string hex_id);
+
+  FRIEND_TEST(StoreProjectIRDBTest, StoreProjectIRDBTest);
 
 public:
   DBConn(const DBConn &db) = delete;
@@ -105,7 +128,8 @@ public:
   void storeProjectIRDB(const string &ProjectName, const ProjectIRDB &IRDB);
   ProjectIRDB loadProjectIRDB(const string &ProjectName);
 
-  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, bool use_hs = false);
+  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, const string &ProjectName,
+                          bool use_hs = false);
   LLVMBasedICFG loadLLVMBasedICFGfromModule(const string &ModuleName,
                                             bool use_hs = false);
   LLVMBasedICFG
@@ -114,11 +138,13 @@ public:
   LLVMBasedICFG loadLLVMBasedICFGfromProject(const string &ProjectName,
                                              bool use_hs = false);
 
-  void storePointsToGraph(const PointsToGraph &PTG, bool use_hs = false);
+  void storePointsToGraph(const PointsToGraph &PTG, const string &ProjectName,
+                          bool use_hs = false);
   PointsToGraph loadPointsToGraphFromFunction(const string &FunctionName,
                                               bool use_hs = false);
 
-  void storeLLVMTypeHierarchy(const LLVMTypeHierarchy &TH, bool use_hs = false);
+  void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH, const string &ProjectName,
+                              bool use_hs = false);
   LLVMTypeHierarchy loadLLVMTypeHierarchyFromModule(const string &ModuleName,
                                                     bool use_hs = false);
   LLVMTypeHierarchy
