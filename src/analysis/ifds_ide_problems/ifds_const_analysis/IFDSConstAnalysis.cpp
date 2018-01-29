@@ -1,10 +1,9 @@
 #include "IFDSConstAnalysis.h"
 
-IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
+IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg, PointsToGraph &ptg,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+    : DefaultIFDSTabulationProblem(icfg), ptg(ptg), EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-  ptg = icfg.getWholeModulePTG();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -55,7 +54,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
       // storedOnce set since the first store instruction of GV is implicit
       for (auto alias : pointsToSet) {
         if (llvm::isa<llvm::GlobalValue>(alias) ||
-          storedOnce.find(alias) != storedOnce.end()) {
+            storedOnce.find(alias) != storedOnce.end()) {
           return make_shared<GenAll<const llvm::Value *>>(ToGenerate,
                                                           zeroValue());
         }

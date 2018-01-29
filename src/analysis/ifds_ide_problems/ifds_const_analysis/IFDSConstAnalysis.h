@@ -42,13 +42,14 @@ class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-//  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
+  //  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
   vector<string> EntryPoints;
   set<const llvm::Value *> storedOnce;
-  PointsToGraph ptg;
+  PointsToGraph &ptg;
 
 public:
-  IFDSConstAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
+  IFDSConstAnalysis(LLVMBasedICFG &icfg, PointsToGraph &ptg,
+                    vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSConstAnalysis() = default;
 
@@ -90,5 +91,5 @@ public:
   void printInitilizedSet();
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_ \
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
           */

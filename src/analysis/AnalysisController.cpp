@@ -123,7 +123,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
-        IFDSConstAnalysis constproblem(ICFG, EntryPoints);
+        IFDSConstAnalysis constproblem(ICFG, ICFG.getWholeModulePTG(), EntryPoints);
         LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
           constproblem, true);
         llvmconstsolver.solve();
