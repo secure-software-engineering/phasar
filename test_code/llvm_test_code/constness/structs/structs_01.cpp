@@ -1,9 +1,9 @@
-struct X {
+/* mutable: - */
+struct A {
 	int i = 0;
 };
 
 int main() {
-	// x is const
-	X x;
+	A a;
 	return 0;
 }

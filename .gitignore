@@ -51,6 +51,9 @@ compile_commands.json
 *.sqlite
 *.sqlite3
 
+# dot files
+*.dot
+
 # temporary files
 *.*~
 *.dwo

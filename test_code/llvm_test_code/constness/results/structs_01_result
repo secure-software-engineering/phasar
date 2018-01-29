@@ -1,0 +1,34 @@
+### DUMP LLVMIFDSSolver results
+--- IFDS START RESULT RECORD ---
+N:   %2 = alloca %struct.A*, align 8, !phasar.instruction.id !1, ID: 5 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   store %struct.A* %0, %struct.A** %2, align 8, !phasar.instruction.id !2, ID: 6 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %1 = alloca i32, align 4, !phasar.instruction.id !1, ID: 0 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   store i32 0, i32* %1, align 4, !phasar.instruction.id !3, ID: 2 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %4 = getelementptr inbounds %struct.A, %struct.A* %3, i32 0, i32 0, !phasar.instruction.id !4, ID: 8 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   store i32 0, i32* %4, align 4, !phasar.instruction.id !5, ID: 9 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   ret void, !phasar.instruction.id !6, ID: 10 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   ret i32 0, !phasar.instruction.id !5, ID: 4 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %3 = load %struct.A*, %struct.A** %2, align 8, !phasar.instruction.id !3, ID: 7 in function: _ZN1AC2Ev
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   call void @_ZN1AC2Ev(%struct.A* %2) #2, !phasar.instruction.id !4, ID: 3 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %2 = alloca %struct.A, align 4, !phasar.instruction.id !2, ID: 1 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM

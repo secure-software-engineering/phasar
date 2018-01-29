@@ -7,6 +7,7 @@ using namespace std;
 
 enum class DataFlowAnalysisType {
   IFDS_UninitializedVariables = 0,
+  IFDS_ConstAnalysis,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
   IFDS_TypeAnalysis,

@@ -39,6 +39,7 @@ chosen by using the parameters as shown in the following:
 	MONOTONE inter solver test, MONO - 'mono_inter_solvertest'
 	=== The actual analyses ===
 	uninitialized variable analysis, IFDS - 'ifds_uninit'
+	immutability / constness analysis, IFDS - 'ifds_const'
 	taint analysis, IFDS - 'ifds_taint'
 	taint analysis, IDE - 'ide_taint'
 	type analysis, IFDS - 'ifds_type'

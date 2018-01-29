@@ -44,7 +44,7 @@ void LoggerExceptionHandler::operator()(const std::exception &ex) const {
 void initializeLogger(bool use_logger) {
   // Using this call, logging can be enabled or disabled
   bl::core::get()->set_logging_enabled(use_logger);
-  typedef bl::sinks::asynchronous_sink<bl::sinks::text_ostream_backend>
+  typedef bl::sinks::synchronous_sink<bl::sinks::text_ostream_backend>
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
