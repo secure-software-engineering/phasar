@@ -38,7 +38,7 @@ build:
   # depending on the build setup it's a good idea to cache outputs to reduce the build time
   cache:
     paths:
-      - "*.o"
+      - obj/*
 
 # run tests using the binary built before
 #test:
