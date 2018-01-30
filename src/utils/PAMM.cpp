@@ -75,7 +75,7 @@ void PAMM::decCounter(std::string counterId, unsigned value) {
   }
 }
 
-int PAMM::counterValue(std::string counterId) {
+int PAMM::getCounter(std::string counterId) {
   auto countIt = Counter.find(counterId);
   if (countIt != Counter.end()) {
     return countIt->second;
@@ -107,6 +107,8 @@ std::string PAMM::getPrintableDuration(unsigned long duration) {
     oss << seconds << "sec ";
   if (milliseconds)
     oss << milliseconds << "ms";
+  else
+    oss << "0 ms";
   //  oss << setfill('0') // set field fill character to '0'
   //      << hours << "hr " << setw(2) << minutes << "m " << setw(2) << seconds
   //      << "sec " << setw(3) << milliseconds << "ms";

@@ -1,6 +1,7 @@
 #ifndef FLOWEDGEFUNCTIONCACHE_H_
 #define FLOWEDGEFUNCTIONCACHE_H_
 
+#include "../../utils/PAMM.h"
 #include "EdgeFunction.h"
 #include "FlowFunction.h"
 #include "IDETabulationProblem.h"
@@ -69,9 +70,40 @@ struct FlowEdgeFunctionCache {
 
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &p)
-      : problem(p), autoAddZero(p.solver_config.autoAddZero),
-        zeroValue(p.zeroValue()) {}
+  FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &problem)
+      : problem(problem), autoAddZero(problem.solver_config.autoAddZero),
+        zeroValue(problem.zeroValue()) {
+    PAMM_FACTORY;
+    REG_COUNTER("NormalFFConstructionCount");
+    REG_COUNTER("NormalFFCacheHitCount");
+    // Counters for the call flow functions
+    REG_COUNTER("CallFFConstructionCount");
+    REG_COUNTER("CallFFCacheHitCount");
+    // Counters for return flow functions
+    REG_COUNTER("ReturnFFConstructionCount");
+    REG_COUNTER("ReturnFFCacheHitCount");
+    // Counters for the call to return flow functions
+    REG_COUNTER("CallToRetFFConstructionCount");
+    REG_COUNTER("CallToRetFFCacheHitCount");
+    // Counters for the summary flow functions
+    REG_COUNTER("SummaryFFConstructionCount");
+    REG_COUNTER("SummaryFFCacheHitCount");
+    // Counters for the normal edge functions
+    REG_COUNTER("NormalEFConstructionCount");
+    REG_COUNTER("NormalEFCacheHitCount");
+    // Counters for the call edge functions
+    REG_COUNTER("CallEFConstructionCount");
+    REG_COUNTER("CallEFCacheHitCount");
+    // Counters for the return edge functions
+    REG_COUNTER("ReturnEFConstructionCount");
+    REG_COUNTER("ReturnEFCacheHitCount");
+    // Counters for the call to return edge functions
+    REG_COUNTER("CallToRetEFConstructionCount");
+    REG_COUNTER("CallToRetEFCacheHitCount");
+    // Counters for the summary edge functions
+    REG_COUNTER("SummaryEFConstructionCount");
+    REG_COUNTER("SummaryEFCacheHitCount");
+  }
 
   shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
     auto key = tie(curr, succ);

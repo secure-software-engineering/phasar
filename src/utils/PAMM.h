@@ -29,9 +29,11 @@ namespace bfs = boost::filesystem;
 #define START_TIMER(TIMER) p.startTimer(TIMER)
 #define RESET_TIMER(TIMER) p.resetTimer(TIMER)
 #define STOP_TIMER(TIMER) p.stopTimer(TIMER)
+#define PRINT_TIMER(TIMER) p.getPrintableDuration(p.elapsedTime(TIMER))
 #define REG_COUNTER(COUNTER) p.regCounter(COUNTER)
 #define INC_COUNTER(COUNTER) p.incCounter(COUNTER)
 #define DEC_COUNTER(COUNTER) p.decCounter(COUNTER)
+#define GET_COUNTER(COUNTER) p.getCounter(COUNTER)
 #define PRINT_EVA_RESULTS(CONFIG) p.printResults(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG) p.exportResultsAsJSON(CONFIG)
 #else
@@ -39,9 +41,11 @@ namespace bfs = boost::filesystem;
 #define START_TIMER(TIMER)
 #define RESET_TIMER(TIMER)
 #define STOP_TIMER(TIMER)
+#define PRINT_TIMER(TIMER)
 #define REG_COUNTER(COUNTER)
 #define INC_COUNTER(COUNTER)
 #define DEC_COUNTER(COUNTER)
+#define GET_COUNTER(COUNTER)
 #define PRINT_EVA_RESULTS(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG)
 #endif
@@ -61,7 +65,6 @@ private:
   std::map<const std::string, time_point> RunningTimer;
   std::map<const std::string, std::pair<time_point, time_point>> StoppedTimer;
   std::map<const std::string, unsigned> Counter;
-  std::string getPrintableDuration(unsigned long duration);
 
 public:
   PAMM(const PAMM &pm) = delete;
@@ -73,11 +76,12 @@ public:
   void startTimer(std::string timerId);
   void resetTimer(std::string timerId);
   void stopTimer(std::string timerId);
+  std::string getPrintableDuration(unsigned long duration);
 
   void regCounter(std::string counterId);
   void incCounter(std::string counterId, unsigned value = 1);
   void decCounter(std::string counterId, unsigned value = 1);
-  int counterValue(std::string counterId);
+  int getCounter(std::string counterId);
 
   void printTimerMap();
   void printStoppedTimer();

@@ -1,8 +1,9 @@
 #include "IFDSConstAnalysis.h"
 
-IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg, PointsToGraph &ptg,
+IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), ptg(ptg), EntryPoints(EntryPoints) {
+    : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
+      EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
