@@ -40,7 +40,6 @@
 #include <string>
 
 using namespace std;
-// using namespace boost::log;
 namespace bl = boost::log;
 namespace bfs = boost::filesystem;
 

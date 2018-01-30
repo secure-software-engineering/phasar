@@ -200,11 +200,11 @@ $(BIN):
 
 $(BIN)$(EXE): $(OBJ)
 	@echo "linking into executable file ..."
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) $^ $(SOL_LIBS) $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@ $(THREAD_MODEL)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) -c $< -o $@
 
 doc:
 	@echo "building the documentation of the source code ..."
@@ -228,7 +228,7 @@ tests: $(OBJDIR) $(OBJ) gtest $(TSTEXE) $(TST) $(OBJ)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@$(TEST_SUFFIX) $(GTEST_LIBS) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) $(GTEST_LIBS) -o $@$(TEST_SUFFIX) $(THREAD_MODEL)
 
 run-tests: tests
 	@echo "Run tests: $(TSTEXE)"
@@ -246,12 +246,12 @@ hello:
 
 GTEST_DIR = $(LIBS)googletest/googletest/
 
-GTEST_FLAGS := -L$(LIBS)/gtest/
+GTEST_FLAGS := -L$(LIBS)gtest/
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)/include
+CPPFLAGS += -isystem $(GTEST_DIR)include
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
