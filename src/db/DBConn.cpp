@@ -276,8 +276,8 @@ int DBConn::getModuleIDFromFunctionID(const unsigned functionID) {
 set<int> DBConn::getAllTypeHierarchyIDs() {
   set<int> THIDs;
   try {
-    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT type_hierarchy_id FROM type_hierarchy"));
+    unique_ptr<sql::PreparedStatement> pstmt(
+        conn->prepareStatement("SELECT type_hierarchy_id FROM type_hierarchy"));
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {
       THIDs.insert(res->getInt("type_hierarchy_id"));
@@ -293,7 +293,8 @@ set<int> DBConn::getAllModuleIDsFromTH(const unsigned typeHierarchyID) {
   set<int> moduleIDs;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT module_id FROM moduel_has_type_hierarchy WHERE type_hierarchy_id=?"));
+        "SELECT module_id FROM moduel_has_type_hierarchy WHERE "
+        "type_hierarchy_id=?"));
     pstmt->setInt(1, typeHierarchyID);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {

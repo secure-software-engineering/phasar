@@ -87,7 +87,8 @@ public:
   // Constructs an empty ProjectIRDB
   ProjectIRDB(enum IRDBOptions Opt);
   // Constructs a ProjectIRDB from a bunch of llvm IR files
-  ProjectIRDB(const vector<string> &IRFiles, enum IRDBOptions Opt = IRDBOptions::NONE);
+  ProjectIRDB(const vector<string> &IRFiles,
+              enum IRDBOptions Opt = IRDBOptions::NONE);
   // Constructs a ProjectIRDB from a CompilationDatabase (only for simple
   // projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,

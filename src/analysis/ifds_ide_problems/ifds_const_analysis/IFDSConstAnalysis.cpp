@@ -1,8 +1,9 @@
 #include "IFDSConstAnalysis.h"
 
-IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg, PointsToGraph &ptg,
+IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), ptg(ptg), EntryPoints(EntryPoints) {
+    : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
+      EntryPoints(EntryPoints) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -37,8 +38,8 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
           ToGenerate.insert(alias);
         }
       } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << alias->getName().str();
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Could not cast the following alias: " << alias->getName().str();
       }
     }
     // check if the pointerOp is global variable; if so, generate a new data

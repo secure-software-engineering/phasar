@@ -65,7 +65,7 @@ CXX_INCL = -I ./lib/json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1
-GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
+# GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
@@ -222,9 +222,9 @@ $(PLUGINSODIR):
 plugins: $(PLUGINSODIR) $(SO)
 
 $(PLUGINSODIR)%.so: %.cxx
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
 
-tests: $(OBJDIR) $(OBJ) gtest $(TSTEXE) $(TST) $(OBJ)
+tests: gtest $(OBJDIR) $(OBJ) $(TST) $(TSTEXE)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"

@@ -57,13 +57,13 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     IRDB.linkForWPA();
   }
   IRDB.preprocessIR();
-//  IRDB.print();
-//  DBConn::getInstance();
+  //  IRDB.print();
+  //  DBConn::getInstance();
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
   LLVMTypeHierarchy CH(IRDB);
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-//  CH.printAsDot();
+  //  CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
@@ -76,7 +76,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
-//    ICFG.print();
+    //    ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
     ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework
@@ -137,9 +137,9 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
-        IFDSConstAnalysis constproblem(ICFG, ICFG.getWholeModulePTG(), EntryPoints);
-        LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
-          constproblem, true);
+        IFDSConstAnalysis constproblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+            constproblem, true);
         llvmconstsolver.solve();
         constproblem.printInitilizedSet();
         break;

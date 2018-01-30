@@ -89,6 +89,8 @@ const map<unsigned, set<string>> call_ret_02_result = {
 const map<unsigned, set<string>> call_ret_03_result = {
     {10, {"%2 = alloca i32, align 4, !phasar.instruction.id !2, ID: 5"}}};
 
+const map<unsigned, set<string>> call_ret_04_result = {};
+
 const map<unsigned, set<string>> call_ret_05_result = {};
 
 /* ============== GROUND TRUTH FOR CONTROL FLOW TESTS ============== */

@@ -178,20 +178,19 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
         switch (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                          llvm::MemoryLocation(*I2, I2Size))) {
         case llvm::NoAlias:
-           PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+          PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
           break;
         case llvm::MayAlias:
-           PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
+          PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::PartialAlias:
-           PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-            						 F->getParent());
+          PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+                       F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::MustAlias:
-           PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           F->getParent());
+          PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         default:
@@ -201,8 +200,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
       } else {
         if (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                      llvm::MemoryLocation(*I2, I2Size)) == llvm::MustAlias) {
-           PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           F->getParent());
+          PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
         }
       }
@@ -306,25 +304,28 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   return result;
 }
 
-set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
+set<const llvm::Value *>
+PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
   auto &lg = lg::get();
   set<const llvm::Value *> result;
   if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
     const llvm::Function *F = IV->getFunction();
     for (auto alias : getPointsToSet(V)) {
-      if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
+      if (const llvm::Instruction *I =
+              llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == F) {
           result.insert(alias);
         }
       } else if (llvm::isa<llvm::GlobalValue>(alias)) {
         result.insert(alias);
-      } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(alias)) {
+      } else if (const llvm::Argument *A =
+                     llvm::dyn_cast<llvm::Argument>(alias)) {
         if (A->getParent() == F) {
           result.insert(alias);
         }
       } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << V->getName().str();
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Could not cast the following alias: " << V->getName().str();
       }
     }
   }

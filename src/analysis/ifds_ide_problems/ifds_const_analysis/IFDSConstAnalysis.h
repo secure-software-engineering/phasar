@@ -33,7 +33,6 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <string>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -48,8 +47,7 @@ private:
   PointsToGraph &ptg;
 
 public:
-  IFDSConstAnalysis(LLVMBasedICFG &icfg, PointsToGraph &ptg,
-                    vector<string> EntryPoints = {"main"});
+  IFDSConstAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSConstAnalysis() = default;
 
@@ -92,4 +90,4 @@ public:
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
-          */
+        */
