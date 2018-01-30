@@ -64,7 +64,8 @@ public:
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver ctor" << endl;
     cout << tabulationProblem.solver_config << endl;
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     REG_COUNTER("FF construction count");
     REG_COUNTER("FF application count");
 //    REG_COUNTER("special summary FF application count");
@@ -88,7 +89,8 @@ public:
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver ctor" << endl;
     cout << tabulationProblem.solver_config << endl;
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     REG_COUNTER("FF construction count");
     REG_COUNTER("FF application count");
 //    REG_COUNTER("special summary FF application count");
@@ -101,7 +103,8 @@ public:
    * @brief Runs the solver on the configured problem. This can take some time.
    */
   virtual void solve() {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
@@ -214,7 +217,8 @@ private:
    * @param edge an edge whose target node resembles a method call
    */
   void processCall(PathEdge<N, D> edge) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process call at target: "
@@ -354,7 +358,8 @@ private:
    * @param edge
    */
   void processNormalFlow(PathEdge<N, D> edge) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process normal at target: "
@@ -417,7 +422,8 @@ private:
   }
 
   void propagateValueAtStart(pair<N, D> nAndD, N n) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     D d = nAndD.second;
     M m = icfg.getMethodOf(n);
     for (N c : icfg.getCallsFromWithin(m)) {
@@ -434,7 +440,8 @@ private:
   }
 
   void propagateValueAtCall(pair<N, D> nAndD, N n) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     D d = nAndD.second;
     for (M q : icfg.getCalleesOfCallAt(n)) {
       shared_ptr<FlowFunction<D>> callFlowFunction =
@@ -509,7 +516,8 @@ private:
 
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<N, D> edge) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     auto &lg = lg::get();
 //    propagationCount++;
     INC_COUNTER("propagation count");
@@ -543,7 +551,8 @@ private:
 
   // should be made a callable at some point
   void valueComputationTask(vector<N> values) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     for (N n : values) {
       for (N sP : icfg.getStartPointsOf(icfg.getMethodOf(n))) {
         Table<D, D, shared_ptr<EdgeFunction<V>>> lookupByTarget;
@@ -625,7 +634,8 @@ protected:
    * @param edge an edge whose target node resembles a method exit
    */
   void processExit(PathEdge<N, D> edge) {
-    PAMM &p = PAMM::getInstance();
+//    PAMM &p = PAMM::getInstance();
+    PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process exit at target: "

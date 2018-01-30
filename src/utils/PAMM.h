@@ -19,13 +19,13 @@
 #include <sstream>
 
 // for convenience
-using namespace std;
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
 // The 'do {} while(0)' enabales to use the macros like a function
 // since it does not anything, but can be followed by a semicolon.
 #ifdef PERFORMANCE_EVA
+#define PAMM_FACTORY PAMM &p = PAMM::getInstance()
 #define START_TIMER(TIMER) p.startTimer(TIMER)
 #define RESET_TIMER(TIMER) p.resetTimer(TIMER)
 #define STOP_TIMER(TIMER) p.stopTimer(TIMER)
@@ -35,30 +35,15 @@ namespace bfs = boost::filesystem;
 #define PRINT_EVA_RESULTS(CONFIG) p.printResults(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG) p.exportResultsAsJSON(CONFIG)
 #else
-#define START_TIMER(TIMERNAME)                                                 \
-  do {                                                                         \
-  } while (0)
-#define RESET_TIMER(TIMERNAME)                                                 \
-  do {                                                                         \
-  } while (0)
-#define STOP_TIMER(TIMERNAME)                                                  \
-  do {                                                                         \
-  } while (0)
-#define REG_COUNTER(COUNTER)                                                   \
-  do {                                                                         \
-  } while (0)
-#define INC_COUNTER(COUNTER)                                                   \
-  do {                                                                         \
-  } while (0)
-#define DEC_COUNTER(COUNTER)                                                   \
-  do {                                                                         \
-  } while (0)
-#define PRINT_EVA_RESULTS(CONFIG)                                              \
-  do {                                                                         \
-  } while (0)
-#define EXPORT_EVA_RESULTS(CONFIG)                                             \
-  do {                                                                         \
-  } while (0)
+#define PAMM_FACTORY
+#define START_TIMER(TIMER)
+#define RESET_TIMER(TIMER)
+#define STOP_TIMER(TIMER)
+#define REG_COUNTER(COUNTER)
+#define INC_COUNTER(COUNTER)
+#define DEC_COUNTER(COUNTER)
+#define PRINT_EVA_RESULTS(CONFIG)
+#define EXPORT_EVA_RESULTS(CONFIG)
 #endif
 
 /**
@@ -72,11 +57,11 @@ class PAMM {
 private:
   PAMM() = default;
   ~PAMM() = default;
-  typedef chrono::high_resolution_clock::time_point time_point;
-  map<const string, time_point> RunningTimer;
-  map<const string, pair<time_point, time_point>> StoppedTimer;
-  map<const string, unsigned> Counter;
-  string getPrintableDuration(unsigned long duration);
+  typedef std::chrono::high_resolution_clock::time_point time_point;
+  std::map<const std::string, time_point> RunningTimer;
+  std::map<const std::string, std::pair<time_point, time_point>> StoppedTimer;
+  std::map<const std::string, unsigned> Counter;
+  std::string getPrintableDuration(unsigned long duration);
 
 public:
   PAMM(const PAMM &pm) = delete;
@@ -85,31 +70,31 @@ public:
   PAMM &operator=(PAMM &&pm) = delete;
   static PAMM &getInstance();
 
-  void startTimer(string timerId);
-  void resetTimer(string timerId);
-  void stopTimer(string timerId);
+  void startTimer(std::string timerId);
+  void resetTimer(std::string timerId);
+  void stopTimer(std::string timerId);
 
-  void regCounter(string counterId);
-  void incCounter(string counterId, unsigned value = 1);
-  void decCounter(string counterId, unsigned value = 1);
-  int counterValue(string counterId);
+  void regCounter(std::string counterId);
+  void incCounter(std::string counterId, unsigned value = 1);
+  void decCounter(std::string counterId, unsigned value = 1);
+  int counterValue(std::string counterId);
 
   void printTimerMap();
   void printStoppedTimer();
   void printCounterMap();
 
-  template <typename Period = chrono::microseconds>
-  unsigned long elapsedTime(string timerId) {
+  template <typename Period = std::chrono::microseconds>
+  unsigned long elapsedTime(std::string timerId) {
     auto timer = RunningTimer.find(timerId);
     if (timer != RunningTimer.end()) {
-      time_point end = chrono::high_resolution_clock::now();
+      time_point end = std::chrono::high_resolution_clock::now();
       time_point start = timer->second;
-      auto duration = chrono::duration_cast<Period>(end - start);
+      auto duration = std::chrono::duration_cast<Period>(end - start);
       return duration.count();
     }
     auto result = StoppedTimer.find(timerId);
     if (result != StoppedTimer.end()) {
-      auto duration = chrono::duration_cast<Period>(result->second.second -
+      auto duration = std::chrono::duration_cast<Period>(result->second.second -
                                                     result->second.first);
       return duration.count();
     } else {
@@ -118,8 +103,8 @@ public:
     }
   }
 
-  template <typename Period = chrono::microseconds>
-  unsigned long accumulatedTime(set<string> timers) {
+  template <typename Period = std::chrono::microseconds>
+  unsigned long accumulatedTime(std::set<std::string> timers) {
     unsigned long accTime = 0;
     for (auto timerId : timers) {
       accTime += elapsedTime<Period>(timerId);
@@ -132,30 +117,30 @@ public:
    * @tparam Period sets the precision for time computation.
    * @param config Config name of current analysis run.
    */
-  template <typename Period = chrono::microseconds>
-  void printResults(const string &config) {
+  template <typename Period = std::chrono::microseconds>
+  void printResults(const std::string &config) {
     // stop all running timer
     for (auto timer : RunningTimer) {
       stopTimer(timer.first);
     }
-    cout << "\n----- EVALUATION RESULTS -----\n\n";
-    cout << "Timer\n";
-    cout << "-----\n";
+    std::cout << "\n----- EVALUATION RESULTS -----\n\n";
+    std::cout << "Timer\n";
+    std::cout << "-----\n";
 
     for (auto timer : StoppedTimer) {
       unsigned long time = elapsedTime<Period>(timer.first);
-      cout << timer.first << " : " << getPrintableDuration(time) << '\n';
+      std::cout << timer.first << " : " << getPrintableDuration(time) << '\n';
     }
     if (StoppedTimer.empty()) {
-      cout << "No Timer started!" << '\n';
+      std::cout << "No Timer started!" << '\n';
     }
-    cout << "\nCounter\n";
-    cout << "-------\n";
+    std::cout << "\nCounter\n";
+    std::cout << "-------\n";
     for (auto counter : Counter) {
-      cout << counter.first << " : " << counter.second << '\n';
+      std::cout << counter.first << " : " << counter.second << '\n';
     }
     if (Counter.empty()) {
-      cout << "No Counter registered!" << '\n';
+      std::cout << "No Counter registered!" << '\n';
     }
   }
 
@@ -164,8 +149,8 @@ public:
    * @tparam Period sets the precision for time computation.
    * @param config Config name of current analysis run.
    */
-  template <typename Period = chrono::microseconds>
-  void exportResultsAsJSON(const string &configPath) {
+  template <typename Period = std::chrono::microseconds>
+  void exportResultsAsJSON(const std::string &configPath) {
     // stop all running timer
     for (auto timer : RunningTimer) {
       stopTimer(timer.first);
@@ -185,14 +170,14 @@ public:
     jsonResults["Counter"] = jCounter;
     bfs::path cfp(configPath);
     // reduce the config path to just the filename - no path and no extension
-    string config = cfp.filename().string();
-    size_t extensionPos = config.find(cfp.extension().string());
+    std::string config = cfp.filename().string();
+    std::size_t extensionPos = config.find(cfp.extension().string());
     config.replace(extensionPos, cfp.extension().size(), "");
     jsonResults["Config"] = config;
     jsonResults["Config path"] = configPath;
-    ofstream file(config + ".json");
-    file << setw(2) // sets the indentation
-         << jsonResults << endl;
+    std::ofstream file(config + ".json");
+    file << std::setw(2) // sets the indentation
+         << jsonResults << std::endl;
     file.close();
   }
 };

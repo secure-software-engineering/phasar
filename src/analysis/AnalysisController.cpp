@@ -13,7 +13,8 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
                                        bool WPA_MODE, bool Mem2Reg_MODE,
                                        bool PrintEdgeRecorder, string graph_id)
     : FinalResultsJson() {
-  PAMM &p = PAMM::getInstance();
+//  PAMM &p = PAMM::getInstance();
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
   BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";

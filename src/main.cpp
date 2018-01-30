@@ -141,7 +141,8 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-  PAMM &p = PAMM::getInstance();
+//  PAMM &p = PAMM::getInstance();
+  PAMM_FACTORY;
   START_TIMER("Total runtime");
   // set-up the logger and get a reference to it
   initializeLogger(true);

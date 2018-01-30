@@ -181,7 +181,8 @@ void ProjectIRDB::compileAndAddToDB(vector<const char *> CompileCommand) {
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
-  PAMM &p = PAMM::getInstance();
+//  PAMM &p = PAMM::getInstance();
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier();
   // TODO Have a look at this stuff from the future at some point in time

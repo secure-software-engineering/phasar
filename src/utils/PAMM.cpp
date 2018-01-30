@@ -12,18 +12,18 @@ PAMM &PAMM::getInstance() {
   return instance;
 }
 
-void PAMM::startTimer(string timerId) {
+void PAMM::startTimer(std::string timerId) {
   if (RunningTimer.find(timerId) == RunningTimer.end() &&
       StoppedTimer.find(timerId) == StoppedTimer.end()) {
-    time_point start = chrono::high_resolution_clock::now();
+    time_point start = std::chrono::high_resolution_clock::now();
     RunningTimer[timerId] = start;
-    cout << timerId << " started.\n";
+    std::cout << timerId << " started.\n";
   } else {
-    cout << timerId << " already started or stopped!\n";
+    std::cout << timerId << " already started or stopped!\n";
   }
 }
 
-void PAMM::resetTimer(string timerId) {
+void PAMM::resetTimer(std::string timerId) {
   auto timer = RunningTimer.find(timerId);
   if (timer != RunningTimer.end()) {
     RunningTimer.erase(timer);
@@ -32,50 +32,50 @@ void PAMM::resetTimer(string timerId) {
   if (result != StoppedTimer.end()) {
     StoppedTimer.erase(result);
   } else {
-    cout << timerId << " is not a valid timer!\n";
+    std::cout << timerId << " is not a valid timer!\n";
   }
 }
 
-void PAMM::stopTimer(string timerId) {
+void PAMM::stopTimer(std::string timerId) {
   auto timer = RunningTimer.find(timerId);
   if (timer != RunningTimer.end()) {
-    time_point end = chrono::high_resolution_clock::now();
+    time_point end = std::chrono::high_resolution_clock::now();
     time_point start = timer->second;
     RunningTimer.erase(timer);
     //      pair<time_point, time_point> p(start, end);
     auto p = make_pair(start, end);
     StoppedTimer[timerId] = p;
-    //    cout << timerId << " stopped!\n";
+    //    std::cout << timerId << " stopped!\n";
   } else {
-    cout << timerId << " is not a valid timer!\n";
+    std::cout << timerId << " is not a valid timer!\n";
   }
 }
 
-void PAMM::regCounter(string counterId) {
+void PAMM::regCounter(std::string counterId) {
   auto counter = Counter.find(counterId);
   if (counter == Counter.end()) {
     Counter[counterId] = 0;
-    cout << "counter " << counterId << " registered.\n";
+    std::cout << "counter " << counterId << " registered.\n";
   } else {
-    cout << counterId << " already exists!\n";
+    std::cout << counterId << " already exists!\n";
   }
 }
 
-void PAMM::incCounter(string counterId, unsigned value) {
+void PAMM::incCounter(std::string counterId, unsigned value) {
   auto counter = Counter.find(counterId);
   if (counter != Counter.end() && (counter->second + value > counter->second)) {
     counter->second += value;
   }
 }
 
-void PAMM::decCounter(string counterId, unsigned value) {
+void PAMM::decCounter(std::string counterId, unsigned value) {
   auto counter = Counter.find(counterId);
   if (counter != Counter.end() && (counter->second - value < counter->second)) {
     counter->second -= value;
   }
 }
 
-int PAMM::counterValue(string counterId) {
+int PAMM::counterValue(std::string counterId) {
   auto countIt = Counter.find(counterId);
   if (countIt != Counter.end()) {
     return countIt->second;
@@ -85,7 +85,7 @@ int PAMM::counterValue(string counterId) {
   }
 }
 
-string PAMM::getPrintableDuration(unsigned long duration) {
+std::string PAMM::getPrintableDuration(unsigned long duration) {
   unsigned long milliseconds = (unsigned long)(duration / 1000) % 1000;
   unsigned long seconds =
       (((unsigned long)(duration / 1000) - milliseconds) / 1000) % 60;
@@ -98,7 +98,7 @@ string PAMM::getPrintableDuration(unsigned long duration) {
         60) -
        minutes) /
       60;
-  ostringstream oss;
+  std::ostringstream oss;
   if (hours)
     oss << hours << "hr ";
   if (minutes)
@@ -114,27 +114,27 @@ string PAMM::getPrintableDuration(unsigned long duration) {
 }
 
 void PAMM::printTimerMap() {
-  cout << "Running timer: [ ";
+  std::cout << "Running timer: [ ";
   for (auto entry : RunningTimer) {
-    cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
+    std::cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
          << " ";
   }
-  cout << "]\n";
+  std::cout << "]\n";
 }
 
 void PAMM::printStoppedTimer() {
-  cout << "Stopped timer: [ ";
+  std::cout << "Stopped timer: [ ";
   for (auto entry : StoppedTimer) {
-    cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
+    std::cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
          << " ";
   }
-  cout << "]\n";
+  std::cout << "]\n";
 }
 
 void PAMM::printCounterMap() {
-  cout << "Counter: [ ";
+  std::cout << "Counter: [ ";
   for (auto counter : Counter) {
-    cout << counter.first << "=" << counter.second << " ";
+    std::cout << counter.first << "=" << counter.second << " ";
   }
-  cout << "]\n";
+  std::cout << "]\n";
 }
