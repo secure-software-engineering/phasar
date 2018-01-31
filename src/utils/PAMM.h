@@ -22,8 +22,6 @@
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
-// The 'do {} while(0)' enabales to use the macros like a function
-// since it does not anything, but can be followed by a semicolon.
 #ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &p = PAMM::getInstance()
 #define START_TIMER(TIMER) p.startTimer(TIMER)
@@ -34,6 +32,7 @@ namespace bfs = boost::filesystem;
 #define INC_COUNTER(COUNTER) p.incCounter(COUNTER)
 #define DEC_COUNTER(COUNTER) p.decCounter(COUNTER)
 #define GET_COUNTER(COUNTER) p.getCounter(COUNTER)
+#define GET_SUM_COUNT( ... ) p.getSumCount(__VA_ARGS__)
 #define PRINT_EVA_RESULTS(CONFIG) p.printResults(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG) p.exportResultsAsJSON(CONFIG)
 #else
@@ -46,6 +45,7 @@ namespace bfs = boost::filesystem;
 #define INC_COUNTER(COUNTER)
 #define DEC_COUNTER(COUNTER)
 #define GET_COUNTER(COUNTER)
+#define GET_SUM_COUNT( ... )
 #define PRINT_EVA_RESULTS(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG)
 #endif
@@ -82,6 +82,7 @@ public:
   void incCounter(std::string counterId, unsigned value = 1);
   void decCounter(std::string counterId, unsigned value = 1);
   int getCounter(std::string counterId);
+  int getSumCount(std::set<std::string> counterIds);
 
   void printTimerMap();
   void printStoppedTimer();

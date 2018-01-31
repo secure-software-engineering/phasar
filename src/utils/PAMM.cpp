@@ -85,6 +85,20 @@ int PAMM::getCounter(std::string counterId) {
   }
 }
 
+int PAMM::getSumCount(std::set<std::string> counterIds) {
+  int sum = 0;
+  for (std::string id : counterIds) {
+    int count = getCounter(id);
+    if (count != -1) {
+      sum += count;
+    } else {
+      // indicates a not found/valid counter id
+      return -1;
+    }
+  }
+  return sum;
+}
+
 std::string PAMM::getPrintableDuration(unsigned long duration) {
   unsigned long milliseconds = (unsigned long)(duration / 1000) % 1000;
   unsigned long seconds =

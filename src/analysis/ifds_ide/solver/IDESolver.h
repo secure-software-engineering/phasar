@@ -114,24 +114,27 @@ public:
       START_TIMER("FFApplicationTime");
       // Computing the final values for the edge functions
       BOOST_LOG_SEV(lg, INFO)
-        << "Compute the final values according to the edge functions";
+          << "Compute the final values according to the edge functions";
       computeValues();
       STOP_TIMER("FFApplicationTime");
     }
+    BOOST_LOG_SEV(lg, INFO) << "Problem solved";
 #ifdef PERFORMANCE_EVA
-    BOOST_LOG_SEV(lg, INFO) << "Problems solved";
+    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:";
-    BOOST_LOG_SEV(lg, INFO) << "@ lowFunctionsConstructionCount: "
+    BOOST_LOG_SEV(lg, INFO) << "flow functions construction count: "
                             << GET_COUNTER("FFConstructionCount");
-    BOOST_LOG_SEV(lg, INFO) << "@ flowFunctionsApplicationCount: "
+    BOOST_LOG_SEV(lg, INFO) << "flow functions application count: "
                             << GET_COUNTER("FFApplicationCount");
-    BOOST_LOG_SEV(lg, INFO) << "@ specialFlowFunctionUsageCount: "
+    BOOST_LOG_SEV(lg, INFO) << "special flow function usage count: "
                             << GET_COUNTER("SpecialSummaryFFApplicationCount");
-    BOOST_LOG_SEV(lg, INFO) << "@ propagationCount: " << GET_COUNTER("PropagationCount");
-    BOOST_LOG_SEV(lg, INFO) << "@ flow function construction: "
+    BOOST_LOG_SEV(lg, INFO) << "propagation count: "
+                            << GET_COUNTER("PropagationCount");
+    BOOST_LOG_SEV(lg, INFO) << "flow function construction duration: "
                             << PRINT_TIMER("FFConstructionTime");
-    BOOST_LOG_SEV(lg, INFO) << "@ flow function application: "
+    BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "
                             << PRINT_TIMER("FFApplicationTime");
+    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     cachedFlowEdgeFunctions.print();
 #endif
   }

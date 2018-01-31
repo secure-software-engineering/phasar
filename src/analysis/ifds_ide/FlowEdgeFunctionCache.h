@@ -9,7 +9,6 @@
 #include <map>
 #include <memory>
 #include <tuple>
-using namespace std;
 
 /**
  * This class caches flow and edge functions to avoid their reconstruction.
@@ -20,53 +19,31 @@ using namespace std;
 template <typename N, typename D, typename M, typename V, typename I>
 struct FlowEdgeFunctionCache {
   IDETabulationProblem<N, D, M, V, I> &problem;
-  // Counters for the normal flow functions
-  size_t normalFFConstruction = 0;
-  size_t normalFFCacheHit = 0;
-  // Counters for the call flow functions
-  size_t callFFConstruction = 0;
-  size_t callFFCacheHit = 0;
-  // Counters for return flow functions
-  size_t returnFFConstruction = 0;
-  size_t returnFFCacheHit = 0;
-  // Counters for the call to return flow functions
-  size_t callToRetFFConstruction = 0;
-  size_t callToRetFFCacheHit = 0;
-  // Counters for the summary flow functions
-  size_t summaryFFConstruction = 0;
-  size_t summaryFFCacheHit = 0;
-  // Counters for the normal edge functions
-  size_t normalEFConstruction = 0;
-  size_t normalEFCacheHit = 0;
-  // Counters for the call edge functions
-  size_t callEFConstruction = 0;
-  size_t callEFCacheHit = 0;
-  // Counters for the return edge functions
-  size_t returnEFConstruction = 0;
-  size_t returnEFCacheHit = 0;
-  // Counters for the call to return edge functions
-  size_t callToRetEFConstruction = 0;
-  size_t callToRetEFCacheHit = 0;
-  // Counters for the summary edge functions
-  size_t summaryEFConstruction = 0;
-  size_t summaryEFCacheHit = 0;
   // Auto add zero
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
-  map<tuple<N, N>, shared_ptr<FlowFunction<D>>> NormalFlowFunctionCache;
-  map<tuple<N, M>, shared_ptr<FlowFunction<D>>> CallFlowFunctionCache;
-  map<tuple<N, M, N, N>, shared_ptr<FlowFunction<D>>> ReturnFlowFunctionCache;
-  map<tuple<N, N>, shared_ptr<FlowFunction<D>>> CallToRetFlowFunctionCache;
-  map<tuple<N, M>, shared_ptr<FlowFunction<D>>> SummaryFlowFunctionCache;
+  std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
+      NormalFlowFunctionCache;
+  std::map<std::tuple<N, M>, std::shared_ptr<FlowFunction<D>>>
+      CallFlowFunctionCache;
+  std::map<std::tuple<N, M, N, N>, std::shared_ptr<FlowFunction<D>>>
+      ReturnFlowFunctionCache;
+  std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
+      CallToRetFlowFunctionCache;
+  std::map<std::tuple<N, M>, std::shared_ptr<FlowFunction<D>>>
+      SummaryFlowFunctionCache;
   // Caches for the edge functions
-  map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>> NormalEdgeFunctionCache;
-  map<tuple<N, D, M, D>, shared_ptr<EdgeFunction<V>>> CallEdgeFunctionCache;
-  map<tuple<N, M, N, D, N, D>, shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+      NormalEdgeFunctionCache;
+  std::map<std::tuple<N, D, M, D>, std::shared_ptr<EdgeFunction<V>>>
+      CallEdgeFunctionCache;
+  std::map<std::tuple<N, M, N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
       ReturnEdgeFunctionCache;
-  map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
       CallToRetEdgeFunctionCache;
-  map<tuple<N, D, N, D>, shared_ptr<EdgeFunction<V>>> SummaryEdgeFunctionCache;
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+      SummaryEdgeFunctionCache;
 
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
@@ -105,13 +82,14 @@ struct FlowEdgeFunctionCache {
     REG_COUNTER("SummaryEFCacheHitCount");
   }
 
-  shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
-    auto key = tie(curr, succ);
+  std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
+    PAMM_FACTORY;
+    auto key = std::tie(curr, succ);
     if (NormalFlowFunctionCache.count(key)) {
-      ++normalFFCacheHit;
+      INC_COUNTER("NormalFFCacheHitCount");
       return NormalFlowFunctionCache.at(key);
     } else {
-      ++normalFFConstruction;
+      INC_COUNTER("NormalFFConstructionCount");
       auto ff = (autoAddZero)
                     ? make_shared<ZeroedFlowFunction<D>>(
                           problem.getNormalFlowFunction(curr, succ), zeroValue)
@@ -121,13 +99,14 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) {
-    auto key = tie(callStmt, destMthd);
+  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) {
+    PAMM_FACTORY;
+    auto key = std::tie(callStmt, destMthd);
     if (CallFlowFunctionCache.count(key)) {
-      ++callFFCacheHit;
+      INC_COUNTER("CallFFCacheHitCount");
       return CallFlowFunctionCache.at(key);
     } else {
-      ++callFFConstruction;
+      INC_COUNTER("CallFFConstructionCount");
       auto ff =
           (autoAddZero)
               ? make_shared<ZeroedFlowFunction<D>>(
@@ -138,14 +117,15 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd,
-                                                 N exitStmt, N retSite) {
-    auto key = tie(callSite, calleeMthd, exitStmt, retSite);
+  std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd,
+                                                      N exitStmt, N retSite) {
+    PAMM_FACTORY;
+    auto key = std::tie(callSite, calleeMthd, exitStmt, retSite);
     if (ReturnFlowFunctionCache.count(key)) {
-      ++returnFFCacheHit;
+      INC_COUNTER("ReturnFFCacheHitCount");
       return ReturnFlowFunctionCache.at(key);
     } else {
-      ++returnFFConstruction;
+      INC_COUNTER("ReturnFFConstructionCount");
       auto ff = (autoAddZero)
                     ? make_shared<ZeroedFlowFunction<D>>(
                           problem.getRetFlowFunction(callSite, calleeMthd,
@@ -158,13 +138,15 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite, N retSite) {
-    auto key = tie(callSite, retSite);
+  std::shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite,
+                                                            N retSite) {
+    PAMM_FACTORY;
+    auto key = std::tie(callSite, retSite);
     if (CallToRetFlowFunctionCache.count(key)) {
-      ++callToRetFFCacheHit;
+      INC_COUNTER("CallToRetFFCacheHitCount");
       return CallToRetFlowFunctionCache.at(key);
     } else {
-      ++callToRetFFConstruction;
+      INC_COUNTER("CallToRetFFConstructionCount");
       auto ff = (autoAddZero)
                     ? make_shared<ZeroedFlowFunction<D>>(
                           problem.getCallToRetFlowFunction(callSite, retSite),
@@ -175,40 +157,44 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt, M destMthd) {
-    auto key = tie(callStmt, destMthd);
+  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
+                                                          M destMthd) {
+    PAMM_FACTORY;
+    auto key = std::tie(callStmt, destMthd);
     if (SummaryFlowFunctionCache.count(key)) {
-      ++summaryFFCacheHit;
+      INC_COUNTER("SummaryFFCacheHitCount");
       return SummaryFlowFunctionCache.at(key);
     } else {
-      ++summaryFFConstruction;
+      INC_COUNTER("SummaryFFConstructionCount");
       auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
       return ff;
     }
   }
 
-  shared_ptr<EdgeFunction<V>> getNormalEdgeFunction(N curr, D currNode, N succ,
-                                                    D succNode) {
-    auto key = tie(curr, currNode, succ, succNode);
+  std::shared_ptr<EdgeFunction<V>> getNormalEdgeFunction(N curr, D currNode,
+                                                         N succ, D succNode) {
+    PAMM_FACTORY;
+    auto key = std::tie(curr, currNode, succ, succNode);
     if (NormalEdgeFunctionCache.count(key)) {
-      ++normalEFCacheHit;
+      INC_COUNTER("NormalEFCacheHitCount");
       return NormalEdgeFunctionCache.at(key);
     } else {
-      ++normalEFConstruction;
+      INC_COUNTER("NormalEFConstructionCount");
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
       NormalEdgeFunctionCache.insert(make_pair(key, ef));
       return ef;
     }
   }
 
-  shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod, D destNode) {
-    auto key = tie(callStmt, srcNode, destiantionMethod, destNode);
+    PAMM_FACTORY;
+    auto key = std::tie(callStmt, srcNode, destiantionMethod, destNode);
     if (CallEdgeFunctionCache.count(key)) {
-      ++callEFCacheHit;
+      INC_COUNTER("CallEFCacheHitCount");
       return CallEdgeFunctionCache.at(key);
     } else {
-      ++callEFConstruction;
+      INC_COUNTER("CallEFConstructionCount");
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
                                             destiantionMethod, destNode);
       CallEdgeFunctionCache.insert(make_pair(key, ef));
@@ -216,15 +202,18 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<EdgeFunction<V>> getReturnEdgeFunction(N callSite, M calleeMethod,
-                                                    N exitStmt, D exitNode,
-                                                    N reSite, D retNode) {
-    auto key = tie(callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
+  std::shared_ptr<EdgeFunction<V>> getReturnEdgeFunction(N callSite,
+                                                         M calleeMethod,
+                                                         N exitStmt, D exitNode,
+                                                         N reSite, D retNode) {
+    PAMM_FACTORY;
+    auto key =
+        std::tie(callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
     if (ReturnEdgeFunctionCache.count(key)) {
-      ++returnEFCacheHit;
+      INC_COUNTER("ReturnEFCacheHitCount");
       return ReturnEdgeFunctionCache.at(key);
     } else {
-      ++returnEFConstruction;
+      INC_COUNTER("ReturnEFConstructionCount");
       auto ef = problem.getReturnEdgeFunction(callSite, calleeMethod, exitStmt,
                                               exitNode, reSite, retNode);
       ReturnEdgeFunctionCache.insert(make_pair(key, ef));
@@ -232,15 +221,17 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<EdgeFunction<V>> getCallToReturnEdgeFunction(N callSite,
-                                                          D callNode, N retSite,
-                                                          D retSiteNode) {
-    auto key = tie(callSite, callNode, retSite, retSiteNode);
+  std::shared_ptr<EdgeFunction<V>> getCallToReturnEdgeFunction(N callSite,
+                                                               D callNode,
+                                                               N retSite,
+                                                               D retSiteNode) {
+    PAMM_FACTORY;
+    auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (CallToRetEdgeFunctionCache.count(key)) {
-      ++callToRetEFCacheHit;
+      INC_COUNTER("CallToRetEFCacheHitCount");
       return CallToRetEdgeFunctionCache.at(key);
     } else {
-      ++callToRetEFConstruction;
+      INC_COUNTER("CallToRetEFConstructionCount");
       auto ef = problem.getCallToReturnEdgeFunction(callSite, callNode, retSite,
                                                     retSiteNode);
       CallToRetEdgeFunctionCache.insert(make_pair(key, ef));
@@ -248,14 +239,15 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N callSite, D callNode,
-                                                     N retSite, D retSiteNode) {
-    auto key = tie(callSite, callNode, retSite, retSiteNode);
+  std::shared_ptr<EdgeFunction<V>>
+  getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
+    PAMM_FACTORY;
+    auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (SummaryEdgeFunctionCache.count(key)) {
-      ++summaryEFCacheHit;
+      INC_COUNTER("SummaryEFCacheHitCount");
       return SummaryEdgeFunctionCache.at(key);
     } else {
-      ++summaryEFConstruction;
+      INC_COUNTER("SummaryEFConstructionCount");
       auto ef = problem.getSummaryEdgeFunction(callSite, callNode, retSite,
                                                retSiteNode);
       SummaryEdgeFunctionCache.insert(make_pair(key, ef));
@@ -264,55 +256,73 @@ struct FlowEdgeFunctionCache {
   }
 
   void print() {
-    cout << "Flow-Edge-Function Cache Statistics:\n"
-         << "normal flow function cache hits: " << normalFFCacheHit << "\n"
-         << "normal flow function constructions: " << normalFFConstruction
-         << "\n"
-         << "call flow function cache hits: " << callFFCacheHit << "\n"
-         << "call flow function constructions: " << callFFConstruction << "\n"
-         << "return flow function cache hits: " << returnFFCacheHit << "\n"
-         << "return flow function constructions: " << returnFFConstruction
-         << "\n"
-         << "call to return flow function cache hits: " << callToRetFFCacheHit
-         << "\n"
-         << "call to return flow function constructions: "
-         << callToRetFFConstruction << "\n"
-         << "summary flow function cache hits: " << summaryFFCacheHit << "\n"
-         << "summary flow function constructions: " << summaryFFConstruction
-         << "\n"
-         << "total flow function cache hits: "
-         << normalFFCacheHit + callFFCacheHit + returnFFCacheHit +
-                callToRetFFCacheHit + summaryFFCacheHit
-         << "\n"
-         << "total flow function constructions: "
-         << normalFFConstruction + callFFConstruction + returnFFConstruction +
-                callToRetFFConstruction + summaryFFConstruction
-         << "\n"
-         << "---"
-         << "\n"
-         << "normal edge function cache hits: " << normalEFCacheHit << "\n"
-         << "normal edge function constructions: " << normalEFConstruction
-         << "\n"
-         << "call edge function cache hits: " << callEFCacheHit << "\n"
-         << "call edge function constructions: " << callEFConstruction << "\n"
-         << "return edge function cache hits: " << returnEFCacheHit << "\n"
-         << "return edge function constructions: " << returnEFConstruction
-         << "\n"
-         << "call to return edge function cache hits: " << callToRetEFCacheHit
-         << "\n"
-         << "call to return edge function constructions: "
-         << callToRetEFConstruction << "\n"
-         << "summary edge function cache hits: " << summaryEFCacheHit << "\n"
-         << "summary edge function constructions: " << summaryEFConstruction
-         << "\n"
-         << "total edge function cache hits: "
-         << normalEFCacheHit + callEFCacheHit + returnEFCacheHit +
-                callToRetEFCacheHit + summaryEFCacheHit
-         << "\n"
-         << "total edge function constructions: "
-         << normalEFConstruction + callEFConstruction + returnEFConstruction +
-                callToRetEFConstruction + summaryEFConstruction
-         << "\n";
+    PAMM_FACTORY;
+    auto &lg = lg::get();
+    BOOST_LOG_SEV(lg, INFO) << "Flow-Edge-Function Cache Statistics:";
+    BOOST_LOG_SEV(lg, INFO) << "normal flow function cache hits: "
+                            << GET_COUNTER("NormalFFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "normal flow function constructions: "
+                            << GET_COUNTER("NormalFFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "call flow function cache hits: "
+                            << GET_COUNTER("CallFFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "call flow function constructions: "
+                            << GET_COUNTER("CallFFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "return flow function cache hits: "
+                            << GET_COUNTER("ReturnFFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "return flow function constructions: "
+                            << GET_COUNTER("ReturnFFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "call to return flow function cache hits: "
+                            << GET_COUNTER("CallToRetFFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "call to return flow function constructions: "
+                            << GET_COUNTER("CallToRetFFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
+                            << GET_COUNTER("SummaryFFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
+                            << GET_COUNTER("SummaryFFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO)
+        << "total flow function cache hits: "
+        << GET_SUM_COUNT({"NormalFFCacheHitCount", "CallFFCacheHitCount",
+                          "ReturnFFCacheHitCount", "CallToRetFFCacheHitCount",
+                          "SummaryFFCacheHitCount"});
+    BOOST_LOG_SEV(lg, INFO)
+        << "total flow function constructions: "
+        << GET_SUM_COUNT(
+               {"NormalFFConstructionCount", "CallFFConstructionCount",
+                "ReturnFFConstructionCount", "CallToRetFFConstructionCount",
+                "SummaryFFConstructionCount"});
+    BOOST_LOG_SEV(lg, INFO) << " ";
+    BOOST_LOG_SEV(lg, INFO) << "normal edge function cache hits: "
+                            << GET_COUNTER("NormalEFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "normal edge function constructions: "
+                            << GET_COUNTER("NormalEFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "call edge function cache hits: "
+                            << GET_COUNTER("CallEFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "call edge function constructions: "
+                            << GET_COUNTER("CallEFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "return edge function cache hits: "
+                            << GET_COUNTER("ReturnEFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "return edge function constructions: "
+                            << GET_COUNTER("ReturnEFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "call to return edge function cache hits: "
+                            << GET_COUNTER("CallToRetEFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "call to return edge function constructions: "
+                            << GET_COUNTER("CallToRetEFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO) << "summary edge function cache hits: "
+                            << GET_COUNTER("SummaryEFCacheHitCount");
+    BOOST_LOG_SEV(lg, INFO) << "summary edge function constructions: "
+                            << GET_COUNTER("SummaryEFConstructionCount");
+    BOOST_LOG_SEV(lg, INFO)
+        << "total edge function cache hits: "
+        << GET_SUM_COUNT({"NormalEFCacheHitCount", "CallEFCacheHitCount",
+                          "ReturnEFCacheHitCount", "CallToRetEFCacheHitCount",
+                          "SummaryEFCacheHitCount"});
+    BOOST_LOG_SEV(lg, INFO)
+        << "total edge function constructions: "
+        << GET_SUM_COUNT(
+               {"NormalEFConstructionCount", "CallEFConstructionCount",
+                "ReturnEFConstructionCount", "CallToRetEFConstructionCount",
+                "SummaryEFConstructionCount"});
+    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
   }
 };
 
