@@ -33,6 +33,8 @@ namespace bfs = boost::filesystem;
 #define DEC_COUNTER(COUNTER) p.decCounter(COUNTER)
 #define GET_COUNTER(COUNTER) p.getCounter(COUNTER)
 #define GET_SUM_COUNT( ... ) p.getSumCount(__VA_ARGS__)
+#define REG_SET_HIST(SET) p.regSetHistogram(SET)
+#define ADD_DATA_TO_SET_HIST(SET, DATA) p.addDataToSetHistogram(SET, DATA)
 #define PRINT_EVA_RESULTS(CONFIG) p.printResults(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG) p.exportResultsAsJSON(CONFIG)
 #else
@@ -46,6 +48,8 @@ namespace bfs = boost::filesystem;
 #define DEC_COUNTER(COUNTER)
 #define GET_COUNTER(COUNTER)
 #define GET_SUM_COUNT( ... )
+#define REG_SET_HIST(SET)
+#define ADD_DATA_TO_SET_HIST(SET, DATA)
 #define PRINT_EVA_RESULTS(CONFIG)
 #define EXPORT_EVA_RESULTS(CONFIG)
 #endif
@@ -65,6 +69,7 @@ private:
   std::map<const std::string, time_point> RunningTimer;
   std::map<const std::string, std::pair<time_point, time_point>> StoppedTimer;
   std::map<const std::string, unsigned> Counter;
+  std::map<const std::string, unsigned> SetHistogram;
 
 public:
   PAMM(const PAMM &pm) = delete;
@@ -84,9 +89,14 @@ public:
   int getCounter(std::string counterId);
   int getSumCount(std::set<std::string> counterIds);
 
+  void regSetHistogram(std::string setId);
+  void addDataToSetHistogram(std::string setId, unsigned value);
+
+  // for test purpose only
   void printTimerMap();
   void printStoppedTimer();
   void printCounterMap();
+  void printSetHistoMap();
 
   template <typename Period = std::chrono::microseconds>
   unsigned long elapsedTime(std::string timerId) {
@@ -147,6 +157,11 @@ public:
     if (Counter.empty()) {
       std::cout << "No Counter registered!" << '\n';
     }
+    std::cout << "\nSet Histogram\n";
+    std::cout << "-------\n";
+    for (auto set : SetHistogram) {
+      std::cout << set.first << ": [ " << set.second << " ]\n";
+    }
   }
 
   /**
@@ -170,9 +185,14 @@ public:
     for (auto counter : Counter) {
       jCounter[counter.first] = counter.second;
     }
+    json jSetHistogram;
+    for (auto set : SetHistogram) {
+      jSetHistogram[set.first] = set.second;
+    }
     json jsonResults;
     jsonResults["Timer"] = jTimer;
     jsonResults["Counter"] = jCounter;
+    jsonResults["Set Histogram"] = jSetHistogram;
     bfs::path cfp(configPath);
     // reduce the config path to just the filename - no path and no extension
     std::string config = cfp.filename().string();

@@ -63,11 +63,6 @@ public:
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver ctor" << endl;
     cout << tabulationProblem.solver_config << endl;
-    PAMM_FACTORY;
-    REG_COUNTER("FFConstructionCount");
-    REG_COUNTER("FFApplicationCount");
-    REG_COUNTER("SpecialSummaryFFApplicationCount");
-    REG_COUNTER("PropagationCount");
   }
 
   IDESolver(IDETabulationProblem<N, D, M, V, I> &&tabulationProblem)
@@ -87,11 +82,6 @@ public:
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver ctor" << endl;
     cout << tabulationProblem.solver_config << endl;
-    PAMM_FACTORY;
-    REG_COUNTER("FFConstructionCount");
-    REG_COUNTER("FFApplicationCount");
-    REG_COUNTER("SpecialSummaryFFApplicationCount");
-    REG_COUNTER("PropagationCount");
   }
 
   virtual ~IDESolver() = default;
@@ -101,6 +91,20 @@ public:
    */
   virtual void solve() {
     PAMM_FACTORY;
+    REG_COUNTER("FFConstructionCount");
+    REG_COUNTER("FFApplicationCount");
+    REG_COUNTER("SpecialSummaryFFApplicationCount");
+    REG_COUNTER("PropagationCount");
+    REG_COUNTER("ProcessCallCount");
+    REG_COUNTER("ProcessNormalCount");
+    REG_SET_HIST("ReturnSiteNsSet");
+    REG_SET_HIST("CalleesSet");
+    REG_SET_HIST("StartPointsOfSet");
+    REG_SET_HIST("NormalFFResSet");
+    REG_SET_HIST("CallFFResSet");
+    REG_SET_HIST("ReturnFFResSet");
+    REG_SET_HIST("CallToRetFFResSet");
+    REG_SET_HIST("SpecialSummaryFFResSet");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
@@ -134,6 +138,10 @@ public:
                             << PRINT_TIMER("FFConstructionTime");
     BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "
                             << PRINT_TIMER("FFApplicationTime");
+    BOOST_LOG_SEV(lg, INFO) << "call count of process call function: "
+                            << GET_COUNTER("ProcessCallCount");
+    BOOST_LOG_SEV(lg, INFO) << "call count of process normal function: "
+                            << GET_COUNTER("ProcessNormalCount");
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     cachedFlowEdgeFunctions.print();
 #endif
@@ -201,6 +209,7 @@ private:
    */
   void processCall(PathEdge<N, D> edge) {
     PAMM_FACTORY;
+    INC_COUNTER("ProcessCallCount");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process call at target: "
@@ -210,7 +219,9 @@ private:
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
+    ADD_DATA_TO_SET_HIST("ReturnSiteNsSet", returnSiteNs.size());
     set<M> callees = icfg.getCalleesOfCallAt(n);
+    ADD_DATA_TO_SET_HIST("CalleesSet", callees.size());
     BOOST_LOG_SEV(lg, DEBUG) << "possible callees:";
     for (auto callee : callees) {
       BOOST_LOG_SEV(lg, DEBUG) << callee->getName().str();
@@ -231,6 +242,7 @@ private:
         for (N returnSiteN : returnSiteNs) {
           INC_COUNTER("SpecialSummaryFFApplicationCount");
           set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
+          ADD_DATA_TO_SET_HIST("SpecialSummaryFFResSet", res.size());
           saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
             shared_ptr<EdgeFunction<V>> sumEdgFnE =
@@ -245,8 +257,10 @@ private:
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FFConstructionCount");
         set<D> res = computeCallFlowFunction(function, d1, d2);
+        ADD_DATA_TO_SET_HIST("CallFFResSet", res.size());
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
+        ADD_DATA_TO_SET_HIST("StartPointsOfSet", startPointsOf.size());
         if (startPointsOf.empty()) {
           BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
                                           icfg.getMethodName(sCalledProcN) +
@@ -287,6 +301,7 @@ private:
                 INC_COUNTER("FFConstructionCount");
                 set<D> returnedFacts = computeReturnFlowFunction(
                     retFunction, d3, d4, n, set<D>{d2});
+                ADD_DATA_TO_SET_HIST("ReturnFFResSet", returnedFacts.size());
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
                 // for each target value of the function
                 for (D d5 : returnedFacts) {
@@ -320,6 +335,7 @@ private:
         INC_COUNTER("FFConstructionCount");
         set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
+        ADD_DATA_TO_SET_HIST("CallToRetFFResSet", returnFacts.size());
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts) {
           shared_ptr<EdgeFunction<V>> edgeFnE =
@@ -338,6 +354,7 @@ private:
    */
   void processNormalFlow(PathEdge<N, D> edge) {
     PAMM_FACTORY;
+    INC_COUNTER("ProcessNormalCount");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process normal at target: "
@@ -354,6 +371,7 @@ private:
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
       INC_COUNTER("FFConstructionCount");
       set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
+      ADD_DATA_TO_SET_HIST("NormalFFResSet", res.size());
       saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
         shared_ptr<EdgeFunction<V>> fprime = f->composeWith(
@@ -641,6 +659,7 @@ protected:
         for (D d4 : entry.second) {
           set<D> targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
+          ADD_DATA_TO_SET_HIST("ReturnFFResSet", targets.size());
           saveEdges(n, retSiteC, d2, targets, true);
           // for each target value at the return site
           // line 23
@@ -688,6 +707,7 @@ protected:
           INC_COUNTER("FFConstructionCount");
           set<D> targets = computeReturnFlowFunction(retFunction, d1, d2, c,
                                                      set<D>{zeroValue});
+          ADD_DATA_TO_SET_HIST("ReturnFFResSet", targets.size());
           saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets) {
             shared_ptr<EdgeFunction<V>> f5 =

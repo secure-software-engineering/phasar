@@ -51,6 +51,36 @@ void PAMM::stopTimer(std::string timerId) {
   }
 }
 
+std::string PAMM::getPrintableDuration(unsigned long duration) {
+  unsigned long milliseconds = (unsigned long)(duration / 1000) % 1000;
+  unsigned long seconds =
+      (((unsigned long)(duration / 1000) - milliseconds) / 1000) % 60;
+  unsigned long minutes =
+      (((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
+       60) %
+      60;
+  unsigned long hours =
+      ((((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
+        60) -
+       minutes) /
+      60;
+  std::ostringstream oss;
+  if (hours)
+    oss << hours << "hr ";
+  if (minutes)
+    oss << minutes << "m ";
+  if (seconds)
+    oss << seconds << "sec ";
+  if (milliseconds)
+    oss << milliseconds << "ms";
+  else
+    oss << "0 ms";
+  //  oss << setfill('0') // set field fill character to '0'
+  //      << hours << "hr " << setw(2) << minutes << "m " << setw(2) << seconds
+  //      << "sec " << setw(3) << milliseconds << "ms";
+  return oss.str();
+}
+
 void PAMM::regCounter(std::string counterId) {
   auto counter = Counter.find(counterId);
   if (counter == Counter.end()) {
@@ -99,41 +129,28 @@ int PAMM::getSumCount(std::set<std::string> counterIds) {
   return sum;
 }
 
-std::string PAMM::getPrintableDuration(unsigned long duration) {
-  unsigned long milliseconds = (unsigned long)(duration / 1000) % 1000;
-  unsigned long seconds =
-      (((unsigned long)(duration / 1000) - milliseconds) / 1000) % 60;
-  unsigned long minutes =
-      (((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
-       60) %
-      60;
-  unsigned long hours =
-      ((((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
-        60) -
-       minutes) /
-      60;
-  std::ostringstream oss;
-  if (hours)
-    oss << hours << "hr ";
-  if (minutes)
-    oss << minutes << "m ";
-  if (seconds)
-    oss << seconds << "sec ";
-  if (milliseconds)
-    oss << milliseconds << "ms";
-  else
-    oss << "0 ms";
-  //  oss << setfill('0') // set field fill character to '0'
-  //      << hours << "hr " << setw(2) << minutes << "m " << setw(2) << seconds
-  //      << "sec " << setw(3) << milliseconds << "ms";
-  return oss.str();
+void PAMM::regSetHistogram(std::string setId) {
+  auto hg = SetHistogram.find(setId);
+  if (hg == SetHistogram.end()) {
+    SetHistogram[setId] = 0;
+    std::cout << "set " << setId << " registered.\n";
+  } else {
+    std::cout << setId << " already exists!\n";
+  }
+}
+
+void PAMM::addDataToSetHistogram(std::string setId, unsigned value) {
+  auto hg = SetHistogram.find(setId);
+  if (hg != SetHistogram.end()) {
+    hg->second = std::max(hg->second, value);
+  }
 }
 
 void PAMM::printTimerMap() {
   std::cout << "Running timer: [ ";
   for (auto entry : RunningTimer) {
-    std::cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
-         << " ";
+    std::cout << entry.first << ":"
+              << getPrintableDuration(elapsedTime(entry.first)) << " ";
   }
   std::cout << "]\n";
 }
@@ -141,8 +158,8 @@ void PAMM::printTimerMap() {
 void PAMM::printStoppedTimer() {
   std::cout << "Stopped timer: [ ";
   for (auto entry : StoppedTimer) {
-    std::cout << entry.first << ":" << getPrintableDuration(elapsedTime(entry.first))
-         << " ";
+    std::cout << entry.first << ":"
+              << getPrintableDuration(elapsedTime(entry.first)) << " ";
   }
   std::cout << "]\n";
 }
@@ -153,4 +170,11 @@ void PAMM::printCounterMap() {
     std::cout << counter.first << "=" << counter.second << " ";
   }
   std::cout << "]\n";
+}
+
+void PAMM::printSetHistoMap() {
+  std::cout << "Set Histogram Data:\n";
+  for (auto hg : SetHistogram) {
+    std::cout << hg.first << ": [ " << hg.second << " ]\n";
+  }
 }

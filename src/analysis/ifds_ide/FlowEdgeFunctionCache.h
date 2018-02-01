@@ -256,6 +256,7 @@ struct FlowEdgeFunctionCache {
   }
 
   void print() {
+#ifdef PERFORMANCE_EVA
     PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "Flow-Edge-Function Cache Statistics:";
@@ -323,6 +324,7 @@ struct FlowEdgeFunctionCache {
                 "ReturnEFConstructionCount", "CallToRetEFConstructionCount",
                 "SummaryEFConstructionCount"});
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
+#endif
   }
 };
 

@@ -16,7 +16,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   if (const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     const llvm::Value *pointerOp = store->getPointerOperand();
     set<const llvm::Value *> pointsToSet = ptg.getPointsToSet(pointerOp);
-    BOOST_LOG_SEV(lg, DEBUG) << "POINTS-TO SET OF POINTEROP";
+//    BOOST_LOG_SEV(lg, DEBUG) << "POINTS-TO SET OF POINTEROP";
     // only interested in points-to information within the function scope, i.e.
     // -local instructions
     // -function args of parent function
@@ -24,7 +24,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     set<const llvm::Value *> ToGenerate;
     const llvm::Function *currentFunction = curr->getFunction();
     for (auto alias : pointsToSet) {
-      alias->dump();
+//      alias->dump();
       if (const llvm::Instruction *I =
               llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == currentFunction) {
