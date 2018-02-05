@@ -23,7 +23,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     set<const llvm::Value *> ToGenerate;
     const llvm::Function *currentFunction = curr->getFunction();
     for (auto alias : pointsToSet) {
-      alias->dump();
+      //alias->dump();
       if (const llvm::Instruction *I =
               llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == currentFunction) {
@@ -101,9 +101,9 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
       set<const llvm::Value *> computeTargets(const llvm::Value *source) {
         if (!constanalysis->isZeroValue(source)) {
           set<const llvm::Value *> res;
-          res.insert(zerovalue);
           for (unsigned idx = 0; idx < actuals.size(); ++idx) {
             if (source == actuals[idx]) {
+              res.insert(zerovalue);
               res.insert(formals[idx]); // corresponding formal
             }
           }
@@ -152,6 +152,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
     }
     set<const llvm::Value *>
     computeTargets(const llvm::Value *source) override {
+      auto &lg = lg::get();
       if (!constanalysis->isZeroValue(source)) {
         set<const llvm::Value *> res;
         res.insert(zerovalue);
@@ -162,9 +163,34 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
           if (source == formals[idx] &&
               formals[idx]->getType()->isPointerTy()) {
             // generate the actual parameter and all its alias within the caller
-            for (auto alias :
-                 pointsToGraph->getAliasWithinFunction(actuals[idx])) {
-              res.insert(alias);
+            const llvm::Function *callSiteFunction = callSite->getFunction();
+            BOOST_LOG_SEV(lg, DEBUG) << "ACTUAL:";
+            //formals[idx]->dump();
+            BOOST_LOG_SEV(lg, DEBUG) << "FORMAL:";
+            //actuals[idx]->dump();
+            BOOST_LOG_SEV(lg, DEBUG) << "Function of caller:";
+            //callSiteFunction->dump();
+            BOOST_LOG_SEV(lg, DEBUG) << "Iterating aliases";
+            for (auto alias : pointsToGraph->getPointsToSet(actuals[idx])) {
+              //alias->dump();
+              if (const llvm::Instruction *I =
+                llvm::dyn_cast<llvm::Instruction>(alias)) {
+                if (I->getFunction() == callSiteFunction) {
+                  res.insert(alias);
+                  BOOST_LOG_SEV(lg, DEBUG) << "added";
+                }
+              } else if (llvm::isa<llvm::GlobalValue>(alias)) {
+                res.insert(alias);
+                BOOST_LOG_SEV(lg, DEBUG) << "added";
+              } else if (const llvm::Argument *A =
+                llvm::dyn_cast<llvm::Argument>(alias)) {
+                if (A->getParent() == callSiteFunction) {
+                  res.insert(alias);
+                  BOOST_LOG_SEV(lg, DEBUG) << "added";
+                }
+              } else {
+                BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the alias";
+              }
             }
           }
         }
