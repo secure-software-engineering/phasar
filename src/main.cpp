@@ -142,7 +142,7 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
 
 int main(int argc, const char **argv) {
   // set-up the logger and get a reference to it
-  initializeLogger(false);
+  initializeLogger(true);
   auto &lg = lg::get();
   // handling the command line parameters
   BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
