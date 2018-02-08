@@ -11,62 +11,56 @@ PAMM &PAMM::getInstance() {
   static PAMM instance;
   return instance;
 }
-
+// TODO: check why assert does not get triggered (unlike me right now)
 void PAMM::startTimer(std::string timerId) {
-  if (RunningTimer.find(timerId) == RunningTimer.end() &&
-      StoppedTimer.find(timerId) == StoppedTimer.end()) {
+  bool validTimerId =
+    !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+  assert(validTimerId && "startTimer failed due to an invalid timer id");
+  if (validTimerId) {
     time_point start = std::chrono::high_resolution_clock::now();
     RunningTimer[timerId] = start;
     std::cout << timerId << " started.\n";
-  } else {
-    std::cout << timerId << " already started or stopped!\n";
   }
 }
 
 void PAMM::resetTimer(std::string timerId) {
-  auto timer = RunningTimer.find(timerId);
-  if (timer != RunningTimer.end()) {
-    RunningTimer.erase(timer);
+  assert((RunningTimer.count(timerId) && !StoppedTimer.count(timerId)) ||
+         (!RunningTimer.count(timerId) && StoppedTimer.count(timerId)) &&
+             "resetTimer failed due to an invalid timer id");
+  if (RunningTimer.count(timerId)) {
+    RunningTimer.erase(RunningTimer.find(timerId));
+  } else if (StoppedTimer.count(timerId)) {
+    StoppedTimer.erase(StoppedTimer.find(timerId));
   }
-  auto result = StoppedTimer.find(timerId);
-  if (result != StoppedTimer.end()) {
-    StoppedTimer.erase(result);
-  } else {
-    std::cout << timerId << " is not a valid timer!\n";
-  }
+  std::cout << timerId << " reseted.\n";
 }
 
 void PAMM::stopTimer(std::string timerId) {
-  auto timer = RunningTimer.find(timerId);
-  if (timer != RunningTimer.end()) {
+  bool validTimerId =
+      RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+  assert(validTimerId && "stopTimer failed due to an invalid timer id or timer was already stopped");
+  if (validTimerId) {
+    auto timer = RunningTimer.find(timerId);
     time_point end = std::chrono::high_resolution_clock::now();
     time_point start = timer->second;
     RunningTimer.erase(timer);
-    //      pair<time_point, time_point> p(start, end);
     auto p = make_pair(start, end);
     StoppedTimer[timerId] = p;
-    //    std::cout << timerId << " stopped!\n";
-  } else {
-    std::cout << timerId << " is not a valid timer!\n";
+    std::cout << timerId << " stopped.\n";
   }
 }
 
 std::string PAMM::getPrintableDuration(unsigned long duration) {
-  unsigned long milliseconds = (unsigned long)(duration / 1000) % 1000;
-  unsigned long seconds =
-      (((unsigned long)(duration / 1000) - milliseconds) / 1000) % 60;
+  unsigned long milliseconds = (duration / 1000) % 1000;
+  unsigned long seconds = (((duration / 1000) - milliseconds) / 1000) % 60;
   unsigned long minutes =
-      (((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
-       60) %
-      60;
+      (((((duration / 1000) - milliseconds) / 1000) - seconds) / 60) % 60;
   unsigned long hours =
-      ((((((unsigned long)(duration / 1000) - milliseconds) / 1000) - seconds) /
-        60) -
-       minutes) /
-      60;
+      ((((((duration / 1000) - milliseconds) / 1000) - seconds) / 60) -
+       minutes) / 60;
   std::ostringstream oss;
   if (hours)
-    oss << hours << "hr ";
+    oss << hours << "h ";
   if (minutes)
     oss << minutes << "m ";
   if (seconds)
@@ -75,75 +69,70 @@ std::string PAMM::getPrintableDuration(unsigned long duration) {
     oss << milliseconds << "ms";
   else
     oss << "0 ms";
-  //  oss << setfill('0') // set field fill character to '0'
-  //      << hours << "hr " << setw(2) << minutes << "m " << setw(2) << seconds
-  //      << "sec " << setw(3) << milliseconds << "ms";
   return oss.str();
 }
 
 void PAMM::regCounter(std::string counterId) {
-  auto counter = Counter.find(counterId);
-  if (counter == Counter.end()) {
+  bool validCounterId = !Counter.count(counterId);
+  assert(validCounterId && "regCounter failed due to an invalid counter id");
+  if (validCounterId) {
     Counter[counterId] = 0;
     std::cout << "counter " << counterId << " registered.\n";
-  } else {
-    std::cout << counterId << " already exists!\n";
   }
 }
 
 void PAMM::incCounter(std::string counterId, unsigned value) {
-  auto counter = Counter.find(counterId);
-  if (counter != Counter.end() && (counter->second + value > counter->second)) {
-    counter->second += value;
+  bool validCounterId = Counter.count(counterId);
+  assert(validCounterId && "incCounter failed due to an invalid counter id");
+  if (validCounterId) {
+    Counter[counterId] += value;
   }
 }
 
 void PAMM::decCounter(std::string counterId, unsigned value) {
-  auto counter = Counter.find(counterId);
-  if (counter != Counter.end() && (counter->second - value < counter->second)) {
-    counter->second -= value;
+  bool validCounterId = Counter.count(counterId);
+  assert(validCounterId && "decCounter failed due to an invalid counter id");
+  if (validCounterId) {
+    Counter[counterId] -= value;
   }
 }
 
 int PAMM::getCounter(std::string counterId) {
-  auto countIt = Counter.find(counterId);
-  if (countIt != Counter.end()) {
-    return countIt->second;
-  } else {
-    // counter not found
-    return -1;
+  bool validCounterId = Counter.count(counterId);
+  assert(validCounterId && "getCounter failed due to an invalid counter id");
+  if (validCounterId) {
+    return Counter[counterId];
   }
+  return -1;
 }
 
 int PAMM::getSumCount(std::set<std::string> counterIds) {
   int sum = 0;
   for (std::string id : counterIds) {
     int count = getCounter(id);
+    assert(count != -1 && "getSumCount failed due to an invalid counter id");
     if (count != -1) {
       sum += count;
     } else {
-      // indicates a not found/valid counter id
       return -1;
     }
   }
   return sum;
 }
 
-void PAMM::regSetHistogram(std::string setId) {
-  auto hg = SetHistogram.find(setId);
-  if (hg == SetHistogram.end()) {
-    SetHistogram[setId] = 0;
-    std::cout << "set " << setId << " registered.\n";
+void PAMM::addDataToSetHistogram(unsigned long setSize) {
+  if (SetHistogram.count(setSize)) {
+    SetHistogram[setSize]++;
   } else {
-    std::cout << setId << " already exists!\n";
+    SetHistogram[setSize] = 1;
   }
 }
 
-void PAMM::addDataToSetHistogram(std::string setId, unsigned value) {
-  auto hg = SetHistogram.find(setId);
-  if (hg != SetHistogram.end()) {
-    hg->second = std::max(hg->second, value);
+unsigned long PAMM::getSetHistoData(unsigned long setSize) {
+  if (SetHistogram.count(setSize)) {
+    return SetHistogram[setSize];
   }
+  return 0;
 }
 
 void PAMM::printTimerMap() {
@@ -177,4 +166,12 @@ void PAMM::printSetHistoMap() {
   for (auto hg : SetHistogram) {
     std::cout << hg.first << ": [ " << hg.second << " ]\n";
   }
+}
+
+void PAMM::reset() {
+  RunningTimer.clear();
+  StoppedTimer.clear();
+  Counter.clear();
+  SetHistogram.clear();
+  std::cout << "PAMM reseted!" << std::endl;
 }

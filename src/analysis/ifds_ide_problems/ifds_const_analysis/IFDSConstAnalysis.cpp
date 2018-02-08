@@ -16,7 +16,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   if (const llvm::StoreInst *store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     const llvm::Value *pointerOp = store->getPointerOperand();
     set<const llvm::Value *> pointsToSet = ptg.getPointsToSet(pointerOp);
-    //BOOST_LOG_SEV(lg, DEBUG) << "POINTS-TO SET OF POINTEROP";
+    // BOOST_LOG_SEV(lg, DEBUG) << "POINTS-TO SET OF POINTEROP";
     // only interested in points-to information within the function scope, i.e.
     // -local instructions
     // -function args of parent function
@@ -24,7 +24,7 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     set<const llvm::Value *> ToGenerate;
     const llvm::Function *currentFunction = curr->getFunction();
     for (auto alias : pointsToSet) {
-      //alias->dump();
+      // alias->dump();
       if (const llvm::Instruction *I =
               llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == currentFunction) {
@@ -166,16 +166,16 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
             // generate the actual parameter and all its alias within the caller
             const llvm::Function *callSiteFunction = callSite->getFunction();
             BOOST_LOG_SEV(lg, DEBUG) << "ACTUAL:";
-            //formals[idx]->dump();
+            // formals[idx]->dump();
             BOOST_LOG_SEV(lg, DEBUG) << "FORMAL:";
-            //actuals[idx]->dump();
+            // actuals[idx]->dump();
             BOOST_LOG_SEV(lg, DEBUG) << "Function of caller:";
-            //callSiteFunction->dump();
+            // callSiteFunction->dump();
             BOOST_LOG_SEV(lg, DEBUG) << "Iterating aliases";
             for (auto alias : pointsToGraph->getPointsToSet(actuals[idx])) {
-              //alias->dump();
+              // alias->dump();
               if (const llvm::Instruction *I =
-                llvm::dyn_cast<llvm::Instruction>(alias)) {
+                      llvm::dyn_cast<llvm::Instruction>(alias)) {
                 if (I->getFunction() == callSiteFunction) {
                   res.insert(alias);
                   BOOST_LOG_SEV(lg, DEBUG) << "added";
@@ -184,7 +184,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                 res.insert(alias);
                 BOOST_LOG_SEV(lg, DEBUG) << "added";
               } else if (const llvm::Argument *A =
-                llvm::dyn_cast<llvm::Argument>(alias)) {
+                             llvm::dyn_cast<llvm::Argument>(alias)) {
                 if (A->getParent() == callSiteFunction) {
                   res.insert(alias);
                   BOOST_LOG_SEV(lg, DEBUG) << "added";

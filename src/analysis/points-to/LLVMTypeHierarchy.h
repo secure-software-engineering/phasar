@@ -18,7 +18,6 @@
 #include <boost/graph/transitive_closure.hpp>
 #include <boost/property_map/dynamic_property_map.hpp>
 #include <fstream>
-#include <gtest/gtest_prod.h>
 #include <initializer_list>
 #include <iostream>
 #include <llvm/IR/CallSite.h>

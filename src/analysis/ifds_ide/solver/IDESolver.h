@@ -97,14 +97,6 @@ public:
     REG_COUNTER("PropagationCount");
     REG_COUNTER("ProcessCallCount");
     REG_COUNTER("ProcessNormalCount");
-    REG_SET_HIST("ReturnSiteNsSet");
-    REG_SET_HIST("CalleesSet");
-    REG_SET_HIST("StartPointsOfSet");
-    REG_SET_HIST("NormalFFResSet");
-    REG_SET_HIST("CallFFResSet");
-    REG_SET_HIST("ReturnFFResSet");
-    REG_SET_HIST("CallToRetFFResSet");
-    REG_SET_HIST("SpecialSummaryFFResSet");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
@@ -176,6 +168,8 @@ private:
 
   void saveEdges(N sourceNode, N sinkStmt, D sourceVal, set<D> destVals,
                  bool interP) {
+    PAMM_FACTORY;
+    ADD_DATA_TO_SET_HIST(destVals.size());
     if (!recordEdges)
       return;
     Table<N, N, map<D, set<D>>> &tgtMap =
@@ -219,9 +213,9 @@ private:
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
-    ADD_DATA_TO_SET_HIST("ReturnSiteNsSet", returnSiteNs.size());
+    ADD_DATA_TO_SET_HIST(returnSiteNs.size());
     set<M> callees = icfg.getCalleesOfCallAt(n);
-    ADD_DATA_TO_SET_HIST("CalleesSet", callees.size());
+    ADD_DATA_TO_SET_HIST(callees.size());
     BOOST_LOG_SEV(lg, DEBUG) << "possible callees:";
     for (auto callee : callees) {
       BOOST_LOG_SEV(lg, DEBUG) << callee->getName().str();
@@ -242,7 +236,7 @@ private:
         for (N returnSiteN : returnSiteNs) {
           INC_COUNTER("SpecialSummaryFFApplicationCount");
           set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
-          ADD_DATA_TO_SET_HIST("SpecialSummaryFFResSet", res.size());
+          ADD_DATA_TO_SET_HIST(res.size());
           saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
             shared_ptr<EdgeFunction<V>> sumEdgFnE =
@@ -257,10 +251,10 @@ private:
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FFConstructionCount");
         set<D> res = computeCallFlowFunction(function, d1, d2);
-        ADD_DATA_TO_SET_HIST("CallFFResSet", res.size());
+        ADD_DATA_TO_SET_HIST(res.size());
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
-        ADD_DATA_TO_SET_HIST("StartPointsOfSet", startPointsOf.size());
+        ADD_DATA_TO_SET_HIST(startPointsOf.size());
         if (startPointsOf.empty()) {
           BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
                                           icfg.getMethodName(sCalledProcN) +
@@ -282,6 +276,7 @@ private:
                 endSumm = set<
                     typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
+            ADD_DATA_TO_SET_HIST(endSumm.size());
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
             // <sP,d3>, create new caller-side jump functions to the return
@@ -301,7 +296,7 @@ private:
                 INC_COUNTER("FFConstructionCount");
                 set<D> returnedFacts = computeReturnFlowFunction(
                     retFunction, d3, d4, n, set<D>{d2});
-                ADD_DATA_TO_SET_HIST("ReturnFFResSet", returnedFacts.size());
+                ADD_DATA_TO_SET_HIST(returnedFacts.size());
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
                 // for each target value of the function
                 for (D d5 : returnedFacts) {
@@ -335,7 +330,7 @@ private:
         INC_COUNTER("FFConstructionCount");
         set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
-        ADD_DATA_TO_SET_HIST("CallToRetFFResSet", returnFacts.size());
+        ADD_DATA_TO_SET_HIST(returnFacts.size());
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts) {
           shared_ptr<EdgeFunction<V>> edgeFnE =
@@ -371,7 +366,7 @@ private:
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
       INC_COUNTER("FFConstructionCount");
       set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
-      ADD_DATA_TO_SET_HIST("NormalFFResSet", res.size());
+      ADD_DATA_TO_SET_HIST(res.size());
       saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
         shared_ptr<EdgeFunction<V>> fprime = f->composeWith(
@@ -385,6 +380,7 @@ private:
    * Computes the final values for edge functions.
    */
   void computeValues() {
+    PAMM_FACTORY;
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start computing values";
     // Phase II(i)
@@ -392,6 +388,7 @@ private:
     for (N unbalancedRetSite : unbalancedRetSites) {
       if (allSeeds[unbalancedRetSite].empty()) {
         allSeeds.insert(make_pair(unbalancedRetSite, set<D>({zeroValue})));
+        ADD_DATA_TO_SET_HIST(1);
       }
     }
     // do processing
@@ -407,6 +404,7 @@ private:
     // we create an array of all nodes and then dispatch fractions of this array
     // to multiple threads
     set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
+    ADD_DATA_TO_SET_HIST(allNonCallStartNodes.size());
     vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
     size_t i = 0;
     for (N n : allNonCallStartNodes) {
@@ -632,14 +630,17 @@ protected:
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
     set<N> startPointsOf = icfg.getStartPointsOf(methodThatNeedsSummary);
+    ADD_DATA_TO_SET_HIST(startPointsOf.size());
     map<N, set<D>> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
       // register end-summary
       addEndSummary(sP, d1, n, d2, f);
       // copy to avoid concurrent modification exceptions by other threads
-      for (auto entry : incoming(d1, sP))
+      for (auto entry : incoming(d1, sP)) {
         inc[entry.first] = set<D>{entry.second};
+        ADD_DATA_TO_SET_HIST(inc[entry.first].size());
+      }
     }
     printEndSummaryTab();
     printIncomingTab();
@@ -659,7 +660,7 @@ protected:
         for (D d4 : entry.second) {
           set<D> targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
-          ADD_DATA_TO_SET_HIST("ReturnFFResSet", targets.size());
+          ADD_DATA_TO_SET_HIST(targets.size());
           saveEdges(n, retSiteC, d2, targets, true);
           // for each target value at the return site
           // line 23
@@ -699,6 +700,7 @@ protected:
     if (followReturnPastSeeds && inc.empty() &&
         ideTabulationProblem.isZeroValue(d1)) {
       set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
+      ADD_DATA_TO_SET_HIST(callers.size());
       for (N c : callers) {
         for (N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
           shared_ptr<FlowFunction<D>> retFunction =
@@ -707,7 +709,8 @@ protected:
           INC_COUNTER("FFConstructionCount");
           set<D> targets = computeReturnFlowFunction(retFunction, d1, d2, c,
                                                      set<D>{zeroValue});
-          ADD_DATA_TO_SET_HIST("ReturnFFResSet", targets.size());
+          ADD_DATA_TO_SET_HIST(targets.size());
+          ADD_DATA_TO_SET_HIST(1);
           saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets) {
             shared_ptr<EdgeFunction<V>> f5 =

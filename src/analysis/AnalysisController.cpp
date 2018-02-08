@@ -46,15 +46,11 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
-//    START_TIMER("WPA link time");
     IRDB.linkForWPA();
-//    STOP_TIMER("WPA link time");
   }
   START_TIMER("IRPreprocessingTime");
   IRDB.preprocessIR();
   STOP_TIMER("IRPreprocessingTime");
-//  IRDB.print();
-//  DBConn::getInstance();
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
   START_TIMER("LTHConstructionTime");
@@ -145,7 +141,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       case DataFlowAnalysisType::IFDS_SolverTest: {
         IFDSSolverTest ifdstest(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            ifdstest, false);
+            ifdstest, true);
         llvmifdstestsolver.solve();
         break;
       }
