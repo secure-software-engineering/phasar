@@ -161,8 +161,10 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
+  PAMM_FACTORY;
+  START_TIMER("FrameworkRunTime");
   // set-up the logger and get a reference to it
-  initializeLogger(true);
+  initializeLogger(false);
   auto &lg = lg::get();
   // handling the command line parameters
   BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
@@ -501,5 +503,8 @@ int main(int argc, const char **argv) {
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
+  STOP_TIMER("FrameworkRunTime");
+  //PRINT_EVA_DATA;
+  EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
   return 0;
 }

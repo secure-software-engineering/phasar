@@ -53,6 +53,7 @@ CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
+CXX_FLAGS += -DPERFORMANCE_EVA
 ifeq ($(OS),$(LINUX))
 CXX_FLAGS += -L/usr/local/
 else ifeq ($(OS),$(MAC))

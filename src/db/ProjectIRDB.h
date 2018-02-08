@@ -16,6 +16,7 @@
 #include "../analysis/points-to/PointsToGraph.h"
 #include "../lib/LLVMShorthands.h"
 #include "../utils/EnumFlags.h"
+#include "../utils/PAMM.h"
 #include "../utils/utils.h"
 #include <algorithm>
 #include <cassert>

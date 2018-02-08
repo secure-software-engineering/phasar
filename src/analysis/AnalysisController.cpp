@@ -22,6 +22,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
                                        bool WPA_MODE, bool PrintEdgeRecorder,
                                        string graph_id)
     : FinalResultsJson() {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
   BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
@@ -56,27 +57,32 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         << "link all llvm modules into a single module for WPA ...\n";
     IRDB.linkForWPA();
   }
+  START_TIMER("IRPreprocessingTime");
   IRDB.preprocessIR();
-  //  IRDB.print();
-  //  DBConn::getInstance();
+  STOP_TIMER("IRPreprocessingTime");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  START_TIMER("LTHConstructionTime");
   LLVMTypeHierarchy CH(IRDB);
+  STOP_TIMER("LTHConstructionTime");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-  //  CH.printAsDot();
+  // CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     cout << "WPA_MODE HAPPENING" << endl;
+    START_TIMER("ICFGConstructionTime");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
+
     if (VariablesMap.count("callgraph_plugin")) {
       // TODO write a lambda to replace the built-in callgraph with the
       // callgraph provided by the plugin
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
+    STOP_TIMER("ICFGConstructionTime");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
-    //    ICFG.print();
+    // ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
     ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework
@@ -86,6 +92,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
+      START_TIMER("AnalysisRunTime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -138,10 +145,12 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-            constproblem, true);
+        LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
+          constproblem, false);
+        cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
-        constproblem.printInitilizedSet();
+        cout << "Const Analysis finished!" << endl;
+        //constproblem.printInitilizedSet();
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -196,6 +205,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
+      STOP_TIMER("AnalysisRunTime");
     }
   }
   // Perform module-wise (MW) analysis

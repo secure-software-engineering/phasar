@@ -1,40 +1,40 @@
 ### DUMP LLVMIFDSSolver results
 --- IFDS START RESULT RECORD ---
-N:   %1 = alloca i32, align 4, !phasar.instruction.id !1, ID: 0 in function: main
-D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
---- IFDS START RESULT RECORD ---
-N:   %3 = alloca i32*, align 8, !phasar.instruction.id !3, ID: 2 in function: main
-D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
---- IFDS START RESULT RECORD ---
-N:   store i32* %2, i32** %3, align 8, !phasar.instruction.id !7, ID: 6 in function: main
-D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
---- IFDS START RESULT RECORD ---
-N:   store i32 0, i32* %2, align 4, !phasar.instruction.id !6, ID: 5 in function: main
+N:   store i32 0, i32* %1, align 4, !phasar.instruction.id !5, ID: 4 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
 N:   %4 = alloca i32*, align 8, !phasar.instruction.id !4, ID: 3 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N:   %6 = load i32*, i32** %3, align 8, !phasar.instruction.id !10, ID: 9 in function: main
-D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
---- IFDS START RESULT RECORD ---
-N:   %5 = load i32*, i32** %3, align 8, !phasar.instruction.id !8, ID: 7 in function: main
+N:   store i32 42, i32* %6, align 4, !phasar.instruction.id !11, ID: 10 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
 N:   store i32* %5, i32** %4, align 8, !phasar.instruction.id !9, ID: 8 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N:   store i32 13, i32* %6, align 4, !phasar.instruction.id !11, ID: 10 in function: main
+N:   ret i32 0, !phasar.instruction.id !12, ID: 11 in function: main
+D:	  %2 = alloca i32, align 4, !phasar.instruction.id !2, ID: 1 	V:  BOTTOM
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+D:	  %6 = load i32*, i32** %4, align 8, !phasar.instruction.id !10, ID: 9 	V:  BOTTOM
+D:	  %5 = load i32*, i32** %3, align 8, !phasar.instruction.id !8, ID: 7 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %3 = alloca i32*, align 8, !phasar.instruction.id !3, ID: 2 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
 N:   %2 = alloca i32, align 4, !phasar.instruction.id !2, ID: 1 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N:   store i32 0, i32* %1, align 4, !phasar.instruction.id !5, ID: 4 in function: main
+N:   store i32 13, i32* %2, align 4, !phasar.instruction.id !6, ID: 5 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N:   ret i32 0, !phasar.instruction.id !12, ID: 11 in function: main
-D:	  %6 = load i32*, i32** %3, align 8, !phasar.instruction.id !10, ID: 9 	V:  BOTTOM
-D:	  %5 = load i32*, i32** %3, align 8, !phasar.instruction.id !8, ID: 7 	V:  BOTTOM
+N:   %1 = alloca i32, align 4, !phasar.instruction.id !1, ID: 0 in function: main
 D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
-D:	  %2 = alloca i32, align 4, !phasar.instruction.id !2, ID: 1 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   store i32* %2, i32** %3, align 8, !phasar.instruction.id !7, ID: 6 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %6 = load i32*, i32** %4, align 8, !phasar.instruction.id !10, ID: 9 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM
+--- IFDS START RESULT RECORD ---
+N:   %5 = load i32*, i32** %3, align 8, !phasar.instruction.id !8, ID: 7 in function: main
+D:	@zero_value = constant i2 0, align 4 	V:  BOTTOM

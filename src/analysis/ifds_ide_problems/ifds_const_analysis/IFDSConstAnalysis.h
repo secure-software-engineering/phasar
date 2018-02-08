@@ -41,10 +41,10 @@ class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
+  PointsToGraph &ptg;
   //  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
   vector<string> EntryPoints;
   set<const llvm::Value *> storedOnce;
-  PointsToGraph &ptg;
 
 public:
   IFDSConstAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
