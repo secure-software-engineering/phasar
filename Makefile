@@ -18,9 +18,11 @@ SUPPORTED_COMPILERS = $(CLANG) $(GCC)
 OS = $(shell uname -s)
 LINUX = Linux
 MAC = Darwin
+MACROS =
 
 # Set-up the basic compiler flags
 CXX_FLAGS = -std=c++14
+CXX_FLAGS += $(MACROS)
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wpedantic
@@ -53,7 +55,6 @@ CXX_FLAGS += -pipe
 CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
 CXX_FLAGS += -DBOOST_LOG_DYN_LINK
-CXX_FLAGS += -DPERFORMANCE_EVA
 ifeq ($(OS),$(LINUX))
 CXX_FLAGS += -L/usr/local/
 else ifeq ($(OS),$(MAC))

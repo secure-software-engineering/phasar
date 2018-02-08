@@ -3,7 +3,8 @@ cmake_minimum_required (VERSION 3.0)
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-std=c++14 -stdlib=libstdc++ -Wno-unknown-warning-option -O2 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libc++ -MMD -MP -O0 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -rdynamic -march=native -DNDEBUG")
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 project (sse_dfa_llvm)
 
@@ -83,9 +84,9 @@ file(GLOB_RECURSE SRC_LIB src/lib/*.h? src/lib/*.cpp)
 add_library( lib STATIC ${SRC_LIB} )
 target_link_libraries(lib ${ALL_LIBS})
 
-file(GLOB_RECURSE SRC_FLEX src/flex/*.h? src/flex/*.cpp)
-add_library( flex STATIC ${SRC_FLEX} )
-target_link_libraries(db ${ALL_LIBS})
+#file(GLOB_RECURSE SRC_FLEX src/flex/*.h? src/flex/*.cpp)
+#add_library( flex STATIC ${SRC_FLEX} )
+#target_link_libraries(db ${ALL_LIBS})
 
 file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils STATIC ${SRC_UTILS} )
@@ -100,7 +101,7 @@ add_executable(main  src/main.cpp)
 target_link_libraries(main
   ${CLANG_LIBRARIES}
   ${llvm_libs}
-  analysis clang db flex lib utils
+  analysis clang db lib utils
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
