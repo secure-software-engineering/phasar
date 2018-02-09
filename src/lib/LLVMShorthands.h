@@ -26,10 +26,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
-#include <string>
 #include <vector>
-
-using namespace std;
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -45,19 +42,19 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 /**
  * @brief Returns a string representation of a LLVM Value.
  */
-string llvmIRToString(const llvm::Value *V);
+std::string llvmIRToString(const llvm::Value *V);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
-vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
+std::vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
  * @brief Returns the meta data id of a given LLVM Instruction.
  * @return Meta data id as a string.
  */
-string getMetaDataID(const llvm::Instruction *);
+std::string getMetaDataID(const llvm::Instruction *);
 
 /**
  * The Argument count starts with 0.
@@ -120,7 +117,7 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * hash computation.
  * @return Hash value.
  */
-size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
+std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.
@@ -128,6 +125,6 @@ size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @param M
  * @return
  */
-size_t computeModuleHash(const llvm::Module *M);
+std::size_t computeModuleHash(const llvm::Module *M);
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

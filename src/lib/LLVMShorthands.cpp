@@ -45,8 +45,8 @@ bool matchesSignature(const llvm::Function *F,
   return false;
 }
 
-string llvmIRToString(const llvm::Value *V) {
-  string IRBuffer;
+std::string llvmIRToString(const llvm::Value *V) {
+  std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
@@ -56,9 +56,9 @@ string llvmIRToString(const llvm::Value *V) {
   return IRBuffer;
 }
 
-vector<const llvm::Value *>
+std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
-  vector<const llvm::Value *> globals_used;
+  std::vector<const llvm::Value *> globals_used;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       for (auto &Op : I.operands()) {
@@ -72,7 +72,7 @@ globalValuesUsedinFunction(const llvm::Function *F) {
   return globals_used;
 }
 
-string getMetaDataID(const llvm::Instruction *I) {
+std::string getMetaDataID(const llvm::Instruction *I) {
   return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
       ->getString()
       .str();
@@ -94,7 +94,7 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
 
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned idx) {
-  unsigned i = 0;
+  unsigned i = 1;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (i == idx) {
@@ -131,29 +131,29 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
   return nullptr;
 }
 
-size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
-  string SourceCode;
+std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
+  std::string SourceCode;
   if (considerIdentifier) {
     llvm::raw_string_ostream RSO(SourceCode);
     llvm::WriteBitcodeToFile(M, RSO);
     RSO.flush();
   } else {
-    string Identifier = M->getModuleIdentifier();
+    std::string Identifier = M->getModuleIdentifier();
     M->setModuleIdentifier("");
     llvm::raw_string_ostream RSO(SourceCode);
     llvm::WriteBitcodeToFile(M, RSO);
     RSO.flush();
     M->setModuleIdentifier(Identifier);
   }
-  return hash<string>{}(SourceCode);
+  return std::hash<std::string>{}(SourceCode);
 }
 
-size_t computeModuleHash(const llvm::Module *M) {
-  string SourceCode;
+std::size_t computeModuleHash(const llvm::Module *M) {
+  std::string SourceCode;
   llvm::raw_string_ostream RSO(SourceCode);
   llvm::WriteBitcodeToFile(M, RSO);
   RSO.flush();
-  return hash<string>{}(SourceCode);
+  return std::hash<std::string>{}(SourceCode);
 }
 
 const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,

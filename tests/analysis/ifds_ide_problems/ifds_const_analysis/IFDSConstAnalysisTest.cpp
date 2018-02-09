@@ -1,35 +1,12 @@
 #include "../../../../src/analysis/ifds_ide/solver/LLVMIFDSSolver.h"
 #include "../../../../src/analysis/ifds_ide_problems/ifds_const_analysis/IFDSConstAnalysis.h"
-#include "../../../../src/config/Configuration.h"
+//#include "../../../../src/config/Configuration.h"
 #include "../../../../src/db/ProjectIRDB.h"
 #include "IFDSConstAnalysisResults.h"
 #include <gtest/gtest.h>
 
-/* ============== TEST ENVIRONMENT AND FIXTURE ============== */
-/* Global Environment */
-class IFDSConstAnalysisEnv : public ::testing::Environment {
-public:
-  virtual ~IFDSConstAnalysisEnv() {}
+/* ============== TEST FIXTURE ============== */
 
-  virtual void SetUp() {
-    initializeLogger(false);
-    std::string tests_config_file = "tests/test_params.conf";
-    std::ifstream ifs(tests_config_file.c_str());
-    ASSERT_TRUE(ifs);
-    bpo::options_description test_desc("Testing options");
-    // clang-format off
-    test_desc.add_options()
-      ("mem2reg,M", bpo::value<bool>()->default_value(0), "Promote memory to register pass (1 or 0)");
-    ;
-    // clang-format on
-    bpo::store(bpo::parse_config_file(ifs, test_desc), VariablesMap);
-    bpo::notify(VariablesMap);
-  }
-
-  virtual void TearDown() {}
-};
-
-/* Test fixture */
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToTests = "test_code/llvm_test_code/constness/";
@@ -44,6 +21,7 @@ protected:
   virtual ~IFDSConstAnalysisTest() {}
 
   void SetUp(const std::vector<std::string> &IRFiles) {
+    initializeLogger(false);
     ValueAnnotationPass::resetValueID();
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
@@ -427,6 +405,6 @@ TEST_F(IFDSConstAnalysisTest, HandleStructsTest_02) {
 // main function for the test case
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  ::testing::AddGlobalTestEnvironment(new IFDSConstAnalysisEnv());
+  //::testing::AddGlobalTestEnvironment(new IFDSConstAnalysisEnv());
   return RUN_ALL_TESTS();
 }
