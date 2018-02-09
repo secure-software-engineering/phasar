@@ -137,13 +137,13 @@ public:
    * @brief Computes the elapsed time of the given timer up until now or up to
    * the
    * moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
-   * @tparam Period sets the precision for time computation, e.g. microseconds.
+   * @tparam Period sets the precision for time computation, e.g. milliseconds.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
-   * @note When using the macro, the period is set to microseconds and cannot be
+   * @note When using the macro, the period is set to milliseconds and cannot be
    * customized by the macro.
    */
-  template <typename Period = std::chrono::microseconds>
+  template <typename Period = std::chrono::milliseconds>
   unsigned long elapsedTime(std::string timerId) {
     assert((RunningTimer.count(timerId) || StoppedTimer.count(timerId)) &&
            "elapsedTime failed due to an invalid timer id");
@@ -163,12 +163,12 @@ public:
   /**
    * @brief Computes the accumulated time of the given timer ids - associated
    * macro: ACC_TIMER(...)
-   * @tparam Period sets the precision for time computation, e.g. microseconds.
+   * @tparam Period sets the precision for time computation, e.g. milliseconds.
    * @param timers Unique timer ids.
    * @return Accumulated elapsed time.
    * @note Macro uses variadic parameters, e.g. ACC_TIMER({"foo", "bar"}).
    */
-  template <typename Period = std::chrono::microseconds>
+  template <typename Period = std::chrono::milliseconds>
   unsigned long accumulatedTime(std::set<std::string> timers) {
     unsigned long accTime = 0;
     for (auto timerId : timers) {
@@ -179,7 +179,7 @@ public:
 
   /**
    * A running timer will not be stopped. The precision for time computation
-   * is set to microseconds and the output is similar to a timestamp, e.g.
+   * is set to milliseconds and the output is similar to a timestamp, e.g.
    * '4h 8m 15sec 16ms'.
    *
    * @brief Returns the elapsed time for a given timer id - associated macro:
@@ -238,9 +238,9 @@ public:
   /**
    * @brief Prints the measured data to the command line - associated macro:
    * PRINT_EVA_DATA
-   * @tparam Period sets the precision for time computation, e.g. microseconds.
+   * @tparam Period sets the precision for time computation, e.g. milliseconds.
    */
-  template <typename Period = std::chrono::microseconds> void printData() {
+  template <typename Period = std::chrono::milliseconds> void printData() {
     // stop all running timer
     for (auto timer : RunningTimer) {
       stopTimer(timer.first);
@@ -280,10 +280,10 @@ public:
   /**
    * @brief Exports the measured data to JSON - associated macro:
    * EXPORT_EVA_DATA(CONFIG).
-   * @tparam Period sets the precision for time computation, e.g. microseconds.
+   * @tparam Period sets the precision for time computation, e.g. milliseconds.
    * @param config name.
    */
-  template <typename Period = std::chrono::microseconds>
+  template <typename Period = std::chrono::milliseconds>
   void exportDataAsJSON(const std::string &configPath) {
     // stop all running timer
     for (auto timer : RunningTimer) {

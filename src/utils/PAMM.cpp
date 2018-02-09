@@ -51,12 +51,12 @@ void PAMM::stopTimer(std::string timerId) {
 }
 
 std::string PAMM::getPrintableDuration(unsigned long duration) {
-  unsigned long milliseconds = (duration / 1000) % 1000;
-  unsigned long seconds = (((duration / 1000) - milliseconds) / 1000) % 60;
+  unsigned long milliseconds = duration % 1000;
+  unsigned long seconds = ((duration - milliseconds) / 1000) % 60;
   unsigned long minutes =
-      (((((duration / 1000) - milliseconds) / 1000) - seconds) / 60) % 60;
+      ((((duration - milliseconds) / 1000) - seconds) / 60) % 60;
   unsigned long hours =
-      ((((((duration / 1000) - milliseconds) / 1000) - seconds) / 60) -
+      (((((duration - milliseconds) / 1000) - seconds) / 60) -
        minutes) / 60;
   std::ostringstream oss;
   if (hours)
