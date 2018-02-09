@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMBasedInterproceduralICFG.h
  *
@@ -8,10 +17,10 @@
 #ifndef ANALYSIS_LLVMBASEDICFG_H_
 #define ANALYSIS_LLVMBASEDICFG_H_
 
+#include "../../config/Configuration.h"
 #include "../../db/ProjectIRDB.h"
 #include "../../lib/GraphExtensions.h"
 #include "../../lib/LLVMShorthands.h"
-#include "../../config/Configuration.h"
 #include "../../utils/Logger.h"
 #include "../../utils/utils.h"
 #include "../points-to/LLVMTypeHierarchy.h"
@@ -21,7 +30,6 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
-#include <functional>
 #include <functional>
 #include <initializer_list>
 #include <iostream>
@@ -34,7 +42,6 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
@@ -115,8 +122,9 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::multisetS, boost::vecS, boost::bidirectionalS,
-                                VertexProperties, EdgeProperties>
+  typedef boost::adjacency_list<boost::multisetS, boost::vecS,
+                                boost::bidirectionalS, VertexProperties,
+                                EdgeProperties>
       bidigraph_t;
 
   // Let us have some handy typedefs.
@@ -204,22 +212,22 @@ private:
       function<set<string>(llvm::ImmutableCallSite CS)> R, bool useVTA = true);
 
   /**
-    * Walking along the control flow resolving indirect call-sites using
-    * the resolving function R. This walker does perform a highly precise
-    * inter-procedural points-to graph, which is intended to be used by the
-    * indirect call resolving function R.
-    *
-    * @brief Walks along the control flow graph performing a precise pointer
-    * analysis.
-    * @param F function to start in
-    * @param R resolving function to use for an indirect call site
-    */
+   * Walking along the control flow resolving indirect call-sites using
+   * the resolving function R. This walker does perform a highly precise
+   * inter-procedural points-to graph, which is intended to be used by the
+   * indirect call resolving function R.
+   *
+   * @brief Walks along the control flow graph performing a precise pointer
+   * analysis.
+   * @param F function to start in
+   * @param R resolving function to use for an indirect call site
+   */
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
   struct dependency_visitor : boost::default_dfs_visitor {
     vector<vertex_t> &vertices;
     dependency_visitor(vector<vertex_t> &v) : vertices(v) {}
-    template <class Vertex, class Graph>
+    template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       vertices.push_back(u);
     }
@@ -265,6 +273,7 @@ public:
                       const llvm::Instruction *succ) override;
 
   string getMethodName(const llvm::Function *fun) override;
+  string getStatementId(const llvm::Instruction *stmt) override;
 
   const llvm::Function *getMethod(const string &fun) override;
 

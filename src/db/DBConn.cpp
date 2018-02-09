@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DBConn.cpp
  *
@@ -267,8 +276,8 @@ int DBConn::getModuleIDFromFunctionID(const unsigned functionID) {
 set<int> DBConn::getAllTypeHierarchyIDs() {
   set<int> THIDs;
   try {
-    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT type_hierarchy_id FROM type_hierarchy"));
+    unique_ptr<sql::PreparedStatement> pstmt(
+        conn->prepareStatement("SELECT type_hierarchy_id FROM type_hierarchy"));
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {
       THIDs.insert(res->getInt("type_hierarchy_id"));
@@ -284,7 +293,8 @@ set<int> DBConn::getAllModuleIDsFromTH(const unsigned typeHierarchyID) {
   set<int> moduleIDs;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT module_id FROM moduel_has_type_hierarchy WHERE type_hierarchy_id=?"));
+        "SELECT module_id FROM moduel_has_type_hierarchy WHERE "
+        "type_hierarchy_id=?"));
     pstmt->setInt(1, typeHierarchyID);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {
@@ -833,7 +843,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -846,7 +856,7 @@ DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -858,7 +868,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -1106,7 +1116,7 @@ ProjectIRDB DBConn::loadProjectIRDB(const string &ProjectName) {
       "project_id FROM project WHERE identifier=?)"));
   pstmt->setString(1, ProjectName);
   unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   while (res->next()) {
     string module_identifier = res->getString("identifier");
     cout << "module identifier: " << module_identifier << endl;

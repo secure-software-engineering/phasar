@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMBasedCFG.cpp
  *
@@ -105,6 +114,13 @@ bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *stmt,
     }
   }
   return false;
+}
+
+string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) {
+  return llvm::cast<llvm::MDString>(
+             stmt->getMetadata(MetaDataKind)->getOperand(0))
+      ->getString()
+      .str();
 }
 
 string LLVMBasedCFG::getMethodName(const llvm::Function *fun) {

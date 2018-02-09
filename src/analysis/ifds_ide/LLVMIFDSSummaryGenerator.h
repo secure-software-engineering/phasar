@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSSummaryGenerator.h
  *
@@ -66,7 +75,7 @@ private:
 
 public:
   LLVMIFDSSummaryGenerator(const llvm::Function *F, I icfg,
-                           SummaryGenerationCTXStrategy S)
+                           SummaryGenerationStrategy S)
       : IFDSSummaryGenerator<const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, I,
                              ConcreteIFDSTabulationProblem,

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Singleton.h
  *
@@ -8,7 +17,7 @@
 #ifndef UTILS_SINGLETON_H_
 #define UTILS_SINGLETON_H_
 
-template <class T> class Singleton {
+template <typename T> class Singleton {
 public:
   Singleton(const Singleton &s) = delete;
   Singleton(Singleton &&s) = delete;

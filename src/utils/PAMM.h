@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PAMM.h
  *
@@ -137,7 +146,7 @@ public:
    * @brief Computes the elapsed time of the given timer up until now or up to
    * the
    * moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
-   * @tparam Period sets the precision for time computation, e.g. milliseconds.
+   * @tparam Period sets the precision for time computation, milliseconds by default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
    * @note When using the macro, the period is set to milliseconds and cannot be
@@ -163,7 +172,7 @@ public:
   /**
    * @brief Computes the accumulated time of the given timer ids - associated
    * macro: ACC_TIMER(...)
-   * @tparam Period sets the precision for time computation, e.g. milliseconds.
+   * @tparam Period sets the precision for time computation, milliseconds by default.
    * @param timers Unique timer ids.
    * @return Accumulated elapsed time.
    * @note Macro uses variadic parameters, e.g. ACC_TIMER({"foo", "bar"}).
@@ -238,7 +247,7 @@ public:
   /**
    * @brief Prints the measured data to the command line - associated macro:
    * PRINT_EVA_DATA
-   * @tparam Period sets the precision for time computation, e.g. milliseconds.
+   * @tparam Period sets the precision for time computation, milliseconds by default.
    */
   template <typename Period = std::chrono::milliseconds> void printData() {
     // stop all running timer
@@ -280,7 +289,7 @@ public:
   /**
    * @brief Exports the measured data to JSON - associated macro:
    * EXPORT_EVA_DATA(CONFIG).
-   * @tparam Period sets the precision for time computation, e.g. milliseconds.
+   * @tparam Period sets the precision for time computation, milliseconds by default.
    * @param config name.
    */
   template <typename Period = std::chrono::milliseconds>

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * JumpFunctions.h
  *
@@ -17,7 +26,7 @@
 
 using namespace std;
 
-template <class N, class D, class L> class JumpFunctions {
+template <typename N, typename D, typename L> class JumpFunctions {
 private:
   shared_ptr<EdgeFunction<L>> allTop;
 
@@ -46,13 +55,13 @@ public:
   virtual ~JumpFunctions() = default;
 
   /**
-    * Records a jump function. The source statement is implicit.
-    * @see PathEdge
-    */
+   * Records a jump function. The source statement is implicit.
+   * @see PathEdge
+   */
   void addFunction(D sourceVal, N target, D targetVal,
                    shared_ptr<EdgeFunction<L>> function) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Adding new jump function";
+    BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
     BOOST_LOG_SEV(lg, DEBUG)
         << "Fact at source: "
         << ((sourceVal) ? llvmIRToString(sourceVal) : "nullptr");
@@ -74,13 +83,13 @@ public:
     //	printNonEmptyForwardLookup();
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     //	printNonEmptyLookupByTargetNode();
-    BOOST_LOG_SEV(lg, DEBUG) << "Added new jump function";
+    BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function";
   }
 
   /**
-* Returns, for a given target statement and value all associated
-* source values, and for each the associated edge function.
-* The return value is a mapping from source value to function.
+   * Returns, for a given target statement and value all associated
+   * source values, and for each the associated edge function.
+   * The return value is a mapping from source value to function.
    */
   map<D, shared_ptr<EdgeFunction<L>>> reverseLookup(N target, D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal))
@@ -92,7 +101,7 @@ public:
   /**
    * Returns, for a given source value and target statement all
    * associated target values, and for each the associated edge function.
-* The return value is a mapping from target value to function.
+   * The return value is a mapping from target value to function.
    */
   map<D, shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal, N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target))
@@ -123,34 +132,35 @@ public:
   bool removeFunction(D sourceVal, N target, D targetVal) {
 
     //			Map<D,EdgeFunction<L>> sourceValToFunc =
-    //nonEmptyReverseLookup.get(target, targetVal);
+    // nonEmptyReverseLookup.get(target, targetVal);
     //			if (sourceValToFunc == null)
     //				return false;
     //			if (sourceValToFunc.remove(sourceVal) == null)
     //				return false;
-    //			if (sourceValToFunc.isEmpty())
+    //			if (sourceValToFunc.empty())
     //				nonEmptyReverseLookup.remove(targetVal,
-    //targetVal);
+    // targetVal);
     //
     //			Map<D, EdgeFunction<L>> targetValToFunc =
-    //nonEmptyForwardLookup.get(sourceVal, target);
+    // nonEmptyForwardLookup.get(sourceVal, target);
     //			if (targetValToFunc == null)
     //				return false;
     //			if (targetValToFunc.remove(targetVal) == null)
     //				return false;
-    //			if (targetValToFunc.isEmpty())
+    //			if (targetValToFunc.empty())
     //				nonEmptyForwardLookup.remove(sourceVal, target);
     //
     //			Table<D,D,EdgeFunction<L>> table =
-    //nonEmptyLookupByTargetNode.get(target);
+    // nonEmptyLookupByTargetNode.get(target);
     //			if (table == null)
     //				return false;
     //			if (table.remove(sourceVal, targetVal) == null)
     //				return false;
-    //			if (table.isEmpty())
+    //			if (table.empty())
     //				nonEmptyLookupByTargetNode.remove(target);
     //
     //			return true;
+    return false;
   }
 
   /**

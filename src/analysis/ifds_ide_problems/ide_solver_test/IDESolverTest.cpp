@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IDESolverTest.cpp
  *
@@ -62,8 +71,7 @@ IDESolverTest::initialSeeds() {
 const llvm::Value *IDESolverTest::createZeroValue() {
   cout << "IDESolverTest::createZeroValue()\n";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IDESolverTest::isZeroValue(const llvm::Value *d) const {
@@ -171,7 +179,8 @@ string IDESolverTest::DtoString(const llvm::Value *d) {
 }
 
 string IDESolverTest::VtoString(const llvm::Value *v) {
-  return llvmIRToString(v);
+  // return llvmIRToString(v);
+  return "empty V test";
 }
 
 string IDESolverTest::NtoString(const llvm::Instruction *n) {

@@ -1,0 +1,20 @@
+This file is a partial list of people who have contributed to Phasar
+
+The fields are: name (N), email (E), web-address (W), description (D)
+
+N: Philipp Schubert
+E: philipp.schubert@upb.de
+W: http://it-schubert.com
+D: Initial implementation and new features
+
+N: Christian Stritzke
+E: christian.stritzke@iem.fraunhofer.de
+D: HexaStore implementation
+
+N: Richard Leer
+E: rleer@mail.upb.de
+D: Serialization and various fixes
+
+N: Jan-Niclas Strüwer
+E: struewer@mail.upb.de
+D: ESG visualization adaptor

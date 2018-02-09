@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PluginTest.h
  *
@@ -8,8 +17,8 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 
-#include "plugin_ifaces/IFDSTabulationProblemPlugin.h"
 #include "../ifds_ide/flow_func/Gen.h"
+#include "plugin_ifaces/ifds_ide/IFDSTabulationProblemPlugin.h"
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
@@ -40,5 +49,9 @@ public:
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;
 };
+
+extern "C" unique_ptr<IFDSTabulationProblemPlugin>
+makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
+                                    vector<string> EntryPoints);
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */

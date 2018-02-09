@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMShorthands.cpp
  *
@@ -83,6 +92,21 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
   return nullptr;
 }
 
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           unsigned idx) {
+  unsigned i = 0;
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      if (i == idx) {
+        return &I;
+      } else {
+        ++i;
+      }
+    }
+  }
+  return nullptr;
+}
+
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
   if (const llvm::Argument *MA = llvm::dyn_cast<llvm::Argument>(V))
     return MA->getParent() ? MA->getParent()->getParent() : nullptr;
@@ -130,20 +154,6 @@ size_t computeModuleHash(const llvm::Module *M) {
   llvm::WriteBitcodeToFile(M, RSO);
   RSO.flush();
   return hash<string>{}(SourceCode);
-}
-
-const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo) {
-  unsigned current = 1;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
-      if (current == instNo) {
-        return &I;
-      }
-      current++;
-    }
-  }
-  return nullptr;
 }
 
 const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,

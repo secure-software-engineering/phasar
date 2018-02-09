@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * CFG.h
  *
@@ -35,6 +44,8 @@ public:
   virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
 
   virtual bool isBranchTarget(N stmt, N succ) = 0;
+
+  virtual string getStatementId(N stmt) = 0;
 
   virtual string getMethodName(M fun) = 0;
 };

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PointsToGraph.cpp
  *
@@ -182,7 +191,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
           break;
         case llvm::MustAlias:
            //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //F->getParent());
+           //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         default:
@@ -193,7 +202,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
         if (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                      llvm::MemoryLocation(*I2, I2Size)) == llvm::MustAlias) {
            //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //F->getParent());
+           //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
         }
       }
@@ -297,25 +306,28 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   return result;
 }
 
-set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
+set<const llvm::Value *>
+PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
   auto &lg = lg::get();
   set<const llvm::Value *> result;
   if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
     const llvm::Function *F = IV->getFunction();
     for (auto alias : getPointsToSet(V)) {
-      if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
+      if (const llvm::Instruction *I =
+              llvm::dyn_cast<llvm::Instruction>(alias)) {
         if (I->getFunction() == F) {
           result.insert(alias);
         }
       } else if (llvm::isa<llvm::GlobalValue>(alias)) {
         result.insert(alias);
-      } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(alias)) {
+      } else if (const llvm::Argument *A =
+                     llvm::dyn_cast<llvm::Argument>(alias)) {
         if (A->getParent() == F) {
           result.insert(alias);
         }
       } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << V->getName().str();
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Could not cast the following alias: " << V->getName().str();
       }
     }
   }
@@ -348,11 +360,11 @@ void PointsToGraph::print() const {
 
 void PointsToGraph::printAsDot(const string &filename) {
   ofstream ofs(filename);
-  boost::write_graphviz(
-      ofs, ptg, boost::make_label_writer(
-                    boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
-      boost::make_label_writer(
-          boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
+  boost::write_graphviz(ofs, ptg,
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::VertexProperties::ir_code, ptg)),
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
 void PointsToGraph::exportPATBCJSON() {

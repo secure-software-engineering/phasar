@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * JoinHandlingNode.h
  *
@@ -11,7 +20,7 @@
 #include <vector>
 using namespace std;
 
-template <class T> class JoinHandlingNode {
+template <typename T> class JoinHandlingNode {
 public:
   virtual ~JoinHandlingNode();
   /**

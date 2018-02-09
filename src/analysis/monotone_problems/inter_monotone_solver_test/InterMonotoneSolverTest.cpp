@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "InterMonotoneSolverTest.h"
 
 InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
@@ -28,12 +37,12 @@ MonoSet<const llvm::Value *>
 InterMonotoneSolverTest::normalFlow(const llvm::Instruction *Stmt,
                                     const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonotoneSolverTest::normalFlow()\n";
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
-  if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
-    Result.insert(Alloc);
-  }
-  return Result;
+  // MonoSet<const llvm::Value *> Result;
+  // Result.insert(In.begin(), In.end());
+  // if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+  //   Result.insert(Alloc);
+  // }
+  return In;
 }
 
 MonoSet<const llvm::Value *>
@@ -41,7 +50,12 @@ InterMonotoneSolverTest::callFlow(const llvm::Instruction *CallSite,
                                   const llvm::Function *Callee,
                                   const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonotoneSolverTest::callFlow()\n";
-  return In;
+  MonoSet<const llvm::Value *> Result;
+  Result.insert(In.begin(), In.end());
+  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
+    Result.insert(Call);
+  }
+  return Result;
 }
 
 MonoSet<const llvm::Value *> InterMonotoneSolverTest::returnFlow(

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #ifndef FLOWEDGEFUNCTIONCACHE_H_
 #define FLOWEDGEFUNCTIONCACHE_H_
 
@@ -31,8 +40,6 @@ struct FlowEdgeFunctionCache {
       ReturnFlowFunctionCache;
   std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
       CallToRetFlowFunctionCache;
-  std::map<std::tuple<N, M>, std::shared_ptr<FlowFunction<D>>>
-      SummaryFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
       NormalEdgeFunctionCache;
@@ -64,7 +71,7 @@ struct FlowEdgeFunctionCache {
     REG_COUNTER("CallToRetFFCacheHitCount");
     // Counters for the summary flow functions
     REG_COUNTER("SummaryFFConstructionCount");
-    REG_COUNTER("SummaryFFCacheHitCount");
+    //REG_COUNTER("SummaryFFCacheHitCount");
     // Counters for the normal edge functions
     REG_COUNTER("NormalEFConstructionCount");
     REG_COUNTER("NormalEFCacheHitCount");
@@ -160,15 +167,9 @@ struct FlowEdgeFunctionCache {
   std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
                                                           M destMthd) {
     PAMM_FACTORY;
-    auto key = std::tie(callStmt, destMthd);
-    if (SummaryFlowFunctionCache.count(key)) {
-      INC_COUNTER("SummaryFFCacheHitCount");
-      return SummaryFlowFunctionCache.at(key);
-    } else {
-      INC_COUNTER("SummaryFFConstructionCount");
-      auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
-      return ff;
-    }
+    INC_COUNTER("SummaryFFConstructionCount");
+    auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
+    return ff;
   }
 
   std::shared_ptr<EdgeFunction<V>> getNormalEdgeFunction(N curr, D currNode,
@@ -276,15 +277,15 @@ struct FlowEdgeFunctionCache {
                             << GET_COUNTER("CallToRetFFCacheHitCount");
     BOOST_LOG_SEV(lg, INFO) << "call to return flow function constructions: "
                             << GET_COUNTER("CallToRetFFConstructionCount");
-    BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
-                            << GET_COUNTER("SummaryFFCacheHitCount");
+    //BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
+    //                        << GET_COUNTER("SummaryFFCacheHitCount");
     BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
                             << GET_COUNTER("SummaryFFConstructionCount");
     BOOST_LOG_SEV(lg, INFO)
         << "total flow function cache hits: "
         << GET_SUM_COUNT({"NormalFFCacheHitCount", "CallFFCacheHitCount",
-                          "ReturnFFCacheHitCount", "CallToRetFFCacheHitCount",
-                          "SummaryFFCacheHitCount"});
+                          "ReturnFFCacheHitCount", "CallToRetFFCacheHitCount"});
+                          //"SummaryFFCacheHitCount"});
     BOOST_LOG_SEV(lg, INFO)
         << "total flow function constructions: "
         << GET_SUM_COUNT(

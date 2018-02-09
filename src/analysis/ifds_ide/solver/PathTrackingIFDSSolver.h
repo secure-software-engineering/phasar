@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PathTrackingIFDSSolver.h
  *
@@ -18,29 +27,29 @@
  * both target values with one another.
  * @deprecated Use {@link JoinHandlingNodesIFDSSolver} instead.
  */
-template <class N, class D, class M, class I>
+template <typename N, typename D, typename M, typename I>
 class PathTrackingIFDSSolver : public IFDSSolver<N, D, M, I> {
   //
   //	public PathTrackingIFDSSolver(IFDSTabulationProblem<N, D, M, I>
-  //ifdsProblem) {
+  // ifdsProblem) {
   //		super(ifdsProblem);
   //	}
   //
   //	protected final Map<CacheEntry, LinkedNode<D>> cache =
-  //Maps.newHashMap();
+  // Maps.newHashMap();
 
   //	@Override
   //	protected void propagate(D sourceVal, N target, D targetVal,
-  //EdgeFunction<IFDSSolver.BinaryDomain> f, N relatedCallSite, boolean
-  //isUnbalancedReturn) {
+  // EdgeFunction<IFDSSolver.BinaryDomain> f, N relatedCallSite, boolean
+  // isUnbalancedReturn) {
   //		CacheEntry currentCacheEntry = new CacheEntry(target, sourceVal,
-  //targetVal);
+  // targetVal);
   //
   //		boolean propagate = false;
   //		synchronized (this) {
   //			if (cache.containsKey(currentCacheEntry)) {
   //				LinkedNode<D> existingTargetVal =
-  //cache.get(currentCacheEntry);
+  // cache.get(currentCacheEntry);
   //				if (existingTargetVal != targetVal)
   //					existingTargetVal.addNeighbor(targetVal);
   //			} else {
@@ -51,7 +60,7 @@ class PathTrackingIFDSSolver : public IFDSSolver<N, D, M, I> {
   //
   //		if (propagate)
   //			super.propagate(sourceVal, target, targetVal, f,
-  //relatedCallSite, isUnbalancedReturn);
+  // relatedCallSite, isUnbalancedReturn);
   //
   //	};
 };

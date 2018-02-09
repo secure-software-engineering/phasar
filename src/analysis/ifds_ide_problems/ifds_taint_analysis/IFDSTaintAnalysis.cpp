@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSTaintAnalysis.h"
 
 // Source functions - critical argument(s) - signature:
@@ -342,8 +351,7 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {

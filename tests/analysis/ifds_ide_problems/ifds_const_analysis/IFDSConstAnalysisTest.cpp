@@ -53,7 +53,7 @@ protected:
     constproblem = new IFDSConstAnalysis(*ICFG, EntryPoints);
   }
 
-  virtual void TearDown() {
+  virtual void TearDown() override {
     PAMM_FACTORY;
     delete IRDB;
     delete TH;

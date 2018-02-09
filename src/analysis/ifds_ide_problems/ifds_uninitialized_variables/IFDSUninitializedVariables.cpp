@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSUninitializedVariables.h"
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg,
@@ -334,8 +343,7 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::createZeroValue()";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSUnitializedVariables::isZeroValue(const llvm::Value *d) const {

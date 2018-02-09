@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * HexaStoreGraph.hh
  *
@@ -15,7 +24,7 @@
 #include <unordered_map>
 using namespace std;
 
-template <class S, class E, class D> class HexaStoreGraph {
+template <typename S, typename E, typename D> class HexaStoreGraph {
 private:
   Table<S, E, D> sed;
   Table<S, D, E> sde;
@@ -70,7 +79,7 @@ public:
     des.clear();
   }
 
-  bool isEmpty() { return sed.isEmpty(); }
+  bool empty() { return sed.empty(); }
 
   set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
 

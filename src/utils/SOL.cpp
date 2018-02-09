@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "SOL.h"
 
 SOL::SOL(const string &path) : path(path) {
@@ -11,11 +20,25 @@ SOL::SOL(const string &path) : path(path) {
   dlerror(); // clear existing errors
 }
 
+SOL::SOL(SOL &&so) {
+  error = so.error;
+  so_handle = so.so_handle;
+  so.error = nullptr;
+  so.so_handle = nullptr;
+}
+
+SOL &SOL::operator=(SOL &&so) {
+  error = so.error;
+  so_handle = so.so_handle;
+  so.error = nullptr;
+  so.so_handle = nullptr;
+  return *this;
+}
+
 SOL::~SOL() {
   if ((error = dlerror()) != NULL) {
-    cerr << error << '\n';
-    throw runtime_error("encountered problems with shared object library: '" +
-                        path + "'");
+    cerr << "encountered problems with shared onject library ('" + path + "'): "
+         << error << '\n';
   }
   dlclose(so_handle);
 }

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #ifndef ANALYSIS_ProjectIRDB_H_
 #define ANALYSIS_ProjectIRDB_H_
 
@@ -6,6 +15,7 @@
 #include "../analysis/passes/ValueAnnotationPass.h"
 #include "../analysis/points-to/PointsToGraph.h"
 #include "../lib/LLVMShorthands.h"
+#include "../utils/EnumFlags.h"
 #include "../utils/PAMM.h"
 #include "../utils/utils.h"
 #include <algorithm>
@@ -22,7 +32,6 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
-#include <llvm/IR/Module.h>
 #include <llvm/IR/PassManager.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
@@ -35,6 +44,12 @@
 #include <utility>
 using namespace std;
 
+enum class IRDBOptions : uint32_t {
+  NONE = 0,
+  MEM2REG = (1 << 0),
+  WPA = (1 << 1)
+};
+
 /**
  * This class owns the LLVM IR code of the project under analysis and some
  * very important information associated with the IR.
@@ -44,6 +59,7 @@ using namespace std;
 class ProjectIRDB {
 private:
   llvm::Module *WPAMOD = nullptr;
+  IRDBOptions Options;
   void compileAndAddToDB(vector<const char *> CompileCommand);
   vector<string> header_search_paths;
   static const set<string> unknown_flags;
@@ -70,14 +86,17 @@ private:
 
 public:
   // Constructs an empty ProjectIRDB
-  ProjectIRDB();
+  ProjectIRDB(enum IRDBOptions Opt);
   // Constructs a ProjectIRDB from a bunch of llvm IR files
-  ProjectIRDB(const vector<string> &IRFiles);
+  ProjectIRDB(const vector<string> &IRFiles,
+              enum IRDBOptions Opt = IRDBOptions::NONE);
   // Constructs a ProjectIRDB from a CompilationDatabase (only for simple
   // projects)
-  ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB);
+  ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
+              enum IRDBOptions Opt);
   // Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
-  ProjectIRDB(const vector<string> &Files, vector<const char *> CompileArgs);
+  ProjectIRDB(const vector<string> &Files, vector<const char *> CompileArgs,
+              enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
   ~ProjectIRDB() = default;
 

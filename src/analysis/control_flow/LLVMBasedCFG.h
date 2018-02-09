@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMBasedCFG.h
  *
@@ -8,6 +17,7 @@
 #ifndef SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 #define SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 
+#include "../../config/Configuration.h"
 #include "CFG.h"
 #include <iostream>
 #include <llvm/IR/Function.h>
@@ -49,6 +59,8 @@ public:
 
   virtual bool isBranchTarget(const llvm::Instruction *stmt,
                               const llvm::Instruction *succ) override;
+
+  virtual string getStatementId(const llvm::Instruction *stmt) override;
 
   virtual string getMethodName(const llvm::Function *fun) override;
 };

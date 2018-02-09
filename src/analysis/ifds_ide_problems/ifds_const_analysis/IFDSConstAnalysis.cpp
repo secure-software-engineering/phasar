@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSConstAnalysis.h"
 
 IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
@@ -38,8 +47,8 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
           ToGenerate.insert(alias);
         }
       } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << alias->getName().str();
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Could not cast the following alias: " << alias->getName().str();
       }
     }
     // check if the pointerOp is global variable; if so, generate a new data
@@ -240,8 +249,7 @@ const llvm::Value *IFDSConstAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSConstAnalysis::isZeroValue(const llvm::Value *d) const {
