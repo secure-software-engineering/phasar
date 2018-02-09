@@ -1,9 +1,8 @@
 #include "../../src/db/DBConn.h"
 #include "../../src/db/ProjectIRDB.h"
 #include <gtest/gtest.h>
-using namespace std;
 
-const vector<vector<string>> IRFiles{
+const std::vector<std::vector<std::string>> IRFiles{
     /* IRFiles[0] */
     {"test_code/llvm_test_code/virtual_callsites/cross_module/base.ll"},
     /* IRFiles[1] */
@@ -35,9 +34,9 @@ TEST(StoreLLVMTypeHierarchyTest, HandleMultipleProjects) {
   DBConn &db = DBConn::getInstance();
   LLVMTypeHierarchy TH1(firstIRDB);
   LLVMTypeHierarchy TH2(secondIRDB);
-  cout << "\n\n";
+  std::cout << "\n\n";
   TH1.print();
-  cout << "\n\n";
+  std::cout << "\n\n";
   TH2.print();
   db.storeProjectIRDB("first_project", firstIRDB);
   db.storeProjectIRDB("second_project", secondIRDB);
@@ -48,9 +47,9 @@ TEST(StoreLLVMTypeHierarchyTest, HandleWriteToHex) {
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
   LLVMTypeHierarchy TH(IRDB);
-  cout << "\n\n";
+  std::cout << "\n\n";
   TH.print();
-  cout << '\n';
+  std::cout << '\n';
   db.storeLLVMTypeHierarchy(TH, "phasardbtest", true);
 }
 
@@ -59,9 +58,9 @@ TEST(StoreLLVMTypeHierarchyTest, HandleWriteToDot) {
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
   LLVMTypeHierarchy TH(IRDB);
-  cout << '\n';
+  std::cout << '\n';
   TH.print();
-  cout << '\n';
+  std::cout << '\n';
   db.storeLLVMTypeHierarchy(TH, "phasardbtest", false);
 }
 

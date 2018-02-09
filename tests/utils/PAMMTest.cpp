@@ -127,7 +127,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   pamm.addDataToSetHistogram(2);
   pamm.incCounter("setOpCount", 9);
   pamm.stopTimer("timer3");
-  pamm.exportDataAsJSON("HandleJSONTest");
+  pamm.exportDataAsJSON("HandleJSONOutputTest");
 }
 
 // main function for the test case
