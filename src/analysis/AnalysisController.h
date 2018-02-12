@@ -12,7 +12,6 @@
 
 #include "../db/DBConn.h"
 #include "../db/ProjectIRDB.h"
-#include "../utils/Logger.h"
 #include "../utils/SOL.h"
 #include "control_flow/LLVMBasedCFG.h"
 #include "control_flow/LLVMBasedICFG.h"
@@ -40,44 +39,23 @@
 #include "monotone_problems/intra_monotone_solver_test/IntraMonotoneSolverTest.h"
 #include "plugins/AnalysisPluginController.h"
 #include "plugins/plugin_ifaces/control_flow/ICFGPlugin.h"
-#include "points-to/PointsToGraph.h"
-#include <array>
-#include <fstream>
-#include <initializer_list>
-#include <iostream>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/Function.h>
 #include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/LinkAllPasses.h>
-#include <llvm/Pass.h>
 #include <llvm/Support/SMLoc.h>
-#include <llvm/Support/SourceMgr.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
-#include <string>
-#include <vector>
 
-using namespace std;
 using json = nlohmann::json;
 
 enum class ExportType { JSON = 0 };
 
-extern const map<string, ExportType> StringToExportType;
+extern const std::map<std::string, ExportType> StringToExportType;
 
-extern const map<ExportType, string> ExportTypeToString;
+extern const std::map<ExportType, std::string> ExportTypeToString;
 
-ostream &operator<<(ostream &os, const ExportType &e);
+ostream &operator<<(std::ostream &os, const ExportType &e);
 
 class AnalysisController {
 private:
@@ -86,9 +64,9 @@ private:
 public:
   AnalysisController(ProjectIRDB &&IRDB, vector<DataFlowAnalysisType> Analyses,
                      bool WPA_MODE = true, bool PrintEdgeRecorder = true,
-                     string graph_id = "");
+                     std::string graph_id = "");
   ~AnalysisController() = default;
-  void writeResults(string filename);
+  void writeResults(std::string filename);
 };
 
 #endif /* ANALYSIS_ANALYSISCONTROLLER_HH_ */

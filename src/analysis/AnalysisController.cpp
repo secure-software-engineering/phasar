@@ -50,28 +50,30 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
     }
   }
+  START_TIMER("IRP_runtime");
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
+    START_TIMER("IRP_WPALink");
     IRDB.linkForWPA();
+    STOP_TIMER("IRP_WPALink");
   }
-  START_TIMER("IRPreprocessingTime");
   IRDB.preprocessIR();
-  STOP_TIMER("IRPreprocessingTime");
+  STOP_TIMER("IRP_runtime");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
-  START_TIMER("LTHConstructionTime");
+  START_TIMER("LTH_runtime");
   LLVMTypeHierarchy CH(IRDB);
-  STOP_TIMER("LTHConstructionTime");
+  STOP_TIMER("LTH_runtime");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
   // CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     cout << "WPA_MODE HAPPENING" << endl;
-    START_TIMER("ICFGConstructionTime");
+    START_TIMER("ICFG_runtime");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
 
@@ -80,7 +82,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       // callgraph provided by the plugin
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
-    STOP_TIMER("ICFGConstructionTime");
+    STOP_TIMER("ICFG_runtime");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     // ICFG.print();
     ICFG.printAsDot("interproc_cfg.dot");
@@ -92,7 +94,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
-      START_TIMER("AnalysisRunTime");
+      START_TIMER("DFA_runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -156,8 +158,10 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       case DataFlowAnalysisType::IFDS_SolverTest: {
         IFDSSolverTest ifdstest(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            ifdstest, true);
+            ifdstest, false);
+        cout << "IFDS Solvertest started!" << endl;
         llvmifdstestsolver.solve();
+        cout << "IFDS Solvertest finished!" << endl;
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -205,7 +209,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
-      STOP_TIMER("AnalysisRunTime");
+      STOP_TIMER("DFA_runtime");
     }
   }
   // Perform module-wise (MW) analysis

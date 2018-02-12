@@ -26,7 +26,6 @@
 #include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
-#include <iostream>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/IR/Function.h>
@@ -39,10 +38,8 @@
 #include <llvm/Linker/Linker.h>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <utility>
-using namespace std;
 
 enum class IRDBOptions : uint32_t {
   NONE = 0,
@@ -60,24 +57,24 @@ class ProjectIRDB {
 private:
   llvm::Module *WPAMOD = nullptr;
   IRDBOptions Options;
-  void compileAndAddToDB(vector<const char *> CompileCommand);
-  vector<string> header_search_paths;
-  static const set<string> unknown_flags;
+  void compileAndAddToDB(std::vector<const char *> CompileCommand);
+  std::vector<std::string> header_search_paths;
+  static const std::set<std::string> unknown_flags;
   void setupHeaderSearchPaths();
   // Stores all source files that have been examined
-  set<string> source_files;
+  std::set<std::string> source_files;
   // Contains all contexts for all modules and owns them
-  map<string, unique_ptr<llvm::LLVMContext>> contexts;
+  std::map<std::string, std::unique_ptr<llvm::LLVMContext>> contexts;
   // Contains all modules that correspond to a project and owns them
-  map<string, unique_ptr<llvm::Module>> modules;
+  std::map<std::string, std::unique_ptr<llvm::Module>> modules;
   // Maps function names to the module they are !defined! in
-  map<string, string> functions;
+  std::map<std::string, std::string> functions;
   // Maps globals to the module they are !defined! in
-  map<string, string> globals;
+  std::map<std::string, std::string> globals;
   // Maps an id to its corresponding instruction
-  map<size_t, llvm::Instruction *> instructions;
+  std::map<std::size_t, llvm::Instruction *> instructions;
   // Maps a function to its points-to graph
-  map<string, unique_ptr<PointsToGraph>> ptgs;
+  std::map<std::string, std::unique_ptr<PointsToGraph>> ptgs;
 
   void buildFunctionModuleMapping(llvm::Module *M);
   void buildGlobalModuleMapping(llvm::Module *M);
@@ -85,17 +82,17 @@ private:
   void preprocessModule(llvm::Module *M);
 
 public:
-  // Constructs an empty ProjectIRDB
+  /// Constructs an empty ProjectIRDB
   ProjectIRDB(enum IRDBOptions Opt);
-  // Constructs a ProjectIRDB from a bunch of llvm IR files
-  ProjectIRDB(const vector<string> &IRFiles,
+  /// Constructs a ProjectIRDB from a bunch of llvm IR files
+  ProjectIRDB(const std::vector<std::string> &IRFiles,
               enum IRDBOptions Opt = IRDBOptions::NONE);
-  // Constructs a ProjectIRDB from a CompilationDatabase (only for simple
-  // projects)
+  /// Constructs a ProjectIRDB from a CompilationDatabase (only for simple
+  /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  // Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
-  ProjectIRDB(const vector<string> &Files, vector<const char *> CompileArgs,
+  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
+  ProjectIRDB(const std::vector<std::string> &Files, std::vector<const char *> CompileArgs,
               enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
   ~ProjectIRDB() = default;
@@ -106,26 +103,26 @@ public:
   void linkForWPA();
   // get a completely linked module for the WPA_MODE
   llvm::Module *getWPAModule();
-  bool containsSourceFile(const string &src);
+  bool containsSourceFile(const std::string &src);
   bool empty();
-  llvm::LLVMContext *getLLVMContext(const string &ModuleName);
-  void insertModule(unique_ptr<llvm::Module> M);
-  llvm::Module *getModule(const string &ModuleName);
-  set<llvm::Module *> getAllModules() const;
-  set<const llvm::Function *> getAllFunctions();
-  set<string> getAllSourceFiles();
-  size_t getNumberOfModules();
-  llvm::Module *getModuleDefiningFunction(const string &FunctionName);
-  llvm::Function *getFunction(const string &FunctionName);
-  llvm::GlobalVariable *getGlobalVariable(const string &GlobalVariableName);
-  llvm::Instruction *getInstruction(size_t id);
-  size_t getInstructionID(const llvm::Instruction *I);
-  PointsToGraph *getPointsToGraph(const string &FunctionName);
-  void insertPointsToGraph(const string &FunctionName, PointsToGraph *ptg);
+  llvm::LLVMContext *getLLVMContext(const std::string &ModuleName);
+  void insertModule(std::unique_ptr<llvm::Module> M);
+  llvm::Module *getModule(const std::string &ModuleName);
+  std::set<llvm::Module *> getAllModules() const;
+  std::set<const llvm::Function *> getAllFunctions();
+  std::set<std::string> getAllSourceFiles();
+  std::size_t getNumberOfModules();
+  llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
+  llvm::Function *getFunction(const std::string &FunctionName);
+  llvm::GlobalVariable *getGlobalVariable(const std::string &GlobalVariableName);
+  llvm::Instruction *getInstruction(std::size_t id);
+  std::size_t getInstructionID(const llvm::Instruction *I);
+  PointsToGraph *getPointsToGraph(const std::string &FunctionName);
+  void insertPointsToGraph(const std::string &FunctionName, PointsToGraph *ptg);
   void print();
   void exportPATBCJSON();
-  string valueToPersistedString(const llvm::Value *V);
-  const llvm::Value *persistedStringToValue(const string &StringRep);
+  std::string valueToPersistedString(const llvm::Value *V);
+  const llvm::Value *persistedStringToValue(const std::string &StringRep);
 };
 
 #endif /* ANALYSIS_ProjectIRDB_HH_ */

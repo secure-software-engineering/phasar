@@ -180,19 +180,19 @@ public:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
-    START_TIMER("FFConstructionTime");
+    START_TIMER("DFA_FFConstructionTime");
     // We start our analysis and construct exploded supergraph
     BOOST_LOG_SEV(lg, INFO)
         << "Submit initial seeds, construct exploded super graph";
     submitInitalSeeds();
-    STOP_TIMER("FFConstructionTime");
+    STOP_TIMER("DFA_FFConstructionTime");
     if (computevalues) {
-      START_TIMER("FFApplicationTime");
+      START_TIMER("DFA_FFApplicationTime");
       // Computing the final values for the edge functions
       BOOST_LOG_SEV(lg, INFO)
           << "Compute the final values according to the edge functions";
       computeValues();
-      STOP_TIMER("FFApplicationTime");
+      STOP_TIMER("DFA_FFApplicationTime");
     }
     BOOST_LOG_SEV(lg, INFO) << "Problem solved";
 #ifdef PERFORMANCE_EVA
