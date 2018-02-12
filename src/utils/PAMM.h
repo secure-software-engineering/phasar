@@ -28,7 +28,9 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <string>
 #include <tuple>
+#include <unordered_map>
 
 // for convenience
 using json = nlohmann::json;
@@ -92,10 +94,10 @@ private:
   ~PAMM() = default;
   typedef std::chrono::high_resolution_clock::time_point time_point;
   // TODO: try unordered_map instead of map - maybe it's faster
-  std::map<const std::string, time_point> RunningTimer;
-  std::map<const std::string, std::pair<time_point, time_point>> StoppedTimer;
-  std::map<const std::string, unsigned> Counter;
-  std::map<unsigned long, unsigned long> SetHistogram;
+  std::unordered_map<std::string, time_point> RunningTimer;
+  std::unordered_map<std::string, std::pair<time_point, time_point>> StoppedTimer;
+  std::unordered_map<std::string, unsigned> Counter;
+  std::unordered_map<unsigned long, unsigned long> SetHistogram;
 
   // for test purpose only
   unsigned long getSetHistoData(unsigned long setSize);
