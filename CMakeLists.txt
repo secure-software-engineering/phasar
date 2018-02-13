@@ -1,9 +1,11 @@
 cmake_minimum_required (VERSION 3.0)
 option(test "Build all tests." OFF)
+option(CLANG_LIBDIR "Custom Clang libdir" "")
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 project (sse_dfa_llvm)
 
+include_directories(CLANG_LIBDIR)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -20,7 +22,7 @@ find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
-find_library(CLANG_LIBRARIES NAMES clang)
+#find_library(CLANG_LIBRARIES NAMES clang)
 
 llvm_map_components_to_libnames(llvm_libs
   coverage libdriver lto support analysis bitwriter core ipo irreader instcombine instrumentation linker objcarcopts scalaropts transformutils codegen vectorize
@@ -88,12 +90,12 @@ add_library( db SHARED ${SRC_DB} )
 target_link_libraries(db mysqlcppconn ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_CLANG src/clang/*.h? src/clang/*.cpp)
-add_library( clang SHARED ${SRC_CLANG} )
-target_link_libraries(clang ${ALL_LIBS} )
+add_library( phasarclang SHARED ${SRC_CLANG} )
+target_link_libraries(phasarclang ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_LIB src/lib/*.h? src/lib/*.cpp)
-add_library( lib SHARED ${SRC_LIB} )
-target_link_libraries(lib ${ALL_LIBS} )
+add_library( phasarlib SHARED ${SRC_LIB} )
+target_link_libraries(phasarlib ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils SHARED ${SRC_UTILS} )
@@ -112,7 +114,7 @@ add_executable(main  src/main.cpp)
 target_link_libraries(main
   ${CLANG_LIBRARIES}
   ${llvm_libs}
-  analysis clang lib utils config db
+  analysis phasarclang phasarlib utils config db
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
@@ -129,7 +131,7 @@ if(test)
       ${test_code_file})
     add_custom_command(
       OUTPUT ${test_code_file_target}
-      COMMAND ${CMAKE_CXX_COMPILER} -std=c++11 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
+      COMMAND ${CMAKE_CXX_COMPILER} -O0 -std=c++11 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
       COMMENT "Emitting LLVM IR for ${test_code_file}."
       VERBATIM
       )
@@ -149,7 +151,7 @@ if(test)
       target_link_libraries(${testcase}
       ${CLANG_LIBRARIES}
       ${llvm_libs}
-      analysis clang lib utils config db
+      analysis phasarclang phasarlib utils config db
       ${SQLITE3_LIBRARY}
       ${Boost_LIBRARIES}
       ${CMAKE_DL_LIBS}
@@ -164,7 +166,6 @@ if(test)
 
       add_test(NAME "${testcase}"
         COMMAND ${testcase} ${CATCH_TEST_FILTER}
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
       set_tests_properties("${testcase}" PROPERTIES LABELS "all")
   endforeach()
