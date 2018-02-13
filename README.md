@@ -4,7 +4,7 @@ Phasar a LLVM-based Static Analysis Framework
 Secure Software Engineering
 ---------------------------
 
-+ author: Philipp Schubert (philipp@it-schubert.com)
++ author: Philipp Schubert (philipp.schubert@upb.de)
 
 Table of Contents
 =================
