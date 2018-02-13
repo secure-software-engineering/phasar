@@ -6,6 +6,36 @@ Secure Software Engineering
 
 + author: Philipp Schubert (philipp.schubert@upb.de)
 
+What is Phasar?
+---------------
+Phasar is a LLVM-based static analysis framework written in C++. It allows users
+to specify arbitrary data-flow problems which are then solved in a 
+fully-automated manner on the specified LLVM IR target code. Computing points-to
+information, call-graphs, etc. is done by the framework, thus you can focus on
+what matters.
+
+How do I get started with Phasar?
+---------------------------------
+We have some documentation on Phasar in our wiki and also a large range of 
+tutorials on Phasar.
+
+Building Phasar
+---------------
+If you cannot work with one of the prebuild versions of Phasar and would like to
+compile Phasar yourself, then please check the wiki for installing the 
+prerequisites and compilation. It is recommended to compile Phasar your self in
+order to get the full C++ experience and to have full control over the build 
+mode.
+
+Please help us improve Phasar
+-----------------------------
+You are using Phasar and would like to help us in the future? Then please 
+support us by filling out this [web from](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
+
+By giving us feedback you help to decide in what direct Phasar should stride in
+the future and give us clues about our user base. Thank you very much!
+
+
 Table of Contents
 =================
 
@@ -54,7 +84,7 @@ Table of Contents
         * [Writing an IDE analysis](#writing-an-ide-analysis)
 
 
-Purpose of this tool {#purpose-of-this-tool}
+Purpose of this tool <a name="purpose-of-this-tool"></a>
 --------------------
 TODO descibe what this is all about!
 
