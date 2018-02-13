@@ -1,16 +1,24 @@
 cmake_minimum_required (VERSION 3.0)
-project (sse_dfa_llvm)
 
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+project (sse_dfa_llvm)
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
+add_subdirectory(lib/googletest)
+# Include the gtest library. gtest_SOURCE_DIR is available due to
+# 'project(gtest)' above.
+include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+
+
+
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
-find_package(GTest REQUIRED)
+#find_package(GTest REQUIRED)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
@@ -118,6 +126,38 @@ target_link_libraries(main
   curl
   # LLVM
   )
+
+# if (test)
+
+#   # This adds another subdirectory, which has 'project(gtest)'.
+#   
+
+#   enable_testing()
+
+#   
+#   ##############
+#   # Unit Tests
+#   ##############
+#   add_executable(runUnitTests test_project1.cpp)
+
+#   # Standard linking to gtest stuff.
+#   target_link_libraries(runUnitTests gtest gtest_main)
+
+#   # Extra linking for the project.
+#   target_link_libraries(runUnitTests project1_lib)
+
+#   # This is so you can do 'make test' to see all your tests run, instead of
+#   # manually running the executable runUnitTests to see those specific tests.
+#   add_test(NAME that-test-I-made COMMAND runUnitTests)
+
+#   # You can also omit NAME and COMMAND. The second argument could be some other
+#   # test executable.
+#   add_test(that-other-test-I-made runUnitTests)
+# endif()
+
+
+
+
 
 # Test For Hexastore
 
