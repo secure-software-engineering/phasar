@@ -3,6 +3,7 @@ set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 project (sse_dfa_llvm)
 
+option(test "Build all tests." OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -128,7 +129,7 @@ if(test)
       ${test_code_file})
     add_custom_command(
       OUTPUT ${test_code_file_target}
-      COMMAND ${CMAKE_CXX_COMPILER} -O0 -std=c++11 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
+      COMMAND ${CMAKE_CXX_COMPILER} -std=c++14 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
       COMMENT "Emitting LLVM IR for ${test_code_file}."
       VERBATIM
       )
