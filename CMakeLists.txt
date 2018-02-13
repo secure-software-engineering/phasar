@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
-
+option(test "Build all tests." OFF)
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 project (sse_dfa_llvm)
@@ -8,18 +8,16 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
-add_subdirectory(lib/googletest)
-# Include the gtest library. gtest_SOURCE_DIR is available due to
-# 'project(gtest)' above.
-include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
+add_subdirectory(lib/googletest EXCLUDE_FROM_ALL)
+include_directories(${gtest_SOURCE_DIR}/include)
 
-add_subdirectory(lib/json)
-include_directories(${json_SOURCE_DIR}/include ${json_SOURCE_DIR})
+set(JSON_BuildTests OFF)
+add_subdirectory(lib/json EXCLUDE_FROM_ALL)
+include_directories(lib/json/src)
 
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
-#find_package(GTest REQUIRED)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
@@ -79,31 +77,27 @@ include_directories(
 
 file(GLOB_RECURSE SRC_ANALYSIS src/analysis/*.h? src/analysis/*.cpp)
 add_library( analysis SHARED ${SRC_ANALYSIS} )
-target_link_libraries(analysis ${ALL_LIBS})
+target_link_libraries(analysis ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_CONFIG src/config/*.h? src/config/*.cpp)
 add_library( config SHARED ${SRC_CONFIG} )
-target_link_libraries(config ${ALL_LIBS})
+target_link_libraries(config ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_DB src/db/*.h? src/db/*.cpp)
 add_library( db SHARED ${SRC_DB} )
-target_link_libraries(db mysqlcppconn ${ALL_LIBS})
+target_link_libraries(db mysqlcppconn ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_CLANG src/clang/*.h? src/clang/*.cpp)
 add_library( clang SHARED ${SRC_CLANG} )
-target_link_libraries(clang ${ALL_LIBS})
+target_link_libraries(clang ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_LIB src/lib/*.h? src/lib/*.cpp)
 add_library( lib SHARED ${SRC_LIB} )
-target_link_libraries(lib ${ALL_LIBS})
-
-#file(GLOB_RECURSE SRC_FLEX src/flex/*.h? src/flex/*.cpp)
-#add_library( flex SHARED ${SRC_FLEX} )
-#target_link_libraries(db ${ALL_LIBS})
+target_link_libraries(lib ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils SHARED ${SRC_UTILS} )
-target_link_libraries(utils ${ALL_LIBS})
+target_link_libraries(utils ${ALL_LIBS} )
 
 file(GLOB_RECURSE SRC_PLUGIN_TABTEST src/analysis/plugins/IFDSTabulationProblemTestPlugin.cxx src/analysis/plugins/IFDSTabulationProblemTestPlugin.hh)
 add_library(IFDSTabulationProblemTestPlugin SHARED ${SRC_PLUGIN_TABTEST})
@@ -124,45 +118,47 @@ target_link_libraries(main
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
   curl
-  # LLVM
   )
 
-# if (test)
+if(test)
+  file(GLOB_RECURSE files "tests/*/*.cpp")
+  foreach(file ${files})
+      get_filename_component(testcase ${file} NAME_WE)
+#      string(REGEX REPLACE "unit-([^$]+)" "test-\\1" testcase ${file_basename})
 
-#   # This adds another subdirectory, which has 'project(gtest)'.
-#   
+      add_executable(${testcase} ${file})
+      set_target_properties(${testcase} PROPERTIES
+          CXX_STANDARD 14
+          CXX_STANDARD_REQUIRED ON
+      )
 
-#   enable_testing()
+      target_link_libraries(${testcase}
+      ${CLANG_LIBRARIES}
+      ${llvm_libs}
+      analysis clang lib utils config db
+      ${SQLITE3_LIBRARY}
+      ${Boost_LIBRARIES}
+      ${CMAKE_DL_LIBS}
+      ${CMAKE_THREAD_LIBS_INIT}
+      curl
+      gtest
+      )
 
-#   
-#   ##############
-#   # Unit Tests
-#   ##############
-#   add_executable(runUnitTests test_project1.cpp)
+      if(NOT MSVC)
+          set_target_properties(${testcase} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-float-equal")
+      endif()
 
-#   # Standard linking to gtest stuff.
-#   target_link_libraries(runUnitTests gtest gtest_main)
+      add_test(NAME "${testcase}_default"
+        COMMAND ${testcase} ${CATCH_TEST_FILTER}
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      )
+      set_tests_properties("${testcase}_default" PROPERTIES LABELS "default")
 
-#   # Extra linking for the project.
-#   target_link_libraries(runUnitTests project1_lib)
-
-#   # This is so you can do 'make test' to see all your tests run, instead of
-#   # manually running the executable runUnitTests to see those specific tests.
-#   add_test(NAME that-test-I-made COMMAND runUnitTests)
-
-#   # You can also omit NAME and COMMAND. The second argument could be some other
-#   # test executable.
-#   add_test(that-other-test-I-made runUnitTests)
-# endif()
-
-
-
-
-
-# Test For Hexastore
-
-# add_executable(test_hexastore src/db/Test.cpp src/db/Hexastore.cpp src/db/Hexastore.hh)
-
-# target_link_libraries(test_hexastore
-#   ${SQLITE3_LIBRARY}
-#   )
+      add_test(NAME "${testcase}_all"
+        COMMAND ${testcase} ${CATCH_TEST_FILTER} "*"
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      )
+      set_tests_properties("${testcase}_all" PROPERTIES LABELS "all")
+  endforeach()
+  enable_testing()
+endif()
