@@ -9,12 +9,12 @@ set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -W
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 
 add_subdirectory(lib/googletest)
-add_subdirectory(json)
 # Include the gtest library. gtest_SOURCE_DIR is available due to
 # 'project(gtest)' above.
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
-
+add_subdirectory(lib/json)
+include_directories(${json_SOURCE_DIR}/include ${json_SOURCE_DIR})
 
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
@@ -74,7 +74,6 @@ include_directories(
   ${BOOST_INCLUDE_DIR}
   ${LLVM_INCLUDE_DIRS}
   ${GTEST_INCLUDE_DIR}
-  json/src
   )
 
 
