@@ -1,11 +1,8 @@
 cmake_minimum_required (VERSION 3.0)
-option(test "Build all tests." OFF)
-option(CLANG_LIBDIR "Custom Clang libdir" "")
 set(CMAKE_C_COMPILER "clang")
 set(CMAKE_CXX_COMPILER "clang++")
 project (sse_dfa_llvm)
 
-include_directories(CLANG_LIBDIR)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
@@ -22,15 +19,15 @@ find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
-#find_library(CLANG_LIBRARIES NAMES clang)
+
+find_library(CLANG_LIBRARY NAMES clang REQUIRED)
+link_directories(${CLANG_LIB_PATH})
 
 llvm_map_components_to_libnames(llvm_libs
   coverage libdriver lto support analysis bitwriter core ipo irreader instcombine instrumentation linker objcarcopts scalaropts transformutils codegen vectorize
 )
 
 set(INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-find_path(CLANG_LIB_PATH clang)
 
 add_definitions(${LLVM_DEFINITIONS})
 add_definitions(-DBOOST_LOG_DYN_LINK)
