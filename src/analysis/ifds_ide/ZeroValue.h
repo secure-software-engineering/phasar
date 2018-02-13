@@ -79,7 +79,7 @@ public:
   ZeroValue &operator=(const ZeroValue &Z) = delete;
   ZeroValue(ZeroValue &&Z) = delete;
   ZeroValue &operator=(ZeroValue &&Z) = delete;
-  virtual ~ZeroValue() = default;
+  // Do not specify a destructor (at all)!
   static ZeroValue *getInstance();
 };
 
