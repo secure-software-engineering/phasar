@@ -28,7 +28,6 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
-#include <iostream>
 #include <llvm/ADT/SetVector.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
@@ -42,7 +41,6 @@
 #include <llvm/IR/Module.h>
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
-#include <string>
 #include <vector>
 using namespace std;
 

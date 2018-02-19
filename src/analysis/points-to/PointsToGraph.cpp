@@ -150,8 +150,8 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
     }
   }
 
-  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
-               << " pointers, " << CallSites.size() << " call sites\n";
+//  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
+//               << " pointers, " << CallSites.size() << " call sites\n";
 
   // make vertices for all pointers
   for (auto pointer : Pointers) {

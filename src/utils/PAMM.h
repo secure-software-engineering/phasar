@@ -28,6 +28,9 @@
 #include <map>
 #include <set>
 #include <sstream>
+#include <string>
+#include <tuple>
+#include <unordered_map>
 
 // for convenience
 using json = nlohmann::json;
@@ -91,10 +94,10 @@ private:
   ~PAMM() = default;
   typedef std::chrono::high_resolution_clock::time_point time_point;
   // TODO: try unordered_map instead of map - maybe it's faster
-  std::map<const std::string, time_point> RunningTimer;
-  std::map<const std::string, std::pair<time_point, time_point>> StoppedTimer;
-  std::map<const std::string, unsigned> Counter;
-  std::map<unsigned long, unsigned long> SetHistogram;
+  std::unordered_map<std::string, time_point> RunningTimer;
+  std::unordered_map<std::string, std::pair<time_point, time_point>> StoppedTimer;
+  std::unordered_map<std::string, unsigned> Counter;
+  std::unordered_map<unsigned long, unsigned long> SetHistogram;
 
   // for test purpose only
   unsigned long getSetHistoData(unsigned long setSize);
@@ -103,6 +106,7 @@ private:
   FRIEND_TEST(PAMMTest, HandleSetHisto);
 
 public:
+  /// PAMM is used as singleton.
   PAMM(const PAMM &pm) = delete;
   PAMM(PAMM &&pm) = delete;
   PAMM &operator=(const PAMM &pm) = delete;
@@ -146,7 +150,8 @@ public:
    * @brief Computes the elapsed time of the given timer up until now or up to
    * the
    * moment the timer was stopped - associated macro: GET_TIMER(TIMERID)
-   * @tparam Period sets the precision for time computation, milliseconds by default.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
    * @note When using the macro, the period is set to milliseconds and cannot be
@@ -172,7 +177,8 @@ public:
   /**
    * @brief Computes the accumulated time of the given timer ids - associated
    * macro: ACC_TIMER(...)
-   * @tparam Period sets the precision for time computation, milliseconds by default.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
    * @param timers Unique timer ids.
    * @return Accumulated elapsed time.
    * @note Macro uses variadic parameters, e.g. ACC_TIMER({"foo", "bar"}).
@@ -247,7 +253,8 @@ public:
   /**
    * @brief Prints the measured data to the command line - associated macro:
    * PRINT_EVA_DATA
-   * @tparam Period sets the precision for time computation, milliseconds by default.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
    */
   template <typename Period = std::chrono::milliseconds> void printData() {
     // stop all running timer
@@ -287,9 +294,43 @@ public:
   }
 
   /**
+   * @brief Computes misc times of the analysis/IR preprocssing/framework
+   * runtime, i.e. the remaining time that is not explicitly measured by a
+   * timer.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
+   * @return Set containing the computed misc times.
+   */
+  template <typename Period = std::chrono::milliseconds>
+  std::set<std::pair<std::string, unsigned long>> computeMiscTimes() {
+    std::set<std::pair<std::string, unsigned long>> miscTimes;
+    unsigned long dfa_runtime = elapsedTime<Period>("DFA_runtime");
+    unsigned long irp_runtime = elapsedTime<Period>("IRP_runtime");
+    unsigned long fw_runtime = elapsedTime<Period>("FW_runtime");
+
+    for (auto timer : StoppedTimer) {
+      if (timer.first.find("DFA") != std::string::npos &&
+          timer.first != "DFA_runtime") {
+        dfa_runtime -= elapsedTime<Period>(timer.first);
+      } else if (timer.first.find("IRP") != std::string::npos &&
+                 timer.first != "IRP_runtime") {
+        irp_runtime -= elapsedTime<Period>(timer.first);
+      } else if (timer.first.find("runtime") != std::string::npos &&
+                 timer.first != "FW_runtime") {
+        fw_runtime -= elapsedTime<Period>(timer.first);
+      }
+    }
+    miscTimes.insert(std::make_pair("DFA_misc", dfa_runtime));
+    miscTimes.insert(std::make_pair("IRP_misc", irp_runtime));
+    miscTimes.insert(std::make_pair("FW_misc", fw_runtime));
+    return miscTimes;
+  }
+
+  /**
    * @brief Exports the measured data to JSON - associated macro:
    * EXPORT_EVA_DATA(CONFIG).
-   * @tparam Period sets the precision for time computation, milliseconds by default.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
    * @param config name.
    */
   template <typename Period = std::chrono::milliseconds>
@@ -302,6 +343,10 @@ public:
     for (auto timer : StoppedTimer) {
       unsigned long time = elapsedTime<Period>(timer.first);
       jTimer[timer.first] = time;
+    }
+    // compute misc times
+    for (auto miscTime : computeMiscTimes<Period>()) {
+      jTimer[miscTime.first] = miscTime.second;
     }
     json jCounter(Counter);
     // json jSetHistogram(SetHistogram);
