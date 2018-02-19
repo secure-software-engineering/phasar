@@ -63,7 +63,7 @@ CXX_FLAGS += -L/usr/local/opt/llvm@3.9/lib
 endif
 
 # Add header search paths
-CXX_INCL = -I ./lib/json/src/
+CXX_INCL = -I./lib/json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1

@@ -9,8 +9,7 @@ before_script:
   - export PATH="/usr/lib/llvm-3.9/bin:$PATH"
   - apt install -y git
   - mkdir -p lib/
-  - git clone https://github.com/google/googletest.git lib/googletest
-  - git clone https://github.com/nlohmann/json.git lib/json
+  - git submodule update --init --recursive
   - misc/make_config.sh
   
 build:
@@ -19,7 +18,7 @@ build:
   script: 
     - make doc
     - make check-used-compiler
-    - make
+    - make -j$(nproc)
     - make plugins
     - make tests
   # TODO: A segmentation fault occurs when running the test on the build server
