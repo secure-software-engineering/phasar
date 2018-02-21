@@ -18,11 +18,11 @@ def main(argv):
   try:
     opts, args = getopt.getopt(argv, "hi:", ["ifile="])
   except getopt.GetoptError:
-    print("Usage: plot_pamm_results -i path/to/json/file")
+    print("Usage: plot_pamm_results.py -i path/to/json/file")
     sys.exit(2)
   for opt, arg in opts:
     if opt == '-h' or opt == '':
-      print("Usage: sqltocpp.py -i path/to/json/file")
+      print("Usage: plot_pamm_results.py -i path/to/json/file")
       sys.exit()
     elif opt in ("-i", "--ifile"):
       path_to_json_file = arg
