@@ -60,7 +60,7 @@ public:
          IntraMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, C>::Analysis) {
       cout << "Instruction:\n";
-      entry.first->dump();
+      entry.first->print(llvm::outs());
       cout << "Facts:\n";
       if (entry.second.empty()) {
         cout << "\tEMPTY\n";

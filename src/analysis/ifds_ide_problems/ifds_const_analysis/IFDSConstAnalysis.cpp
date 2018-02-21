@@ -103,7 +103,7 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // set up the formal parameters
-        for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
+        for (unsigned idx = 0; idx < destMthd->arg_size();
              ++idx) {
           formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
@@ -155,7 +155,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
         actuals.push_back(callSite.getArgOperand(idx));
       }
       // set up the formal parameters
-      for (unsigned idx = 0; idx < calleeMthd->getArgumentList().size();
+      for (unsigned idx = 0; idx < calleeMthd->arg_size();
            ++idx) {
         formals.push_back(getNthFunctionArgument(calleeMthd, idx));
       }
@@ -271,6 +271,6 @@ string IFDSConstAnalysis::MtoString(const llvm::Function *m) {
 void IFDSConstAnalysis::printInitilizedSet() {
   cout << "PRINTING INIT SET" << '\n';
   for (auto stmt : IFDSConstAnalysis::storedOnce) {
-    stmt->dump();
+    stmt->print(llvm::outs());
   }
 }

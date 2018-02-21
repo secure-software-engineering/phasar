@@ -67,9 +67,9 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
     set<const llvm::Value *> CmdArgs;
-    for (auto &Arg : curr->getFunction()->getArgumentList()) {
+    for (auto &Arg : curr->getFunction()->args()) {
       CmdArgs.insert(&Arg);
-      Arg.dump();
+      Arg.print(llvm::outs());
     }
     return make_shared<GenAll<const llvm::Value *>>(CmdArgs, zeroValue());
   }
@@ -161,7 +161,7 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // set up the actual parameters
-        for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
+        for (unsigned idx = 0; idx < destMthd->arg_size();
              ++idx) {
           formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
@@ -216,7 +216,7 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
         actuals.push_back(callSite.getArgOperand(idx));
       }
       // set up the actual parameters
-      for (unsigned idx = 0; idx < calleeMthd->getArgumentList().size();
+      for (unsigned idx = 0; idx < calleeMthd->arg_size();
            ++idx) {
         formals.push_back(getNthFunctionArgument(calleeMthd, idx));
       }

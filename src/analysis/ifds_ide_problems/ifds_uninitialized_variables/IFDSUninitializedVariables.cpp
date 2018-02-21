@@ -24,7 +24,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
   // set every local variable as uninitialized, that is not a function parameter
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
-    curr->dump();
+    curr->print(llvm::outs());
     const llvm::Function *func = icfg.getMethodOf(curr);
 
     // set all locals as uninitialized flow function
@@ -61,7 +61,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
           }
           // now remove those values that are obtained by function parameters of
           // the entry function
-          for (auto &arg : func->getArgumentList()) {
+          for (auto &arg : func->args()) {
             for (auto user : arg.users()) {
               if (const llvm::StoreInst *store =
                       llvm::dyn_cast<llvm::StoreInst>(user)) {
@@ -175,7 +175,7 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
     cout << "ACTUALS:" << endl;
     for (auto a : actuals) {
       if (a)
-        a->dump();
+        a->print(llvm::outs());
     }
 
     struct UVFF : FlowFunction<const llvm::Value *> {
@@ -232,7 +232,7 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
             }
           }
           // remove all local variables, that are initialized formal parameters!
-          for (auto &arg : destMthd->getArgumentList()) {
+          for (auto &arg : destMthd->args()) {
             uninitlocals.erase(&arg);
           }
           return uninitlocals;

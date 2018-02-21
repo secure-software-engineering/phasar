@@ -29,12 +29,11 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
 
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
-  FType->dump();
-  if (F->getArgumentList().size() == FType->getNumParams() &&
+  FType->print(llvm::outs());
+  if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
-    auto &arglist = F->getArgumentList();
     unsigned i = 0;
-    for (auto &arg : arglist) {
+    for (auto &arg : F->args()) {
       if (arg.getType() != FType->getParamType(i)) {
         return false;
       }

@@ -202,7 +202,7 @@ public:
       // getJsonRepresentationForInstructionEdge(from, to, document);
       cout << "NODE (in function " << TargetNode->getFunction()->getName().str()
            << ")\n";
-      TargetNode->dump();
+      TargetNode->print(llvm::outs());
 
       auto FlowFactMap = entry.second;
       // for (auto FlowFactEntry : FlowFactMap)
@@ -237,8 +237,8 @@ public:
           if (interEntry.first->getFunction()->getName().str().compare(
                   callerFunction->getName().str()) != 0) {
             cout << "callsite: " << endl;
-            TargetNode->dump();
-            interEntry.first->dump();
+            TargetNode->print(llvm::outs());
+            interEntry.first->print(llvm::outs());
             json callSiteNode =
                 getJsonRepresentationForCallsite(TargetNode, interEntry.first);
 
@@ -251,7 +251,7 @@ public:
 
             cout << "NODE (in function (inter)"
                  << interEntry.first->getFunction()->getName().str() << ")\n";
-            interEntry.first->dump();
+            interEntry.first->print(llvm::outs());
             // add function start node here
             iterateExplodedSupergraph(interEntry.first,
                                       TargetNode->getFunction(),
@@ -358,7 +358,7 @@ public:
 
       cout << "START NODE (in function "
            << SourceNode->getFunction()->getName().str() << ")\n";
-      SourceNode->dump();
+      SourceNode->print(llvm::outs());
       cout << " source node name " << SourceNode->getName().str() << endl;
       cout << " source node opcode name" << SourceNode->getOpcodeName() << endl;
 

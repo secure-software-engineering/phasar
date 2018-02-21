@@ -713,10 +713,10 @@ protected:
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
       cout << "submitInitialSeeds - Start point:" << endl;
-      startPoint->dump();
+      startPoint->print(llvm::outs());
       for (const D &value : seed.second) {
         cout << "submitInitialSeeds - Value:" << endl;
-        value->dump();
+        value->print(llvm::outs());
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
                   false);
       }

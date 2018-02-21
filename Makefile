@@ -114,18 +114,18 @@ DEP = $(OBJ:.o=.d)
 SCRIPT_AUTOFORMAT := misc/autoformat_sources.py
 
 # Further llvm compiler flags
-#LLVM_FLAGS :=  `llvm-config-3.9 --cxxflags --ldflags` -fcxx-exceptions -std=c++14 -O0 -g
+LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -O0
 # `llvm-config-3.9 --cxxflags --ldflags` usually gives:
 # -I/usr/lib/llvm-3.9/include -std=c++0x -gsplit-dwarf -Wl,-fuse-ld=gold -fPIC -fvisibility-inlines-hidden -Wall -W -Wno-unused-parameter -Wwrite-strings -Wcast-qual -Wno-missing-field-initializers -pedantic -Wno-long-long -Wno-maybe-uninitialized -Wdelete-non-virtual-dtor -Wno-comment -Werror=date-time -std=c++11 -ffunction-sections -fdata-sections -O2 -g -DNDEBUG -fno-exceptions -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS -L/usr/lib/llvm-3.9/lib
 
 LLVM_FLAGS = -fvisibility-inlines-hidden
-ifeq ($(OS),$(LINUX))
-LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
-else ifeq ($(OS),$(MAC))
-LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
-endif
+# ifeq ($(OS),$(LINUX))
+# LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
+# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+# else ifeq ($(OS),$(MAC))
+# LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
+# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+# endif
 LLVM_FLAGS += -D_GNU_SOURCE 
 LLVM_FLAGS += -D__STDC_CONSTANT_MACROS 
 LLVM_FLAGS += -D__STDC_FORMAT_MACROS 
@@ -154,7 +154,7 @@ BOOST_LIBS += -lboost_log-mt
 BOOST_LIBS += -lboost_thread-mt
 BOOST_LIBS += -lboost_graph-mt
 endif
-LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
+LLVM_LIBS := `llvm-config --system-libs --libs all`
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
 CLANG_LIBS += -lclangFrontend

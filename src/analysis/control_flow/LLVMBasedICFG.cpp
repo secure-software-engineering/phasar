@@ -350,7 +350,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->dump();
+        ftype->print(llvm::outs());
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());

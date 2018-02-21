@@ -30,12 +30,9 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
     //<< std::endl;
     ++unique_value_id;
   }
-  for (llvm::Module::iterator MI = M.begin(); MI != M.end(); ++MI) {
-    for (llvm::Function::iterator FI = MI->begin(); FI != MI->end(); ++FI) {
-      llvm::ilist_iterator<llvm::BasicBlock> BB = FI;
-      for (llvm::BasicBlock::iterator BI = BB->begin(), BE = BB->end();
-           BI != BE;) {
-        llvm::Instruction &I = *BI++;
+  for (auto &F : M) {
+    for (auto &BB : F) {
+      for (auto &I : BB) {
         llvm::MDNode *node = llvm::MDNode::get(
             context,
             llvm::MDString::get(context, std::to_string(unique_value_id)));

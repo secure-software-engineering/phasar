@@ -82,7 +82,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   llvm::outs() << "instructions: " << instructions << "\n";
   llvm::outs() << "allocated types:\n";
   for (auto type : allocatedTypes) {
-    type->dump();
+    type->print(llvm::outs());
   }
   llvm::outs() << "\n\n";
   return false;

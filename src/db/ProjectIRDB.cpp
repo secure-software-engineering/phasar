@@ -169,7 +169,7 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
   // thought it is a good
   // idea that the CompilerInstance the CompilerInvocation is handed to owns it
   // and CLEANS IT UP!
-  clang::CompilerInvocation *CI(new clang::CompilerInvocation);
+  std::shared_ptr<clang::CompilerInvocation> CI = make_shared<clang::CompilerInvocation>();
   clang::CompilerInvocation::CreateFromArgs(
       *CI, &CompileCommand[0], &CompileCommand[0] + CompileCommand.size(),
       *DiagEngine);
@@ -483,7 +483,7 @@ void ProjectIRDB::print() {
   std::cout << "modules:" << std::endl;
   for (auto &entry : modules) {
     std::cout << "front-end module: " << entry.first << std::endl;
-    entry.second->dump();
+    llvm::outs() << *entry.second;
   }
   std::cout << "functions:" << std::endl;
   for (auto entry : functions) {

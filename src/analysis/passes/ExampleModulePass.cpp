@@ -36,21 +36,19 @@ bool ExampleModulePass::runOnModule(llvm::Module &M) {
   // perform analysis here ...
   outs() << "MyAA: runOnModule() with name: " << M.getName() << "\n";
   // iterate over functions
-  for (Module::iterator MI = M.begin(); MI != M.end(); ++MI) {
-    outs() << "found function: " << MI->getName() << "\n";
+  for (auto &F : M) {
+    outs() << "found function: " << F.getName() << "\n";
     // iterate over basic blocks
     // MI->viewCFG();
-    for (Function::iterator FI = MI->begin(); FI != MI->end(); ++FI) {
-      ilist_iterator<BasicBlock> BB = FI;
+    for (auto &BB : F) {
       // iterate over single instructions
-      for (BasicBlock::iterator BI = BB->begin(), BE = BB->end(); BI != BE;) {
-        Instruction &I = *BI++;
+      for (auto &I : BB) {
         I.print(outs() << "\n", true);
       }
     }
   }
   CallGraph CG = CallGraph(M);
-  CG.dump();
+  CG.print(llvm::outs());
   for (CallGraph::const_iterator CGI = CG.begin(); CGI != CG.end(); ++CGI) {
     //		outs() << "CGI start: " << CGI->first << "CGI end\n";
   }

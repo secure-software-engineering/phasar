@@ -79,10 +79,10 @@ public:
     for (const auto &seed : IDESolver<N, D, M, V, I>::initialSeeds) {
       N startPoint = seed.first;
       cout << "Start point:" << endl;
-      startPoint->dump();
+      startPoint->print(llvm::outs());
       cout << "Value(s):" << endl;
       for (const D &value : seed.second) {
-        value->dump();
+        value->print(llvm::outs());
       }
     }
     this->submitInitalSeedsForSummary();
@@ -98,10 +98,10 @@ public:
     for (const auto &seed : this->initialSeeds) {
       N startPoint = seed.first;
       cout << "submitInitalSeedsForSummary - Start point:" << endl;
-      startPoint->dump();
+      startPoint->print(llvm::outs());
       for (const D &value : seed.second) {
         cout << "submitInitalSeedsForSummary - Value:" << endl;
-        value->dump();
+        value->print(llvm::outs());
         this->propagate(value, startPoint, value, EdgeIdentity<V>::v(), nullptr,
                         false);
       }
