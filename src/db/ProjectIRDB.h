@@ -91,9 +91,10 @@ public:
   /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
-  ProjectIRDB(const std::vector<std::string> &Files, std::vector<const char *> CompileArgs,
-              enum IRDBOptions Opt);
+  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm
+  /// IR
+  ProjectIRDB(const std::vector<std::string> &Files,
+              std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
   ~ProjectIRDB() = default;
 
@@ -114,7 +115,8 @@ public:
   std::size_t getNumberOfModules();
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
   llvm::Function *getFunction(const std::string &FunctionName);
-  llvm::GlobalVariable *getGlobalVariable(const std::string &GlobalVariableName);
+  llvm::GlobalVariable *
+  getGlobalVariable(const std::string &GlobalVariableName);
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);

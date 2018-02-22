@@ -501,7 +501,7 @@ int main(int argc, const char **argv) {
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
   STOP_TIMER("FW_runtime");
-  //PRINT_EVA_DATA;
+  // PRINT_EVA_DATA;
   EXPORT_EVA_DATA("pamm_results.json");
   return 0;
 }

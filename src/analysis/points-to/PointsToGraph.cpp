@@ -150,8 +150,8 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
     }
   }
 
-//  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
-//               << " pointers, " << CallSites.size() << " call sites\n";
+  //  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
+  //               << " pointers, " << CallSites.size() << " call sites\n";
 
   // make vertices for all pointers
   for (auto pointer : Pointers) {
@@ -178,20 +178,20 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
         switch (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                          llvm::MemoryLocation(*I2, I2Size))) {
         case llvm::NoAlias:
-           //PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+          // PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
           break;
         case llvm::MayAlias:
-           //PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
+          // PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::PartialAlias:
-           //PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-           // 						 F->getParent());
+          // PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+          // 						 F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::MustAlias:
-           //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //              F->getParent());
+          // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
+          //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         default:
@@ -201,8 +201,8 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
       } else {
         if (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                      llvm::MemoryLocation(*I2, I2Size)) == llvm::MustAlias) {
-           //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //              F->getParent());
+          // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
+          //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
         }
       }

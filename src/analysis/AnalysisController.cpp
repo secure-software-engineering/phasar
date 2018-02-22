@@ -147,12 +147,12 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
-          constproblem, false);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+            constproblem, false);
         cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
         cout << "Const Analysis finished!" << endl;
-        //constproblem.printInitilizedSet();
+        // constproblem.printInitilizedSet();
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {

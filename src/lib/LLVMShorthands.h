@@ -48,7 +48,8 @@ std::string llvmIRToString(const llvm::Value *V);
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
-std::vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
+std::vector<const llvm::Value *>
+globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
  * @brief Returns the meta data id of a given LLVM Instruction.

@@ -204,8 +204,8 @@ public:
                             << GET_COUNTER("FFApplicationCount");
     BOOST_LOG_SEV(lg, INFO) << "special flow function usage count: "
                             << GET_COUNTER("SpecialSummaryFFApplicationCount");
-    BOOST_LOG_SEV(lg, INFO) << "propagation count: "
-                            << GET_COUNTER("PropagationCount");
+    BOOST_LOG_SEV(lg, INFO)
+        << "propagation count: " << GET_COUNTER("PropagationCount");
     BOOST_LOG_SEV(lg, INFO) << "flow function construction duration: "
                             << PRINT_TIMER("FFConstructionTime");
     BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "

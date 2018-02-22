@@ -31,7 +31,8 @@ const std::set<std::string> ProjectIRDB::unknown_flags = {
 
 ProjectIRDB::ProjectIRDB(enum IRDBOptions Opt) : Options(Opt) {}
 
-ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles, enum IRDBOptions Opt)
+ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
+                         enum IRDBOptions Opt)
     : Options(Opt) {
   setupHeaderSearchPaths();
   for (auto &File : IRFiles) {
@@ -80,7 +81,8 @@ ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
 }
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
-                         std::vector<const char *> CompileArgs, enum IRDBOptions Opt)
+                         std::vector<const char *> CompileArgs,
+                         enum IRDBOptions Opt)
     : Options(Opt) {
   setupHeaderSearchPaths();
   for (auto &Path : Modules) {
@@ -334,7 +336,8 @@ void ProjectIRDB::linkForWPA() {
         // now we can safely perform the linking
         if (llvm::Linker::linkModules(*MainMod, std::move(TmpMod),
                                       llvm::Linker::LinkOnlyNeeded)) {
-          std::cout << "ERROR when try to link modules for WPA module!" << std::endl;
+          std::cout << "ERROR when try to link modules for WPA module!"
+                    << std::endl;
           DIE_HARD;
         }
       }
@@ -487,7 +490,8 @@ void ProjectIRDB::print() {
   }
   std::cout << "functions:" << std::endl;
   for (auto entry : functions) {
-    std::cout << entry.first << " defined in module " << entry.second << std::endl;
+    std::cout << entry.first << " defined in module " << entry.second
+              << std::endl;
   }
 }
 
@@ -617,7 +621,8 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
 
 void ProjectIRDB::insertPointsToGraph(const std::string &FunctionName,
                                       PointsToGraph *ptg) {
-  ptgs.insert(std::make_pair(FunctionName, std::unique_ptr<PointsToGraph>(ptg)));
+  ptgs.insert(
+      std::make_pair(FunctionName, std::unique_ptr<PointsToGraph>(ptg)));
 }
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
@@ -634,7 +639,8 @@ bool ProjectIRDB::empty() { return modules.empty(); }
 void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
   source_files.insert(M->getModuleIdentifier());
   for (auto &F : *M) {
-    functions.insert(std::make_pair(F.getName().str(), M->getModuleIdentifier()));
+    functions.insert(
+        std::make_pair(F.getName().str(), M->getModuleIdentifier()));
   }
   for (auto &G : M->globals()) {
     globals.insert(std::make_pair(G.getName().str(), M->getModuleIdentifier()));
@@ -642,7 +648,8 @@ void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
   buildFunctionModuleMapping(M.get());
   buildGlobalModuleMapping(M.get());
   buildIDModuleMapping(M.get());
-  contexts.insert(std::make_pair(M->getModuleIdentifier(),
-                            std::unique_ptr<llvm::LLVMContext>(&M->getContext())));
+  contexts.insert(
+      std::make_pair(M->getModuleIdentifier(),
+                     std::unique_ptr<llvm::LLVMContext>(&M->getContext())));
   modules.insert(std::make_pair(M->getModuleIdentifier(), std::move(M)));
 }
