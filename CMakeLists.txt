@@ -11,7 +11,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 add_subdirectory(lib/googletest EXCLUDE_FROM_ALL)
 include_directories(${gtest_SOURCE_DIR}/include)
 
-set(JSON_BuildTests OFF)
+option(JSON_BuildTests OFF)
 add_subdirectory(lib/json EXCLUDE_FROM_ALL)
 include_directories(lib/json/src)
 
@@ -121,11 +121,25 @@ target_link_libraries(main
   )
 
 if(test)
-  file(GLOB_RECURSE files "tests/*/*.cpp")
+  file(GLOB_RECURSE test_code_files test_code/**/*.cpp)
+  set(ll_test_files "")
+  foreach(test_code_file ${test_code_files})
+    string(REGEX REPLACE ".cpp$"
+      ".ll" test_code_file_target
+      ${test_code_file})
+    add_custom_command(
+      OUTPUT ${test_code_file_target}
+      COMMAND ${CMAKE_CXX_COMPILER} -std=c++11 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
+      COMMENT "Emitting LLVM IR for ${test_code_file}."
+      VERBATIM
+      )
+    list(APPEND ll_test_files ${test_code_file_target})
+  endforeach()
+  add_custom_target(test_ll ALL
+    DEPENDS ${ll_test_files})
+  file(GLOB_RECURSE files "tests/*.cpp")
   foreach(file ${files})
       get_filename_component(testcase ${file} NAME_WE)
-#      string(REGEX REPLACE "unit-([^$]+)" "test-\\1" testcase ${file_basename})
-
       add_executable(${testcase} ${file})
       set_target_properties(${testcase} PROPERTIES
           CXX_STANDARD 14
@@ -145,20 +159,14 @@ if(test)
       )
 
       if(NOT MSVC)
-          set_target_properties(${testcase} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-float-equal")
+          set_target_properties(${testcase} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-float-equal -O0")
       endif()
 
-      add_test(NAME "${testcase}_default"
+      add_test(NAME "${testcase}"
         COMMAND ${testcase} ${CATCH_TEST_FILTER}
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
       )
-      set_tests_properties("${testcase}_default" PROPERTIES LABELS "default")
-
-      add_test(NAME "${testcase}_all"
-        COMMAND ${testcase} ${CATCH_TEST_FILTER} "*"
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-      )
-      set_tests_properties("${testcase}_all" PROPERTIES LABELS "all")
+      set_tests_properties("${testcase}" PROPERTIES LABELS "all")
   endforeach()
   enable_testing()
 endif()
