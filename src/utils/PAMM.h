@@ -93,7 +93,6 @@ private:
   PAMM() = default;
   ~PAMM() = default;
   typedef std::chrono::high_resolution_clock::time_point time_point;
-  // TODO: try unordered_map instead of map - maybe it's faster
   std::unordered_map<std::string, time_point> RunningTimer;
   std::unordered_map<std::string, std::pair<time_point, time_point>>
       StoppedTimer;
@@ -337,8 +336,8 @@ public:
   template <typename Period = std::chrono::milliseconds>
   void exportDataAsJSON(const std::string &configPath) {
     // stop all running timer
-    for (auto timer : RunningTimer) {
-      stopTimer(timer.first);
+    while (!RunningTimer.empty()) {
+      stopTimer(RunningTimer.begin()->first);
     }
     json jTimer;
     for (auto timer : StoppedTimer) {
