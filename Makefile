@@ -18,11 +18,9 @@ SUPPORTED_COMPILERS = $(CLANG) $(GCC)
 OS = $(shell uname -s)
 LINUX = Linux
 MAC = Darwin
-MACROS =
 
 # Set-up the basic compiler flags
 CXX_FLAGS = -std=c++14
-CXX_FLAGS += $(MACROS)
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -Wpedantic
@@ -59,15 +57,15 @@ ifeq ($(OS),$(LINUX))
 CXX_FLAGS += -L/usr/local/
 else ifeq ($(OS),$(MAC))
 CXX_FLAGS += -L/usr/local/opt/boost/lib
+CXX_FLAGS += -I/usr/local/opt/boost/include
 CXX_FLAGS += -L/usr/local/opt/llvm@3.9/lib
 endif
 
 # Add header search paths
-CXX_INCL = -I./lib/json/src/
+CXX_INCL = -I ./lib/json/single_include/nlohmann/
 
 # Define the google test run parameters
-GTEST_RUN_PARAMS = --gtest_repeat=1
-# GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
+GTEST_RUN_PARAMS = --gtest_repeat=3
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
@@ -123,8 +121,8 @@ ifeq ($(OS),$(LINUX))
 LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
 LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
 else ifeq ($(OS),$(MAC))
-LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+LLVM_FLAGS += -I/usr/local/opt/llvm@3.9/include
+LLVM_FLAGS += -L/usr/local/opt/llvm@3.9/lib 
 endif
 LLVM_FLAGS += -D_GNU_SOURCE 
 LLVM_FLAGS += -D__STDC_CONSTANT_MACROS 
@@ -145,16 +143,18 @@ BOOST_LIBS += -lboost_system
 BOOST_LIBS += -lboost_program_options
 BOOST_LIBS += -lboost_log
 BOOST_LIBS += -lboost_thread
-BOOST_LIBS += -lboost_graph
 else ifeq ($(OS),$(MAC))
 BOOST_LIBS := -lboost_filesystem-mt
 BOOST_LIBS += -lboost_system-mt
 BOOST_LIBS += -lboost_program_options-mt
 BOOST_LIBS += -lboost_log-mt
 BOOST_LIBS += -lboost_thread-mt
-BOOST_LIBS += -lboost_graph-mt
 endif
+ifeq ($(OS),$(MAC))
+LLVM_LIBS := `llvm-config --system-libs --libs all`
+else ifeq ($(OS),$(LINUX))
 LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
+endif
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
 CLANG_LIBS += -lclangFrontend
@@ -206,7 +206,7 @@ $(BIN)$(EXE): $(OBJ)
 	@echo "done ;-)"
 
 $(OBJDIR)%.o: %.cpp
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -c $< -o $@
 
 doc:
 	@echo "building the documentation of the source code ..."
@@ -224,13 +224,13 @@ $(PLUGINSODIR):
 plugins: $(PLUGINSODIR) $(SO)
 
 $(PLUGINSODIR)%.so: %.cxx
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(LLVM_FLAGS) -fPIC -shared obj/ZeroValue.o $< -o $@ 
 
-tests: gtest $(OBJDIR) $(OBJ) $(TST) $(TSTEXE)
+tests: $(OBJDIR) $(OBJ) gtest $(TSTEXE) $(TST) $(OBJ)
 
 $(TSTEXE): %: %.cpp $(filter-out obj/main.o,$(OBJ))
 	@echo "Compile test: $@"
-	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) $(GTEST_LIBS) -o $@$(TEST_SUFFIX) $(THREAD_MODEL)
+	$(CXX) $(CXX_FLAGS) $(CXX_INCL) $(CPPFLAGS) $(GTEST_FLAGS) $(LLVM_FLAGS) $^ $(CLANG_LIBS) $(LLVM_LIBS) $(BOOST_LIBS) $(SQLITE3_LIBS) $(MYSQL_LIBS) $(CURL_LIBS) -o $@$(TEST_SUFFIX) $(GTEST_LIBS) $(THREAD_MODEL)
 
 run-tests: tests
 	@echo "Run tests: $(TSTEXE)"
@@ -248,12 +248,12 @@ hello:
 
 GTEST_DIR = $(LIBS)googletest/googletest/
 
-GTEST_FLAGS := -L$(LIBS)gtest/
+GTEST_FLAGS := -L$(LIBS)/gtest/
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
 # the compiler doesn't generate warnings in Google Test headers.
-CPPFLAGS += -isystem $(GTEST_DIR)include
+CPPFLAGS += -isystem $(GTEST_DIR)/include
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
