@@ -141,7 +141,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
             uninitializedvarproblem, true);
         llvmunivsolver.solve();
         if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJSONDataModel(graph_id);
+          llvmunivsolver.exportJson(graph_id);
         }
         break;
       }
