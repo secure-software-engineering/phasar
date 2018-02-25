@@ -59,11 +59,12 @@ ifeq ($(OS),$(LINUX))
 CXX_FLAGS += -L/usr/local/
 else ifeq ($(OS),$(MAC))
 CXX_FLAGS += -L/usr/local/opt/boost/lib
+CXX_FLAGS += -I/usr/local/opt/boost/include
 CXX_FLAGS += -L/usr/local/opt/llvm@3.9/lib
 endif
 
 # Add header search paths
-CXX_INCL = -I./lib/json/src/
+CXX_INCL = -I ./lib/json/single_include/nlohmann/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1
@@ -123,8 +124,8 @@ ifeq ($(OS),$(LINUX))
 LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
 LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
 else ifeq ($(OS),$(MAC))
-LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+LLVM_FLAGS += -I/usr/local/opt/llvm@3.9/include
+LLVM_FLAGS += -L/usr/local/opt/llvm@3.9/lib 
 endif
 LLVM_FLAGS += -D_GNU_SOURCE 
 LLVM_FLAGS += -D__STDC_CONSTANT_MACROS 
@@ -154,7 +155,11 @@ BOOST_LIBS += -lboost_log-mt
 BOOST_LIBS += -lboost_thread-mt
 BOOST_LIBS += -lboost_graph-mt
 endif
+ifeq ($(OS),$(MAC))
+LLVM_LIBS := `llvm-config --system-libs --libs all`
+else ifeq ($(OS),$(LINUX))
 LLVM_LIBS := `llvm-config-3.9 --system-libs --libs all`
+endif
 CLANG_LIBS := -lclangTooling
 CLANG_LIBS +=	-lclangFrontendTool
 CLANG_LIBS += -lclangFrontend
