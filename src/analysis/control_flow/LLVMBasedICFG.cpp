@@ -350,7 +350,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->dump();
+        // ftype->dump();
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());
@@ -538,7 +538,7 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
       auto edge = cg[*ei];
       auto target = boost::target(*ei, cg);
       if (CS.getInstruction() == edge.callsite) {
-        cout << "Name: " << cg[target].functionName << endl;
+        // cout << "Name: " << cg[target].functionName << endl;
         if (IRDB.getFunction(cg[target].functionName)) {
           Callees.insert(IRDB.getFunction(cg[target].functionName));
         } else {
