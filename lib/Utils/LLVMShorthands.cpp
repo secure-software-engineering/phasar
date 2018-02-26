@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "LLVMShorthands.h"
+#include <phasar/Utils/LLVMShorthands.h>
 
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {

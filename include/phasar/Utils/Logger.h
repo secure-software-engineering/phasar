@@ -17,7 +17,7 @@
 #ifndef UTILS_LOGGER_H_
 #define UTILS_LOGGER_H_
 
-#include "../config/Configuration.h"
+#include <phasar/Config/Configuration.h>
 #include <algorithm>
 #include <array>
 #include <boost/algorithm/string.hpp>
@@ -32,7 +32,7 @@
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/exception_handler.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/utility/empty_deleter.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <ctime>
 #include <exception>
 #include <fstream>

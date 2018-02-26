@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "Configuration.h"
+#include <phasar/Config/Configuration.h>
 
 const string MetaDataKind("phasar.instruction.id");
 const string ConfigurationDirectory("config/");

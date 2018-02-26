@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "SOL.h"
+#include <phasar/Utils/SOL.h>
 
 SOL::SOL(const string &path) : path(path) {
   auto &lg = lg::get();

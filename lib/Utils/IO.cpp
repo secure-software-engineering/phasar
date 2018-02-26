@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "IO.h"
+#include <phasar/Utils/IO.h>
 
 string readFile(const string &path) {
   if (boost::filesystem::exists(path) &&

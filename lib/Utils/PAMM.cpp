@@ -14,7 +14,7 @@
  *      Author: rleer
  */
 
-#include "PAMM.h"
+#include <phasar/Utils/PAMM.h>
 
 PAMM &PAMM::getInstance() {
   static PAMM instance;

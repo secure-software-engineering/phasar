@@ -17,9 +17,6 @@
 #ifndef SRC_LIB_LLVMSHORTHANDS_H_
 #define SRC_LIB_LLVMSHORTHANDS_H_
 
-#include "../config/Configuration.h"
-#include <functional>
-#include <iostream>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/DerivedTypes.h>
@@ -27,6 +24,9 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
+#include <phasar/Config/Configuration.h>
+#include <functional>
+#include <iostream>
 #include <vector>
 
 /**
@@ -49,7 +49,8 @@ std::string llvmIRToString(const llvm::Value *V);
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
-std::vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
+std::vector<const llvm::Value *> globalValuesUsedinFunction(
+    const llvm::Function *F);
 
 /**
  * @brief Returns the meta data id of a given LLVM Instruction.

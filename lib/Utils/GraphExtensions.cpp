@@ -14,4 +14,4 @@
  *      Author: philipp
  */
 
-#include "GraphExtensions.h"
+#include <phasar/Utils/GraphExtensions.h>

@@ -10,16 +10,6 @@
 #ifndef ANALYSIS_ProjectIRDB_H_
 #define ANALYSIS_ProjectIRDB_H_
 
-#include "../analysis/ifds_ide/ZeroValue.h"
-#include "../analysis/passes/GeneralStatisticsPass.h"
-#include "../analysis/passes/ValueAnnotationPass.h"
-#include "../analysis/points-to/PointsToGraph.h"
-#include "../lib/LLVMShorthands.h"
-#include "../utils/EnumFlags.h"
-#include "../utils/PAMM.h"
-#include "../utils/utils.h"
-#include <algorithm>
-#include <cassert>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/CodeGen/CodeGenAction.h>
 #include <clang/Frontend/CompilerInstance.h>
@@ -37,6 +27,15 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/LinkAllPasses.h>
 #include <llvm/Linker/Linker.h>
+#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/Utils/EnumFlags.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/PAMM.h>
+#include <algorithm>
+#include <cassert>
 #include <map>
 #include <memory>
 #include <string>
@@ -55,7 +54,7 @@ enum class IRDBOptions : uint32_t {
  * stuff that is stored in it.
  */
 class ProjectIRDB {
-private:
+ private:
   llvm::Module *WPAMOD = nullptr;
   IRDBOptions Options;
   void compileAndAddToDB(std::vector<const char *> CompileCommand);
@@ -82,7 +81,7 @@ private:
   void buildIDModuleMapping(llvm::Module *M);
   void preprocessModule(llvm::Module *M);
 
-public:
+ public:
   /// Constructs an empty ProjectIRDB
   ProjectIRDB(enum IRDBOptions Opt);
   /// Constructs a ProjectIRDB from a bunch of llvm IR files
@@ -92,9 +91,10 @@ public:
   /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
-  ProjectIRDB(const std::vector<std::string> &Files, std::vector<const char *> CompileArgs,
-              enum IRDBOptions Opt);
+  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm
+  /// IR
+  ProjectIRDB(const std::vector<std::string> &Files,
+              std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
   ~ProjectIRDB() = default;
 
@@ -115,7 +115,8 @@ public:
   std::size_t getNumberOfModules();
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
   llvm::Function *getFunction(const std::string &FunctionName);
-  llvm::GlobalVariable *getGlobalVariable(const std::string &GlobalVariableName);
+  llvm::GlobalVariable *getGlobalVariable(
+      const std::string &GlobalVariableName);
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);

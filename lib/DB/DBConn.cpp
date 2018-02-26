@@ -14,7 +14,7 @@
  *      Author: pdschbrt
  */
 
-#include "DBConn.h"
+#include <phasar/DB/DBConn.h>
 
 const string DBConn::db_schema_name = "phasardb";
 const string DBConn::db_user = "root";

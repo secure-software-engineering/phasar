@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "ProjectIRDB.h"
+#include <phasar/DB/ProjectIRDB.h>
 
 const std::set<std::string> ProjectIRDB::unknown_flags = {
     "-g",

@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "Hexastore.h"
+#include <phasar/DB/Hexastore.h>
 #include <algorithm>
 #include <array>
 #include <assert.h>

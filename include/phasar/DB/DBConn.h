@@ -17,26 +17,11 @@
 #ifndef DATABASE_DBCONN_H_
 #define DATABASE_DBCONN_H_
 
-#include "../analysis/points-to/LLVMTypeHierarchy.h"
-// #include "../analysis/points-to/PointsToGraph.h"
-#include "../analysis/control_flow/LLVMBasedICFG.h"
-#include "../analysis/ifds_ide/IDESummary.h"
-#include "../analysis/points-to/VTable.h"
-#include "../utils/IO.h"
-#include "../utils/utils.h"
-#include "Hexastore.h"
-// #include "ProjectIRDB.h"
-#include <boost/graph/adjacency_list.hpp>
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
 #include <cppconn/prepared_statement.h>
 #include <cppconn/resultset.h>
 #include <cppconn/statement.h>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <functional>
-#include <iostream>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/LLVMContext.h>
@@ -45,11 +30,24 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Support/raw_ostream.h>
+#include <mysql_connection.h>
+#include <phasar/DB/Hexastore.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/Utils/IO.h>
+#include <phasar/Utils/Macros.h>
+#include <sqlite3.h>
+#include <boost/graph/adjacency_list.hpp>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <iostream>
 #include <map>
 #include <memory>
-#include <mysql_connection.h>
 #include <set>
-#include <sqlite3.h>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -59,11 +57,11 @@ using namespace std;
 
 enum class QueryReturnCode { TRUE, FALSE, ERROR };
 
-#define SQL_STD_ERROR_HANDLING                                                 \
-  cout << "# ERR: SQLException in " << __FILE__;                               \
-  cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;             \
-  cout << "# ERR: " << e.what();                                               \
-  cout << " (MySQL error code: " << e.getErrorCode();                          \
+#define SQL_STD_ERROR_HANDLING                                     \
+  cout << "# ERR: SQLException in " << __FILE__;                   \
+  cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl; \
+  cout << "# ERR: " << e.what();                                   \
+  cout << " (MySQL error code: " << e.getErrorCode();              \
   cout << ", SQLState: " << e.getSQLState() << " )" << endl;
 
 // forward declarations
@@ -72,7 +70,7 @@ class ProjectIRDB;
 class PointsToGraph;
 
 class DBConn {
-private:
+ private:
   DBConn();
   ~DBConn();
   sql::Driver *driver;
@@ -118,7 +116,7 @@ private:
 
   FRIEND_TEST(StoreProjectIRDBTest, StoreProjectIRDBTest);
 
-public:
+ public:
   DBConn(const DBConn &db) = delete;
   DBConn(DBConn &&db) = delete;
   DBConn &operator=(const DBConn &db) = delete;
@@ -133,9 +131,8 @@ public:
                           bool use_hs = false);
   LLVMBasedICFG loadLLVMBasedICFGfromModule(const string &ModuleName,
                                             bool use_hs = false);
-  LLVMBasedICFG
-  loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
-                               bool use_hs = false);
+  LLVMBasedICFG loadLLVMBasedICFGfromModules(
+      initializer_list<string> ModuleNames, bool use_hs = false);
   LLVMBasedICFG loadLLVMBasedICFGfromProject(const string &ProjectName,
                                              bool use_hs = false);
 
@@ -148,9 +145,8 @@ public:
                               bool use_hs = false);
   LLVMTypeHierarchy loadLLVMTypeHierarchyFromModule(const string &ModuleName,
                                                     bool use_hs = false);
-  LLVMTypeHierarchy
-  loadLLVMTypeHierarchyFromModules(initializer_list<string> ModuleNames,
-                                   bool use_hs = false);
+  LLVMTypeHierarchy loadLLVMTypeHierarchyFromModules(
+      initializer_list<string> ModuleNames, bool use_hs = false);
   LLVMTypeHierarchy loadLLVMTypeHierarchyFromProject(const string &ProjectName,
                                                      bool use_hs = false);
 

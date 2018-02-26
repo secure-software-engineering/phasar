@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include "Logger.h"
+#include <phasar/Utils/Logger.h>
 
 const map<string, severity_level> StringToSeverityLevel = {
     {"DEBUG", DEBUG},
@@ -56,7 +56,7 @@ void initializeLogger(bool use_logger) {
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
-  boost::shared_ptr<std::ostream> stream(&std::clog, boost::empty_deleter{});
+  boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter{});
   // // get the time and make it into a string for log file nameing
   // time_t current_time = std::time(nullptr);
   // string time(asctime(localtime(&current_time)));
