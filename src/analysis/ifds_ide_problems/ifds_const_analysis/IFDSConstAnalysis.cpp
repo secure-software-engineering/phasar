@@ -111,9 +111,9 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
       set<const llvm::Value *> computeTargets(const llvm::Value *source) {
         if (!constanalysis->isZeroValue(source)) {
           set<const llvm::Value *> res;
+          res.insert(zerovalue);
           for (unsigned idx = 0; idx < actuals.size(); ++idx) {
             if (source == actuals[idx]) {
-              res.insert(zerovalue);
               res.insert(formals[idx]); // corresponding formal
             }
           }

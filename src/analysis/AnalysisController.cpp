@@ -85,8 +85,8 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     STOP_TIMER("ICFG_runtime");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     // ICFG.print();
-    ICFG.printAsDot("interproc_cfg.dot");
-    ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
+    // ICFG.printAsDot("interproc_cfg.dot");
+    // ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -141,7 +141,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
             uninitializedvarproblem, true);
         llvmunivsolver.solve();
         if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJSONDataModel(graph_id);
+          llvmunivsolver.exportJson(graph_id);
         }
         break;
       }
