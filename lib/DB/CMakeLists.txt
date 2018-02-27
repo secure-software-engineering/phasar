@@ -27,8 +27,7 @@ target_link_libraries(phasar_db
   clangFrontend
   clangBasic
   clangCodeGen
-  phasar_lib
+  phasar_utils
   ${SQLITE3_LIBRARY}
   mysqlcppconn
-  phasar_VTABLE
-  )
+)

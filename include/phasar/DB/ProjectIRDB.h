@@ -17,6 +17,8 @@
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/BasicAliasAnalysis.h>
+#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/Function.h>
@@ -25,7 +27,7 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
-#include <llvm/LinkAllPasses.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Linker/Linker.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
