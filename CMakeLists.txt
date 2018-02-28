@@ -1,15 +1,19 @@
 cmake_minimum_required (VERSION 3.0)
+
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
+
 project (phasar)
 
 # if (NOT DEFINED LLVM_MAIN_SRC_DIR)
 #  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
 # endif()
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -lc++")
-# set(STATIC_LINKING false)
+set(STATIC_LINKING false)
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
@@ -51,8 +55,26 @@ find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIB_PATH})
 llvm_map_components_to_libnames(llvm_libs
- coverage LibDriver lto support analysis bitwriter core ipo irreader instcombine instrumentation linker objcarcopts profiledata scalaropts transformutils codegen vectorize
+  coverage
+  coroutines
+  libdriver
+  lto
+  support
+  analysis
+  bitwriter
+  core
+  ipo
+  irreader
+  instcombine
+  instrumentation
+  linker
+  objcarcopts
+  scalaropts
+  transformutils
+  codegen
+  vectorize
 )
+add_definitions(${LLVM_DEFINITIONS})
 
 # Clang
 find_library(CLANG_LIBRARY NAMES clang REQUIRED)
@@ -93,8 +115,6 @@ add_executable(llvm-phasar
   tools/phasar/phasar.cpp
 )
 target_link_libraries(llvm-phasar
-  ${CLANG_LIBRARIES}  
-  ${llvm_libs}
   phasar_config
   phasar_controller
   phasar_db
@@ -118,7 +138,10 @@ target_link_libraries(llvm-phasar
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
+  ${CLANG_LIBRARIES}  
+  ${llvm_libs}
   curl
+  gtest
 )
 
 
