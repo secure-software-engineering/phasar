@@ -1,5 +1,5 @@
-#include "../../../src/analysis/points-to/LLVMTypeHierarchy.h"
-#include "../../../src/db/ProjectIRDB.h"
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
 
 // TODO: figure out how to automatically compare graphs for these tests

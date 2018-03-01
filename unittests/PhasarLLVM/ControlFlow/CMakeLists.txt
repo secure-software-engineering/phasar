@@ -2,6 +2,6 @@ set(ControlFlowSources
 	LLVMBasedCFGTest.cpp
 )
 
-add_llvm_unittest(ControlFlowTests
-	${ControlFlowSources}
-)
+foreach(TEST_SRC ${ControlFlowSources})
+	add_phasar_unittest(${TEST_SRC})
+endforeach(TEST_SRC)

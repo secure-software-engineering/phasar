@@ -1,4 +1,4 @@
-#include "../../src/db/ProjectIRDB.h"
+#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
 
 TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {

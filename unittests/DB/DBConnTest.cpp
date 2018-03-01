@@ -1,5 +1,5 @@
-#include "../../src/db/DBConn.h"
-#include "../../src/db/ProjectIRDB.h"
+#include <phasar/DB/DBConn.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
 
 const std::vector<std::vector<std::string>> IRFiles{

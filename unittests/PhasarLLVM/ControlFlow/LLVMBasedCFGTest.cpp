@@ -1,5 +1,5 @@
-#include "../../../src/analysis/control_flow/LLVMBasedCFG.h"
-#include "../../../src/db/ProjectIRDB.h"
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
 #include <llvm/IR/InstIterator.h>
 

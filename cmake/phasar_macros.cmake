@@ -1,3 +1,45 @@
+function(add_phasar_unittest test_name)
+  message("Set-up unittest: ${test_name}")
+  get_filename_component(test ${test_name} NAME_WE)
+  add_executable(${test}
+    ${test_name}
+  )
+  target_link_libraries(${test}
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_experimental
+  phasar_clang
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_passes
+  phasar_plugins
+  phasar_pointer
+  phasar_phasarllvm_utils
+  phasar_utils
+  boost_program_options
+  boost_filesystem
+  boost_graph
+  boost_system
+  boost_log
+  boost_thread
+  ${SQLITE3_LIBRARY}
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${CLANG_LIBRARIES}  
+  ${llvm_libs}
+  curl
+  gtest
+)
+add_test(NAME "${test}"
+  COMMAND ${test} ${CATCH_TEST_FILTER}
+)
+set_tests_properties("${test}" PROPERTIES LABELS "all")
+set(CTEST_OUTPUT_ON_FAILURE TRUE)
+endfunction()
+
 macro(add_phasar_executable name)
   set(LLVM_RUNTIME_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/bin)
   set(LLVM_LIBRARY_OUTPUT_INTDIR ${CMAKE_BINARY_DIR}/${CMAKE_CFG_INTDIR}/lib)

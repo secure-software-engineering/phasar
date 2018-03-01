@@ -1,4 +1,4 @@
-#include "../../src/utils/PAMM.h"
+#include <phasar/Utils/PAMM.h>
 #include <gtest/gtest.h>
 #include <thread>
 

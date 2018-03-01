@@ -1,7 +1,7 @@
-#include "../../../../src/analysis/ifds_ide/solver/LLVMIFDSSolver.h"
-#include "../../../../src/analysis/ifds_ide_problems/ifds_const_analysis/IFDSConstAnalysis.h"
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 //#include "../../../../src/config/Configuration.h"
-#include "../../../../src/db/ProjectIRDB.h"
+#include <phasar/DB/ProjectIRDB.h>
 #include "IFDSConstAnalysisResults.h"
 #include <gtest/gtest.h>
 

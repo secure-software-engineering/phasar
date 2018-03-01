@@ -1,5 +1,6 @@
 add_subdirectory(ControlFlow)
-# add_subdirectory(IfdsIde)
+add_subdirectory(IfdsIde)
 # add_subdirectory(Mono)
 # add_subdirectory(Passes)
 # add_subdirectory(Plugins)
+add_subdirectory(Pointer)

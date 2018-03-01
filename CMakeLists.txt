@@ -1,13 +1,25 @@
 cmake_minimum_required (VERSION 3.0)
 
+# Specify the build options
+option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
+set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')")
+
+# Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -march=native -DNDEBUG")
+if(BUILD_MODE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+else()
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
+endif()
 
 project (phasar)
+
+# Enable testing
+enable_testing()
 
 # if (NOT DEFINED LLVM_MAIN_SRC_DIR)
 #  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
@@ -144,6 +156,11 @@ target_link_libraries(llvm-phasar
   gtest
 )
 
+# Add Phasar unittests
+if (BUILD_UNITTESTS)
+  message("Phasar unittests")
+  add_subdirectory(unittests)
+endif()
 
 #if(test)
 #  file(GLOB_RECURSE test_code_files test_code/**/*.cpp)
@@ -160,38 +177,3 @@ target_link_libraries(llvm-phasar
 #      )
 #    list(APPEND ll_test_files ${test_code_file_target})
 #  endforeach()
-#  add_custom_target(test_ll ALL
-#    DEPENDS ${ll_test_files})
-#  file(GLOB_RECURSE files "tests/*.cpp")
-#  foreach(file ${files})
-#      get_filename_component(testcase ${file} NAME_WE)
-#      add_executable(${testcase} ${file})
-#      set_target_properties(${testcase} PROPERTIES
-#          CXX_STANDARD 14
-#          CXX_STANDARD_REQUIRED ON
-#      )
-#
-#      target_link_libraries(${testcase}
-#      ${CLANG_LIBRARIES}
-#      ${llvm_libs}
-#      analysis phasarclang phasarlib utils config db
-#      ${SQLITE3_LIBRARY}
-#      ${Boost_LIBRARIES}
-#      ${CMAKE_DL_LIBS}
-#      ${CMAKE_THREAD_LIBS_INIT}
-#      curl
-#      gtest
-#      )
-#
-#      if(NOT MSVC)
-#          set_target_properties(${testcase} PROPERTIES COMPILE_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated #-Wno-float-equal -O0")
-#      endif()
-#
-#      add_test(NAME "${testcase}"
-#        COMMAND ${testcase} ${CATCH_TEST_FILTER}
-#      )
-#      set_tests_properties("${testcase}" PROPERTIES LABELS "all")
-#  endforeach()
-#  enable_testing()
-#endif()
-#

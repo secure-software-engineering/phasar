@@ -1,6 +1,6 @@
-#include "../../../../src/analysis/ifds_ide/solver/LLVMIFDSSolver.h"
-#include "../../../../src/analysis/ifds_ide_problems/ifds_taint_analysis/IFDSTaintAnalysis.h"
-#include "../../../../src/db/ProjectIRDB.h"
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
 
 TEST(SecondTest1, SecondTestName1) {
