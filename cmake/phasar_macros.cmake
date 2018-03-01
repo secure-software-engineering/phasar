@@ -37,7 +37,7 @@ add_test(NAME "${test}"
   COMMAND ${test} ${CATCH_TEST_FILTER}
 )
 set_tests_properties("${test}" PROPERTIES LABELS "all")
-set(CTEST_OUTPUT_ON_FAILURE TRUE)
+set(CTEST_OUTPUT_ON_FAILURE ON)
 endfunction()
 
 macro(add_phasar_executable name)

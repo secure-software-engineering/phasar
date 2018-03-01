@@ -17,6 +17,7 @@ else()
 endif()
 
 project (phasar)
+set(CMAKE_PROJECT_NAME "phasar")
 
 # Enable testing
 enable_testing()
@@ -162,18 +163,35 @@ if (BUILD_UNITTESTS)
   add_subdirectory(unittests)
 endif()
 
-#if(test)
-#  file(GLOB_RECURSE test_code_files test_code/**/*.cpp)
-#  set(ll_test_files "")
-#  foreach(test_code_file ${test_code_files})
-#    string(REGEX REPLACE ".cpp$"
-#      ".ll" test_code_file_target
-#      ${test_code_file})
-#    add_custom_command(
-#      OUTPUT ${test_code_file_target}
-#      COMMAND ${CMAKE_CXX_COMPILER} -std=c++14 -S -emit-llvm ${test_code_file} -o ${test_code_file_target}
-#      COMMENT "Emitting LLVM IR for ${test_code_file}."
-#      VERBATIM
-#      )
-#    list(APPEND ll_test_files ${test_code_file_target})
-#  endforeach()
+# Settings for building various packages using Cpack
+#   How to pack using the following settings?
+#     $ mkdir build
+#     $ cd build
+#     $ cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+#     $ cpack ..
+#     $ dpkg -i <the_package>.deb
+set(MAJOR_VERSION 0)
+set(MINOR_VERSION 8)
+set(PATCH_VERSION 0)
+IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+INCLUDE(InstallRequiredSystemLibraries)
+set(CPACK_SET_DESTDIR "on")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/tmp")
+set(CPACK_GENERATOR "DEB")
+set(CPACK_PACKAGE_DESCRIPTION "Phasar")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Phasar a LLVM-based static analysis framework")
+set(CPACK_PACKAGE_VENDOR "Phasar - Philipp Schubert and others")
+set(CPACK_PACKAGE_CONTACT "philipp.schubert@upb.de")
+set(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
+set(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
+set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
+# package dependencies can be set-up here
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqtgui4 (>= 4.5.0), libstdc++6 (>= 4.2.1)")
+set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
+set(CPACK_DEBIAN_PACKAGE_SECTION "kde")
+set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
+set(CPACK_COMPONENTS_ALL Libraries ApplicationData)
+INCLUDE(CPack)
+ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
