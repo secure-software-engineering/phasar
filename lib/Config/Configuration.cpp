@@ -17,7 +17,7 @@
 #include <phasar/Config/Configuration.h>
 
 const string MetaDataKind("phasar.instruction.id");
-const string ConfigurationDirectory("config/");
+const string ConfigurationDirectory("../config/");
 const string GLIBCFunctionListFileName("glibc_function_list_v1-04.05.17.conf");
 const string LLVMIntrinsicFunctionListFileName(
     "llvm_intrinsics_function_list_v1-04.05.17.conf");

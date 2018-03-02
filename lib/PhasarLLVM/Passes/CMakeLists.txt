@@ -1,6 +1,7 @@
 file(GLOB_RECURSE PASSES_SRC *.h *.cpp)
 
 add_phasar_library(phasar_passes
+	SHARED
 	${PASSES_SRC}
 )
 
@@ -11,5 +12,5 @@ target_link_libraries(phasar_passes
 set_target_properties(phasar_passes
 	PROPERTIES
 	LINKER_LANGUAGE CXX
-	PREFIX ""
+	PREFIX "lib"
 )

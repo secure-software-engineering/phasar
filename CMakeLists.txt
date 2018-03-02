@@ -15,6 +15,8 @@ if(BUILD_MODE STREQUAL "Debug")
 else()
   set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
 endif()
+# Set the default install prefix
+set(CMAKE_INSTALL_PREFIX /home/philipp/Schreibtisch/tmp)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
@@ -22,6 +24,7 @@ set(CMAKE_PROJECT_NAME "phasar")
 # Enable testing
 enable_testing()
 
+# TODO: allow Phasar to be build as a llvm drop-in as well
 # if (NOT DEFINED LLVM_MAIN_SRC_DIR)
 #  message(FATAL_ERROR "Phasar is not a llvm drop-in, abort!")
 # endif()
@@ -45,7 +48,7 @@ add_subdirectory(external/json EXCLUDE_FROM_ALL)
 include_directories(external/json/src)
 
 # Googletest
-add_subdirectory(external/googletest)
+add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 include_directories(external/googletest/googletest/include)
 
 # Boost
@@ -163,11 +166,28 @@ if (BUILD_UNITTESTS)
   add_subdirectory(unittests)
 endif()
 
+# Install Phasar
+install(TARGETS llvm-phasar
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        )
+install(DIRECTORY include/
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h"
+)
+# If the Phasar shared object libraries are not installed into a system folder
+# the so libs must be added manually to the linker search path and the linker 
+# config must be updated as follows:
+#
+#   $ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:/home/philipp/Schreibtisch/tmp/lib
+#   $ sudo ldconfig
+
 # Settings for building various packages using Cpack
 #   How to pack using the following settings?
 #     $ mkdir build
 #     $ cd build
-#     $ cmake -DCMAKE_INSTALL_PREFIX=/usr ..
+#     $ cmake -DCMAKE_INSTALL_PREFIX=/usr/local ..
 #     $ cpack ..
 #     $ dpkg -i <the_package>.deb
 set(MAJOR_VERSION 0)
@@ -176,11 +196,11 @@ set(PATCH_VERSION 0)
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
 set(CPACK_SET_DESTDIR "on")
-set(CPACK_PACKAGING_INSTALL_PREFIX "/tmp")
+set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_DESCRIPTION "Phasar")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Phasar a LLVM-based static analysis framework")
-set(CPACK_PACKAGE_VENDOR "Phasar - Philipp Schubert and others")
+set(CPACK_PACKAGE_VENDOR "Phasar Team - Philipp Schubert and others")
 set(CPACK_PACKAGE_CONTACT "philipp.schubert@upb.de")
 set(CPACK_PACKAGE_VERSION_MAJOR "${MAJOR_VERSION}")
 set(CPACK_PACKAGE_VERSION_MINOR "${MINOR_VERSION}")
@@ -188,7 +208,27 @@ set(CPACK_PACKAGE_VERSION_PATCH "${PATCH_VERSION}")
 set(CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}_${MAJOR_VERSION}.${MINOR_VERSION}.${CPACK_PACKAGE_VERSION_PATCH}")
 # package dependencies can be set-up here
-# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqtgui4 (>= 4.5.0), libstdc++6 (>= 4.2.1)")
+# autogenerate dependency information
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost_program_options (>= 1.66.0),
+#                                   libboost_filesystem (>= 1.66.0),
+#                                   libboost_graph (>= 1.66.0),
+#                                   libboost_system (>= 1.66.0),
+#                                   libboost_log (>= 1.66.0),
+#                                   libboost_thread (>= 1.66.0),
+#                                   libsqlite3 (>= 4.5.0),
+#                                   libpthread (>= 4.5.0),
+#                                   libdl (>= 4.5.0),
+#                                   libcurl-gnutls (>= 4.5.0),
+#                                   libmysqlcppconn (>= 4.5.0),
+#                                   librt (>= 4.5.0),
+#                                   libtinfo (>= 4.5.0),
+#                                   libz (>= 4.5.0),
+#                                   libm (>= 4.5.0),
+#                                   libstdc++ (>= 4.5.0),
+#                                   libgcc_s (>= 4.5.0),
+#                                   libc (>= 4.5.0),
+#                                   ld-linux-x86-64 (>= 4.5.0)")
 set(CPACK_DEBIAN_PACKAGE_PRIORITY "optional")
 set(CPACK_DEBIAN_PACKAGE_SECTION "kde")
 set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
