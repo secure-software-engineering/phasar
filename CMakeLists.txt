@@ -8,19 +8,20 @@ set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default i
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
-set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(BUILD_MODE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
-else()
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
-endif()
 # Set the default install prefix
 set(CMAKE_INSTALL_PREFIX /home/philipp/Schreibtisch/tmp)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(BUILD_MODE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+else()
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
+endif()
 
 # Enable testing
 enable_testing()
