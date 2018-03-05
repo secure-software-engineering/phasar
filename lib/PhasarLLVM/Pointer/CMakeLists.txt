@@ -1,10 +1,17 @@
 file(GLOB_RECURSE POINTER_SRC *.h *.cpp)
 
 # Handle the library files
-add_phasar_library(phasar_pointer
-	SHARED
-	${POINTER_SRC}
-)
+if(BUILD_SHARED_LIBS)
+	add_phasar_library(phasar_pointer
+		SHARED
+		${POINTER_SRC}
+	)
+else()
+	add_phasar_library(phasar_pointer
+		STATIC
+		${POINTER_SRC}
+	)
+endif()
 
 target_link_libraries(phasar_pointer
 

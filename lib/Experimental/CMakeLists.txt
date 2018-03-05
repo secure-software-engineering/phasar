@@ -1,9 +1,16 @@
 file(GLOB_RECURSE EXPERIMENTAL_SRC *.h *.cpp)
 
-add_phasar_library(phasar_experimental
-	SHARED
-	${EXPERIMENTAL_SRC}
-)
+if(BUILD_SHARED_LIBS)
+	add_phasar_library(phasar_experimental
+		SHARED
+		${EXPERIMENTAL_SRC}
+	)
+else()
+	add_phasar_library(phasar_experimental
+		STATIC
+		${EXPERIMENTAL_SRC}
+	)
+endif()
 
 target_link_libraries(phasar_experimental
   
