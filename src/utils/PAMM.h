@@ -304,9 +304,18 @@ public:
   template <typename Period = std::chrono::milliseconds>
   std::set<std::pair<std::string, unsigned long>> computeMiscTimes() {
     std::set<std::pair<std::string, unsigned long>> miscTimes;
-    unsigned long dfa_runtime = elapsedTime<Period>("DFA_runtime");
-    unsigned long irp_runtime = elapsedTime<Period>("IRP_runtime");
-    unsigned long fw_runtime = elapsedTime<Period>("FW_runtime");
+    unsigned long dfa_runtime, irp_runtime, fw_runtime;
+    // these checks are only needed to enable PAMM Tests that do not use
+    // one of those three timers
+    if (RunningTimer.count("DFA_runtime") || StoppedTimer.count("DFA_runtime")) {
+      dfa_runtime = elapsedTime<Period>("DFA_runtime");
+    }
+    if (RunningTimer.count("IRP_runtime") || StoppedTimer.count("IRP_runtime")) {
+      irp_runtime = elapsedTime<Period>("IRP_runtime");
+    }
+    if (RunningTimer.count("FW_runtime") || StoppedTimer.count("FW_runtime")) {
+      fw_runtime = elapsedTime<Period>("FW_runtime");
+    }
 
     for (auto timer : StoppedTimer) {
       if (timer.first.find("DFA") != std::string::npos &&
