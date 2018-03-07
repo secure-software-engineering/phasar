@@ -3,14 +3,14 @@ cmake_minimum_required (VERSION 3.0)
 # Specify the build options
 option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
-option(BUILD_DOC "Build documentation" ON)
+option(BUILD_DOC "Build documentation" OFF)
 set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')")
 
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 # Set the default install prefix
-set(CMAKE_INSTALL_PREFIX /home/philipp/Schreibtisch/tmp)
+set(CMAKE_INSTALL_PREFIX /usr/local)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
@@ -207,7 +207,7 @@ set(PATCH_VERSION 0)
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
 set(CPACK_SET_DESTDIR "on")
-set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/local")
+set(CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 set(CPACK_GENERATOR "DEB")
 set(CPACK_PACKAGE_DESCRIPTION "Phasar")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Phasar a LLVM-based static analysis framework")
