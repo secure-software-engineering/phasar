@@ -281,6 +281,12 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   if (broken_debug_info) {
     BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
   }
+  for (auto RR : GSP->getRetResInstructions()) {
+    ret_res_instructions.insert(RR);
+  }
+  for (auto A : GSP->getAllocaInstructions()) {
+    alloca_instructions.insert(A);
+  }
   STOP_TIMER("IRP_ModulePass_" + moduleID);
   START_TIMER("IRP_PTGConstruction_" + moduleID);
   // Obtain the very important alias analysis results
@@ -625,6 +631,14 @@ void ProjectIRDB::insertPointsToGraph(const std::string &FunctionName,
       std::make_pair(FunctionName, std::unique_ptr<PointsToGraph>(ptg)));
 }
 
+std::set<const llvm::Value *> ProjectIRDB::getAllocaInstructions() {
+  return alloca_instructions;
+}
+
+std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
+  return ret_res_instructions;
+}
+
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
   std::set<const llvm::Function *> funs;
   for (auto entry : functions) {
@@ -652,4 +666,11 @@ void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
       std::make_pair(M->getModuleIdentifier(),
                      std::unique_ptr<llvm::LLVMContext>(&M->getContext())));
   modules.insert(std::make_pair(M->getModuleIdentifier(), std::move(M)));
+}
+
+std::string ProjectIRDB::getGlobalVariableModuleName(const std::string &GlobalVariableName) {
+  if (globals.count(GlobalVariableName)) {
+    return globals[GlobalVariableName];
+  }
+  return "";
 }

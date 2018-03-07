@@ -58,6 +58,8 @@ private:
   size_t instructions = 0;
   size_t pointers = 0;
   set<const llvm::Type *> allocatedTypes;
+  set<const llvm::Value *> allocaInstrucitons;
+  set<const llvm::Instruction *> retResInstructions;
 
 public:
   // TODO What's the ID good for?
@@ -123,6 +125,16 @@ public:
    * @brief Returns all possible Types.
    */
   set<const llvm::Type *> getAllocatedTypes();
+
+  /**
+ * @brief Returns all stack and heap allocating instructions.
+ */
+  set<const llvm::Value *> getAllocaInstructions();
+
+  /**
+   * @brief Returns all Return and Resume Instructions.
+   */
+  set<const llvm::Instruction *> getRetResInstructions();
 };
 
 #endif /* ANALYSIS_GENERALSTATISTICSPASS_HH_ */

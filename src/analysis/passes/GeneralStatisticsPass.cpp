@@ -33,6 +33,8 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
         if (const llvm::AllocaInst *alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
           allocatedTypes.insert(alloc->getAllocatedType());
+          // do not add allocas from llvm internal functions
+          allocaInstrucitons.insert(&I);
         } // check bitcast instructions for possible types
         else {
           for (auto user : I.users()) {
@@ -43,6 +45,11 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
           }
         }
 
+        // check for return or resume instrucitons
+        if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
+          retResInstructions.insert(&I);
+        }
+
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++callsites;
@@ -51,6 +58,8 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
             if (mem_allocating_functions.find(
                     cxx_demangle(CS.getCalledFunction()->getName().str())) !=
                 mem_allocating_functions.end()) {
+              // do not add allocas from llvm internal functions
+              allocaInstrucitons.insert(&I);
               ++allocationsites;
             }
           }
@@ -104,4 +113,12 @@ size_t GeneralStatisticsPass::getPointers() { return pointers; }
 
 set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
   return allocatedTypes;
+}
+
+set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
+  return allocaInstrucitons;
+}
+
+set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
+  return retResInstructions;
 }

@@ -502,6 +502,6 @@ int main(int argc, const char **argv) {
   bl::core::get()->flush();
   STOP_TIMER("FW_runtime");
   // PRINT_EVA_DATA;
-  EXPORT_EVA_DATA("pamm_results.json");
+  EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
   return 0;
 }

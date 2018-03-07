@@ -1,5 +1,7 @@
-int *ptr = new int(42);
+/* immutable: - */
+int *gp = new int(42);
 
 int main() {
+  *gp = 20;
 	return 0;
 }

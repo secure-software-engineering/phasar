@@ -1,4 +1,4 @@
-/* mutable: i */
+/* immutable: - */
 int main() {
 	int i = 13;
 	i = 17;

@@ -1,4 +1,4 @@
-/* mutable: k */
+/* immutable: i */
 int main() {
 	int i = 0;
 	int k = 12;

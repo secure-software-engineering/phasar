@@ -1,4 +1,4 @@
-/* mutable: c,i */
+/* immutable: - */
 int main() {
 	int c = 42;
 	for (int i = 0; i < 2; ++i) {

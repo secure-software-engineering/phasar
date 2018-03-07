@@ -1,4 +1,4 @@
-/* mutable: i */
+/* immutable: a */
 int foo() {
 	int a = 42;
 	return a;

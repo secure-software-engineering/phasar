@@ -1,10 +1,12 @@
-/* mutable: ret value of foo */
+/* immutable: i */
 int* foo() {
-	return new int(42);
+	int a = 42;
+	return &a;
 }
 
 int main() {
-	int *p = foo();
-	*p = 13;
+	int *i;
+  i = foo();
+  *i = 10;
 	return 0;
 }

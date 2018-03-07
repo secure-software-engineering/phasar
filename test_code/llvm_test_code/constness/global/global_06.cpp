@@ -1,13 +1,13 @@
-/* mutable: gint */
-int gint = 10;
+/* immutable: - */
+int *gint;
 
 void foo() {
-	gint = gint + 1;
+  *gint = 99;
 }
 
 int main() {
-	int *i = &gint;
+  int i = 42;
+  gint = &i;
   foo();
-  *i = 42;
-	return 0;
+  return 0;
 }

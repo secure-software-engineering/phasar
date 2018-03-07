@@ -1,4 +1,4 @@
-/* mutable: gint */
+/* immutable: - */
 int gint = 10;
 
 void foo() {
