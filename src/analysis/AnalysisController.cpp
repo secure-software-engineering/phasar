@@ -99,26 +99,28 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-            taintanalysisproblem, true);
+            taintanalysisproblem, false);
+        cout << "IFDS Taint Analysis started!" << endl;
         llvmtaintsolver.solve();
+        cout << "IFDS Taint Analysis finished!" << endl;
         // Here we can get the leaks
-        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-            taintanalysisproblem.Leaks;
-        BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
-        if (Leaks.empty()) {
-          BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
-        } else {
-          for (auto Leak : Leaks) {
-            string ModuleName =
-                getModuleFromVal(Leak.first)->getModuleIdentifier();
-            BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
-                                    << llvmIRToString(Leak.first)
-                                    << "' in file: '" << ModuleName << "'";
-            for (auto LeakValue : Leak.second) {
-              BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
-            }
-          }
-        }
+        //map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
+        //    taintanalysisproblem.Leaks;
+        //BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+        //if (Leaks.empty()) {
+        //  BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+        //} else {
+        //  for (auto Leak : Leaks) {
+        //    string ModuleName =
+        //        getModuleFromVal(Leak.first)->getModuleIdentifier();
+        //    BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
+        //                            << llvmIRToString(Leak.first)
+        //                            << "' in file: '" << ModuleName << "'";
+        //    for (auto LeakValue : Leak.second) {
+        //      BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+        //    }
+        //  }
+        //}
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -138,8 +140,10 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem, true);
+            uninitializedvarproblem, false);
+        cout << "IFDS Uninit Analysis started!" << endl;
         llvmunivsolver.solve();
+        cout << "IFDS Uninit Analysis finished!" << endl;
         if (PrintEdgeRecorder) {
           llvmunivsolver.exportJson(graph_id);
         }
@@ -149,88 +153,88 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
             constproblem, false);
-        cout << "Const Analysis started!" << endl;
+        cout << "IFDS Const Analysis started!" << endl;
         llvmconstsolver.solve();
-        cout << "Const Analysis finished!" << endl;
-        constproblem.printInitilizedSet();
-        // get all stack and heap alloca instructions
-        std::set<const llvm::Value *> allMemoryLoc =
-            IRDB.getAllocaInstructions();
-        std::set<std::string> IgnoredGlobalNames = {"llvm.used",
-                                                    "llvm.compiler.used",
-                                                    "llvm.global_ctors",
-                                                    "llvm.global_dtors",
-                                                    "vtable",
-                                                    "typeinfo"};
-        // add global varibales to the memory location set, except the llvm
-        // intrinsic global variables
-        for (auto M : IRDB.getAllModules()) {
-          for (auto &GV : M->globals()) {
-            if (GV.hasName()) {
-              string GVName = cxx_demangle(GV.getName().str());
-              if (!IgnoredGlobalNames.count(
-                      GVName.substr(0, GVName.find(' ')))) {
-                allMemoryLoc.insert(&GV);
-              }
-            }
-          }
-        }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
-        for (auto memloc : allMemoryLoc) {
-          BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
-        }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "Printing return/resume instruction + dataflow facts:";
-        for (auto RR : IRDB.getRetResInstructions()) {
-          std::set<const llvm::Value *> facts =
-              llvmconstsolver.ifdsResultsAt(RR);
-          // Empty facts means the return/resume statement is part of not
-          // analyzed function - remove all allocas of that function
-          if (facts.empty()) {
-            const llvm::Function *F = RR->getParent()->getParent();
-            for (auto mem_itr = allMemoryLoc.begin();
-                 mem_itr != allMemoryLoc.end();) {
-              if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
-                if (Inst->getParent()->getParent() == F) {
-                  mem_itr = allMemoryLoc.erase(mem_itr);
-                } else {
-                  ++mem_itr;
-                }
-              } else {
-                ++mem_itr;
-              }
-            }
-          } else {
-            BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
-            for (auto fact : facts) {
-              if (isAllocaInstOrHeapAllocaFunction(fact) ||
-                  llvm::isa<llvm::GlobalValue>(fact)) {
-                BOOST_LOG_SEV(lg, DEBUG) << "   Fact: "
-                                         << constproblem.DtoString(fact);
-                // remove allocas that are mutable, i.e. are valid facts
-                allMemoryLoc.erase(fact);
-              }
-            }
-          }
-        }
-        BOOST_LOG_SEV(lg, INFO) << "-------------";
-        BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
-        for (auto memloc : allMemoryLoc) {
-          if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
-            BOOST_LOG_SEV(lg, INFO)
-                << "in function "
-                << memlocInst->getParent()->getParent()->getName().str() << ": "
-                << llvmIRToString(memlocInst);
-          } else {
-            BOOST_LOG_SEV(lg, INFO)
-                << "in module "
-                << IRDB.getGlobalVariableModuleName(memloc->getName().str())
-                << ": " << llvmIRToString(memloc);
-          }
-        }
-        BOOST_LOG_SEV(lg, INFO) << "-------------";
+        cout << "IFDS Const Analysis finished!" << endl;
+        //constproblem.printInitilizedSet();
+        //// get all stack and heap alloca instructions
+        //std::set<const llvm::Value *> allMemoryLoc =
+        //    IRDB.getAllocaInstructions();
+        //std::set<std::string> IgnoredGlobalNames = {"llvm.used",
+        //                                            "llvm.compiler.used",
+        //                                            "llvm.global_ctors",
+        //                                            "llvm.global_dtors",
+        //                                            "vtable",
+        //                                            "typeinfo"};
+        //// add global varibales to the memory location set, except the llvm
+        //// intrinsic global variables
+        //for (auto M : IRDB.getAllModules()) {
+        //  for (auto &GV : M->globals()) {
+        //    if (GV.hasName()) {
+        //      string GVName = cxx_demangle(GV.getName().str());
+        //      if (!IgnoredGlobalNames.count(
+        //              GVName.substr(0, GVName.find(' ')))) {
+        //        allMemoryLoc.insert(&GV);
+        //      }
+        //    }
+        //  }
+        //}
+        //BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        //BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
+        //for (auto memloc : allMemoryLoc) {
+        //  BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
+        //}
+        //BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        //BOOST_LOG_SEV(lg, DEBUG)
+        //    << "Printing return/resume instruction + dataflow facts:";
+        //for (auto RR : IRDB.getRetResInstructions()) {
+        //  std::set<const llvm::Value *> facts =
+        //      llvmconstsolver.ifdsResultsAt(RR);
+        //  // Empty facts means the return/resume statement is part of not
+        //  // analyzed function - remove all allocas of that function
+        //  if (facts.empty()) {
+        //    const llvm::Function *F = RR->getParent()->getParent();
+        //    for (auto mem_itr = allMemoryLoc.begin();
+        //         mem_itr != allMemoryLoc.end();) {
+        //      if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
+        //        if (Inst->getParent()->getParent() == F) {
+        //          mem_itr = allMemoryLoc.erase(mem_itr);
+        //        } else {
+        //          ++mem_itr;
+        //        }
+        //      } else {
+        //        ++mem_itr;
+        //      }
+        //    }
+        //  } else {
+        //    BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
+        //    for (auto fact : facts) {
+        //      if (isAllocaInstOrHeapAllocaFunction(fact) ||
+        //          llvm::isa<llvm::GlobalValue>(fact)) {
+        //        BOOST_LOG_SEV(lg, DEBUG) << "   Fact: "
+        //                                 << constproblem.DtoString(fact);
+        //        // remove allocas that are mutable, i.e. are valid facts
+        //        allMemoryLoc.erase(fact);
+        //      }
+        //    }
+        //  }
+        //}
+        //BOOST_LOG_SEV(lg, INFO) << "-------------";
+        //BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        //for (auto memloc : allMemoryLoc) {
+        //  if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
+        //    BOOST_LOG_SEV(lg, INFO)
+        //        << "in function "
+        //        << memlocInst->getParent()->getParent()->getName().str() << ": "
+        //        << llvmIRToString(memlocInst);
+        //  } else {
+        //    BOOST_LOG_SEV(lg, INFO)
+        //        << "in module "
+        //        << IRDB.getGlobalVariableModuleName(memloc->getName().str())
+        //        << ": " << llvmIRToString(memloc);
+        //  }
+        //}
+        //BOOST_LOG_SEV(lg, INFO) << "-------------";
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
