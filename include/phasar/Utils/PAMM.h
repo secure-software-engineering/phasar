@@ -95,7 +95,8 @@ private:
   typedef std::chrono::high_resolution_clock::time_point time_point;
   // TODO: try unordered_map instead of map - maybe it's faster
   std::unordered_map<std::string, time_point> RunningTimer;
-  std::unordered_map<std::string, std::pair<time_point, time_point>> StoppedTimer;
+  std::unordered_map<std::string, std::pair<time_point, time_point>>
+      StoppedTimer;
   std::unordered_map<std::string, unsigned> Counter;
   std::unordered_map<unsigned long, unsigned long> SetHistogram;
 

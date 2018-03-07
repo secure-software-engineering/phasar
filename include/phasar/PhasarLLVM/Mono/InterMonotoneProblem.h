@@ -23,10 +23,10 @@ using namespace std;
 
 template <typename N, typename D, typename M, typename C, typename I>
 class InterMonotoneProblem {
- protected:
+protected:
   I ICFG;
 
- public:
+public:
   InterMonotoneProblem(I Icfg) : ICFG(Icfg) {}
   virtual ~InterMonotoneProblem() = default;
   I getICFG() { return ICFG; }

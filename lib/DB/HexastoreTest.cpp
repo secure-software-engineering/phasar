@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/DB/Hexastore.h>
 #include <algorithm>
 #include <array>
 #include <assert.h>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <iostream>
+#include <phasar/DB/Hexastore.h>
 
 using namespace std;
 using namespace hexastore;

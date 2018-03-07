@@ -17,9 +17,9 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
 #define SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
 
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <iostream>
 #include <map>
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <set>
 #include <string>
 using namespace std;
@@ -27,13 +27,13 @@ using namespace std;
 template <typename N, typename D, typename M, typename I, typename V,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
 class IDESummaryGenerator {
- protected:
+protected:
   const string toSummarize;
   const I icfg;
   const SummaryGenerationStrategy CTXStrategy;
 
   class CTXFunctionProblem : public ConcreteTabulationProblem {
-   public:
+  public:
     const N start;
     set<D> facts;
 
@@ -53,7 +53,7 @@ class IDESummaryGenerator {
     }
   };
 
- public:
+public:
   IDESummaryGenerator(string Function, I Icfg,
                       SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(Icfg), CTXStrategy(Strategy) {}
@@ -61,21 +61,21 @@ class IDESummaryGenerator {
   void generateSummaries() {
     // initialize the input combinations that should be considered
     switch (CTXStrategy) {
-      case SummaryGenerationStrategy::always_all:
+    case SummaryGenerationStrategy::always_all:
 
-        break;
-      case SummaryGenerationStrategy::always_none:
+      break;
+    case SummaryGenerationStrategy::always_none:
 
-        break;
-      case SummaryGenerationStrategy::all_and_none:
+      break;
+    case SummaryGenerationStrategy::all_and_none:
 
-        break;
-      case SummaryGenerationStrategy::powerset:
+      break;
+    case SummaryGenerationStrategy::powerset:
 
-        break;
-      case SummaryGenerationStrategy::all_observed:
-        // TODO here we have to track what we have already observed first!
-        break;
+      break;
+    case SummaryGenerationStrategy::all_observed:
+      // TODO here we have to track what we have already observed first!
+      break;
     }
   }
 };

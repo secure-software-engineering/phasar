@@ -10,6 +10,9 @@
 #ifndef IFDSTOIDETABULATIONPROBLEM_H_
 #define IFDSTOIDETABULATIONPROBLEM_H_
 
+#include <algorithm>
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
@@ -18,9 +21,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <algorithm>
-#include <map>
-#include <memory>
 #include <set>
 #include <type_traits>
 #include <utility>
@@ -36,7 +36,7 @@ extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
 template <typename N, typename D, typename M, typename I>
 class IFDSToIDETabulationProblem
     : public IDETabulationProblem<N, D, M, BinaryDomain, I> {
- public:
+public:
   IFDSTabulationProblem<N, D, M, I> &problem;
 
   IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
@@ -54,9 +54,8 @@ class IFDSToIDETabulationProblem
     return problem.getCallFlowFunction(callStmt, destMthd);
   }
 
-  shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd,
-                                                 N exitStmt,
-                                                 N retSite) override {
+  shared_ptr<FlowFunction<D>>
+  getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) override {
     return problem.getRetFlowFunction(callSite, calleeMthd, exitStmt, retSite);
   }
 
@@ -94,41 +93,44 @@ class IFDSToIDETabulationProblem
     return make_shared<AllTop<BinaryDomain>>(BinaryDomain::TOP);
   }
 
-  shared_ptr<EdgeFunction<BinaryDomain>> getNormalEdgeFunction(
-      N src, D srcNode, N tgt, D tgtNode) override {
+  shared_ptr<EdgeFunction<BinaryDomain>>
+  getNormalEdgeFunction(N src, D srcNode, N tgt, D tgtNode) override {
     if (problem.isZeroValue(srcNode))
       return ALL_BOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::v();
   }
 
-  shared_ptr<EdgeFunction<BinaryDomain>> getCallEdgeFunction(
-      N callStmt, D srcNode, M destinationMethod, D destNode) override {
+  shared_ptr<EdgeFunction<BinaryDomain>>
+  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod,
+                      D destNode) override {
     if (problem.isZeroValue(srcNode))
       return ALL_BOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::v();
   }
 
-  shared_ptr<EdgeFunction<BinaryDomain>> getReturnEdgeFunction(
-      N callSite, M calleeMethod, N exitStmt, D exitNode, N returnSite,
-      D retNode) override {
+  shared_ptr<EdgeFunction<BinaryDomain>>
+  getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt, D exitNode,
+                        N returnSite, D retNode) override {
     if (problem.isZeroValue(exitNode))
       return ALL_BOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::v();
   }
 
-  shared_ptr<EdgeFunction<BinaryDomain>> getCallToReturnEdgeFunction(
-      N callStmt, D callNode, N returnSite, D returnSideNode) override {
+  shared_ptr<EdgeFunction<BinaryDomain>>
+  getCallToReturnEdgeFunction(N callStmt, D callNode, N returnSite,
+                              D returnSideNode) override {
     if (problem.isZeroValue(callNode))
       return ALL_BOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::v();
   }
 
-  shared_ptr<EdgeFunction<BinaryDomain>> getSummaryEdgeFunction(
-      N callStmt, D callNode, N retSite, D retSiteNode) override {
+  shared_ptr<EdgeFunction<BinaryDomain>>
+  getSummaryEdgeFunction(N callStmt, D callNode, N retSite,
+                         D retSiteNode) override {
     return EdgeIdentity<BinaryDomain>::v();
   }
 

@@ -17,6 +17,9 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
 
+#include <chrono>
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -33,9 +36,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>
-#include <chrono>
-#include <map>
-#include <memory>
 #include <set>
 #include <type_traits>
 #include <utility>
@@ -60,7 +60,7 @@ class IFDSToIDETabulationProblem;
  */
 template <typename N, typename D, typename M, typename V, typename I>
 class IDESolver {
- public:
+public:
   IDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
         cachedFlowEdgeFunctions(tabulationProblem),
@@ -203,8 +203,8 @@ class IDESolver {
                             << GET_COUNTER("FFApplicationCount");
     BOOST_LOG_SEV(lg, INFO) << "special flow function usage count: "
                             << GET_COUNTER("SpecialSummaryFFApplicationCount");
-    BOOST_LOG_SEV(lg, INFO) << "propagation count: "
-                            << GET_COUNTER("PropagationCount");
+    BOOST_LOG_SEV(lg, INFO)
+        << "propagation count: " << GET_COUNTER("PropagationCount");
     BOOST_LOG_SEV(lg, INFO) << "flow function construction duration: "
                             << PRINT_TIMER("FFConstructionTime");
     BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "
@@ -240,7 +240,7 @@ class IDESolver {
     return result;
   }
 
- private:
+private:
   unique_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
   IDETabulationProblem<N, D, M, V, I> &ideTabulationProblem;
   FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
@@ -250,7 +250,8 @@ class IDESolver {
                  bool interP) {
     PAMM_FACTORY;
     ADD_DATA_TO_SET_HIST(destVals.size());
-    if (!recordEdges) return;
+    if (!recordEdges)
+      return;
     Table<N, N, map<D, set<D>>> &tgtMap =
         (interP) ? computedInterPathEdges : computedIntraPathEdges;
     tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
@@ -283,7 +284,7 @@ class IDESolver {
         << "process call at target: "
         << ideTabulationProblem.NtoString(edge.getTarget());
     D d1 = edge.factAtSource();
-    N n = edge.getTarget();  // a call node; line 14...
+    N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
@@ -299,7 +300,7 @@ class IDESolver {
       BOOST_LOG_SEV(lg, DEBUG) << ideTabulationProblem.NtoString(ret);
     }
     // for each possible callee
-    for (M sCalledProcN : callees) {  // still line 14
+    for (M sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
       shared_ptr<FlowFunction<D>> specialSum =
           cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
@@ -340,7 +341,7 @@ class IDESolver {
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
-            propagate(d3, sP, d3, EdgeIdentity<V>::v(), n, false);  // line 15
+            propagate(d3, sP, d3, EdgeIdentity<V>::v(), n, false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
             // line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(sP, d3, n, d2);
@@ -594,15 +595,16 @@ class IDESolver {
           shared_ptr<EdgeFunction<V>> fPrime =
               sourceValTargetValAndFunction.getValue();
           V targetVal = val(sP, dPrime);
-          setVal(n, d, ideTabulationProblem.join(
-                           val(n, d), fPrime->computeTarget(targetVal)));
+          setVal(n, d,
+                 ideTabulationProblem.join(val(n, d),
+                                           fPrime->computeTarget(targetVal)));
           INC_COUNTER("FFApplicationCount");
         }
       }
     }
   }
 
- protected:
+protected:
   D zeroValue;
   I icfg;
   bool computevalues;
@@ -736,7 +738,7 @@ class IDESolver {
     BOOST_LOG_SEV(lg, DEBUG)
         << "process exit at target: "
         << ideTabulationProblem.NtoString(edge.getTarget());
-    N n = edge.getTarget();  // an exit node; line 21...
+    N n = edge.getTarget(); // an exit node; line 21...
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     M methodThatNeedsSummary = icfg.getMethodOf(n);
     D d1 = edge.factAtSource();
@@ -895,8 +897,9 @@ class IDESolver {
   /**
    * TODO: comment
    */
-  set<D> computeSummaryFlowFunction(
-      shared_ptr<FlowFunction<D>> SummaryFlowFunction, D d1, D d2) {
+  set<D>
+  computeSummaryFlowFunction(shared_ptr<FlowFunction<D>> SummaryFlowFunction,
+                             D d1, D d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -959,10 +962,10 @@ class IDESolver {
    * unbalanced return (this value is not used within this implementation
    * but may be useful for subclasses of {@link IDESolver})
    */
-  void propagate(
-      D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<V>> f,
-      /* deliberately exposed to clients */ N relatedCallSite,
-      /* deliberately exposed to clients */ bool isUnbalancedReturn) {
+  void
+  propagate(D sourceVal, N target, D targetVal, shared_ptr<EdgeFunction<V>> f,
+            /* deliberately exposed to clients */ N relatedCallSite,
+            /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     auto &lg = lg::get();
     shared_ptr<EdgeFunction<V>> jumpFnE = nullptr;
     shared_ptr<EdgeFunction<V>> fPrime;
@@ -970,7 +973,7 @@ class IDESolver {
       jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
     }
     if (jumpFnE == nullptr) {
-      jumpFnE = allTop;  // jump function is initialized to all-top
+      jumpFnE = allTop; // jump function is initialized to all-top
     }
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equalTo(jumpFnE));
@@ -992,8 +995,8 @@ class IDESolver {
     return ideTabulationProblem.join(curr, newVal);
   }
 
-  set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell> endSummary(
-      N sP, D d3) {
+  set<typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>
+  endSummary(N sP, D d3) {
     return endsummarytab.get(sP, d3).cellSet();
   }
 
@@ -1007,16 +1010,16 @@ class IDESolver {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start incomingtab entry";
     for (auto cell : incomingtab.cellSet()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
-                               << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d3: "
-                               << ideTabulationProblem.DtoString(cell.c);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "sP: " << ideTabulationProblem.NtoString(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "d3: " << ideTabulationProblem.DtoString(cell.c);
       for (auto entry : cell.v) {
-        BOOST_LOG_SEV(lg, DEBUG) << "n: "
-                                 << ideTabulationProblem.NtoString(entry.first);
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "n: " << ideTabulationProblem.NtoString(entry.first);
         for (auto fact : entry.second) {
-          BOOST_LOG_SEV(lg, DEBUG) << "d2: "
-                                   << ideTabulationProblem.DtoString(fact);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "d2: " << ideTabulationProblem.DtoString(fact);
         }
       }
       BOOST_LOG_SEV(lg, DEBUG) << "-----";
@@ -1028,10 +1031,10 @@ class IDESolver {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "start endsummarytab entry";
     for (auto cell : endsummarytab.cellVec()) {
-      BOOST_LOG_SEV(lg, DEBUG) << "sP: "
-                               << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG) << "d1: "
-                               << ideTabulationProblem.DtoString(cell.c);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "sP: " << ideTabulationProblem.NtoString(cell.r);
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "d1: " << ideTabulationProblem.DtoString(cell.c);
       for (auto inner_cell : cell.v.cellVec()) {
         BOOST_LOG_SEV(lg, DEBUG)
             << "eP: " << ideTabulationProblem.NtoString(inner_cell.r);

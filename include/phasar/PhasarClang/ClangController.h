@@ -10,12 +10,12 @@
 #ifndef CLANGCONTROLLER_H_
 #define CLANGCONTROLLER_H_
 
+#include <iostream>
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 #include <phasar/Utils/Logger.h>
-#include <iostream>
 
 class ClangController {
- public:
+public:
   ClangController(clang::tooling::CommonOptionsParser &OptionsParser);
 };
 

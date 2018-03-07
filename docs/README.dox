@@ -2,8 +2,13 @@
 
 @mainpage Phasar a LLVM-based Static Analysis Framework
 
-@author Philipp Schubert (E-Mail: philipp@it-schubert.com)
-@author and others
+@author Philipp Schubert (E-Mail: philipp.schubert@upb.de) and others
+
+\b Copyright \n
+	Copyright 2017 Philipp Schubert. All rights reserved.
+
+\b License \n
+	See LICENSE.txt
 
 TODO: add detailed description.
 

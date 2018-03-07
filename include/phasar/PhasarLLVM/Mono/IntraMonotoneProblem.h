@@ -23,11 +23,11 @@ using namespace std;
 
 template <typename N, typename D, typename M, typename C>
 class IntraMonotoneProblem {
- protected:
+protected:
   C CFG;
   M Function;
 
- public:
+public:
   IntraMonotoneProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
   virtual ~IntraMonotoneProblem() = default;
   C getCFG() { return CFG; }

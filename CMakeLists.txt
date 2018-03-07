@@ -3,13 +3,14 @@ cmake_minimum_required (VERSION 3.0)
 # Specify the build options
 option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+option(BUILD_DOC "Build documentation" ON)
 set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')")
 
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 # Set the default install prefix
-set(CMAKE_INSTALL_PREFIX /home/philipp/Schreibtisch/tmp)
+set(CMAKE_INSTALL_PREFIX /usr/local)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
@@ -238,3 +239,22 @@ set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 set(CPACK_COMPONENTS_ALL Libraries ApplicationData)
 INCLUDE(CPack)
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+
+# Setup the doxygen code documentation
+if(BUILD_DOC)
+  find_package(Doxygen)
+  if (DOXYGEN_FOUND)
+    set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
+    set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+    configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+    message("Doxygen build started")
+    add_custom_target(doc_doxygen ALL
+      COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+      COMMENT "Generating API documentation with Doxygen"
+      VERBATIM
+    )
+  else(DOXYGEN_FOUND)
+    message(FATAL_ERROR "Doxygen need to be installed to generate the doxygen documentation.")
+  endif()
+endif()

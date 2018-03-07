@@ -17,14 +17,6 @@
 #ifndef ANALYSIS_LLVMTYPEHIERARCHY_H_
 #define ANALYSIS_LLVMTYPEHIERARCHY_H_
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/Utils/Logger.h>
 #include <algorithm>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
@@ -34,7 +26,15 @@
 #include <fstream>
 #include <initializer_list>
 #include <iostream>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
 #include <map>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/Utils/Logger.h>
 #include <set>
 #include <string>
 #include <tuple>
@@ -49,7 +49,7 @@ using namespace std;
  * 	and reconstructing the virtual method tables.
  */
 class LLVMTypeHierarchy {
- public:
+public:
   /// necessary for storing/loading the LLVMTypeHierarchy to/from database
   friend class DBConn;
 
@@ -77,7 +77,7 @@ class LLVMTypeHierarchy {
   /// The type for edge representative objects.
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
 
- private:
+private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
     set<vertex_t> &subtypes;
     reachability_dfs_visitor(set<vertex_t> &types) : subtypes(types) {}
@@ -98,7 +98,7 @@ class LLVMTypeHierarchy {
   void reconstructVTable(const llvm::Module &M);
   FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
 
- public:
+public:
   /**
    * 	@brief Creates an empty LLVMStructTypeHierarchy.
    *

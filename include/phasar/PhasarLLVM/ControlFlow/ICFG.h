@@ -17,9 +17,9 @@
 #ifndef ANALYSIS_IFDS_IDE_ICFG_H_
 #define ANALYSIS_IFDS_IDE_ICFG_H_
 
+#include <iostream>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>

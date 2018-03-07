@@ -17,14 +17,14 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
 
+#include <algorithm>
 #include <curl/curl.h>
+#include <json.hpp>
+#include <map>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/Utils/Table.h>
-#include <algorithm>
-#include <json.hpp>
-#include <map>
 #include <string>
 
 using json = nlohmann::json;
@@ -33,12 +33,12 @@ using namespace std;
 template <typename D, typename I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
                                          const llvm::Function *, I> {
- private:
+private:
   const bool DUMP_RESULTS;
   IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I>
       &Problem;
 
- public:
+public:
   virtual ~LLVMIFDSSolver() = default;
 
   LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
@@ -46,8 +46,7 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
                  bool dumpResults = false)
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
-        DUMP_RESULTS(dumpResults),
-        Problem(problem) {
+        DUMP_RESULTS(dumpResults), Problem(problem) {
     cout << "LLVMIFDSSolver::LLVMIFDSSolver()" << endl;
     cout << problem.NtoString(getNthInstruction(
                 problem.interproceduralCFG().getMethod("main"), 1))
@@ -62,7 +61,8 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) dumpResults();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   void dumpResults() {
@@ -143,9 +143,9 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
   /**
    * gets id for node from map or adds it if it doesn't exist
    **/
-  json getJsonOfNode(
-      const llvm::Instruction *node,
-      std::map<const llvm::Instruction *, int> *instruction_id_map) {
+  json
+  getJsonOfNode(const llvm::Instruction *node,
+                std::map<const llvm::Instruction *, int> *instruction_id_map) {
     std::map<const llvm::Instruction *, int>::iterator it =
         instruction_id_map->find(node);
     json jsonNode;

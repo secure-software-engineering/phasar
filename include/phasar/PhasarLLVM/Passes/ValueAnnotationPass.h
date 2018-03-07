@@ -17,6 +17,7 @@
 #ifndef ANALYSIS_VALUEANNOTATIONPASS_H_
 #define ANALYSIS_VALUEANNOTATIONPASS_H_
 
+#include <iostream>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LLVMContext.h>
@@ -28,7 +29,6 @@
 #include <llvm/Support/raw_os_ostream.h>
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/Logger.h>
-#include <iostream>
 #include <string>
 #include <vector>
 
@@ -42,11 +42,11 @@
  * @brief Annotates every Instruction with a unique ID.
  */
 class ValueAnnotationPass : public llvm::ModulePass {
- private:
+private:
   static size_t unique_value_id;
   llvm::LLVMContext &context;
 
- public:
+public:
   // TODO What's the ID good for?
   static char ID;
   // TODO What exactly does the constructor do?

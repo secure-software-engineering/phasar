@@ -9,18 +9,19 @@
 
 #include <phasar/Controller/AnalysisController.h>
 
-const std::map<std::string, ExportType> StringToExportType = {{"json", ExportType::JSON}};
+const std::map<std::string, ExportType> StringToExportType = {
+    {"json", ExportType::JSON}};
 
-const std::map<ExportType, std::string> ExportTypeToString = {{ExportType::JSON, "json"}};
+const std::map<ExportType, std::string> ExportTypeToString = {
+    {ExportType::JSON, "json"}};
 
 std::ostream &operator<<(std::ostream &os, const ExportType &E) {
   return os << ExportTypeToString.at(E);
 }
 
-AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
-                                       std::vector<DataFlowAnalysisType> Analyses,
-                                       bool WPA_MODE, bool PrintEdgeRecorder,
-                                       std::string graph_id)
+AnalysisController::AnalysisController(
+    ProjectIRDB &&IRDB, std::vector<DataFlowAnalysisType> Analyses,
+    bool WPA_MODE, bool PrintEdgeRecorder, std::string graph_id)
     : FinalResultsJson() {
   PAMM_FACTORY;
   auto &lg = lg::get();
@@ -147,12 +148,12 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
-          constproblem, true);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+            constproblem, true);
         cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
         cout << "Const Analysis finished!" << endl;
-        //constproblem.printInitilizedSet();
+        // constproblem.printInitilizedSet();
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {

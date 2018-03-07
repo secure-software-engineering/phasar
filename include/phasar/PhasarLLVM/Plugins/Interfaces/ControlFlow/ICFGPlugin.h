@@ -12,19 +12,19 @@
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
+#include <map>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <map>
 #include <string>
 using namespace std;
 
 class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
- private:
+private:
   ProjectIRDB &IRDB;
   const vector<string> EntryPoints;
 
- public:
+public:
   ICFGPlugin(ProjectIRDB &IRDB, const vector<string> EntryPoints)
       : IRDB(IRDB), EntryPoints(move(EntryPoints)) {}
 };

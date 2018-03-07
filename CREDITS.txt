@@ -5,7 +5,15 @@ The fields are: name (N), email (E), web-address (W), description (D)
 N: Philipp Schubert
 E: philipp.schubert@upb.de
 W: http://it-schubert.com
-D: Initial implementation and new features
+D: Initial implementation and chief developer new features
+
+N: Martin Mory
+E: martin.mory@upb.de
+D: CMake
+
+N: Florian Sattler
+E: sattlerf@fim.uni-passau.de
+D: CMake build as llvm drop-in
 
 N: Christian Stritzke
 E: christian.stritzke@iem.fraunhofer.de

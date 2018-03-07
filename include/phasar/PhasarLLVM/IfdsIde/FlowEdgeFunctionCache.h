@@ -10,13 +10,13 @@
 #ifndef FLOWEDGEFUNCTIONCACHE_H_
 #define FLOWEDGEFUNCTIONCACHE_H_
 
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/Utils/PAMM.h>
-#include <map>
-#include <memory>
 #include <tuple>
 
 /**
@@ -55,8 +55,7 @@ struct FlowEdgeFunctionCache {
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
   FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &problem)
-      : problem(problem),
-        autoAddZero(problem.solver_config.autoAddZero),
+      : problem(problem), autoAddZero(problem.solver_config.autoAddZero),
         zeroValue(problem.zeroValue()) {
     PAMM_FACTORY;
     REG_COUNTER("NormalFFConstructionCount");
@@ -188,9 +187,8 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>> getCallEdgeFunction(N callStmt, D srcNode,
-                                                       M destiantionMethod,
-                                                       D destNode) {
+  std::shared_ptr<EdgeFunction<V>>
+  getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod, D destNode) {
     PAMM_FACTORY;
     auto key = std::tie(callStmt, srcNode, destiantionMethod, destNode);
     if (CallEdgeFunctionCache.count(key)) {
@@ -242,9 +240,8 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>> getSummaryEdgeFunction(N callSite,
-                                                          D callNode, N retSite,
-                                                          D retSiteNode) {
+  std::shared_ptr<EdgeFunction<V>>
+  getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
     PAMM_FACTORY;
     auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (SummaryEdgeFunctionCache.count(key)) {

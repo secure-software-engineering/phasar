@@ -17,6 +17,13 @@
 #ifndef ANALYSIS_LLVMBASEDICFG_H_
 #define ANALYSIS_LLVMBASEDICFG_H_
 
+#include <array>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <functional>
+#include <initializer_list>
+#include <iostream>
 #include <llvm/ADT/SCCIterator.h>
 #include <llvm/Analysis/CallGraph.h>
 #include <llvm/IR/BasicBlock.h>
@@ -31,6 +38,8 @@
 #include <llvm/IR/Value.h>
 #include <llvm/Pass.h>
 #include <llvm/Support/Casting.h>
+#include <map>
+#include <memory>
 #include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
@@ -40,15 +49,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <array>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <functional>
-#include <initializer_list>
-#include <iostream>
-#include <map>
-#include <memory>
 #include <set>
 #include <stdexcept>
 #include <string>
@@ -77,7 +77,7 @@ ostream &operator<<(ostream &os, const ResolveStrategy R);
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
- private:
+private:
   WalkerStrategy W;
   ResolveStrategy R;
   const map<WalkerStrategy,
@@ -233,7 +233,7 @@ class LLVMBasedICFG
     }
   };
 
- public:
+public:
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, WalkerStrategy W,
@@ -250,17 +250,17 @@ class LLVMBasedICFG
 
   const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
 
-  vector<const llvm::Instruction *> getPredsOf(
-      const llvm::Instruction *I) override;
+  vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *I) override;
 
-  vector<const llvm::Instruction *> getSuccsOf(
-      const llvm::Instruction *I) override;
+  vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *I) override;
 
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  vector<const llvm::Instruction *> getAllInstructionsOf(
-      const llvm::Function *fun) override;
+  vector<const llvm::Instruction *>
+  getAllInstructionsOf(const llvm::Function *fun) override;
 
   bool isExitStmt(const llvm::Instruction *stmt) override;
 
@@ -277,22 +277,22 @@ class LLVMBasedICFG
 
   const llvm::Function *getMethod(const string &fun) override;
 
-  set<const llvm::Function *> getCalleesOfCallAt(
-      const llvm::Instruction *n) override;
+  set<const llvm::Function *>
+  getCalleesOfCallAt(const llvm::Instruction *n) override;
 
   set<const llvm::Instruction *> getCallersOf(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *> getCallsFromWithin(
-      const llvm::Function *m) override;
+  set<const llvm::Instruction *>
+  getCallsFromWithin(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *> getStartPointsOf(
-      const llvm::Function *m) override;
+  set<const llvm::Instruction *>
+  getStartPointsOf(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *> getExitPointsOf(
-      const llvm::Function *fun) override;
+  set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *fun) override;
 
-  set<const llvm::Instruction *> getReturnSitesOfCallAt(
-      const llvm::Instruction *n) override;
+  set<const llvm::Instruction *>
+  getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
   bool isCallStmt(const llvm::Instruction *stmt) override;
 
@@ -300,8 +300,8 @@ class LLVMBasedICFG
 
   const llvm::Instruction *getLastInstructionOf(const string &name);
 
-  vector<const llvm::Instruction *> getAllInstructionsOfFunction(
-      const string &name);
+  vector<const llvm::Instruction *>
+  getAllInstructionsOfFunction(const string &name);
 
   void mergeWith(const LLVMBasedICFG &other);
 

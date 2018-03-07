@@ -27,7 +27,7 @@
 using namespace std;
 
 class AnalysisPluginController {
- public:
+public:
   AnalysisPluginController(vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
                            vector<string> EntryPoints);
 };

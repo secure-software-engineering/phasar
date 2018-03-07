@@ -17,24 +17,23 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_H_
 #define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_H_
 
+#include <algorithm>
+#include <memory>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSSummary.h>
-#include <algorithm>
-#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 using namespace std;
 
-template <typename D, typename N>
-class IFDSSummaryPool {
- private:
+template <typename D, typename N> class IFDSSummaryPool {
+private:
   /// Stores the summary that starts at a given node.
   map<N, map<vector<bool>, IFDSSummary<D, N>>> SummaryMap;
 
- public:
+public:
   IFDSSummaryPool() = default;
   ~IFDSSummaryPool() = default;
 

@@ -17,21 +17,20 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_H_
 
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>
-#include <map>
-#include <memory>
 
 using namespace std;
 
-template <typename N, typename D, typename L>
-class JumpFunctions {
- private:
+template <typename N, typename D, typename L> class JumpFunctions {
+private:
   shared_ptr<EdgeFunction<L>> allTop;
 
- protected:
+protected:
   // mapping from target node and value to a list of all source values and
   // associated functions
   // where the list is implemented as a mapping from the source value to the
@@ -50,7 +49,7 @@ class JumpFunctions {
   unordered_map<N, Table<D, D, shared_ptr<EdgeFunction<L>>>>
       nonEmptyLookupByTargetNode;
 
- public:
+public:
   JumpFunctions(shared_ptr<EdgeFunction<L>> allTop) : allTop(allTop) {}
 
   virtual ~JumpFunctions() = default;
@@ -72,7 +71,8 @@ class JumpFunctions {
     BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << llvmIRToString(target);
     BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString();
     // we do not store the default function (all-top)
-    if (function->equalTo(allTop)) return;
+    if (function->equalTo(allTop))
+      return;
     map<D, shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc.insert({sourceVal, function});

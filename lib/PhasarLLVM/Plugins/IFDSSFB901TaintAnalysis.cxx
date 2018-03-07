@@ -16,8 +16,8 @@
 
 #include "IFDSSFB901TaintAnalysis.h"
 
-unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSFB901TaintAnalysis(
-    LLVMBasedICFG &I, vector<string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin>
+makeIFDSSFB901TaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
       new IFDSSFB901TaintAnalysis(I, EntryPoints));
 }

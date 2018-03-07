@@ -17,14 +17,14 @@
 #ifndef INTRAMONOFULLCONSTANTPROPAGATION_H_
 #define INTRAMONOFULLCONSTANTPROPAGATION_H_
 
+#include <algorithm>
+#include <iostream>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <algorithm>
-#include <iostream>
 #include <string>
 using namespace std;
 
@@ -32,7 +32,7 @@ class IntraMonoFullConstantPropagation
     : public IntraMonotoneProblem<const llvm::Instruction *,
                                   pair<const llvm::Value *, unsigned>,
                                   const llvm::Function *, LLVMBasedCFG &> {
- public:
+public:
   typedef pair<const llvm::Value *, unsigned> DFF;
 
   IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
@@ -47,8 +47,8 @@ class IntraMonoFullConstantPropagation
   virtual MonoSet<DFF> flow(const llvm::Instruction *S,
                             const MonoSet<DFF> &In) override;
 
-  virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>> initialSeeds()
-      override;
+  virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>>
+  initialSeeds() override;
 
   virtual string DtoString(pair<const llvm::Value *, unsigned> d) override;
 };

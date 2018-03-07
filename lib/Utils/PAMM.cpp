@@ -23,7 +23,7 @@ PAMM &PAMM::getInstance() {
 // TODO: check why assert does not get triggered (unlike me right now)
 void PAMM::startTimer(std::string timerId) {
   bool validTimerId =
-    !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+      !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
   assert(validTimerId && "startTimer failed due to an invalid timer id");
   if (validTimerId) {
     time_point start = std::chrono::high_resolution_clock::now();
@@ -47,7 +47,8 @@ void PAMM::resetTimer(std::string timerId) {
 void PAMM::stopTimer(std::string timerId) {
   bool validTimerId =
       RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
-  assert(validTimerId && "stopTimer failed due to an invalid timer id or timer was already stopped");
+  assert(validTimerId && "stopTimer failed due to an invalid timer id or timer "
+                         "was already stopped");
   if (validTimerId) {
     auto timer = RunningTimer.find(timerId);
     time_point end = std::chrono::high_resolution_clock::now();
@@ -65,8 +66,7 @@ std::string PAMM::getPrintableDuration(unsigned long duration) {
   unsigned long minutes =
       ((((duration - milliseconds) / 1000) - seconds) / 60) % 60;
   unsigned long hours =
-      (((((duration - milliseconds) / 1000) - seconds) / 60) -
-       minutes) / 60;
+      (((((duration - milliseconds) / 1000) - seconds) / 60) - minutes) / 60;
   std::ostringstream oss;
   if (hours)
     oss << hours << "h ";

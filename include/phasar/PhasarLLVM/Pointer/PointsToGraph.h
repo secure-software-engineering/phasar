@@ -17,6 +17,12 @@
 #ifndef ANALYSIS_POINTSTOGRAPH_H_
 #define ANALYSIS_POINTSTOGRAPH_H_
 
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/copy.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <fstream>
 #include <llvm/ADT/SetVector.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
@@ -34,12 +40,6 @@
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/copy.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <fstream>
 #include <vector>
 using namespace std;
 
@@ -94,7 +94,7 @@ extern const map<PointerAnalysisType, string> PointerAnalysisTypeToString;
  *	@brief Represents the points-to graph of a function.
  */
 class PointsToGraph {
- public:
+public:
   // Call-graph firends
   friend class LLVMBasedICFG;
   /**
@@ -160,7 +160,7 @@ class PointsToGraph {
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
   const static set<string> HeapAllocationFunctions;
 
- private:
+private:
   struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
     // collect the allocation sites that are found
     set<const llvm::Value *> &allocation_sites;
@@ -187,8 +187,8 @@ class PointsToGraph {
               llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
         // If the call stack is empty, we completely ignore the calling context
         if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Found stack allocation: "
-                                   << llvmIRToString(Alloc);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "Found stack allocation: " << llvmIRToString(Alloc);
           allocation_sites.insert(g[u].value);
         }
       }
@@ -211,13 +211,13 @@ class PointsToGraph {
       visitor_stack.pop_back();
     }
 
-    template <typename Graph>
-    bool matches_stack(const Graph &g) {
+    template <typename Graph> bool matches_stack(const Graph &g) {
       size_t call_stack_idx = 0;
       for (size_t i = 0, j = 1;
            i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
         auto e = boost::edge(visitor_stack[i], visitor_stack[j], g);
-        if (g[e.first].value == nullptr) continue;
+        if (g[e.first].value == nullptr)
+          continue;
         if (g[e.first].value !=
             call_stack[call_stack.size() - call_stack_idx - 1]) {
           return false;
@@ -243,7 +243,7 @@ class PointsToGraph {
   /// Keep track of what has already been merged into this points-to graph.
   set<string> ContainedFunctions;
 
- public:
+public:
   /**
    * Creates a points-to graph based on the computed Alias results.
    *
@@ -304,8 +304,9 @@ class PointsToGraph {
    * an allocating function.
    * @return Set of Allocation sites.
    */
-  set<const llvm::Value *> getReachableAllocationSites(
-      const llvm::Value *V, vector<const llvm::Instruction *> CallStack);
+  set<const llvm::Value *>
+  getReachableAllocationSites(const llvm::Value *V,
+                              vector<const llvm::Instruction *> CallStack);
 
   /**
    * @brief Computes all possible types from a given set of allocation sites.
@@ -314,8 +315,8 @@ class PointsToGraph {
    * @param AS Set of Allocation site.
    * @return Set of Types.
    */
-  set<const llvm::Type *> computeTypesFromAllocationSites(
-      set<const llvm::Value *> AS);
+  set<const llvm::Type *>
+  computeTypesFromAllocationSites(set<const llvm::Value *> AS);
 
   /**
    * @brief Checks if a given value is represented by a vertex in the points-to
@@ -334,10 +335,10 @@ class PointsToGraph {
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
-  void mergeWith(
-      const PointsToGraph &Other,
-      const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>>
-          &Calls);
+  void
+  mergeWith(const PointsToGraph &Other,
+            const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>>
+                &Calls);
   void mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
                  const llvm::Function *F);
 

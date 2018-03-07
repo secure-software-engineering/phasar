@@ -24,12 +24,12 @@
 
 template <typename N, typename D, typename M, typename I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
- protected:
+protected:
   I icfg;
   virtual D createZeroValue() = 0;
   D zerovalue;
 
- public:
+public:
   DefaultIFDSTabulationProblem(I icfg) : icfg(icfg) {
     this->solver_config.followReturnsPastSeeds = false;
     this->solver_config.autoAddZero = true;
@@ -40,8 +40,8 @@ class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
 
   virtual ~DefaultIFDSTabulationProblem() = default;
 
-  virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(
-      N callStmt, M destMthd) override {
+  virtual shared_ptr<FlowFunction<D>>
+  getSummaryFlowFunction(N callStmt, M destMthd) override {
     return nullptr;
   }
 

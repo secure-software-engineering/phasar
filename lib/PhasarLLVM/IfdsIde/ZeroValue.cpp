@@ -19,8 +19,8 @@
 const string ZeroValueInternalName("zero_value");
 const string ZeroValueInternalModuleName("zero_module");
 const unique_ptr<llvm::LLVMContext> ZeroValueCTX(new llvm::LLVMContext);
-const unique_ptr<llvm::Module> ZeroValueMod(
-    new llvm::Module(ZeroValueInternalModuleName, *ZeroValueCTX));
+const unique_ptr<llvm::Module>
+    ZeroValueMod(new llvm::Module(ZeroValueInternalModuleName, *ZeroValueCTX));
 
 bool isLLVMZeroValue(const llvm::Value *V) {
   if (V->hasName()) {

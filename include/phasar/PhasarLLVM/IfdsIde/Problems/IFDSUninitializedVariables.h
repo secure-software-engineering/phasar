@@ -24,6 +24,8 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
@@ -38,8 +40,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <map>
-#include <memory>
 #include <set>
 #include <string>
 using namespace std;
@@ -48,38 +48,40 @@ class IFDSUnitializedVariables
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
- private:
+private:
   IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
   vector<string> EntryPoints;
 
- public:
+public:
   IFDSUnitializedVariables(LLVMBasedICFG &icfg,
                            vector<string> EntryPoints = {"main"});
 
   virtual ~IFDSUnitializedVariables() = default;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getNormalFlowFunction(
-      const llvm::Instruction *curr, const llvm::Instruction *succ) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getNormalFlowFunction(const llvm::Instruction *curr,
+                        const llvm::Instruction *succ) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getCallFlowFunction(
-      const llvm::Instruction *callStmt,
-      const llvm::Function *destMthd) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getCallFlowFunction(const llvm::Instruction *callStmt,
+                      const llvm::Function *destMthd) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getRetFlowFunction(
-      const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
-      const llvm::Instruction *exitStmt,
-      const llvm::Instruction *retSite) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getRetFlowFunction(const llvm::Instruction *callSite,
+                     const llvm::Function *calleeMthd,
+                     const llvm::Instruction *exitStmt,
+                     const llvm::Instruction *retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getCallToRetFlowFunction(
-      const llvm::Instruction *callSite,
-      const llvm::Instruction *retSite) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getCallToRetFlowFunction(const llvm::Instruction *callSite,
+                           const llvm::Instruction *retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>> getSummaryFlowFunction(
-      const llvm::Instruction *callStmt,
-      const llvm::Function *destMthd) override;
+  shared_ptr<FlowFunction<const llvm::Value *>>
+  getSummaryFlowFunction(const llvm::Instruction *callStmt,
+                         const llvm::Function *destMthd) override;
 
-  map<const llvm::Instruction *, set<const llvm::Value *>> initialSeeds()
-      override;
+  map<const llvm::Instruction *, set<const llvm::Value *>>
+  initialSeeds() override;
 
   const llvm::Value *createZeroValue() override;
 

@@ -161,8 +161,7 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // set up the actual parameters
-        for (unsigned idx = 0; idx < destMthd->arg_size();
-             ++idx) {
+        for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
           formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
       }
@@ -216,8 +215,7 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
         actuals.push_back(callSite.getArgOperand(idx));
       }
       // set up the actual parameters
-      for (unsigned idx = 0; idx < calleeMthd->arg_size();
-           ++idx) {
+      for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
         formals.push_back(getNthFunctionArgument(calleeMthd, idx));
       }
     }

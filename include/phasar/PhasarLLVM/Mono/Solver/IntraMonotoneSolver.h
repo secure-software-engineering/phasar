@@ -17,18 +17,18 @@
 #ifndef INTRAMONOTONESOLVER_H_
 #define INTRAMONOTONESOLVER_H_
 
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <deque>
 #include <iostream>
 #include <map>
+#include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <utility>
 #include <vector>
 using namespace std;
 
 template <typename N, typename D, typename M, typename C>
 class IntraMonotoneSolver {
- protected:
+protected:
   IntraMonotoneProblem<N, D, M, C> &IMProblem;
   deque<pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
@@ -51,7 +51,7 @@ class IntraMonotoneSolver {
     }
   }
 
- public:
+public:
   IntraMonotoneSolver(IntraMonotoneProblem<N, D, M, C> &IMP,
                       size_t prealloc_hint = 0)
       : IMProblem(IMP), CFG(IMP.getCFG()), prealloc_hint(prealloc_hint) {}

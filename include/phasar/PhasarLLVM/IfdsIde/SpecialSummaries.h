@@ -17,6 +17,8 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_H_
 #define SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_H_
 
+#include <map>
+#include <memory>
 #include <phasar/Config/Configuration.h>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
@@ -25,17 +27,14 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/Utils/IO.h>
-#include <map>
-#include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 using namespace std;
 
-template <typename D, typename V = BinaryDomain>
-class SpecialSummaries {
- private:
+template <typename D, typename V = BinaryDomain> class SpecialSummaries {
+private:
   map<string, shared_ptr<FlowFunction<D>>> SpecialFlowFunctions;
   map<string, shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
   vector<string> SpecialFunctionNames;
@@ -68,7 +67,7 @@ class SpecialSummaries {
     }
   }
 
- public:
+public:
   SpecialSummaries(const SpecialSummaries &) = delete;
   SpecialSummaries &operator=(const SpecialSummaries &) = delete;
   SpecialSummaries(SpecialSummaries &&) = delete;
@@ -106,23 +105,23 @@ class SpecialSummaries {
     return SpecialFlowFunctions.count(name);
   }
 
-  shared_ptr<FlowFunction<D>> getSpecialFlowFunctionSummary(
-      const llvm::Function *function) {
+  shared_ptr<FlowFunction<D>>
+  getSpecialFlowFunctionSummary(const llvm::Function *function) {
     return getSpecialFlowFunctionSummary(function->getName().str());
   }
 
-  shared_ptr<FlowFunction<D>> getSpecialFlowFunctionSummary(
-      const string &name) {
+  shared_ptr<FlowFunction<D>>
+  getSpecialFlowFunctionSummary(const string &name) {
     return SpecialFlowFunctions[name];
   }
 
-  shared_ptr<EdgeFunction<V>> getSpecialEdgeFunctionSummary(
-      const llvm::Function *function) {
+  shared_ptr<EdgeFunction<V>>
+  getSpecialEdgeFunctionSummary(const llvm::Function *function) {
     return getSpecialEdgeFunctionSummary(function->getName().str());
   }
 
-  shared_ptr<EdgeFunction<V>> getSpecialEdgeFunctionSummary(
-      const string &name) {
+  shared_ptr<EdgeFunction<V>>
+  getSpecialEdgeFunctionSummary(const string &name) {
     return SpecialEdgeFunctions[name];
   }
 

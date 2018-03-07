@@ -20,12 +20,12 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
+#include <map>
+#include <memory>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <map>
-#include <memory>
 #include <string>
 #include <vector>
 using namespace std;
@@ -34,10 +34,10 @@ class IFDSTabulationProblemPlugin
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
- protected:
+protected:
   vector<string> EntryPoints;
 
- public:
+public:
   IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG,
                               vector<string> EntryPoints = {"main"})
       : DefaultIFDSTabulationProblem<const llvm::Instruction *,

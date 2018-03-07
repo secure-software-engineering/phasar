@@ -17,44 +17,42 @@
 #ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
 #define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/Utils/Macros.h>
 #include <iostream>
 #include <memory>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+#include <phasar/Utils/Macros.h>
 #include <string>
 //#include "EdgeIdentity.h"
 //#include "AllTop.h"
-template <typename V>
-class EdgeIdentity;
+template <typename V> class EdgeIdentity;
 
-template <typename V>
-class AllTop;
+template <typename V> class AllTop;
 
 using namespace std;
 
 template <typename V>
 class AllBottom : public EdgeFunction<V>,
                   public enable_shared_from_this<AllBottom<V>> {
- private:
+private:
   const V bottomElement;
 
- public:
+public:
   AllBottom(V bottomElement) : bottomElement(bottomElement) {}
 
   virtual ~AllBottom() = default;
 
   V computeTarget(V source) override { return bottomElement; }
 
-  virtual shared_ptr<EdgeFunction<V>> composeWith(
-      shared_ptr<EdgeFunction<V>> secondFunction) override {
+  virtual shared_ptr<EdgeFunction<V>>
+  composeWith(shared_ptr<EdgeFunction<V>> secondFunction) override {
     if (EdgeIdentity<V> *ei =
             dynamic_cast<EdgeIdentity<V> *>(secondFunction.get()))
       return this->shared_from_this();
     return secondFunction;
   }
 
-  virtual shared_ptr<EdgeFunction<V>> joinWith(
-      shared_ptr<EdgeFunction<V>> otherFunction) override {
+  virtual shared_ptr<EdgeFunction<V>>
+  joinWith(shared_ptr<EdgeFunction<V>> otherFunction) override {
     if (otherFunction.get() == this ||
         otherFunction->equalTo(this->shared_from_this()))
       return this->shared_from_this();

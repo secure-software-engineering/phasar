@@ -17,12 +17,12 @@
 #ifndef SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 #define SRC_ANALYSIS_ICFG_LLVMBASEDCFG_H_
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <iostream>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <phasar/Config/Configuration.h>
+#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <set>
 #include <string>
 #include <vector>

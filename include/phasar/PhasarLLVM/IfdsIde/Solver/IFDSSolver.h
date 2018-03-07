@@ -17,14 +17,14 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
 
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <memory>
 #include <set>
 
 template <typename N, typename D, typename M, typename I>
 class IFDSSolver : public IDESolver<N, D, M, BinaryDomain, I> {
- public:
+public:
   IFDSSolver(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDESolver<N, D, M, BinaryDomain, I>(ifdsProblem) {
     cout << "IFDSSolver::IFDSSolver()" << endl;

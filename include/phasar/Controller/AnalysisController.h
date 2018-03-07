@@ -10,6 +10,8 @@
 #ifndef ANALYSISCONTROLLER_HH_
 #define ANALYSISCONTROLLER_HH_
 
+#include <iostream>
+#include <json.hpp>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/IRBuilder.h>
@@ -17,6 +19,7 @@
 #include <llvm/Support/SMLoc.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
+#include <map>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -38,9 +41,6 @@
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/SOL.h>
-#include <iostream>
-#include <json.hpp>
-#include <map>
 #include <vector>
 
 using json = nlohmann::json;
@@ -54,10 +54,10 @@ extern const std::map<ExportType, std::string> ExportTypeToString;
 std::ostream &operator<<(std::ostream &os, const ExportType &e);
 
 class AnalysisController {
- private:
+private:
   json FinalResultsJson;
 
- public:
+public:
   AnalysisController(ProjectIRDB &&IRDB,
                      std::vector<DataFlowAnalysisType> Analyses,
                      bool WPA_MODE = true, bool PrintEdgeRecorder = true,

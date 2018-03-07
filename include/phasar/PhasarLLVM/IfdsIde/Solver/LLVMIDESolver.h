@@ -17,26 +17,25 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_H_
 
+#include "IDESolver.h"
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include "IDESolver.h"
 
 template <typename D, typename V, typename I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
                                        const llvm::Function *, V, I> {
- private:
+private:
   const bool DUMP_RESULTS;
   IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *, V,
                        I> &Problem;
 
- public:
+public:
   LLVMIDESolver(IDETabulationProblem<const llvm::Instruction *, D,
                                      const llvm::Function *, V, I> &problem,
                 bool dumpResults = false)
       : IDESolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
             problem),
-        DUMP_RESULTS(dumpResults),
-        Problem(problem) {}
+        DUMP_RESULTS(dumpResults), Problem(problem) {}
 
   virtual ~LLVMIDESolver() = default;
 
@@ -44,7 +43,8 @@ class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) dumpResults();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   void dumpResults() {

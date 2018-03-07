@@ -18,7 +18,7 @@
 
 template <typename N, typename D, typename M, typename I>
 class MWAIFDSSolver : public MWAIDESolver<N, D, M, BinaryDomain, I> {
- public:
+public:
   MWAIFDSSolver(IFDSTabulationProblem<N, D, M, I> &ifdsProblem,
                 enum SummaryGenerationStrategy S)
       : MWAIDESolver<N, D, M, BinaryDomain, I>(ifdsProblem, S) {}

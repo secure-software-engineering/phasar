@@ -17,11 +17,11 @@
 #ifndef INTERMONOTONESOLVER_H_
 #define INTERMONOTONESOLVER_H_
 
+#include <deque>
+#include <iostream>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/CallString.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
-#include <deque>
-#include <iostream>
 #include <utility>
 #include <vector>
 using namespace std;
@@ -29,7 +29,7 @@ using namespace std;
 template <typename N, typename D, typename M, typename C, unsigned K,
           typename I>
 class InterMonotoneSolver {
- protected:
+protected:
   InterMonotoneProblem<N, D, M, C, I> &IMProblem;
   deque<pair<N, N>> Worklist;
   MonoMap<N, MonoMap<CallString<C, K>, MonoSet<D>>> Analysis;
@@ -58,7 +58,7 @@ class InterMonotoneSolver {
     return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
   }
 
- public:
+public:
   InterMonotoneSolver(InterMonotoneProblem<N, D, M, C, I> &IMP,
                       size_t prealloc_hint = 0)
       : IMProblem(IMP), ICFG(IMP.getICFG()), prealloc_hint(prealloc_hint) {}

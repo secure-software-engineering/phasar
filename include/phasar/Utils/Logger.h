@@ -17,10 +17,10 @@
 #ifndef UTILS_LOGGER_H_
 #define UTILS_LOGGER_H_
 
-#include <phasar/Config/Configuration.h>
 #include <algorithm>
 #include <array>
 #include <boost/algorithm/string.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/log/attributes.hpp>
 #include <boost/log/common.hpp>
@@ -32,11 +32,11 @@
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/exception_handler.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/core/null_deleter.hpp>
 #include <ctime>
 #include <exception>
 #include <fstream>
 #include <iostream>
+#include <phasar/Config/Configuration.h>
 #include <string>
 
 using namespace std;

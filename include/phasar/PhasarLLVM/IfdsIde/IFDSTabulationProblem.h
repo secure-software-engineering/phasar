@@ -17,10 +17,10 @@
 #ifndef ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_H_
 #define ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_H_
 
+#include <map>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
-#include <map>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -29,7 +29,7 @@ using namespace std;
 
 template <typename N, typename D, typename M, typename I>
 class IFDSTabulationProblem : public FlowFunctions<N, D, M> {
- public:
+public:
   SolverConfiguration solver_config;
   virtual ~IFDSTabulationProblem() = default;
   virtual I interproceduralCFG() = 0;
