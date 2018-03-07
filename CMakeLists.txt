@@ -10,7 +10,7 @@ set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default i
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
 # Set the default install prefix
-set(CMAKE_INSTALL_PREFIX /usr/local)
+set(CMAKE_INSTALL_PREFIX /home/philipp/Schreibtisch/tmp)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
@@ -168,16 +168,23 @@ if (BUILD_UNITTESTS)
   add_subdirectory(unittests)
 endif()
 
-# Install Phasar
+# Install Phasar executable and libraries
 install(TARGETS llvm-phasar
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        )
+)
+# Install Phasar include directory
 install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.h"
 )
+# Install Phasar utils
+install(DIRECTORY utils/
+  DESTINATION bin
+  FILES_MATCHING PATTERN "phasar-*"
+)
+
 # If the Phasar shared object libraries are not installed into a system folder
 # the so libs must be added manually to the linker search path and the linker 
 # config must be updated as follows:
