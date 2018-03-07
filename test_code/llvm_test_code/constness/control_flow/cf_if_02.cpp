@@ -1,4 +1,4 @@
-/* mutable: i,k */
+/* immutable: - */
 extern bool cond;
 
 int main() {

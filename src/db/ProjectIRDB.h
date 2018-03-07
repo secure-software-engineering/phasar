@@ -63,6 +63,10 @@ private:
   void setupHeaderSearchPaths();
   // Stores all source files that have been examined
   std::set<std::string> source_files;
+  // Stores all allocation instructions
+  std::set<const llvm::Value *> alloca_instructions;
+  // Stores all return/resume instructions
+  std::set<const llvm::Instruction *> ret_res_instructions;
   // Contains all contexts for all modules and owns them
   std::map<std::string, std::unique_ptr<llvm::LLVMContext>> contexts;
   // Contains all modules that correspond to a project and owns them
@@ -91,9 +95,10 @@ public:
   /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm IR
-  ProjectIRDB(const std::vector<std::string> &Files, std::vector<const char *> CompileArgs,
-              enum IRDBOptions Opt);
+  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm
+  /// IR
+  ProjectIRDB(const std::vector<std::string> &Files,
+              std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
   ~ProjectIRDB() = default;
 
@@ -110,11 +115,15 @@ public:
   llvm::Module *getModule(const std::string &ModuleName);
   std::set<llvm::Module *> getAllModules() const;
   std::set<const llvm::Function *> getAllFunctions();
+  std::set<const llvm::Instruction *> getRetResInstructions();
+  std::set<const llvm::Value *> getAllocaInstructions();
   std::set<std::string> getAllSourceFiles();
   std::size_t getNumberOfModules();
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
   llvm::Function *getFunction(const std::string &FunctionName);
-  llvm::GlobalVariable *getGlobalVariable(const std::string &GlobalVariableName);
+  llvm::GlobalVariable *
+  getGlobalVariable(const std::string &GlobalVariableName);
+  std::string getGlobalVariableModuleName(const std::string &GlobalVariableName);
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);

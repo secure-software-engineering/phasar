@@ -93,9 +93,9 @@ private:
   PAMM() = default;
   ~PAMM() = default;
   typedef std::chrono::high_resolution_clock::time_point time_point;
-  // TODO: try unordered_map instead of map - maybe it's faster
   std::unordered_map<std::string, time_point> RunningTimer;
-  std::unordered_map<std::string, std::pair<time_point, time_point>> StoppedTimer;
+  std::unordered_map<std::string, std::pair<time_point, time_point>>
+      StoppedTimer;
   std::unordered_map<std::string, unsigned> Counter;
   std::unordered_map<unsigned long, unsigned long> SetHistogram;
 
@@ -304,9 +304,18 @@ public:
   template <typename Period = std::chrono::milliseconds>
   std::set<std::pair<std::string, unsigned long>> computeMiscTimes() {
     std::set<std::pair<std::string, unsigned long>> miscTimes;
-    unsigned long dfa_runtime = elapsedTime<Period>("DFA_runtime");
-    unsigned long irp_runtime = elapsedTime<Period>("IRP_runtime");
-    unsigned long fw_runtime = elapsedTime<Period>("FW_runtime");
+    unsigned long dfa_runtime, irp_runtime, fw_runtime;
+    // these checks are only needed to enable PAMM Tests that do not use
+    // one of those three timers
+    if (RunningTimer.count("DFA_runtime") || StoppedTimer.count("DFA_runtime")) {
+      dfa_runtime = elapsedTime<Period>("DFA_runtime");
+    }
+    if (RunningTimer.count("IRP_runtime") || StoppedTimer.count("IRP_runtime")) {
+      irp_runtime = elapsedTime<Period>("IRP_runtime");
+    }
+    if (RunningTimer.count("FW_runtime") || StoppedTimer.count("FW_runtime")) {
+      fw_runtime = elapsedTime<Period>("FW_runtime");
+    }
 
     for (auto timer : StoppedTimer) {
       if (timer.first.find("DFA") != std::string::npos &&
@@ -336,8 +345,8 @@ public:
   template <typename Period = std::chrono::milliseconds>
   void exportDataAsJSON(const std::string &configPath) {
     // stop all running timer
-    for (auto timer : RunningTimer) {
-      stopTimer(timer.first);
+    while (!RunningTimer.empty()) {
+      stopTimer(RunningTimer.begin()->first);
     }
     json jTimer;
     for (auto timer : StoppedTimer) {

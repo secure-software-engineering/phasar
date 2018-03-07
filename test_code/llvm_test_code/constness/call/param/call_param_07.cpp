@@ -1,6 +1,5 @@
-/* mutable: - */
+/* mutable: i,j,a */
 void foo(int* a) {
-	int b = *a;
 }
 
 int main() {

@@ -71,7 +71,7 @@ struct FlowEdgeFunctionCache {
     REG_COUNTER("CallToRetFFCacheHitCount");
     // Counters for the summary flow functions
     REG_COUNTER("SummaryFFConstructionCount");
-    //REG_COUNTER("SummaryFFCacheHitCount");
+    // REG_COUNTER("SummaryFFCacheHitCount");
     // Counters for the normal edge functions
     REG_COUNTER("NormalEFConstructionCount");
     REG_COUNTER("NormalEFCacheHitCount");
@@ -277,7 +277,7 @@ struct FlowEdgeFunctionCache {
                             << GET_COUNTER("CallToRetFFCacheHitCount");
     BOOST_LOG_SEV(lg, INFO) << "call to return flow function constructions: "
                             << GET_COUNTER("CallToRetFFConstructionCount");
-    //BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
+    // BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
     //                        << GET_COUNTER("SummaryFFCacheHitCount");
     BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
                             << GET_COUNTER("SummaryFFConstructionCount");
@@ -285,7 +285,7 @@ struct FlowEdgeFunctionCache {
         << "total flow function cache hits: "
         << GET_SUM_COUNT({"NormalFFCacheHitCount", "CallFFCacheHitCount",
                           "ReturnFFCacheHitCount", "CallToRetFFCacheHitCount"});
-                          //"SummaryFFCacheHitCount"});
+    //"SummaryFFCacheHitCount"});
     BOOST_LOG_SEV(lg, INFO)
         << "total flow function constructions: "
         << GET_SUM_COUNT(

@@ -96,6 +96,20 @@ public:
   string MtoString(const llvm::Function *m) override;
 
   void printInitilizedSet();
+
+  /**
+   * Only interested in points-to information within the function scope, i.e.
+   *   -local instructions
+   *   -function args of parent function
+   *   -global variable/pointer
+   * TODO add additional missing checks
+   * @brief Computes context-relevant points-to information.
+   * @param PointsToSet
+   * @param context
+   */
+  set<const llvm::Value *>
+  getContextRelevantPointsToSet(set<const llvm::Value *> &PointsToSet,
+                                const llvm::Function *context);
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \

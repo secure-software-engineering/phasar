@@ -3,14 +3,15 @@ cmake_minimum_required (VERSION 3.0)
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libc++ -MMD -MP -O0 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -rdynamic -march=native -DNDEBUG")
+set(CMAKE_CXX_FLAGS "-std=c++14 -Wall -Wextra -Wpedantic -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MMD -MP -O0 -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -O3  -pipe -g -march=native -DNDEBUG")
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 project (sse_dfa_llvm)
 
-find_package(Boost COMPONENTS filesystem system program_options log thread REQUIRED)
+find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 find_package(LLVM REQUIRED CONFIG)
 find_package(Threads)
+find_package(GTest REQUIRED)
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
 find_library(CLANG_LIBRARIES NAMES clang)
@@ -64,6 +65,7 @@ include_directories(
   ${SQLITE3_INCLUDE_DIR}
   ${BOOST_INCLUDE_DIR}
   ${LLVM_INCLUDE_DIRS}
+  ${GTEST_INCLUDE_DIR}
   json/src
   )
 
@@ -71,6 +73,14 @@ include_directories(
 file(GLOB_RECURSE SRC_ANALYSIS src/analysis/*.h? src/analysis/*.cpp)
 add_library( analysis STATIC ${SRC_ANALYSIS} )
 target_link_libraries(analysis ${ALL_LIBS})
+
+#file(GLOB_RECURSE SRC_PASSES src/analysis/passes/*.h? src/analysis/passes/*.cpp)
+#add_library( passes STATIC ${SRC_PASSES} )
+#target_link_libraries(passes ${ALL_LIBS})
+
+file(GLOB_RECURSE SRC_CONFIG src/config/*.h? src/config/*.cpp)
+add_library( config STATIC ${SRC_CONFIG} )
+target_link_libraries(config ${ALL_LIBS})
 
 file(GLOB_RECURSE SRC_DB src/db/*.h? src/db/*.cpp)
 add_library( db STATIC ${SRC_DB} )
@@ -92,16 +102,20 @@ file(GLOB_RECURSE SRC_UTILS src/utils/*.h? src/utils/*.cpp)
 add_library( utils STATIC ${SRC_UTILS} )
 target_link_libraries(utils ${ALL_LIBS})
 
-file(GLOB_RECURSE SRC_PLUGIN src/analysis/plugins/*.cxx src/analysis/plugins/*.hh)
-add_library(IFDSTabulationProblemTestPlugin SHARED ${SRC_PLUGIN})
+file(GLOB_RECURSE SRC_PLUGIN_TABTEST src/analysis/plugins/IFDSTabulationProblemTestPlugin.cxx src/analysis/plugins/IFDSTabulationProblemTestPlugin.hh)
+add_library(IFDSTabulationProblemTestPlugin SHARED ${SRC_PLUGIN_TABTEST})
 set_target_properties(IFDSTabulationProblemTestPlugin PROPERTIES PREFIX "")
+
+file(GLOB_RECURSE SRC_PLUGIN_ICFGTEST src/analysis/plugins/ICFGTestPlugin.cxx src/analysis/plugins/ICFGTestPlugin.hh)
+add_library(ICFGTestPlugin SHARED ${SRC_PLUGIN_TABTEST})
+set_target_properties(ICFGTestPlugin PROPERTIES PREFIX "")
 
 add_executable(main  src/main.cpp)
 
 target_link_libraries(main
   ${CLANG_LIBRARIES}
   ${llvm_libs}
-  analysis clang db lib utils
+  db analysis clang lib utils config
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

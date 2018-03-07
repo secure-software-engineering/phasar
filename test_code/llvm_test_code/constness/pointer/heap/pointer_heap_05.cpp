@@ -1,6 +1,8 @@
-int *ptr = new int(42);
-
+/* immutable: both new */
 int main() {
-  *ptr = 20;
+  int *p = new int(42);
+  delete p;
+  p = new int(99);
+  delete p;
 	return 0;
 }

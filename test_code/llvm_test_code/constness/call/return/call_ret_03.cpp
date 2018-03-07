@@ -1,12 +1,12 @@
-/* mutable: i */
-int* foo() {
+/* immutable: - */
+int foo() {
 	int a = 42;
-	return &a;
+  a = 17;
+	return a;
 }
 
 int main() {
-	int *i;
-  i = foo();
-  *i += 10;
+	int i = 10;
+	i = foo();
 	return 0;
 }

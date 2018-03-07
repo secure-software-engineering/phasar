@@ -1,6 +1,6 @@
-/* mutable: - */
+/* immutable: p,new[]  */
 int main() {
-  int *i = new int[10];
-  delete[] i;
+  int *p = new int[10];
+  delete[] p;
   return 0;
 }

@@ -17,10 +17,13 @@
 #ifndef SRC_LIB_LLVMSHORTHANDS_H_
 #define SRC_LIB_LLVMSHORTHANDS_H_
 
+#include "../analysis/ifds_ide/ZeroValue.h"
 #include "../config/Configuration.h"
+#include <boost/algorithm/string/trim.hpp>
 #include <functional>
 #include <iostream>
 #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
@@ -36,6 +39,12 @@
  */
 bool isFunctionPointer(const llvm::Value *V) noexcept;
 
+/**
+ * @brief Checks if the given LLVM Value is either a alloca instruction or a
+ * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
+ */
+bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
+
 // TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
@@ -48,13 +57,16 @@ std::string llvmIRToString(const llvm::Value *V);
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
-std::vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
+std::vector<const llvm::Value *>
+globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
- * @brief Returns the meta data id of a given LLVM Instruction.
- * @return Meta data id as a string.
+ * Only Instructions and GlobalVariables have ID's.
+ * @brief Returns the ID of a given LLVM Value.
+ * @return Meta data ID as a string or -1, if it's not
+ * an Instruction or a GlobalVariable.
  */
-std::string getMetaDataID(const llvm::Instruction *);
+std::string getMetaDataID(const llvm::Value *V);
 
 /**
  * The Argument count starts with 0.
