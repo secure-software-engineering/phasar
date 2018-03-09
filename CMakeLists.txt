@@ -192,6 +192,9 @@ install(DIRECTORY external/googletest/googletest/include/gtest/
 install(DIRECTORY utils/
   DESTINATION bin
   FILES_MATCHING PATTERN "phasar-*"
+  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+              GROUP_EXECUTE GROUP_READ
+              WORLD_EXECUTE WORLD_READ
 )
 # Install the Phasar config files into ~/.config/phasar/
 install(DIRECTORY config/
