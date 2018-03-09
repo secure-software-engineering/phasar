@@ -179,7 +179,16 @@ install(DIRECTORY include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.h"
 )
-# Install Phasar utils
+# Install the header only json container
+install(DIRECTORY external/json/src/
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.hpp"
+)
+# Install the gtest header files (TODO this installation dependency should be eliminated)
+install(DIRECTORY external/googletest/googletest/include/gtest/
+  DESTINATION include/gtest
+)
+# Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
   FILES_MATCHING PATTERN "phasar-*"
