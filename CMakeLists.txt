@@ -124,15 +124,15 @@ set(CLANG_LIBRARIES
 add_subdirectory(include)
 add_subdirectory(lib)
 
-# add_phasar_executable(llvm-phasar
+# add_phasar_executable(phasar
 #  tools/phasar/phasar.cpp
 # )
 
 # Build a stand-alone executable
-add_executable(llvm-phasar
+add_executable(phasar
   tools/phasar/phasar.cpp
 )
-target_link_libraries(llvm-phasar
+target_link_libraries(phasar
   phasar_config
   phasar_controller
   phasar_db
@@ -169,7 +169,7 @@ if (BUILD_UNITTESTS)
 endif()
 
 # Install Phasar executable and libraries
-install(TARGETS llvm-phasar
+install(TARGETS phasar
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
@@ -183,6 +183,14 @@ install(DIRECTORY include/
 install(DIRECTORY utils/
   DESTINATION bin
   FILES_MATCHING PATTERN "phasar-*"
+)
+# Install the Phasar config files into ~/.config/phasar/
+install(DIRECTORY config/
+  DESTINATION $ENV{HOME}/.config/phasar
+  PATTERN "config/*"
+  PERMISSIONS OWNER_WRITE OWNER_READ
+              GROUP_WRITE GROUP_READ
+              WORLD_READ
 )
 
 # If the Phasar shared object libraries are not installed into a system folder

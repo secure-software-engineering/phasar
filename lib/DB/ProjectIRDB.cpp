@@ -34,7 +34,6 @@ ProjectIRDB::ProjectIRDB(enum IRDBOptions Opt) : Options(Opt) {}
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
                          enum IRDBOptions Opt)
     : Options(Opt) {
-  setupHeaderSearchPaths();
   for (auto &File : IRFiles) {
     source_files.insert(File);
     // if we have a file that is already compiled to llvm ir

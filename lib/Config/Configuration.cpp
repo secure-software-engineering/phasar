@@ -16,12 +16,15 @@
 
 #include <phasar/Config/Configuration.h>
 
-const string MetaDataKind("phasar.instruction.id");
-const string ConfigurationDirectory("../config/");
-const string GLIBCFunctionListFileName("glibc_function_list_v1-04.05.17.conf");
-const string LLVMIntrinsicFunctionListFileName(
+const std::string MetaDataKind("phasar.instruction.id");
+const std::string ConfigurationDirectory([]() {
+    std::string phasar_config = std::string(std::getenv("HOME")) + "/.config/phasar/";
+    return (bfs::exists(phasar_config) && bfs::is_directory(phasar_config)) ? phasar_config : "../config/";
+}());
+const std::string GLIBCFunctionListFileName("glibc_function_list_v1-04.05.17.conf");
+const std::string LLVMIntrinsicFunctionListFileName(
     "llvm_intrinsics_function_list_v1-04.05.17.conf");
-const string HeaderSearchPathsFileName("standard_header_paths.conf");
-const string CompileCommandsJson("compile_commands.json");
+const std::string HeaderSearchPathsFileName("standard_header_paths.conf");
+const std::string CompileCommandsJson("compile_commands.json");
 bpo::variables_map VariablesMap;
-const string LogFileDirectory("log/");
+const std::string LogFileDirectory("log/");
