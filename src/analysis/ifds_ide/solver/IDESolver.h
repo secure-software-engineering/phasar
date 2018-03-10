@@ -326,9 +326,9 @@ public:
     BOOST_LOG_SEV(lg, INFO)
         << "propagation count: " << GET_COUNTER("PropagationCount");
     BOOST_LOG_SEV(lg, INFO) << "flow function construction duration: "
-                            << PRINT_TIMER("FFConstructionTime");
+                            << PRINT_TIMER("DFA_FFConstructionTime");
     BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "
-                            << PRINT_TIMER("FFApplicationTime");
+                            << PRINT_TIMER("DFA_FFApplicationTime");
     BOOST_LOG_SEV(lg, INFO) << "call count of process call function: "
                             << GET_COUNTER("ProcessCallCount");
     BOOST_LOG_SEV(lg, INFO) << "call count of process normal function: "

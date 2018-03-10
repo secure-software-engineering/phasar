@@ -155,7 +155,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
             constproblem, false);
         cout << "IFDS Const Analysis started!" << endl;
         llvmconstsolver.solve();
-        cout << "IFDS Const Analysis finished!" << endl;
+        cout << "Const Analysis finished!" << endl;
         //constproblem.printInitilizedSet();
         //// get all stack and heap alloca instructions
         //std::set<const llvm::Value *> allMemoryLoc =
@@ -219,22 +219,31 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         //    }
         //  }
         //}
-        //BOOST_LOG_SEV(lg, INFO) << "-------------";
-        //BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        //// write immutable locations to file
+        //bfs::path cfp(VariablesMap["config"].as<string>());
+        //// reduce the config path to just the filename - no path and no
+        //// extension
+        //std::string config = cfp.filename().string();
+        //std::size_t extensionPos = config.find(cfp.extension().string());
+        //config.replace(extensionPos, cfp.extension().size(), "");
+        //ofstream ResultFile;
+        //ResultFile.open(config + "_memlocs.txt");
+        //// BOOST_LOG_SEV(lg, INFO) << "-------------";
+        //// BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
         //for (auto memloc : allMemoryLoc) {
         //  if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
-        //    BOOST_LOG_SEV(lg, INFO)
-        //        << "in function "
-        //        << memlocInst->getParent()->getParent()->getName().str() << ": "
-        //        << llvmIRToString(memlocInst);
+        //    ResultFile << "Instruction: " << llvmIRToString(memlocInst) << " ["
+        //               << memlocInst->getParent()->getParent()->getName().str()
+        //               << "]\n";
         //  } else {
-        //    BOOST_LOG_SEV(lg, INFO)
-        //        << "in module "
-        //        << IRDB.getGlobalVariableModuleName(memloc->getName().str())
-        //        << ": " << llvmIRToString(memloc);
+        //    ResultFile << "Global Variable: " << llvmIRToString(memloc) << " ["
+        //               << IRDB.getGlobalVariableModuleName(
+        //                      memloc->getName().str())
+        //               << "]\n";
         //  }
         //}
-        //BOOST_LOG_SEV(lg, INFO) << "-------------";
+        //ResultFile.close();
+        BOOST_LOG_SEV(lg, INFO) << "-------------";
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {

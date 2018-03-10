@@ -21,9 +21,16 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                                          const llvm::Instruction *succ) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getNormalFlowFunction()";
-  // check all store instructions
+  // Check all store instructions.
   if (const llvm::StoreInst *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    // if store instruction sets up or updates the vtable, ignore it!
+    // If the store instruction sets up or updates the vtable, ignore it!
+    // Setting up the vtable is counted towards the initialization of an
+    // object - the object stays immutable.
+    // To identifiy such a store instruction, we need to check the stored
+    // value, which is of i32 (...)** type, e.g.
+    //   i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]*
+    //                           @_ZTV5Child, i32 0, i32 2) to i32 (...)**)
+    //
     if (const llvm::ConstantExpr *CE =
             llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
       // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
@@ -48,28 +55,27 @@ IFDSConstAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                              << llvmIRToString(pointerOp);
     set<const llvm::Value *> pointsToSet = ptg.getPointsToSet(pointerOp);
     // Check if this store instruction is the second write access to the memory
-    // location that pointer operand or it's alias are pointing to. If so,
-    // generate a new data flow fact for the pointer operand. Also generate
-    // data flow facts for all alias of the pointer operand from within
-    // the function.
-    // NOTE: If alias is a global variable, it might not be inside the
-    // storedOnce set since GV is always initialized, i.e. the first store
-    // will mark the memory location GV is pointing to as mutable!
+    // location that pointer operand or it's alias are pointing to.
+    // This is done by checking the Initialized set.
+    // If so, generate the pointer operand as new data-flow fact. Also
+    // generate data-flow facts of all alias of the pointer operand from within
+    // the function!
+    // NOTE: The points-to set of value x also contains the value x itself!
     for (auto alias : pointsToSet) {
-      if (llvm::isa<llvm::GlobalValue>(alias) || storedOnce.count(alias)) {
+      if (isInitialized(alias)) {
         BOOST_LOG_SEV(lg, DEBUG) << "Compute context-relevant points-to "
-                                    "information of the pointer operand.";
+                                    "information for the pointer operand.";
         return make_shared<GenAll<const llvm::Value *>>(
             getContextRelevantPointsToSet(pointsToSet, curr->getFunction()),
             zeroValue());
       }
     }
-    // If it is the first write access to the memory location that pointer
-    // operand is pointing, mark it as initialized by adding the pointer
-    // operand to the storedOnce set. We do not generate any new data flow
-    // facts at this point.
+    // If neither the pointer operand nor one of its alias is initialized,
+    // we mark only the pointer operand (to keep the Initialized set as
+    // small as possible) as initialized by adding it to the Initialized set.
+    // We do not generate any new data-flow facts at this point.
     BOOST_LOG_SEV(lg, DEBUG) << "Pointer operand marked as initialized!";
-    storedOnce.insert(pointerOp);
+    markAsInitialized(pointerOp);
   } /* end store instruction */
 
   // Pass everything else as identity
@@ -81,79 +87,67 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                        const llvm::Function *destMthd) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getCallFlowFunction()";
+  // If the called function is one of the following three llvm intrinsics
+  //   - memcpy
+  //   - memmove
+  //   - memset
+  // we count them as a write access to the target memory location. To do
+  // so, we need to kill all data-flow facts at this point. The respective
+  // data-flow facts are then generated in the corresponding call-to-return
+  // flow function.
+  if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
+    BOOST_LOG_SEV(lg, DEBUG) << "Call statement is a LLVM MemIntrinsic!";
+    return KillAll<const llvm::Value *>::v();
+  }
+  // Check if its a Call Instruction or an Invoke Instruction. If so, we
+  // need to map all actual parameters into formal parameters.
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    BOOST_LOG_SEV(lg, DEBUG) << "Call Statement: " << llvmIRToString(callStmt);
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination Method: "
+    BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
+    BOOST_LOG_SEV(lg, DEBUG) << "Destination method: "
                              << destMthd->getName().str();
-
-    // If the called function is one of the following three llvm intrinsics
-    //   - memcpy
-    //   - memmove
-    //   - memset
-    // handle it as a store instruction!
-    // Otherwise, map the actual parameter into the formal parameters.
-    if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
-      BOOST_LOG_SEV(lg, DEBUG) << "Call Statement is a LLVM MemIntrinsic!";
-      const llvm::Value *pointerOp = callStmt->getOperand(0);
-      BOOST_LOG_SEV(lg, DEBUG) << "Pointer Operand: "
-                               << llvmIRToString(pointerOp);
-      set<const llvm::Value *> pointsToSet = ptg.getPointsToSet(pointerOp);
-      for (auto alias : pointsToSet) {
-        if (llvm::isa<llvm::GlobalValue>(alias) || storedOnce.count(alias)) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Compute context-relevant points-to "
-                                      "information of the pointer operand.";
-          return make_shared<GenAll<const llvm::Value *>>(
-              getContextRelevantPointsToSet(pointsToSet,
-                                            callStmt->getFunction()),
-              zeroValue());
+    struct CAFF : FlowFunction<const llvm::Value *> {
+      llvm::ImmutableCallSite callSite;
+      const llvm::Function *destMthd;
+      const llvm::Value *zerovalue;
+      const IFDSConstAnalysis *constanalysis;
+      vector<const llvm::Value *> actuals;
+      vector<const llvm::Value *> formals;
+      CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
+           const llvm::Value *zv, const IFDSConstAnalysis *ca)
+          : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
+        // Set up the actual parameters
+        for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+          actuals.push_back(callSite.getArgOperand(idx));
+        }
+        // Set up the formal parameters
+        for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
+             ++idx) {
+          formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
       }
-      BOOST_LOG_SEV(lg, DEBUG) << "Pointer operand marked as initialized!";
-      storedOnce.insert(pointerOp);
-    } else {
-      struct CAFF : FlowFunction<const llvm::Value *> {
-        llvm::ImmutableCallSite callSite;
-        const llvm::Function *destMthd;
-        const llvm::Value *zerovalue;
-        const IFDSConstAnalysis *constanalysis;
-        vector<const llvm::Value *> actuals;
-        vector<const llvm::Value *> formals;
-        CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
-             const llvm::Value *zv, const IFDSConstAnalysis *ca)
-            : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
-          // set up the actual parameters
-          for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-            actuals.push_back(callSite.getArgOperand(idx));
-          }
-          // set up the formal parameters
-          for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
-               ++idx) {
-            formals.push_back(getNthFunctionArgument(destMthd, idx));
-          }
-        }
-        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-          auto &lg = lg::get();
-          if (!constanalysis->isZeroValue(source)) {
-            set<const llvm::Value *> res;
-            for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-              if (source == actuals[idx]) {
-                BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
-                                         << llvmIRToString(actuals[idx]);
-                BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
-                                         << llvmIRToString(formals[idx]);
-                res.insert(formals[idx]); // corresponding formal
-              }
+      set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+        auto &lg = lg::get();
+        if (!constanalysis->isZeroValue(source)) {
+          set<const llvm::Value *> res;
+          for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+            // TODO Maybe only map pointer type facts?
+            if (source == actuals[idx]) {
+              BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
+                                       << llvmIRToString(actuals[idx]);
+              BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
+                                       << llvmIRToString(formals[idx]);
+              res.insert(formals[idx]); // corresponding formal
             }
-            return res;
-          } else {
-            return {source};
           }
+          return res;
+        } else {
+          return {source};
         }
-      };
-      return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
-                               zeroValue(), this);
-    }
+      }
+    };
+    return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
+                             zeroValue(), this);
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
@@ -167,29 +161,35 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                       const llvm::Instruction *retSite) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getRetFlowFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << "Callsite: " << llvmIRToString(callSite);
-  BOOST_LOG_SEV(lg, DEBUG) << "Callee Method: " << calleeMthd->getName().str();
-  BOOST_LOG_SEV(lg, DEBUG) << "Exit Statement: " << llvmIRToString(exitStmt);
-  BOOST_LOG_SEV(lg, DEBUG) << "Retrun Site: " << llvmIRToString(retSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Caller context: "
+                           << callSite->getFunction()->getName().str();
+  BOOST_LOG_SEV(lg, DEBUG) << "Retrun site: " << llvmIRToString(retSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Callee method: " << calleeMthd->getName().str();
+  BOOST_LOG_SEV(lg, DEBUG) << "Callee exit statement: "
+                           << llvmIRToString(exitStmt);
   // We must map formal parameter back to the actual parameter in the caller.
   // We also generate all relevant alias within the caller context!
   struct CAFF : FlowFunction<const llvm::Value *> {
     llvm::ImmutableCallSite callSite;
     const llvm::Function *calleeMthd;
+    const llvm::ReturnInst *exitStmt;
     const llvm::Value *zerovalue;
     IFDSConstAnalysis *constanalysis;
     PointsToGraph *pointsToGraph;
     vector<const llvm::Value *> actuals;
     vector<const llvm::Value *> formals;
     CAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
-         const llvm::Value *zv, IFDSConstAnalysis *ca, PointsToGraph *ptg)
-        : callSite(callsite), calleeMthd(callemthd), zerovalue(zv),
+         const llvm::Instruction *exitstmt, const llvm::Value *zv,
+         IFDSConstAnalysis *ca, PointsToGraph *ptg)
+        : callSite(callsite), calleeMthd(callemthd),
+          exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)), zerovalue(zv),
           constanalysis(ca), pointsToGraph(ptg) {
-      // set up the actual parameters
+      // Set up the actual parameters
       for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
         actuals.push_back(callSite.getArgOperand(idx));
       }
-      // set up the formal parameters
+      // Set up the formal parameters
       for (unsigned idx = 0; idx < calleeMthd->getArgumentList().size();
            ++idx) {
         formals.push_back(getNthFunctionArgument(calleeMthd, idx));
@@ -200,22 +200,18 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
       auto &lg = lg::get();
       if (!constanalysis->isZeroValue(source)) {
         set<const llvm::Value *> res;
-        // collect everything that is returned by pointer/ reference
-        // ignore return by value, since it will be stored into a
-        // virtual register
+        // Collect everything that is returned by pointer/reference.
+        const llvm::Function *callSiteFunction = callSite->getFunction();
         for (unsigned idx = 0; idx < formals.size(); ++idx) {
           if (source == formals[idx] &&
               formals[idx]->getType()->isPointerTy()) {
-            // generate the actual parameter and all its alias within the caller
-            const llvm::Function *callSiteFunction = callSite->getFunction();
+            // Generate the actual parameter and all its alias within the caller
             BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
                                      << llvmIRToString(actuals[idx]);
             BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
                                      << llvmIRToString(formals[idx]);
-            BOOST_LOG_SEV(lg, DEBUG) << "Caller Context: "
-                                     << callSiteFunction->getName().str();
             BOOST_LOG_SEV(lg, DEBUG)
-                << "Compute caller context-relevant points-to information.";
+                << "Compute caller context-relevant points-to information for the actual param.";
             set<const llvm::Value *> pointsToSet =
                 pointsToGraph->getPointsToSet(actuals[idx]);
             for (auto fact : constanalysis->getContextRelevantPointsToSet(
@@ -224,15 +220,45 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
             }
           }
         }
+        // If the return value is a data-flow fact and of pointer type, we
+        // need to generate the return value and all its alias within the
+        // caller context.
+        // NOTE: We also need to generate the
+        if (source == exitStmt->getReturnValue() &&
+            calleeMthd->getReturnType()->isPointerTy()) {
+          BOOST_LOG_SEV(lg, DEBUG) << "Callee return value: "
+                                   << llvmIRToString(source);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "Compute caller context-relevant points-to information for the call site.";
+          set<const llvm::Value *> pointsToSet =
+              pointsToGraph->getPointsToSet(callSite.getInstruction());
+          for (auto fact : constanalysis->getContextRelevantPointsToSet(
+                   pointsToSet, callSiteFunction)) {
+            res.insert(fact);
+          }
+        }
         return res;
       }
-      // else just draw the zero edge
+      // Check if the return value is a pointer type and initialized.
+      // We then need to mark the call site as initialized.
+      if (calleeMthd->getReturnType()->isPointerTy()) {
+        BOOST_LOG_SEV(lg, DEBUG) << "Callee Return Value: "
+                                 << llvmIRToString(exitStmt->getReturnValue());
+         for (auto alias : pointsToGraph->getPointsToSet(exitStmt->getReturnValue())) {
+           if (constanalysis->isInitialized(alias)) {
+             BOOST_LOG_SEV(lg, DEBUG) << "Call site is marked as initialized!";
+             constanalysis->markAsInitialized(callSite.getInstruction());
+             break;
+           }
+         }
+      }
+      // Just draw the zero edge
       return {source};
     }
   };
   return make_shared<CAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
-                           zeroValue(), this, &ptg);
-  // All other data flow facts of the callee function are killed at this point
+                           exitStmt, zeroValue(), this, &ptg);
+  // All other data-flow facts of the callee function are killed at this point
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -240,6 +266,31 @@ IFDSConstAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
                                             const llvm::Instruction *retSite) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getCallToRetFlowFunction()";
+  BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Return site: " << llvmIRToString(retSite);
+  // Process the effects of a llvm memory intrinsic function. They are handled
+  // as a store instruction, i.e. we generate new data-flow facts if the first
+  // operand (pointer to destination) is already initialized. Otherwise, we mark
+  // the first operand as initialized.
+  if (llvm::isa<llvm::MemIntrinsic>(callSite)) {
+    const llvm::Value *pointerOp = callSite->getOperand(0);
+    BOOST_LOG_SEV(lg, DEBUG) << "Pointer Operand: "
+                             << llvmIRToString(pointerOp);
+    set<const llvm::Value *> pointsToSet = ptg.getPointsToSet(pointerOp);
+    for (auto alias : pointsToSet) {
+      if (llvm::isa<llvm::GlobalValue>(alias) || isInitialized(alias)) {
+        BOOST_LOG_SEV(lg, DEBUG) << "Compute context-relevant points-to "
+                                    "information of the pointer operand.";
+        return make_shared<GenAll<const llvm::Value *>>(
+            getContextRelevantPointsToSet(pointsToSet, callSite->getFunction()),
+            zeroValue());
+      }
+    }
+    BOOST_LOG_SEV(lg, DEBUG) << "Pointer operand marked as initialized!";
+    markAsInitialized(pointerOp);
+  }
+
+  // Pass everything else as identity
   return Identity<const llvm::Value *>::v();
 }
 
@@ -290,29 +341,35 @@ string IFDSConstAnalysis::MtoString(const llvm::Function *m) {
 
 void IFDSConstAnalysis::printInitilizedSet() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Printing the 'storedOnce' set";
-  for (auto stmt : IFDSConstAnalysis::storedOnce) {
+  BOOST_LOG_SEV(lg, DEBUG) << "Printing all initialized memory location (or one of its alias)";
+  for (auto stmt : IFDSConstAnalysis::Initialized) {
     BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(stmt);
   }
 }
 
 set<const llvm::Value *> IFDSConstAnalysis::getContextRelevantPointsToSet(
-    set<const llvm::Value *> &PointsToSet, const llvm::Function *context) {
+    set<const llvm::Value *> &PointsToSet, const llvm::Function *Context) {
   auto &lg = lg::get();
   set<const llvm::Value *> ToGenerate;
+  // We need to check if the alias is from the given function context
   for (auto alias : PointsToSet) {
     BOOST_LOG_SEV(lg, DEBUG) << "Alias: " << llvmIRToString(alias);
     if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
-      if (I->getFunction() == context) {
+      if (I->getFunction() == Context) {
         ToGenerate.insert(alias);
         BOOST_LOG_SEV(lg, DEBUG) << "will be generated as a new fact!";
+        // If I is a call site with a return value of a pointer type, we
+        // need to generate the memory location of the return value in the
+        // callee function. This is necessary to cover a case in which the
+        // return value is only initialized and will be mutated after the function
+        // call.
       }
     } else if (llvm::isa<llvm::GlobalValue>(alias)) {
       ToGenerate.insert(alias);
       BOOST_LOG_SEV(lg, DEBUG) << "will be generated as a new fact!";
     } else if (const llvm::Argument *A =
                    llvm::dyn_cast<llvm::Argument>(alias)) {
-      if (A->getParent() == context) {
+      if (A->getParent() == Context) {
         ToGenerate.insert(alias);
         BOOST_LOG_SEV(lg, DEBUG) << "will be generated as a new fact!";
       }
@@ -321,4 +378,12 @@ set<const llvm::Value *> IFDSConstAnalysis::getContextRelevantPointsToSet(
     }
   }
   return ToGenerate;
+}
+
+bool IFDSConstAnalysis::isInitialized(const llvm::Value *d) const {
+  return llvm::isa<llvm::GlobalValue>(d) || Initialized.count(d);
+}
+
+void IFDSConstAnalysis::markAsInitialized(const llvm::Value *d) {
+  Initialized.insert(d);
 }
