@@ -289,50 +289,54 @@ public:
   virtual void solve()
   {
     PAMM_FACTORY;
-    REG_COUNTER("FFConstructionCount");
-    REG_COUNTER("FFApplicationCount");
-    REG_COUNTER("SpecialSummaryFFApplicationCount");
-    REG_COUNTER("PropagationCount");
-    REG_COUNTER("ProcessCallCount");
-    REG_COUNTER("ProcessNormalCount");
+    REG_COUNTER("FF Construction");
+    REG_COUNTER("FF Application");
+    REG_COUNTER("SpecialSummary-FF Application");
+    REG_COUNTER("Propagation");
+    REG_COUNTER("Calls to processCall");
+    REG_COUNTER("Calls to processNormal");
+    REG_COUNTER("Calls to getPointsToSet");
+    REG_SETH("Data-flow facts");
+    REG_SETH("IDESolver");
+    REG_SETH("Points-to");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
     // computations starting here
-    START_TIMER("DFA_FFConstructionTime");
+    START_TIMER("DFA FF-Construction");
     // We start our analysis and construct exploded supergraph
     BOOST_LOG_SEV(lg, INFO)
         << "Submit initial seeds, construct exploded super graph";
     submitInitalSeeds();
-    STOP_TIMER("DFA_FFConstructionTime");
+    STOP_TIMER("DFA FF-Construction");
     if (computevalues)
     {
-      START_TIMER("DFA_FFApplicationTime");
+      START_TIMER("DFA FF-Application");
       // Computing the final values for the edge functions
       BOOST_LOG_SEV(lg, INFO)
           << "Compute the final values according to the edge functions";
       computeValues();
-      STOP_TIMER("DFA_FFApplicationTime");
+      STOP_TIMER("DFA FF-Application");
     }
     BOOST_LOG_SEV(lg, INFO) << "Problem solved";
 #ifdef PERFORMANCE_EVA
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:";
     BOOST_LOG_SEV(lg, INFO) << "flow functions construction count: "
-                            << GET_COUNTER("FFConstructionCount");
+                            << GET_COUNTER("FF Construction");
     BOOST_LOG_SEV(lg, INFO) << "flow functions application count: "
-                            << GET_COUNTER("FFApplicationCount");
+                            << GET_COUNTER("FF Application");
     BOOST_LOG_SEV(lg, INFO) << "special flow function usage count: "
-                            << GET_COUNTER("SpecialSummaryFFApplicationCount");
+                            << GET_COUNTER("SpecialSummary-FF Application");
     BOOST_LOG_SEV(lg, INFO)
-        << "propagation count: " << GET_COUNTER("PropagationCount");
+        << "propagation count: " << GET_COUNTER("Propagation");
     BOOST_LOG_SEV(lg, INFO) << "flow function construction duration: "
-                            << PRINT_TIMER("DFA_FFConstructionTime");
+                            << PRINT_TIMER("FF Construction");
     BOOST_LOG_SEV(lg, INFO) << "flow function application duration: "
-                            << PRINT_TIMER("DFA_FFApplicationTime");
+                            << PRINT_TIMER("FF Application");
     BOOST_LOG_SEV(lg, INFO) << "call count of process call function: "
-                            << GET_COUNTER("ProcessCallCount");
+                            << GET_COUNTER("Calls to processCall");
     BOOST_LOG_SEV(lg, INFO) << "call count of process normal function: "
-                            << GET_COUNTER("ProcessNormalCount");
+                            << GET_COUNTER("Calls to processNormal");
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     cachedFlowEdgeFunctions.print();
 #endif
@@ -373,7 +377,7 @@ private:
                  bool interP)
   {
     PAMM_FACTORY;
-    ADD_DATA_TO_SET_HIST(destVals.size());
+    ADD_TO_SETH("Data-flow facts", destVals.size());
     if (!recordEdges)
       return;
     Table<N, N, map<D, set<D>>> &tgtMap =
@@ -403,7 +407,7 @@ private:
   void processCall(PathEdge<N, D> edge)
   {
     PAMM_FACTORY;
-    INC_COUNTER("ProcessCallCount");
+    INC_COUNTER("Calls to processCall");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process call at target: "
@@ -413,9 +417,9 @@ private:
     D d2 = edge.factAtTarget();
     shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
-    ADD_DATA_TO_SET_HIST(returnSiteNs.size());
+    ADD_TO_SETH("IDESolver", returnSiteNs.size());
     set<M> callees = icfg.getCalleesOfCallAt(n);
-    ADD_DATA_TO_SET_HIST(callees.size());
+    ADD_TO_SETH("IDESolver", callees.size());
     BOOST_LOG_SEV(lg, DEBUG) << "possible callees:";
     for (auto callee : callees)
     {
@@ -439,9 +443,9 @@ private:
         BOOST_LOG_SEV(lg, DEBUG) << "Found and process special summary";
         for (N returnSiteN : returnSiteNs)
         {
-          INC_COUNTER("SpecialSummaryFFApplicationCount");
+          INC_COUNTER("SpecialSummary-FF Application");
           set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
-          ADD_DATA_TO_SET_HIST(res.size());
+          ADD_TO_SETH("Data-flow facts", res.size());
           saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res)
           {
@@ -457,12 +461,12 @@ private:
         // compute the call-flow function
         shared_ptr<FlowFunction<D>> function =
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
-        INC_COUNTER("FFConstructionCount");
+        INC_COUNTER("FF Construction");
         set<D> res = computeCallFlowFunction(function, d1, d2);
-        ADD_DATA_TO_SET_HIST(res.size());
+        ADD_TO_SETH("Data-flow facts", res.size());
         // for each callee's start point(s)
         set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
-        ADD_DATA_TO_SET_HIST(startPointsOf.size());
+        ADD_TO_SETH("IDESolver", startPointsOf.size());
         if (startPointsOf.empty())
         {
           BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
@@ -487,7 +491,7 @@ private:
                 endSumm = set<
                     typename Table<N, D, shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
-            ADD_DATA_TO_SET_HIST(endSumm.size());
+            ADD_TO_SETH("IDESolver", endSumm.size());
             // cout << "ENDSUMM" << endl;
             // sP->dump();
             // d3->dump();
@@ -510,10 +514,10 @@ private:
                 shared_ptr<FlowFunction<D>> retFunction =
                     cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
                                                                eP, retSiteN);
-                INC_COUNTER("FFConstructionCount");
+                INC_COUNTER("FF Construction");
                 set<D> returnedFacts = computeReturnFlowFunction(
                     retFunction, d3, d4, n, set<D>{d2});
-                ADD_DATA_TO_SET_HIST(returnedFacts.size());
+                ADD_TO_SETH("Data-flow facts", returnedFacts.size());
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
                 // for each target value of the function
                 for (D d5 : returnedFacts)
@@ -546,10 +550,10 @@ private:
       {
         shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
             cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN);
-        INC_COUNTER("FFConstructionCount");
+        INC_COUNTER("FF Construction");
         set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
-        ADD_DATA_TO_SET_HIST(returnFacts.size());
+        ADD_TO_SETH("Data-flow facts", returnFacts.size());
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts)
         {
@@ -570,7 +574,7 @@ private:
   void processNormalFlow(PathEdge<N, D> edge)
   {
     PAMM_FACTORY;
-    INC_COUNTER("ProcessNormalCount");
+    INC_COUNTER("Calls to processNormal");
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG)
         << "process normal at target: "
@@ -586,9 +590,9 @@ private:
     {
       shared_ptr<FlowFunction<D>> flowFunction =
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
-      INC_COUNTER("FFConstructionCount");
+      INC_COUNTER("FF Construction");
       set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
-      ADD_DATA_TO_SET_HIST(res.size());
+      ADD_TO_SETH("Data-flow facts", res.size());
       saveEdges(n, m, d2, res, false);
       for (D d3 : res)
       {
@@ -613,7 +617,7 @@ private:
         N sP = n;
         V value = val(sP, d);
         propagateValue(c, dPrime, fPrime->computeTarget(value));
-        INC_COUNTER("FFApplicationCount");
+        INC_COUNTER("FF Application");
       }
     }
   }
@@ -626,7 +630,7 @@ private:
     {
       shared_ptr<FlowFunction<D>> callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
-      INC_COUNTER("FFConstructionCount");
+      INC_COUNTER("FF Construction");
       for (D dPrime : callFlowFunction->computeTargets(d))
       {
         shared_ptr<EdgeFunction<V>> edgeFn =
@@ -634,7 +638,7 @@ private:
         for (N startPoint : icfg.getStartPointsOf(q))
         {
           propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n, d)));
-          INC_COUNTER("FFApplicationCount");
+          INC_COUNTER("FF Application");
         }
       }
     }
@@ -709,7 +713,7 @@ private:
   {
     PAMM_FACTORY;
     auto &lg = lg::get();
-    INC_COUNTER("PropagationCount");
+    INC_COUNTER("Propagation");
     BOOST_LOG_SEV(lg, DEBUG)
         << "Process path edge: <"
         << "D source: " << ideTabulationProblem.DtoString(edge.factAtSource())
@@ -775,7 +779,7 @@ private:
           setVal(n, d,
                  ideTabulationProblem.join(val(n, d),
                                            fPrime->computeTarget(targetVal)));
-          INC_COUNTER("FFApplicationCount");
+          INC_COUNTER("FF Application");
         }
       }
     }
@@ -857,7 +861,7 @@ protected:
       if (allSeeds[unbalancedRetSite].empty())
       {
         allSeeds.insert(make_pair(unbalancedRetSite, set<D>({zeroValue})));
-        ADD_DATA_TO_SET_HIST(1);
+        ADD_TO_SETH("Data-flow facts", 1);
       }
     }
     // do processing
@@ -875,7 +879,7 @@ protected:
     // we create an array of all nodes and then dispatch fractions of this array
     // to multiple threads
     set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
-    ADD_DATA_TO_SET_HIST(allNonCallStartNodes.size());
+    ADD_TO_SETH("IDESolver", allNonCallStartNodes.size());
     vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
     size_t i = 0;
     for (N n : allNonCallStartNodes)
@@ -934,7 +938,7 @@ protected:
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
     set<N> startPointsOf = icfg.getStartPointsOf(methodThatNeedsSummary);
-    ADD_DATA_TO_SET_HIST(startPointsOf.size());
+    ADD_TO_SETH("IDESolver", startPointsOf.size());
     map<N, set<D>> inc;
     for (N sP : startPointsOf)
     {
@@ -944,7 +948,7 @@ protected:
       for (auto entry : incoming(d1, sP))
       {
         inc[entry.first] = set<D>{entry.second};
-        ADD_DATA_TO_SET_HIST(inc[entry.first].size());
+        ADD_TO_SETH("Data-flow facts", inc[entry.first].size());
       }
     }
     printEndSummaryTab();
@@ -962,13 +966,13 @@ protected:
         shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 c, methodThatNeedsSummary, n, retSiteC);
-        INC_COUNTER("FFConstructionCount");
+        INC_COUNTER("FF Construction");
         // for each incoming-call value
         for (D d4 : entry.second)
         {
           set<D> targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
-          ADD_DATA_TO_SET_HIST(targets.size());
+          ADD_TO_SETH("Data-flow facts", targets.size());
           saveEdges(n, retSiteC, d2, targets, true);
           // for each target value at the return site
           // line 23
@@ -1012,7 +1016,7 @@ protected:
         ideTabulationProblem.isZeroValue(d1))
     {
       set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
-      ADD_DATA_TO_SET_HIST(callers.size());
+      ADD_TO_SETH("IDESolver", callers.size());
       for (N c : callers)
       {
         for (N retSiteC : icfg.getReturnSitesOfCallAt(c))
@@ -1020,11 +1024,10 @@ protected:
           shared_ptr<FlowFunction<D>> retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
                   c, methodThatNeedsSummary, n, retSiteC);
-          INC_COUNTER("FFConstructionCount");
+          INC_COUNTER("FF Construction");
           set<D> targets = computeReturnFlowFunction(retFunction, d1, d2, c,
                                                      set<D>{zeroValue});
-          ADD_DATA_TO_SET_HIST(targets.size());
-          ADD_DATA_TO_SET_HIST(1);
+          ADD_TO_SETH("Data-flow facts", targets.size());
           saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets)
           {
@@ -1046,7 +1049,7 @@ protected:
         shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 nullptr, methodThatNeedsSummary, n, nullptr);
-        INC_COUNTER("FFConstructionCount");
+        INC_COUNTER("FF Construction");
         retFunction->computeTargets(d2);
       }
     }

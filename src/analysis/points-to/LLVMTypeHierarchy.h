@@ -199,6 +199,10 @@ public:
 
   static bidigraph_t loadGraphFormDot(istream &in);
 
+  unsigned getNumOfVertices();
+
+  unsigned getNumOfEdges();
+
   json exportPATBCJSON();
 
   // these are defined in the DBConn class

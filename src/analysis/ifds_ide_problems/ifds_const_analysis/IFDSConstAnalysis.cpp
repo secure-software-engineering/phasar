@@ -13,6 +13,9 @@ IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
       EntryPoints(EntryPoints) {
+  PAMM_FACTORY;
+  REG_SETH("Context-relevant-PT");
+  REG_COUNTER("Calls to getContextRelevantPointsToSet");
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -349,6 +352,9 @@ void IFDSConstAnalysis::printInitilizedSet() {
 
 set<const llvm::Value *> IFDSConstAnalysis::getContextRelevantPointsToSet(
     set<const llvm::Value *> &PointsToSet, const llvm::Function *Context) {
+  PAMM_FACTORY;
+  INC_COUNTER("Calls to getContextRelevantPointsToSet");
+  START_TIMER("Compute ContextRelevantPointsToSet");
   auto &lg = lg::get();
   set<const llvm::Value *> ToGenerate;
   // We need to check if the alias is from the given function context
@@ -377,6 +383,8 @@ set<const llvm::Value *> IFDSConstAnalysis::getContextRelevantPointsToSet(
       BOOST_LOG_SEV(lg, DEBUG) << "could not cast this alias!";
     }
   }
+  PAUSE_TIMER("Compute ContextRelevantPointsToSet");
+  ADD_TO_SETH("Context-relevant-PT", ToGenerate.size());
   return ToGenerate;
 }
 

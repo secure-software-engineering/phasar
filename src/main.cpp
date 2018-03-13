@@ -156,7 +156,7 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 
 int main(int argc, const char **argv) {
   PAMM &pamm = PAMM::getInstance();
-  START_TIMER("FW_runtime");
+  START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it
   initializeLogger(false);
   auto &lg = lg::get();
@@ -357,9 +357,10 @@ int main(int argc, const char **argv) {
                  VariablesMap["data_flow_analysis"]
                      .as<std::vector<std::string>>()
                      .end(),
-                 "plugin") != VariablesMap["data_flow_analysis"]
-                                  .as<std::vector<std::string>>()
-                                  .end() &&
+                 "plugin") !=
+                VariablesMap["data_flow_analysis"]
+                    .as<std::vector<std::string>>()
+                    .end() &&
             (!VariablesMap.count("analysis_plugin"))) {
           std::cerr
               << "If an analysis plugin is chosen, the plugin itself must also "
@@ -396,7 +397,7 @@ int main(int argc, const char **argv) {
     // analyses that have been choosen.
     AnalysisController Controller(
         [&lg, &pamm](bool usingModules) {
-          START_TIMER("IRDB_runtime");
+          START_TIMER("IRDB Construction");
           BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
           IRDBOptions Opt = IRDBOptions::NONE;
           if (VariablesMap["wpa"].as<bool>()) {
@@ -408,7 +409,7 @@ int main(int argc, const char **argv) {
           if (usingModules) {
             ProjectIRDB IRDB(
                 VariablesMap["module"].as<std::vector<std::string>>(), Opt);
-            STOP_TIMER("IRDB_runtime");
+            STOP_TIMER("IRDB Construction");
             return IRDB;
           } else {
             // perform a little trick to make OptionsParser only responsible for
@@ -424,7 +425,7 @@ int main(int argc, const char **argv) {
             clang::tooling::CompilationDatabase &CompileDB =
                 OptionsParser.getCompilations();
             ProjectIRDB IRDB(CompileDB, Opt);
-            STOP_TIMER("IRDB_runtime");
+            STOP_TIMER("IRDB Construction");
             return IRDB;
           }
         }(VariablesMap.count("module")),
@@ -500,7 +501,7 @@ int main(int argc, const char **argv) {
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
-  STOP_TIMER("FW_runtime");
+  STOP_TIMER("FW Runtime");
   // PRINT_EVA_DATA;
   EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
   return 0;

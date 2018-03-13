@@ -66,6 +66,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              WalkerStrategy WS, ResolveStrategy RS,
                              const vector<string> &EntryPoints)
     : W(WS), R(RS), CH(STH), IRDB(IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
                              "WalkerStrategy: "
@@ -82,6 +83,10 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     WholeModulePTG.mergeWith(ptg, F);
     Walker.at(W)(this, F);
   }
+  REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
+  REG_COUNTER_WITH_VALUE("Call Graph Vertices", getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("Call Graph Edges", getNumOfEdges());
   BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed";
 }
 
@@ -795,3 +800,7 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
   }
   return functionNames;
 }
+
+unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
+
+unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
