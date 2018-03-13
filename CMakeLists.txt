@@ -19,9 +19,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(BUILD_MODE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -stdlib=libstdc++ -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
+  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
 endif()
 
 # Enable testing
@@ -35,6 +35,14 @@ enable_testing()
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
+
+# Phasar Options
+option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
+if(PHASAR_ENABLE_LIBCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+endif(PHASAR_ENABLE_LIBCXX)
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
@@ -71,7 +79,8 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 find_package(LLVM REQUIRED CONFIG)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
-link_directories(${LLVM_LIB_PATH})
+link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
+
 llvm_map_components_to_libnames(llvm_libs
   coverage
   coroutines
