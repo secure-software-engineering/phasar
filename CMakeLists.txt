@@ -1,16 +1,8 @@
 cmake_minimum_required (VERSION 3.0)
 
-# Specify the build options
-option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
-option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
-option(BUILD_DOC "Build documentation" OFF)
-set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')")
-
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
-# Set the default install prefix
-set(CMAKE_INSTALL_PREFIX /usr/local)
 
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
@@ -18,10 +10,28 @@ set(CMAKE_PROJECT_NAME "phasar")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(BUILD_MODE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
+
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release',
+  default is 'Debug')" FORCE)
+endif ()
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} 
+  -MP 
+  -fvisibility-inlines-hidden
+  -fstack-protector-strong 
+  -ffunction-sections 
+  -fdata-sections 
+  -pipe")
 else()
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}
+  -MP 
+  -fvisibility-inlines-hidden 
+  -fstack-protector-strong 
+  -ffunction-sections 
+  -fdata-sections 
+  -pipe 
+  -march=native")
 endif()
 
 # Enable testing
@@ -43,6 +53,32 @@ if(PHASAR_ENABLE_LIBCXX)
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
 endif(PHASAR_ENABLE_LIBCXX)
+
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
+
+option(PHASAR_BUILD_DOC "Build documentation" OFF)
+
+if (NOT CMAKE_BUILD_TYPE)
+  option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+endif (NOT CMAKE_BUILD_TYPE)
+
+option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+if (PHASAR_ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} 
+  -Wall 
+  -Wextra 
+  -Wno-unused-variable
+  -Wno-unused-parameter 
+  -Wno-return-type-c-linkage
+  ")
+endif (PHASAR_ENABLE_WARNINGS)
+
+option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
+if (PHASAR_ENABLE_PIC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}
+  -fPIC
+  ")
+endif (PHASAR_ENABLE_PIC)
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
@@ -172,7 +208,7 @@ target_link_libraries(phasar
 )
 
 # Add Phasar unittests
-if (BUILD_UNITTESTS)
+if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
   add_subdirectory(unittests)
 endif()
