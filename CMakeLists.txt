@@ -208,7 +208,7 @@ target_link_libraries(phasar
 )
 
 # Add Phasar unittests
-if (BUILD_UNITTESTS)
+if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
   add_subdirectory(unittests)
 endif()
