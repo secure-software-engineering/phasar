@@ -203,12 +203,12 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
       auto &lg = lg::get();
       if (!constanalysis->isZeroValue(source)) {
         set<const llvm::Value *> res;
-        // Collect everything that is returned by pointer/reference.
         const llvm::Function *callSiteFunction = callSite->getFunction();
+        // (i): Map parameter back into the caller context.
+        // Generate the actual parameter and all its alias within the caller
         for (unsigned idx = 0; idx < formals.size(); ++idx) {
           if (source == formals[idx] &&
               formals[idx]->getType()->isPointerTy()) {
-            // Generate the actual parameter and all its alias within the caller
             BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
                                      << llvmIRToString(actuals[idx]);
             BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
@@ -223,10 +223,14 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
             }
           }
         }
+        // (ii): Return value mutable.
         // If the return value is a data-flow fact and of pointer type, we
         // need to generate the return value and all its alias within the
         // caller context.
-        // NOTE: We also need to generate the
+        // UPDATE: Probably not necessary to generate anything here since
+        // memory location M (where the return value points to) in the callee
+        // context is already marked as mutable. Any further write access to
+        // M can be ignored. See example 'call/return/call_ret_07.cpp'.
         if (source == exitStmt->getReturnValue() &&
             calleeMthd->getReturnType()->isPointerTy()) {
           BOOST_LOG_SEV(lg, DEBUG) << "Callee return value: "
@@ -242,6 +246,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
         }
         return res;
       }
+      // (iii): Return value is only initialized.
       // Check if the return value is a pointer type and initialized.
       // We then need to mark the call site as initialized.
       if (calleeMthd->getReturnType()->isPointerTy()) {
@@ -255,7 +260,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
            }
          }
       }
-      // Just draw the zero edge
+      // (iv): Just draw the zero edge.
       return {source};
     }
   };

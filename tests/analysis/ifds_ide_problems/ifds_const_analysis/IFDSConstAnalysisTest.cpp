@@ -442,6 +442,14 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_09) {
   compareResults({0, 5, 6}, llvmconstsolver);
 }
 
+TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_10) {
+  SetUp({pathToTests + "call/param/call_param_10.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+    *constproblem, false);
+  llvmconstsolver.solve();
+  compareResults({0, 5, 10, 11}, llvmconstsolver);
+}
+
 TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_01) {
   SetUp({pathToTests + "call/return/call_ret_01.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
@@ -480,6 +488,22 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_05) {
       *constproblem, false);
   llvmconstsolver.solve();
   compareResults({4, 5}, llvmconstsolver);
+}
+
+TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_06) {
+  SetUp({pathToTests + "call/return/call_ret_06.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+      *constproblem, false);
+  llvmconstsolver.solve();
+  compareResults({3, 8, 9}, llvmconstsolver);
+}
+
+TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_07) {
+  SetUp({pathToTests + "call/return/call_ret_07.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+    *constproblem, false);
+  llvmconstsolver.solve();
+  compareResults({0, 9, 10, 11}, llvmconstsolver);
 }
 
 /* ============== ARRAY TESTS ============== */
@@ -668,13 +692,6 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_04) {
   compareResults({0, 1, 2, 4}, llvmconstsolver);
 }
 
-TEST_F(IFDSConstAnalysisTest, HandleCStringTest_05) {
-  SetUp({pathToTests + "cstring/cstring_05.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
-  llvmconstsolver.solve();
-  compareResults({0, 1, 2}, llvmconstsolver);
-}
 
 /* ============== STRUCTURE TESTS ============== */
 //TEST_F(IFDSConstAnalysisTest, HandleStructureTest_01) {
