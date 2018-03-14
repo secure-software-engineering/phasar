@@ -1,10 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
 
-# Specify the build options
-option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
-option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
-option(BUILD_DOC "Build documentation" OFF)
-
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
@@ -47,6 +42,14 @@ if(PHASAR_ENABLE_LIBCXX)
 else()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
 endif(PHASAR_ENABLE_LIBCXX)
+
+option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
+
+option(PHASAR_BUILD_DOC "Build documentation" OFF)
+
+if (NOT CMAKE_BUILD_TYPE)
+  option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+endif (NOT CMAKE_BUILD_TYPE)
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
