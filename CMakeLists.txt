@@ -16,9 +16,22 @@ if (NOT CMAKE_BUILD_TYPE)
   default is 'Debug')" FORCE)
 endif ()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} 
+  -MP 
+  -fvisibility-inlines-hidden
+  -fstack-protector-strong 
+  -ffunction-sections 
+  -fdata-sections 
+  -pipe")
 else()
-  set(CMAKE_CXX_FLAGS "-MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}
+  -MP 
+  -fvisibility-inlines-hidden 
+  -fstack-protector-strong 
+  -ffunction-sections 
+  -fdata-sections 
+  -pipe 
+  -march=native")
 endif()
 
 # Enable testing
