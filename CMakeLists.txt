@@ -16,9 +16,9 @@ if (NOT CMAKE_BUILD_TYPE)
   default is 'Debug')" FORCE)
 endif ()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+  set(CMAKE_CXX_FLAGS "-MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 else()
-  set(CMAKE_CXX_FLAGS "-MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
+  set(CMAKE_CXX_FLAGS "-MP -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
 endif()
 
 # Enable testing
@@ -59,6 +59,13 @@ if (PHASAR_ENABLE_WARNINGS)
   -Wno-return-type-c-linkage
   ")
 endif (PHASAR_ENABLE_WARNINGS)
+
+option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
+if (PHASAR_ENABLE_PIC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}
+  -fPIC
+  ")
+endif (PHASAR_ENABLE_PIC)
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
