@@ -16,9 +16,9 @@ if (NOT CMAKE_BUILD_TYPE)
   default is 'Debug')" FORCE)
 endif ()
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
+  set(CMAKE_CXX_FLAGS "-MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe")
 else()
-  set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
+  set(CMAKE_CXX_FLAGS "-MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -march=native")
 endif()
 
 # Enable testing
@@ -48,6 +48,17 @@ option(PHASAR_BUILD_DOC "Build documentation" OFF)
 if (NOT CMAKE_BUILD_TYPE)
   option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 endif (NOT CMAKE_BUILD_TYPE)
+
+option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
+if (PHASAR_ENABLE_WARNINGS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} 
+  -Wall 
+  -Wextra 
+  -Wno-unused-variable
+  -Wno-unused-parameter 
+  -Wno-return-type-c-linkage
+  ")
+endif (PHASAR_ENABLE_WARNINGS)
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
