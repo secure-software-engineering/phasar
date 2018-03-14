@@ -4,7 +4,6 @@ cmake_minimum_required (VERSION 3.0)
 option(BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 option(BUILD_DOC "Build documentation" OFF)
-set(BUILD_MODE "Debug" CACHE STRING "Build mode ('Debug' or 'Release', default is 'Debug')")
 
 # Set-up the compiler
 set(CMAKE_C_COMPILER clang)
@@ -18,7 +17,12 @@ set(CMAKE_PROJECT_NAME "phasar")
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(BUILD_MODE STREQUAL "Debug")
+
+if (NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "Build mode ('Debug' or 'Release',
+  default is 'Debug')" FORCE)
+endif ()
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g")
 else()
   set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage -MP -fPIC -fvisibility-inlines-hidden -fstack-protector-strong -ffunction-sections -fdata-sections -pipe -g -O2 -march=native -DNDEBUG")
