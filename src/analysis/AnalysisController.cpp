@@ -161,6 +161,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         cout << "Const Analysis finished!" << endl;
         // constproblem.printInitilizedSet();
         START_TIMER("DFA Result Computation");
+        // TODO need to consider object fields, i.e. getelementptr instructions
         // get all stack and heap alloca instructions
         std::set<const llvm::Value *> allMemoryLoc =
             IRDB.getAllocaInstructions();

@@ -46,6 +46,14 @@
 #include <vector>
 using namespace std;
 
+/**
+ * To test the CONSERVATIVE version of this analysis, just check
+ * the comments of each flow function for information on
+ * which parts should be un-/commented.
+ * More detailed information will be added soon, for now
+ * read the code comments.
+ * @brief Computes all mutable mutable Memory Locations.
+ */
 class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {

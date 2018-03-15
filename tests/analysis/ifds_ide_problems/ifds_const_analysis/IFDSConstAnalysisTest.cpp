@@ -503,7 +503,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_07) {
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
     *constproblem, false);
   llvmconstsolver.solve();
-  compareResults({0, 9, 10, 11}, llvmconstsolver);
+  compareResults({0, 11, 12, 13}, llvmconstsolver);
 }
 
 /* ============== ARRAY TESTS ============== */
