@@ -67,7 +67,7 @@ public:
 
   void dumpResults() {
     PAMM_FACTORY;
-    START_TIMER("DFA_DumpResults");
+    START_TIMER("DFA Result Dumping");
     cout << "### DUMP LLVMIFDSSolver results\n";
     auto results = this->valtab.cellSet();
     if (results.empty()) {
@@ -105,7 +105,7 @@ public:
                << "\tV:  " << cells[i].v << "\n";
       }
     }
-    STOP_TIMER("DFA_DumpResults");
+    STOP_TIMER("DFA Result Dumping");
   }
 
   json getJsonRepresentationForInstructionNode(const llvm::Instruction *node) {

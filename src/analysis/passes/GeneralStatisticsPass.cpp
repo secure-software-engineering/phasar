@@ -80,6 +80,21 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
 bool GeneralStatisticsPass::doInitialization(llvm::Module &M) { return false; }
 
 bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
+  #ifdef PERFORMANCE_EVA
+  // for performance reasons (and out of sheer convenience) we simply initialize
+  // the counter with the values of the counter varibles, i.e. PAMM simply
+  // holds the results.
+  PAMM &pamm = PAMM::getInstance();
+  pamm.regCounter("GS Functions", functions);
+  pamm.regCounter("GS Globals", globals);
+  pamm.regCounter("GS Basic Blocks", basicblocks);
+  pamm.regCounter("GS Allocation-Sites", allocationsites);
+  pamm.regCounter("GS Call-Sites", callsites);
+  pamm.regCounter("GS Pointer Variables", pointers);
+  pamm.regCounter("GS Instructions", instructions);
+  pamm.regCounter("GS Allocated Types", allocatedTypes.size());
+  return false;
+#else
   llvm::outs() << "GeneralStatisticsPass summary for module: '"
                << M.getName().str() << "'\n";
   llvm::outs() << "functions: " << functions << "\n";
@@ -95,6 +110,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   }
   llvm::outs() << "\n\n";
   return false;
+#endif
 }
 
 void GeneralStatisticsPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {

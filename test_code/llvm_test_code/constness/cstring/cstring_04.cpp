@@ -1,4 +1,4 @@
-/* immutable: bar */
+/* immutable: bar, "Hello", "Bye" */
 #include <cstring>
 int main() {
   char foo[10] = "Hello";

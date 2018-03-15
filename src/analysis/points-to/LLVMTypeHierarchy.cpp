@@ -17,12 +17,15 @@
 #include "LLVMTypeHierarchy.h"
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy";
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
+  REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
@@ -200,6 +203,10 @@ void LLVMTypeHierarchy::printTransitiveClosure() {
   boost::print_graph(tc,
                      boost::get(&LLVMTypeHierarchy::VertexProperties::name, g));
 }
+
+unsigned LLVMTypeHierarchy::getNumOfVertices() { return boost::num_vertices(g); }
+
+unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
 
 json LLVMTypeHierarchy::exportPATBCJSON() {
   auto &lg = lg::get();

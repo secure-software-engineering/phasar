@@ -313,6 +313,10 @@ public:
 
   void printInternalPTGAsDot(const string &filename);
 
+  unsigned getNumOfVertices();
+
+  unsigned getNumOfEdges();
+
   void exportPATBCJSON();
 
   PointsToGraph &getWholeModulePTG();

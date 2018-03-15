@@ -21,6 +21,7 @@
 #include "../../lib/GraphExtensions.h"
 #include "../../lib/LLVMShorthands.h"
 #include "../../utils/Logger.h"
+#include "../../utils/PAMM.h"
 #include "../../utils/utils.h"
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
@@ -189,8 +190,8 @@ private:
               llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
         // If the call stack is empty, we completely ignore the calling context
         if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG)
-              << "Found stack allocation: " << llvmIRToString(Alloc);
+          BOOST_LOG_SEV(lg, DEBUG) << "Found stack allocation: "
+                                   << llvmIRToString(Alloc);
           allocation_sites.insert(g[u].value);
         }
       }
@@ -332,8 +333,6 @@ public:
    */
   set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
 
-  set<const llvm::Value *> getAliasWithinFunction(const llvm::Value *V);
-
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
@@ -368,6 +367,9 @@ public:
    */
   void printAsDot(const string &filename);
 
+  unsigned getNumOfVertices();
+
+  unsigned getNumOfEdges();
   /**
    * @brief NOT YET IMPLEMENTED
    */

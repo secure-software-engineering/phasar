@@ -50,30 +50,37 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
     }
   }
-  START_TIMER("IRP_runtime");
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
-    START_TIMER("IRP_WPALink");
+    // START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
-    STOP_TIMER("IRP_WPALink");
+    // STOP_TIMER("Link to WPA Module");
   }
   IRDB.preprocessIR();
-  STOP_TIMER("IRP_runtime");
+  // START_TIMER("DB Start Up");
+  // DBConn &db = DBConn::getInstance();
+  // STOP_TIMER("DB Start Up");
+  // START_TIMER("DB Store IRDB");
+  // db.storeProjectIRDB("myphasarproject", IRDB);
+  // STOP_TIMER("DB Store IRDB");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
-  START_TIMER("LTH_runtime");
+  START_TIMER("LTH Construction");
   LLVMTypeHierarchy CH(IRDB);
-  STOP_TIMER("LTH_runtime");
+  STOP_TIMER("LTH Construction");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+  // START_TIMER("DB Store LTH");
+  // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
+  // STOP_TIMER("DB Store LTH");
   // CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     cout << "WPA_MODE HAPPENING" << endl;
-    START_TIMER("ICFG_runtime");
+    START_TIMER("ICFG Construction");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
 
@@ -82,7 +89,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       // callgraph provided by the plugin
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
-    STOP_TIMER("ICFG_runtime");
+    STOP_TIMER("ICFG Construction");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
     // ICFG.print();
     // ICFG.printAsDot("interproc_cfg.dot");
@@ -94,7 +101,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
-      START_TIMER("DFA_runtime");
+      START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -155,8 +162,10 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
             constproblem, false);
         cout << "IFDS Const Analysis started!" << endl;
         llvmconstsolver.solve();
-        cout << "Const Analysis finished!" << endl;
-        //constproblem.printInitilizedSet();
+        cout << "IFDS Const Analysis finished!" << endl;
+        // constproblem.printInitilizedSet();
+        //START_TIMER("DFA Result Computation");
+        //// TODO need to consider object fields, i.e. getelementptr instructions
         //// get all stack and heap alloca instructions
         //std::set<const llvm::Value *> allMemoryLoc =
         //    IRDB.getAllocaInstructions();
@@ -232,18 +241,16 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         //// BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
         //for (auto memloc : allMemoryLoc) {
         //  if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
-        //    ResultFile << "Instruction: " << llvmIRToString(memlocInst) << " ["
+        //    ResultFile << llvmIRToString(memlocInst) << " in function "
         //               << memlocInst->getParent()->getParent()->getName().str()
-        //               << "]\n";
+        //               << "\n";
         //  } else {
-        //    ResultFile << "Global Variable: " << llvmIRToString(memloc) << " ["
-        //               << IRDB.getGlobalVariableModuleName(
-        //                      memloc->getName().str())
-        //               << "]\n";
+        //    ResultFile << llvmIRToString(memloc) << '\n';
         //  }
         //}
         //ResultFile.close();
-        BOOST_LOG_SEV(lg, INFO) << "-------------";
+        //STOP_TIMER("DFA Result Computation");
+        // BOOST_LOG_SEV(lg, INFO) << "-------------";
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -300,7 +307,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
-      STOP_TIMER("DFA_runtime");
+      STOP_TIMER("DFA Runtime");
     }
   }
   // Perform module-wise (MW) analysis

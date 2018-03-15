@@ -18,6 +18,7 @@
 #define ANALYSIS_GENERALSTATISTICSPASS_H_
 
 #include "../../utils/Logger.h"
+#include "../../utils/PAMM.h"
 #include "../../utils/utils.h"
 #include <iostream>
 #include <llvm/Analysis/LoopInfo.h>
