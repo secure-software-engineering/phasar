@@ -138,7 +138,6 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
           set<const llvm::Value *> res;
           // Map actual parameter of pointer type into corresponding
           // formal parameter.
-          // CONSERVATIVE ANALYSIS: Maps all paramter regardless its type.
           for (unsigned idx = 0; idx < actuals.size(); ++idx) {
             if (source == actuals[idx] && actuals[idx]->getType()->isPointerTy()) {
               BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
@@ -219,9 +218,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
             BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
                                      << llvmIRToString(formals[idx]);
             res.insert(actuals[idx]);
-            //BOOST_LOG_SEV(lg, DEBUG) << "Compute caller context-relevant "
-            //                            "points-to information for the actual "
-            //                            "param.";
+            //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the actual parameter.";
             //set<const llvm::Value *> pointsToSet =
             //    pointsToGraph->getPointsToSet(actuals[idx]);
             //for (auto fact : pointsToSet/*constanalysis->getContextRelevantPointsToSet(
@@ -245,9 +242,7 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
           BOOST_LOG_SEV(lg, DEBUG) << "Callee return value: "
                                    << llvmIRToString(source);
           res.insert(source);
-          //BOOST_LOG_SEV(lg, DEBUG) << "Compute caller context-relevant "
-          //    "points-to information for the call "
-          //    "site.";
+          //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the return value.";
           //set<const llvm::Value *> pointsToSet =
           //    pointsToGraph->getPointsToSet(callSite.getInstruction());
           //for (auto fact : getPointsToSet/*constanalysis->getContextRelevantPointsToSet(
@@ -306,7 +301,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
       if (isInitialized(alias)) {
         BOOST_LOG_SEV(lg, DEBUG) << "Compute context-relevant points-to "
                                     "information of the pointer operand.";
-        return make_shared<GenAll<const llvm::Value *>>(
+        return make_shared<GenAll<const llvm::Value *>>(/*pointsToSet*/
             getContextRelevantPointsToSet(pointsToSet, callSite->getFunction()),
             zeroValue());
       }
