@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IFDSConstAnalysis.h
  *
@@ -33,11 +42,18 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <string>
 #include <utility>
 #include <vector>
 using namespace std;
 
+/**
+ * To test the CONSERVATIVE version of this analysis, just check
+ * the comments of each flow function for information on
+ * which parts should be un-/commented.
+ * More detailed information will be added soon, for now
+ * read the code comments.
+ * @brief Computes all mutable mutable Memory Locations.
+ */
 class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
@@ -45,7 +61,8 @@ private:
   PointsToGraph &ptg;
   //  IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> dynSum;
   vector<string> EntryPoints;
-  set<const llvm::Value *> storedOnce;
+  /// Holds all initialized variables and objects.
+  set<const llvm::Value *> Initialized;
 
 public:
   IFDSConstAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
@@ -87,8 +104,33 @@ public:
 
   string MtoString(const llvm::Function *m) override;
 
+  /**
+   * @note Global Variables are always intialized in llvm IR, and therefore
+   * not part of the Initialized set.
+   * @brief Checks if the given Value is initialized
+   * @return True, if d is initialized or a Global Variable.
+   */
+  bool isInitialized(const llvm::Value *d) const;
+
+  void markAsInitialized(const llvm::Value *d);
+
   void printInitilizedSet();
+
+  /**
+   * Only interested in points-to information within the function scope, i.e.
+   *   -local instructions
+   *   -function args of parent function
+   *   -global variable/pointer
+   * TODO add additional missing checks
+   * @brief Refines the given points-to information to only context-relevant
+   * points-to information.
+   * @param PointsToSet that is refined.
+   * @param Context dictates which points-to information is relevant.
+   */
+  set<const llvm::Value *>
+  getContextRelevantPointsToSet(set<const llvm::Value *> &PointsToSet,
+                                const llvm::Function *Context);
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
-          */
+        */

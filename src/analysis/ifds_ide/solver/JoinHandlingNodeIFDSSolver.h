@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * JoinHandlingNodeIFDSSolver.h
  *
@@ -17,13 +26,13 @@
  * solver propagates the cached value but at the same time links
  * both target values with one another.
  */
-template <class N, class D, class M, class I>
+template <typename N, typename D, typename M, typename I>
 class JoinHandlingNodesIFDSSolver {
   // class JoinHandlingNodesIFDSSolver<N, D extends JoinHandlingNode<D>, M, I
   // extends InterproceduralCFG<N, M>> extends IFDSSolver<N, D, M, I> {
   //
   //	public JoinHandlingNodesIFDSSolver(IFDSTabulationProblem<N, D, M, I>
-  //ifdsProblem) {
+  // ifdsProblem) {
   //		super(ifdsProblem);
   //	}
 };

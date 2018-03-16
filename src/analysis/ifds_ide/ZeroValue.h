@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * ZeroValue.h
  *
@@ -62,9 +71,16 @@ bool isLLVMZeroValue(const llvm::Value *V);
  *	@zero_value.2 = constant i2 0, align 4
  */
 class ZeroValue : public llvm::GlobalVariable {
-public:
+private:
   ZeroValue();
+
+public:
+  ZeroValue(const ZeroValue &Z) = delete;
+  ZeroValue &operator=(const ZeroValue &Z) = delete;
+  ZeroValue(ZeroValue &&Z) = delete;
+  ZeroValue &operator=(ZeroValue &&Z) = delete;
   virtual ~ZeroValue() = default;
+  static ZeroValue *getInstance();
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_ZEROVALUE_HH_ */

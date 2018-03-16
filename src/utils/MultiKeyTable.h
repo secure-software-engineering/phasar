@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * MultiKeyTable.h
  *
@@ -14,7 +23,7 @@
 #include <unordered_map>
 using namespace std;
 
-template <class R, class C, class V> class MultiKeyTable {
+template <typename R, typename C, typename V> class MultiKeyTable {
 private:
   unordered_multimap<R, unordered_multimap<C, V>> multi_key_table;
 
@@ -58,7 +67,7 @@ public:
 
   void clear() { multi_key_table.clear(); }
 
-  bool isEmpty() { return multi_key_table.empty(); }
+  bool empty() { return multi_key_table.empty(); }
 
   size_t size() { return multi_key_table.size(); }
 

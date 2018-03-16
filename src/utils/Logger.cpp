@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Logger.cpp
  *
@@ -21,34 +30,38 @@ const map<severity_level, string> SeverityLevelToString = {
     {ERROR, "ERROR"},
     {CRITICAL, "CRITICAL"}};
 
-ostream &operator<<(ostream &os, enum severity_level l) {
+ostream &operator<<(ostream &os, enum severity_level l)
+{
   return os << SeverityLevelToString.at(l);
 }
 
-bool LogFilter(const bl::attribute_value_set &set) {
+bool LogFilter(const bl::attribute_value_set &set)
+{
   return set["Severity"].extract<severity_level>() >= 0;
 }
 
-void LogFormatter(const bl::record_view &view, bl::formatting_ostream &os) {
+void LogFormatter(const bl::record_view &view, bl::formatting_ostream &os)
+{
   os << view.attribute_values()["LineCounter"].extract<int>() << " "
      << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
-     << " - level ["
-     << view.attribute_values()["Severity"].extract<severity_level>() << "] "
-     << view.attribute_values()["Message"].extract<std::string>();
+     << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
+     << "] " << view.attribute_values()["Message"].extract<std::string>();
 }
 
-void LoggerExceptionHandler::operator()(const std::exception &ex) const {
+void LoggerExceptionHandler::operator()(const std::exception &ex) const
+{
   std::cerr << "std::exception: " << ex.what() << '\n';
 }
 
-void initializeLogger(bool use_logger) {
+void initializeLogger(bool use_logger)
+{
   // Using this call, logging can be enabled or disabled
   bl::core::get()->set_logging_enabled(use_logger);
   typedef bl::sinks::synchronous_sink<bl::sinks::text_ostream_backend>
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
-  boost::shared_ptr<std::ostream> stream(&std::clog, boost::empty_deleter{});
+  boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter{});
   // // get the time and make it into a string for log file nameing
   // time_t current_time = std::time(nullptr);
   // string time(asctime(localtime(&current_time)));

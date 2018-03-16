@@ -1,11 +1,8 @@
-/* mutable: i, gint */
+/* immutable: i */
 int gint = 10;
 
 int main() {
-	int i = 7;
-	i = gint;
 	gint = 42;
-	gint += 13;
-	gint -= 17;
+  int i = gint;
 	return 0;
 }

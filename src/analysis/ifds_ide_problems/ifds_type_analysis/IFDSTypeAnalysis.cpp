@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSTypeAnalysis.h"
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
@@ -71,8 +80,7 @@ IFDSTypeAnalysis::initialSeeds() {
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {

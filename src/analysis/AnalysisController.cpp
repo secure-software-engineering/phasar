@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "AnalysisController.h"
 
 const map<string, ExportType> StringToExportType = {{"json", ExportType::JSON}};
@@ -10,9 +19,10 @@ ostream &operator<<(ostream &os, const ExportType &E) {
 
 AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
                                        vector<DataFlowAnalysisType> Analyses,
-                                       bool WPA_MODE, bool Mem2Reg_MODE,
-                                       bool PrintEdgeRecorder, string graph_id)
+                                       bool WPA_MODE, bool PrintEdgeRecorder,
+                                       string graph_id)
     : FinalResultsJson() {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
   BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
@@ -45,26 +55,45 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
+    // START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
+    // STOP_TIMER("Link to WPA Module");
   }
   IRDB.preprocessIR();
-//  IRDB.print();
-//  DBConn::getInstance();
+  // START_TIMER("DB Start Up");
+  // DBConn &db = DBConn::getInstance();
+  // STOP_TIMER("DB Start Up");
+  // START_TIMER("DB Store IRDB");
+  // db.storeProjectIRDB("myphasarproject", IRDB);
+  // STOP_TIMER("DB Store IRDB");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  START_TIMER("LTH Construction");
   LLVMTypeHierarchy CH(IRDB);
+  STOP_TIMER("LTH Construction");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-//  CH.printAsDot();
+  // START_TIMER("DB Store LTH");
+  // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
+  // STOP_TIMER("DB Store LTH");
+  // CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     cout << "WPA_MODE HAPPENING" << endl;
+    START_TIMER("ICFG Construction");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
+
+    if (VariablesMap.count("callgraph_plugin")) {
+      // TODO write a lambda to replace the built-in callgraph with the
+      // callgraph provided by the plugin
+      SOL so(VariablesMap["callgraph_plugin"].as<string>());
+    }
+    STOP_TIMER("ICFG Construction");
     cout << "CONSTRUCTION OF ICFG COMPLETED" << endl;
-//    ICFG.print();
-//    ICFG.printAsDot("interproc_cfg.dot");
-//    ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
+    // ICFG.print();
+    // ICFG.printAsDot("interproc_cfg.dot");
+    // ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -72,30 +101,33 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
+      START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-            taintanalysisproblem, true);
+            taintanalysisproblem, false);
+        cout << "IFDS Taint Analysis started!" << endl;
         llvmtaintsolver.solve();
+        cout << "IFDS Taint Analysis finished!" << endl;
         // Here we can get the leaks
-        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-            taintanalysisproblem.Leaks;
-        BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
-        if (Leaks.empty()) {
-          BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
-        } else {
-          for (auto Leak : Leaks) {
-            string ModuleName =
-                getModuleFromVal(Leak.first)->getModuleIdentifier();
-            BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
-                                    << llvmIRToString(Leak.first)
-                                    << "' in file: '" << ModuleName << "'";
-            for (auto LeakValue : Leak.second) {
-              BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
-            }
-          }
-        }
+        //map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
+        //    taintanalysisproblem.Leaks;
+        //BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+        //if (Leaks.empty()) {
+        //  BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+        //} else {
+        //  for (auto Leak : Leaks) {
+        //    string ModuleName =
+        //        getModuleFromVal(Leak.first)->getModuleIdentifier();
+        //    BOOST_LOG_SEV(lg, INFO) << "At instruction: '"
+        //                            << llvmIRToString(Leak.first)
+        //                            << "' in file: '" << ModuleName << "'";
+        //    for (auto LeakValue : Leak.second) {
+        //      BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+        //    }
+        //  }
+        //}
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -115,28 +147,119 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem, true);
+            uninitializedvarproblem, false);
+        cout << "IFDS Uninit Analysis started!" << endl;
         llvmunivsolver.solve();
+        cout << "IFDS Uninit Analysis finished!" << endl;
         if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJSONDataModel(graph_id);
+          llvmunivsolver.exportJson(graph_id);
         }
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmconstsolver(
-          constproblem, true);
-        cout << "Const Analysis started!" << endl;
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+            constproblem, false);
+        cout << "IFDS Const Analysis started!" << endl;
         llvmconstsolver.solve();
-        cout << "Const Analysis finished!" << endl;
-        constproblem.printInitilizedSet();
+        cout << "IFDS Const Analysis finished!" << endl;
+        // constproblem.printInitilizedSet();
+        //START_TIMER("DFA Result Computation");
+        //// TODO need to consider object fields, i.e. getelementptr instructions
+        //// get all stack and heap alloca instructions
+        //std::set<const llvm::Value *> allMemoryLoc =
+        //    IRDB.getAllocaInstructions();
+        //std::set<std::string> IgnoredGlobalNames = {"llvm.used",
+        //                                            "llvm.compiler.used",
+        //                                            "llvm.global_ctors",
+        //                                            "llvm.global_dtors",
+        //                                            "vtable",
+        //                                            "typeinfo"};
+        //// add global varibales to the memory location set, except the llvm
+        //// intrinsic global variables
+        //for (auto M : IRDB.getAllModules()) {
+        //  for (auto &GV : M->globals()) {
+        //    if (GV.hasName()) {
+        //      string GVName = cxx_demangle(GV.getName().str());
+        //      if (!IgnoredGlobalNames.count(
+        //              GVName.substr(0, GVName.find(' ')))) {
+        //        allMemoryLoc.insert(&GV);
+        //      }
+        //    }
+        //  }
+        //}
+        //BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        //BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
+        //for (auto memloc : allMemoryLoc) {
+        //  BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
+        //}
+        //BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        //BOOST_LOG_SEV(lg, DEBUG)
+        //    << "Printing return/resume instruction + dataflow facts:";
+        //for (auto RR : IRDB.getRetResInstructions()) {
+        //  std::set<const llvm::Value *> facts =
+        //      llvmconstsolver.ifdsResultsAt(RR);
+        //  // Empty facts means the return/resume statement is part of not
+        //  // analyzed function - remove all allocas of that function
+        //  if (facts.empty()) {
+        //    const llvm::Function *F = RR->getParent()->getParent();
+        //    for (auto mem_itr = allMemoryLoc.begin();
+        //         mem_itr != allMemoryLoc.end();) {
+        //      if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
+        //        if (Inst->getParent()->getParent() == F) {
+        //          mem_itr = allMemoryLoc.erase(mem_itr);
+        //        } else {
+        //          ++mem_itr;
+        //        }
+        //      } else {
+        //        ++mem_itr;
+        //      }
+        //    }
+        //  } else {
+        //    BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
+        //    for (auto fact : facts) {
+        //      if (isAllocaInstOrHeapAllocaFunction(fact) ||
+        //          llvm::isa<llvm::GlobalValue>(fact)) {
+        //        BOOST_LOG_SEV(lg, DEBUG) << "   Fact: "
+        //                                 << constproblem.DtoString(fact);
+        //        // remove allocas that are mutable, i.e. are valid facts
+        //        allMemoryLoc.erase(fact);
+        //      }
+        //    }
+        //  }
+        //}
+        //// write immutable locations to file
+        //bfs::path cfp(VariablesMap["config"].as<string>());
+        //// reduce the config path to just the filename - no path and no
+        //// extension
+        //std::string config = cfp.filename().string();
+        //std::size_t extensionPos = config.find(cfp.extension().string());
+        //config.replace(extensionPos, cfp.extension().size(), "");
+        //ofstream ResultFile;
+        //ResultFile.open(config + "_memlocs.txt");
+        //// BOOST_LOG_SEV(lg, INFO) << "-------------";
+        //// BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        //for (auto memloc : allMemoryLoc) {
+        //  if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
+        //    ResultFile << llvmIRToString(memlocInst) << " in function "
+        //               << memlocInst->getParent()->getParent()->getName().str()
+        //               << "\n";
+        //  } else {
+        //    ResultFile << llvmIRToString(memloc) << '\n';
+        //  }
+        //}
+        //ResultFile.close();
+        //STOP_TIMER("DFA Result Computation");
+        // BOOST_LOG_SEV(lg, INFO) << "-------------";
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
         IFDSSolverTest ifdstest(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            ifdstest, true);
+            ifdstest, false);
+        cout << "IFDS Solvertest started!" << endl;
         llvmifdstestsolver.solve();
+        cout << "IFDS Solvertest finished!" << endl;
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -171,9 +294,10 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         break;
       }
       case DataFlowAnalysisType::Plugin: {
-        AnalysisPlugin(VariablesMap["analysis_interface"].as<string>(),
-                       VariablesMap["analysis_plugin"].as<string>(), ICFG,
-                       EntryPoints);
+        vector<string> AnalysisPlugins =
+            VariablesMap["analysis_plugin"].as<vector<string>>();
+        AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
+                                                  EntryPoints);
         break;
       }
       case DataFlowAnalysisType::None: {
@@ -183,6 +307,7 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
+      STOP_TIMER("DFA Runtime");
     }
   }
   // Perform module-wise (MW) analysis
@@ -198,208 +323,95 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
       MWICFGs.insert(make_pair(M, ICFG));
     }
     BOOST_LOG_SEV(lg, INFO) << "Performing module-wise analysis";
-
-    // Some in-place testing
-    // // start: module_wise_5 test
-    // auto& Mod = *IRDB.getModuleDefiningFunction("main");
-    // auto& Mod_2 = *IRDB.getModuleDefiningFunction("_Z3barPi");
-    // LLVMBasedICFG ICFG(CH, IRDB, Mod, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // ICFG.printAsDot("icfg_main.dot");
-    // ICFG.printInternalPTGAsDot("wptg_main.dot");
-    // LLVMBasedICFG ICFG_2(CH, IRDB, Mod_2, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // ICFG_2.printAsDot("icfg_bar.dot");
-    // ICFG_2.printInternalPTGAsDot("wptg_bar.dot");
-    // cout << "@@@@@@@@@@@@@@@@@@@@@ call graph after merge
-    // @@@@@@@@@@@@@@@@@@@@@@\n";
-    // ICFG.mergeWith(ICFG_2);
-    // ICFG.printAsDot("icfg_after_merge.dot");
-    // ICFG.printInternalPTGAsDot("wptg_after_merge.dot");
-    // /// end: module_wise_5 test
-
-    // // start: module_wise_6 test
-    // auto& M_m = *IRDB.getModuleDefiningFunction("main");
-    // auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRi");
-    // auto& M_2 = *IRDB.getModuleDefiningFunction("_Z3barRi");
-    // LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // LLVMBasedICFG K(CH, IRDB, M_2, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // I.printAsDot("icfg_main.dot");
-    // I.printInternalPTGAsDot("ptg_main.dot");
-    // J.printAsDot("icfg_foo.dot");
-    // J.printInternalPTGAsDot("ptg_foo.dot");
-    // K.printAsDot("icfg_bar.dot");
-    // K.printInternalPTGAsDot("ptg_bar.dot");
-    // // merge once
-    // I.mergeWith(J);
-    // I.printAsDot("icfg_intermed.dot");
-    // I.printInternalPTGAsDot("ptg_intermed.dot");
-    // // merge twice
-    // I.mergeWith(K);
-    // I.printAsDot("icfg_final.dot");
-    // I.printInternalPTGAsDot("ptg_final.dot");
-    // // end: module_wise_6 test
-
-    // // start: module_wise_7 test
-    // auto P = *IRDB.getPointsToGraph("main");
-    // auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
-    // auto R = *IRDB.getPointsToGraph("_Z3barRi");
-    // P.printAsDot("pure_ptg_main.dot");
-    // Q.printAsDot("pure_ptg_foo.dot");
-    // R.printAsDot("pure_ptg_bar.dot");
-
-    // int i = 0;
-    // for (auto &BB : *IRDB.getFunction("main")) {
-    // 	for (auto &I : BB) {
-    // 		if (auto *Call = llvm::dyn_cast<llvm::CallInst>(&I)) {
-    // 			++i;
-    // 			if (i == 1)
-    // 				P.mergeWith(Q, llvm::ImmutableCallSite(Call),
-    // Call->getCalledFunction());
-    // 			else if (i == 2)
-    // 				P.mergeWith(R, llvm::ImmutableCallSite(Call),
-    // Call->getCalledFunction());
-    // 		}
-    // 	}
-    // }
-    // P.printAsDot("pure_final_ptg.dot");
-    // auto& M_m = *IRDB.getModuleDefiningFunction("main");
-    // auto& M_1 = *IRDB.getModuleDefiningFunction("_Z3fooRiS_S_");
-    // LLVMBasedICFG I(CH, IRDB, M_m, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // LLVMBasedICFG J(CH, IRDB, M_1, WalkerStrategy::Pointer,
-    // ResolveStrategy::OTF);
-    // auto P = *IRDB.getPointsToGraph("main");
-    // auto Q = *IRDB.getPointsToGraph("_Z3fooRiS_S_");
-    // auto R = *IRDB.getPointsToGraph("_Z3incRi");
-    // Q.printAsDot("pure_ptg_foo.dot");
-    // P.printAsDot("pure_ptg_main.dot");
-    // R.printAsDot("pure_ptg_inc.dot");
-    // I.printInternalPTGAsDot("ptg_mod_main.dot");
-    // J.printInternalPTGAsDot("ptg_mod_foo.dot");
-    // I.mergeWith(J);
-    // I.printInternalPTGAsDot("ptg_mod_final.dot");
-    // I.printAsDot("icfg_final.dot");
-    // // end: module_wise_7 test
-
+    IDESummaries<const llvm::Instruction *, const llvm::Value *,
+                 const llvm::Function *, BinaryDomain>
+        Summaries;
     // Perform all the analysis that the user has chosen.
     for (DataFlowAnalysisType analysis : Analyses) {
       for (auto &entry : MWICFGs) {
-        IFDSSummaryPool<const llvm::Value *, const llvm::Instruction *> Pool;
         const llvm::Module *M = entry.first;
         LLVMBasedICFG &I = entry.second;
-        BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis
-                                << " on module: " << M->getModuleIdentifier();
-        switch (analysis) {
-        case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-          for (auto FunctionName : I.getDependencyOrderedFunctions()) {
-            IFDSTaintAnalysis taintanalysisproblem(I);
-            LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
-                llvmtaintsolver(taintanalysisproblem, true);
-            llvmtaintsolver.solve();
+        // Only for modules which do not contain 'main'
+        if (M->getFunction("main") == nullptr) {
+          BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis
+                                  << " on module: " << M->getModuleIdentifier();
+          switch (analysis) {
+          case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+            IFDSTaintAnalysis taintanalysisproblem(I, {});
+            LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
+                llvmtaintsolver(taintanalysisproblem,
+                                SummaryGenerationStrategy::always_all, false);
+            llvmtaintsolver.summarize();
+            Summaries.addSummaries(llvmtaintsolver.getSummaries());
+            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            break;
           }
-
-          // IDESummaries<const llvm::Instruction *,
-          //              const llvm::Value *,
-          //              const llvm::Function *,
-          //              const llvm::Value *> Summaries;
-          // for (auto& Fname : I.getDependencyOrderedFunctions()) {
-          //   BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname;
-          //   IFDSTaintAnalysis taintanalysisproblem(I, {"_Z2idi"});
-          //   IDESummaryGenerator<const llvm::Instruction *,
-          //                       const llvm::Value *,
-          //                       const llvm::Function *,
-          //                       LLVMBasedICFG &,
-          //                       const llvm::Value *,
-          //                       IFDSTaintAnalysis, LLVMIFDSSolver<
-          //                           const llvm::Value *,
-          //                           LLVMBasedICFG &>>
-          //                               Generator("_Z2idi", I, Summaries,
-          //                               SummaryGenerationCTXStrategy::always_all);
-          // }
-          BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
-          break;
-        }
-        case DataFlowAnalysisType::IDE_TaintAnalysis: {
-          throw invalid_argument("IDE summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::IFDS_TypeAnalysis: {
-          throw invalid_argument("IFDS summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-          // This code is just for testing, it should be moved to the
-          // LLVMIFDSSummaryGenerator/ IFDSSummaryGenerator!
-          // Check and test the summary generation:
-          // for (auto& Fname : I.getDependencyOrderedFunctions()) {
-          //   BOOST_LOG_SEV(lg, INFO) << "Generate summary for: '" << Fname
-          //                           << "'\n";
-          //   LLVMIFDSSummaryGenerator<LLVMBasedICFG&,
-          //   IFDSUnitializedVariables>
-          //       Generator(M->getFunction(Fname), I,
-          //                 SummaryGenerationCTXStrategy::all_and_none);
-          // }
-          // Pool.insert(Generator.generateSummaryFlowFunction());
-          // BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
-          break;
-        }
-        case DataFlowAnalysisType::IFDS_SolverTest: {
-          throw invalid_argument("IFDS summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::IDE_SolverTest: {
-          throw invalid_argument("IDE summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
-          throw invalid_argument("Mono summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Intra_SolverTest: {
-          throw invalid_argument("Mono summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-          throw invalid_argument("Mono summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::Plugin: {
-          throw invalid_argument("Plugin summary generation not supported yet");
-          break;
-        }
-        case DataFlowAnalysisType::None: {
-          break;
-        }
-        default:
-          BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
-          break;
+          case DataFlowAnalysisType::IDE_TaintAnalysis: {
+            throw invalid_argument("IDE summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+            throw invalid_argument("IFDS summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+            break;
+          }
+          case DataFlowAnalysisType::IFDS_SolverTest: {
+            throw invalid_argument("IFDS summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::IDE_SolverTest: {
+            throw invalid_argument("IDE summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+            throw invalid_argument("Mono summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::Plugin: {
+            throw invalid_argument(
+                "Plugin summary generation not supported yet");
+            break;
+          }
+          case DataFlowAnalysisType::None: {
+            break;
+          }
+          default:
+            BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+            break;
+          }
         }
       }
       // After every module has been analyzed the analyses results must be
       // merged and the final results must be computed
-      // auto M = IRDB.getModuleDefiningFunction("main");
+      cout << "COMBINATION\n";
+      auto M = IRDB.getModuleDefiningFunction("main");
+      LLVMBasedICFG I = MWICFGs.at(M);
       BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
-      // LLVMBasedICFG I = MWICFGs.at(M);
-      // for (auto& entry : MWICFGs) {
-      //   if (entry.first != M) {
-      //     I.mergeWith(entry.second);
-      //   }
-      // }
-
-      // // TODO this is just testing!
-      // IFDSUnitializedVariables uninitializedvarproblem(I, EntryPoints);
-      // LLVMIFDSSolver<const llvm::Value*, LLVMBasedICFG&> llvmunivsolver(
-      //     uninitializedvarproblem, true);
-      // llvmunivsolver.solve();
-
+      for (auto entry : MWICFGs) {
+        if (M != entry.first) {
+          I.mergeWith(entry.second);
+        }
+      }
+      I.printAsDot("inter.dot");
       BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
-      // TODO Start at the main function and iterate over the entire program
-      // combining all results!
+      IFDSTaintAnalysis taintproblem(I, EntryPoints);
+      LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> taintsolver(
+          taintproblem, SummaryGenerationStrategy::always_all, true);
+      auto tab = Summaries.getSummaries();
+      cout << "external TAB" << endl;
+      cout << tab << endl;
+      taintsolver.setSummaries(tab);
+      taintsolver.combine();
       BOOST_LOG_SEV(lg, INFO)
           << "Combining module-wise results done, computation completed!";
     }

@@ -1,9 +1,6 @@
-/* mutable: i */
+/* immutable: - */
 int main() {
 	int i = 14;
-	int j = i * 2;
-	int k = i + j;
-	double d = i - 20.3;
-	i = i / 14;
+	i = i / 7;
 	return 0;
 }

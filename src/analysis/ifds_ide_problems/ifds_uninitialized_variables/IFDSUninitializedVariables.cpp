@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSUninitializedVariables.h"
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg,
@@ -15,7 +24,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(const llvm::Instruction *curr,
   // set every local variable as uninitialized, that is not a function parameter
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
-    curr->dump();
+    //curr->dump();
     const llvm::Function *func = icfg.getMethodOf(curr);
 
     // set all locals as uninitialized flow function
@@ -151,11 +160,11 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getCallFlowFunction()";
   // check for a usual function call
   if (const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
-    if (call->getCalledFunction()) {
-      cout << "DIRECT CALL TO: " << destMthd->getName().str() << endl;
-    } else {
-      cout << "INDIRECT CALL TO: " << destMthd->getName().str() << endl;
-    }
+    //if (call->getCalledFunction()) {
+    //  cout << "DIRECT CALL TO: " << destMthd->getName().str() << endl;
+    //} else {
+    //  cout << "INDIRECT CALL TO: " << destMthd->getName().str() << endl;
+    //}
 
     // collect the actual parameters
     vector<const llvm::Value *> actuals;
@@ -163,11 +172,11 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
       actuals.push_back(operand);
     }
 
-    cout << "ACTUALS:" << endl;
-    for (auto a : actuals) {
-      if (a)
-        a->dump();
-    }
+    //cout << "ACTUALS:" << endl;
+    //for (auto a : actuals) {
+    //  if (a)
+    //    a->dump();
+    //}
 
     struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *destMthd;
@@ -182,7 +191,7 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
         // do the mapping from actual to formal parameters
         for (size_t i = 0; i < actuals.size(); ++i) {
           if (actuals[i] == source) {
-            cout << "ACTUAL == SOURCE" << endl;
+            //cout << "ACTUAL == SOURCE" << endl;
             return {call->getOperand(i)};
           }
           //      		if (const llvm::UndefValue* undef =
@@ -241,9 +250,9 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
      */
     return Identity<const llvm::Value *>::v();
   }
-  cout << "error when getCallFlowFunction() was called\n"
-          "instruction is neither a call- nor an invoke instruction!"
-       << endl;
+  //cout << "error when getCallFlowFunction() was called\n"
+  //        "instruction is neither a call- nor an invoke instruction!"
+  //     << endl;
   DIE_HARD;
   return nullptr;
 }
@@ -308,14 +317,14 @@ IFDSUnitializedVariables::getSummaryFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSUnitializedVariables::getSummaryFlowFunction()";
-  SpecialSummaries<const llvm::Value *, BinaryDomain> &SpecialSum =
-      SpecialSummaries<const llvm::Value *, BinaryDomain>::getInstance();
-  if (SpecialSum.containsSpecialSummary(destMthd)) {
-    // return SpecialSum.getSpecialFlowFunctionSummary(destMthd);
+  //SpecialSummaries<const llvm::Value *, BinaryDomain> &SpecialSum =
+  //    SpecialSummaries<const llvm::Value *, BinaryDomain>::getInstance();
+  //if (SpecialSum.containsSpecialSummary(destMthd)) {
+  //  // return SpecialSum.getSpecialFlowFunctionSummary(destMthd);
+  //  return nullptr;
+  //} else {
     return nullptr;
-  } else {
-    return nullptr;
-  }
+  //}
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>
@@ -334,8 +343,7 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::createZeroValue()";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSUnitializedVariables::isZeroValue(const llvm::Value *d) const {

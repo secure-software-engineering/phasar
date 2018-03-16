@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Logger.h
  *
@@ -23,7 +32,7 @@
 #include <boost/log/support/date_time.hpp>
 #include <boost/log/utility/exception_handler.hpp>
 #include <boost/shared_ptr.hpp>
-#include <boost/utility/empty_deleter.hpp>
+#include <boost/core/null_deleter.hpp>
 #include <ctime>
 #include <exception>
 #include <fstream>
@@ -31,7 +40,6 @@
 #include <string>
 
 using namespace std;
-// using namespace boost::log;
 namespace bl = boost::log;
 namespace bfs = boost::filesystem;
 
@@ -39,7 +47,14 @@ namespace bfs = boost::filesystem;
 //  - https://theboostcpplibraries.com/boost.log
 //  - http://www.boost.org/doc/libs/1_64_0/libs/log/doc/html/log/tutorial.html
 
-enum severity_level { DEBUG = 0, INFO, WARNING, ERROR, CRITICAL };
+enum severity_level
+{
+  DEBUG = 0,
+  INFO,
+  WARNING,
+  ERROR,
+  CRITICAL
+};
 
 extern const map<string, severity_level> StringToSeverityLevel;
 
@@ -73,7 +88,8 @@ void logFormatter(const bl::record_view &view, bl::formatting_ostream &os);
 /**
  * An exception handler for the logger.
  */
-struct LoggerExceptionHandler {
+struct LoggerExceptionHandler
+{
   void operator()(const std::exception &ex) const;
 };
 

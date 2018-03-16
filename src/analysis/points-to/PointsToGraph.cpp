@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PointsToGraph.cpp
  *
@@ -141,8 +150,8 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
     }
   }
 
-  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
-               << " pointers, " << CallSites.size() << " call sites\n";
+  //  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
+  //               << " pointers, " << CallSites.size() << " call sites\n";
 
   // make vertices for all pointers
   for (auto pointer : Pointers) {
@@ -169,20 +178,20 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
         switch (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                          llvm::MemoryLocation(*I2, I2Size))) {
         case llvm::NoAlias:
-           //PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+          // PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
           break;
         case llvm::MayAlias:
-           //PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
+          // PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::PartialAlias:
-           //PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-           // 						 F->getParent());
+          // PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+          // 						 F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         case llvm::MustAlias:
-           //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //F->getParent());
+          // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
+          //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
           break;
         default:
@@ -192,8 +201,8 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
       } else {
         if (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                      llvm::MemoryLocation(*I2, I2Size)) == llvm::MustAlias) {
-           //PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-           //F->getParent());
+          // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
+          //              F->getParent());
           boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
         }
       }
@@ -282,6 +291,9 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
 }
 
 set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
+  PAMM_FACTORY;
+  INC_COUNTER("Calls to getPointsToSet");
+  START_TIMER("Compute PointsToSet");
   set<vertex_t> reachable_vertices;
   reachability_dfs_visitor vis(reachable_vertices);
   vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
@@ -294,31 +306,8 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   for (auto vertex : reachable_vertices) {
     result.insert(ptg[vertex].value);
   }
-  return result;
-}
-
-set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(const llvm::Value *V) {
-  auto &lg = lg::get();
-  set<const llvm::Value *> result;
-  if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
-    const llvm::Function *F = IV->getFunction();
-    for (auto alias : getPointsToSet(V)) {
-      if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(alias)) {
-        if (I->getFunction() == F) {
-          result.insert(alias);
-        }
-      } else if (llvm::isa<llvm::GlobalValue>(alias)) {
-        result.insert(alias);
-      } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(alias)) {
-        if (A->getParent() == F) {
-          result.insert(alias);
-        }
-      } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << V->getName().str();
-      }
-    }
-  }
+  PAUSE_TIMER("Compute PointsToSet");
+  ADD_TO_SETH("Points-to", result.size());
   return result;
 }
 
@@ -474,3 +463,7 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
     value_vertex_map.insert(make_pair(ptg[*vi].value, *vi));
   }
 }
+
+unsigned PointsToGraph::getNumOfVertices() { return boost::num_vertices(ptg); }
+
+unsigned PointsToGraph::getNumOfEdges() { return boost::num_edges(ptg); }

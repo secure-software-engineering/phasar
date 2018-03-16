@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * PathEdge.h
  *
@@ -14,14 +23,23 @@ using namespace std;
 
 template <typename N, typename D> class PathEdge {
 private:
-  const N target;
-  const D dSource, dTarget;
+  N target;
+  D dSource;
+  D dTarget;
 
 public:
   PathEdge(D dSource, N target, D dTarget)
       : target(target), dSource(dSource), dTarget(dTarget) {}
 
-  virtual ~PathEdge() = default;
+  ~PathEdge() = default;
+
+  PathEdge(const PathEdge &) = default;
+
+  PathEdge &operator=(const PathEdge &) = default;
+
+  PathEdge(PathEdge &&) = default;
+
+  PathEdge &operator=(PathEdge &&) = default;
 
   N getTarget() { return target; }
 

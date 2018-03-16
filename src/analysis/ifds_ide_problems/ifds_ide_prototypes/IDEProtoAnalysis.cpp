@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * IDEProtoAnalysis.cpp
  *
@@ -65,8 +74,7 @@ IDEProtoAnalysis::initialSeeds() {
 const llvm::Value *IDEProtoAnalysis::createZeroValue() {
   cout << "IDEProtoAnalysis::createZeroValue()\n";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IDEProtoAnalysis::isZeroValue(const llvm::Value *d) const {

@@ -2,9 +2,8 @@
 #include "../../../src/db/ProjectIRDB.h"
 #include <gtest/gtest.h>
 #include <llvm/IR/InstIterator.h>
-using namespace std;
 
-TEST(FallThroughSuccTest, FallThroughSuccTest) {
+TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
@@ -26,7 +25,7 @@ TEST(FallThroughSuccTest, FallThroughSuccTest) {
       cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
 }
 
-TEST(BranchTargetTest, BranchTargetTest) {
+TEST(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/switch.ll"});
   auto F = IRDB.getFunction("main");
@@ -61,14 +60,14 @@ TEST(BranchTargetTest, BranchTargetTest) {
   ASSERT_TRUE(cfg.isBranchTarget(BranchInst, getNthTermInstruction(F, 6)));
 }
 
-TEST(GetPredsTest, HandlesMulitplePredeccessors) {
+TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
 
   // ret i32 0
   auto TermInst = getNthTermInstruction(F, 4);
-  vector<const llvm::Instruction *> Predeccessor;
+  std::vector<const llvm::Instruction *> Predeccessor;
   // br label %12
   Predeccessor.push_back(getNthTermInstruction(F, 2));
   // br label %12
@@ -77,7 +76,7 @@ TEST(GetPredsTest, HandlesMulitplePredeccessors) {
   ASSERT_EQ(predsOfTermInst, Predeccessor);
 }
 
-TEST(GetPredsTest, HandlesSingleOrEmptyPredeccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
@@ -87,7 +86,7 @@ TEST(GetPredsTest, HandlesSingleOrEmptyPredeccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %3 = alloca i32, align 4)
   auto Pred = getNthInstruction(F, 3);
-  vector<const llvm::Instruction *> Predeccessor{Pred};
+  std::vector<const llvm::Instruction *> Predeccessor{Pred};
   auto predsOfInst = cfg.getPredsOf(Inst);
   ASSERT_EQ(predsOfInst, Predeccessor);
 
@@ -108,7 +107,7 @@ TEST(GetPredsTest, HandlesSingleOrEmptyPredeccessor) {
   ASSERT_EQ(predsOfInst, Predeccessor);
 }
 
-TEST(GetSuccsTest, HandlesMultipleSuccessors) {
+TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
@@ -116,7 +115,7 @@ TEST(GetSuccsTest, HandlesMultipleSuccessors) {
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
   auto BRInst = getNthTermInstruction(F, 1);
-  vector<const llvm::Instruction *> Successors;
+  std::vector<const llvm::Instruction *> Successors;
   // %7 = load i32, i32* %3, align 4
   Successors.push_back(getNthInstruction(F, 10));
   // %10 = load i32, i32* %3, align 4
@@ -134,7 +133,7 @@ TEST(GetSuccsTest, HandlesMultipleSuccessors) {
   ASSERT_EQ(succsOfBRInst, Successors);
 }
 
-TEST(GetSuccsTest, HandlesSingleOrEmptySuccessor) {
+TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"});
   auto F = IRDB.getFunction("main");
@@ -144,7 +143,7 @@ TEST(GetSuccsTest, HandlesSingleOrEmptySuccessor) {
   const llvm::Instruction *Inst = getNthStoreInstruction(F, 1);
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
   auto Succ = getNthInstruction(F, 5);
-  vector<const llvm::Instruction *> Successors{Succ};
+  std::vector<const llvm::Instruction *> Successors{Succ};
   auto succsOfInst = cfg.getSuccsOf(Inst);
   ASSERT_EQ(succsOfInst, Successors);
 
@@ -156,7 +155,7 @@ TEST(GetSuccsTest, HandlesSingleOrEmptySuccessor) {
   ASSERT_EQ(succsOfTermInst, Successors);
 }
 
-TEST(GetSuccsTest, HandlesCallSuccessor) {
+TEST(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"});
   auto F = IRDB.getFunction("main");
@@ -167,7 +166,7 @@ TEST(GetSuccsTest, HandlesCallSuccessor) {
   // store i32 %4, i32* %2, align 4
   auto Succ = getNthStoreInstruction(F, 2);
   auto succsOfCallInst = cfg.getSuccsOf(callInst);
-  vector<const llvm::Instruction *> Successors{Succ};
+  std::vector<const llvm::Instruction *> Successors{Succ};
   ASSERT_EQ(succsOfCallInst, Successors);
 }
 

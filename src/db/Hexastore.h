@@ -1,10 +1,18 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Christian Stritzke, Philipp Schubert and others
+ *****************************************************************************/
+
 #ifndef HEXASTORE_H_
 #define HEXASTORE_H_
 
 #include "Queries.h"
 #include <array>
 #include <boost/format.hpp>
-#include <iostream>
 #include <iostream>
 #include <sqlite3.h>
 #include <string>

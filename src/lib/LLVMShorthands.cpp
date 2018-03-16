@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMShorthands.cpp
  *
@@ -6,6 +15,10 @@
  */
 
 #include "LLVMShorthands.h"
+
+/// Set of functions that allocate heap memory, e.g. new, new[], malloc.
+const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
+                                             "calloc", "realloc"};
 
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
@@ -18,9 +31,24 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
+bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
+  if (V) {
+    if (llvm::isa<llvm::AllocaInst>(V)) {
+      return true;
+    } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
+      llvm::ImmutableCallSite CS(V);
+      return CS.getCalledFunction() != nullptr &&
+             HeapAllocationFunctions.count(
+                 CS.getCalledFunction()->getName().str());
+    }
+    return false;
+  }
+  return false;
+}
+
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
-  FType->dump();
+  // FType->dump();
   if (F->getArgumentList().size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     auto &arglist = F->getArgumentList();
@@ -36,20 +64,24 @@ bool matchesSignature(const llvm::Function *F,
   return false;
 }
 
-string llvmIRToString(const llvm::Value *V) {
-  string IRBuffer;
+std::string llvmIRToString(const llvm::Value *V) {
+  std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     RSO << ", ID: " << getMetaDataID(Inst);
   }
+  if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    RSO << ", ID: " << getMetaDataID(GV);
+  }
   RSO.flush();
+  boost::trim_left(IRBuffer);
   return IRBuffer;
 }
 
-vector<const llvm::Value *>
+std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
-  vector<const llvm::Value *> globals_used;
+  std::vector<const llvm::Value *> globals_used;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       for (auto &Op : I.operands()) {
@@ -63,10 +95,19 @@ globalValuesUsedinFunction(const llvm::Function *F) {
   return globals_used;
 }
 
-string getMetaDataID(const llvm::Instruction *I) {
-  return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
+std::string getMetaDataID(const llvm::Value *V) {
+  if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
       ->getString()
       .str();
+  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    if (!isLLVMZeroValue(V)) {
+      return llvm::cast<llvm::MDString>(GV->getMetadata(MetaDataKind)->getOperand(0))
+        ->getString()
+        .str();
+    }
+  }
+  return "-1";
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
@@ -83,6 +124,21 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
   return nullptr;
 }
 
+const llvm::Instruction *getNthInstruction(const llvm::Function *F,
+                                           unsigned idx) {
+  unsigned i = 1;
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      if (i == idx) {
+        return &I;
+      } else {
+        ++i;
+      }
+    }
+  }
+  return nullptr;
+}
+
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
   if (const llvm::Argument *MA = llvm::dyn_cast<llvm::Argument>(V))
     return MA->getParent() ? MA->getParent()->getParent() : nullptr;
@@ -91,9 +147,9 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
     return BB->getParent() ? BB->getParent()->getParent() : nullptr;
 
   if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    const llvm::Function *M =
+    const llvm::Function *F =
         I->getParent() ? I->getParent()->getParent() : nullptr;
-    return M ? M->getParent() : nullptr;
+    return F ? F->getParent() : nullptr;
   }
   if (const llvm::GlobalValue *GV = llvm::dyn_cast<llvm::GlobalValue>(V))
     return GV->getParent();
@@ -107,43 +163,29 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
   return nullptr;
 }
 
-size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
-  string SourceCode;
+std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
+  std::string SourceCode;
   if (considerIdentifier) {
     llvm::raw_string_ostream RSO(SourceCode);
     llvm::WriteBitcodeToFile(M, RSO);
     RSO.flush();
   } else {
-    string Identifier = M->getModuleIdentifier();
+    std::string Identifier = M->getModuleIdentifier();
     M->setModuleIdentifier("");
     llvm::raw_string_ostream RSO(SourceCode);
     llvm::WriteBitcodeToFile(M, RSO);
     RSO.flush();
     M->setModuleIdentifier(Identifier);
   }
-  return hash<string>{}(SourceCode);
+  return std::hash<std::string>{}(SourceCode);
 }
 
-size_t computeModuleHash(const llvm::Module *M) {
-  string SourceCode;
+std::size_t computeModuleHash(const llvm::Module *M) {
+  std::string SourceCode;
   llvm::raw_string_ostream RSO(SourceCode);
   llvm::WriteBitcodeToFile(M, RSO);
   RSO.flush();
-  return hash<string>{}(SourceCode);
-}
-
-const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo) {
-  unsigned current = 1;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
-      if (current == instNo) {
-        return &I;
-      }
-      current++;
-    }
-  }
-  return nullptr;
+  return std::hash<std::string>{}(SourceCode);
 }
 
 const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,

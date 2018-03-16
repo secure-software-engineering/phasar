@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * Table.h
  *
@@ -21,7 +30,7 @@ using namespace std;
 struct ORDERED_ROW_COL_KEY_TAG {};
 struct HASHED_ROW_COL_KEY_TAG {};
 
-template <class R, class C, class V> struct MultiIndexTable {
+template <typename R, typename C, typename V> struct MultiIndexTable {
 
   struct TableData {
     R rowkey;

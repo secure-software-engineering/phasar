@@ -1,4 +1,4 @@
-/* mutable: a,i */
+/* immutable: - */
 void foo() {
 	int a = 0;
 	a += 10;

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IDETaintAnalysis.h"
 
 bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
@@ -57,8 +66,7 @@ IDETaintAnalysis::initialSeeds() {
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IDETaintAnalysis::isZeroValue(const llvm::Value *d) const {

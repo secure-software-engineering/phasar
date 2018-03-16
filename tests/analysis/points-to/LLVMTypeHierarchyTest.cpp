@@ -1,7 +1,6 @@
 #include "../../../src/analysis/points-to/LLVMTypeHierarchy.h"
 #include "../../../src/db/ProjectIRDB.h"
 #include <gtest/gtest.h>
-using namespace std;
 
 // TODO: figure out how to automatically compare graphs for these tests
 TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph) {
@@ -9,21 +8,21 @@ TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph) {
     {"test_code/llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   TH.print();
-  ostringstream oss;
+  std::ostringstream oss;
   // Write empty LTH graph as dot to string
   TH.printGraphAsDot(oss);
   oss.flush();
-  cout << oss.str() << endl;
-  string dot = oss.str();
+  std::cout << oss.str() << std::endl;
+  std::string dot = oss.str();
   // Reconstruct a LTH graph from the created dot file
-  istringstream iss(dot);
+  std::istringstream iss(dot);
   LLVMTypeHierarchy::bidigraph_t G = LLVMTypeHierarchy::loadGraphFormDot(iss);
   boost::dynamic_properties dp;
   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, G));
-  ostringstream oss2;
+  std::ostringstream oss2;
   boost::write_graphviz_dp(oss2, G, dp);
   oss2.flush();
-  cout << oss2.str() << endl;
+  std::cout << oss2.str() << std::endl;
 //  ASSERT_EQ(oss.str(),oss2.str());
 }
 
@@ -31,17 +30,17 @@ TEST(LTHGraphDotTest, HandleLoadAndPrintOfEmptyGraph) {
   ProjectIRDB IRDB(
       {"test_code/llvm_test_code/taint_analysis/growing_example.ll"});
   LLVMTypeHierarchy TH(IRDB);
-  ostringstream oss;
+  std::ostringstream oss;
   // Write empty LTH graph as dot to string
   TH.printGraphAsDot(oss);
   oss.flush();
-  string dot = oss.str();
+  std::string dot = oss.str();
   // Reconstruct a LTH graph from the created dot file
-  istringstream iss(dot);
+  std::istringstream iss(dot);
   LLVMTypeHierarchy::bidigraph_t G = LLVMTypeHierarchy::loadGraphFormDot(iss);
   boost::dynamic_properties dp;
   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, G));
-  ostringstream oss2;
+  std::ostringstream oss2;
   boost::write_graphviz_dp(oss2, G, dp);
   oss2.flush();
   ASSERT_EQ(oss.str(),oss2.str());

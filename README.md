@@ -4,7 +4,37 @@ Phasar a LLVM-based Static Analysis Framework
 Secure Software Engineering
 ---------------------------
 
-+ author: Philipp Schubert (philipp@it-schubert.com)
++ author: Philipp Schubert (philipp.schubert@upb.de)
+
+What is Phasar?
+---------------
+Phasar is a LLVM-based static analysis framework written in C++. It allows users
+to specify arbitrary data-flow problems which are then solved in a 
+fully-automated manner on the specified LLVM IR target code. Computing points-to
+information, call-graphs, etc. is done by the framework, thus you can focus on
+what matters.
+
+How do I get started with Phasar?
+---------------------------------
+We have some documentation on Phasar in our wiki and also a large range of 
+tutorials on Phasar.
+
+Building Phasar
+---------------
+If you cannot work with one of the prebuild versions of Phasar and would like to
+compile Phasar yourself, then please check the wiki for installing the 
+prerequisites and compilation. It is recommended to compile Phasar your self in
+order to get the full C++ experience and to have full control over the build 
+mode.
+
+Please help us improve Phasar
+-----------------------------
+You are using Phasar and would like to help us in the future? Then please 
+support us by filling out this [web from](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
+
+By giving us feedback you help to decide in what direct Phasar should stride in
+the future and give us clues about our user base. Thank you very much!
+
 
 Table of Contents
 =================
@@ -54,7 +84,7 @@ Table of Contents
         * [Writing an IDE analysis](#writing-an-ide-analysis)
 
 
-Purpose of this tool {#purpose-of-this-tool}
+Purpose of this tool <a name="purpose-of-this-tool"></a>
 --------------------
 TODO descibe what this is all about!
 
@@ -92,9 +122,37 @@ Installation guides for the libraries can be found here:
 
 [PYTHON](https://www.python.org/)
 
-### Brief example using an Ubuntu system {#brief-example-using-an-ubuntu-system}
-In the following we would like to give an complete example of how to install
-ourframework using an Ubuntu (16.04) or Unix-like system.
+[ZLIB](https://zlib.net/) - a lossless data-compresion library
+
+[LIBCURSES](http://www.gnu.org/software/ncurses/ncurses.html) - a terminal control library for constructing text user interfaces.
+
+[Doxygen](www.doxygen.org) 
+
+[Graphviz](www.graphviz.org)
+
+
+
+
+### Brief example using an Ubuntu system
+In the following we would like to give an complete example of how to install 
+our framework using an Ubuntu (16.04) or Unix-like system.
+
+
+#### Installing ZLIB
+ZLIB can just be installed from the Ubuntu sources:
+
+$ sudo apt-get install zlib1g-dev
+
+That's it - done.
+
+
+#### Installing LIBCURSES
+LIBCURSES can just be installed from the Ubuntu sources:
+
+$ sudo apt-get install libncurses5-dev
+
+Done!
+
 
 #### Installing SQLITE3 {#installing-sqlite3}
 SQLITE3 can just be installed from the Ubuntu sources:
@@ -123,7 +181,18 @@ $ sudo apt-get install python3
 
 and you are done.
 
-#### Installing BOOST {#installing-boost}
+
+#### Installing DOXYGEN and GRAPHVIZ (Required for generating the documentation)
+If you want to generate the documentation running 'make doc' you have to install 
+[Doxygen](www.doxygen.org) and [Graphviz](www.graphviz.org).
+To install them just use the command:
+  
+  $ sudo apt-get install doxygen graphviz
+
+Done!
+
+
+#### Installing BOOST
 First you have to download the BOOST source files. This can be achieved by:
 
 $ wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz
@@ -228,7 +297,6 @@ $ cd build/
 $ cmake ..
 
 $ make -j $(nproc)
-
 
 After compilation using cmake the binary can be found right in the build
 directory.

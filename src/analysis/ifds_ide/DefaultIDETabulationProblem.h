@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DefaultIDETabulationProblem.h
  *
@@ -10,7 +19,7 @@
 
 #include "IDETabulationProblem.h"
 
-template <class N, class D, class M, class V, class I>
+template <typename N, typename D, typename M, typename V, typename I>
 class DefaultIDETabulationProblem : public IDETabulationProblem<N, D, M, V, I> {
 protected:
   I icfg;

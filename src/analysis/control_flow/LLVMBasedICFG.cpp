@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMBasedInterproceduralICFG.cpp
  *
@@ -44,8 +53,7 @@ LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function *f,
     : function(f), functionName(f->getName().str()), isDeclaration(isDecl) {}
 
 LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction *i)
-    : callsite(i),
-      ir_code(llvmIRToString(i)),
+    : callsite(i), ir_code(llvmIRToString(i)),
       id(stoull(llvm::cast<llvm::MDString>(
                     i->getMetadata(MetaDataKind)->getOperand(0))
                     ->getString()
@@ -58,11 +66,13 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              WalkerStrategy WS, ResolveStrategy RS,
                              const vector<string> &EntryPoints)
     : W(WS), R(RS), CH(STH), IRDB(IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
                              "WalkerStrategy: "
-                          << W << " and "
-                                  "ResolveStragegy: "
+                          << W
+                          << " and "
+                             "ResolveStragegy: "
                           << R;
   for (auto &EntryPoint : EntryPoints) {
     llvm::Function *F = IRDB.getFunction(EntryPoint);
@@ -73,6 +83,10 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     WholeModulePTG.mergeWith(ptg, F);
     Walker.at(W)(this, F);
   }
+  REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
+  REG_COUNTER_WITH_VALUE("Call Graph Vertices", getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("Call Graph Edges", getNumOfEdges());
   BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed";
 }
 
@@ -86,8 +100,9 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
                              "WalkerStrategy: "
-                          << W << " and "
-                                  "ResolveStragegy: "
+                          << W
+                          << " and "
+                             "ResolveStragegy: "
                           << R;
   if (EntryPoints.empty()) {
     for (auto &F : M) {
@@ -131,17 +146,19 @@ void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
         possible_targets.insert(cs.getCalledFunction());
         BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
                                  << llvmIRToString(cs.getInstruction());
-      } else {  // the function call must be resolved dynamically
+      } else { // the function call must be resolved dynamically
         BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
                                  << llvmIRToString(cs.getInstruction());
         // call the resolve routine
         set<string> possible_target_names = Resolver.at(R)(this, cs);
         for (auto &possible_target_name : possible_target_names) {
-          possible_targets.insert(IRDB.getFunction(possible_target_name));
+          if (IRDB.getFunction(possible_target_name)) {
+            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          }
         }
       }
-      BOOST_LOG_SEV(lg, DEBUG) << "Found " << possible_targets.size()
-                               << " possible target(s)";
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "Found " << possible_targets.size() << " possible target(s)";
       for (auto possible_target : possible_targets) {
         if (!function_vertex_map.count(possible_target->getName().str())) {
           function_vertex_map[possible_target->getName().str()] =
@@ -207,14 +224,16 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
         // call the resolve routine
         set<string> possible_target_names = Resolver.at(R)(this, cs);
         for (auto &possible_target_name : possible_target_names) {
-          possible_targets.insert(IRDB.getFunction(possible_target_name));
+          if (IRDB.getFunction(possible_target_name)) {
+            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          }
         }
       }
-      BOOST_LOG_SEV(lg, DEBUG) << "Found " << possible_targets.size()
-                               << " possible target(s):";
+      BOOST_LOG_SEV(lg, DEBUG)
+          << "Found " << possible_targets.size() << " possible target(s):";
       for (auto possible_target : possible_targets) {
-        BOOST_LOG_SEV(lg, DEBUG) << "Target name: "
-                                 << possible_target->getName().str();
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Target name: " << possible_target->getName().str();
         // Do the merge of the points-to graphs for all possible targets, but
         // only if they are available
         if (!F->getParent()
@@ -251,8 +270,8 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
   set<string> possible_call_targets;
   // check if we have a virtual call-site
   if (isVirtualFunctionCall(CS)) {
-    BOOST_LOG_SEV(lg, DEBUG) << "Call virtual function: "
-                             << llvmIRToString(CS.getInstruction());
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Call virtual function: " << llvmIRToString(CS.getInstruction());
     // deal with a virtual member function
     // retrieve the vtable entry that is called
     const llvm::LoadInst *load =
@@ -261,8 +280,8 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
         llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
     unsigned vtable_index =
         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-    BOOST_LOG_SEV(lg, DEBUG) << "Virtual function table entry is: "
-                             << vtable_index;
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Virtual function table entry is: " << vtable_index;
     const llvm::Value *receiver = CS.getArgOperand(0);
     const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
         receiver->getType()->getPointerElementType());
@@ -331,12 +350,12 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     // otherwise we have to deal with a function pointer
     // if we classified a member function call incorrectly as a function pointer
     // call, the following treatment is robust enough to handle it.
-    BOOST_LOG_SEV(lg, DEBUG) << "Call function pointer: "
-                             << llvmIRToString(CS.getInstruction());
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Call function pointer: " << llvmIRToString(CS.getInstruction());
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->dump();
+        // ftype->dump();
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());
@@ -390,8 +409,8 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return false;
 }
 
-const llvm::Function *LLVMBasedICFG::getMethodOf(
-    const llvm::Instruction *stmt) {
+const llvm::Function *
+LLVMBasedICFG::getMethodOf(const llvm::Instruction *stmt) {
   return stmt->getFunction();
 }
 
@@ -399,8 +418,8 @@ const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) {
   return IRDB.getFunction(fun);
 }
 
-vector<const llvm::Instruction *> LLVMBasedICFG::getPredsOf(
-    const llvm::Instruction *I) {
+vector<const llvm::Instruction *>
+LLVMBasedICFG::getPredsOf(const llvm::Instruction *I) {
   vector<const llvm::Instruction *> Preds;
   if (I->getPrevNode()) {
     Preds.push_back(I->getPrevNode());
@@ -424,10 +443,11 @@ vector<const llvm::Instruction *> LLVMBasedICFG::getPredsOf(
   return Preds;
 }
 
-vector<const llvm::Instruction *> LLVMBasedICFG::getSuccsOf(
-    const llvm::Instruction *I) {
+vector<const llvm::Instruction *>
+LLVMBasedICFG::getSuccsOf(const llvm::Instruction *I) {
   vector<const llvm::Instruction *> Successors;
-  if (I->getNextNode()) Successors.push_back(I->getNextNode());
+  if (I->getNextNode())
+    Successors.push_back(I->getNextNode());
   if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
     for (auto successor : T->successors()) {
       Successors.push_back(&*successor->begin());
@@ -450,8 +470,8 @@ LLVMBasedICFG::getAllControlFlowEdges(const llvm::Function *fun) {
   return Edges;
 }
 
-vector<const llvm::Instruction *> LLVMBasedICFG::getAllInstructionsOf(
-    const llvm::Function *fun) {
+vector<const llvm::Instruction *>
+LLVMBasedICFG::getAllInstructionsOf(const llvm::Function *fun) {
   vector<const llvm::Instruction *> Instructions;
   for (auto &BB : *fun) {
     for (auto &I : BB) {
@@ -494,6 +514,13 @@ bool LLVMBasedICFG::isBranchTarget(const llvm::Instruction *stmt,
   return false;
 }
 
+string LLVMBasedICFG::getStatementId(const llvm::Instruction *stmt) {
+  return llvm::cast<llvm::MDString>(
+             stmt->getMetadata(MetaDataKind)->getOperand(0))
+      ->getString()
+      .str();
+}
+
 string LLVMBasedICFG::getMethodName(const llvm::Function *fun) {
   return fun->getName().str();
 }
@@ -501,35 +528,36 @@ string LLVMBasedICFG::getMethodName(const llvm::Function *fun) {
 /**
  * Returns all callee methods for a given call that might be called.
  */
-set<const llvm::Function *> LLVMBasedICFG::getCalleesOfCallAt(
-    const llvm::Instruction *n) {
+set<const llvm::Function *>
+LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
+  auto &lg = lg::get();
   if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
     llvm::ImmutableCallSite CS(n);
-    // handle direct call
-    if (CS.getCalledFunction()) {
-      return {CS.getCalledFunction()};
-    } else {  // handle indirect call
-      set<const llvm::Function *> Callees;
-      string CallerName = CS->getFunction()->getName().str();
-      out_edge_iterator ei, ei_end;
-      for (boost::tie(ei, ei_end) =
-               boost::out_edges(function_vertex_map[CallerName], cg);
-           ei != ei_end; ++ei) {
-        auto source = boost::source(*ei, cg);
-        auto edge = cg[*ei];
-        auto target = boost::target(*ei, cg);
-        if (CS.getInstruction() == edge.callsite) {
+    set<const llvm::Function *> Callees;
+    string CallerName = CS->getFunction()->getName().str();
+    out_edge_iterator ei, ei_end;
+    for (boost::tie(ei, ei_end) =
+             boost::out_edges(function_vertex_map[CallerName], cg);
+         ei != ei_end; ++ei) {
+      auto source = boost::source(*ei, cg);
+      auto edge = cg[*ei];
+      auto target = boost::target(*ei, cg);
+      if (CS.getInstruction() == edge.callsite) {
+        // cout << "Name: " << cg[target].functionName << endl;
+        if (IRDB.getFunction(cg[target].functionName)) {
+          Callees.insert(IRDB.getFunction(cg[target].functionName));
+        } else {
+          // Either we have a special function called like glibc- or
+          // llvm intrinsic functions or a function that is defined in
+          // a thrid party library which we have no access to.
           Callees.insert(cg[target].function);
         }
       }
-      return Callees;
     }
+    return Callees;
   } else {
-    // neither call nor invoke - error!
-    llvm::errs() << "ERROR: found instruction that is neither CallInst nor "
-                    "InvokeInst\n";
-    HEREANDNOW;
-    DIE_HARD;
+    BOOST_LOG_SEV(lg, ERROR)
+        << "Found instruction that is neither CallInst nor InvokeInst\n";
     return {};
   }
 }
@@ -537,8 +565,8 @@ set<const llvm::Function *> LLVMBasedICFG::getCalleesOfCallAt(
 /**
  * Returns all caller statements/nodes of a given method.
  */
-set<const llvm::Instruction *> LLVMBasedICFG::getCallersOf(
-    const llvm::Function *m) {
+set<const llvm::Instruction *>
+LLVMBasedICFG::getCallersOf(const llvm::Function *m) {
   set<const llvm::Instruction *> CallersOf;
   in_edge_iterator ei, ei_end;
   for (boost::tie(ei, ei_end) =
@@ -555,8 +583,8 @@ set<const llvm::Instruction *> LLVMBasedICFG::getCallersOf(
 /**
  * Returns all call sites within a given method.
  */
-set<const llvm::Instruction *> LLVMBasedICFG::getCallsFromWithin(
-    const llvm::Function *f) {
+set<const llvm::Instruction *>
+LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) {
   set<const llvm::Instruction *> CallSites;
   for (llvm::const_inst_iterator I = llvm::inst_begin(f), E = llvm::inst_end(f);
        I != E; ++I) {
@@ -571,28 +599,33 @@ set<const llvm::Instruction *> LLVMBasedICFG::getCallsFromWithin(
  * Returns all start points of a given method. There may be
  * more than one start point in case of a backward analysis.
  */
-set<const llvm::Instruction *> LLVMBasedICFG::getStartPointsOf(
-    const llvm::Function *m) {
+set<const llvm::Instruction *>
+LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
+  if (!m) {
+    return {};
+  }
   if (!m->isDeclaration()) {
     return {&m->front().front()};
+    // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
+    // return getStartPointsOf(getMethod(m->getName().str()));
   } else {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Could not get starting points of '"
-                             << m->getName().str()
-                             << "' because it is a declaration!";
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Could not get starting points of '" << m->getName().str()
+        << "' because it is a declaration";
     return {};
   }
 }
 
-set<const llvm::Instruction *> LLVMBasedICFG::getExitPointsOf(
-    const llvm::Function *fun) {
+set<const llvm::Instruction *>
+LLVMBasedICFG::getExitPointsOf(const llvm::Function *fun) {
   if (!fun->isDeclaration()) {
     return {&fun->back().back()};
   } else {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Could not get exit points of '"
-                             << fun->getName().str()
-                             << "' which is declaration!";
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Could not get exit points of '" << fun->getName().str()
+        << "' which is declaration!";
     return {};
   }
 }
@@ -603,32 +636,21 @@ set<const llvm::Instruction *> LLVMBasedICFG::getExitPointsOf(
  * We, however, use as return site the successor statements, of which
  * there can be many in case of exceptional flow.
  */
-set<const llvm::Instruction *> LLVMBasedICFG::getReturnSitesOfCallAt(
-    const llvm::Instruction *n) {
-  // at the moment we just ignore exceptional control flow
+set<const llvm::Instruction *>
+LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
   set<const llvm::Instruction *> ReturnSites;
-  if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
-    // ReturnSites.insert(n);
-    llvm::ImmutableCallSite CS(n);
-    for (auto user : CS->users()) {
-      if (const llvm::Instruction *inst =
-              llvm::dyn_cast<llvm::Instruction>(user)) {
-        ReturnSites.insert(inst);
-      }
-    }
-    if (ReturnSites.empty()) {
-      ReturnSites.insert(n->getNextNode());
-    }
+  if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
+    ReturnSites.insert(Call->getNextNode());
+  }
+  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
+    ReturnSites.insert(&Invoke->getNormalDest()->front());
+    ReturnSites.insert(&Invoke->getUnwindDest()->front());
   }
   return ReturnSites;
 }
 
 bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *stmt) {
-  if (llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt)) {
-    return true;
-  } else {
-    return false;
-  }
+  return llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt);
 }
 
 /**
@@ -651,13 +673,13 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() {
   return NonCallStartNodes;
 }
 
-vector<const llvm::Instruction *> LLVMBasedICFG::getAllInstructionsOfFunction(
-    const string &name) {
+vector<const llvm::Instruction *>
+LLVMBasedICFG::getAllInstructionsOfFunction(const string &name) {
   return getAllInstructionsOf(IRDB.getFunction(name));
 }
 
-const llvm::Instruction *LLVMBasedICFG::getLastInstructionOf(
-    const string &name) {
+const llvm::Instruction *
+LLVMBasedICFG::getLastInstructionOf(const string &name) {
   const llvm::Function &f = *IRDB.getFunction(name);
   auto last = llvm::inst_end(f);
   last--;
@@ -678,7 +700,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &other) {
   vector<LLVMBasedICFG::vertex_t> orig2copy_data(boost::num_vertices(other.cg));
   IsoMap mapV = boost::make_iterator_property_map(
       orig2copy_data.begin(), get(boost::vertex_index, other.cg));
-  boost::copy_graph(other.cg, cg, boost::orig_to_copy(mapV));  // means g1 += g2
+  boost::copy_graph(other.cg, cg, boost::orig_to_copy(mapV)); // means g1 += g2
   // This vector hols the call-sites that are used to merge the whole-module
   // points-to graphs
   vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> Calls;
@@ -743,8 +765,9 @@ void LLVMBasedICFG::print() {
 void LLVMBasedICFG::printAsDot(const string &filename) {
   ofstream ofs(filename);
   boost::write_graphviz(
-      ofs, cg, boost::make_label_writer(boost::get(
-                   &LLVMBasedICFG::VertexProperties::functionName, cg)),
+      ofs, cg,
+      boost::make_label_writer(
+          boost::get(&LLVMBasedICFG::VertexProperties::functionName, cg)),
       boost::make_label_writer(
           boost::get(&LLVMBasedICFG::EdgeProperties::ir_code, cg)));
 }
@@ -771,7 +794,13 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
   dependency_visitor deps(vertices);
   boost::depth_first_search(cg, visitor(deps));
   for (auto v : vertices) {
-    functionNames.push_back(cg[v].functionName);
+    if (!cg[v].isDeclaration) {
+      functionNames.push_back(cg[v].functionName);
+    }
   }
   return functionNames;
 }
+
+unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
+
+unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }

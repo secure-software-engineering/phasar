@@ -1,0 +1,8 @@
+PAMM - ...
+====================================================
+
+This document describes what is currently measured using PAMM.
+
+Existing SYMBOLS
+----------------
+TODO, add all keys currently existing in PAMM and briefly describe their effect

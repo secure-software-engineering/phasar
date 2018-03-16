@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * DBConn.cpp
  *
@@ -267,8 +276,8 @@ int DBConn::getModuleIDFromFunctionID(const unsigned functionID) {
 set<int> DBConn::getAllTypeHierarchyIDs() {
   set<int> THIDs;
   try {
-    unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT type_hierarchy_id FROM type_hierarchy"));
+    unique_ptr<sql::PreparedStatement> pstmt(
+        conn->prepareStatement("SELECT type_hierarchy_id FROM type_hierarchy"));
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {
       THIDs.insert(res->getInt("type_hierarchy_id"));
@@ -284,7 +293,8 @@ set<int> DBConn::getAllModuleIDsFromTH(const unsigned typeHierarchyID) {
   set<int> moduleIDs;
   try {
     unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
-      "SELECT module_id FROM moduel_has_type_hierarchy WHERE type_hierarchy_id=?"));
+        "SELECT module_id FROM moduel_has_type_hierarchy WHERE "
+        "type_hierarchy_id=?"));
     pstmt->setInt(1, typeHierarchyID);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     while (res->next()) {
@@ -833,7 +843,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -846,7 +856,7 @@ DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -858,7 +868,7 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   LLVMTypeHierarchy TH;
   return LLVMBasedICFG(TH, IRDB);
 }
@@ -960,8 +970,8 @@ void DBConn::storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
         thpstmt->setBlob(2, &sst);
         thpstmt->setNull(3, 0);
         // Write type hiearchy graph as dot file
-        ofstream myfile("LTHGraph.dot");
-        TH.printGraphAsDot(myfile);
+        // ofstream myfile("LTHGraph.dot");
+        // TH.printGraphAsDot(myfile);
       }
       thpstmt->executeUpdate();
 
@@ -1106,7 +1116,7 @@ ProjectIRDB DBConn::loadProjectIRDB(const string &ProjectName) {
       "project_id FROM project WHERE identifier=?)"));
   pstmt->setString(1, ProjectName);
   unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-  ProjectIRDB IRDB;
+  ProjectIRDB IRDB(IRDBOptions::NONE);
   while (res->next()) {
     string module_identifier = res->getString("identifier");
     cout << "module identifier: " << module_identifier << endl;
@@ -1177,7 +1187,7 @@ void DBConn::buildDBScheme() {
       "`module_id` INT(11) NOT NULL AUTO_INCREMENT, "
       "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
       "`hash` VARCHAR(512) NULL DEFAULT NULL, "
-      "`code` BLOB NULL DEFAULT NULL, "
+      "`code` LONGBLOB NULL DEFAULT NULL, "
       "PRIMARY KEY (`module_id`)) "
       "ENGINE = InnoDB "
       "DEFAULT CHARACTER SET = utf8 "
@@ -1197,7 +1207,7 @@ void DBConn::buildDBScheme() {
   static const string create_type_hierarchy(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy` ( "
       "`type_hierarchy_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`type_hierarchy_id`)) "
       "ENGINE = InnoDB "
@@ -1219,7 +1229,7 @@ void DBConn::buildDBScheme() {
   static const string create_callgraph(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph` ( "
       "`callgraph_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`callgraph_id`)) "
       "ENGINE = InnoDB "
@@ -1230,7 +1240,7 @@ void DBConn::buildDBScheme() {
   static const string create_points_to_graph(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`points-to_graph` ( "
       "`points-to_graph_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`points-to_graph_id`)) "
       "ENGINE = InnoDB "

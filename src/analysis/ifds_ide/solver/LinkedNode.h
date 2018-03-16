@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LinkedNode.h
  *
@@ -15,7 +24,7 @@
  *
  * @deprecated Use {@link JoinHandlingNode} instead.
  */
-template <class D> class LinkedNode {
+template <typename D> class LinkedNode {
 public:
   virtual ~LinkedNode() = default;
   /**

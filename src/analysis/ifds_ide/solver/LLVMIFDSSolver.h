@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMIFDSSolver.h
  *
@@ -21,7 +30,7 @@
 using json = nlohmann::json;
 using namespace std;
 
-template <class D, class I>
+template <typename D, typename I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
                                          const llvm::Function *, I> {
 private:
@@ -37,7 +46,15 @@ public:
                  bool dumpResults = false)
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
-        DUMP_RESULTS(dumpResults), Problem(problem) {}
+        DUMP_RESULTS(dumpResults), Problem(problem) {
+    cout << "LLVMIFDSSolver::LLVMIFDSSolver()" << endl;
+    cout << problem.NtoString(getNthInstruction(
+                problem.interproceduralCFG().getMethod("main"), 1))
+         << endl;
+    cout << Problem.NtoString(getNthInstruction(
+                Problem.interproceduralCFG().getMethod("main"), 1))
+         << endl;
+  }
 
   virtual void solve() override {
     // Solve the analaysis problem
@@ -49,11 +66,9 @@ public:
   }
 
   void dumpResults() {
+    PAMM_FACTORY;
+    START_TIMER("DFA Result Dumping");
     cout << "### DUMP LLVMIFDSSolver results\n";
-    // TODO present results in a nicer way than just calling llvm's dump()
-    // for the following line have a look at:
-    // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
-    // https://isocpp.org/wiki/faq/templates#nondependent-name-lookup-members
     auto results = this->valtab.cellSet();
     if (results.empty()) {
       cout << "EMPTY\n";
@@ -90,6 +105,7 @@ public:
                << "\tV:  " << cells[i].v << "\n";
       }
     }
+    STOP_TIMER("DFA Result Dumping");
   }
 
   json getJsonRepresentationForInstructionNode(const llvm::Instruction *node) {
@@ -178,7 +194,6 @@ public:
 
     cout << "TARGET NODE(S)\n";
     for (auto entry : TargetNodeMap) {
-
       auto TargetNode = entry.first;
       // use map to store key value and match node to json id
       json toNode = getJsonOfNode(TargetNode, instruction_id_map);
@@ -212,12 +227,10 @@ public:
       // }
 
       if (this->computedInterPathEdges.containsRow(TargetNode)) {
-
         cout << "FOUND Inter path edge !!" << endl;
         auto interEdgeTargetMap = this->computedInterPathEdges.row(TargetNode);
 
         for (auto interEntry : interEdgeTargetMap) {
-
           // this doesn't seem to work right.. wait for
           // instruction.dump().toString()
           // for easier debugging of the graph
@@ -312,7 +325,6 @@ public:
   }
 
   void sendWebserverFinish(const char *url) {
-
     curl = curl_easy_init();
     if (curl) {
       curl_easy_setopt(curl, CURLOPT_URL, url);
@@ -329,7 +341,6 @@ public:
   }
 
   void exportJSONDataModel(string graph_id) {
-
     curl_global_init(CURL_GLOBAL_ALL);
     string id = graph_id;
     cout << "my id: " << graph_id << endl;

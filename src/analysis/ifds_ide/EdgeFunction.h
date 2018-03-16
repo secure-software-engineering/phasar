@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * AbstractEdgeFunction.h
  *
@@ -9,11 +18,11 @@
 #define ANALYSIS_IFDS_IDE_EDGEFUNCTION_H_
 
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
 using namespace std;
 
-template <class V> class EdgeFunction {
+template <typename V> class EdgeFunction {
 public:
   virtual ~EdgeFunction() = default;
 

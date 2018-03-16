@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * ClassHierarchy.cpp
  *
@@ -8,12 +17,15 @@
 #include "LLVMTypeHierarchy.h"
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy";
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
+  REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
@@ -30,7 +42,8 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
     if (llvm::isa<llvm::Constant>(global) &&
         demangled.find(vtable_for) != demangled.npos) {
       string struct_name = "struct." + demangled.erase(0, vtable_for.size());
-      llvm::Constant *initializer = global.getInitializer();
+      llvm::Constant *initializer =
+          (global.hasInitializer()) ? global.getInitializer() : nullptr;
       // ignore 'vtable for __cxxabiv1::__si_class_type_info', also the vtable
       // might be marked as external!
       if (!initializer)
@@ -130,7 +143,7 @@ bool LLVMTypeHierarchy::hasSubType(string TypeName, string SubTypeName) {
   return reachable_types.find(SubTypeName) != reachable_types.end();
 }
 
-bool LLVMTypeHierarchy::containsVTable(string TypeName) {
+bool LLVMTypeHierarchy::containsVTable(string TypeName) const {
   auto iter = vtable_map.find(TypeName);
   return iter != vtable_map.end();
 }
@@ -163,13 +176,20 @@ void LLVMTypeHierarchy::print() {
   }
 }
 
-void LLVMTypeHierarchy::printGraphAsDot(ostream& out) {
+void LLVMTypeHierarchy::printAsDot(const string &path) {
+  ofstream ofs(path);
+  boost::write_graphviz(
+      ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
+}
+
+void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {
   boost::dynamic_properties dp;
   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, g));
   boost::write_graphviz_dp(out, g, dp);
 }
 
-LLVMTypeHierarchy::bidigraph_t LLVMTypeHierarchy::loadGraphFormDot(istream& in) {
+LLVMTypeHierarchy::bidigraph_t
+LLVMTypeHierarchy::loadGraphFormDot(istream &in) {
   LLVMTypeHierarchy::bidigraph_t G(0);
   boost::dynamic_properties dp;
   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name, G));
@@ -183,6 +203,10 @@ void LLVMTypeHierarchy::printTransitiveClosure() {
   boost::print_graph(tc,
                      boost::get(&LLVMTypeHierarchy::VertexProperties::name, g));
 }
+
+unsigned LLVMTypeHierarchy::getNumOfVertices() { return boost::num_vertices(g); }
+
+unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
 
 json LLVMTypeHierarchy::exportPATBCJSON() {
   auto &lg = lg::get();

@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMShorthands.h
  *
@@ -8,19 +17,19 @@
 #ifndef SRC_LIB_LLVMSHORTHANDS_H_
 #define SRC_LIB_LLVMSHORTHANDS_H_
 
+#include "../analysis/ifds_ide/ZeroValue.h"
 #include "../config/Configuration.h"
+#include <boost/algorithm/string/trim.hpp>
 #include <functional>
 #include <iostream>
 #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
-#include <string>
 #include <vector>
-
-using namespace std;
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -30,25 +39,34 @@ using namespace std;
  */
 bool isFunctionPointer(const llvm::Value *V) noexcept;
 
+/**
+ * @brief Checks if the given LLVM Value is either a alloca instruction or a
+ * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
+ */
+bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
+
 // TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
 /**
  * @brief Returns a string representation of a LLVM Value.
  */
-string llvmIRToString(const llvm::Value *V);
+std::string llvmIRToString(const llvm::Value *V);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
-vector<const llvm::Value *> globalValuesUsedinFunction(const llvm::Function *F);
+std::vector<const llvm::Value *>
+globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
- * @brief Returns the meta data id of a given LLVM Instruction.
- * @return Meta data id as a string.
+ * Only Instructions and GlobalVariables have ID's.
+ * @brief Returns the ID of a given LLVM Value.
+ * @return Meta data ID as a string or -1, if it's not
+ * an Instruction or a GlobalVariable.
  */
-string getMetaDataID(const llvm::Instruction *);
+std::string getMetaDataID(const llvm::Value *V);
 
 /**
  * The Argument count starts with 0.
@@ -111,7 +129,7 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * hash computation.
  * @return Hash value.
  */
-size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
+std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.
@@ -119,6 +137,6 @@ size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @param M
  * @return
  */
-size_t computeModuleHash(const llvm::Module *M);
+std::size_t computeModuleHash(const llvm::Module *M);
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

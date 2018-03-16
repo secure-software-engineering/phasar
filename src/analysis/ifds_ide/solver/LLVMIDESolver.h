@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 /*
  * LLVMIDESolver.h
  *
@@ -12,7 +21,7 @@
 #include "../IDETabulationProblem.h"
 #include "IDESolver.h"
 
-template <class D, class V, class I>
+template <typename D, typename V, typename I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
                                        const llvm::Function *, V, I> {
 private:
@@ -84,7 +93,7 @@ public:
     }
     //		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
     //		auto resultAtEnd =
-    //this->resultsAt(this->icfg.getLastInstructionOf("main"));
+    // this->resultsAt(this->icfg.getLastInstructionOf("main"));
     //		for (auto entry : resultAtEnd) {
     //			cout << "\t--- begin entry ---" << endl;
     //			entry.first->dump();

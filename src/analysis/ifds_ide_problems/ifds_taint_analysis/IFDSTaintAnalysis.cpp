@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
 #include "IFDSTaintAnalysis.h"
 
 // Source functions - critical argument(s) - signature:
@@ -60,7 +69,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     set<const llvm::Value *> CmdArgs;
     for (auto &Arg : curr->getFunction()->getArgumentList()) {
       CmdArgs.insert(&Arg);
-      Arg.dump();
+      //Arg.dump();
     }
     return make_shared<GenAll<const llvm::Value *>>(CmdArgs, zeroValue());
   }
@@ -291,7 +300,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
               if (source == callSite.getArgOperand(idx) &&
                   (find(sink.sinkargs.begin(), sink.sinkargs.end(), idx) !=
                    sink.sinkargs.end())) {
-                cout << "FOUND LEAK" << endl;
+                //cout << "FOUND LEAK" << endl;
                 Leaks[callSite.getInstruction()].insert(source);
               }
             }
@@ -342,8 +351,7 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
-  static ZeroValue *zero = new ZeroValue;
-  return zero;
+  return ZeroValue::getInstance();
 }
 
 bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {

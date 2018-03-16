@@ -1,0 +1,24 @@
+Using MACROS
+============
+Macros can be added to the Makefile rules. However, they can also be injected
+using the 'MACROS' Makefile variable when calling 'make'. An example:
+
+	$ make MACROS=-DEXPERIMENTS
+
+	or
+
+	$ make MACROS="-DEXPERIMENTS -DEXPERIMENTS_PREANALYSIS"
+
+Keep the number of macros as low as possible!
+
+
+Existing MACROS
+===============
+
+name, effect
+------------
+NDEBUG, disable all debugging instructions, assertions, debug logs and other safety features
+EXPERIMENTS, turn on the experiment mode rather than the standard analsysis mode
+EXPERIMENTS_PREANALYSIS, execute the pre-analysis experiments
+EXPERIMENTS_WOPREANALYSIS, execute the experiments without using pre-analysis
+PERFORMANCE_EVA, enables more detailed performance analysis using PAMM
