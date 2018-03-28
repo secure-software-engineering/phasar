@@ -1,6 +1,7 @@
-/* immutable: - */
+/* - | - | mem2reg */
 void foo(int& a) {
-	a += 42;
+	// removed due to mem2reg
+  int b = a;
 }
 
 int main() {

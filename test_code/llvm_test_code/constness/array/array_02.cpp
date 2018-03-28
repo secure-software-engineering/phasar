@@ -1,5 +1,5 @@
-/* immutable: array */
+/* - | - | mem2reg*/
 int main() {
-  int array[2] = {};
+  int a[2] = {};
   return 0;
 }

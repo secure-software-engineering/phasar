@@ -1,6 +1,7 @@
-/* immutable: i,j */
+/* - | - | mem2reg */
 int main() {
-  int i = 99, j = 77; 
-  int *parr[2] = {&i, &j};
+  int *a = new int[5];
+  a[0] = 20;
+  a[2] = 20;
   return 0;
 }

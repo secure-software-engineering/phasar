@@ -1,7 +1,8 @@
-/* immutable: gint, i */
-int gint = 10;
+/* g1 | @g1 (ID: 0) | mem2reg */
+int g1 = 10;
+int g2 = 10;
 
 int main() {
-	int i = 7;
+	g1 = 42;
 	return 0;
 }

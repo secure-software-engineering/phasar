@@ -1,6 +1,7 @@
-/* immutable: i */
+/* - | - | mem2reg */
 int foo() {
-	return 42;
+	int *a = new int(42);
+	return *a;
 }
 
 int main() {

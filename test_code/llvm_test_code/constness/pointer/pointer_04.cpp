@@ -1,8 +1,8 @@
-/* immutable: p1,p2 */
+/* second 'new' | %3 (ID: 3) | mem2reg! */
 int main() {
-  int i = 13;
-  int *p1 = &i;
-  int *p2 = p1;
-  *p2 = 42;
+  // removed p due to mem2reg
+  int *p = new int(42);
+  p = new int(99);
+  *p = 20;
   return 0;
 }

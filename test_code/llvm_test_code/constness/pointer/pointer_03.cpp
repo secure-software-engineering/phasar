@@ -1,8 +1,9 @@
-/* immutable: pi,ppi */
+/* j, pj | %3, %4 (ID: 2, 3) */
 int main() {
-  int i = 12;
-  int *pi = &i;
-  int **ppi = &pi;
-  **ppi = 10;
+  int i;
+  int j = 12;
+  int *pj = &j;
+  *pj = 42;
+  pj = &i;
   return 0;
 }
