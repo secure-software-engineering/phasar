@@ -292,7 +292,7 @@ INCLUDE(CPack)
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 
 # Setup the doxygen code documentation
-if(BUILD_DOC)
+if(PHASAR_BUILD_DOC)
   find_package(Doxygen)
   if (DOXYGEN_FOUND)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)
