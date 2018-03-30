@@ -18,12 +18,14 @@
 #define ANALYSIS_IFDS_IDE_ICFG_H_
 
 #include <iostream>
+#include <json.hpp>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <set>
 #include <string>
 #include <vector>
 using namespace std;
+using json = nlohmann::json;
 
 enum class CallGraphAnalysisType { CHA, RTA, DTA, VTA, OTF };
 
@@ -54,6 +56,8 @@ public:
   virtual set<N> getExitPointsOf(M fun) = 0;
 
   virtual set<N> getReturnSitesOfCallAt(N stmt) = 0;
+
+  virtual json getAsJson() = 0;
 };
 
 #endif /* ANALYSIS_ICFG_HH_ */

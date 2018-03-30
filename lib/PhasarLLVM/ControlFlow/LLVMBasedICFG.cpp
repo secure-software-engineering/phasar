@@ -777,8 +777,22 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
           &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
 }
 
-void LLVMBasedICFG::exportPATBCJSON() {
-  cout << "LLVMBasedICFG::exportPATBCJSON()\n";
+json LLVMBasedICFG::getAsJson() {
+  json J;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
+  // iterate all graph vertices
+  for (boost::tie(vi_v, vi_v_end) = boost::vertices(cg); vi_v != vi_v_end;
+       ++vi_v) {
+    J[JsonCallGraphID][cg[*vi_v].functionName];
+    // iterate all out edges of vertex vi_v
+    for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, cg); ei != ei_end;
+         ++ei) {
+      J[JsonCallGraphID][cg[*vi_v].functionName] +=
+          cg[boost::target(*ei, cg)].functionName;
+    }
+  }
+  return J;
 }
 
 PointsToGraph &LLVMBasedICFG::getWholeModulePTG() { return WholeModulePTG; }

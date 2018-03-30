@@ -139,3 +139,5 @@ string ICFGTestPlugin::getStatementId(const llvm::Instruction *stmt) {
       ->getString()
       .str();
 }
+
+json ICFGTestPlugin::getAsJson() { return json{}; }

@@ -313,7 +313,7 @@ public:
 
   void printInternalPTGAsDot(const string &filename);
 
-  void exportPATBCJSON();
+  json getAsJson() override;
 
   PointsToGraph &getWholeModulePTG();
 

@@ -41,5 +41,8 @@ extern const std::string CompileCommandsJson;
 extern bpo::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;
+// Variables to be used in JSON export format
+/// Identifier for call graph export
+extern const std::string JsonCallGraphID;
 
 #endif /* SRC_CONFIG_CONFIGURATION_H_ */

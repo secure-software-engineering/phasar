@@ -64,10 +64,24 @@ public:
         for (auto startPoint : IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(
                  IDESolver<N, D, M, V, I>::icfg.getMethod(function))) {
           set<D> initialValues = {IDESolver<N, D, M, V, I>::zeroValue};
-          if (genStrategy == SummaryGenerationStrategy::always_all &&
-              function != "main") {
-            for (auto &arg : startPoint->getFunction()->args()) {
-              initialValues.insert(&arg);
+          if (function != "main") {
+            switch (genStrategy) {
+            case SummaryGenerationStrategy::always_all:
+              for (auto &arg : startPoint->getFunction()->args()) {
+                initialValues.insert(&arg);
+              }
+              break;
+            case SummaryGenerationStrategy::always_none:
+              // nothing to do, just the zeroValue
+              break;
+            case SummaryGenerationStrategy::all_and_none:
+              break;
+            case SummaryGenerationStrategy::powerset:
+              break;
+            case SummaryGenerationStrategy::all_observed:
+              break;
+            default:
+              break;
             }
           }
           IDESolver<N, D, M, V, I>::initialSeeds.insert(

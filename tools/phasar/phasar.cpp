@@ -189,12 +189,15 @@ int main(int argc, const char **argv) {
               << e.what() << ", abort\n";
     return 1;
   }
-  // Make sure an operation mode has been set!
+  // Make sure an operation mode has been set
+  // If it has not been set explicitly by the user, then use
+  // phasarLLVM as default.
   if (!ModeMap.count("mode")) {
-    std::cout << "Phasar operation mode is not set. Set the operation mode "
-                 "'--mode' to "
-                 "'phasarLLVM' or 'phasarClang'.\n";
-    return 1;
+    std::cout << "Phasar operation mode is not set expicitly.\n"
+                 "Setting operation mode to 'phasarLLVM'.\n"
+                 "Use '--mode' to choose either 'phasarLLVM' or 'phasarClang'"
+                 " to change that behaviour.\n";
+    ModeMap.insert(make_pair("mode", bpo::variable_value(string("phasarLLVM"), false)));
   }
   // Next we can check what operation mode was chosen and resume accordingly:
   if (ModeMap["mode"].as<std::string>() == "phasarLLVM") {
@@ -434,7 +437,7 @@ int main(int argc, const char **argv) {
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph_id"].as<std::string>());
     BOOST_LOG_SEV(lg, INFO) << "Write results to file";
-    // Controller.writeResults(VariablesMap["output"].as<std::string>());
+    Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarClang'";
     std::string ConfigFile;
