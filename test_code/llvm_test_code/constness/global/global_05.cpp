@@ -1,9 +1,13 @@
-/* immutable: - */
-int *gint;
+/* g, i | @g, %1 (ID: 0, 4) | mem2reg */
+int *g;
+
+void foo() {
+  *g = 99;
+}
 
 int main() {
-	int i = 42;
-	gint = &i;
-	*gint = 99;
-	return 0;
+  int i = 42;
+  g = &i;
+  foo();
+  return 0;
 }

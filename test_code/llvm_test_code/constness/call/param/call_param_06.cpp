@@ -1,11 +1,10 @@
-/* immutable: j,b */
-void foo(int &a, int b) {
-	a += b;
+/* - | - | mem2reg */
+void foo(int *p) {
+  int b = *p;
 }
 
 int main() {
-	int i = 10;
-	int j = 30;
-	foo(i, j);
-	return 0;
+  int *i = new int(24);
+  foo(i);
+  return 0;
 }

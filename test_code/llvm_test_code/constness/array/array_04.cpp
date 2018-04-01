@@ -1,6 +1,7 @@
-/* immutable: array */
+/* - | - | mem2reg */
 int main() {
-  int array[2];
-  array[1] = 42;
+  int a[2];
+  a[0] = 17;
+  a[1] = 42;
   return 0;
 }

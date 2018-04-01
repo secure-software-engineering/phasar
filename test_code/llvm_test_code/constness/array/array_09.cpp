@@ -1,9 +1,7 @@
-/* immutable: j */
-// #include <iostream>
+/* a | %1 (ID: 0) | mem2reg */
 int main() {
-  int i = 99, j = 77; 
-  int *parr[2] = {&i, &j};
-  *parr[0] = 42;
-  // std::cout << i << " " << j << std::endl; // 42 77
+  int *a = new int[5];
+  a[0] = 20;
+  a[0] = 20;
   return 0;
 }
