@@ -31,12 +31,6 @@ static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");
 static llvm::cl::extrahelp CommonHelp(
     clang::tooling::CommonOptionsParser::HelpMessage);
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
-static const std::string PhasarLLVMMoreHelp =
-#include "../../phasar-llvm_more_help.txt"
-    ;
-static const std::string PhasarClangMoreHelp =
-#include "../../phasar-clang_more_help.txt"
-    ;
 
 namespace boost {
 void throw_exception(std::exception const &e) {}
@@ -156,6 +150,7 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
+
   PAMM &pamm = PAMM::getInstance();
   START_TIMER("FW_runtime");
   // set-up the logger and get a reference to it
@@ -193,10 +188,6 @@ int main(int argc, const char **argv) {
   // If it has not been set explicitly by the user, then use
   // phasarLLVM as default.
   if (!ModeMap.count("mode")) {
-    std::cout << "Phasar operation mode is not set expicitly.\n"
-                 "Setting operation mode to 'phasarLLVM'.\n"
-                 "Use '--mode' to choose either 'phasarLLVM' or 'phasarClang'"
-                 " to change that behaviour.\n";
     ModeMap.insert(make_pair("mode", bpo::variable_value(string("phasarLLVM"), false)));
   }
   // Next we can check what operation mode was chosen and resume accordingly:
@@ -205,8 +196,7 @@ int main(int argc, const char **argv) {
     try {
       std::string ConfigFile;
       // Declare a group of options that will be allowed only on command line
-      bpo::options_description Generic(PhasarLLVMMoreHelp +
-                                       "\nCommand-line options");
+      bpo::options_description Generic("Command-line options");
       // clang-format off
 		Generic.add_options()
 			("help,h", "Print help message")
@@ -229,12 +219,14 @@ int main(int argc, const char **argv) {
 			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
 			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
 			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
-			("export,E", bpo::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
+			//("export,E", bpo::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
 			("wpa,W", bpo::value<bool>()->default_value(1), "WPA mode (1 or 0)")
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
+      #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis_plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph_plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
+      #endif
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results");
       // clang-format on
       bpo::options_description CmdlineOptions;
@@ -256,6 +248,12 @@ int main(int argc, const char **argv) {
                    VariablesMap);
         bpo::notify(VariablesMap);
       }
+
+      // Vanity header
+      if(!VariablesMap.count("silent")) {
+        std::cout << "PHASAR v0.9\n"
+                     "A LLVM-based static analysis framework\n\n";
+      }
       // check if we have anything at all or a call for help
       if (argc < 3 || VariablesMap.count("help")) {
         std::cout << Visible << '\n';
@@ -265,7 +263,7 @@ int main(int argc, const char **argv) {
           << "Program options have been successfully parsed.";
       bl::core::get()->flush();
       if (VariablesMap.count("config")) {
-        std::cout << "Configuration fille: "
+        std::cout << "Configuration file: "
                   << VariablesMap["config"].as<std::string>() << '\n';
       }
       if (VariablesMap.count("project_id")) {
@@ -444,8 +442,7 @@ int main(int argc, const char **argv) {
     BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarClang'";
     std::string ConfigFile;
     // Declare a group of options that will be allowed only on command line
-    bpo::options_description Generic(PhasarClangMoreHelp +
-                                     "\nCommand-line options");
+    bpo::options_description Generic("Command-line options");
     // clang-format off
     Generic.add_options()
     	("help,h", "Print help message")
