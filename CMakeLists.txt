@@ -156,6 +156,14 @@ add_subdirectory(lib)
 add_executable(phasar
   tools/phasar/phasar.cpp
 )
+
+if(APPLE)
+  set(BOOST_THREAD boost_thread-mt)
+else()
+  set(BOOST_THREAD boost_thread)
+endif()
+
+
 target_link_libraries(phasar
   phasar_config
   phasar_controller
@@ -175,12 +183,12 @@ target_link_libraries(phasar
   boost_graph
   boost_system
   boost_log
-  boost_thread
+  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}  
+  ${CLANG_LIBRARIES}
   ${llvm_libs}
   curl
   gtest
