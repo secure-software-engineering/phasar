@@ -111,3 +111,9 @@ TAGS
 # config files
 compiler_info.txt
 standard_header_paths.conf
+
+# CMake temporary files
+CMakeFiles
+CMakeCache.txt
+*.cmake
+*.pc
