@@ -34,7 +34,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
 # Phasar Options
-option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
+if(APPLE)
+  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" ON)
+else()
+  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
+endif()
+
 if(PHASAR_ENABLE_LIBCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 else()
