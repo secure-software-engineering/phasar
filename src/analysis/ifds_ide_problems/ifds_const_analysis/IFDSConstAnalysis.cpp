@@ -438,3 +438,7 @@ bool IFDSConstAnalysis::isInitialized(const llvm::Value *d) const {
 void IFDSConstAnalysis::markAsInitialized(const llvm::Value *d) {
   Initialized.insert(d);
 }
+
+size_t IFDSConstAnalysis::getInitializedSize() {
+  return Initialized.size();
+}

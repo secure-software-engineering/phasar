@@ -116,6 +116,8 @@ public:
 
   void printInitilizedSet();
 
+  size_t getInitializedSize();
+
   /**
    * Only interested in points-to information within the function scope, i.e.
    *   -local instructions

@@ -163,7 +163,8 @@ AnalysisController::AnalysisController(ProjectIRDB &&IRDB,
         cout << "IFDS Const Analysis started!" << endl;
         llvmconstsolver.solve();
         cout << "IFDS Const Analysis finished!" << endl;
-        // constproblem.printInitilizedSet();
+        REG_COUNTER_WITH_VALUE("Const Init Set Size",constproblem.getInitializedSize());
+        constproblem.printInitilizedSet();
         START_TIMER("DFA Result Computation");
         // TODO need to consider object fields, i.e. getelementptr instructions
         // get all stack and heap alloca instructions

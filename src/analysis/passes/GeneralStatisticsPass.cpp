@@ -35,6 +35,7 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
           allocatedTypes.insert(alloc->getAllocatedType());
           // do not add allocas from llvm internal functions
           allocaInstrucitons.insert(&I);
+          ++allocationsites;
         } // check bitcast instructions for possible types
         else {
           for (auto user : I.users()) {
@@ -44,10 +45,17 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
             }
           }
         }
-
         // check for return or resume instrucitons
         if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
           retResInstructions.insert(&I);
+        }
+        // check for store instrucitons
+        if (llvm::isa<llvm::StoreInst>(I)) {
+          ++storeInstructions;
+        }
+        // check for llvm's memory intrinsics
+        if (llvm::isa<llvm::MemIntrinsic>(I)) {
+          ++memIntrinsic;
         }
 
         // check for function calls
@@ -94,6 +102,8 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   pamm.regCounter("GS Call-Sites"/* + moduleID*/, callsites);
   pamm.regCounter("GS Pointer Variables"/* + moduleID*/, pointers);
   pamm.regCounter("GS Instructions"/* + moduleID*/, instructions);
+  pamm.regCounter("GS Store Instructions"/* + moduleID*/, storeInstructions);
+  pamm.regCounter("GS Memory Intrinsics"/* + moduleID*/, memIntrinsic);
   pamm.regCounter("GS Allocated Types"/* + moduleID*/, allocatedTypes.size());
   return false;
 #else
@@ -106,6 +116,8 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   llvm::outs() << "calls-sites: " << callsites << "\n";
   llvm::outs() << "pointer variables: " << pointers << "\n";
   llvm::outs() << "instructions: " << instructions << "\n";
+  llvm::outs() << "store instructions: " << storeInstructions << "\n";
+  llvm::outs() << "llvm memory intrinsics: " << memIntrinsic << "\n";
   llvm::outs() << "allocated types:\n";
   for (auto type : allocatedTypes) {
     type->dump();

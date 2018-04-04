@@ -24,6 +24,7 @@
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
+#include "llvm/IR/IntrinsicInst.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/PassSupport.h>
@@ -57,6 +58,8 @@ private:
   size_t allocationsites = 0;
   size_t callsites = 0;
   size_t instructions = 0;
+  size_t storeInstructions = 0;
+  size_t memIntrinsic = 0;
   size_t pointers = 0;
   set<const llvm::Type *> allocatedTypes;
   set<const llvm::Value *> allocaInstrucitons;
