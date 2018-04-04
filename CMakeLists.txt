@@ -157,6 +157,7 @@ add_executable(phasar
   tools/phasar/phasar.cpp
 )
 
+# Fix boost_thread dependency for MacOS
 if(APPLE)
   set(BOOST_THREAD boost_thread-mt)
 else()
