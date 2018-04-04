@@ -200,8 +200,10 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
             VariablesMap["analysis_plugin"].as<vector<string>>();
-        AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                                  EntryPoints);
+            #ifdef PHASAR_PLUGINS_ENABLED
+              AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
+                                                        EntryPoints);
+            #endif
         break;
       }
       case DataFlowAnalysisType::None: {

@@ -64,6 +64,12 @@ if (PHASAR_ENABLE_PIC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif (PHASAR_ENABLE_PIC)
 
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPHASAR_PLUGINS_ENABLED")
+endif()
+
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
@@ -169,6 +175,13 @@ else()
   set(BOOST_THREAD boost_thread)
 endif()
 
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+  set(PHASAR_PLUGINS_LIB )
+else()
+  set(PHASAR_PLUGINS_LIB phasar_plugins)
+endif()
+
 
 target_link_libraries(phasar
   phasar_config
@@ -180,7 +193,7 @@ target_link_libraries(phasar
   phasar_ifdside
   phasar_mono
   phasar_passes
-  phasar_plugins
+  ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
@@ -244,7 +257,7 @@ install(DIRECTORY config/
 )
 
 # If the Phasar shared object libraries are not installed into a system folder
-# the so libs must be added manually to the linker search path and the linker 
+# the so libs must be added manually to the linker search path and the linker
 # config must be updated as follows:
 #
 #   $ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:/home/philipp/Schreibtisch/tmp/lib

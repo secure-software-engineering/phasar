@@ -390,13 +390,15 @@ int main(int argc, const char **argv) {
         }
       }
     }
-    // Check if user has specified an analysis plugin
-    if (!IDETabulationProblemPluginFactory.empty() ||
-        !IFDSTabulationProblemPluginFactory.empty() ||
-        !IntraMonotoneProblemPluginFactory.empty() ||
-        !InterMonotoneProblemPluginFactory.empty()) {
-      ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
-    }
+    #ifdef PHASAR_PLUGINS_ENABLED
+      // Check if user has specified an analysis plugin
+      if (!IDETabulationProblemPluginFactory.empty() ||
+          !IFDSTabulationProblemPluginFactory.empty() ||
+          !IntraMonotoneProblemPluginFactory.empty() ||
+          !InterMonotoneProblemPluginFactory.empty()) {
+        ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
+      }
+    #endif
     // At this point we have set-up all the parameters and can start the actual
     // analyses that have been choosen.
     AnalysisController Controller(
