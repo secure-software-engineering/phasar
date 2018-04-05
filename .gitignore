@@ -117,6 +117,7 @@ CMakeFiles
 CMakeCache.txt
 *.cmake
 *.pc
+Makefile
 
 # Other
 phasar
