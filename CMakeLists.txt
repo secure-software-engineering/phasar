@@ -182,7 +182,8 @@ else()
   set(PHASAR_PLUGINS_LIB phasar_plugins)
 endif()
 
-
+# Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
+# If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar
   phasar_config
   phasar_controller
