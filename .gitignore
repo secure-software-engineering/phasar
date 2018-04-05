@@ -119,6 +119,7 @@ CMakeCache.txt
 !cmake/*.cmake
 *.pc
 Makefile
+!test/*/Makefile
 
 # Other
 phasar
