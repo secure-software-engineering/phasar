@@ -69,11 +69,14 @@ AnalysisController::AnalysisController(
   LLVMTypeHierarchy CH(IRDB);
   STOP_TIMER("LTH_runtime");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-  // CH.printAsDot();
+  FinalResultsJson += CH.getAsJson();
+  if (VariablesMap.count("classhierarchy_analysis")) {
+    CH.print();
+    CH.printAsDot("ch.dot");
+  }
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
-    std::cout << "WPA_MODE HAPPENING" << std::endl;
     START_TIMER("ICFG_runtime");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
@@ -84,11 +87,18 @@ AnalysisController::AnalysisController(
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
     STOP_TIMER("ICFG_runtime");
-    std::cout << "CONSTRUCTION OF ICFG COMPLETED" << std::endl;
     ICFG.printAsDot("call_graph.dot");
     // Add the ICFG to final results
     FinalResultsJson += ICFG.getAsJson();
-    // ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
+    if (VariablesMap.count("callgraph_analysis")) {
+      ICFG.print();
+      ICFG.printAsDot("icfg.dot");
+    }
+    FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
+    if (VariablesMap.count("pointer_analysis")) {
+      ICFG.getWholeModulePTG().print();
+      ICFG.getWholeModulePTG().printAsDot("wptg.dot");
+    }
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -103,6 +113,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
             taintanalysisproblem, true);
         llvmtaintsolver.solve();
+        FinalResultsJson += llvmtaintsolver.getAsJson();
         // Here we can get the leaks
         map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
             taintanalysisproblem.Leaks;
@@ -128,6 +139,7 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
+        FinalResultsJson += llvmtaintsolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
@@ -135,6 +147,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
             typeanalysisproblem, true);
         llvmtypesolver.solve();
+        FinalResultsJson += llvmtypesolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
@@ -142,6 +155,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
             uninitializedvarproblem, true);
         llvmunivsolver.solve();
+        FinalResultsJson += llvmunivsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmunivsolver.exportJSONDataModel(graph_id);
         }
@@ -153,6 +167,7 @@ AnalysisController::AnalysisController(
             constproblem, true);
         cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
+        FinalResultsJson += llvmconstsolver.getAsJson();
         cout << "Const Analysis finished!" << endl;
         // constproblem.printInitilizedSet();
         break;
@@ -163,6 +178,7 @@ AnalysisController::AnalysisController(
             ifdstest, true);
         cout << "IFDS Solvertest started!" << endl;
         llvmifdstestsolver.solve();
+        FinalResultsJson += llvmifdstestsolver.getAsJson();
         cout << "IFDS Solvertest finished!" << endl;
         break;
       }
@@ -171,6 +187,7 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest, true);
         llvmidetestsolver.solve();
+        llvmidetestsolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
@@ -202,7 +219,7 @@ AnalysisController::AnalysisController(
             VariablesMap["analysis_plugin"].as<vector<string>>();
             #ifdef PHASAR_PLUGINS_ENABLED
               AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                                        EntryPoints);
+                                                        EntryPoints, FinalResultsJson);
             #endif
         break;
       }
@@ -385,6 +402,6 @@ AnalysisController::AnalysisController(
 }
 
 void AnalysisController::writeResults(std::string filename) {
-  std::ofstream ofs(filename, std::ofstream::app);
+  std::ofstream ofs(filename);
   ofs << FinalResultsJson.dump(1);
 }

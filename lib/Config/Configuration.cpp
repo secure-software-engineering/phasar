@@ -33,3 +33,6 @@ const std::string CompileCommandsJson("compile_commands.json");
 bpo::variables_map VariablesMap;
 const std::string LogFileDirectory("log/");
 const std::string JsonCallGraphID("CallGraph");
+const std::string JsonTypeHierarchyID("TypeHierarchy");
+const std::string JsonPointToGraphID("PointsToGraph");
+const std::string JsonDataFlowID("DataFlowInformation");

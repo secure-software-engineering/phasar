@@ -47,13 +47,10 @@ public:
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
         DUMP_RESULTS(dumpResults), Problem(problem) {
-    cout << "LLVMIFDSSolver::LLVMIFDSSolver()" << endl;
-    cout << problem.NtoString(getNthInstruction(
-                problem.interproceduralCFG().getMethod("main"), 1))
-         << endl;
-    cout << Problem.NtoString(getNthInstruction(
-                Problem.interproceduralCFG().getMethod("main"), 1))
-         << endl;
+    // cout << "LLVMIFDSSolver::LLVMIFDSSolver()" << endl;
+    // cout << problem.NtoString(getNthInstruction(
+    //             problem.interproceduralCFG().getMethod("main"), 1))
+    //      << endl;
   }
 
   virtual void solve() override {

@@ -281,6 +281,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   if (broken_debug_info) {
     BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
   }
+  // Obtain the allocated types found in the module
+  allocated_types = GSP->getAllocatedTypes();
   STOP_TIMER("IRP_ModulePass_" + moduleID);
   START_TIMER("IRP_PTGConstruction_" + moduleID);
   // Obtain the very important alias analysis results
@@ -652,4 +654,8 @@ void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
       std::make_pair(M->getModuleIdentifier(),
                      std::unique_ptr<llvm::LLVMContext>(&M->getContext())));
   modules.insert(std::make_pair(M->getModuleIdentifier(), std::move(M)));
+}
+
+set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() {
+  return allocated_types;
 }

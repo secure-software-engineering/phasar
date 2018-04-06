@@ -201,8 +201,20 @@ void LLVMTypeHierarchy::printTransitiveClosure() {
                      boost::get(&LLVMTypeHierarchy::VertexProperties::name, g));
 }
 
-json LLVMTypeHierarchy::exportPATBCJSON() {
-  auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "LLVMTypeHierarchy::exportPATBCJSON()";
-  return "{ \"test\": \"example\" }"_json;
+json LLVMTypeHierarchy::getAsJson() {
+  json J;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
+  // iterate all graph vertices
+  for (boost::tie(vi_v, vi_v_end) = boost::vertices(g); vi_v != vi_v_end;
+       ++vi_v) {
+    J[JsonTypeHierarchyID][g[*vi_v].name];
+    // iterate all out edges of vertex vi_v
+    for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, g); ei != ei_end;
+         ++ei) {
+      J[JsonTypeHierarchyID][g[*vi_v].name] +=
+          g[boost::target(*ei, g)].name;
+    }
+  }
+  return J;
 }

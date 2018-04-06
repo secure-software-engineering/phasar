@@ -283,7 +283,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     if (!receiver_type) {
       throw runtime_error("Receiver type is not a struct type!");
     }
-    cout << "receiver type: " << receiver_type->getName().str() << endl;
+    // cout << "receiver type: " << receiver_type->getName().str() << endl;
     auto alloc_sites =
         WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
     auto possible_allocated_types =
@@ -538,7 +538,7 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
       auto edge = cg[*ei];
       auto target = boost::target(*ei, cg);
       if (CS.getInstruction() == edge.callsite) {
-        cout << "Name: " << cg[target].functionName << endl;
+        // cout << "Name: " << cg[target].functionName << endl;
         if (IRDB.getFunction(cg[target].functionName)) {
           Callees.insert(IRDB.getFunction(cg[target].functionName));
         } else {

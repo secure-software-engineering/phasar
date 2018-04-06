@@ -73,9 +73,12 @@ public:
 
   /// The type for vertex representative objects.
   typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
-
   /// The type for edge representative objects.
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
+    // Let us have some further handy typedefs.
+  typedef boost::graph_traits<bidigraph_t>::vertex_iterator vertex_iterator;
+  typedef boost::graph_traits<bidigraph_t>::out_edge_iterator out_edge_iterator;
+  typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
 private:
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
@@ -199,7 +202,7 @@ public:
 
   static bidigraph_t loadGraphFormDot(istream &in);
 
-  json exportPATBCJSON();
+  json getAsJson();
 
   // these are defined in the DBConn class
   /**

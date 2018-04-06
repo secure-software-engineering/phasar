@@ -160,11 +160,11 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getCallFlowFunction()";
   // check for a usual function call
   if (const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
-    if (call->getCalledFunction()) {
-      cout << "DIRECT CALL TO: " << destMthd->getName().str() << endl;
-    } else {
-      cout << "INDIRECT CALL TO: " << destMthd->getName().str() << endl;
-    }
+    // if (call->getCalledFunction()) {
+    //   cout << "DIRECT CALL TO: " << destMthd->getName().str() << endl;
+    // } else {
+    //   cout << "INDIRECT CALL TO: " << destMthd->getName().str() << endl;
+    // }
 
     // collect the actual parameters
     vector<const llvm::Value *> actuals;
@@ -172,11 +172,11 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
       actuals.push_back(operand);
     }
 
-    cout << "ACTUALS:" << endl;
-    for (auto a : actuals) {
-      if (a)
-        a->print(llvm::outs());
-    }
+    // cout << "ACTUALS:" << endl;
+    // for (auto a : actuals) {
+    //   if (a)
+    //     a->print(llvm::outs());
+    // }
 
     struct UVFF : FlowFunction<const llvm::Value *> {
       const llvm::Function *destMthd;
@@ -191,7 +191,7 @@ IFDSUnitializedVariables::getCallFlowFunction(const llvm::Instruction *callStmt,
         // do the mapping from actual to formal parameters
         for (size_t i = 0; i < actuals.size(); ++i) {
           if (actuals[i] == source) {
-            cout << "ACTUAL == SOURCE" << endl;
+            // cout << "ACTUAL == SOURCE" << endl;
             return {call->getOperand(i)};
           }
           //      		if (const llvm::UndefValue* undef =

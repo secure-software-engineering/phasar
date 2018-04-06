@@ -122,7 +122,6 @@ void validateParamOutput(const std::string &filename) {
     if (bfs::is_directory(filename)) {
       throw bpo::error_with_option_name("'" + filename + "' is a directory");
     }
-    throw bpo::error_with_option_name("'" + filename + "' already exists");
   }
 }
 
@@ -350,7 +349,8 @@ int main(int argc, const char **argv) {
           std::cout << "Output: " << VariablesMap["output"].as<std::string>()
                     << '\n';
         }
-
+      } else {
+        setLoggerFilterLevel(INFO);
       }
 
       // Validation
