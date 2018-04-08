@@ -152,10 +152,10 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     break;
   }
   case DataFlowAnalysisType::Plugin: {
-    vector<string> AnalysisPlugins =
-        VariablesMap["analysis_plugin"].as<vector<string>>();
-    AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                              EntryPoints);
+    // vector<string> AnalysisPlugins =
+        // VariablesMap["analysis_plugin"].as<vector<string>>();
+    // AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
+                                              // EntryPoints);
     break;
   }
   case DataFlowAnalysisType::None: {

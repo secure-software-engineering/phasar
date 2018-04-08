@@ -41,6 +41,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/PAMM.h>
 #include <string>
+#include <set>
 #include <utility>
 
 enum class IRDBOptions : uint32_t {
@@ -77,6 +78,7 @@ private:
   std::map<std::size_t, llvm::Instruction *> instructions;
   // Maps a function to its points-to graph
   std::map<std::string, std::unique_ptr<PointsToGraph>> ptgs;
+  set<const llvm::Type *> allocated_types;
 
   void buildFunctionModuleMapping(llvm::Module *M);
   void buildGlobalModuleMapping(llvm::Module *M);
@@ -127,6 +129,7 @@ public:
   void exportPATBCJSON();
   std::string valueToPersistedString(const llvm::Value *V);
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
+  set<const llvm::Type *> getAllocatedTypes();
 };
 
 #endif /* ANALYSIS_ProjectIRDB_HH_ */

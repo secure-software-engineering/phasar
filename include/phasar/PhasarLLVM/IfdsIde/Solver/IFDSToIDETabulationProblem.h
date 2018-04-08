@@ -41,7 +41,7 @@ public:
 
   IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDETabulationProblem<N, D, M, BinaryDomain, I>(), problem(ifdsProblem) {
-    cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()" << endl;
+    // cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()" << endl;
     this->solver_config = problem.getSolverConfiguration();
   }
 

@@ -283,7 +283,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     if (!receiver_type) {
       throw runtime_error("Receiver type is not a struct type!");
     }
-    cout << "receiver type: " << receiver_type->getName().str() << endl;
+    // cout << "receiver type: " << receiver_type->getName().str() << endl;
     auto alloc_sites =
         WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
     auto possible_allocated_types =
@@ -596,7 +596,7 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
       auto edge = cg[*ei];
       auto target = boost::target(*ei, cg);
       if (CS.getInstruction() == edge.callsite) {
-        cout << "Name: " << cg[target].functionName << endl;
+        // cout << "Name: " << cg[target].functionName << endl;
         if (IRDB.getFunction(cg[target].functionName)) {
           Callees.insert(IRDB.getFunction(cg[target].functionName));
         } else {
@@ -835,8 +835,22 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
           &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
 }
 
-void LLVMBasedICFG::exportPATBCJSON() {
-  cout << "LLVMBasedICFG::exportPATBCJSON()\n";
+json LLVMBasedICFG::getAsJson() {
+  json J;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
+  // iterate all graph vertices
+  for (boost::tie(vi_v, vi_v_end) = boost::vertices(cg); vi_v != vi_v_end;
+       ++vi_v) {
+    J[JsonCallGraphID][cg[*vi_v].functionName];
+    // iterate all out edges of vertex vi_v
+    for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, cg); ei != ei_end;
+         ++ei) {
+      J[JsonCallGraphID][cg[*vi_v].functionName] +=
+          cg[boost::target(*ei, cg)].functionName;
+    }
+  }
+  return J;
 }
 
 PointsToGraph &LLVMBasedICFG::getWholeModulePTG() { return WholeModulePTG; }

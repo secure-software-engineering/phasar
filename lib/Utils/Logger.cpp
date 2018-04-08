@@ -30,12 +30,18 @@ const map<severity_level, string> SeverityLevelToString = {
     {ERROR, "ERROR"},
     {CRITICAL, "CRITICAL"}};
 
+severity_level logFilterLevel = DEBUG;
+
+void setLoggerFilterLevel(severity_level level) {
+  logFilterLevel = level;
+}
+
 ostream &operator<<(ostream &os, enum severity_level l) {
   return os << SeverityLevelToString.at(l);
 }
 
 bool LogFilter(const bl::attribute_value_set &set) {
-  return set["Severity"].extract<severity_level>() >= 0;
+  return set["Severity"].extract<severity_level>() >= logFilterLevel;
 }
 
 void LogFormatter(const bl::record_view &view, bl::formatting_ostream &os) {
@@ -49,14 +55,16 @@ void LoggerExceptionHandler::operator()(const std::exception &ex) const {
   std::cerr << "std::exception: " << ex.what() << '\n';
 }
 
-void initializeLogger(bool use_logger) {
+void initializeLogger(bool use_logger, string log_file) {
   // Using this call, logging can be enabled or disabled
   bl::core::get()->set_logging_enabled(use_logger);
+  // if (log_file == "") {
   typedef bl::sinks::synchronous_sink<bl::sinks::text_ostream_backend>
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
   boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter{});
+  // } else {
   // // get the time and make it into a string for log file nameing
   // time_t current_time = std::time(nullptr);
   // string time(asctime(localtime(&current_time)));
@@ -68,8 +76,8 @@ void initializeLogger(bool use_logger) {
   //   bfs::create_directory(LogFileDirectory);
   // }
   // // we could also use a output file stream of course
-  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
-  // ".log");
+  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time + log_file);
+  // }
   sink->locked_backend()->add_stream(stream);
   sink->set_filter(&LogFilter);
   sink->set_formatter(&LogFormatter);

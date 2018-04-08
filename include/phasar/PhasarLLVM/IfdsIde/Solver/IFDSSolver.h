@@ -27,10 +27,10 @@ class IFDSSolver : public IDESolver<N, D, M, BinaryDomain, I> {
 public:
   IFDSSolver(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDESolver<N, D, M, BinaryDomain, I>(ifdsProblem) {
-    cout << "IFDSSolver::IFDSSolver()" << endl;
-    cout << ifdsProblem.NtoString(getNthInstruction(
-                ifdsProblem.interproceduralCFG().getMethod("main"), 1))
-         << endl;
+    // cout << "IFDSSolver::IFDSSolver()" << endl;
+    // cout << ifdsProblem.NtoString(getNthInstruction(
+                // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
+        //  << endl;
   }
 
   virtual ~IFDSSolver() = default;

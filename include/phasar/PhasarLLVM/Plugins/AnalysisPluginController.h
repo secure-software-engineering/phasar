@@ -24,12 +24,17 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <json.hpp>
 using namespace std;
+using json = nlohmann::json;
 
 class AnalysisPluginController {
+private:
+  json &FinalResultsJson;
+
 public:
   AnalysisPluginController(vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
-                           vector<string> EntryPoints);
+                           vector<string> EntryPoints, json &Results);
 };
 
 #endif

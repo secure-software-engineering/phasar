@@ -34,7 +34,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
 # Phasar Options
-option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
+if(APPLE)
+  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" ON)
+else()
+  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
+endif()
+
 if(PHASAR_ENABLE_LIBCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 else()
@@ -58,6 +63,12 @@ option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
 if (PHASAR_ENABLE_PIC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif (PHASAR_ENABLE_PIC)
+
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPHASAR_PLUGINS_ENABLED")
+endif()
 
 include_directories(
   ${PHASAR_SRC_DIR}/include
@@ -156,6 +167,24 @@ add_subdirectory(lib)
 add_executable(phasar
   tools/phasar/phasar.cpp
 )
+
+# Fix boost_thread dependency for MacOS
+if(APPLE)
+  set(BOOST_THREAD boost_thread-mt)
+else()
+  set(BOOST_THREAD boost_thread)
+endif()
+
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+  set(PHASAR_PLUGINS_LIB )
+  message(WARNING "Plugins are currently not supported on MacOS platforms")
+else()
+  set(PHASAR_PLUGINS_LIB phasar_plugins)
+endif()
+
+# Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
+# If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar
   phasar_config
   phasar_controller
@@ -166,7 +195,7 @@ target_link_libraries(phasar
   phasar_ifdside
   phasar_mono
   phasar_passes
-  phasar_plugins
+  ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
@@ -175,12 +204,12 @@ target_link_libraries(phasar
   boost_graph
   boost_system
   boost_log
-  boost_thread
+  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}  
+  ${CLANG_LIBRARIES}
   ${llvm_libs}
   curl
   gtest
@@ -230,7 +259,7 @@ install(DIRECTORY config/
 )
 
 # If the Phasar shared object libraries are not installed into a system folder
-# the so libs must be added manually to the linker search path and the linker 
+# the so libs must be added manually to the linker search path and the linker
 # config must be updated as follows:
 #
 #   $ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:/home/philipp/Schreibtisch/tmp/lib
@@ -292,7 +321,7 @@ INCLUDE(CPack)
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 
 # Setup the doxygen code documentation
-if(BUILD_DOC)
+if(PHASAR_BUILD_DOC)
   find_package(Doxygen)
   if (DOXYGEN_FOUND)
     set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/docs/Doxyfile.in)

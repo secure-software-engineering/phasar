@@ -53,6 +53,8 @@ extern const map<string, severity_level> StringToSeverityLevel;
 
 extern const map<severity_level, string> SeverityLevelToString;
 
+extern severity_level logFilterLevel;
+
 ostream &operator<<(ostream &os, enum severity_level l);
 
 // Register the logger and use it a singleton then, get the logger with:
@@ -74,6 +76,11 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
 bool logFilter(const bl::attribute_value_set &set);
 
 /**
+ * Set the filter level.
+ */
+void setLoggerFilterLevel(severity_level level);
+
+/**
  * A formatter function.
  */
 void logFormatter(const bl::record_view &view, bl::formatting_ostream &os);
@@ -88,6 +95,6 @@ struct LoggerExceptionHandler {
 /**
  * Initializes the logger.
  */
-void initializeLogger(bool use_logger);
+void initializeLogger(bool use_logger, string log_file = "");
 
 #endif /* UTILS_LOGGER_HH_ */

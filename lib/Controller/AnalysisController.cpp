@@ -69,11 +69,14 @@ AnalysisController::AnalysisController(
   LLVMTypeHierarchy CH(IRDB);
   STOP_TIMER("LTH_runtime");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
-  // CH.printAsDot();
+  FinalResultsJson += CH.getAsJson();
+  if (VariablesMap.count("classhierarchy_analysis")) {
+    CH.print();
+    CH.printAsDot("ch.dot");
+  }
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
-    std::cout << "WPA_MODE HAPPENING" << std::endl;
     START_TIMER("ICFG_runtime");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
@@ -84,10 +87,18 @@ AnalysisController::AnalysisController(
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
     STOP_TIMER("ICFG_runtime");
-    std::cout << "CONSTRUCTION OF ICFG COMPLETED" << std::endl;
-    // ICFG.print();
-    ICFG.printAsDot("interproc_cfg.dot");
-    ICFG.getWholeModulePTG().printAsDot("wmptg.dot");
+    ICFG.printAsDot("call_graph.dot");
+    // Add the ICFG to final results
+    FinalResultsJson += ICFG.getAsJson();
+    if (VariablesMap.count("callgraph_analysis")) {
+      ICFG.print();
+      ICFG.printAsDot("icfg.dot");
+    }
+    FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
+    if (VariablesMap.count("pointer_analysis")) {
+      ICFG.getWholeModulePTG().print();
+      ICFG.getWholeModulePTG().printAsDot("wptg.dot");
+    }
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -102,6 +113,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
             taintanalysisproblem, true);
         llvmtaintsolver.solve();
+        FinalResultsJson += llvmtaintsolver.getAsJson();
         // Here we can get the leaks
         map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
             taintanalysisproblem.Leaks;
@@ -127,6 +139,7 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
+        FinalResultsJson += llvmtaintsolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
@@ -134,6 +147,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
             typeanalysisproblem, true);
         llvmtypesolver.solve();
+        FinalResultsJson += llvmtypesolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
@@ -141,6 +155,7 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
             uninitializedvarproblem, true);
         llvmunivsolver.solve();
+        FinalResultsJson += llvmunivsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmunivsolver.exportJSONDataModel(graph_id);
         }
@@ -152,6 +167,7 @@ AnalysisController::AnalysisController(
             constproblem, true);
         cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
+        FinalResultsJson += llvmconstsolver.getAsJson();
         cout << "Const Analysis finished!" << endl;
         // constproblem.printInitilizedSet();
         break;
@@ -162,6 +178,7 @@ AnalysisController::AnalysisController(
             ifdstest, true);
         cout << "IFDS Solvertest started!" << endl;
         llvmifdstestsolver.solve();
+        FinalResultsJson += llvmifdstestsolver.getAsJson();
         cout << "IFDS Solvertest finished!" << endl;
         break;
       }
@@ -170,6 +187,7 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest, true);
         llvmidetestsolver.solve();
+        llvmidetestsolver.getAsJson();
         break;
       }
       case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
@@ -199,8 +217,10 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
             VariablesMap["analysis_plugin"].as<vector<string>>();
-        AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                                  EntryPoints);
+            #ifdef PHASAR_PLUGINS_ENABLED
+              AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
+                                                        EntryPoints, FinalResultsJson);
+            #endif
         break;
       }
       case DataFlowAnalysisType::None: {
@@ -216,113 +236,172 @@ AnalysisController::AnalysisController(
   // Perform module-wise (MW) analysis
   else {
     map<const llvm::Module *, LLVMBasedICFG> MWICFGs;
+    IDESummaries<const llvm::Instruction *, const llvm::Value *,
+                 const llvm::Function *, BinaryDomain>
+        Summaries;
     // We build all the call- and points-to graphs which can be used for
     // all of the analysis of course.
     BOOST_LOG_SEV(lg, INFO) << "Building module-wise icfgs";
     for (auto M : IRDB.getAllModules()) {
+      BOOST_LOG_SEV(lg, INFO)
+          << "Construct (partial) call-graph for: " << M->getModuleIdentifier();
       LLVMBasedICFG ICFG(CH, IRDB, *M, WalkerStrategy::Pointer,
                          ResolveStrategy::OTF);
       // store them away for later use
       MWICFGs.insert(make_pair(M, ICFG));
     }
-    BOOST_LOG_SEV(lg, INFO) << "Performing module-wise analysis";
-    IDESummaries<const llvm::Instruction *, const llvm::Value *,
-                 const llvm::Function *, BinaryDomain>
-        Summaries;
+    BOOST_LOG_SEV(lg, INFO) << "Call-graphs have been constructed";
     // Perform all the analysis that the user has chosen.
     for (DataFlowAnalysisType analysis : Analyses) {
-      for (auto &entry : MWICFGs) {
-        const llvm::Module *M = entry.first;
-        LLVMBasedICFG &I = entry.second;
-        // Only for modules which do not contain 'main'
-        if (M->getFunction("main") == nullptr) {
-          BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis
-                                  << " on module: " << M->getModuleIdentifier();
-          switch (analysis) {
-          case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+      // switch to create the module wise results (TODO the code needs
+      // improvement!)
+      switch (analysis) {
+      case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+        for (auto &entry : MWICFGs) {
+          const llvm::Module *M = entry.first;
+          LLVMBasedICFG &I = entry.second;
+          // Only for modules which do not contain 'main'
+          if (M->getFunction("main") == nullptr ||
+              M->getFunction("main")->isDeclaration()) {
+            BOOST_LOG_SEV(lg, INFO)
+                << "Performing analysis: " << analysis
+                << " on module: " << M->getModuleIdentifier();
             IFDSTaintAnalysis taintanalysisproblem(I, {});
             LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
                 llvmtaintsolver(taintanalysisproblem,
-                                SummaryGenerationStrategy::always_all, false);
+                                SummaryGenerationStrategy::always_none, false);
             llvmtaintsolver.summarize();
             Summaries.addSummaries(llvmtaintsolver.getSummaries());
             BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
-            break;
-          }
-          case DataFlowAnalysisType::IDE_TaintAnalysis: {
-            throw invalid_argument("IDE summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::IFDS_TypeAnalysis: {
-            throw invalid_argument("IFDS summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-            break;
-          }
-          case DataFlowAnalysisType::IFDS_SolverTest: {
-            throw invalid_argument("IFDS summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::IDE_SolverTest: {
-            throw invalid_argument("IDE summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
-            throw invalid_argument("Mono summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::MONO_Intra_SolverTest: {
-            throw invalid_argument("Mono summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-            throw invalid_argument("Mono summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::Plugin: {
-            throw invalid_argument(
-                "Plugin summary generation not supported yet");
-            break;
-          }
-          case DataFlowAnalysisType::None: {
-            break;
-          }
-          default:
-            BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
-            break;
           }
         }
+        break;
       }
+      case DataFlowAnalysisType::IDE_TaintAnalysis: {
+        throw invalid_argument("IDE summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+        throw invalid_argument("IFDS summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+        for (auto &entry : MWICFGs) {
+          const llvm::Module *M = entry.first;
+          LLVMBasedICFG &I = entry.second;
+          // Only for modules which do not contain 'main'
+          if (M->getFunction("main") == nullptr ||
+              M->getFunction("main")->isDeclaration()) {
+            BOOST_LOG_SEV(lg, INFO)
+                << "Performing analysis: " << analysis
+                << " on module: " << M->getModuleIdentifier();
+            IFDSUnitializedVariables uninitproblem(I, {});
+            LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
+                llvmuninitsolver(uninitproblem,
+                                 SummaryGenerationStrategy::always_none, false);
+            llvmuninitsolver.summarize();
+            Summaries.addSummaries(llvmuninitsolver.getSummaries());
+            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+          }
+        }
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_SolverTest: {
+        throw invalid_argument("IFDS summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::IDE_SolverTest: {
+        throw invalid_argument("IDE summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+        throw invalid_argument("Mono summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+        throw invalid_argument("Mono summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+        throw invalid_argument("Mono summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::Plugin: {
+        throw invalid_argument("Plugin summary generation not supported yet");
+        break;
+      }
+      case DataFlowAnalysisType::None: {
+        // just return
+        return;
+        break;
+      }
+      default:
+        BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+        break;
+      }
+      // switch for combining the results (TODO the code needs improvement,
+      // currently just a hack!)
       // After every module has been analyzed the analyses results must be
       // merged and the final results must be computed
-      std::cout << "COMBINATION\n";
-      auto M = IRDB.getModuleDefiningFunction("main");
-      LLVMBasedICFG I = MWICFGs.at(M);
-      BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
-      for (auto entry : MWICFGs) {
-        if (M != entry.first) {
-          I.mergeWith(entry.second);
+      switch (analysis) {
+      case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+        auto M = IRDB.getModuleDefiningFunction("main");
+        LLVMBasedICFG I = MWICFGs.at(M);
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
+        for (auto entry : MWICFGs) {
+          if (M != entry.first) {
+            I.mergeWith(entry.second);
+          }
         }
+        I.printAsDot("call_graph.dot");
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n";
+        IFDSTaintAnalysis problem(I, EntryPoints);
+        LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> solver(
+            problem, SummaryGenerationStrategy::always_none, true);
+        auto tab = Summaries.getSummaries();
+        std::cout << "external TAB" << std::endl;
+        std::cout << tab << std::endl;
+        solver.setSummaries(tab);
+        solver.combine();
+        BOOST_LOG_SEV(lg, INFO)
+            << "Combining module-wise results done, computation completed!";
+        BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.";
+        break;
       }
-      I.printAsDot("inter.dot");
-      BOOST_LOG_SEV(lg, INFO) << "Combining module-wise results";
-      IFDSTaintAnalysis taintproblem(I, EntryPoints);
-      LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> taintsolver(
-          taintproblem, SummaryGenerationStrategy::always_all, true);
-      auto tab = Summaries.getSummaries();
-      std::cout << "external TAB" << std::endl;
-      std::cout << tab << std::endl;
-      taintsolver.setSummaries(tab);
-      taintsolver.combine();
-      BOOST_LOG_SEV(lg, INFO)
-          << "Combining module-wise results done, computation completed!";
+      case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+        auto M = IRDB.getModuleDefiningFunction("main");
+        LLVMBasedICFG I = MWICFGs.at(M);
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
+        for (auto entry : MWICFGs) {
+          if (M != entry.first) {
+            I.mergeWith(entry.second);
+          }
+        }
+        I.printAsDot("call_graph.dot");
+        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n";
+        IFDSUnitializedVariables problem(I, EntryPoints);
+        LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> solver(
+            problem, SummaryGenerationStrategy::always_none, true);
+        auto tab = Summaries.getSummaries();
+        std::cout << "external TAB" << std::endl;
+        std::cout << tab << std::endl;
+        solver.setSummaries(tab);
+        solver.combine();
+        BOOST_LOG_SEV(lg, INFO)
+            << "Combining module-wise results done, computation completed!";
+        BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.";
+        break;
+      }
+      default:
+        throw invalid_argument(
+            "Choosen analysis is not supported for MWA analysis, yet!");
+        break;
+      }
     }
-    BOOST_LOG_SEV(lg, INFO) << "Data-flow analyses completed.";
   }
 }
 
 void AnalysisController::writeResults(std::string filename) {
-  std::ofstream ofs(filename, std::ofstream::app);
+  std::ofstream ofs(filename);
   ofs << FinalResultsJson.dump(1);
 }

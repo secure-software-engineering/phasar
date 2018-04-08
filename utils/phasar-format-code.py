@@ -10,7 +10,15 @@
 
 import os
 
-SRC_DIRS = ("lib/Config",
+SRC_DIRS = ("include/phasar/Config",
+						"include/phasar/Controller",
+						"include/phasar/DB",
+						"include/phasar/Experimental",
+						"include/phasar/Flex",
+						"include/phasar/PhasarClang",
+						"include/phasar/PhasarLLVM",
+						"include/phasar/Utils",
+						"lib/Config",
 						"lib/Controller",
 						"lib/DB",
 						"lib/Experimental",

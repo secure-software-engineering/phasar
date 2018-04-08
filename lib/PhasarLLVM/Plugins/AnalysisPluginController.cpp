@@ -11,7 +11,7 @@
 
 AnalysisPluginController::AnalysisPluginController(
     vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
-    vector<string> EntryPoints) {
+    vector<string> EntryPoints, json &Results) : FinalResultsJson(Results) {
   auto &lg = lg::get();
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
     SOL SharedLib(AnalysisPlugin);
@@ -29,6 +29,7 @@ AnalysisPluginController::AnalysisPluginController(
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
             *plugin, true);
         llvmifdstestsolver.solve();
+        FinalResultsJson += llvmifdstestsolver.getAsJson();
       }
     }
     if (!InterMonotoneProblemPluginFactory.empty()) {

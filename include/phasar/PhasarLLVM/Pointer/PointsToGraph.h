@@ -40,8 +40,10 @@
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+#include <json.hpp>
 #include <vector>
 using namespace std;
+using json = nlohmann::json;
 
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
@@ -156,6 +158,9 @@ public:
 
   /// The type for a vertex iterator.
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
+  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator;
+  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
+  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
 
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
   const static set<string> HeapAllocationFunctions;
@@ -369,7 +374,7 @@ public:
   /**
    * @brief NOT YET IMPLEMENTED
    */
-  void exportPATBCJSON();
+  json getAsJson();
 };
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

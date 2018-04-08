@@ -11,10 +11,12 @@
 #define ICFGTESTPLUGIN_H_
 
 #include <iostream>
+#include <json.hpp>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
 #include <stdexcept>
 
 using namespace std;
+using json = nlohmann::json;
 
 class ICFGTestPlugin : public ICFGPlugin {
 public:
@@ -71,6 +73,8 @@ public:
   getReturnSitesOfCallAt(const llvm::Instruction *stmt) override;
 
   string getStatementId(const llvm::Instruction *) override;
+
+  json getAsJson() override;
 };
 
 extern "C" unique_ptr<ICFGPlugin>

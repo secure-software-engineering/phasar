@@ -20,6 +20,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <boost/algorithm/string/trim.hpp>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -37,10 +38,13 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>
 #include <set>
+#include <string>
+#include <json.hpp>
 #include <type_traits>
 #include <utility>
 
 using namespace std;
+using json = nlohmann::json;
 
 // Forward declare the Transformation
 template <typename N, typename D, typename M, typename I>
@@ -88,6 +92,42 @@ public:
     for (auto seed : initialSeeds) {
       iterateMethod(icfg.getSuccsOf(seed.first));
     }
+  }
+
+  json getAsJson() {
+    const static std::string DataFlowID = "DataFlow";
+    json J;
+    auto results = this->valtab.cellSet();
+    if (results.empty()) {
+      J[DataFlowID] = "EMPTY";
+    } else {
+      vector<typename Table<N, D, V>::Cell>
+          cells;
+      for (auto cell : results) {
+        cells.push_back(cell);
+      }
+      sort(cells.begin(), cells.end(),
+           [](typename Table<N, D, V>::Cell a,
+              typename Table<N, D, V>::Cell b) { return a.r < b.r; });
+      N curr;
+      for (unsigned i = 0; i < cells.size(); ++i) {
+        curr = cells[i].r;
+          string n = ideTabulationProblem.NtoString(cells[i].r);
+           boost::algorithm::trim(n);
+          string node = icfg.getMethodName(icfg.getMethodOf(curr)) + "::" + n;
+          J[DataFlowID][node];
+        if (cells[i].c == nullptr) {
+          J[DataFlowID][node] += "nullptr";
+        } else {
+          string fact = ideTabulationProblem.DtoString(cells[i].c);
+          boost::algorithm::trim(fact);
+          string value = ideTabulationProblem.VtoString(cells[i].v);
+          boost::algorithm::trim(value);
+          J[DataFlowID][node]["Facts"] += { fact, value };
+        }
+      }
+    }
+    return J;
   }
 
   void iterateMethod(vector<N> succs) {
@@ -660,7 +700,7 @@ protected:
         allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
-    cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
+    // cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
   }
 
   /**
@@ -707,14 +747,14 @@ protected:
    * their own. Normally, solve() should be called instead.
    */
   void submitInitalSeeds() {
-    cout << "IDESolver::submitInitialSeeds()" << endl;
+    // cout << "IDESolver::submitInitialSeeds()" << endl;
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
-      cout << "submitInitialSeeds - Start point:" << endl;
+      // cout << "submitInitialSeeds - Start point:" << endl;
       startPoint->print(llvm::outs());
       for (const D &value : seed.second) {
-        cout << "submitInitialSeeds - Value:" << endl;
-        value->print(llvm::outs());
+        // cout << "submitInitialSeeds - Value:" << endl;
+        // value->print(llvm::outs());
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
                   false);
       }
