@@ -363,11 +363,13 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
+  //throw runtime_error("CHA called");
   set<string> possible_call_targets;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call with CHA";
   if(isVirtualFunctionCall(CS))
   {
+    cout<< "virtual function called\n";
     BOOST_LOG_SEV(lg, DEBUG)
         << "Call virtual function: " << llvmIRToString(CS.getInstruction());
 
@@ -421,6 +423,12 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
       }
     }
   }
+  /*
+  if(possible_call_targets.empty())
+  {
+    throw runtime_error("possible call Targets empty");
+  }
+  */
   return possible_call_targets;
 }
 
