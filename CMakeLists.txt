@@ -51,7 +51,7 @@ option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
 if (NOT CMAKE_BUILD_TYPE)
-  option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
+  option(BUILD_SHARED_LIBS "Build shared libraries (default is OFF)" OFF)
 endif (NOT CMAKE_BUILD_TYPE)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
