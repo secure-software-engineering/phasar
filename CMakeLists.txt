@@ -64,6 +64,11 @@ if (PHASAR_ENABLE_PIC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif (PHASAR_ENABLE_PIC)
 
+option(PHASAR_ENABLE_PAMM "Enable the performance measurement mechanism" ON)
+if (PHASAR_ENABLE_PAMM)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPERFORMANCE_EVA")
+endif (PHASAR_ENABLE_PAMM)
+
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
 else()

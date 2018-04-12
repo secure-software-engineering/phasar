@@ -49,7 +49,7 @@ def main(argv):
 
   ax = axes[2]
   timer = pandas.DataFrame(list(data['Timer'].items()), columns=['task', 'time'])
-  timer.plot(kind='pie', ax=ax, y='time', autopct='%1.1f%%', fontsize=8, labels=timer['task'], colormap='GnBu')
+  timer.plot(kind='pie', ax=ax, y='time', autopct='%1.1f%%', fontsize=8, labels=timer['task'], colormap='Accent')
   ax.set_title("Runtime")
 
   plt.show()
