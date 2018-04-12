@@ -17,6 +17,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/Logger.h>
 #include <tuple>
 
 /**
