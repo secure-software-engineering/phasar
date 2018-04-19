@@ -78,7 +78,7 @@ AnalysisController::AnalysisController(
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("ICFG_runtime");
-    LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
+    LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Simple, ResolveStrategy::RTA,
                        EntryPoints);
 
     if (VariablesMap.count("callgraph_plugin")) {
