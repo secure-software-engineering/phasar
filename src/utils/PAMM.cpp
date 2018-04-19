@@ -129,23 +129,27 @@ int PAMM::getSumCount(std::set<std::string> counterIds) {
   return sum;
 }
 
-void PAMM::regSetHistogram(std::string setHistoID) {
-  bool validSetHistoID = !SetHistograms.count(setHistoID);
-  assert(validSetHistoID && "failed to register new set histo due to an invalid id");
-  if (validSetHistoID) {
-    std::unordered_map<unsigned long, unsigned long> setH;
-    SetHistograms[setHistoID] = setH;
+void PAMM::regHistogram(std::string HID) {
+  bool validHID = !Histogram.count(HID);
+  assert(validHID && "failed to register new histogram due to an invalid id");
+  if (validHID) {
+    std::unordered_map<std::string, unsigned long> H;
+    Histogram[HID] = H;
   }
 }
 
-void PAMM::addToSetHistogram(std::string setHistoID, unsigned long setSize) {
-  bool validSetHistoID = SetHistograms.count(setHistoID);
-  assert(validSetHistoID && "adding set size to set histogram failed due to invalid id");
-  if (SetHistograms[setHistoID].count(setSize)) {
-    SetHistograms[setHistoID][setSize]++;
+void PAMM::addToHistogram(std::string HID, std::string VAL, unsigned long OCC) {
+  bool validHistoID = Histogram.count(HID);
+  assert(validHistoID && "adding data point to histogram failed due to invalid id");
+  if (Histogram[HID].count(VAL)) {
+    Histogram[HID][VAL] += OCC;
   } else {
-    SetHistograms[setHistoID][setSize] = 1;
+    Histogram[HID][VAL] = OCC;
   }
+}
+
+unsigned long PAMM::getHistoData(std::string HID, std::string VAL) {
+  return Histogram[HID][VAL];
 }
 
 void PAMM::printCounters() {
@@ -161,19 +165,19 @@ void PAMM::printCounters() {
   }
 }
 
-void PAMM::printSetHistograms() {
-  std::cout << "\nSet Histograms\n";
+void PAMM::printHistograms() {
+  std::cout << "\nHistograms\n";
   std::cout << "--------------\n";
-  for (auto setH : SetHistograms) {
-    std::cout << setH.first << " Set Histogram\n";
-    std::cout << "Size : Count\n";
-    for (auto entry : setH.second) {
+  for (auto H : Histogram) {
+    std::cout << H.first << " Histogram\n";
+    std::cout << "Value : #Occurrences\n";
+    for (auto entry : H.second) {
       std::cout << entry.first << " : " << entry.second << '\n';
     }
     std::cout << '\n';
   }
-  if (SetHistograms.empty()) {
-    std::cout << "No sets tracked!\n";
+  if (Histogram.empty()) {
+    std::cout << "No histograms tracked!\n";
   }
 }
 
@@ -182,18 +186,17 @@ void PAMM::reset() {
   StoppedTimer.clear();
   AccumulatedTimer.clear();
   Counter.clear();
-  SetHistograms.clear();
+  Histogram.clear();
   std::cout << "PAMM reseted!" << std::endl;
 }
 
-void PAMM::addSetHistogramToJSON(json &jsonData) {
-  for (auto setH : SetHistograms) {
+void PAMM::addHistogramToJSON(json &jsonData) {
+  for (auto H : Histogram) {
     json jSetH;
-    for (auto entry : setH.second) {
-      // json won't create a proper map when int/unsigned is used as a key
-      jSetH[std::to_string(entry.first)] = entry.second;
+    for (auto entry : H.second) {
+      jSetH[entry.first] = entry.second;
     }
-    jsonData[setH.first + " Set Histogram"] = jSetH;
+    jsonData[H.first + " Histogram"] = jSetH;
   }
 }
 
@@ -205,17 +208,21 @@ void PAMM::addCounterToJSON(json &jsonData) {
       jGSCounter[counter.first] = counter.second;
     } else if (counter.first.find("Calls to") != std::string::npos) {
       jCallsCounter[counter.first] = counter.second;
-    } else if (counter.first.find("-FF") != std::string::npos &&
-               counter.first.find("Application") == std::string::npos) {
+    } else if (counter.first.find("JumpFn Construction") != std::string::npos ||
+               counter.first.find("Process") != std::string::npos ||
+               counter.first.find("FF Queries") != std::string::npos ||
+               counter.first.find("EF Queries") != std::string::npos ||
+               counter.first.find("SpecialSummary-FF Application") != std::string::npos ||
+               counter.first.find("SpecialSummary-EF Queries") != std::string::npos ||
+               counter.first.find("Value Computation") != std::string::npos ||
+               counter.first.find("Value Propagation") != std::string::npos) {
+      jDFACounter[counter.first] = counter.second;
+    } else if (counter.first.find("-FF") != std::string::npos) {
       jFFCounter[counter.first] = counter.second;
     } else if (counter.first.find("-EF") != std::string::npos) {
       jEFCounter[counter.first] = counter.second;
-    } else if (counter.first.find("FF Construction") != std::string::npos ||
-               counter.first.find("Propagation") != std::string::npos ||
-               counter.first.find("FF Application") != std::string::npos) {
-      jDFACounter[counter.first] = counter.second;
     } else if (counter.first.find("Edges") != std::string::npos ||
-      counter.first.find("Vertices") != std::string::npos) {
+               counter.first.find("Vertices") != std::string::npos) {
       jGraphSizesCounter[counter.first] = counter.second;
     } else {
       jMiscCounter[counter.first] = counter.second;
@@ -229,8 +236,4 @@ void PAMM::addCounterToJSON(json &jsonData) {
   jsonData["Graph Sizes Counter"] = jGraphSizesCounter;
   if (!jMiscCounter.empty())
     jsonData["Misc Counter"] = jMiscCounter;
-}
-
-unsigned long PAMM::getSetHistoData(std::string setID, unsigned long setSize) {
-  return SetHistograms[setID][setSize];
 }

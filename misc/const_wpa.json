@@ -1,0 +1,101 @@
+{
+  "Compute ContextRelevantPointsToSet Times": [
+    0
+  ],
+  "Compute PointsToSet Times": [
+    0,
+    0,
+    0
+  ],
+  "Config": "const_wpa",
+  "Config path": "../const_wpa.conf",
+  "Context-relevant-PT Set Histogram": {
+    "1": 1
+  },
+  "DFA Counter": {
+    "FF Application": 7,
+    "FF Construction": 6,
+    "Propagation": 8,
+    "SpecialSummary-FF Application": 0
+  },
+  "Data-flow facts Set Histogram": {
+    "1": 5,
+    "2": 1
+  },
+  "Edge Function Counter": {
+    "Call-EF Cache Hit": 0,
+    "Call-EF Construction": 0,
+    "CallToRet-EF Cache Hit": 0,
+    "CallToRet-EF Construction": 0,
+    "Normal-EF Cache Hit": 0,
+    "Normal-EF Construction": 7,
+    "Return-EF Cache Hit": 0,
+    "Return-EF Construction": 0,
+    "Summary-EF Cache Hit": 0,
+    "Summary-EF Construction": 0
+  },
+  "Flow Function Counter": {
+    "Call-FF Cache Hit": 0,
+    "Call-FF Construction": 0,
+    "CallToRet-FF Cache Hit": 0,
+    "CallToRet-FF Construction": 0,
+    "Normal-FF Cache Hit": 1,
+    "Normal-FF Construction": 5,
+    "Return-FF Cache Hit": 0,
+    "Return-FF Construction": 0,
+    "Summary-FF Cache Hit": 0,
+    "Summary-FF Construction": 0
+  },
+  "Function Call Counter": {
+    "Calls to getContextRelevantPointsToSet": 1,
+    "Calls to getPointsToSet": 3,
+    "Calls to processCall": 0,
+    "Calls to processExit": 2,
+    "Calls to processNormal": 6
+  },
+  "General Statistics": {
+    "GS Allocated Types": 1,
+    "GS Allocation-Sites": 2,
+    "GS Basic Blocks": 1,
+    "GS Call-Sites": 0,
+    "GS Functions": 1,
+    "GS Globals": 0,
+    "GS Instructions": 6,
+    "GS Memory Intrinsics": 0,
+    "GS Pointer Variables": 0,
+    "GS Store Instructions": 3
+  },
+  "Graph Sizes Counter": {
+    "Call Graph Edges": 0,
+    "Call Graph Vertices": 1,
+    "LTH Edges": 0,
+    "LTH Vertices": 0,
+    "WM-PTG Edges": 0,
+    "WM-PTG Vertices": 2
+  },
+  "IDESolver Set Histogram": {
+    "1": 2,
+    "5": 1
+  },
+  "Misc Counter": {
+    "Const Init Set Size": 2
+  },
+  "Points-to Set Histogram": {
+    "1": 3
+  },
+  "Timer": {
+    "DFA FF-Application": 0,
+    "DFA FF-Construction": 6,
+    "DFA Misc": 6,
+    "DFA Result Computation": 0,
+    "DFA Result Dumping": 0,
+    "DFA Runtime": 12,
+    "FW Misc": 3,
+    "FW Runtime": 15,
+    "ICFG Construction": 0,
+    "IRDB Construction": 0,
+    "LLVM Passes": 0,
+    "LTH Construction": 0,
+    "PTG Construction": 0
+  }
+}

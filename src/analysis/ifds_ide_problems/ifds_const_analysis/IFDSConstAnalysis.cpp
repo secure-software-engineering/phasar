@@ -14,7 +14,7 @@ IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
     : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
       EntryPoints(EntryPoints) {
   PAMM_FACTORY;
-  REG_SETH("Context-relevant-PT");
+  REG_HISTOGRAM("Context-relevant-PT");
   REG_COUNTER("Calls to getContextRelevantPointsToSet");
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
 }
@@ -101,61 +101,61 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
   // so, we need to kill all data-flow facts at this point. The respective
   // data-flow facts are then generated in the corresponding call-to-return
   // flow function.
-  //if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
-  //  BOOST_LOG_SEV(lg, DEBUG) << "Call statement is a LLVM MemIntrinsic!";
-  //  return KillAll<const llvm::Value *>::v();
-  //}
+  if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
+   BOOST_LOG_SEV(lg, DEBUG) << "Call statement is a LLVM MemIntrinsic!";
+   return KillAll<const llvm::Value *>::v();
+  }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    return KillAll<const llvm::Value *>::v();
-    //BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
-    //BOOST_LOG_SEV(lg, DEBUG) << "Destination method: "
-    //                         << destMthd->getName().str();
-    //struct CAFF : FlowFunction<const llvm::Value *> {
-    //  llvm::ImmutableCallSite callSite;
-    //  const llvm::Function *destMthd;
-    //  const llvm::Value *zerovalue;
-    //  const IFDSConstAnalysis *constanalysis;
-    //  vector<const llvm::Value *> actuals;
-    //  vector<const llvm::Value *> formals;
-    //  CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
-    //       const llvm::Value *zv, const IFDSConstAnalysis *ca)
-    //      : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
-    //    // Set up the actual parameters
-    //    for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-    //      actuals.push_back(callSite.getArgOperand(idx));
-    //    }
-    //    // Set up the formal parameters
-    //    for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
-    //         ++idx) {
-    //      formals.push_back(getNthFunctionArgument(destMthd, idx));
-    //    }
-    //  }
-    //  set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-    //    auto &lg = lg::get();
-    //    if (!constanalysis->isZeroValue(source)) {
-    //      set<const llvm::Value *> res;
-    //      // Map actual parameter of pointer type into corresponding
-    //      // formal parameter.
-    //      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-    //        if (source == actuals[idx] && actuals[idx]->getType()->isPointerTy()) {
-    //          BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
-    //                                   << llvmIRToString(actuals[idx]);
-    //          BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
-    //                                   << llvmIRToString(formals[idx]);
-    //          res.insert(formals[idx]); // corresponding formal
-    //        }
-    //      }
-    //      return res;
-    //    } else {
-    //      return {source};
-    //    }
-    //  }
-    //};
-    //return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
-    //                         zeroValue(), this);
+    // return KillAll<const llvm::Value *>::v();
+    BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
+    BOOST_LOG_SEV(lg, DEBUG) << "Destination method: "
+                            << destMthd->getName().str();
+    struct CAFF : FlowFunction<const llvm::Value *> {
+     llvm::ImmutableCallSite callSite;
+     const llvm::Function *destMthd;
+     const llvm::Value *zerovalue;
+     const IFDSConstAnalysis *constanalysis;
+     vector<const llvm::Value *> actuals;
+     vector<const llvm::Value *> formals;
+     CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
+          const llvm::Value *zv, const IFDSConstAnalysis *ca)
+         : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
+       // Set up the actual parameters
+       for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+         actuals.push_back(callSite.getArgOperand(idx));
+       }
+       // Set up the formal parameters
+       for (unsigned idx = 0; idx < destMthd->getArgumentList().size();
+            ++idx) {
+         formals.push_back(getNthFunctionArgument(destMthd, idx));
+       }
+     }
+     set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+       auto &lg = lg::get();
+       if (!constanalysis->isZeroValue(source)) {
+         set<const llvm::Value *> res;
+         // Map actual parameter of pointer type into corresponding
+         // formal parameter.
+         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+           if (source == actuals[idx] && actuals[idx]->getType()->isPointerTy()) {
+             BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
+                                      << llvmIRToString(actuals[idx]);
+             BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
+                                      << llvmIRToString(formals[idx]);
+             res.insert(formals[idx]); // corresponding formal
+           }
+         }
+         return res;
+       } else {
+         return {source};
+       }
+     }
+    };
+    return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
+                            zeroValue(), this);
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
@@ -167,119 +167,119 @@ IFDSConstAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                       const llvm::Function *calleeMthd,
                                       const llvm::Instruction *exitStmt,
                                       const llvm::Instruction *retSite) {
-  return KillAll<const llvm::Value *>::v();
-  //auto &lg = lg::get();
-  //BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getRetFlowFunction()";
-  //BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
-  //BOOST_LOG_SEV(lg, DEBUG) << "Caller context: "
-  //                         << callSite->getFunction()->getName().str();
-  //BOOST_LOG_SEV(lg, DEBUG) << "Retrun site: " << llvmIRToString(retSite);
-  //BOOST_LOG_SEV(lg, DEBUG) << "Callee method: " << calleeMthd->getName().str();
-  //BOOST_LOG_SEV(lg, DEBUG) << "Callee exit statement: "
-  //                         << llvmIRToString(exitStmt);
-  //// We must map formal parameter back to the actual parameter in the caller.
-  //struct CAFF : FlowFunction<const llvm::Value *> {
-  //  llvm::ImmutableCallSite callSite;
-  //  const llvm::Function *calleeMthd;
-  //  const llvm::ReturnInst *exitStmt;
-  //  const llvm::Value *zerovalue;
-  //  IFDSConstAnalysis *constanalysis;
-  //  PointsToGraph *pointsToGraph;
-  //  vector<const llvm::Value *> actuals;
-  //  vector<const llvm::Value *> formals;
-  //  CAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
-  //       const llvm::Instruction *exitstmt, const llvm::Value *zv,
-  //       IFDSConstAnalysis *ca, PointsToGraph *ptg)
-  //      : callSite(callsite), calleeMthd(callemthd),
-  //        exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)), zerovalue(zv),
-  //        constanalysis(ca), pointsToGraph(ptg) {
-  //    // Set up the actual parameters
-  //    for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-  //      actuals.push_back(callSite.getArgOperand(idx));
-  //    }
-  //    // Set up the formal parameters
-  //    for (unsigned idx = 0; idx < calleeMthd->getArgumentList().size();
-  //         ++idx) {
-  //      formals.push_back(getNthFunctionArgument(calleeMthd, idx));
-  //    }
-  //  }
-  //  set<const llvm::Value *>
-  //  computeTargets(const llvm::Value *source) override {
-  //    auto &lg = lg::get();
-  //    if (!constanalysis->isZeroValue(source)) {
-  //      set<const llvm::Value *> res;
-  //      const llvm::Function *callSiteFunction = callSite->getFunction();
-  //      // (i): Map parameter of pointer type back into the caller context.
-  //      //
-  //      // CONSERVATIVE ANALYSIS:: Generate also all alias of the actual parameter.
-  //      for (unsigned idx = 0; idx < formals.size(); ++idx) {
-  //        if (source == formals[idx] &&
-  //            formals[idx]->getType()->isPointerTy()) {
-  //          BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
-  //                                   << llvmIRToString(actuals[idx]);
-  //          BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
-  //                                   << llvmIRToString(formals[idx]);
-  //          res.insert(actuals[idx]);
-  //          //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the actual parameter.";
-  //          //set<const llvm::Value *> pointsToSet =
-  //          //    pointsToGraph->getPointsToSet(actuals[idx]);
-  //          //for (auto fact : pointsToSet/*constanalysis->getContextRelevantPointsToSet(
-  //          //         pointsToSet, callSiteFunction)*/) {
-  //          //  res.insert(fact);
-  //          //}
-  //        }
-  //      }
-  //      // (ii): Return value mutable.
-  //      // If the return value is a data-flow fact and of pointer type, we
-  //      // need to generate the return value in the caller context. We
-  //      // do not pass all alias of the return value, since this would carry no
-  //      // vital information, we would only model alias information through
-  //      // data-flow facts. Again, only points-to information and the
-  //      // Initialized set determine, if new data-flow facts will be generated!
-  //      //
-  //      // CONSERVATIVE ANALYSIS: Also generate all alias of the return
-  //      // value back in the caller context.
-  //      if (source == exitStmt->getReturnValue() &&
-  //          calleeMthd->getReturnType()->isPointerTy()) {
-  //        BOOST_LOG_SEV(lg, DEBUG) << "Callee return value: "
-  //                                 << llvmIRToString(source);
-  //        res.insert(source);
-  //        //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the return value.";
-  //        //set<const llvm::Value *> pointsToSet =
-  //        //    pointsToGraph->getPointsToSet(callSite.getInstruction());
-  //        //for (auto fact : getPointsToSet/*constanalysis->getContextRelevantPointsToSet(
-  //        //         pointsToSet, callSiteFunction)*/) {
-  //        //  res.insert(fact);
-  //        //}
-  //      }
-  //      return res;
-  //    }
-  //    // (iii): Return value is only initialized.
-  //    // Check if the return value is a pointer type and initialized.
-  //    // We then need to mark the call site as initialized.
-  //    // UPDATE: This was just a workaround to a bug in the points-to
-  //    // analysis, where returned memory was missing points-to relations
-  //    // between different function contexts.
-  //    // if (calleeMthd->getReturnType()->isPointerTy()) {
-  //    //  BOOST_LOG_SEV(lg, DEBUG) << "Callee Return Value: "
-  //    //                           <<
-  //    //                           llvmIRToString(exitStmt->getReturnValue());
-  //    //   for (auto alias :
-  //    //   pointsToGraph->getPointsToSet(exitStmt->getReturnValue())) {
-  //    //     if (constanalysis->isInitialized(alias)) {
-  //    //       BOOST_LOG_SEV(lg, DEBUG) << "Call site is marked as
-  //    //       initialized!";
-  //    //       constanalysis->markAsInitialized(callSite.getInstruction());
-  //    //       break;
-  //    //     }
-  //    //   }
-  //    //}
-  //    // (iv): Just draw the zero edge.
-  //    return {source};
-  //  }
-  //};
-  //return make_shared<CAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
-  //                         exitStmt, zeroValue(), this, &ptg);
+  // return KillAll<const llvm::Value *>::v();
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getRetFlowFunction()";
+  BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Caller context: "
+                          << callSite->getFunction()->getName().str();
+  BOOST_LOG_SEV(lg, DEBUG) << "Retrun site: " << llvmIRToString(retSite);
+  BOOST_LOG_SEV(lg, DEBUG) << "Callee method: " << calleeMthd->getName().str();
+  BOOST_LOG_SEV(lg, DEBUG) << "Callee exit statement: "
+                          << llvmIRToString(exitStmt);
+  // We must map formal parameter back to the actual parameter in the caller.
+  struct CAFF : FlowFunction<const llvm::Value *> {
+   llvm::ImmutableCallSite callSite;
+   const llvm::Function *calleeMthd;
+   const llvm::ReturnInst *exitStmt;
+   const llvm::Value *zerovalue;
+   IFDSConstAnalysis *constanalysis;
+   PointsToGraph *pointsToGraph;
+   vector<const llvm::Value *> actuals;
+   vector<const llvm::Value *> formals;
+   CAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
+        const llvm::Instruction *exitstmt, const llvm::Value *zv,
+        IFDSConstAnalysis *ca, PointsToGraph *ptg)
+       : callSite(callsite), calleeMthd(callemthd),
+         exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)), zerovalue(zv),
+         constanalysis(ca), pointsToGraph(ptg) {
+     // Set up the actual parameters
+     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+       actuals.push_back(callSite.getArgOperand(idx));
+     }
+     // Set up the formal parameters
+     for (unsigned idx = 0; idx < calleeMthd->getArgumentList().size();
+          ++idx) {
+       formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+     }
+   }
+   set<const llvm::Value *>
+   computeTargets(const llvm::Value *source) override {
+     auto &lg = lg::get();
+     if (!constanalysis->isZeroValue(source)) {
+       set<const llvm::Value *> res;
+       const llvm::Function *callSiteFunction = callSite->getFunction();
+       // (i): Map parameter of pointer type back into the caller context.
+       //
+       // CONSERVATIVE ANALYSIS:: Generate also all alias of the actual parameter.
+       for (unsigned idx = 0; idx < formals.size(); ++idx) {
+         if (source == formals[idx] &&
+             formals[idx]->getType()->isPointerTy()) {
+           BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
+                                    << llvmIRToString(actuals[idx]);
+           BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
+                                    << llvmIRToString(formals[idx]);
+           res.insert(actuals[idx]);
+           //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the actual parameter.";
+           //set<const llvm::Value *> pointsToSet =
+           //    pointsToGraph->getPointsToSet(actuals[idx]);
+           //for (auto fact : pointsToSet/*constanalysis->getContextRelevantPointsToSet(
+           //         pointsToSet, callSiteFunction)*/) {
+           //  res.insert(fact);
+           //}
+         }
+       }
+       // (ii): Return value mutable.
+       // If the return value is a data-flow fact and of pointer type, we
+       // need to generate the return value in the caller context. We
+       // do not pass all alias of the return value, since this would carry no
+       // vital information, we would only model alias information through
+       // data-flow facts. Again, only points-to information and the
+       // Initialized set determine, if new data-flow facts will be generated!
+       //
+       // CONSERVATIVE ANALYSIS: Also generate all alias of the return
+       // value back in the caller context.
+       if (source == exitStmt->getReturnValue() &&
+           calleeMthd->getReturnType()->isPointerTy()) {
+         BOOST_LOG_SEV(lg, DEBUG) << "Callee return value: "
+                                  << llvmIRToString(source);
+         res.insert(source);
+         //BOOST_LOG_SEV(lg, DEBUG) << "Generate alias for the return value.";
+         //set<const llvm::Value *> pointsToSet =
+         //    pointsToGraph->getPointsToSet(callSite.getInstruction());
+         //for (auto fact : getPointsToSet/*constanalysis->getContextRelevantPointsToSet(
+         //         pointsToSet, callSiteFunction)*/) {
+         //  res.insert(fact);
+         //}
+       }
+       return res;
+     }
+     // (iii): Return value is only initialized.
+     // Check if the return value is a pointer type and initialized.
+     // We then need to mark the call site as initialized.
+     // UPDATE: This was just a workaround to a bug in the points-to
+     // analysis, where returned memory was missing points-to relations
+     // between different function contexts.
+     // if (calleeMthd->getReturnType()->isPointerTy()) {
+     //  BOOST_LOG_SEV(lg, DEBUG) << "Callee Return Value: "
+     //                           <<
+     //                           llvmIRToString(exitStmt->getReturnValue());
+     //   for (auto alias :
+     //   pointsToGraph->getPointsToSet(exitStmt->getReturnValue())) {
+     //     if (constanalysis->isInitialized(alias)) {
+     //       BOOST_LOG_SEV(lg, DEBUG) << "Call site is marked as
+     //       initialized!";
+     //       constanalysis->markAsInitialized(callSite.getInstruction());
+     //       break;
+     //     }
+     //   }
+     //}
+     // (iv): Just draw the zero edge.
+     return {source};
+   }
+  };
+  return make_shared<CAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
+                          exitStmt, zeroValue(), this, &ptg);
   // All other data-flow facts of the callee function are killed at this point
 }
 
@@ -427,7 +427,7 @@ set<const llvm::Value *> IFDSConstAnalysis::getContextRelevantPointsToSet(
     } // ignore everything else
   }
   PAUSE_TIMER("Compute ContextRelevantPointsToSet");
-  ADD_TO_SETH("Context-relevant-PT", ToGenerate.size());
+  ADD_TO_HIST("Context-relevant-PT", ToGenerate.size());
   return ToGenerate;
 }
 

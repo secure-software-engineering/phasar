@@ -70,8 +70,8 @@ struct FlowEdgeFunctionCache {
     REG_COUNTER("CallToRet-FF Construction");
     REG_COUNTER("CallToRet-FF Cache Hit");
     // Counters for the summary flow functions
-    REG_COUNTER("Summary-FF Construction");
-    REG_COUNTER("Summary-FF Cache Hit");
+    // REG_COUNTER("Summary-FF Construction");
+    // REG_COUNTER("Summary-FF Cache Hit");
     // Counters for the normal edge functions
     REG_COUNTER("Normal-EF Construction");
     REG_COUNTER("Normal-EF Cache Hit");
@@ -167,7 +167,7 @@ struct FlowEdgeFunctionCache {
   std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
                                                           M destMthd) {
     PAMM_FACTORY;
-    INC_COUNTER("Summary-FF Construction");
+    // INC_COUNTER("Summary-FF Construction");
     auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
     return ff;
   }
@@ -279,8 +279,8 @@ struct FlowEdgeFunctionCache {
                             << GET_COUNTER("CallToRet-FF Construction");
     // BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
     //                        << GET_COUNTER("Summary-FF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
-                            << GET_COUNTER("Summary-FF Construction");
+    // BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
+    //                         << GET_COUNTER("Summary-FF Construction");
     BOOST_LOG_SEV(lg, INFO)
         << "total flow function cache hits: "
         << GET_SUM_COUNT({"Normal-FF Cache Hit", "Call-FF Cache Hit",
@@ -290,8 +290,8 @@ struct FlowEdgeFunctionCache {
         << "total flow function constructions: "
         << GET_SUM_COUNT(
                {"Normal-FF Construction", "Call-FF Construction",
-                "Return-FF Construction", "CallToRet-FF Construction",
-                "Summary-FF Construction"});
+                "Return-FF Construction", "CallToRet-FF Construction"/*,
+                "Summary-FF Construction"*/});
     BOOST_LOG_SEV(lg, INFO) << " ";
     BOOST_LOG_SEV(lg, INFO) << "normal edge function cache hits: "
                             << GET_COUNTER("Normal-EF Cache Hit");

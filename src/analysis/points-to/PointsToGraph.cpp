@@ -307,7 +307,7 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
     result.insert(ptg[vertex].value);
   }
   PAUSE_TIMER("Compute PointsToSet");
-  ADD_TO_SETH("Points-to", result.size());
+  ADD_TO_HIST("Points-to", result.size());
   return result;
 }
 

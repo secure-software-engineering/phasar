@@ -51,11 +51,13 @@ namespace bfs = boost::filesystem;
 #define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)                               \
   pamm.regCounter(COUNTERID, VALUE)
 #define INC_COUNTER(COUNTERID) pamm.incCounter(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL) pamm.incCounter(COUNTERID, VAL)
 #define DEC_COUNTER(COUNTERID) pamm.decCounter(COUNTERID)
 #define GET_COUNTER(COUNTERID) pamm.getCounter(COUNTERID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
-#define REG_SETH(SETHID) pamm.regSetHistogram(SETHID)
-#define ADD_TO_SETH(SETHID, SETSIZE) pamm.addToSetHistogram(SETHID, SETSIZE)
+#define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
+#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC) pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 #else
@@ -71,11 +73,13 @@ namespace bfs = boost::filesystem;
 #define REG_COUNTER(COUNTERID)
 #define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
 #define INC_COUNTER(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
 #define DEC_COUNTER(COUNTERID)
 #define GET_COUNTER(COUNTERID)
 #define GET_SUM_COUNT(...)
-#define REG_SETH(SETHID)
-#define ADD_TO_SETH(SETHID, SETSIZE)
+#define REG_HISTOGRAM(HID)
+#define ADD_TO_HIST(HID, VAL)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
 #define PRINT_EVA_DATA
 #define EXPORT_EVA_DATA(CONFIG)
 #endif
@@ -109,11 +113,11 @@ private:
       AccumulatedTimer;
   std::unordered_map<std::string, unsigned> Counter;
   std::unordered_map<std::string,
-                     std::unordered_map<unsigned long, unsigned long>>
-      SetHistograms;
+                     std::unordered_map<std::string, unsigned long>>
+      Histogram;
 
   // for test purpose only
-  unsigned long getSetHistoData(std::string setID, unsigned long setSize);
+  unsigned long getHistoData(std::string HID, std::string VAL);
 
   template <typename Period = std::chrono::milliseconds>
   void printStoppedTimer() {
@@ -299,20 +303,20 @@ public:
 
   /**
    * @brief Registers a new set as a set histogram.
-   * @param setHistoID identifies the particular set.
+   * @param HID identifies the particular set.
    */
-  void regSetHistogram(std::string setHistoID);
+  void regHistogram(std::string HID);
 
   /**
    * @brief Adds a new observed set size to the corresponding set histogram.
-   * @param setHistoID ID of the set.
-   * @param setSize the added value.
+   * @param HID ID of the set.
+   * @param OCC the added value.
    */
-  void addToSetHistogram(std::string setHistoID, unsigned long setSize);
+  void addToHistogram(std::string HID, std::string VAL, unsigned long OCC = 1);
 
   void printCounters();
 
-  void printSetHistograms();
+  void printHistograms();
   /**
    * @brief Prints the measured data to the command line - associated macro:
    * PRINT_EVA_DATA
@@ -354,7 +358,7 @@ public:
       std::cout << '\n';
     }
     printCounters();
-    printSetHistograms();
+    printHistograms();
     std::cout << "\n----- END OF EVALUATION DATA -----\n\n";
   }
 
@@ -421,7 +425,7 @@ public:
     for (auto timer : elapsedTimeForAccTimer()) {
       jsonData[timer.first + " Times"] = timer.second;
     }
-    addSetHistogramToJSON(jsonData);
+    addHistogramToJSON(jsonData);
     addCounterToJSON(jsonData);
     bfs::path cfp(configPath);
     // reduce the config path to just the filename - no path and no extension
@@ -441,7 +445,7 @@ public:
    * the main json file.
    * @param jsonData Main json file to append to.
    */
-  void addSetHistogramToJSON(json &jsonData);
+  void addHistogramToJSON(json &jsonData);
 
   /**
    * @brief Adds the Counters in a more organized way to
