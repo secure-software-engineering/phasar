@@ -1,12 +1,12 @@
-/* mutable: i */
+/* a | %1 (ID: 0) | mem2reg */
 int* foo() {
-	int a = 42;
-	return &a;
+	int *a = new int(42);
+  return a;
 }
 
 int main() {
-	int *i;
-  i = foo();
-  *i += 10;
+	// moved to register due to mem2reg
+  int *p = foo();
+	*p = 13;
 	return 0;
 }

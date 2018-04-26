@@ -1,13 +1,13 @@
-/* mutable: i,k */
+/* - | - | mem2reg */
 extern bool cond;
-
 int main() {
-	int i = 7;
-	int k = 12;
-	if (cond) {
-		i = 20;
+	int *i;
+  if (cond) {
+    // moved to virtual register
+    int j = 20;
+    j++;		
 	} else {
-		k = 1;
+		i = new int(30);
 	}
 	return 0;
 }

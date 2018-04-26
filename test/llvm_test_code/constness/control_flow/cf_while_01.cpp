@@ -1,9 +1,10 @@
-/* mutable: k */
+/* k | %1 (ID: 0) | mem2reg */
 int main() {
-	int i = 0;
-	int k = 12;
+	// moved to virtual register
+  int i = 0;
+	int *k = new int(42);
 	while (i > 0) {
-		k = 10;
+		*k = 10;
 	}
 	return 0;
 }

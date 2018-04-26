@@ -315,6 +315,12 @@ public:
 
   json getAsJson() override;
 
+  unsigned getNumOfVertices();
+
+  unsigned getNumOfEdges();
+
+  void exportPATBCJSON();
+
   PointsToGraph &getWholeModulePTG();
 
   vector<string> getDependencyOrderedFunctions();

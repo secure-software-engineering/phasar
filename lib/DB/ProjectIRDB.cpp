@@ -209,8 +209,9 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PAMM_FACTORY;
   auto &lg = lg::get();
-  const std::string moduleID = "[ " + M->getModuleIdentifier() + " ]";
-  START_TIMER("IRP_ModulePass_" + moduleID);
+  // add moduleID to timer name if performing MWA!
+  //const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
+  START_TIMER("LLVM Passes"/* + moduleID*/);
   BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier();
   // TODO Have a look at this stuff from the future at some point in time
   /// PassManagerBuilder - This class is used to set up a standard
@@ -281,10 +282,16 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   if (broken_debug_info) {
     BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
   }
+  for (auto RR : GSP->getRetResInstructions()) {
+    ret_res_instructions.insert(RR);
+  }
+  for (auto A : GSP->getAllocaInstructions()) {
+    alloca_instructions.insert(A);
+  }
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
-  STOP_TIMER("IRP_ModulePass_" + moduleID);
-  START_TIMER("IRP_PTGConstruction_" + moduleID);
+  STOP_TIMER("LLVM Passes"/* + moduleID*/);
+  START_TIMER("PTG Construction"/* + moduleID*/);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
   for (auto &F : *M) {
@@ -298,10 +305,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
-  STOP_TIMER("IRP_PTGConstruction_" + moduleID);
-  START_TIMER("IRP_ModuleMapping_" + moduleID);
+  STOP_TIMER("PTG Construction"/* + moduleID*/);
   buildIDModuleMapping(M);
-  STOP_TIMER("IRP_ModuleMapping_" + moduleID);
 }
 
 void ProjectIRDB::linkForWPA() {
@@ -627,6 +632,14 @@ void ProjectIRDB::insertPointsToGraph(const std::string &FunctionName,
       std::make_pair(FunctionName, std::unique_ptr<PointsToGraph>(ptg)));
 }
 
+std::set<const llvm::Value *> ProjectIRDB::getAllocaInstructions() {
+  return alloca_instructions;
+}
+
+std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
+  return ret_res_instructions;
+}
+
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
   std::set<const llvm::Function *> funs;
   for (auto entry : functions) {
@@ -658,4 +671,11 @@ void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
 
 set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() {
   return allocated_types;
+}
+
+std::string ProjectIRDB::getGlobalVariableModuleName(const std::string &GlobalVariableName) {
+  if (globals.count(GlobalVariableName)) {
+    return globals[GlobalVariableName];
+  }
+  return "";
 }

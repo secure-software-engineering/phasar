@@ -51,24 +51,32 @@ AnalysisController::AnalysisController(
       EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
     }
   }
-  START_TIMER("IRP_runtime");
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
     BOOST_LOG_SEV(lg, INFO)
         << "link all llvm modules into a single module for WPA ...\n";
-    START_TIMER("IRP_WPALink");
+    // START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
-    STOP_TIMER("IRP_WPALink");
+    // STOP_TIMER("Link to WPA Module");
   }
   IRDB.preprocessIR();
-  STOP_TIMER("IRP_runtime");
+  // START_TIMER("DB Start Up");
+  // DBConn &db = DBConn::getInstance();
+  // STOP_TIMER("DB Start Up");
+  // START_TIMER("DB Store IRDB");
+  // db.storeProjectIRDB("myphasarproject", IRDB);
+  // STOP_TIMER("DB Store IRDB");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
-  START_TIMER("LTH_runtime");
+  START_TIMER("LTH Construction");
   LLVMTypeHierarchy CH(IRDB);
-  STOP_TIMER("LTH_runtime");
+  STOP_TIMER("LTH Construction");
   BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+  // START_TIMER("DB Store LTH");
+  // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
+  // STOP_TIMER("DB Store LTH");
+  // CH.printAsDot();
   FinalResultsJson += CH.getAsJson();
   if (VariablesMap.count("classhierarchy_analysis")) {
     CH.print();
@@ -77,7 +85,7 @@ AnalysisController::AnalysisController(
 
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
-    START_TIMER("ICFG_runtime");
+    START_TIMER("ICFG Construction");
     LLVMBasedICFG ICFG(CH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
                        EntryPoints);
 
@@ -86,7 +94,7 @@ AnalysisController::AnalysisController(
       // callgraph provided by the plugin
       SOL so(VariablesMap["callgraph_plugin"].as<string>());
     }
-    STOP_TIMER("ICFG_runtime");
+    STOP_TIMER("ICFG Construction");
     ICFG.printAsDot("call_graph.dot");
     // Add the ICFG to final results
     FinalResultsJson += ICFG.getAsJson();
@@ -106,7 +114,7 @@ AnalysisController::AnalysisController(
      */
     for (DataFlowAnalysisType analysis : Analyses) {
       BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
-      START_TIMER("DFA_runtime");
+      START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -165,21 +173,106 @@ AnalysisController::AnalysisController(
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
             constproblem, true);
-        cout << "Const Analysis started!" << endl;
         llvmconstsolver.solve();
         FinalResultsJson += llvmconstsolver.getAsJson();
-        cout << "Const Analysis finished!" << endl;
-        // constproblem.printInitilizedSet();
+        constproblem.printInitilizedSet();
+        REG_COUNTER_WITH_VALUE("Const Init Set Size",constproblem.getInitializedSize());
+        constproblem.printInitilizedSet();
+        START_TIMER("DFA Result Computation");
+        // TODO need to consider object fields, i.e. getelementptr instructions
+        // get all stack and heap alloca instructions
+        std::set<const llvm::Value *> allMemoryLoc =
+            IRDB.getAllocaInstructions();
+        std::set<std::string> IgnoredGlobalNames = {"llvm.used",
+                                                    "llvm.compiler.used",
+                                                    "llvm.global_ctors",
+                                                    "llvm.global_dtors",
+                                                    "vtable",
+                                                    "typeinfo"};
+        // add global varibales to the memory location set, except the llvm
+        // intrinsic global variables
+        for (auto M : IRDB.getAllModules()) {
+          for (auto &GV : M->globals()) {
+            if (GV.hasName()) {
+              string GVName = cxx_demangle(GV.getName().str());
+              if (!IgnoredGlobalNames.count(
+                      GVName.substr(0, GVName.find(' ')))) {
+                allMemoryLoc.insert(&GV);
+              }
+            }
+          }
+        }
+        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
+        for (auto memloc : allMemoryLoc) {
+          BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
+        }
+        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
+        BOOST_LOG_SEV(lg, DEBUG)
+            << "Printing return/resume instruction + dataflow facts:";
+        for (auto RR : IRDB.getRetResInstructions()) {
+          std::set<const llvm::Value *> facts =
+              llvmconstsolver.ifdsResultsAt(RR);
+          // Empty facts means the return/resume statement is part of not
+          // analyzed function - remove all allocas of that function
+          if (facts.empty()) {
+            const llvm::Function *F = RR->getParent()->getParent();
+            for (auto mem_itr = allMemoryLoc.begin();
+                 mem_itr != allMemoryLoc.end();) {
+              if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
+                if (Inst->getParent()->getParent() == F) {
+                  mem_itr = allMemoryLoc.erase(mem_itr);
+                } else {
+                  ++mem_itr;
+                }
+              } else {
+                ++mem_itr;
+              }
+            }
+          } else {
+            BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
+            for (auto fact : facts) {
+              if (isAllocaInstOrHeapAllocaFunction(fact) ||
+                  llvm::isa<llvm::GlobalValue>(fact)) {
+                BOOST_LOG_SEV(lg, DEBUG) << "   Fact: "
+                                         << constproblem.DtoString(fact);
+                // remove allocas that are mutable, i.e. are valid facts
+                allMemoryLoc.erase(fact);
+              }
+            }
+          }
+        }
+        // write immutable locations to file
+        bfs::path cfp(VariablesMap["config"].as<string>());
+        // reduce the config path to just the filename - no path and no
+        // extension
+        std::string config = cfp.filename().string();
+        std::size_t extensionPos = config.find(cfp.extension().string());
+        config.replace(extensionPos, cfp.extension().size(), "");
+        ofstream ResultFile;
+        ResultFile.open(config + "_memlocs.txt");
+        // BOOST_LOG_SEV(lg, INFO) << "-------------";
+        // BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        for (auto memloc : allMemoryLoc) {
+          if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
+            ResultFile << llvmIRToString(memlocInst) << " in function "
+                       << memlocInst->getParent()->getParent()->getName().str()
+                       << "\n";
+          } else {
+            ResultFile << llvmIRToString(memloc) << '\n';
+          }
+        }
+        ResultFile.close();
+        STOP_TIMER("DFA Result Computation");
+         BOOST_LOG_SEV(lg, INFO) << "-------------";
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
         IFDSSolverTest ifdstest(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
             ifdstest, true);
-        cout << "IFDS Solvertest started!" << endl;
         llvmifdstestsolver.solve();
         FinalResultsJson += llvmifdstestsolver.getAsJson();
-        cout << "IFDS Solvertest finished!" << endl;
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -230,7 +323,7 @@ AnalysisController::AnalysisController(
         BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
         break;
       }
-      STOP_TIMER("DFA_runtime");
+      STOP_TIMER("DFA Runtime");
     }
   }
   // Perform module-wise (MW) analysis

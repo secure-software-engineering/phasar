@@ -20,7 +20,7 @@ PAMM &PAMM::getInstance() {
   static PAMM instance;
   return instance;
 }
-// TODO: check why assert does not get triggered (unlike me right now)
+
 void PAMM::startTimer(std::string timerId) {
   bool validTimerId =
       !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
@@ -28,7 +28,6 @@ void PAMM::startTimer(std::string timerId) {
   if (validTimerId) {
     time_point start = std::chrono::high_resolution_clock::now();
     RunningTimer[timerId] = start;
-    std::cout << timerId << " started.\n";
   }
 }
 
@@ -41,10 +40,9 @@ void PAMM::resetTimer(std::string timerId) {
   } else if (StoppedTimer.count(timerId)) {
     StoppedTimer.erase(StoppedTimer.find(timerId));
   }
-  std::cout << timerId << " reseted.\n";
 }
 
-void PAMM::stopTimer(std::string timerId) {
+void PAMM::stopTimer(std::string timerId, bool pauseTimer) {
   bool validTimerId =
       RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
   assert(validTimerId && "stopTimer failed due to an invalid timer id or timer "
@@ -55,8 +53,11 @@ void PAMM::stopTimer(std::string timerId) {
     time_point start = timer->second;
     RunningTimer.erase(timer);
     auto p = make_pair(start, end);
-    StoppedTimer[timerId] = p;
-    std::cout << timerId << " stopped.\n";
+    if (pauseTimer) {
+      AccumulatedTimer[timerId].push_back(p);
+    } else {
+      StoppedTimer[timerId] = p;
+    }
   }
 }
 
@@ -81,12 +82,11 @@ std::string PAMM::getPrintableDuration(unsigned long duration) {
   return oss.str();
 }
 
-void PAMM::regCounter(std::string counterId) {
+void PAMM::regCounter(std::string counterId, unsigned intialValue) {
   bool validCounterId = !Counter.count(counterId);
   assert(validCounterId && "regCounter failed due to an invalid counter id");
   if (validCounterId) {
-    Counter[counterId] = 0;
-    std::cout << "counter " << counterId << " registered.\n";
+    Counter[counterId] = intialValue;
   }
 }
 
@@ -129,58 +129,111 @@ int PAMM::getSumCount(std::set<std::string> counterIds) {
   return sum;
 }
 
-void PAMM::addDataToSetHistogram(unsigned long setSize) {
-  if (SetHistogram.count(setSize)) {
-    SetHistogram[setSize]++;
+void PAMM::regHistogram(std::string HID) {
+  bool validHID = !Histogram.count(HID);
+  assert(validHID && "failed to register new histogram due to an invalid id");
+  if (validHID) {
+    std::unordered_map<std::string, unsigned long> H;
+    Histogram[HID] = H;
+  }
+}
+
+void PAMM::addToHistogram(std::string HID, std::string VAL, unsigned long OCC) {
+  bool validHistoID = Histogram.count(HID);
+  assert(validHistoID && "adding data point to histogram failed due to invalid id");
+  if (Histogram[HID].count(VAL)) {
+    Histogram[HID][VAL] += OCC;
   } else {
-    SetHistogram[setSize] = 1;
+    Histogram[HID][VAL] = OCC;
   }
 }
 
-unsigned long PAMM::getSetHistoData(unsigned long setSize) {
-  if (SetHistogram.count(setSize)) {
-    return SetHistogram[setSize];
-  }
-  return 0;
+unsigned long PAMM::getHistoData(std::string HID, std::string VAL) {
+  return Histogram[HID][VAL];
 }
 
-void PAMM::printTimerMap() {
-  std::cout << "Running timer: [ ";
-  for (auto entry : RunningTimer) {
-    std::cout << entry.first << ":"
-              << getPrintableDuration(elapsedTime(entry.first)) << " ";
-  }
-  std::cout << "]\n";
-}
-
-void PAMM::printStoppedTimer() {
-  std::cout << "Stopped timer: [ ";
-  for (auto entry : StoppedTimer) {
-    std::cout << entry.first << ":"
-              << getPrintableDuration(elapsedTime(entry.first)) << " ";
-  }
-  std::cout << "]\n";
-}
-
-void PAMM::printCounterMap() {
-  std::cout << "Counter: [ ";
+void PAMM::printCounters() {
+  std::cout << "\nCounter\n";
+  std::cout << "-------\n";
   for (auto counter : Counter) {
-    std::cout << counter.first << "=" << counter.second << " ";
+    std::cout << counter.first << " : " << counter.second << '\n';
   }
-  std::cout << "]\n";
+  if (Counter.empty()) {
+    std::cout << "No Counter registered!\n";
+  } else {
+    std::cout << "\n";
+  }
 }
 
-void PAMM::printSetHistoMap() {
-  std::cout << "Set Histogram Data:\n";
-  for (auto hg : SetHistogram) {
-    std::cout << hg.first << ": [ " << hg.second << " ]\n";
+void PAMM::printHistograms() {
+  std::cout << "\nHistograms\n";
+  std::cout << "--------------\n";
+  for (auto H : Histogram) {
+    std::cout << H.first << " Histogram\n";
+    std::cout << "Value : #Occurrences\n";
+    for (auto entry : H.second) {
+      std::cout << entry.first << " : " << entry.second << '\n';
+    }
+    std::cout << '\n';
+  }
+  if (Histogram.empty()) {
+    std::cout << "No histograms tracked!\n";
   }
 }
 
 void PAMM::reset() {
   RunningTimer.clear();
   StoppedTimer.clear();
+  AccumulatedTimer.clear();
   Counter.clear();
-  SetHistogram.clear();
+  Histogram.clear();
   std::cout << "PAMM reseted!" << std::endl;
+}
+
+void PAMM::addHistogramToJSON(json &jsonData) {
+  for (auto H : Histogram) {
+    json jSetH;
+    for (auto entry : H.second) {
+      jSetH[entry.first] = entry.second;
+    }
+    jsonData[H.first + " Histogram"] = jSetH;
+  }
+}
+
+void PAMM::addCounterToJSON(json &jsonData) {
+  json jFFCounter, jEFCounter, jGSCounter, jDFACounter, jCallsCounter,
+      jGraphSizesCounter, jMiscCounter;
+  for (auto counter : Counter) {
+    if (counter.first.find("GS") != std::string::npos) {
+      jGSCounter[counter.first] = counter.second;
+    } else if (counter.first.find("Calls to") != std::string::npos) {
+      jCallsCounter[counter.first] = counter.second;
+    } else if (counter.first.find("JumpFn Construction") != std::string::npos ||
+               counter.first.find("Process") != std::string::npos ||
+               counter.first.find("FF Queries") != std::string::npos ||
+               counter.first.find("EF Queries") != std::string::npos ||
+               counter.first.find("SpecialSummary-FF Application") != std::string::npos ||
+               counter.first.find("SpecialSummary-EF Queries") != std::string::npos ||
+               counter.first.find("Value Computation") != std::string::npos ||
+               counter.first.find("Value Propagation") != std::string::npos) {
+      jDFACounter[counter.first] = counter.second;
+    } else if (counter.first.find("-FF") != std::string::npos) {
+      jFFCounter[counter.first] = counter.second;
+    } else if (counter.first.find("-EF") != std::string::npos) {
+      jEFCounter[counter.first] = counter.second;
+    } else if (counter.first.find("Edges") != std::string::npos ||
+               counter.first.find("Vertices") != std::string::npos) {
+      jGraphSizesCounter[counter.first] = counter.second;
+    } else {
+      jMiscCounter[counter.first] = counter.second;
+    }
+  }
+  jsonData["Flow Function Counter"] = jFFCounter;
+  jsonData["Edge Function Counter"] = jEFCounter;
+  jsonData["DFA Counter"] = jDFACounter;
+  jsonData["General Statistics"] = jGSCounter;
+  jsonData["Function Call Counter"] = jCallsCounter;
+  jsonData["Graph Sizes Counter"] = jGraphSizesCounter;
+  if (!jMiscCounter.empty())
+    jsonData["Misc Counter"] = jMiscCounter;
 }

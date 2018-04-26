@@ -284,6 +284,9 @@ set<const llvm::Type *> PointsToGraph::computeTypesFromAllocationSites(
 }
 
 set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
+  PAMM_FACTORY;
+  INC_COUNTER("Calls to getPointsToSet");
+  START_TIMER("Compute PointsToSet");
   set<vertex_t> reachable_vertices;
   reachability_dfs_visitor vis(reachable_vertices);
   vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
@@ -296,36 +299,11 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   for (auto vertex : reachable_vertices) {
     result.insert(ptg[vertex].value);
   }
+  PAUSE_TIMER("Compute PointsToSet");
+  ADD_TO_HIST("Points-to", result.size());
   return result;
 }
 
-set<const llvm::Value *> PointsToGraph::getAliasWithinFunction(
-    const llvm::Value *V) {
-  auto &lg = lg::get();
-  set<const llvm::Value *> result;
-  if (const llvm::Instruction *IV = llvm::dyn_cast<llvm::Instruction>(V)) {
-    const llvm::Function *F = IV->getFunction();
-    for (auto alias : getPointsToSet(V)) {
-      if (const llvm::Instruction *I =
-              llvm::dyn_cast<llvm::Instruction>(alias)) {
-        if (I->getFunction() == F) {
-          result.insert(alias);
-        }
-      } else if (llvm::isa<llvm::GlobalValue>(alias)) {
-        result.insert(alias);
-      } else if (const llvm::Argument *A =
-                     llvm::dyn_cast<llvm::Argument>(alias)) {
-        if (A->getParent() == F) {
-          result.insert(alias);
-        }
-      } else {
-        BOOST_LOG_SEV(lg, DEBUG) << "Could not cast the following alias: "
-                                 << V->getName().str();
-      }
-    }
-  }
-  return result;
-}
 
 bool PointsToGraph::representsSingleFunction() {
   return ContainedFunctions.size() == 1;
@@ -353,11 +331,11 @@ void PointsToGraph::print() const {
 
 void PointsToGraph::printAsDot(const string &filename) {
   ofstream ofs(filename);
-  boost::write_graphviz(ofs, ptg,
-                        boost::make_label_writer(boost::get(
-                            &PointsToGraph::VertexProperties::ir_code, ptg)),
-                        boost::make_label_writer(boost::get(
-                            &PointsToGraph::EdgeProperties::ir_code, ptg)));
+  boost::write_graphviz(
+      ofs, ptg, boost::make_label_writer(
+                    boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
+      boost::make_label_writer(
+          boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
 json PointsToGraph::getAsJson() {
@@ -493,3 +471,7 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
     value_vertex_map.insert(make_pair(ptg[*vi].value, *vi));
   }
 }
+
+unsigned PointsToGraph::getNumOfVertices() { return boost::num_vertices(ptg); }
+
+unsigned PointsToGraph::getNumOfEdges() { return boost::num_edges(ptg); }

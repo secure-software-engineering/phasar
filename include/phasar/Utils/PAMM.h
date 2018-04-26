@@ -41,17 +41,23 @@ namespace bfs = boost::filesystem;
 #define PAMM_RESET pamm.reset()
 #define START_TIMER(TIMERID) pamm.startTimer(TIMERID)
 #define RESET_TIMER(TIMERID) pamm.resetTimer(TIMERID)
+#define PAUSE_TIMER(TIMERID) pamm.stopTimer(TIMERID, true)
 #define STOP_TIMER(TIMERID) pamm.stopTimer(TIMERID)
 #define GET_TIMER(TIMERID) pamm.elapsedTime(TIMERID)
 #define ACC_TIMER(...) pamm.getPrintableDuration(accumulatedTime(__VA_ARGS__))
 #define PRINT_TIMER(TIMERID)                                                   \
   pamm.getPrintableDuration(pamm.elapsedTime(TIMERID))
 #define REG_COUNTER(COUNTERID) pamm.regCounter(COUNTERID)
+#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)                               \
+  pamm.regCounter(COUNTERID, VALUE)
 #define INC_COUNTER(COUNTERID) pamm.incCounter(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL) pamm.incCounter(COUNTERID, VAL)
 #define DEC_COUNTER(COUNTERID) pamm.decCounter(COUNTERID)
 #define GET_COUNTER(COUNTERID) pamm.getCounter(COUNTERID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
-#define ADD_DATA_TO_SET_HIST(SETSIZE) pamm.addDataToSetHistogram(SETSIZE)
+#define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
+#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC) pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 #else
@@ -59,16 +65,21 @@ namespace bfs = boost::filesystem;
 #define PAMM_RESET
 #define START_TIMER(TIMERID)
 #define RESET_TIMER(TIMERID)
+#define PAUSE_TIMER(TIMERID)
 #define STOP_TIMER(TIMERID)
 #define GET_TIMER(TIMERID)
 #define ACC_TIMER(...)
 #define PRINT_TIMER(TIMERID)
 #define REG_COUNTER(COUNTERID)
+#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
 #define INC_COUNTER(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
 #define DEC_COUNTER(COUNTERID)
 #define GET_COUNTER(COUNTERID)
 #define GET_SUM_COUNT(...)
-#define ADD_DATA_TO_SET_HIST(SETSIZE)
+#define REG_HISTOGRAM(HID)
+#define ADD_TO_HIST(HID, VAL)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
 #define PRINT_EVA_DATA
 #define EXPORT_EVA_DATA(CONFIG)
 #endif
@@ -86,25 +97,39 @@ namespace bfs = boost::filesystem;
  * @brief This class offers functionality to assist a performance analysis of
  * the PHASAR framework.
  * @note This class implements the Singleton Pattern - use the PAMM_FACTORY
- * macro before you use any other macro from this class.
+ * macro to retrieve an instance of PAMM before you use any other macro from
+ * this class.
  */
 class PAMM {
 private:
   PAMM() = default;
   ~PAMM() = default;
   typedef std::chrono::high_resolution_clock::time_point time_point;
-  // TODO: try unordered_map instead of map - maybe it's faster
   std::unordered_map<std::string, time_point> RunningTimer;
   std::unordered_map<std::string, std::pair<time_point, time_point>>
       StoppedTimer;
+  std::unordered_map<std::string,
+                     std::vector<std::pair<time_point, time_point>>>
+      AccumulatedTimer;
   std::unordered_map<std::string, unsigned> Counter;
-  std::unordered_map<unsigned long, unsigned long> SetHistogram;
+  std::unordered_map<std::string,
+                     std::unordered_map<std::string, unsigned long>>
+      Histogram;
 
   // for test purpose only
-  unsigned long getSetHistoData(unsigned long setSize);
+  unsigned long getHistoData(std::string HID, std::string VAL);
+
+  template <typename Period = std::chrono::milliseconds>
+  void printStoppedTimer() {
+    std::cout << "Stopped timer\n";
+    for (auto entry : StoppedTimer) {
+      std::cout << entry.first << " : " << elapsedTime<Period>(entry.first) << '\n';
+    }
+  }
 
   // friend tests
   FRIEND_TEST(PAMMTest, HandleSetHisto);
+  FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
 
 public:
   /// PAMM is used as singleton.
@@ -141,11 +166,23 @@ public:
   void resetTimer(std::string timerId);
 
   /**
-   * @brief Stops a timer under the given timer id - associated macro:
-   * STOP_TIMER(TIMERID).
+   * If pauseTimer is true, a running timer gets paused, its start time point
+   * will paired with
+   * a current time point, and stored as an accumulated timer. This
+   * enables us to repeatedly compute execution time for a certain portion of
+   * code which is executed multiple times, e.g. a loop or a function
+   * call, without using a different timer id for every time computation.
+   * Times of all executions of one timer are saved as distinct time point
+   * pairs. Associated macro:
+   *    PAUSE_TIMER(TIMERID)
+   *
+   * Otherwise, the timer will be simply stopped. Associated macro:
+   *    STOP_TIMER(TIMERID)
+   * @brief Stops or pauses a timer under the given timer id.
    * @param timerId Unique timer id.
+   * @param pauseTimer If true, timer will be paused instead of stopped.
    */
-  void stopTimer(std::string timerId);
+  void stopTimer(std::string timerId, bool pauseTimer = false);
 
   /**
    * @brief Computes the elapsed time of the given timer up until now or up to
@@ -194,6 +231,28 @@ public:
   }
 
   /**
+   * @brief Computes the elapsed time for all accumulated timer.
+   * @tparam Period sets the precision for time computation, milliseconds by
+   * default.
+   * @return Map containing all timer durations.
+   */
+  template <typename Period = std::chrono::milliseconds>
+  std::unordered_map<std::string, std::vector<unsigned long>>
+  elapsedTimeForAccTimer() {
+    std::unordered_map<std::string, std::vector<unsigned long>> accTimes;
+    for (auto timer : AccumulatedTimer) {
+      std::vector<unsigned long> accTimeVec;
+      for (auto timepair : timer.second) {
+        auto duration = std::chrono::duration_cast<Period>(timepair.second -
+                                                           timepair.first);
+        accTimeVec.push_back(duration.count());
+      }
+      accTimes[timer.first] = accTimeVec;
+    }
+    return accTimes;
+  }
+
+  /**
    * A running timer will not be stopped. The precision for time computation
    * is set to milliseconds and the output is similar to a timestamp, e.g.
    * '4h 8m 15sec 16ms'.
@@ -209,7 +268,7 @@ public:
    * macro: REG_COUNTER(COUNTERID).
    * @param counterId Unique counter id.
    */
-  void regCounter(std::string counterId);
+  void regCounter(std::string counterId, unsigned intialValue = 0);
 
   /**
    * @brief Increases the count for the given counter - associated macro:
@@ -243,14 +302,21 @@ public:
   int getSumCount(std::set<std::string> counterIds);
 
   /**
-   * The set histogram tracks the sizes of sets.
-   *
-   * @brief Increases the count for a given set size by 1 - associated macro:
-   * ADD_DATA_TO_SET_HIST(SETSIZE).
-   * @param setSize which counter will be increased.
+   * @brief Registers a new set as a set histogram.
+   * @param HID identifies the particular set.
    */
-  void addDataToSetHistogram(unsigned long setSize);
+  void regHistogram(std::string HID);
 
+  /**
+   * @brief Adds a new observed set size to the corresponding set histogram.
+   * @param HID ID of the set.
+   * @param OCC the added value.
+   */
+  void addToHistogram(std::string HID, std::string VAL, unsigned long OCC = 1);
+
+  void printCounters();
+
+  void printHistograms();
   /**
    * @brief Prints the measured data to the command line - associated macro:
    * PRINT_EVA_DATA
@@ -259,38 +325,40 @@ public:
    */
   template <typename Period = std::chrono::milliseconds> void printData() {
     // stop all running timer
-    for (auto timer : RunningTimer) {
-      stopTimer(timer.first);
+    while (!RunningTimer.empty()) {
+      stopTimer(RunningTimer.begin()->first);
     }
     std::cout << "\n----- START OF EVALUATION DATA -----\n\n";
-    std::cout << "Timer\n";
-    std::cout << "-----\n";
-
+    std::cout << "Single Timer\n";
+    std::cout << "------------\n";
     for (auto timer : StoppedTimer) {
       unsigned long time = elapsedTime<Period>(timer.first);
-      std::cout << timer.first << " : " << getPrintableDuration(time) << '\n';
+      std::cout << timer.first << " : "
+                << getPrintableDuration(time) << '\n';
     }
     if (StoppedTimer.empty()) {
-      std::cout << "No Timer started!\n";
-    }
-    std::cout << "\nCounter\n";
-    std::cout << "-------\n";
-    for (auto counter : Counter) {
-      std::cout << counter.first << " : " << counter.second << '\n';
-    }
-    if (Counter.empty()) {
-      std::cout << "No Counter registered!\n";
-    }
-    std::cout << "\nSet Histogram\n";
-    std::cout << "-------\n";
-    if (!SetHistogram.empty()) {
-      std::cout << "Size : Count\n";
-      for (auto set : SetHistogram) {
-        std::cout << set.first << " : " << set.second << "\n";
-      }
+      std::cout << "No single Timer started!\n\n";
     } else {
-      std::cout << "No sets tracked!\n";
+      std::cout << "\n";
     }
+    std::cout << "Accumulated Timer\n";
+    std::cout << "-----------------\n";
+    for (auto timer : elapsedTimeForAccTimer()) {
+      unsigned long sum = 0;
+      std::cout << timer.first << " Timer:\n";
+      for (auto duration : timer.second) {
+        sum += duration;
+        std::cout << duration << '\n';
+      }
+      std::cout << "===\n" << sum << "\n\n";
+    }
+    if (AccumulatedTimer.empty()) {
+      std::cout << "No accumulated Timer started!\n";
+    } else {
+      std::cout << '\n';
+    }
+    printCounters();
+    printHistograms();
     std::cout << "\n----- END OF EVALUATION DATA -----\n\n";
   }
 
@@ -305,25 +373,27 @@ public:
   template <typename Period = std::chrono::milliseconds>
   std::set<std::pair<std::string, unsigned long>> computeMiscTimes() {
     std::set<std::pair<std::string, unsigned long>> miscTimes;
-    unsigned long dfa_runtime = elapsedTime<Period>("DFA_runtime");
-    unsigned long irp_runtime = elapsedTime<Period>("IRP_runtime");
-    unsigned long fw_runtime = elapsedTime<Period>("FW_runtime");
+    unsigned long fw_runtime, dfa_runtime;
+    // these checks are only needed to enable PAMM Tests that do not use
+    // one of those two timers
+    if (RunningTimer.count("DFA Runtime") ||
+        StoppedTimer.count("DFA Runtime")) {
+      dfa_runtime = elapsedTime<Period>("DFA Runtime");
+    }
+    if (RunningTimer.count("FW Runtime") || StoppedTimer.count("FW Runtime")) {
+      fw_runtime = elapsedTime<Period>("FW Runtime");
+    }
 
     for (auto timer : StoppedTimer) {
       if (timer.first.find("DFA") != std::string::npos &&
-          timer.first != "DFA_runtime") {
+          timer.first != "DFA Runtime") {
         dfa_runtime -= elapsedTime<Period>(timer.first);
-      } else if (timer.first.find("IRP") != std::string::npos &&
-                 timer.first != "IRP_runtime") {
-        irp_runtime -= elapsedTime<Period>(timer.first);
-      } else if (timer.first.find("runtime") != std::string::npos &&
-                 timer.first != "FW_runtime") {
+      } else if (timer.first != "FW Runtime") {
         fw_runtime -= elapsedTime<Period>(timer.first);
       }
     }
-    miscTimes.insert(std::make_pair("DFA_misc", dfa_runtime));
-    miscTimes.insert(std::make_pair("IRP_misc", irp_runtime));
-    miscTimes.insert(std::make_pair("FW_misc", fw_runtime));
+    miscTimes.insert(std::make_pair("DFA Misc", dfa_runtime));
+    miscTimes.insert(std::make_pair("FW Misc", fw_runtime));
     return miscTimes;
   }
 
@@ -336,9 +406,11 @@ public:
    */
   template <typename Period = std::chrono::milliseconds>
   void exportDataAsJSON(const std::string &configPath) {
+    // main json file
+    json jsonData;
     // stop all running timer
-    while (!RunningTimer.empty()) {
-      stopTimer(RunningTimer.begin()->first);
+    for (auto timer : RunningTimer) {
+      stopTimer(timer.first);
     }
     json jTimer;
     for (auto timer : StoppedTimer) {
@@ -349,18 +421,12 @@ public:
     for (auto miscTime : computeMiscTimes<Period>()) {
       jTimer[miscTime.first] = miscTime.second;
     }
-    json jCounter(Counter);
-    // json jSetHistogram(SetHistogram);
-    json jSetHistogram;
-    // TODO: json won't create a proper map when int/unsigned is used as a key
-    for (auto set : SetHistogram) {
-      std::string key = std::to_string(set.first);
-      jSetHistogram[key] = set.second;
-    }
-    json jsonData;
     jsonData["Timer"] = jTimer;
-    jsonData["Counter"] = jCounter;
-    jsonData["Set Histogram"] = jSetHistogram;
+    for (auto timer : elapsedTimeForAccTimer()) {
+      jsonData[timer.first + " Times"] = timer.second;
+    }
+    addHistogramToJSON(jsonData);
+    addCounterToJSON(jsonData);
     bfs::path cfp(configPath);
     // reduce the config path to just the filename - no path and no extension
     std::string config = cfp.filename().string();
@@ -374,11 +440,23 @@ public:
     file.close();
   }
 
+  /**
+   * @brief Adds the Set Histograms in a more organized way to
+   * the main json file.
+   * @param jsonData Main json file to append to.
+   */
+  void addHistogramToJSON(json &jsonData);
+
+  /**
+   * @brief Adds the Counters in a more organized way to
+   * the main json file.
+   * @param jsonData Main json file to append to.
+   */
+  void addCounterToJSON(json &jsonData);
+
   // for test purpose only
-  void printTimerMap();
+
   void printStoppedTimer();
-  void printCounterMap();
-  void printSetHistoMap();
 };
 
 #endif /* PAMM_H_ */

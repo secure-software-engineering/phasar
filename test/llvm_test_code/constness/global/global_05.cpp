@@ -1,13 +1,13 @@
-/* mutable: gint, i */
-int *gint = nullptr;
+/* g, i | @g, %1 (ID: 0, 4) | mem2reg */
+int *g;
 
 void foo() {
-	*gint += 13;
+  *g = 99;
 }
 
 int main() {
-	int i = 42;
-	gint = &i;
-	foo();
-	return 0;
+  int i = 42;
+  g = &i;
+  foo();
+  return 0;
 }

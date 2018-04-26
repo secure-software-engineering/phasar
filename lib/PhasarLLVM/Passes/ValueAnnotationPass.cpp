@@ -58,6 +58,6 @@ void ValueAnnotationPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 void ValueAnnotationPass::releaseMemory() {}
 
 void ValueAnnotationPass::resetValueID() {
-  cout << "reset id" << endl;
+  cout << "Reset ID" << endl;
   unique_value_id = 0;
 }

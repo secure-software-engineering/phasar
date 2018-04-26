@@ -1,10 +1,11 @@
-/* mutable: i (a) */
+/* - | - | mem2reg */
 void foo(int* a) {
-	*a += 42;
 }
 
 int main() {
 	int i = 10;
-	foo(&i);
+	int j = 13;
+  foo(&i);
+  foo(&j);
 	return 0;
 }

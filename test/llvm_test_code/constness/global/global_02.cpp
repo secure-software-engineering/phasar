@@ -1,11 +1,8 @@
-/* mutable: i, gint */
-int gint = 10;
-
+/* g, i | @g, %1 (ID: 0, 1) | mem2reg */
+int *g;
 int main() {
-	int i = 7;
-	i = gint;
-	gint = 42;
-	gint += 13;
-	gint -= 17;
+	int i = 42;
+	g = &i;
+	*g = 99;
 	return 0;
 }

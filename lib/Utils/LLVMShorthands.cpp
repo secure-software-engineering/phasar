@@ -16,6 +16,10 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 
+/// Set of functions that allocate heap memory, e.g. new, new[], malloc.
+const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
+                                             "calloc", "realloc"};
+
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
     if (V->getType()->isPointerTy() &&
@@ -27,9 +31,24 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
+bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
+  if (V) {
+    if (llvm::isa<llvm::AllocaInst>(V)) {
+      return true;
+    } else if (llvm::isa<llvm::CallInst>(V) || llvm::isa<llvm::InvokeInst>(V)) {
+      llvm::ImmutableCallSite CS(V);
+      return CS.getCalledFunction() != nullptr &&
+             HeapAllocationFunctions.count(
+                 CS.getCalledFunction()->getName().str());
+    }
+    return false;
+  }
+  return false;
+}
+
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
-  FType->print(llvm::outs());
+  // FType->print(llvm::outs());
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     unsigned i = 0;
@@ -51,7 +70,11 @@ std::string llvmIRToString(const llvm::Value *V) {
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     RSO << ", ID: " << getMetaDataID(Inst);
   }
+  if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    RSO << ", ID: " << getMetaDataID(GV);
+  }
   RSO.flush();
+  boost::trim_left(IRBuffer);
   return IRBuffer;
 }
 
@@ -71,10 +94,19 @@ globalValuesUsedinFunction(const llvm::Function *F) {
   return globals_used;
 }
 
-std::string getMetaDataID(const llvm::Instruction *I) {
-  return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
+std::string getMetaDataID(const llvm::Value *V) {
+  if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
       ->getString()
       .str();
+  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    if (!isLLVMZeroValue(V)) {
+      return llvm::cast<llvm::MDString>(GV->getMetadata(MetaDataKind)->getOperand(0))
+        ->getString()
+        .str();
+    }
+  }
+  return "-1";
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
@@ -114,9 +146,9 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
     return BB->getParent() ? BB->getParent()->getParent() : nullptr;
 
   if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    const llvm::Function *M =
+    const llvm::Function *F =
         I->getParent() ? I->getParent()->getParent() : nullptr;
-    return M ? M->getParent() : nullptr;
+    return F ? F->getParent() : nullptr;
   }
   if (const llvm::GlobalValue *GV = llvm::dyn_cast<llvm::GlobalValue>(V))
     return GV->getParent();

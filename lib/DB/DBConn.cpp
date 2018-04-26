@@ -970,8 +970,8 @@ void DBConn::storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
         thpstmt->setBlob(2, &sst);
         thpstmt->setNull(3, 0);
         // Write type hiearchy graph as dot file
-        ofstream myfile("LTHGraph.dot");
-        TH.printGraphAsDot(myfile);
+        // ofstream myfile("LTHGraph.dot");
+        // TH.printGraphAsDot(myfile);
       }
       thpstmt->executeUpdate();
 
@@ -1187,7 +1187,7 @@ void DBConn::buildDBScheme() {
       "`module_id` INT(11) NOT NULL AUTO_INCREMENT, "
       "`identifier` VARCHAR(512) NULL DEFAULT NULL, "
       "`hash` VARCHAR(512) NULL DEFAULT NULL, "
-      "`code` BLOB NULL DEFAULT NULL, "
+      "`code` LONGBLOB NULL DEFAULT NULL, "
       "PRIMARY KEY (`module_id`)) "
       "ENGINE = InnoDB "
       "DEFAULT CHARACTER SET = utf8 "
@@ -1207,7 +1207,7 @@ void DBConn::buildDBScheme() {
   static const string create_type_hierarchy(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`type_hierarchy` ( "
       "`type_hierarchy_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`type_hierarchy_id`)) "
       "ENGINE = InnoDB "
@@ -1229,7 +1229,7 @@ void DBConn::buildDBScheme() {
   static const string create_callgraph(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`callgraph` ( "
       "`callgraph_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`callgraph_id`)) "
       "ENGINE = InnoDB "
@@ -1240,7 +1240,7 @@ void DBConn::buildDBScheme() {
   static const string create_points_to_graph(
       "CREATE TABLE IF NOT EXISTS `phasardb`.`points-to_graph` ( "
       "`points-to_graph_id` INT(11) NOT NULL AUTO_INCREMENT, "
-      "`representation` BLOB NULL DEFAULT NULL, "
+      "`representation` LONGBLOB NULL DEFAULT NULL, "
       "`representation_ref` VARCHAR(512) NULL DEFAULT NULL, "
       "PRIMARY KEY (`points-to_graph_id`)) "
       "ENGINE = InnoDB "

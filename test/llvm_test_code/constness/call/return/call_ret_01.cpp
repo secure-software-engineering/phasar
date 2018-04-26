@@ -1,10 +1,10 @@
-/* mutable: i */
+/* - | - | mem2reg */
 int foo() {
-	return 42;
+	int *a = new int(42);
+	return *a;
 }
 
 int main() {
-	int i = 10;
-	i = foo();
+	int i = foo();
 	return 0;
 }

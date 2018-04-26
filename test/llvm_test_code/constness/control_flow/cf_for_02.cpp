@@ -1,9 +1,10 @@
-/* mutable: c,i */
+/* c | %1 (ID: 1) | mem2reg */
+extern bool cond;
 int main() {
-	int c = 42;
+	int *c = new int(0);
 	for (int i = 0; i < 2; ++i) {
-		if (i > 2)
-      c ++;
+		if (cond)
+      *c = 20;
 	}
 	return 0;
 }

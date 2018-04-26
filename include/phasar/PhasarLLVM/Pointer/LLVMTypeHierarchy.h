@@ -204,6 +204,10 @@ public:
 
   json getAsJson();
 
+  unsigned getNumOfVertices();
+
+  unsigned getNumOfEdges();
+
   // these are defined in the DBConn class
   /**
    * 	@brief %LLVMStructTypeHierarchy store operator.

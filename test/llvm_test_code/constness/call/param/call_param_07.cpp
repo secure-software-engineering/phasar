@@ -1,12 +1,13 @@
-/* mutable: - */
-void foo(int* a) {
-	int b = *a;
+/* i | %1 (ID: 4) | mem2reg */
+void foo(int *p) {
+  *p = 42;
 }
 
+void bar(int *b) {
+  foo(b);
+}
 int main() {
-	int i = 10;
-	int j = 13;
-  foo(&i);
-  foo(&j);
-	return 0;
+  int *i = new int(24);
+  bar(i);
+  return 0;
 }

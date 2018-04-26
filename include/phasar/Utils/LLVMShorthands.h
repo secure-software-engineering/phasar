@@ -19,14 +19,17 @@
 
 #include <functional>
 #include <iostream>
+#include <boost/algorithm/string/trim.hpp>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
 #include <phasar/Config/Configuration.h>
+#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
 #include <vector>
 
 /**
@@ -36,6 +39,12 @@
  * otherwise.
  */
 bool isFunctionPointer(const llvm::Value *V) noexcept;
+
+/**
+ * @brief Checks if the given LLVM Value is either a alloca instruction or a
+ * heap allocation function, e.g. new, new[], malloc, realloc or calloc.
+ */
+bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 
 // TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
@@ -53,10 +62,12 @@ std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
- * @brief Returns the meta data id of a given LLVM Instruction.
- * @return Meta data id as a string.
+ * Only Instructions and GlobalVariables have ID's.
+ * @brief Returns the ID of a given LLVM Value.
+ * @return Meta data ID as a string or -1, if it's not
+ * an Instruction or a GlobalVariable.
  */
-std::string getMetaDataID(const llvm::Instruction *);
+std::string getMetaDataID(const llvm::Value *V);
 
 /**
  * The Argument count starts with 0.

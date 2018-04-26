@@ -33,6 +33,9 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
         if (const llvm::AllocaInst *alloc =
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
           allocatedTypes.insert(alloc->getAllocatedType());
+          // do not add allocas from llvm internal functions
+          allocaInstrucitons.insert(&I);
+          ++allocationsites;
         } // check bitcast instructions for possible types
         else {
           for (auto user : I.users()) {
@@ -41,6 +44,18 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
               // types.insert(cast->getDestTy());
             }
           }
+        }
+        // check for return or resume instrucitons
+        if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
+          retResInstructions.insert(&I);
+        }
+        // check for store instrucitons
+        if (llvm::isa<llvm::StoreInst>(I)) {
+          ++storeInstructions;
+        }
+        // check for llvm's memory intrinsics
+        if (llvm::isa<llvm::MemIntrinsic>(I)) {
+          ++memIntrinsic;
         }
 
         // check for function calls
@@ -51,6 +66,8 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
             if (mem_allocating_functions.find(
                     cxx_demangle(CS.getCalledFunction()->getName().str())) !=
                 mem_allocating_functions.end()) {
+              // do not add allocas from llvm internal functions
+              allocaInstrucitons.insert(&I);
               ++allocationsites;
             }
           }
@@ -71,6 +88,25 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
 bool GeneralStatisticsPass::doInitialization(llvm::Module &M) { return false; }
 
 bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
+  #ifdef PERFORMANCE_EVA
+  // add moduleID to counter names if performing MWA!
+  //const std::string moduleID = " [" + M.getModuleIdentifier() + "]";
+  // for performance reasons (and out of sheer convenience) we simply initialize
+  // the counter with the values of the counter varibles, i.e. PAMM simply
+  // holds the results.
+  PAMM &pamm = PAMM::getInstance();
+  pamm.regCounter("GS Functions"/* + moduleID*/, functions);
+  pamm.regCounter("GS Globals"/* + moduleID*/, globals);
+  pamm.regCounter("GS Basic Blocks"/* + moduleID*/, basicblocks);
+  pamm.regCounter("GS Allocation-Sites"/* + moduleID*/, allocationsites);
+  pamm.regCounter("GS Call-Sites"/* + moduleID*/, callsites);
+  pamm.regCounter("GS Pointer Variables"/* + moduleID*/, pointers);
+  pamm.regCounter("GS Instructions"/* + moduleID*/, instructions);
+  pamm.regCounter("GS Store Instructions"/* + moduleID*/, storeInstructions);
+  pamm.regCounter("GS Memory Intrinsics"/* + moduleID*/, memIntrinsic);
+  pamm.regCounter("GS Allocated Types"/* + moduleID*/, allocatedTypes.size());
+  return false;
+#else
   llvm::outs() << "GeneralStatisticsPass summary for module: '"
                << M.getName().str() << "'\n";
   llvm::outs() << "functions: " << functions << "\n";
@@ -80,12 +116,15 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   llvm::outs() << "calls-sites: " << callsites << "\n";
   llvm::outs() << "pointer variables: " << pointers << "\n";
   llvm::outs() << "instructions: " << instructions << "\n";
+  llvm::outs() << "store instructions: " << storeInstructions << "\n";
+  llvm::outs() << "llvm memory intrinsics: " << memIntrinsic << "\n";
   llvm::outs() << "allocated types:\n";
   for (auto type : allocatedTypes) {
     type->print(llvm::outs());
   }
   llvm::outs() << "\n\n";
   return false;
+#endif
 }
 
 void GeneralStatisticsPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
@@ -104,4 +143,12 @@ size_t GeneralStatisticsPass::getPointers() { return pointers; }
 
 set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
   return allocatedTypes;
+}
+
+set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
+  return allocaInstrucitons;
+}
+
+set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
+  return retResInstructions;
 }

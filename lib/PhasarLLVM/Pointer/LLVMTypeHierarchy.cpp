@@ -17,12 +17,15 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy";
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
+  REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
+  REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
@@ -213,8 +216,13 @@ json LLVMTypeHierarchy::getAsJson() {
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, g); ei != ei_end;
          ++ei) {
       J[JsonTypeHierarchyID][g[*vi_v].name] +=
-          g[boost::target(*ei, g)].name;
+        g[boost::target(*ei, g)].name;
     }
   }
   return J;
 }
+
+unsigned LLVMTypeHierarchy::getNumOfVertices() { return boost::num_vertices(g); }
+
+unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
+

@@ -67,7 +67,7 @@ CXX_INCL = -I./lib/json/src/
 
 # Define the google test run parameters
 GTEST_RUN_PARAMS = --gtest_repeat=1
-# GTEST_RUN_PARAMS += --gtest_filter=StoreLLVMTypeHierarchyTest.HandleWriteToHex
+#GTEST_RUN_PARAMS += --gtest_filter=IFDSConstAnalysisTest.*
 
 # Define useful make functions
 recwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call recwildcard,$d/,$2))
@@ -121,10 +121,10 @@ LLVM_FLAGS :=  `llvm-config --cxxflags --ldflags` -O0
 LLVM_FLAGS = -fvisibility-inlines-hidden
 # ifeq ($(OS),$(LINUX))
 # LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib
 # else ifeq ($(OS),$(MAC))
 # LLVM_FLAGS += -I/usr/lib/llvm-3.9/include
-# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib 
+# LLVM_FLAGS += -L/usr/lib/llvm-3.9/lib
 # endif
 LLVM_FLAGS += -D_GNU_SOURCE 
 LLVM_FLAGS += -D__STDC_CONSTANT_MACROS 
