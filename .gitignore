@@ -130,6 +130,3 @@ unittests/PhasarLLVM/ifdside/Problems/IFDSTaintAnalysisTest
 unittests/PhasarLLVM/Pointer/LLVMTypeHierarchyTest
 unittests/Utils/LLVMShorthandsTest
 unittests/Utils/PAMMTest
-
-# Other
-phasar
