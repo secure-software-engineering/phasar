@@ -15,8 +15,13 @@ build:
   script: 
     - mkdir build
     - cd build
-    - cmake -DBUILD_SHARED_LIBS=OFF -DPHASAR_BUILD_UNITTESTS=ON ..
+    - echo "checking RAM"
+    - cat /proc/meminfo
+    - echo "checking CPU(s)"
+    - cat /proc/cpuinfo
+    - cmake -DBUILD_SHARED_LIBS=OFF -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
     - make -j4
+# Fix the unit tests first 
 #    - make test
   only:
     - master
@@ -28,7 +33,7 @@ build:
     name: "PhasarFramework-$CI_BUILD_ID-$CI_BUILD_REF"
     expire_in: 1 week
     paths:
-      - build/docs/
+      - build/docs/*
       - build/phasar
   # depending on the build setup it's a good idea to cache outputs to reduce the build time
   cache:
