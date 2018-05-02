@@ -5,9 +5,8 @@ stages:
 
 # install the necessary build tools 
 before_script: 
-  - apt update && apt-get install -y clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
+  - apt update && apt-get install -y clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 git cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
   - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
-  - apt install -y git
   - git submodule update --init --recursive
   
 build:
@@ -17,7 +16,7 @@ build:
     - mkdir build
     - cd build
     - cmake -DBUILD_SHARED_LIBS=OFF -DPHASAR_BUILD_UNITTESTS=ON ..
-    - make -j
+    - make -j4
 #    - make test
   only:
     - master
