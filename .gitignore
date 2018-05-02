@@ -6,8 +6,8 @@ bin/*
 # build directory for cmake
 build/
 
-# llvm installation
-lib/llvm/*
+# external git submodules
+external/*
 
 # obj/ directory
 obj/
