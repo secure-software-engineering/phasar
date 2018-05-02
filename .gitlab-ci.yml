@@ -14,6 +14,7 @@ build:
   stage: build
   # build all interesting targets
   script: 
+    - mkdir build
     - cd build
     - cmake -DBUILD_SHARED_LIBS=OFF -DPHASAR_BUILD_DOC=ON -DPHASAR_BUILD_UNITTESTS=ON ..
     - make -j
