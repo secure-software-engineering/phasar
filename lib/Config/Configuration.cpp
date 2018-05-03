@@ -22,7 +22,7 @@ const std::string ConfigurationDirectory([]() {
       std::string(std::getenv("HOME")) + "/.config/phasar/";
   return (bfs::exists(phasar_config) && bfs::is_directory(phasar_config))
              ? phasar_config
-             : "../config/";
+             : "config/";
 }());
 const std::string
     GLIBCFunctionListFileName("glibc_function_list_v1-04.05.17.conf");

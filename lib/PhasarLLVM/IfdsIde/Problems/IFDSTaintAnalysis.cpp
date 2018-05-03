@@ -94,35 +94,43 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    struct TAFF : FlowFunction<const llvm::Value *> {
-      const llvm::LoadInst *load;
-      TAFF(const llvm::LoadInst *l) : load(l) {}
-      set<const llvm::Value *>
-      computeTargets(const llvm::Value *source) override {
-        if (source == load->getPointerOperand()) {
-          return {load, source};
-        } else {
-          return {source};
-        }
-      }
-    };
-    return make_shared<TAFF>(Load);
+    // struct TAFF : FlowFunction<const llvm::Value *> {
+    //   const llvm::LoadInst *load;
+    //   TAFF(const llvm::LoadInst *l) : load(l) {}
+    //   set<const llvm::Value *>
+    //   computeTargets(const llvm::Value *source) override {
+    //     if (source == load->getPointerOperand()) {
+    //       return {load, source};
+    //     } else {
+    //       return {source};
+    //     }
+    //   }
+    // };
+    // return make_shared<TAFF>(Load);
+    return make_shared<GenIf<const llvm::Value *>>(
+      Load, zeroValue(), [Load](const llvm::Value *source) {
+        return source == Load->getPointerOperand();
+      });
   }
   // Check is a value is read from a pointer or struct
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
-    struct TAFF : FlowFunction<const llvm::Value *> {
-      const llvm::GetElementPtrInst *gep;
-      TAFF(const llvm::GetElementPtrInst *g) : gep(g) {}
-      set<const llvm::Value *>
-      computeTargets(const llvm::Value *source) override {
-        if (source == gep->getPointerOperand()) {
-          return {gep, source};
-        } else {
-          return {source};
-        }
-      }
-    };
-    return make_shared<TAFF>(GEP);
+    // struct TAFF : FlowFunction<const llvm::Value *> {
+    //   const llvm::GetElementPtrInst *gep;
+    //   TAFF(const llvm::GetElementPtrInst *g) : gep(g) {}
+    //   set<const llvm::Value *>
+    //   computeTargets(const llvm::Value *source) override {
+    //     if (source == gep->getPointerOperand()) {
+    //       return {gep, source};
+    //     } else {
+    //       return {source};
+    //     }
+    //   }
+    // };
+    // return make_shared<TAFF>(GEP);
+    return make_shared<GenIf<const llvm::Value *>>(
+        GEP, zeroValue(), [GEP](const llvm::Value *source) {
+          return source == GEP->getPointerOperand();
+        });
   }
   // Otherwise we do not care and leave everything as it is
   return Identity<const llvm::Value *>::v();
@@ -144,44 +152,44 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    llvm::ImmutableCallSite CallSite(callStmt);
     // Do the mapping
-    struct TAFF : FlowFunction<const llvm::Value *> {
-      llvm::ImmutableCallSite callSite;
-      const llvm::Function *destMthd;
-      const llvm::Value *zerovalue;
-      const IFDSTaintAnalysis *taintanalysis;
-      vector<const llvm::Value *> actuals;
-      vector<const llvm::Value *> formals;
-      TAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
-           const llvm::Value *zv, const IFDSTaintAnalysis *ta)
-          : callSite(cs), destMthd(dm), zerovalue(zv), taintanalysis(ta) {
-        // set up the actual parameters
-        for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-          actuals.push_back(callSite.getArgOperand(idx));
-        }
-        // set up the actual parameters
-        for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-          formals.push_back(getNthFunctionArgument(destMthd, idx));
-        }
-      }
-      set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-        if (!taintanalysis->isZeroValue(source)) {
-          set<const llvm::Value *> res;
-          for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-            if (source == actuals[idx]) {
-              res.insert(formals[idx]); // corresponding formal
-              // res.insert(source); // corresponding actual
-              res.insert(zerovalue);
-            }
-          }
-          return res;
-        } else {
-          return {source};
-        }
-      }
-    };
-    return make_shared<TAFF>(CallSite, destMthd, zeroValue(), this);
+    // struct TAFF : FlowFunction<const llvm::Value *> {
+    //   llvm::ImmutableCallSite callSite;
+    //   const llvm::Function *destMthd;
+    //   const llvm::Value *zerovalue;
+    //   const IFDSTaintAnalysis *taintanalysis;
+    //   vector<const llvm::Value *> actuals;
+    //   vector<const llvm::Value *> formals;
+    //   TAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
+    //        const llvm::Value *zv, const IFDSTaintAnalysis *ta)
+    //       : callSite(cs), destMthd(dm), zerovalue(zv), taintanalysis(ta) {
+    //     // set up the actual parameters
+    //     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+    //       actuals.push_back(callSite.getArgOperand(idx));
+    //     }
+    //     // set up the actual parameters
+    //     for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
+    //       formals.push_back(getNthFunctionArgument(destMthd, idx));
+    //     }
+    //   }
+    //   set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+    //     if (!taintanalysis->isZeroValue(source)) {
+    //       set<const llvm::Value *> res;
+    //       for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+    //         if (source == actuals[idx]) {
+    //           res.insert(formals[idx]); // corresponding formal
+    //           // res.insert(source); // corresponding actual
+    //           res.insert(zerovalue);
+    //         }
+    //       }
+    //       return res;
+    //     } else {
+    //       return {source};
+    //     }
+    //   }
+    // };
+    // return make_shared<TAFF>(llvm::ImmutableCallSite(callStmt), destMthd, zeroValue(), this);
+    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt), destMthd);
   }
   // Pass everything else as identity
   return Identity<const llvm::Value *>::v();
@@ -196,53 +204,55 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getRetFlowFunction()";
   // We must check if the return value is tainted, if so we must taint
   // all useres of the function call.
-  struct TAFF : FlowFunction<const llvm::Value *> {
-    llvm::ImmutableCallSite callSite;
-    const llvm::Function *calleeMthd;
-    const llvm::ReturnInst *exitStmt;
-    const llvm::Value *zerovalue;
-    const IFDSTaintAnalysis *taintanalysis;
-    vector<const llvm::Value *> actuals;
-    vector<const llvm::Value *> formals;
-    TAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
-         const llvm::Instruction *exitstmt, const llvm::Value *zv,
-         const IFDSTaintAnalysis *ta)
-        : callSite(callsite), calleeMthd(callemthd),
-          exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)), zerovalue(zv),
-          taintanalysis(ta) {
-      // set up the actual parameters
-      for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-        actuals.push_back(callSite.getArgOperand(idx));
-      }
-      // set up the actual parameters
-      for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-        formals.push_back(getNthFunctionArgument(calleeMthd, idx));
-      }
-    }
-    set<const llvm::Value *>
-    computeTargets(const llvm::Value *source) override {
-      if (!taintanalysis->isZeroValue(source)) {
-        set<const llvm::Value *> res;
-        res.insert(zerovalue);
-        // collect everything that is returned by value and pointer/ reference
-        for (unsigned idx = 0; idx < formals.size(); ++idx) {
-          if (source == formals[idx] &&
-              formals[idx]->getType()->isPointerTy()) {
-            res.insert(actuals[idx]);
-          }
-        }
-        // collect taints returned by return value
-        if (source == exitStmt->getReturnValue()) {
-          res.insert(callSite.getInstruction());
-        }
-        return res;
-      }
-      // else just draw the zero edge
-      return {source};
-    }
-  };
-  return make_shared<TAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
-                           exitStmt, zeroValue(), this);
+  return make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
+                                       calleeMthd, exitStmt);
+  // struct TAFF : FlowFunction<const llvm::Value *> {
+  //   llvm::ImmutableCallSite callSite;
+  //   const llvm::Function *calleeMthd;
+  //   const llvm::ReturnInst *exitStmt;
+  //   const llvm::Value *zerovalue;
+  //   const IFDSTaintAnalysis *taintanalysis;
+  //   vector<const llvm::Value *> actuals;
+  //   vector<const llvm::Value *> formals;
+  //   TAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
+  //        const llvm::Instruction *exitstmt, const llvm::Value *zv,
+  //        const IFDSTaintAnalysis *ta)
+  //       : callSite(callsite), calleeMthd(callemthd),
+  //         exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
+  //         zerovalue(zv), taintanalysis(ta) {
+  //     // set up the actual parameters
+  //     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+  //       actuals.push_back(callSite.getArgOperand(idx));
+  //     }
+  //     // set up the actual parameters
+  //     for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
+  //       formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+  //     }
+  //   }
+  //   set<const llvm::Value *>
+  //   computeTargets(const llvm::Value *source) override {
+  //     if (!taintanalysis->isZeroValue(source)) {
+  //       set<const llvm::Value *> res;
+  //       res.insert(zerovalue);
+  //       // collect everything that is returned by value and pointer/
+  //       reference for (unsigned idx = 0; idx < formals.size(); ++idx) {
+  //         if (source == formals[idx] &&
+  //             formals[idx]->getType()->isPointerTy()) {
+  //           res.insert(actuals[idx]);
+  //         }
+  //       }
+  //       // collect taints returned by return value
+  //       if (source == exitStmt->getReturnValue()) {
+  //         res.insert(callSite.getInstruction());
+  //       }
+  //       return res;
+  //     }
+  //     // else just draw the zero edge
+  //     return {source};
+  //   }
+  // };
+  // return make_shared<TAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
+  //                          exitStmt, zeroValue(), this);
   // All other stuff is killed at this point
 }
 

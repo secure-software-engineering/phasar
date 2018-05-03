@@ -17,7 +17,7 @@
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GENALL_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_GENALL_H_
 
-#include "../FlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
 using namespace std;

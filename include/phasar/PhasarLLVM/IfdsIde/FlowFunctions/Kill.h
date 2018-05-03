@@ -17,8 +17,7 @@
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_H_
 
-#include "../FlowFunction.h"
-#include <set>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 using namespace std;
 

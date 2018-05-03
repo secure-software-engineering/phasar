@@ -113,49 +113,50 @@ IFDSConstAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
     BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
     BOOST_LOG_SEV(lg, DEBUG) << "Destination method: "
                             << destMthd->getName().str();
-    struct CAFF : FlowFunction<const llvm::Value *> {
-     llvm::ImmutableCallSite callSite;
-     const llvm::Function *destMthd;
-     const llvm::Value *zerovalue;
-     const IFDSConstAnalysis *constanalysis;
-     vector<const llvm::Value *> actuals;
-     vector<const llvm::Value *> formals;
-     CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
-          const llvm::Value *zv, const IFDSConstAnalysis *ca)
-         : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
-       // Set up the actual parameters
-       for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-         actuals.push_back(callSite.getArgOperand(idx));
-       }
-       // Set up the formal parameters
-       for (unsigned idx = 0; idx < destMthd->arg_size();
-            ++idx) {
-         formals.push_back(getNthFunctionArgument(destMthd, idx));
-       }
-     }
-     set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-       auto &lg = lg::get();
-       if (!constanalysis->isZeroValue(source)) {
-         set<const llvm::Value *> res;
-         // Map actual parameter of pointer type into corresponding
-         // formal parameter.
-         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-           if (source == actuals[idx] && actuals[idx]->getType()->isPointerTy()) {
-             BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
-                                      << llvmIRToString(actuals[idx]);
-             BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
-                                      << llvmIRToString(formals[idx]);
-             res.insert(formals[idx]); // corresponding formal
-           }
-         }
-         return res;
-       } else {
-         return {source};
-       }
-     }
-    };
-    return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
-                            zeroValue(), this);
+    // struct CAFF : FlowFunction<const llvm::Value *> {
+    //  llvm::ImmutableCallSite callSite;
+    //  const llvm::Function *destMthd;
+    //  const llvm::Value *zerovalue;
+    //  const IFDSConstAnalysis *constanalysis;
+    //  vector<const llvm::Value *> actuals;
+    //  vector<const llvm::Value *> formals;
+    //  CAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
+    //       const llvm::Value *zv, const IFDSConstAnalysis *ca)
+    //      : callSite(cs), destMthd(dm), zerovalue(zv), constanalysis(ca) {
+    //    // Set up the actual parameters
+    //    for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
+    //      actuals.push_back(callSite.getArgOperand(idx));
+    //    }
+    //    // Set up the formal parameters
+    //    for (unsigned idx = 0; idx < destMthd->arg_size();
+    //         ++idx) {
+    //      formals.push_back(getNthFunctionArgument(destMthd, idx));
+    //    }
+    //  }
+    //  set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+    //    auto &lg = lg::get();
+    //    if (!constanalysis->isZeroValue(source)) {
+    //      set<const llvm::Value *> res;
+    //      // Map actual parameter of pointer type into corresponding
+    //      // formal parameter.
+    //      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+    //        if (source == actuals[idx] && actuals[idx]->getType()->isPointerTy()) {
+    //          BOOST_LOG_SEV(lg, DEBUG) << "Actual Param.: "
+    //                                   << llvmIRToString(actuals[idx]);
+    //          BOOST_LOG_SEV(lg, DEBUG) << "Formal Param.: "
+    //                                   << llvmIRToString(formals[idx]);
+    //          res.insert(formals[idx]); // corresponding formal
+    //        }
+    //      }
+    //      return res;
+    //    } else {
+    //      return {source};
+    //    }
+    //  }
+    // };
+    // return make_shared<CAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
+    //                         zeroValue(), this);
+    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt), destMthd);
   } /* end call/invoke instruction */
 
   // Pass everything else as identity

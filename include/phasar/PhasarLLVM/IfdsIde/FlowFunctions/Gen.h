@@ -17,10 +17,8 @@
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_H_
 
-#include "../FlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
-
-using namespace std;
 
 template <typename D> class Gen : public FlowFunction<D> {
 private:
@@ -30,7 +28,7 @@ private:
 public:
   Gen(D genValue, D zeroValue) : genValue(genValue), zeroValue(zeroValue) {}
   virtual ~Gen() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == zeroValue)
       return {source, genValue};
     else
