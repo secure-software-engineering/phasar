@@ -368,7 +368,73 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
-  throw runtime_error("Not implemented yet!");
+  //throw runtime_error("CHA called");
+  set<string> possible_call_targets;
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call with CHA";
+  if(isVirtualFunctionCall(CS))
+  {
+    cout<< "virtual function called\n";
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Call virtual function: " << llvmIRToString(CS.getInstruction());
+
+    // deal with a virtual member function
+    // retrieve the vtable entry that is called
+    const llvm::LoadInst *load =
+        llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+    const llvm::GetElementPtrInst *gep =
+        llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
+    unsigned vtable_index =
+        llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Virtual function table entry is: " << vtable_index;
+
+    const llvm::Value *receiver = CS.getArgOperand(0);
+    const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
+        receiver->getType()->getPointerElementType());
+    if (!receiver_type) {
+      throw runtime_error("Receiver type is not a struct type!");
+    }
+
+    string receiver_type_name = debasify(receiver_type->getName().str());
+    // insert the receiver types vtable entry
+    possible_call_targets.insert(
+        CH.getVTableEntry(receiver_type_name, vtable_index));
+    // also insert all possible subtypes vtable entries
+    auto fallback_type_names =
+        CH.getTransitivelyReachableTypes(receiver_type_name);
+    for (auto &fallback_name : fallback_type_names) {
+      possible_call_targets.insert(
+          CH.getVTableEntry(fallback_name, vtable_index));}
+    
+    //Virtual Function Call
+  }
+  else
+  {
+    // otherwise we have to deal with a function pointer
+    // if we classified a member function call incorrectly as a function pointer
+    // call, the following treatment is robust enough to handle it.
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Call function pointer: " << llvmIRToString(CS.getInstruction());
+    if (CS.getCalledValue()->getType()->isPointerTy()) {
+      if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
+              CS.getCalledValue()->getType()->getPointerElementType())) {
+        ftype->print(llvm::outs());
+        for (auto f : IRDB.getAllFunctions()) {
+          if (matchesSignature(f, ftype)) {
+            possible_call_targets.insert(f->getName().str());
+          }
+        }
+      }
+    }
+  }
+  /*
+  if(possible_call_targets.empty())
+  {
+    throw runtime_error("possible call Targets empty");
+  }
+  */
+  return possible_call_targets;
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
