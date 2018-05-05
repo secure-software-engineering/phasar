@@ -178,7 +178,24 @@ add_executable(myphasartool
   tools/phasar/myphasartool.cpp
 )
 
-target_link_libraries(myphasartool
+# Fix boost_thread dependency for MacOS
+if(APPLE)
+  set(BOOST_THREAD boost_thread-mt)
+else()
+  set(BOOST_THREAD boost_thread)
+endif()
+
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+  set(PHASAR_PLUGINS_LIB )
+  message(WARNING "Plugins are currently not supported on MacOS platforms")
+else()
+  set(PHASAR_PLUGINS_LIB phasar_plugins)
+endif()
+
+# Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
+# If this list is altered the other one should be altered accordingly.
+target_link_libraries(phasar
   phasar_config
   phasar_controller
   phasar_db
@@ -208,24 +225,7 @@ target_link_libraries(myphasartool
   gtest
 )
 
-# Fix boost_thread dependency for MacOS
-if(APPLE)
-  set(BOOST_THREAD boost_thread-mt)
-else()
-  set(BOOST_THREAD boost_thread)
-endif()
-
-# Workaround: Remove Plugins for MacOS for now
-if(APPLE)
-  set(PHASAR_PLUGINS_LIB )
-  message(WARNING "Plugins are currently not supported on MacOS platforms")
-else()
-  set(PHASAR_PLUGINS_LIB phasar_plugins)
-endif()
-
-# Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
-# If this list is altered the other one should be altered accordingly.
-target_link_libraries(phasar
+target_link_libraries(myphasartool
   phasar_config
   phasar_controller
   phasar_db
