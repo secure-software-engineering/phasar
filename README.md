@@ -227,6 +227,7 @@ should contain one directory which is called 'boost'. Congratulations, now you
 have installed boost. The hardest part is yet to come.
 
 #### Installing LLVM {#installing-llvm}
+FIXME: llvm 5
 When installing LLVM your best bet is probably to install it by using the apt packages.
 First add the llvm-3.9 repository using the following command which is specific for Ubuntu 16.04
 if you have a different version of Ubuntu, please change the following command to your needs!
@@ -259,10 +260,10 @@ This line should be added to the end of your .bashrc as well. You can use this c
 $ echo -e "export PATH="/usr/lib/llvm-3.9/bin:$PATH" >> .bashrc
 
 Almost done! After having everything set-up correctly, you can now continue the
-installation by compiling ourframework. For the sake of compilation we provide
-two mechanisms:
+installation by compiling phasar. We provide two mechanisms: a Makefile and 
+CMake. We recommend the CMake mechanism and consider the Makefile build deprecated.
 
-#### Makefile {#makefile}
+#### Makefile (deprecated) {#makefile}
 Just type 'make' and ourframework will be compiled. As usual 'make clean' will
 delete all compiled and auto-generated files. Using 'make doc' will generate the
 doxygen code documentation. The compiled binary file can be found in the bin/
@@ -286,7 +287,7 @@ $ make plugins
 TODO
 
 
-#### CMake (deprecated) {#cmake}
+#### CMake {#cmake}
 If you are a fan of cmake you probably would like to go this route.
 The following commands will do the job:
 
@@ -303,13 +304,13 @@ directory.
 
 Use the command:
 
-$ bin/main --help
+$ ./phasar --help
 
 in order to display the manual and help message.
 
 Please be careful and check if errors occure during the compilation of our framework.
 
-After having compiled ourframework running small test example seems adequate.
+After having compiled phasar, running small test example seems adequate.
 If errors occur when running the test example your compiler might be
 misconfigured or worse (please report if that happens).
 
@@ -330,6 +331,7 @@ Make sure to use the mac makefile and not the standard one.
 
 
 #### Creating the configuration files {#creating-the-configuration-files}
+FIXME: does it work for cmake build the same way? can we put it into the cmake build so that it's done automatically?
 Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
 
 $ cd misc/
@@ -339,13 +341,16 @@ $ ./make_config.sh
 Done!
 
 ##### Testing single modules {#testing-single-modules}
+
+From here on, we assume that you built phasar with CMake and that you are in the top-level folder of your local phasar repository.
+
 To test if everything works as expected please run the following commands:
 
-$ bin/main --module test_examples/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
+$ build/phasar --module test_examples/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
 
 This is to check if the internal compile mechanism is working.
 
-$ bin/main --module test_examples/installation_tests/module.ll --analysis ifds_uninit --wpa 1
+$ build/phasar --module test_examples/installation_tests/module.ll --analysis ifds_uninit --wpa 1
 
 Here we check if pre-compiled modules work as expected.
 
@@ -370,7 +375,7 @@ $ bear make
 
 $ cd -
 
-$ bin/main --project test_examples/installation_tests/project/ --analysis ifds_uninit --wpa 1
+$ build/phasar --project test_examples/installation_tests/project/ --analysis ifds_uninit --wpa 1
 
 The above commands run small test examples. If any errors occur, the program terminates abnormal or a segmentation fault is displayed please report detailed error messages to the developers.
 
@@ -384,9 +389,9 @@ The analysis that build into ourframework can be selected using the -a or
 --analysis command-line option. Note: more than one analysis can be selected to be
 executed on the code under analsis. Example:
 
-$ bin/main -a ifds_uninit ...
+$ build/phasar -a ifds_uninit ...
 
-$ bin/main -a ifds_uninit ifds_taint ...
+$ build/phasar -a ifds_uninit ifds_taint ...
 
 If no analysis is selected, all available special test analyses will be executed on your code. These test analyses will check if their corresponding solver is working correctly. If such an analysis fails, there is definitely an error within the code or project under analysis or within the framework (which is obviously worse). In any way please report these errors.
 
