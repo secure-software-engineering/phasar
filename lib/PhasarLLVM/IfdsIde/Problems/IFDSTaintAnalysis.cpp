@@ -35,7 +35,7 @@ const map<string, IFDSTaintAnalysis::SourceFunction> IFDSTaintAnalysis::Sources{
     {"fread", IFDSTaintAnalysis::SourceFunction("fread", {0}, false)},
     {"read", IFDSTaintAnalysis::SourceFunction("read", {1}, false)},
     {"fgetc", IFDSTaintAnalysis::SourceFunction("fgetc", true)},
-    {"fgets", IFDSTaintAnalysis::SourceFunction("fgets", true)},
+	{"fgets", IFDSTaintAnalysis::SourceFunction("fgets", {0}, true)},
     {"getc", IFDSTaintAnalysis::SourceFunction("getc", true)},
     {"getchar", IFDSTaintAnalysis::SourceFunction("getchar", true)},
     {"ungetc", IFDSTaintAnalysis::SourceFunction("ungetc", true)}};
