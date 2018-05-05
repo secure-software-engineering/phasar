@@ -341,6 +341,7 @@ $ ./make_config.sh
 Done!
 
 ##### Testing single modules {#testing-single-modules}
+FIXME: internal compilation currently out of order!
 
 From here on, we assume that you built phasar with CMake and that you are in the top-level folder of your local phasar repository.
 
