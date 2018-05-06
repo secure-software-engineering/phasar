@@ -94,7 +94,7 @@ protected:
     }
     std::set<unsigned long> mutableIDs;
     for (auto memloc : allMutableAllocas) {
-      memloc->dump();
+      memloc->print(llvm::outs());
       mutableIDs.insert(std::stoul(getMetaDataID(memloc)));
     }
     EXPECT_EQ(groundTruth, mutableIDs);
