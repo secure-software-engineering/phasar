@@ -36,9 +36,9 @@ public:
   virtual map<N, set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
   virtual bool isZeroValue(D d) const = 0;
-  virtual string DtoString(D d) = 0;
-  virtual string NtoString(N n) = 0;
-  virtual string MtoString(M m) = 0;
+  virtual string DtoString(D d) const = 0;
+  virtual string NtoString(N n) const = 0;
+  virtual string MtoString(M m) const = 0;
   void setSolverConfiguration(SolverConfiguration conf) {
     solver_config = conf;
   }

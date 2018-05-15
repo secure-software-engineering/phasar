@@ -24,7 +24,7 @@
 #include <memory>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
 #include <vector>
@@ -51,20 +51,20 @@ public:
 
   const llvm::Value *createZeroValue() override {
     // create a special value to represent the zero value!
-    return ZeroValue::getInstance();
+    return LLVMZeroValue::getInstance();
   }
 
   bool isZeroValue(const llvm::Value *d) const override {
     return isLLVMZeroValue(d);
   }
 
-  string DtoString(const llvm::Value *d) override { return llvmIRToString(d); }
+  string DtoString(const llvm::Value *d) const override { return llvmIRToString(d); }
 
-  string NtoString(const llvm::Instruction *n) override {
+  string NtoString(const llvm::Instruction *n) const override {
     return llvmIRToString(n);
   }
 
-  string MtoString(const llvm::Function *m) override {
+  string MtoString(const llvm::Function *m) const override {
     return llvmIRToString(m);
   }
 };

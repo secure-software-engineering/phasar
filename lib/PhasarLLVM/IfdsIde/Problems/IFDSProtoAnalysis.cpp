@@ -79,21 +79,21 @@ IFDSProtoAnalysis::initialSeeds() {
 
 const llvm::Value *IFDSProtoAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSProtoAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSProtoAnalysis::DtoString(const llvm::Value *d) {
+string IFDSProtoAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSProtoAnalysis::NtoString(const llvm::Instruction *n) {
+string IFDSProtoAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSProtoAnalysis::MtoString(const llvm::Function *m) {
+string IFDSProtoAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

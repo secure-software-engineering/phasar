@@ -538,7 +538,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
    * llvm::Value.
    */
   if (isLLVMZeroValue(V)) {
-    return ZeroValueInternalName;
+    return LLVMZeroValueInternalName;
   } else if (const llvm::Instruction *I =
                  llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
@@ -584,9 +584,9 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
    * @brief Convertes the given string back into the llvm::Value it represents.
    * @return Pointer to the converted llvm::Value.
    */
-  if (S == ZeroValueInternalName ||
-      S.find(ZeroValueInternalName) != std::string::npos) {
-    return ZeroValue::getInstance();
+  if (S == LLVMZeroValueInternalName ||
+      S.find(LLVMZeroValueInternalName) != std::string::npos) {
+    return LLVMZeroValue::getInstance();
   } else if (S.find(".") == std::string::npos) {
     return getGlobalVariable(S);
   } else if (S.find(".f") != std::string::npos) {

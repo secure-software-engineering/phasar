@@ -78,21 +78,21 @@ IFDSSolverTest::initialSeeds() {
 
 const llvm::Value *IFDSSolverTest::createZeroValue() {
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSSolverTest::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSSolverTest::DtoString(const llvm::Value *d) {
+string IFDSSolverTest::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSSolverTest::NtoString(const llvm::Instruction *n) {
+string IFDSSolverTest::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSSolverTest::MtoString(const llvm::Function *m) {
+string IFDSSolverTest::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

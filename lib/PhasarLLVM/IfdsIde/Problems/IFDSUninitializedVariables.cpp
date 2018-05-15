@@ -343,21 +343,21 @@ const llvm::Value *IFDSUnitializedVariables::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::createZeroValue()";
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSUnitializedVariables::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSUnitializedVariables::DtoString(const llvm::Value *d) {
+string IFDSUnitializedVariables::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSUnitializedVariables::NtoString(const llvm::Instruction *n) {
+string IFDSUnitializedVariables::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSUnitializedVariables::MtoString(const llvm::Function *m) {
+string IFDSUnitializedVariables::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

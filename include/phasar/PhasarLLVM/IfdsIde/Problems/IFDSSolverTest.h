@@ -71,11 +71,11 @@ public:
 
   bool isZeroValue(const llvm::Value *d) const override;
 
-  string DtoString(const llvm::Value *d) override;
+  string DtoString(const llvm::Value *d) const override;
 
-  string NtoString(const llvm::Instruction *n) override;
+  string NtoString(const llvm::Instruction *n) const override;
 
-  string MtoString(const llvm::Function *m) override;
+  string MtoString(const llvm::Function *m) const override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_   \

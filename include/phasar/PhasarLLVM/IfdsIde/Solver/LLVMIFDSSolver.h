@@ -47,10 +47,6 @@ public:
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
         DUMP_RESULTS(dumpResults), Problem(problem) {
-    // cout << "LLVMIFDSSolver::LLVMIFDSSolver()" << endl;
-    // cout << problem.NtoString(getNthInstruction(
-    //             problem.interproceduralCFG().getMethod("main"), 1))
-    //      << endl;
   }
 
   virtual void solve() override {
@@ -70,16 +66,16 @@ public:
     if (results.empty()) {
       cout << "EMPTY\n";
     } else {
-      vector<typename Table<const llvm::Instruction *, const llvm::Value *,
+      vector<typename Table<const llvm::Instruction *, D,
                             BinaryDomain>::Cell>
           cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
       sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, const llvm::Value *,
+           [](typename Table<const llvm::Instruction *, D,
                              BinaryDomain>::Cell a,
-              typename Table<const llvm::Instruction *, const llvm::Value *,
+              typename Table<const llvm::Instruction *, D,
                              BinaryDomain>::Cell b) { return a.r < b.r; });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
@@ -94,11 +90,7 @@ public:
             cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t";
-        if (cells[i].c == nullptr)
-          cout << "  nullptr " << endl;
-        else
-          cout << Problem.DtoString(cells[i].c) << " "
+        cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
                << "\tV:  " << cells[i].v << "\n";
       }
     }

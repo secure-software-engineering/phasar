@@ -31,7 +31,7 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
 public:
   virtual ~IDETabulationProblem() = default;
   virtual shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
-  virtual string VtoString(V v) = 0;
+  virtual string VtoString(V v) const = 0;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_IDETABLUATIONPROBLEM_HH_ */

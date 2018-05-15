@@ -36,7 +36,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSSummaryPool.h>
 #include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -87,11 +87,11 @@ public:
 
   bool isZeroValue(const llvm::Value *d) const override;
 
-  string DtoString(const llvm::Value *d) override;
+  string DtoString(const llvm::Value *d) const override;
 
-  string NtoString(const llvm::Instruction *n) override;
+  string NtoString(const llvm::Instruction *n) const override;
 
-  string MtoString(const llvm::Function *m) override;
+  string MtoString(const llvm::Function *m) const override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \

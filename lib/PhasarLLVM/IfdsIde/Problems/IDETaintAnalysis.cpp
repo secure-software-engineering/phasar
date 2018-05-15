@@ -66,7 +66,7 @@ IDETaintAnalysis::initialSeeds() {
 
 const llvm::Value *IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IDETaintAnalysis::isZeroValue(const llvm::Value *d) const {
@@ -153,18 +153,18 @@ bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDETaintAnalysis::DtoString(const llvm::Value *d) {
+string IDETaintAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IDETaintAnalysis::VtoString(const llvm::Value *v) {
+string IDETaintAnalysis::VtoString(const llvm::Value *v) const {
   return llvmIRToString(v);
 }
 
-string IDETaintAnalysis::NtoString(const llvm::Instruction *n) {
+string IDETaintAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IDETaintAnalysis::MtoString(const llvm::Function *m) {
+string IDETaintAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

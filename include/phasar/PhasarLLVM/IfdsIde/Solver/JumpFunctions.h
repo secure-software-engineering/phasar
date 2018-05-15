@@ -26,9 +26,14 @@
 
 using namespace std;
 
-template <typename N, typename D, typename L> class JumpFunctions {
+// Forward declare the IDETabulationProblem as we require its toString functionality.
+template <typename N, typename D, typename M, typename V, typename I>
+class IDETabulationProblem;
+
+template <typename N, typename D, typename M, typename L, typename I> class JumpFunctions {
 private:
   shared_ptr<EdgeFunction<L>> allTop;
+  const IDETabulationProblem<N, D, M, L, I> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
@@ -50,7 +55,7 @@ protected:
       nonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(shared_ptr<EdgeFunction<L>> allTop) : allTop(allTop) {}
+  JumpFunctions(shared_ptr<EdgeFunction<L>> allTop, const IDETabulationProblem<N, D, M, L, I> &p) : allTop(allTop), problem(p) {}
 
   virtual ~JumpFunctions() = default;
 
@@ -64,11 +69,11 @@ public:
     BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
     BOOST_LOG_SEV(lg, DEBUG)
         << "Fact at source: "
-        << ((sourceVal) ? llvmIRToString(sourceVal) : "nullptr");
+        << problem.DtoString(sourceVal);
     BOOST_LOG_SEV(lg, DEBUG)
         << "Fact at target: "
-        << ((targetVal) ? llvmIRToString(targetVal) : "nullptr");
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << llvmIRToString(target);
+        << problem.DtoString(targetVal);
+    BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target);
     BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString();
     // we do not store the default function (all-top)
     if (function->equalTo(allTop))
@@ -175,10 +180,10 @@ public:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:";
     for (auto &entry : nonEmptyLookupByTargetNode) {
-      BOOST_LOG_SEV(lg, DEBUG) << "Node: " << llvmIRToString(entry.first);
+      BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first);
       for (auto cell : entry.second.cellSet()) {
-        BOOST_LOG_SEV(lg, DEBUG) << "fact at src: " << llvmIRToString(cell.r);
-        BOOST_LOG_SEV(lg, DEBUG) << "fact at dst: " << llvmIRToString(cell.c);
+        BOOST_LOG_SEV(lg, DEBUG) << "fact at src: " << problem.DtoString(cell.r);
+        BOOST_LOG_SEV(lg, DEBUG) << "fact at dst: " << problem.DtoString(cell.c);
         BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString();
       }
     }

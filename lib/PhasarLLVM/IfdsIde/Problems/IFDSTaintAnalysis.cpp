@@ -359,21 +359,21 @@ const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTaintAnalysis::DtoString(const llvm::Value *d) {
+string IFDSTaintAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSTaintAnalysis::NtoString(const llvm::Instruction *n) {
+string IFDSTaintAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSTaintAnalysis::MtoString(const llvm::Function *m) {
+string IFDSTaintAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

@@ -34,7 +34,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMMWAIFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>

@@ -80,21 +80,21 @@ IFDSTypeAnalysis::initialSeeds() {
 }
 
 const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTypeAnalysis::DtoString(const llvm::Value *d) {
+string IFDSTypeAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSTypeAnalysis::NtoString(const llvm::Instruction *n) {
+string IFDSTypeAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSTypeAnalysis::MtoString(const llvm::Function *m) {
+string IFDSTypeAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

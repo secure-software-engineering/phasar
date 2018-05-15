@@ -343,22 +343,22 @@ const llvm::Value *IFDSConstAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IFDSConstAnalysis::isZeroValue(const llvm::Value *d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSConstAnalysis::DtoString(const llvm::Value *d) {
+string IFDSConstAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IFDSConstAnalysis::NtoString(const llvm::Instruction *n) {
+string IFDSConstAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IFDSConstAnalysis::MtoString(const llvm::Function *m) {
+string IFDSConstAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
 

@@ -31,7 +31,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <set>
 #include <string>
@@ -134,13 +134,13 @@ public:
     bool equalTo(shared_ptr<EdgeFunction<const llvm::Value *>> other) override;
   };
 
-  string DtoString(const llvm::Value *d) override;
+  string DtoString(const llvm::Value *d) const override;
 
-  string VtoString(const llvm::Value *v) override;
+  string VtoString(const llvm::Value *v) const override;
 
-  string NtoString(const llvm::Instruction *n) override;
+  string NtoString(const llvm::Instruction *n) const override;
 
-  string MtoString(const llvm::Function *m) override;
+  string MtoString(const llvm::Function *m) const override;
 };
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */

@@ -28,7 +28,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <set>
 #include <string>
@@ -69,11 +69,11 @@ public:
 
   bool isZeroValue(const llvm::Value *d) const override;
 
-  string DtoString(const llvm::Value *d) override;
+  string DtoString(const llvm::Value *d) const override;
 
-  string NtoString(const llvm::Instruction *n) override;
+  string NtoString(const llvm::Instruction *n) const override;
 
-  string MtoString(const llvm::Function *m) override;
+  string MtoString(const llvm::Function *m) const override;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_   \

@@ -49,7 +49,6 @@ public:
 
   void dumpResults() {
     cout << "### DUMP LLVMIDESolver results\n";
-    // TODO present results in a nicer way than just calling llvm's dump()
     // for the following line have a look at:
     // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
     // https://isocpp.org/wiki/faq/templates#nondependent-name-lookup-members
@@ -57,17 +56,17 @@ public:
     if (results.empty()) {
       cout << "EMPTY" << endl;
     } else {
-      vector<typename Table<const llvm::Instruction *, const llvm::Value *,
-                            const llvm::Value *>::Cell>
+      vector<typename Table<const llvm::Instruction *, D,
+                            V>::Cell>
           cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
       sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, const llvm::Value *,
-                             const llvm::Value *>::Cell a,
-              typename Table<const llvm::Instruction *, const llvm::Value *,
-                             const llvm::Value *>::Cell b) {
+           [](typename Table<const llvm::Instruction *, D,
+                             V>::Cell a,
+              typename Table<const llvm::Instruction *, D,
+                             V>::Cell b) {
              return a.r < b.r;
            });
       const llvm::Instruction *prev = nullptr;
@@ -83,24 +82,10 @@ public:
             cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t";
-        if (cells[i].c == nullptr)
-          cout << "  nullptr " << endl;
-        else
-          cout << Problem.DtoString(cells[i].c) << " "
+        cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
                << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
-    //		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
-    //		auto resultAtEnd =
-    // this->resultsAt(this->icfg.getLastInstructionOf("main"));
-    //		for (auto entry : resultAtEnd) {
-    //			cout << "\t--- begin entry ---" << endl;
-    //			entry.first->dump();
-    //			cout << entry.second << endl;
-    //			cout << "\t--- end entry ---" << endl;
-    //		}
-    //		cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << endl;
   }
 
   void dumpAllInterPathEdges() {

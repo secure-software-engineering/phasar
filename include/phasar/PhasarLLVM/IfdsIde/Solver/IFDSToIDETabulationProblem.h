@@ -134,17 +134,17 @@ public:
     return EdgeIdentity<BinaryDomain>::v();
   }
 
-  string DtoString(D d) override { return problem.DtoString(d); }
+  string DtoString(D d) const override { return problem.DtoString(d); }
 
-  string VtoString(BinaryDomain v) override {
+  string VtoString(BinaryDomain v) const override {
     ostringstream osst;
     osst << v;
     return osst.str();
   }
 
-  string MtoString(M m) override { return problem.MtoString(m); }
+  string MtoString(M m) const override { return problem.MtoString(m); }
 
-  string NtoString(N n) override { return problem.NtoString(n); }
+  string NtoString(N n) const override { return problem.NtoString(n); }
 };
 
 #endif

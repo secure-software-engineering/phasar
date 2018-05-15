@@ -29,7 +29,7 @@
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
 #include <phasar/Config/Configuration.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <vector>
 
 /**

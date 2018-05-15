@@ -78,7 +78,7 @@ public:
         computePersistedSummaries(
             tabulationProblem.solver_config.computePersistedSummaries),
         allTop(tabulationProblem.allTopFunction()),
-        jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
+        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver::IDESolver() ctor with IDEProblem" << endl;
   }
@@ -485,8 +485,6 @@ private:
     BOOST_LOG_SEV(lg, DEBUG)
         << "process normal at target: "
         << ideTabulationProblem.NtoString(edge.getTarget());
-    if (edge.factAtSource() == nullptr)
-      BOOST_LOG_SEV(lg, DEBUG) << "fact at source is nullptr";
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
@@ -672,7 +670,7 @@ protected:
 
   shared_ptr<EdgeFunction<V>> allTop;
 
-  shared_ptr<JumpFunctions<N, D, V>> jumpFn;
+  shared_ptr<JumpFunctions<N, D, M, V, I>> jumpFn;
 
   // stores summaries that were queried before they were computed
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
@@ -712,7 +710,7 @@ protected:
         computePersistedSummaries(
             ideTabulationProblem.solver_config.computePersistedSummaries),
         allTop(ideTabulationProblem.allTopFunction()),
-        jumpFn(make_shared<JumpFunctions<N, D, V>>(allTop)),
+        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop, ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
     // cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
   }

@@ -71,7 +71,7 @@ IDESolverTest::initialSeeds() {
 const llvm::Value *IDESolverTest::createZeroValue() {
   cout << "IDESolverTest::createZeroValue()\n";
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IDESolverTest::isZeroValue(const llvm::Value *d) const {
@@ -174,19 +174,19 @@ bool IDESolverTest::IDESolverTestAllTop::equalTo(
   return false;
 }
 
-string IDESolverTest::DtoString(const llvm::Value *d) {
+string IDESolverTest::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IDESolverTest::VtoString(const llvm::Value *v) {
+string IDESolverTest::VtoString(const llvm::Value *v) const {
   // return llvmIRToString(v);
   return "empty V test";
 }
 
-string IDESolverTest::NtoString(const llvm::Instruction *n) {
+string IDESolverTest::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IDESolverTest::MtoString(const llvm::Function *m) {
+string IDESolverTest::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

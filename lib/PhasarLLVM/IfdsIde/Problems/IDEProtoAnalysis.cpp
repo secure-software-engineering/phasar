@@ -74,7 +74,7 @@ IDEProtoAnalysis::initialSeeds() {
 const llvm::Value *IDEProtoAnalysis::createZeroValue() {
   cout << "IDEProtoAnalysis::createZeroValue()\n";
   // create a special value to represent the zero value!
-  return ZeroValue::getInstance();
+  return LLVMZeroValue::getInstance();
 }
 
 bool IDEProtoAnalysis::isZeroValue(const llvm::Value *d) const {
@@ -178,18 +178,18 @@ bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo(
   return false;
 }
 
-string IDEProtoAnalysis::DtoString(const llvm::Value *d) {
+string IDEProtoAnalysis::DtoString(const llvm::Value *d) const {
   return llvmIRToString(d);
 }
 
-string IDEProtoAnalysis::VtoString(const llvm::Value *v) {
+string IDEProtoAnalysis::VtoString(const llvm::Value *v) const {
   return llvmIRToString(v);
 }
 
-string IDEProtoAnalysis::NtoString(const llvm::Instruction *n) {
+string IDEProtoAnalysis::NtoString(const llvm::Instruction *n) const {
   return llvmIRToString(n);
 }
 
-string IDEProtoAnalysis::MtoString(const llvm::Function *m) {
+string IDEProtoAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }

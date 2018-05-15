@@ -1,0 +1,137 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#include <llvm/IR/Constant.h>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+using namespace std;
+
+LCAPair::LCAPair() : first(nullptr), second(0) {}
+
+LCAPair::LCAPair(const llvm::Value *V, int i) : first(V), second(i) {}
+
+bool operator==(const LCAPair &lhs, const LCAPair &rhs) {
+  return std::tie(lhs.first, lhs.second) == std::tie(rhs.first, rhs.second);
+}
+
+bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
+  return std::tie(lhs.first, lhs.second) < std::tie(rhs.first, rhs.second);
+}
+
+std::size_t hash<LCAPair>::operator()(const LCAPair &k) const {
+  return std::hash<const llvm::Value *>()(k.first) ^ std::hash<int>()(k.second);
+}
+
+IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
+    LLVMBasedICFG &icfg, vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+  IFDSLinearConstantAnalysis::zerovalue = createZeroValue();
+}
+
+shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::getNormalFlowFunction(
+    IFDSLinearConstantAnalysis::n_t curr,
+    IFDSLinearConstantAnalysis::n_t succ) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getNormalFlowFunction()";
+  return Identity<d_t>::v();
+}
+
+shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::getCallFlowFunction(
+    IFDSLinearConstantAnalysis::n_t callStmt,
+    IFDSLinearConstantAnalysis::m_t destMthd) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getCallFlowFunction()";
+  return Identity<d_t>::v();
+}
+
+shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::getRetFlowFunction(
+    IFDSLinearConstantAnalysis::n_t callSite,
+    IFDSLinearConstantAnalysis::m_t calleeMthd,
+    IFDSLinearConstantAnalysis::n_t exitStmt,
+    IFDSLinearConstantAnalysis::n_t retSite) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getRetFlowFunction()";
+  return Identity<d_t>::v();
+}
+
+shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
+    IFDSLinearConstantAnalysis::n_t callSite,
+    IFDSLinearConstantAnalysis::n_t retSite) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()";
+  return Identity<d_t>::v();
+}
+
+shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::getSummaryFlowFunction(
+    IFDSLinearConstantAnalysis::n_t callStmt,
+    IFDSLinearConstantAnalysis::m_t destMthd) {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getSummaryFlowFunction()";
+  return nullptr;
+}
+
+map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
+IFDSLinearConstantAnalysis::initialSeeds() {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::initialSeeds()";
+  map<IFDSLinearConstantAnalysis::n_t, set<d_t>> SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                                  set<d_t>({zeroValue()})));
+  }
+  return SeedMap;
+}
+
+IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() {
+  auto &lg = lg::get();
+  BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::createZeroValue()";
+  // create a special value to represent the zero value!
+  return LCAPair(LLVMZeroValue::getInstance(), 0);
+}
+
+bool IFDSLinearConstantAnalysis::isZeroValue(
+    IFDSLinearConstantAnalysis::d_t d) const {
+  return d == zerovalue;
+}
+
+string
+IFDSLinearConstantAnalysis::DtoString(IFDSLinearConstantAnalysis::d_t d) const {
+  return '<' + llvmIRToString(d.first) + ", " + to_string(d.second) + '>';
+}
+
+string
+IFDSLinearConstantAnalysis::NtoString(IFDSLinearConstantAnalysis::n_t n) const {
+  return llvmIRToString(n);
+}
+
+string
+IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
+  return m->getName().str();
+}
