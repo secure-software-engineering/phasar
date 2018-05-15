@@ -20,6 +20,7 @@ enum class DataFlowAnalysisType {
   IFDS_ConstAnalysis,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
+  IDE_TypeStateAnalysis,
   IFDS_TypeAnalysis,
   IFDS_SolverTest,
   IDE_SolverTest,

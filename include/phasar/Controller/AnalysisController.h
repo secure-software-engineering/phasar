@@ -26,6 +26,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>

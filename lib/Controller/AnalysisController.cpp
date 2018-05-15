@@ -176,6 +176,15 @@ AnalysisController::AnalysisController(
           FinalResultsJson += llvmtaintsolver.getAsJson();
           break;
         }
+        case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
+          IDETypeStateAnalysis typestateproblem(ICFG, EntryPoints);
+          LLVMIDESolver<const llvm::Value *, State,
+                        LLVMBasedICFG &>
+              llvmtypestatesolver(typestateproblem, true);
+          llvmtypestatesolver.solve();
+          FinalResultsJson += llvmtypestatesolver.getAsJson();
+          break;
+        }
         case DataFlowAnalysisType::IFDS_TypeAnalysis: {
           IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
           LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
