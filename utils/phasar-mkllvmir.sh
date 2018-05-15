@@ -20,10 +20,10 @@ if [[ "$1" = "-mem2reg" ]]; then
   for file in *.{cpp,c}; do
     if [[ $file == *.cpp ]]; then
       bname=$(basename ${file} .cpp)
-      clang++ -std=c++14 -emit-llvm -S ${file} -o ${bname}.ll.pp
+      clang++ -std=c++14 -emit-llvm -S -Xclang -disable-O0-optnone ${file} -o ${bname}.ll.pp
     else
       bname=$(basename ${file} .c)
-      clang -emit-llvm -S ${file} -o ${bname}.ll.pp
+      clang -emit-llvm -S -Xclang -disable-O0-optnone ${file} -o ${bname}.ll.pp
     fi
     opt -mem2reg -S ${bname}.ll.pp &> ${bname}.ll
     rm ${bname}.ll.pp
@@ -33,10 +33,10 @@ elif [[ "$1" = "-unittest" ]]; then
     if grep -q "mem2reg" ${file}; then
       if [[ $file == *.cpp ]]; then
         bname=$(basename ${file} .cpp)
-        clang -std=c++14 -emit-llvm -S ${file} -o ${bname}.ll.pp
+        clang -std=c++14 -emit-llvm -S -Xclang -disable-O0-optnone ${file} -o ${bname}.ll.pp
       else
         bname=$(basename ${file} .c)
-        clang -emit-llvm -S ${file} -o ${bname}.ll.pp
+        clang -emit-llvm -S -Xclang -disable-O0-optnone ${file} -o ${bname}.ll.pp
       fi
       opt -mem2reg -S ${bname}.ll.pp &> $(dirname ${file})"/${bname}.ll"
       rm ${bname}.ll.pp
