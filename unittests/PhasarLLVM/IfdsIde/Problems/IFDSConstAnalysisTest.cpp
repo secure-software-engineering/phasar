@@ -1,17 +1,21 @@
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 
 /* ============== TEST FIXTURE ============== */
 
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToTests = "test_code/llvm_test_code/constness/";
+  const std::string pathToTests =
+      /*PhasarDirectory + */ "../../../../../test/llvm_test_code/constness/";
   const std::vector<std::string> EntryPoints = {"main"};
-  const std::set<std::string> IgnoredGlobalNames = {
-      "llvm.used", "llvm.compiler.used", "llvm.global_ctors",
-      "llvm.global_dtors", "vtable", "typeinfo"};
+  const std::set<std::string> IgnoredGlobalNames = {"llvm.used",
+                                                    "llvm.compiler.used",
+                                                    "llvm.global_ctors",
+                                                    "llvm.global_dtors",
+                                                    "vtable",
+                                                    "typeinfo"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
@@ -45,10 +49,11 @@ protected:
   compareResults(const std::set<unsigned long> &groundTruth,
                  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> &solver) {
     // get all stack and heap alloca instructions
-    //std::set<const llvm::Value *> allMemoryLoc = IRDB->getAllocaInstructions();
+    // std::set<const llvm::Value *> allMemoryLoc =
+    // IRDB->getAllocaInstructions();
     // add global varibales to the memory location set, except the llvm
     // intrinsic global variables
-    //for (auto M : IRDB->getAllModules()) {
+    // for (auto M : IRDB->getAllModules()) {
     //  for (auto &GV : M->globals()) {
     //    if (GV.hasName()) {
     //      string GVName = cxx_demangle(GV.getName().str());
@@ -63,13 +68,14 @@ protected:
       std::set<const llvm::Value *> facts = solver.ifdsResultsAt(RR);
       for (auto fact : facts) {
         if (isAllocaInstOrHeapAllocaFunction(fact) ||
-          (llvm::isa<llvm::GlobalValue>(fact) && !constproblem->isZeroValue(fact))) {
+            (llvm::isa<llvm::GlobalValue>(fact) &&
+             !constproblem->isZeroValue(fact))) {
           allMutableAllocas.insert(fact);
         }
       }
       // Empty facts means the return/resume statement is part of not
       // analyzed function - remove all allocas of that function
-      //if (facts.empty()) {
+      // if (facts.empty()) {
       //  const llvm::Function *F = RR->getParent()->getParent();
       //  for (auto mem_itr = allMemoryLoc.begin();
       //       mem_itr != allMemoryLoc.end();) {
@@ -334,7 +340,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCallReturnTest_03) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_01) {
   SetUp({pathToTests + "array/array_01.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -342,7 +348,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_01) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_02) {
   SetUp({pathToTests + "array/array_02.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -350,7 +356,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_02) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
   SetUp({pathToTests + "array/array_03.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -358,7 +364,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_04) {
   SetUp({pathToTests + "array/array_04.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -366,7 +372,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_04) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
   SetUp({pathToTests + "array/array_05.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({1}, llvmconstsolver);
 }
@@ -374,7 +380,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
   SetUp({pathToTests + "array/array_06.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({1}, llvmconstsolver);
 }
@@ -382,7 +388,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_07) {
   SetUp({pathToTests + "array/array_07.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -390,7 +396,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_07) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
   SetUp({pathToTests + "array/array_08.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -398,7 +404,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
   SetUp({pathToTests + "array/array_09.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({0}, llvmconstsolver);
 }
@@ -407,7 +413,7 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_09) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_01) {
   SetUp({pathToTests + "array/stl_array/stl_array_01.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -415,7 +421,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_01) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
   SetUp({pathToTests + "array/stl_array/stl_array_02.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({1}, llvmconstsolver);
 }
@@ -423,7 +429,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_02) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
   SetUp({pathToTests + "array/stl_array/stl_array_03.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({2}, llvmconstsolver);
 }
@@ -431,7 +437,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_04) {
   SetUp({pathToTests + "array/stl_array/stl_array_04.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -439,7 +445,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_04) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_05) {
   SetUp({pathToTests + "array/stl_array/stl_array_05.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -447,7 +453,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_05) {
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
   SetUp({pathToTests + "array/stl_array/stl_array_06.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({2}, llvmconstsolver);
 }
@@ -456,7 +462,7 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_06) {
 TEST_F(IFDSConstAnalysisTest, HandleCStringTest_01) {
   SetUp({pathToTests + "array/cstring/cstring_01.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({}, llvmconstsolver);
 }
@@ -464,13 +470,13 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_01) {
 TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
   SetUp({pathToTests + "array/cstring/cstring_02.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-    *constproblem, false);
+      *constproblem, false);
   llvmconstsolver.solve();
   compareResults({2}, llvmconstsolver);
 }
 
 /* ============== STRUCTURE TESTS ============== */
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_01) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_01) {
 //  SetUp({pathToTests + "structs/structs_01.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -478,7 +484,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0, 1, 5}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_02) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_02) {
 //  SetUp({pathToTests + "structs/structs_02.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -486,7 +492,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0, 1, 5}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_03) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_03) {
 //  SetUp({pathToTests + "structs/structs_03.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -494,7 +500,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0, 1, 9}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_04) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_04) {
 //  SetUp({pathToTests + "structs/structs_04.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -502,7 +508,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0, 1, 10}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_05) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_05) {
 //  SetUp({pathToTests + "structs/structs_05.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -510,7 +516,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0, 1}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_06) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_06) {
 //  SetUp({pathToTests + "structs/structs_06.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -518,7 +524,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_07) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_07) {
 //  SetUp({pathToTests + "structs/structs_07.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -526,7 +532,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_08) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_08) {
 //  SetUp({pathToTests + "structs/structs_08.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -534,7 +540,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_09) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_09) {
 //  SetUp({pathToTests + "structs/structs_09.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -542,7 +548,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_10) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_10) {
 //  SetUp({pathToTests + "structs/structs_10.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -550,7 +556,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_11) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_11) {
 //  SetUp({pathToTests + "structs/structs_11.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);
@@ -558,7 +564,7 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
 //  compareResults({0}, llvmconstsolver);
 //}
 //
-//TEST_F(IFDSConstAnalysisTest, HandleStructureTest_12) {
+// TEST_F(IFDSConstAnalysisTest, HandleStructureTest_12) {
 //  SetUp({pathToTests + "structs/structs_12.ll"});
 //  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
 //      *constproblem, false);

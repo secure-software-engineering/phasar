@@ -67,6 +67,7 @@ TEST_F(PAMMTest, HandleSetHisto) {
   pamm.addToHistogram("Test-Set", "1");
   pamm.addToHistogram("Test-Set", "1");
   pamm.addToHistogram("Test-Set", "1");
+  pamm.addToHistogram("Test-Set", "1");
   pamm.addToHistogram("Test-Set", "2");
   pamm.addToHistogram("Test-Set", "2");
   pamm.addToHistogram("Test-Set", "2");

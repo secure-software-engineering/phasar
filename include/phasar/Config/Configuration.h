@@ -28,6 +28,8 @@ namespace bfs = boost::filesystem;
 extern const std::string MetaDataKind;
 /// Specifies the directory in which important configuration files are located.
 extern const std::string ConfigurationDirectory;
+/// Specifies the directory in which Phasar is located.
+extern const std::string PhasarDirectory;
 /// Name of the file storing all glibc function names.
 extern const std::string GLIBCFunctionListFileName;
 /// Name of the file storing all LLVM intrinsic function names.

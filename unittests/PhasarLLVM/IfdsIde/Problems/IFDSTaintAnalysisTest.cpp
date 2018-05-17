@@ -1,12 +1,13 @@
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 
 TEST(SecondTest1, SecondTestName1) {
   initializeLogger(true);
-  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/function_call.ll"},
-                   IRDBOptions::NONE);
+  ProjectIRDB IRDB(
+      {"../../../../../test/llvm_test_code/control_flow/function_call.ll"},
+      IRDBOptions::NONE);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
