@@ -1,0 +1,21 @@
+#ifndef {define}
+#define {define}
+
+{include}
+{template}
+class {classname} {baseclass}
+{{
+public:
+{pbattributes}
+{stdf}
+{pbfunc}
+private:
+{pvattributes}
+{basefunc}
+{pvfunc}
+protected:
+{ptattributes}
+{ptfunc}
+}};
+
+#endif
