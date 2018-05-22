@@ -13,14 +13,15 @@ build:
   stage: build
   # build all interesting targets
   script: 
-    - mkdir build
+    - mkdir -p build
     - cd build
     - echo "checking RAM"
     - cat /proc/meminfo
     - echo "checking CPU(s)"
     - cat /proc/cpuinfo
-    - cmake -DBUILD_SHARED_LIBS=OFF -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
+    - cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
     - make -j4
+    # - run-clang-tidy.py 
 # Fix the unit tests first 
 #    - make test
   only:
