@@ -17,6 +17,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -38,6 +39,25 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(LLVMBasedICFG &icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
+  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+    // return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, zeroValue());
+
+    struct UnsereFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+      const llvm::AllocaInst *Alloc;
+      const llvm::Value *ZV;
+      UnsereFlowFunction(const llvm::AllocaInst *A, const llvm::Value *Z) : Alloc(A), ZV(Z) {}
+
+      set<IDETypeStateAnalysis::d_t> computeTargets(IDETypeStateAnalysis::d_t source) override {
+        if (source == ZV) {
+          return { source, Alloc };
+        } else {
+          return { source };
+        }
+      }
+    };
+    return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
+
+  }
   return Identity<IDETypeStateAnalysis::d_t>::v();
 }
 
