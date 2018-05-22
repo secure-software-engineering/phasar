@@ -1,11 +1,11 @@
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 // TODO: figure out how to automatically compare graphs for these tests
 TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph) {
   ProjectIRDB IRDB(
-    {"test_code/llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
+      {"../../../../test/llvm_test_code/type_hierarchies/type_hierarchy_1.ll"});
   LLVMTypeHierarchy TH(IRDB);
   TH.print();
   std::ostringstream oss;
@@ -23,12 +23,12 @@ TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph) {
   boost::write_graphviz_dp(oss2, G, dp);
   oss2.flush();
   std::cout << oss2.str() << std::endl;
-//  ASSERT_EQ(oss.str(),oss2.str());
+  //  ASSERT_EQ(oss.str(),oss2.str());
 }
 
 TEST(LTHGraphDotTest, HandleLoadAndPrintOfEmptyGraph) {
   ProjectIRDB IRDB(
-      {"test_code/llvm_test_code/taint_analysis/growing_example.ll"});
+      {"../../../../test/llvm_test_code/taint_analysis/growing_example.ll"});
   LLVMTypeHierarchy TH(IRDB);
   std::ostringstream oss;
   // Write empty LTH graph as dot to string
@@ -43,16 +43,16 @@ TEST(LTHGraphDotTest, HandleLoadAndPrintOfEmptyGraph) {
   std::ostringstream oss2;
   boost::write_graphviz_dp(oss2, G, dp);
   oss2.flush();
-  ASSERT_EQ(oss.str(),oss2.str());
+  ASSERT_EQ(oss.str(), oss2.str());
 }
 
 TEST(VTableTest, SameTypeDifferentVTables) {
   ProjectIRDB IRDB1(
-    {"test_code/llvm_test_code/module_wise/module_wise_9/src1.ll"});
+      {"../../../../test/llvm_test_code/module_wise/module_wise_9/src1.ll"});
   LLVMTypeHierarchy TH1(IRDB1);
   TH1.print();
   ProjectIRDB IRDB2(
-    {"test_code/llvm_test_code/module_wise/module_wise_9/src2.ll"});
+      {"../../../../test/llvm_test_code/module_wise/module_wise_9/src2.ll"});
   LLVMTypeHierarchy TH2(IRDB2);
   TH2.print();
 }

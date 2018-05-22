@@ -409,8 +409,8 @@ public:
     // main json file
     json jsonData;
     // stop all running timer
-    for (auto timer : RunningTimer) {
-      stopTimer(timer.first);
+    while (!RunningTimer.empty()) {
+      stopTimer(RunningTimer.begin()->first);
     }
     json jTimer;
     for (auto timer : StoppedTimer) {

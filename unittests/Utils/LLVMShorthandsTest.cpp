@@ -1,8 +1,9 @@
-#include <phasar/DB/ProjectIRDB.h>
 #include <gtest/gtest.h>
+#include <phasar/DB/ProjectIRDB.h>
 
 TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/global_stmt.ll"});
+  ProjectIRDB IRDB(
+      {"../../../test/llvm_test_code/control_flow/global_stmt.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 4);
@@ -15,7 +16,7 @@ TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
 }
 
 TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB({"test_code/llvm_test_code/control_flow/if_else.ll"});
+  ProjectIRDB IRDB({"../../../test/llvm_test_code/control_flow/if_else.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 14);

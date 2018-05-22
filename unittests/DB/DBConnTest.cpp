@@ -1,31 +1,31 @@
+#include <gtest/gtest.h>
 #include <phasar/DB/DBConn.h>
 #include <phasar/DB/ProjectIRDB.h>
-#include <gtest/gtest.h>
 
-const std::vector<std::vector<std::string>> IRFiles{
+std::vector<std::vector<std::string>> IRFiles{
     /* IRFiles[0] */
-    {"test_code/llvm_test_code/virtual_callsites/cross_module/base.ll"},
+    {"../../../test/llvm_test_code/virtual_callsites/cross_module/base.ll"},
     /* IRFiles[1] */
-    {"test_code/llvm_test_code/virtual_callsites/cross_module/main.ll",
-     "test_code/llvm_test_code/virtual_callsites/cross_module/utils.ll",
-     "test_code/llvm_test_code/virtual_callsites/cross_module/base.ll",
-     "test_code/llvm_test_code/virtual_callsites/cross_module/derived.ll"},
+    {"../../../test/llvm_test_code/virtual_callsites/cross_module/main.ll",
+     "../../../test/llvm_test_code/virtual_callsites/cross_module/utils.ll",
+     "../../../test/llvm_test_code/virtual_callsites/cross_module/base.ll",
+     "../../../test/llvm_test_code/virtual_callsites/cross_module/derived.ll"},
     /* IRFiles[2] */
-    {"test_code/llvm_test_code/module_wise/module_wise_9/src1.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_9/src2.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_9/src3.ll"},
+    {"../../../test/llvm_test_code/module_wise/module_wise_9/src1.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_9/src2.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_9/src3.ll"},
     /* IRFiles[3] */
-    {"test_code/llvm_test_code/module_wise/module_wise_12/src1.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_12/src2.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_12/main.ll"},
+    {"../../../test/llvm_test_code/module_wise/module_wise_12/src1.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_12/src2.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_12/main.ll"},
     /* IRFiles[4] */
-    {"test_code/llvm_test_code/module_wise/module_wise_13/src1.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_13/src2.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_13/main.ll"},
+    {"../../../test/llvm_test_code/module_wise/module_wise_13/src1.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_13/src2.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_13/main.ll"},
     /* IRFiles[5] */
-    {"test_code/llvm_test_code/module_wise/module_wise_14/src1.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_14/src2.ll",
-     "test_code/llvm_test_code/module_wise/module_wise_14/main.ll"}};
+    {"../../../test/llvm_test_code/module_wise/module_wise_14/src1.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_14/src2.ll",
+     "../../../test/llvm_test_code/module_wise/module_wise_14/main.ll"}};
 
 TEST(StoreLLVMTypeHierarchyTest, HandleMultipleProjects) {
   ProjectIRDB firstIRDB(IRFiles[4]);
