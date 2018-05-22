@@ -27,9 +27,7 @@ const std::string ConfigurationDirectory([]() {
 const std::string PhasarDirectory([]() {
   std::string curr_path = bfs::current_path().string();
   size_t i = curr_path.rfind("build", curr_path.length());
-  if (i != std::string::npos) {
-    return curr_path.substr(0, i);
-  }
+  return curr_path.substr(0, i);
 }());
 const std::string
     GLIBCFunctionListFileName("glibc_function_list_v1-04.05.17.conf");
