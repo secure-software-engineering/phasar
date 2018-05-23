@@ -109,8 +109,12 @@ def getBaseclass():
     baseclassn=[]
     for inp in baseclass:
         #read in baseclass files
-        with open(os.path.join(script_dir,inp)) as f:
-            file = f.read()
+        try:
+            with open(os.path.join(script_dir,inp)) as f:
+                file = f.read()
+        except OSError:
+            print(bcolors.FAIL+"ERROR: Baseclassfile "+inp+" could not be opened. Shutting down..."+bcolors.ENDC)
+            sys.exit(2)
         file=file.split()
 
         #extract filename
@@ -225,6 +229,10 @@ def generateHeaderFile():
     d["classname"]=classname
     d["define"]="_"+classname.upper()+"_H_"
     d["include"]=""
+
+    if "baseclass" in globals():  
+        for i in baseclass:
+            d["include"]+="#include\""+i+"\"\n"
     
     if "headerincludes" in globals():
         if "debug" in globals():
@@ -348,9 +356,6 @@ def generateHeaderFile():
     with open("template/header.template","r") as ftemp:
         template = ftemp.read()
     with open("output/"+classname+".h", "w") as out:
-        if "baseclass" in globals():  
-            for i in baseclass:
-                out.write("#include\""+i+"\"\n")
         out.write(template.format(**d))
 
     if "debug" in globals():
@@ -517,6 +522,20 @@ def main(argv):
     elif(platform.system()!="Linux"):
         print("Error: clang is not supported on this operating system...")
         print("Ignoring clang flag.")
+
+    if (platform.system()=="Linux"):
+        if "debug" in globals():
+            print(bcolors.OKGREEN+"START:Doing compile test..."+bcolors.ENDC)
+        os.system("clang++ -std=c++14 -Wall -Wextra -c output/"+classname+".cpp")
+        try:
+            os.remove(classname+".o")
+        except OSError:
+            pass
+        
+        if "debug" in globals():
+            print(bcolors.OKGREEN+"STOP:compile test finished..."+bcolors.ENDC)
+        
+        
     print(bcolors.OKGREEN+"...done!"+bcolors.ENDC)
 
     
