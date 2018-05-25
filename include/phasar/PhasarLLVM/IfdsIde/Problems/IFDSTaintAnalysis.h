@@ -54,7 +54,7 @@ using namespace std;
 //  -fread - 0
 //  -read - 1
 //  -fgetc - ret
-//  -fgets - ret
+//  -fgets - 0, ret
 //  -getc - ret
 //  -getchar - ret
 //  -ungetc - ret
