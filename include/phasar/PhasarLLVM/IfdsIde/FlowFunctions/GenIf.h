@@ -7,19 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * GenIf.h
- *
- *  Created on: 30.04.2018
- *      Author: rleer
- */
-
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
 
 #include <functional>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <set>
 
 /**
  * @brief Generates the given value if the given predicate evaluates to true.
