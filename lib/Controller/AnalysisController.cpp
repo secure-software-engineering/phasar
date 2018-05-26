@@ -210,9 +210,9 @@ AnalysisController::AnalysisController(
               constproblem, true);
           llvmconstsolver.solve();
           FinalResultsJson += llvmconstsolver.getAsJson();
-          constproblem.printInitilizedSet();
-          REG_COUNTER_WITH_VALUE("Const Init Set Size",constproblem.getInitializedSize());
-          constproblem.printInitilizedSet();
+          constproblem.printInitMemoryLocations();
+          REG_COUNTER_WITH_VALUE("Const Init Set Size", constproblem.initMemoryLocationCount());
+          constproblem.printInitMemoryLocations();
           START_TIMER("DFA Result Computation");
           // TODO need to consider object fields, i.e. getelementptr instructions
           // get all stack and heap alloca instructions
