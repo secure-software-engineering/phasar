@@ -128,6 +128,14 @@ public:
   void analyzeModule(const llvm::Module &M);
 
   /**
+   * @brief Transform the type name to use it.
+   * @param TypeName Name of the type.
+   *
+   * Erase the 'class.' or 'struct.' at the head of type names.
+   */
+  void inline uniformTypeName(std::string &TypeName) const;
+
+  /**
    * 	@brief Computes all types, which are transitiv reachable from
    * 	       the given type.
    * 	@param TypeName Name of the type.

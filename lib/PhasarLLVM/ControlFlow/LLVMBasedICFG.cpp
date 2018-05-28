@@ -265,6 +265,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
+
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call";
   set<string> possible_call_targets;
@@ -364,17 +365,18 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
       }
     }
   }
+
   return possible_call_targets;
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
+
   //throw runtime_error("CHA called");
   set<string> possible_call_targets;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call with CHA";
   if(isVirtualFunctionCall(CS))
   {
-    cout<< "virtual function called\n";
     BOOST_LOG_SEV(lg, DEBUG)
         << "Call virtual function: " << llvmIRToString(CS.getInstruction());
 
@@ -397,16 +399,18 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
     }
 
     string receiver_type_name = debasify(receiver_type->getName().str());
+
     // insert the receiver types vtable entry
     possible_call_targets.insert(
-        CH.getVTableEntry(receiver_type_name, vtable_index));
+      CH.getVTableEntry(receiver_type_name, vtable_index));
+
     // also insert all possible subtypes vtable entries
     auto fallback_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
     for (auto &fallback_name : fallback_type_names) {
       possible_call_targets.insert(
           CH.getVTableEntry(fallback_name, vtable_index));}
-    
+
     //Virtual Function Call
   }
   else
@@ -455,26 +459,28 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
     BOOST_LOG_SEV(lg, DEBUG)
         << "Virtual function table entry is: " << vtable_index;
+
     const llvm::Value *receiver = CS.getArgOperand(0);
     const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
         receiver->getType()->getPointerElementType());
     if (!receiver_type) {
       throw runtime_error("Receiver type is not a struct type!");
     }
+
     string receiver_type_name = debasify(receiver_type->getName().str());
-    // insert the receiver types vtable entry
-    possible_call_targets.insert(
-        CH.getVTableEntry(receiver_type_name, vtable_index));
+
     // also insert all possible subtypes vtable entries
     auto possible_types = IRDB.getAllocatedTypes();
     auto reachable_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
     auto end_it = reachable_type_names.end();
     for (auto possible_type : possible_types) {
-      if (auto possible_type_struct = llvm::dyn_cast<llvm::StructType>(possible_type)) {
-        string type_name = possible_type_struct->getName().str();
-        if (reachable_type_names.find(type_name) != end_it) {
-          possible_call_targets.insert(CH.getVTableEntry(type_name, vtable_index));
+      if (auto possible_type_ptr = llvm::dyn_cast<llvm::PointerType>(possible_type)) {
+        if (auto possible_type_struct = llvm::dyn_cast<llvm::StructType>(possible_type_ptr->getElementType())) {
+          string type_name = possible_type_struct->getName().str();
+          if (reachable_type_names.find(type_name) != end_it) {
+            possible_call_targets.insert(CH.getVTableEntry(type_name, vtable_index));
+          }
         }
       }
     }
@@ -496,6 +502,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
       }
     }
   }
+
   return possible_call_targets;
 }
 
@@ -510,6 +517,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
       if (V->getType()->getPointerElementType()->isStructTy()) {
         string type_name =
             V->getType()->getPointerElementType()->getStructName();
+
         // get the type name and check if it has a virtual member function
         if (CH.containsType(type_name) && CH.containsVTable(type_name)) {
           VTable vtbl = CH.getVTable(type_name);
@@ -524,8 +532,6 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
               }
             }
           }
-        } else {
-          return false;
         }
       }
     }
