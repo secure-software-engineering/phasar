@@ -522,7 +522,7 @@ int main(int argc, const char **argv) {
   bl::core::get()->flush();
   STOP_TIMER("FW Runtime");
   // PRINT_EVA_DATA;
-  //NOTE: Generate an exception if there is no config
-  EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
+  if(VariablesMap.count("config"))
+    EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
   return 0;
 }
