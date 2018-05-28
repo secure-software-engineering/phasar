@@ -5,8 +5,6 @@
 # This little script reads all C++ related source files from the project
 # and formats them using the clang-format tool according to the default 
 # 'google' C++ style scheme.
-# Caution: it is not intended to call this script directly. It should 
-# rather be called by the Makefile.
 
 import os
 

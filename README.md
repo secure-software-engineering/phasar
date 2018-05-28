@@ -1,10 +1,11 @@
 Phasar a LLVM-based Static Analysis Framework
 =============================================
 
-Secure Software Engineering
----------------------------
+Secure Software Engineering Group
+---------------------------------
 
-+ author: Philipp Schubert (philipp.schubert@upb.de)
++ Philipp Schubert (philipp.schubert@upb.de) and others
++ Please also refer to https://phasar.org/
 
 What is Phasar?
 ---------------
@@ -16,23 +17,24 @@ what matters.
 
 How do I get started with Phasar?
 ---------------------------------
-We have some documentation on Phasar in our wiki and also a large range of 
-tutorials on Phasar.
+We have some documentation on Phasar in our wiki. You probably would like to read 
+this document first and then have a look on the material provided on https://phasar.org/
+as well.
 
 Building Phasar
 ---------------
-If you cannot work with one of the prebuild versions of Phasar and would like to
+If you cannot work with one of the pre-built versions of Phasar and would like to
 compile Phasar yourself, then please check the wiki for installing the 
 prerequisites and compilation. It is recommended to compile Phasar your self in
 order to get the full C++ experience and to have full control over the build 
 mode.
 
-Please help us improve Phasar
------------------------------
+Please help us to improve Phasar
+--------------------------------
 You are using Phasar and would like to help us in the future? Then please 
 support us by filling out this [web from](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
 
-By giving us feedback you help to decide in what direct Phasar should stride in
+By giving us feedback you help to decide in what direction Phasar should stride in
 the future and give us clues about our user base. Thank you very much!
 
 
@@ -49,7 +51,6 @@ Table of Contents
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
         * [Installing LLVM](#installing-llvm)
-        * [Makefile](#makefile)
         * [CMake](#cmake)
     * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
@@ -64,7 +65,7 @@ Table of Contents
         * [IFDS_TypeAnalysis](#ifds_typeanalysis)
         * [IFDS_SolverTest](#ifds_solvertest)
         * [IDE_SolverTest](#ide_solvertest)
-        * [Immutability / const-ness analysis (TODO fix name)](#immutability--const-ness-analysis-todo-fix-name)
+        * [IFDS_ConstAnalysis](#ifds_constanalysis)
         * [MONO_Intra_SolverTest](#mono_intra_solvertest)
         * [MONO_Inter_SolverTest](#mono_inter_solvertest)
         * [None](#none)
@@ -84,35 +85,32 @@ Table of Contents
         * [Writing an IDE analysis](#writing-an-ide-analysis)
 
 
-Purpose of this tool <a name="purpose-of-this-tool"></a>
+Purpose of this tool
 --------------------
-TODO descibe what this is all about!
+Phasar provides a static analysis framework that has been implemented on top of LLVM.
+Phasar has been developed with the goal to make static analysis easier, more accessible.
+Furthermore, it tries to establish a novel plattform to evaluate new concepts and ideas
+in the area of program analysis.
 
-### Errors {#errors}
-This framework is still under heavy development. Thus, it might contain errors that
+### Errors
+This framework is still under development. Thus, it might contain errors that
 are (un)known to the developers. If you find an error please send mail and report
-it to the developers. The report should include at least a summary of what you were doing when you hit the error and a complete error message (if possible). We will try to fix bugs as
-quickly as possible, please help us achieving this goal.
+it to the developers. The report should include at least a summary of what you 
+were doing when you hit the error and a complete error message (if possible). 
+We will try to fix bugs as quickly as possible, please help us achieving this goal.
 
-Installation {#installation}
+Installation
 ------------
-The installation of ourframework is not that trivial, since it has some library
+The installation of Phasar is not trivial, since it has some library
 dependencies. The libraries needed in order to be able to compile and run
-ourframework successfully are the following (it is important that the exact
-versions of these libraries are installed if not stated otherwise):
-
-+ LLVM / Clang version 3.9.1
-+ BOOST version 1.63.0 or newer
-+ SQLITE3 version 3.11.0 or newer
-+ BEAR bear 2.2.0 or newer
-+ PYTHON 3.x
+Phasar successfully are the following.
 
 In the following the authors assume that a unix-like system is used.
 Installation guides for the libraries can be found here:
 
 [LLVM / Clang](http://apt.llvm.org/)
 
-[BOOST](http://www.boost.org/doc/libs/1_64_0/more/getting_started/unix-variants.html)
+[BOOST](http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html)
 
 [SQLITE3](https://www.sqlite.org/download.html)
 
@@ -131,11 +129,9 @@ Installation guides for the libraries can be found here:
 [Graphviz](www.graphviz.org)
 
 
-
-
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
-our framework using an Ubuntu (16.04) or Unix-like system.
+Phasar using an Ubuntu (16.04) or Unix-like system.
 
 
 #### Installing ZLIB
@@ -154,26 +150,26 @@ $ sudo apt-get install libncurses5-dev
 Done!
 
 
-#### Installing SQLITE3 {#installing-sqlite3}
+#### Installing SQLITE3
 SQLITE3 can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install sqlite3 libsqlite3-dev
 
 That's it - done.
 
-#### Installing MySQL {#installing-mysql}
+#### Installing MySQL
 MySQL can be installed from the Ubuntu sources using:
 
 $ sudo apt-get install libmysqlcppconn-dev
 
-#### Installing BEAR {#installing-bear}
+#### Installing BEAR
 BEAR can just be installed from the Ubuntu sources:
 
 $ sudo apt-get install bear
 
 Done!
 
-#### Installing PYTHON3 {#installing-python3}
+#### Installing PYTHON3
 Python3 can be installed using the Ubuntu sources as well. Just use
 the command:
 
@@ -195,15 +191,15 @@ Done!
 #### Installing BOOST
 First you have to download the BOOST source files. This can be achieved by:
 
-$ wget https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz
+$ wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
 
 Next the archive file must be extracted by using:
 
-$ tar xvf boost_1_64_0.tar.gz
+$ tar xvf boost_1_66_0.tar.gz
 
 Jump into the directory!
 
-$ cd boost_1_64_0/
+$ cd boost_1_66_0/
 
 The next command which prepares the compilation process assumes that you have
 write permission in your system's /usr/local/ directory.
@@ -226,70 +222,19 @@ $ ls /usr/local/include
 should contain one directory which is called 'boost'. Congratulations, now you
 have installed boost. The hardest part is yet to come.
 
-#### Installing LLVM {#installing-llvm}
-FIXME: llvm 5
-When installing LLVM your best bet is probably to install it by using the apt packages.
-First add the llvm-3.9 repository using the following command which is specific for Ubuntu 16.04
-if you have a different version of Ubuntu, please change the following command to your needs!
-You can find the details for that on the llvm webpage [http://apt.llvm.org/](http://apt.llvm.org/):
+#### Installing LLVM
+When installing LLVM your best bet is probably to install it by using the installer script
+install-llvm-*.sh that can be found in utils/. Parameterize it with the number of cores that
+shall be used for compilation (more is better) and tell it where you would like LLVM to
+be downloaded and build. E.g. use
 
-$ sudo add-apt-repository 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-3.9 main'
+$ ./install-llvm-5.0.1.sh 4 ~/
 
-$ sudo apt-get update
-
-Next you need to get the archives signature using:
-
-$ wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-
-(Fingerprint: 6084 F3CF 814B 57C1 CF12 EFD5 15CF 4D18 AF4F 7421)
-
-Almost done, now you should be able to install all llvm related packages by using the following
-command:
-
-$ apt-get install clang-3.9 clang-3.9-doc libclang-common-3.9-dev libclang-3.9-dev libclang1-3.9 libclang1-3.9-dbg libllvm-3.9-ocaml-dev libllvm3.9 libllvm3.9-dbg lldb-3.9 llvm-3.9 llvm-3.9-dev llvm-3.9-doc llvm-3.9-examples llvm-3.9-runtime clang-format-3.9 python-clang-3.9 libfuzzer-3.9-dev
-
-(If your system complains about missing dependencies for the above packages, install them as suggested by your system. For instance, we know that on some systems libz must be installed, if not installed already.)
-
-It is important that the corresponding include/ and lib/ directories are added
-to the search path, such that ourframework is able to find them (but that is automatically the case if you perform the installation using apt packages). Important: The llvm / clang tools must be added to the search path using the following command:
-
-+ export PATH="/usr/lib/llvm-3.9/bin:$PATH"
-
-This line should be added to the end of your .bashrc as well. You can use this command:
-
-$ echo -e "export PATH="/usr/lib/llvm-3.9/bin:$PATH" >> .bashrc
-
-Almost done! After having everything set-up correctly, you can now continue the
-installation by compiling phasar. We provide two mechanisms: a Makefile and 
-CMake. We recommend the CMake mechanism and consider the Makefile build deprecated.
-
-#### Makefile (deprecated) {#makefile}
-Just type 'make' and ourframework will be compiled. As usual 'make clean' will
-delete all compiled and auto-generated files. Using 'make doc' will generate the
-doxygen code documentation. The compiled binary file can be found in the bin/
-directory. You can use the -j switch to build in parallel reducing the compile time.
-
-$ make -j $(nproc)
-
-##### Some other useful targets for make
-$ make clean
-
-TODO
+to build llvm-5.0.1 using 4 cores in your home directory.
 
 
-$ make tests
-
-TODO
-
-
-$ make plugins
-
-TODO
-
-
-#### CMake {#cmake}
-If you are a fan of cmake you probably would like to go this route.
-The following commands will do the job:
+#### CMake
+Navigate into the Phasar directory. The following commands will do the job at compiling the Phasar framework:
 
 $ mkdir build
 
@@ -297,10 +242,12 @@ $ cd build/
 
 $ cmake ..
 
-$ make -j $(nproc)
+$ make -j $(nproc) # or use a different number of cores to compile it
 
-After compilation using cmake the binary can be found right in the build
-directory.
+After compilation using cmake the following two binaries can be found in the build/ directory:
+
++ phasar - the actual Phasar command-line tool
++ myphasartool - an example tool that shows how tools can be build on top of Phasar
 
 Use the command:
 
@@ -308,16 +255,23 @@ $ ./phasar --help
 
 in order to display the manual and help message.
 
-Please be careful and check if errors occure during the compilation of our framework.
+$ sudo make install
 
-After having compiled phasar, running small test example seems adequate.
-If errors occur when running the test example your compiler might be
-misconfigured or worse (please report if that happens).
+Please be careful and check if errors occur during the compilation.
 
-#### A remark on compile time {#a-remark-on-compile-time}
-C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times. Our handwritten Makefile is able to run in parallel as well (as shown in the above).
+When using CMake to compile Phasar the following optional parameters can be used:
 
-### Brief example using a MacOS system {#brief-example-using-a-MacOS-system}
+| parameter | valid option | effect |
+|-----------|--------------|--------|
+| CMAKE_BUILD_TYPE | Debug or Release | builds Phasar in debug or release mode |
+
+
+#### A remark on compile time
+C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times.
+
+### Brief example using a MacOS system
+TODO what about Mac?
+
 Mac OS 10.13.1 or higher only !
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
@@ -330,108 +284,53 @@ After installing llvm export the llvm variable to your .bash_profil using $ echo
 Make sure to use the mac makefile and not the standard one.
 
 
-#### Creating the configuration files {#creating-the-configuration-files}
-FIXME: does it work for cmake build the same way? can we put it into the cmake build so that it's done automatically?
-Before running ourframework you have to create some configuration files. Do not worry, that can be done automatically. To do that please run the following commands:
+##### Testing single modules
+To test if everything works as expected please run the following commands (we assume that you are in the top-level directory of Phasar):
 
-$ cd misc/
+$ phasar --module test/build_systems_tests/installation_tests/module.ll --analysis ifds_solvertest
 
-$ ./make_config.sh
-
-Done!
-
-##### Testing single modules {#testing-single-modules}
-FIXME: internal compilation currently out of order!
-
-From here on, we assume that you built phasar with CMake and that you are in the top-level folder of your local phasar repository.
-
-To test if everything works as expected please run the following commands:
-
-$ build/phasar --module test_examples/installation_tests/module.cpp --analysis ifds_uninit --wpa 1
-
-This is to check if the internal compile mechanism is working.
-
-$ build/phasar --module test_examples/installation_tests/module.ll --analysis ifds_uninit --wpa 1
-
-Here we check if pre-compiled modules work as expected.
-
-##### Testing whole projects {#testing-whole-projects}
-C and C++ are notoriously hard to analyze. Because of the weak module system it is hard
-to tell which files belong to a specific project even! Usually every project
-comes with a build system. Often cmake or make is used to tell the compile how to compile
-the project. From these mechanisms a database containing the compile commands can be
-generated. When you compile your project using cmake just add the additional switch
--DCMAKE_EXPORT_COMPILE_COMMANDS=1 in order to generate a file named 'compile_commands.json'.
-If your project uses the Makefile mechanism you can use the 'bear' tool with which you prefix your
-make command:
-
-$ bear make
-
-Once the 'compile_commands.json' file has been created continue with the next test.
-In order to check if the digest of whole projects works as well, please try:
-
-$ cd test_examples/installtion_test/project
-
-$ bear make
-
-$ cd -
-
-$ build/phasar --project test_examples/installation_tests/project/ --analysis ifds_uninit --wpa 1
-
-The above commands run small test examples. If any errors occur, the program terminates abnormal or a segmentation fault is displayed please report detailed error messages to the developers.
+If you obtain output other than a segmentation fault everything works as expected.
 
 
-Getting started {#getting-started}
+Getting started
 ---------------
-In the following we will describe how ourframework can be used to perform data-flow analyses.
+In the following we will describe how Phasar can be used to perform data-flow analyses.
 
-### Choosing an existing analysis {#choosing-an-existing-analysis}
-The analysis that build into ourframework can be selected using the -a or
---analysis command-line option. Note: more than one analysis can be selected to be
-executed on the code under analsis. Example:
+### Choosing an existing analysis
+Phasar's built-in analyses can be selected using the -D or --analysis command-line option. 
+Note: more than one analysis can be selected to be executed on the code under analsis. Example:
 
-$ build/phasar -a ifds_uninit ...
+$ phasar -m module.ll -D ifds_solvertest
 
-$ build/phasar -a ifds_uninit ifds_taint ...
+$ phasar -m module.ll -D ifds_solvertest ifds_uninit ...
 
-If no analysis is selected, all available special test analyses will be executed on your code. These test analyses will check if their corresponding solver is working correctly. If such an analysis fails, there is definitely an error within the code or project under analysis or within the framework (which is obviously worse). In any way please report these errors.
+If no analysis is selected only the call-graph and other support data structures are created. 
+If a call using "-D none" fails, there is definitely an error within the code or project under 
+analysis or within the framework (which is obviously worse). In any way please report these errors
+and include your target code that triggers the error.
 
-Currently the following analyses are available in ourframework:
+Currently the following built-in analyses are available in Phasar:
 
-#### IFDS_UninitializedVariables {#ifds_uninitializedvariables}
-TODO: describe what it does!
+| DataFlowAnalysisType | Parameter |
+|----------------------|-----------|
+|DataFlowAnalysisType::IFDS_UninitializedVariables | "ifds_uninit"|
+|DataFlowAnalysisType::IFDS_ConstAnalysis | "ifds_const"|
+|DataFlowAnalysisType::IFDS_TaintAnalysis | "ifds_taint"|
+|DataFlowAnalysisType::IFDS_TypeAnalysis | "ifds_type"|
+|DataFlowAnalysisType::IDE_TaintAnalysis | "ide_taint"|
+|DataFlowAnalysisType::IDE_TypeStateAnalysis | "ide_typestate"|
+|DataFlowAnalysisType::IFDS_SolverTest | "ifds_solvertest"|
+|DataFlowAnalysisType::IDE_SolverTest | "ide_solvertest"|
+|DataFlowAnalysisType::MONO_Intra_FullConstantPropagation | "mono_intra_fullconstpropagation"|
+|DataFlowAnalysisType::MONO_Intra_SolverTest | "mono_intra_solvertest"|
+|DataFlowAnalysisType::MONO_Inter_SolverTest | "mono_inter_solvertest"|
+|DataFlowAnalysisType::Plugin | "plugin"|
+|DataFlowAnalysisType::None | "none"|
 
-#### IFDS_TaintAnalysis {#ifds_taintanalysis}
-TODO: describe what it does!
 
-#### IDE_TaintAnalysis {#ide_taintanalysis}
-TODO: describe what it does!
-
-#### IFDS_TypeAnalysis {#ifds_typeanalysis}
-TODO: describe what it does!
-
-#### IFDS_SolverTest {#ifds_solvertest}
-TODO: describe what it does!
-
-#### IDE_SolverTest {#ide_solvertest}
-TODO: describe what it does!
-
-#### Immutability / const-ness analysis (TODO fix name) {#immutability--const-ness-analysis-todo-fix-name}
-TODO: describe what it does!
-
-#### MONO_Intra_SolverTest {#mono_intra_solvertest}
-TODO: describe what it does!
-
-#### MONO_Inter_SolverTest {#mono_inter_solvertest}
-TODO: describe what it does!
-
-#### None {#none}
-TODO: describe what it does!
-
-### Command line interface {#command-line-interface}
-Ourframework provides a stable command line interface (CLI). In this section the frameworks command line parameters are presented and their characteristics are explained.
-
-TODO: add a more detailed description of what every parameter does and how they can be combined.
+### Command line interface
+Phasar provides a stable command line interface (CLI). The Phasar frameworks supports the parameter that are displayed
+using -h | --help.
 
 Command-line options:
   -h [ --help ]                       Print help message
@@ -479,20 +378,15 @@ Command-line options:
   -O [ --output ] arg (=results.json) Filename for the results
 
 
+### Running an analysis
+When you have chosen an analysis, you can run it on some code. The code on which the analysis runs is LLVM IR code.
 
-
-### Running an analysis {#running-an-analysis}
-When you have chosen an analysis, you can run it on some code. The code on which the analysis runs can be either C/C++ or LLVM IR code. The framework can even run on whole projects.
-
-
-Let us start with an easy example or analyzing some code. First let us consider some C/C++ code that a user would like to analyze. Let us assume there is a file called main.cpp with the following contents:
+Let us start with an easy example of analyzing some code. First let us consider some C/C++ code that a user would like to analyze. Let us assume there is a file called main.cpp with the following contents:
 ```C++
 int main() {
-    int i;
-    int j = 4;
-    int k = 5;
-    int l = i + j;
-    l += k;
+    int i = 1;
+    int j = 2;
+    int k = i + j;
     return 0;
 }
 ```
@@ -507,37 +401,34 @@ After running this command a file named main.ll can be found within the current 
 ; ModuleID = 'main.cpp'
 source_filename = "main.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target triple = "x86_64-unknown-linux-gnu"
 
-; Function Attrs: norecurse nounwind uwtable
+; Function Attrs: noinline norecurse nounwind optnone uwtable
 define i32 @main() #0 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
-  %5 = alloca i32, align 4
   store i32 0, i32* %1, align 4
-  store i32 4, i32* %3, align 4
-  store i32 5, i32* %4, align 4
-  %6 = load i32, i32* %2, align 4
-  %7 = load i32, i32* %3, align 4
-  %8 = add nsw i32 %6, %7
-  store i32 %8, i32* %5, align 4
-  %9 = load i32, i32* %4, align 4
-  %10 = load i32, i32* %5, align 4
-  %11 = add nsw i32 %10, %9
-  store i32 %11, i32* %5, align 4
+  store i32 1, i32* %2, align 4
+  store i32 2, i32* %3, align 4
+  %5 = load i32, i32* %2, align 4
+  %6 = load i32, i32* %3, align 4
+  %7 = add nsw i32 %5, %6
+  store i32 %7, i32* %4, align 4
   ret i32 0
 }
 
-attributes #0 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline norecurse nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
-!llvm.ident = !{!0}
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
 
-!0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{!"clang version 5.0.1 (tags/RELEASE_501/final 332326)"}
 ```
 
-It is important to recognize that all of our analysis run on the IR rather than the originally source code. The file to be analyzed by our framework can be specified using the -m flag. As default behavior ourframework starts the analysis at the very first instruction of the main() function.
+It is important to recognize that all of our analysis run on the IR rather than the originally source code. The file to be analyzed by our framework can be specified using the -m flag. As default behavior Phasar starts the analysis at the very first instruction of the main() function.
 
 An example call would be:
 
@@ -545,8 +436,9 @@ $ main -m path/to/your/main.ll -a ifds_solvertest
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
-The LLVM infrastructure supports many different passes that can be run on the intermediate representation in order to optimize or simplify it. "The compiler front-end typically generates very stupid code" that becomes high quality code when using different passes. One very important pass that might be used is the so called memory to register pass (mem2reg). LLVM follows a register based design (unlike stack-based Java byte code). Conceptually LLVM assumes that it has an infinite amount of registers that it can use. (It is up to the code generator, to produce code that uses the amount of registers available for the target platform.) As you can see in our code example above we use some stack variables i, j, ... and so on. They translate into the LLVM IR as the result of alloca instructions which allocate the desired amount of stack memory. The mem2reg pass now tries to make use of the infinite amount of register in a way that it tries to eliminate as much 'memory cells' as possible and places values into registers instead. Due to complex pointer arithmetic LLVM is most of the time not able to eliminate all alloca instructions. Reducing the amount of memory cells makes analysis-writing much more easy. But it is important that one understand the conceptual step that mem2reg performs. Ourframework runs the mem2reg pass automatically as default behavior on the code under analysis. For beginners and debug reasons this behavior of ourframework can be changed to not running mem2reg by using the --mem2reg option.
+The LLVM infrastructure supports many different passes that can be run on the intermediate representation in order to optimize or simplify it. "The compiler front-end typically generates very stupid code" that becomes high quality code when applying various compiler passes to it. One very important pass that might be used is the so called memory to register pass (mem2reg). LLVM follows a register based design (unlike stack-based Java byte code). Conceptually LLVM assumes that it has an infinite amount of registers that it can use. (It is up to the code generator, to produce code that uses the amount of registers available for the target platform.) As you can see in our code example above we use some stack variables i, j, ... and so on. They translate into the LLVM IR as the result of alloca instructions which allocate the desired amount of stack memory. The mem2reg pass now tries to make use of the infinite amount of register in a way that it tries to eliminate as much 'memory cells' as possible and places values into registers instead. Due to complex pointer arithmetic LLVM is most of the time not able to eliminate all alloca instructions. Reducing the amount of memory cells makes analysis-writing much more easy. But it is important that one understand the conceptual step that mem2reg performs. Phasar runs the mem2reg pass automatically as default behavior on the code under analysis. For beginners and debug reasons this behavior of Phasar can be changed to not running mem2reg by using the --mem2reg option.
 
+TODO!!!
 Let us have a look what the mem2reg pass does to our IR code from above. We run the pass by using the opt tool provided by the compiler tool chain.
 
 $ opt -mem2reg -S main.ll
@@ -573,63 +465,19 @@ attributes #0 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-
 !0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
 ```
 
-As expected LLVM is able to place all values into registers and can completely replace all of the alloca instructions. LLVM is also able to detect that the first addition in the unoptimized IR code uses an uninitialized variable as one of its operands, replacing it using a special undef value. Ourframework does not care if you provide C/C++/LLVM IR or even optimized IR code when using it with the -m command-line option. If the file your provide contains C or C++ code it will compile this code automatically into IR for you and runs additional required passes on it.
+As expected LLVM is able to place all values into registers and can completely replace all of the alloca instructions. Phasar does not care if you provide LLVM IR or optimized IR code when using it with the -m command-line option. But of course it makes sense to compile your source code into LLVM IR using the production flags in order to ensure that Phasar analyzes the code "as your machine sees it".
 
-Ourframework is also able to analyse whole project in a whole program analysis or in a module-wise style. For simplicity we just consider the whole program analysis (WPA) mode. Imagine your project is a Makefile project which has a structure as shown in the following:
 
+#### A concrete example and how to interpret the results
+Let us consider this slightly more complex C++ program (one that involves a function call).
 ```C++
-project/
-    src/
-    doc/
-    ...
-    Makefile
-    ...
-```
-Ourframework needs to understand your project (which files belong to this project, what is compiled, what are macro definitions and so on). For that reason it needs a so called compiler command database which is usually named compile_commands.json. When using a Makefile for a project this database can be generated using the bear tool. You just prefix your call to make with bear like the following:
-
-$ bear make
-
-A compile_commands.json file should now show up within your project directory. Instead of calling ourframework with the -m command-line option you now have to use -p (p for project, of course) and specify the absolute path to your project directory which contains the compile_commands.json file. Ourframework will now internally compile each C or C++ file that belongs to your project into LLVM IR code that it stores in-memory. After having produced all of the IR code it next links all code together leading to one large IR module that makes up your entire program.
-
-An example call is as simple as:
-
-$ main -p /the/path/to/your/project/ -a ifds_solvertest
-
-to run a simple IFDS solver test.
-
-When you would like to analyze a project that uses a CMakeLists.txt you do not even need the bear tool. The cmake command allows specifying the flag -DCMAKE_EXPORT_COMPILE_COMMANDS=1 which will create the compile_commands.json for you. Suppose you have the following project structure:
-
-```C++
-project/
-    src/
-    doc/
-    ...
-    CMakeLists.txt
-    ...
-```
-You can run
-
-$ mkdir build
-$ cd build
-$ cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..
-
-The generated compiler_commands.json will be placed in the current (build/) directory.
-
-#### A concrete example and how to interpret the results {#a-concrete-example-and-how-to-interpret-the-results}
-Let us consider this slightly more complex C++ program:
-```C++
-int function(int x, int y) {
-	int i;
-	int j = x;
-	int k = y;
-	return i+k;
+int function(int x) {
+	return x + 1;
 }
 
 int main(int argc, char** argv) {
-	int i;
-	int j;
-	int k;
-	k = function(j, 12);
+	int i = 42;
+	int j = function(i);
 	return 0;
 }
 ```
@@ -640,1593 +488,98 @@ The above program translates into the following IR code:
 ; ModuleID = 'main.cpp'
 source_filename = "main.cpp"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target triple = "x86_64-unknown-linux-gnu"
 
-; Function Attrs: nounwind uwtable
-define i32 @_Z8functionii(i32, i32) #0 {
-  %3 = alloca i32, align 4
-  %4 = alloca i32, align 4
-  %5 = alloca i32, align 4
-  %6 = alloca i32, align 4
-  %7 = alloca i32, align 4
-  store i32 %0, i32* %3, align 4
-  store i32 %1, i32* %4, align 4
-  %8 = load i32, i32* %3, align 4
-  store i32 %8, i32* %6, align 4
-  %9 = load i32, i32* %4, align 4
-  store i32 %9, i32* %7, align 4
-  %10 = load i32, i32* %5, align 4
-  %11 = load i32, i32* %7, align 4
-  %12 = add nsw i32 %10, %11
-  ret i32 %12
+; Function Attrs: noinline nounwind optnone uwtable
+define i32 @_Z8functioni(i32) #0 {
+  %2 = alloca i32, align 4
+  store i32 %0, i32* %2, align 4
+  %3 = load i32, i32* %2, align 4
+  %4 = add nsw i32 %3, 1
+  ret i32 %4
 }
 
-; Function Attrs: norecurse nounwind uwtable
-define i32 @main(i32, i8**) #1 {
+; Function Attrs: noinline norecurse nounwind optnone uwtable
+define i32 @main() #1 {
+  %1 = alloca i32, align 4
+  %2 = alloca i32, align 4
   %3 = alloca i32, align 4
-  %4 = alloca i32, align 4
-  %5 = alloca i8**, align 8
-  %6 = alloca i32, align 4
-  %7 = alloca i32, align 4
-  %8 = alloca i32, align 4
-  store i32 0, i32* %3, align 4
-  store i32 %0, i32* %4, align 4
-  store i8** %1, i8*** %5, align 8
-  %9 = load i32, i32* %7, align 4
-  %10 = call i32 @_Z8functionii(i32 %9, i32 12)
-  store i32 %10, i32* %8, align 4
+  store i32 0, i32* %1, align 4
+  store i32 42, i32* %2, align 4
+  %4 = load i32, i32* %2, align 4
+  %5 = call i32 @_Z8functioni(i32 %4)
+  store i32 %5, i32* %3, align 4
   ret i32 0
 }
 
-attributes #0 = { nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-attributes #1 = { norecurse nounwind uwtable "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #0 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { noinline norecurse nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
-!llvm.ident = !{!0}
+!llvm.module.flags = !{!0}
+!llvm.ident = !{!1}
 
-!0 = !{!"clang version 3.9.1-4ubuntu3~16.04.1 (tags/RELEASE_391/rc2)"}
+!0 = !{i32 1, !"wchar_size", i32 4}
+!1 = !{!"clang version 5.0.1 (tags/RELEASE_501/final 332326)"}
 ```
 
-Running the [IFDS_UninitializedVariables](#ifds_uninitializedvariables) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
+Running the [IFDS_SolverTest](#ifds_solvertest) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
 
 ```C++
+### DUMP LLVMIFDSSolver results
 --- IFDS START RESULT RECORD ---
-N
-  %3 = alloca i32, align 4, !ourframework.id !1
-of function: _Z8functionii
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
+N: store i32 %0, i32* %2, align 4, !phasar.instruction.id !3, ID: 1 in function: _Z8functioni
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %4 = alloca i32, align 4, !ourframework.id !2
-of function: _Z8functionii
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: %2 = alloca i32, align 4, !phasar.instruction.id !2, ID: 0 in function: _Z8functioni
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %5 = alloca i32, align 4, !ourframework.id !3
-of function: _Z8functionii
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
+N: %3 = load i32, i32* %2, align 4, !phasar.instruction.id !4, ID: 2 in function: _Z8functioni
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %6 = alloca i32, align 4, !ourframework.id !4
-of function: _Z8functionii
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
+N: ret i32 %4, !phasar.instruction.id !6, ID: 4 in function: _Z8functioni
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %7 = alloca i32, align 4, !ourframework.id !5
-of function: _Z8functionii
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: %3 = alloca i32, align 4, !phasar.instruction.id !4, ID: 7 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  store i32 %0, i32* %3, align 4, !ourframework.id !6
-of function: _Z8functionii
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
+N: store i32 0, i32* %1, align 4, !phasar.instruction.id !5, ID: 8 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  store i32 %1, i32* %4, align 4, !ourframework.id !7
-of function: _Z8functionii
-D
-  %4 = alloca i32, align 4, !ourframework.id !2
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: store i32 42, i32* %2, align 4, !phasar.instruction.id !6, ID: 9 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %8 = load i32, i32* %3, align 4, !ourframework.id !8
-of function: _Z8functionii
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: %4 = load i32, i32* %2, align 4, !phasar.instruction.id !7, ID: 10 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  store i32 %8, i32* %6, align 4, !ourframework.id !9
-of function: _Z8functionii
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
+N: %5 = call i32 @_Z8functioni(i32 %4), !phasar.instruction.id !8, ID: 11 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %9 = load i32, i32* %4, align 4, !ourframework.id !10
-of function: _Z8functionii
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: store i32 %5, i32* %3, align 4, !phasar.instruction.id !9, ID: 12 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  store i32 %9, i32* %7, align 4, !ourframework.id !11
-of function: _Z8functionii
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: ret i32 0, !phasar.instruction.id !10, ID: 13 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-of function: _Z8functionii
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: %4 = add nsw i32 %3, 1, !phasar.instruction.id !5, ID: 3 in function: _Z8functioni
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %11 = load i32, i32* %7, align 4, !ourframework.id !13
-of function: _Z8functionii
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
+N: %1 = alloca i32, align 4, !phasar.instruction.id !2, ID: 5 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 --- IFDS START RESULT RECORD ---
-N
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-of function: _Z8functionii
-D
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  ret i32 %12, !ourframework.id !15
-of function: _Z8functionii
-D
-  %5 = alloca i32, align 4, !ourframework.id !3
-
-V
-  BinaryDomain::BOTTOM
-D
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-
-V
-  BinaryDomain::BOTTOM
-D
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %3 = alloca i32, align 4, !ourframework.id !1
-of function: main
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %4 = alloca i32, align 4, !ourframework.id !2
-of function: main
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %5 = alloca i8**, align 8, !ourframework.id !3
-of function: main
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %6 = alloca i32, align 4, !ourframework.id !4
-of function: main
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %7 = alloca i32, align 4, !ourframework.id !5
-of function: main
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %8 = alloca i32, align 4, !ourframework.id !6
-of function: main
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  store i32 0, i32* %3, align 4, !ourframework.id !7
-of function: main
-D
-  %3 = alloca i32, align 4, !ourframework.id !1
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  store i32 %0, i32* %4, align 4, !ourframework.id !8
-of function: main
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  store i8** %1, i8*** %5, align 8, !ourframework.id !9
-of function: main
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-of function: main
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
-of function: main
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-of function: main
-D
-  %8 = alloca i32, align 4, !ourframework.id !6
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
-D
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
---- IFDS START RESULT RECORD ---
-N
-  ret i32 0, !ourframework.id !13
-of function: main
-D
-  %6 = alloca i32, align 4, !ourframework.id !4
-
-V
-  BinaryDomain::BOTTOM
-D
-  %7 = alloca i32, align 4, !ourframework.id !5
-
-V
-  BinaryDomain::BOTTOM
-D
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-
-V
-  BinaryDomain::BOTTOM
-D
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-
-V
-  BinaryDomain::BOTTOM
-D
-@zero_value = constant i2 0, align 4
-
-V
-  BinaryDomain::BOTTOM
+N: %2 = alloca i32, align 4, !phasar.instruction.id !3, ID: 6 in function: main
+D:	@zero_value = constant i2 0, align 4, ID: -1 	V:  BOTTOM
 ```
 
 In IFDS/IDE results for each program statement N, all data-flow facts D holding at this program point are shown. Additionally the value from the value domain V is printed. Note: when running IFDS analysis, only BOTTOM is shown, since TOP is representing data-flow facts that do not hold and thus are irrelevant to the analysis user.
 
-Additionally to the results, ourframe is able to record all edges from the exploded super-graph that the computation is based on. The edges reside in two edge recorders (for intra- and inter-procedural edges) inside the IDESolver implementation. For the above example the following exploded super-graph is produced:
+Additionally to the results, Phasar is able to record all edges from the exploded super-graph that the computation is based on. The edges reside in two edge recorders (for intra- and inter-procedural edges) inside the IDESolver implementation.
 
-```C++
-COMPUTED INTRA PATH EDGES
-FROM
-  %3 = alloca i32, align 4, !ourframework.id !1
-TO
-  %4 = alloca i32, align 4, !ourframework.id !2
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %4 = alloca i32, align 4, !ourframework.id !2
-TO
-  %5 = alloca i32, align 4, !ourframework.id !3
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %5 = alloca i32, align 4, !ourframework.id !3
-TO
-  %6 = alloca i32, align 4, !ourframework.id !4
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %6 = alloca i32, align 4, !ourframework.id !4
-TO
-  %7 = alloca i32, align 4, !ourframework.id !5
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %7 = alloca i32, align 4, !ourframework.id !5
-TO
-  store i32 %0, i32* %3, align 4, !ourframework.id !6
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %0, i32* %3, align 4, !ourframework.id !6
-TO
-  store i32 %1, i32* %4, align 4, !ourframework.id !7
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-  %4 = alloca i32, align 4, !ourframework.id !2
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %1, i32* %4, align 4, !ourframework.id !7
-TO
-  %8 = load i32, i32* %3, align 4, !ourframework.id !8
-FACTS
-fact
-  %4 = alloca i32, align 4, !ourframework.id !2
-produces
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %8 = load i32, i32* %3, align 4, !ourframework.id !8
-TO
-  store i32 %8, i32* %6, align 4, !ourframework.id !9
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %8, i32* %6, align 4, !ourframework.id !9
-TO
-  %9 = load i32, i32* %4, align 4, !ourframework.id !10
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %9 = load i32, i32* %4, align 4, !ourframework.id !10
-TO
-  store i32 %9, i32* %7, align 4, !ourframework.id !11
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %9, i32* %7, align 4, !ourframework.id !11
-TO
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-TO
-  %11 = load i32, i32* %7, align 4, !ourframework.id !13
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %11 = load i32, i32* %7, align 4, !ourframework.id !13
-TO
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-produces
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-TO
-  ret i32 %12, !ourframework.id !15
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-  %5 = alloca i32, align 4, !ourframework.id !3
-fact
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-produces
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %3 = alloca i32, align 4, !ourframework.id !1
-TO
-  %4 = alloca i32, align 4, !ourframework.id !2
-FACTS
-fact
-@zero_value = constant i2 0, align 4
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-  %6 = alloca i32, align 4, !ourframework.id !4
-  %7 = alloca i32, align 4, !ourframework.id !5
-  %8 = alloca i32, align 4, !ourframework.id !6
-@zero_value = constant i2 0, align 4
-FROM
-  %4 = alloca i32, align 4, !ourframework.id !2
-TO
-  %5 = alloca i8**, align 8, !ourframework.id !3
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %5 = alloca i8**, align 8, !ourframework.id !3
-TO
-  %6 = alloca i32, align 4, !ourframework.id !4
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %6 = alloca i32, align 4, !ourframework.id !4
-TO
-  %7 = alloca i32, align 4, !ourframework.id !5
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %7 = alloca i32, align 4, !ourframework.id !5
-TO
-  %8 = alloca i32, align 4, !ourframework.id !6
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %8 = alloca i32, align 4, !ourframework.id !6
-TO
-  store i32 0, i32* %3, align 4, !ourframework.id !7
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 0, i32* %3, align 4, !ourframework.id !7
-TO
-  store i32 %0, i32* %4, align 4, !ourframework.id !8
-FACTS
-fact
-  %3 = alloca i32, align 4, !ourframework.id !1
-produces
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %0, i32* %4, align 4, !ourframework.id !8
-TO
-  store i8** %1, i8*** %5, align 8, !ourframework.id !9
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i8** %1, i8*** %5, align 8, !ourframework.id !9
-TO
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-TO
-  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
-TO
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-  %8 = alloca i32, align 4, !ourframework.id !6
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-TO
-  ret i32 0, !ourframework.id !13
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-  %6 = alloca i32, align 4, !ourframework.id !4
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-  %7 = alloca i32, align 4, !ourframework.id !5
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-produces
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-COMPUTED INTER PATH EDGES
-FROM
-  ret i32 %12, !ourframework.id !15
-TO
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-FACTS
-fact
-  %5 = alloca i32, align 4, !ourframework.id !3
-produces
-fact
-  %10 = load i32, i32* %5, align 4, !ourframework.id !12
-produces
-fact
-  %12 = add nsw i32 %10, %11, !ourframework.id !14
-produces
-  store i32 %10, i32* %8, align 4, !ourframework.id !12
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-fact
-@zero_value = constant i2 0, align 4
-produces
-@zero_value = constant i2 0, align 4
-FROM
-  %10 = call i32 @_Z8functionii(i32 %9, i32 12), !ourframework.id !11
-TO
-  %3 = alloca i32, align 4, !ourframework.id !1
-FACTS
-fact
-  %6 = alloca i32, align 4, !ourframework.id !4
-produces
-fact
-  %7 = alloca i32, align 4, !ourframework.id !5
-produces
-fact
-  %8 = alloca i32, align 4, !ourframework.id !6
-produces
-fact
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-produces
-  %9 = load i32, i32* %7, align 4, !ourframework.id !10
-fact
-@zero_value = constant i2 0, align 4
-produces
-  %3 = alloca i32, align 4, !ourframework.id !1
-  %4 = alloca i32, align 4, !ourframework.id !2
-  %5 = alloca i32, align 4, !ourframework.id !3
-  %6 = alloca i32, align 4, !ourframework.id !4
-  %7 = alloca i32, align 4, !ourframework.id !5
-@zero_value = constant i2 0, align 4
-```
-
-We visualized the recorded edges in the following figure in order to obtain the actual exploded super-graph.
+Here is a visualization of an exploded super-graph of a different analysis to give you an impression of what it looks like.
 
 ![alt text](img/ifds_uninit_exploded_supergraph/example_exploded_supergraph.png "Visualization of the recorded edges")
 
 
-### Analyzing a complex project {#analyzing-a-complex-project}
+### Analyzing a complex project
 When a more complex C/C++ project shall be analyzed, the help of a 'compile_commands.json' file is required. As mentioned earlier this database can be created with many of the common C/C++ build tools.
 
 With help of the compilation database one can tell which C/C++ source files belong to the project and with what parameters they have to be compiled. This includes macro definitions, compiler flags as well as include paths. While these information are essential in oder to analyze a project, other important information is missing. The compilation database does not contain any information about how to link the compiled source files. In this section it is described how to prepare a C/C++ project such that the framework is able to analyze it.
@@ -2235,7 +588,7 @@ There are three cases which are worth mentioning:
 
 **(i) single self-contained program**
 
-This is probably the easiest case. Here the project under analysis just consists of a bunch of C/C++ source files that can be - when compiled accordingly - directly linked into an executable file. No external libraries are used. Depending on the complexity of your compile commands you probably want to try to use the frameworks internal compile mechanism in oder to produce the desired LLVM IR (use the '-p' option). But since the API for internal compilation is very fragile errors might occur when dealing with non-common compiler flags. In this case you have to use the external python script that will compile all files registed in the 'compile_commands.json' file with the correct parameterization using the external clang(++) front-end. The script only needs one parameter specifying the project directory containing the 'compile_commands.json' file. The script creates a new directory containing the LLVM IR compiled sources. Using the command line and changing into this directory you should be able to compile all of the *.ll files into the executable using:
+This is probably the easiest case. Here the project under analysis just consists of a bunch of C/C++ source files that can be - when compiled accordingly - directly linked into an executable file. No external libraries are used. You can use the external python script that will compile all files registed in the 'compile_commands.json' file with the correct parameterization using the external clang(++) front-end. The script only needs one parameter specifying the project directory containing the 'compile_commands.json' file. The script creates a new directory containing the LLVM IR compiled sources. Using the command line and changing into this directory you should be able to compile all of the *.ll files into the executable using:
 
 $ clang++ *.ll -o main
 
@@ -2243,7 +596,7 @@ If no errors occur, these are all the source files in LLVM IR needed in order to
 
 $ llvm-link -S *.ll -o main.ll
 
-This file can now be feed into the framework using the '-m' switch. When you would like to perform a module-wise analysis, you have to specify all *.ll files using the '-m' switch: like '-m file1.ll file2.ll ...'
+This file can now be feed into the framework using the '-m' switch. But you can also feed the .ll files into Phasar like: $ phasar -m file1.ll file2.ll ...
 
 
 **(ii) single self-contained program using at least one library**
@@ -2253,7 +606,7 @@ The next case that might occur is not much more complicated than (i). Here your 
 [...] undefined reference: [...]
 
 This error tells you that the linker cannot find some symbols (functions or variables) that the program is using. Be aware of that and use the compilers error message to get the names of the symbols that are not defined at this point. Since the framework does not care about having an executable we continue as follows: Link all IR that you have into one sinlge .ll file containing your complete program (except for the missing symbols), when performing a whole program analysis. In case of module-wise analysis just call the framework and specify all *.ll files.
-Since the linker just told you, that some symbols are missing, you have to provide the framework with some summaries for the missing symbols if you want the project under analysis to be analyzed correctly. These summaries must describe the effects of the missing functions. TODO: describe how to specify a summary!.
+Since the linker just told you, that some symbols are missing, you have to provide the framework with some summaries for the missing symbols if you want the project under analysis to be analyzed correctly. These summaries must describe the effects of the missing functions. For that purpose please refer to the material provided on https://phasar.org/.
 
 **(iii) multi-program project**
 
@@ -2261,30 +614,30 @@ This case is hard. Here your project encodes more than one program and may use e
 
 $ grep -R "define i32 @main("
 
-The resulting list of files shows how many seperate programs your project actually contains. The idea now is to get rid of all but one file containing main in order to find what code belongs to that program. Now you try to relink the llvm IR code into an executable. If a again multiple definitions of the same symbol are found you have to use the UNIX commands in order to find what files to remove. Proceed until ODR is no more violated and only unresolved reference errors are shown by the linker. Make sure that these unresolved reference error really result from the use of external libraries and not from yourself having blindly removed too many .ll files. At this stage you can proceed as described in (ii), that is link all of your remaining .ll files into a single .ll file containig just the code for the program you have isolated. The remaining .ll code can now be analyzed using WPA or MWA. Provide summaries for the library functions if you want to have your code analyzed correctly. Of course you have to repeat the very same procedure with the other files defining a main() function that you previoursly got rid off.
+The resulting list of files shows how many seperate programs your project actually contains. The idea now is to get rid of all but one file containing main in order to find what code belongs to that program. Now you try to relink the llvm IR code into an executable. If a again multiple definitions of the same symbol are found you have to use the UNIX commands in order to find what files to remove. Proceed until ODR is no more violated and only unresolved reference errors are shown by the linker. Make sure that these unresolved reference error really result from the use of external libraries and not from yourself having blindly removed too many .ll files. At this stage you can proceed as described in (ii), that is link all of your remaining .ll files into a single .ll file containig just the code for the program you have isolated. The remaining .ll code can now be analyzed using Phasar. Provide summaries for the library functions if you want to have your code analyzed correctly. Of course you have to repeat the very same procedure with the other files defining a main() function that you previoursly got rid off.
 
-Addmittedly this procedure seems to be quite labor intensive and it sure is. But this is only tricky when analyzing foreign and previously unknown projects. However, when analyzing your own projects you most definitly know what is going on in your project; therfore you do not have to use your forensic skills to revers engineer what is happening.
+Addmittedly this procedure seems to be quite labor intensive and it sure is. But this is only tricky when analyzing foreign and previously unknown projects. However, when analyzing your own projects you most definitly know what is going on in your project; therfore you do not have to use your forensic skills to revers engineer what is actually happening.
 
 
-### Writing a static analysis {#writing-a-static-analysis}
-ourframework provides several sophisticated mechanisms that allow you to
-write your own data-flow analysis. In general, ourframework is designed in such a way that the analysis writer has to choose from several possible interfaces which he can use for a concrete static analysis. Depending on your analysis problem some interfaces are more suited than others. When having found the right interface for your problem, the analysis writer usually just has to provide a new class which implements the interfaces missing functionality which then in turn is the problem description for the analysis. This concrete problem description is then handed over to a corresponding solver, which solves the problem in a completely automatic fashion. In the following the possible data-flow solvers are ordered according to their power (and difficulty to provide an analysis for).
+### Writing a static analysis
+Phasar provides several sophisticated mechanisms that allow you to
+write your own data-flow analysis. In general, Phasar is designed in such a way that the analysis writer has to choose from several possible interfaces which he can use for a concrete static analysis. Depending on your analysis problem some interfaces are more suited than others. When having found the right interface for your problem, the analysis writer usually just has to provide a new class which implements the interfaces missing functionality which then in turn is the problem description for the analysis. This concrete problem description is then handed over to a corresponding solver, which solves the problem in a completely automatic fashion. In the following the possible data-flow solvers are ordered according to their power (and difficulty to provide an analysis for).
 
-#### Choosing a control-flow graph {#choosing-a-control-flow-graph}
-In general, all data-flow analysis is performed on the codes control flow graph. When writing an analysis a user has to choose a control flow graph for his analysis to work. For that reason all of our solvers work either on the CFG.hh (intra-procedural control flow graph) or on the ICFG.hh (inter-procedural control flow graph) interface.
+#### Choosing a control-flow graph
+In general, all data-flow analysis is performed on the codes control-flow graph. When writing an analysis a user has to choose a control flow graph for his analysis to work. For that reason all of our solvers work either on the CFG.h (intra-procedural control-flow graph) or on the ICFG.h (inter-procedural control-flow graph) interface.
 
-For instance, when writing a simple intra-procedural data-flow analysis using the monotone framework the use must use one of CFG.hh's concrete implementation or provide his own implementation for this interface. Usually the pre-implemented LLVMBasedCFG.hh should do the job and can be used out-of-the-box.
+For instance, when writing a simple intra-procedural data-flow analysis using the monotone framework the use must use one of CFG.h's concrete implementation or provide his own implementation for this interface. Usually the pre-implemented LLVMBasedCFG.h should do the job and can be used out-of-the-box.
 
 The inter-procedural call-string approach and the IFDS/ IDE frameworks solve a concrete analysis based on an inter-procedural control-flow graph describing the structure of the code under analysis. Depending on the analysis needs, you can use a forward-, backward-, or bi-directional inter-procedural control-flow graph.
 However, most of the time the 'LLVMBasedICFG' should work just fine.
 
-If necessary it is also possible to provide you own implementation of an ICFG. In that case just provide another class for which you provide a reasonable name and place it in src/analysis/ifds_ide/icfg/. You implementation must at least implement the interface that is defined by the ICFG.hh interface.
+If necessary it is also possible to provide you own implementation of an ICFG. In that case just provide another class for which you provide a reasonable name. You implementation must at least implement the interface that is defined by the ICFG.h interface.
 
-#### Useful shortcuts {#useful-shortcuts}
-In the following section some useful coding shortcuts are presented which may come very handy when writing a new analysis within ourframework.
+#### Useful shortcuts
+In the following section some useful coding shortcuts are presented which may come very handy when writing a new analysis within Phasar.
 
-##### The std::algorithm header {#the-stdalgorithm-header}
-When overriding the classes for solving problems within the monotone framework, oftentimes set operations like set union, set intersect or set difference are required. Writing these functions yourself is tedious. Therefore it make much sense to use the existing set operation functions which are defined in the std::algorithm header file. Many useful functionality is provided there such as:
+##### The std::algorithm header
+When overriding the classes in order to describe the problems within the monotone framework, oftentimes set operations like set union, set intersect or set difference are required. Writing these functions yourself is tedious. Therefore it makes much sense to use the existing set operation functions which are defined in the std::algorithm header file. Many useful functionality is provided there such as:
 ```C++
     ...
     std::includes /* subset */
@@ -2305,8 +658,10 @@ In the following a small code example is presented:
     bool isSubSet = std::includes(b.begin(), b.end(), a.begin(), a.end());
 ```
 
-##### The pre-defined flow_func classes {#the-pre-defined-flow_func-classes}
-When defining flow functions in IFDS or IDE, sometimes certain flow function type occur more than once. For instance, the Kill flow function that kills a specific data-flow fact is often needed many times. As the writer of an IFDS or IDE analysis you can find several useful pre-defined flow functions in the src/analysis/ifds_ide/flow_func/ director that can be used directly. Another very useful example is the Identity flow function. Some of these flow functions are also defined as a singleton if possible in order to keep the amount of overhead as small as possible. You can use the pre-defined flow functions inside your flow function factories using the std::make_shared().
+##### The pre-defined flow function classes
+When defining flow functions in IFDS or IDE, sometimes a certain flow function type occurs more than once. For instance, the Kill flow function that kills a specific data-flow fact is often needed many times. As the writer of an IFDS or IDE analysis you can find several useful pre-defined flow functions that can be used directly. Another very useful example is the Identity flow function. Some of these flow functions are also defined as a singleton if possible in order to keep the amount of overhead as small as possible. You can use the pre-defined flow functions inside your flow function factories using std::make_shared().
+We also provide some LLVM specific flow functions and some general edge functions that may be used when implementing an IDE analysis.
+
 Here is a small code example:
 ```C++
     // in this example let domain D be const llvm::Value*
@@ -2320,27 +675,27 @@ Here is a small code example:
             return make_shared<Kill<const llvm::Value*>>(/* some fact to be killed */);
         } else {
             // just treat everything else as Identity
-            return Identity<const llvm::Value*>::v();
+            return Identity<const llvm::Value*>::getInstance();
         }
     }
 ```
 
 
 
-#### Important template parameters {#important-template-parameters}
+#### Important template parameters
 
 The code is written in a very generic way. For that reason we use a lot of template parameters. Here we describe the most important template parameters:
 
 * D
-    - The type of the data-flow facts of your data-flow domain D. Very often you probably would like to use llvm::Value*.
+    - The type of the data-flow facts of your data-flow domain D. Very often you probably would like to use const llvm::Value *.
 * N
-    - The type of nodes in you inter-procedural control-flow graph (or statements/ instructions). When using analysis on llvm IR it will always be llvm::Instruction*.
+    - The type of nodes in you inter-procedural control-flow graph (or statements/ instructions). When using analysis on llvm IR it will always be const llvm::Instruction *.
 * M
-    - The type of functions/ methods used by the framework. When using llvm it will be llvm::Function*.
+    - The type of functions/ methods used by the framework. When using llvm it will be const llvm::Function *.
 * I
-    - The type of the inter-procedural control-flow graph to be used. Usually it will be some reference to a type implementing the ICFG.hh interface. For example: LLVMBasedICFG&.
-* V
-    - The is the type for the second value domain of IDE problem. What this should be really depends of your concrete analysis. When using IFDS you do not have to worry about this type, since it is automatically chosen for you as:
+    - The type of the inter-procedural control-flow graph to be used. Usually it will be some reference to a type implementing the ICFG.hh interface. For example: LLVMBasedICFG &.
+* V/L
+    - The is the type for the second - value domain - of IDE problem. What this should be really depends of your concrete analysis. When using IFDS you do not have to worry about this type, since it is automatically chosen for you as:
 
 ```C++
     enum class BinaryDomain {
@@ -2349,20 +704,17 @@ The code is written in a very generic way. For that reason we use a lot of templ
     };
 ```
 
-* L
-    - Same as V, but only used internally in some specific classes.
-
-#### Writing an intra-procedural monotone framework analysis {#writing-an-intra-procedural-monotone-framework-analysis}
-This is probably the easiest analysis you can write and if the analysis writer is a beginner, he should definitely start at this point. Using an intra-procedural monotone framework analysis, an data-flow analysis problem can be solved within one single function (caution: function calls within the function under analysis are not followed, but the call-sites are still in the code of course). In order to formulate such an analysis the user has to implement the InraMonotoneProblem.hh interface. His implemented analysis is then handed over to the corresponding IntraMonotonSolver.hh which solves his analysis problem.
+#### Writing an intra-procedural monotone framework analysis
+This is probably the easiest analysis you can write and if the analysis writer is a beginner, he should definitely start at this point. Using an intra-procedural monotone framework analysis, an data-flow analysis problem can be solved within one single function (caution: function calls within the function under analysis are not followed, but the call-sites are still in the code of course). In order to formulate such an analysis the user has to implement the InraMonotoneProblem.h interface. His implemented analysis is then handed over to the corresponding IntraMonotonSolver.h which solves his analysis problem.
 
 
-#### Writing an inter-procedural monotone framework analysis (using call-strings) {#writing-an-inter-procedural-monotone-framework-analysis-using-call-strings}
-Implementation will be finished soon.
+#### Writing an inter-procedural monotone framework analysis (using call-strings)
+The implementation will be finished soon.
 
 This analysis can be used when inter-procedural data-flow problems must be solved. It uses the classical monotone framework combined with the call-string approach to achieve k-context sensitivity. The k can be specified by the analysis implementor. The interface the analysis writer has to implement (InterMonotoneProblem) contains a few more functions than the IntraMonotoneProblem.hh and thus is slightly more complex. Please note that this solver has scaling problems for a large k on large programs. If the analysis writer demands a scalable analysis with infinite context sensitivity, he may would like to formulate his data-flow problem with an IFDS or IDE analysis (caution: IFDS and IDE can only be used when the flow functions used are distributive).
 
 
-#### Writing an IFDS analaysis {#writing-an-ifds-analaysis}
+#### Writing an IFDS analaysis
 When you would like to write your own data-flow analysis using IFDS you basically just have
 to implement a single class. Is is a good idea to create a new directory for your new analysis
 that lives below 'ifds_ide_problems' and is name after the naming conventions that you will find
@@ -2388,7 +740,8 @@ abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions y
       you just want to pass every information as identity.
 
 * Optional: getSummaryFlowFunction()
-    - TODO add description
+    - Default: Implement to return nullptr. But can be used to model llvm.intrinsic functions or libc function
+      that you do not want to follow as no implementation is available.
 
 * initialSeeds()
     - The initial seeds are the starting points of your analysis. An analysis can start at one
@@ -2403,21 +756,24 @@ abstract functions of the 'DefaultIFDSTabulationProblem'. The member functions y
 * Constructor
     - The constructor of you analysis receives the ICFG that shall be used for this analysis
       as a parameter. Furthermore, the constructor of the DefaultIFDSTabulationProblem that you
-      inherit from must be called AND the special zeroValue must be initialized in a suitable way.
-      Here is an example of how your constructor usually looks like:
+      inherit from must be called AND the special zero value must be initialized in a suitable way.
+      Here is an example of how your constructor can looks like:
 
 ```C++
-            MyAnalysis::MyAnalysis(LLVMBasedICFG &icfg, llvm::LLVMContext &c) :
-                                           DefaultIFDSTabulationProblem(icfg), context(c) {
-                DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-            }
+  IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem<const llvm::Instruction *,
+                                   const llvm::Value *, const llvm::Function *,
+                                   LLVMBasedICFG &>(I), EntryPoints(EntryPoints) {
+    DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+  }
 ```
 
-#### Writing an IDE analysis {#writing-an-ide-analysis}
-If you read this, you made it very far and will now explore the most complex solver we currently provide within ourframework (but do not worry, we are already planing to include another even more abstract solver).
+#### Writing an IDE analysis
+If you read this, you made it very far and will now explore the most complex solver we currently provide within Phasar (but do not worry, we are already planing to include another even more abstract solver).
 When writing an IDE analysis you only have to implement a single class as well.
 The general concept is very similar to writing an IFDS analysis. But this time your analysis
-class has to inherit from 'DefaultIDETabulationProblem'.
+class has to inherit from 'DefaultIDETabulationProblem'. In addition to this documentation, please also refer to the 
+built-in implementations of IDE data-flow analysis of Phasar.
 
 The member functions you have to provide some implementations for are:
 
@@ -2440,17 +796,17 @@ The member functions you have to provide some implementations for are:
     - See writing an IFDS analysis
 
 * topElement()
-    - A function that returns the top element of the lattice the analysis is using.
+    - A function that returns the top element of the lattice the analysis is using -> meaning no information at all
 
 * bottomElement()
-    - A function that returns the bottom element of the lattice the analysis is using.
+    - A function that returns the bottom element of the lattice the analysis is using -> meaning all information (the most imprecise lattice elemnt)
 
 * join()
     - A function that defines how information is joined (the merge operator of the lattice),
-      which gets you higher up in the lattice.
+      which gets you higher up in the lattice (making the result less precise).
 
 * allTopFunction()
-    - Function that returns the special allTop edge function.
+    - Function that returns the a special edge function allTop that can be viewed as the function representation of the top value.
 
 * getNormalEdgeFunction()
     - Here you formulate your edge function(s) that is (are) applied to every instruction within

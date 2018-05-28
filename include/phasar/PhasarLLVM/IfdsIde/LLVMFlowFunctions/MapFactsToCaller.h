@@ -7,34 +7,41 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * MapFactsToCaller.h
- *
- *  Created on: 27.04.2018
- *      Author: rleer
- */
-
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
 
+#include <functional>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 /**
+ * Predicates can be used to specifiy additonal requirements for mapping
+ * actual parameters into formal parameters and the return value.
+ * @note Currently, the return value predicate only allows checks regarding
+ * the callee method.
  * @brief Generates all valid actual parameters and the return value in the
  * caller context.
  */
 class MapFactsToCaller : public FlowFunction<const llvm::Value *> {
 private:
   llvm::ImmutableCallSite callSite;
+  const llvm::Function *calleeMthd;
   const llvm::ReturnInst *exitStmt;
   std::vector<const llvm::Value *> actuals;
   std::vector<const llvm::Value *> formals;
+  std::function<bool(const llvm::Value *)> paramPredicate;
+  std::function<bool(const llvm::Function *)> returnPredicate;
 
 public:
   MapFactsToCaller(llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
-                   const llvm::Instruction *exitstmt)
-      : callSite(cs), exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)) {
+                   const llvm::Instruction *exitstmt,
+                   std::function<bool(const llvm::Value *)> paramPredicate =
+                       [](const llvm::Value *) { return true; },
+                   std::function<bool(const llvm::Function *)> returnPredicate =
+                       [](const llvm::Function *) { return true; })
+      : callSite(cs), calleeMthd(calleeMthd),
+        exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
+        paramPredicate(paramPredicate), returnPredicate(returnPredicate) {
     // Set up the actual parameters
     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
       actuals.push_back(callSite.getArgOperand(idx));
@@ -50,12 +57,12 @@ public:
       std::set<const llvm::Value *> res;
       // Map formal parameter into corresponding actual parameter.
       for (unsigned idx = 0; idx < formals.size(); ++idx) {
-        if (source == formals[idx]) {
+        if (source == formals[idx] && paramPredicate(formals[idx])) {
           res.insert(actuals[idx]); // corresponding actual
         }
       }
       // Collect return value facts
-      if (source == exitStmt->getReturnValue()) {
+      if (source == exitStmt->getReturnValue() && returnPredicate(calleeMthd)) {
         res.insert(callSite.getInstruction());
       }
       return res;
