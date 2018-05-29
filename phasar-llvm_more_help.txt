@@ -27,7 +27,7 @@ Analyses
 	mono_intra_fullconstpropagation - full constant propagation analysis - MONO
 	
 	=== The analysis plugin mechanism ===
-	-D plugin --analysis_interface <?> --analysis_plugin <?>
+	-D plugin --analysis_plugin <?>
 
 Currently the following analysis plugins are available:
 	

@@ -7,25 +7,30 @@ Secure Software Engineering Group
 + Philipp Schubert (philipp.schubert@upb.de) and others
 + Please also refer to https://phasar.org/
 
+Currently supported version of LLVM
+-----------------------------------
+Phasar is currently set up to support LLVM-5.0.0/ LLVM-5.0.1.
+
 What is Phasar?
 ---------------
 Phasar is a LLVM-based static analysis framework written in C++. It allows users
 to specify arbitrary data-flow problems which are then solved in a 
 fully-automated manner on the specified LLVM IR target code. Computing points-to
-information, call-graphs, etc. is done by the framework, thus you can focus on
+information, call-graph(s), etc. is done by the framework, thus you can focus on
 what matters.
 
 How do I get started with Phasar?
 ---------------------------------
 We have some documentation on Phasar in our wiki. You probably would like to read 
-this document first and then have a look on the material provided on https://phasar.org/
-as well.
+this README first and then have a look on the material provided on https://phasar.org/
+as well. Please also have a look on Phasar's project directory and notice the project directory
+examples/ as well as the custom tool tools/myphasartool.cpp.
 
 Building Phasar
 ---------------
 If you cannot work with one of the pre-built versions of Phasar and would like to
 compile Phasar yourself, then please check the wiki for installing the 
-prerequisites and compilation. It is recommended to compile Phasar your self in
+prerequisites and compilation. It is recommended to compile Phasar yourself in
 order to get the full C++ experience and to have full control over the build 
 mode.
 
@@ -59,16 +64,6 @@ Table of Contents
     * [Testing whole projects](#testing-whole-projects)
 * [Getting started](#getting-started)
     * [Choosing an existing analysis](#choosing-an-existing-analysis)
-        * [IFDS_UninitializedVariables](#ifds_uninitializedvariables)
-        * [IFDS_TaintAnalysis](#ifds_taintanalysis)
-        * [IDE_TaintAnalysis](#ide_taintanalysis)
-        * [IFDS_TypeAnalysis](#ifds_typeanalysis)
-        * [IFDS_SolverTest](#ifds_solvertest)
-        * [IDE_SolverTest](#ide_solvertest)
-        * [IFDS_ConstAnalysis](#ifds_constanalysis)
-        * [MONO_Intra_SolverTest](#mono_intra_solvertest)
-        * [MONO_Inter_SolverTest](#mono_inter_solvertest)
-        * [None](#none)
     * [Command line interface](#command-line-interface)
     * [Running an analysis](#running-an-analysis)
     * [A concrete example and how to interpret the results](#a-concrete-example-and-how-to-interpret-the-results)
@@ -89,7 +84,7 @@ Purpose of this tool
 --------------------
 Phasar provides a static analysis framework that has been implemented on top of LLVM.
 Phasar has been developed with the goal to make static analysis easier, more accessible.
-Furthermore, it tries to establish a novel plattform to evaluate new concepts and ideas
+Furthermore, it tries to establish a novel platform to evaluate new concepts and ideas
 in the area of program analysis.
 
 ### Errors
@@ -98,6 +93,8 @@ are (un)known to the developers. If you find an error please send mail and repor
 it to the developers. The report should include at least a summary of what you 
 were doing when you hit the error and a complete error message (if possible). 
 We will try to fix bugs as quickly as possible, please help us achieving this goal.
+If you are familiar with program analysis and LLVM you are free to fix the bug,
+improve Phasar, and send a pull request.
 
 Installation
 ------------
@@ -105,7 +102,7 @@ The installation of Phasar is not trivial, since it has some library
 dependencies. The libraries needed in order to be able to compile and run
 Phasar successfully are the following.
 
-In the following the authors assume that a unix-like system is used.
+In the following the authors assume that a Unix-like system is used.
 Installation guides for the libraries can be found here:
 
 [LLVM / Clang](http://apt.llvm.org/)
@@ -131,7 +128,8 @@ Installation guides for the libraries can be found here:
 
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
-Phasar using an Ubuntu (16.04) or Unix-like system.
+Phasar using an Ubuntu (16.04) or Unix-like system. It that case most dependencies
+can be installed using the apt package management system.
 
 
 #### Installing ZLIB
@@ -220,11 +218,11 @@ The result of the command
 $ ls /usr/local/include
 
 should contain one directory which is called 'boost'. Congratulations, now you
-have installed boost. The hardest part is yet to come.
+have installed boost.
 
 #### Installing LLVM
 When installing LLVM your best bet is probably to install it by using the installer script
-install-llvm-*.sh that can be found in utils/. Parameterize it with the number of cores that
+install-llvm-*.sh that can be found in Phasar project directory utils/. Parameterize it with the number of cores that
 shall be used for compilation (more is better) and tell it where you would like LLVM to
 be downloaded and build. E.g. use
 
@@ -234,13 +232,13 @@ to build llvm-5.0.1 using 4 cores in your home directory.
 
 
 #### CMake
-Navigate into the Phasar directory. The following commands will do the job at compiling the Phasar framework:
+Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 
 $ mkdir build
 
 $ cd build/
 
-$ cmake ..
+$ cmake -DCMAKE_BUILD_TYPE=Release ..
 
 $ make -j $(nproc) # or use a different number of cores to compile it
 
@@ -274,29 +272,25 @@ When using CMake to compile Phasar the following optional parameters can be used
 
 
 #### A remark on compile time
-C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can run in parallel, resulting in shorter compilation times.
+C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can easily be run in parallel, resulting in shorter compilation times. Make use of it!
 
 ### Brief example using a MacOS system
-TODO what about Mac?
-
 Mac OS 10.13.1 or higher only !
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
 The needed packages are
 $ brew install boost
 $ brew install python3
-$ brew install --with-toolchain llvm@3.9
-After installing llvm export the llvm variable to your .bash_profil using $ echo 'export PATH="/usr/local/opt/llvm@3.9/bin:$PATH"' >> ~/.bash_profile 
 
-Make sure to use the mac makefile and not the standard one.
+**To be continued.**
 
 
-##### Testing single modules
-To test if everything works as expected please run the following commands (we assume that you are in the top-level directory of Phasar):
+##### Running a test solver
+To test if everything works as expected please run the following command:
 
 $ phasar --module test/build_systems_tests/installation_tests/module.ll --analysis ifds_solvertest
 
-If you obtain output other than a segmentation fault everything works as expected.
+If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
 
 Getting started
@@ -309,7 +303,7 @@ Note: more than one analysis can be selected to be executed on the code under an
 
 $ phasar -m module.ll -D ifds_solvertest
 
-$ phasar -m module.ll -D ifds_solvertest ifds_uninit ...
+$ phasar -m module.ll -D ifds_uninit
 
 If no analysis is selected only the call-graph and other support data structures are created. 
 If a call using "-D none" fails, there is definitely an error within the code or project under 
@@ -326,6 +320,8 @@ Currently the following built-in analyses are available in Phasar:
 |DataFlowAnalysisType::IFDS_TypeAnalysis | "ifds_type"|
 |DataFlowAnalysisType::IDE_TaintAnalysis | "ide_taint"|
 |DataFlowAnalysisType::IDE_TypeStateAnalysis | "ide_typestate"|
+|DataFlowAnalysisType::IFDS_LinearConstantAnalysis | "ifds_lca"|
+|DataFlowAnalysisType::IDE_LinearConstantAnalysis | "ide_lca"|
 |DataFlowAnalysisType::IFDS_SolverTest | "ifds_solvertest"|
 |DataFlowAnalysisType::IDE_SolverTest | "ide_solvertest"|
 |DataFlowAnalysisType::MONO_Intra_FullConstantPropagation | "mono_intra_fullconstpropagation"|
@@ -338,52 +334,41 @@ Currently the following built-in analyses are available in Phasar:
 ### Command line interface
 Phasar provides a stable command line interface (CLI). The Phasar frameworks supports the parameter that are displayed
 using -h | --help.
-
+```
 Command-line options:
-  -h [ --help ]                       Print help message
+  -h [ --help ]                        Print help message
+  --more_help                          Print more help
+  --config arg                         Path to the configuration file, options
+                                       can be specified as 'parameter = option'
+  --silent                             Suppress any non-result output
 
-  -f [ --function ] arg               Function under analysis (a mangled 
-                                      function name)
-
-  -m [ --module ] arg                 Path to the module under analysis
-
-  -p [ --project ] arg                Path to the project under analysis
-
-  -D [ --data_flow_analysis ] arg     Analysis
-
-  -P [ --pointer_analysis ] arg       Points-to analysis (CFLSteens, CFLAnders)
-
-  -C [ --callgraph_analysis ] arg     Call-graph analysis (CHA, RTA, DTA, VTA, 
-                                      OTF)
-
-  --entry_points arg                  Entry point(s)
-
-  -H [ --classhierachy_analysis ] arg Class-hierarchy analysis
-
-  -V [ --vtable_analysis ] arg        Virtual function table analysis
-
-  -S [ --statistical_analysis ] arg   Statistics
-
-  -E [ --export ] arg                 Export mode (TODO: yet to implement!)
-
-  -W [ --wpa ] arg (=1)               WPA mode (1 or 0)
-
-  -M [ --mem2reg ] arg (=1)           Promote memory to register pass (1 or 0)
-
-  -R [ --printedgerec ] arg (=0)      Print exploded-super-graph edge recorder 
-                                      (1 or 0)
-
-  --analysis_plugin arg               Analysis plugin (absolute path to the 
-                                      shared object file)
-
-  --analysis_interface arg            Interface to be used for the plugin 
-                                      (TODO: yet to implement!)
-
-  --config arg                        Path to the configuration file, options 
-                                      can be specified as 'parameter = option'
-
-  -O [ --output ] arg (=results.json) Filename for the results
-
+Configuration file options:
+  -f [ --function ] arg                Function under analysis (a mangled
+                                       function name)
+  -m [ --module ] arg                  Path to the module(s) under analysis
+  -p [ --project ] arg                 Path to the project under analysis
+  -E [ --entry_points ] arg            Set the entry point(s) to be used
+  -O [ --output ] arg (=results.json)  Filename for the results
+  -D [ --data_flow_analysis ] arg      Set the analysis to be run
+  -P [ --pointer_analysis ] arg        Set the points-to analysis to be used
+                                       (CFLSteens, CFLAnders)
+  -C [ --callgraph_analysis ] arg      Set the call-graph algorithm to be used
+                                       (CHA, RTA, DTA, VTA, OTF)
+  -H [ --classhierachy_analysis ] arg  Class-hierarchy analysis
+  -V [ --vtable_analysis ] arg         Virtual function table analysis
+  -S [ --statistical_analysis ] arg    Statistics
+  -W [ --wpa ] arg (=1)                Whole-program analysis mode (1 or 0)
+  -M [ --mem2reg ] arg (=1)            Promote memory to register pass (1 or 0)
+  -R [ --printedgerec ] arg (=0)       Print exploded-super-graph edge recorder
+                                       (1 or 0)
+  --analysis_plugin arg                Analysis plugin(s) (absolute path to the
+                                       shared object file(s))
+  --callgraph_plugin arg               ICFG plugin (absolute path to the shared
+                                       object file)
+  --project_id arg (=myphasarproject)  Project Id used for the database
+  --graph_id arg (=123456)             Graph Id used by the visualization
+                                       framework
+```
 
 ### Running an analysis
 When you have chosen an analysis, you can run it on some code. The code on which the analysis runs is LLVM IR code.
@@ -833,3 +818,5 @@ The member functions you have to provide some implementations for are:
 
 * Constructor
     - See Constructor of Writing an IFDS analysis
+
+Please also refer to the IDE analysis IDELinearConstantAnalysis.
