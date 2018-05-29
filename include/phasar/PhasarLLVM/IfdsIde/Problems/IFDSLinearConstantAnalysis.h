@@ -92,5 +92,4 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
-        */
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_ */

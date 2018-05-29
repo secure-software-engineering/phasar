@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <limits>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -17,19 +18,18 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
-#include <limits>
 using namespace std;
 
 const int IDELinearConstantAnalysis::TOP = std::numeric_limits<int>::min();
 
 const int IDELinearConstantAnalysis::BOTTOM = std::numeric_limits<int>::max();
 
-IDELinearConstantAnalysis::IDELinearConstantAnalysis(LLVMBasedICFG &icfg,
-                                                     vector<string> EntryPoints)
+IDELinearConstantAnalysis::IDELinearConstantAnalysis(
+    IDELinearConstantAnalysis::i_t &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
@@ -163,18 +163,22 @@ IDELinearConstantAnalysis::allTopFunction() {
   return make_shared<AllTop<IDELinearConstantAnalysis::v_t>>(TOP);
 }
 
-string IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
+string
+IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
+string
+IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
   return to_string(v);
 }
 
-string IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) const {
+string
+IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
+string
+IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }

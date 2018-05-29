@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 TEST(SecondTest1, SecondTestName1) {
   initializeLogger(true);

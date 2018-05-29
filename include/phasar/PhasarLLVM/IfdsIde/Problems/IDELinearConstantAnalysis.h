@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_H_
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
 
 #include <map>
 #include <memory>
@@ -41,7 +41,7 @@ public:
   static const int TOP;
   static const int BOTTOM;
 
-  IDELinearConstantAnalysis(LLVMBasedICFG &icfg,
+  IDELinearConstantAnalysis(i_t icfg,
                             std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDELinearConstantAnalysis() = default;
@@ -111,5 +111,4 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_HH_ \
-        */
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_ */
