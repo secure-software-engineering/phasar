@@ -10,10 +10,10 @@
 #include <phasar/PhasarLLVM/IfdsIde/ZeroFlowFact.h>
 
 std::ostream &ZeroFlowFact::print(std::ostream &os) const {
-	return os << "ZeroFlowFact";
+  return os << "ZeroFlowFact";
 }
 
 FlowFact *ZeroFlowFact::getInstance() {
-	static ZeroFlowFact ZeroFact;
-	return &ZeroFact;
+  static ZeroFlowFact ZeroFact;
+  return &ZeroFact;
 }

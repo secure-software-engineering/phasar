@@ -13,7 +13,7 @@
 #include <iostream>
 
 class EdgeFact {
- public:
+public:
   virtual ~EdgeFact() = default;
   virtual std::ostream &print(std::ostream &os) const = 0;
 };

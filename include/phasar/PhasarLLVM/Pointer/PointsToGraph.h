@@ -23,6 +23,7 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <fstream>
+#include <json.hpp>
 #include <llvm/ADT/SetVector.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
@@ -42,7 +43,6 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMM.h>
-#include <json.hpp>
 #include <vector>
 using namespace std;
 using json = nlohmann::json;
@@ -194,8 +194,8 @@ private:
               llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
         // If the call stack is empty, we completely ignore the calling context
         if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Found stack allocation: "
-                                   << llvmIRToString(Alloc);
+          BOOST_LOG_SEV(lg, DEBUG)
+              << "Found stack allocation: " << llvmIRToString(Alloc);
           allocation_sites.insert(g[u].value);
         }
       }

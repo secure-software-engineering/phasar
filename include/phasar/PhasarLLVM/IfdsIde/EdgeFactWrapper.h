@@ -12,16 +12,17 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFact.h>
 
-template <typename T>
-class EdgeFactWrapper : public EdgeFact {
- private:
+template <typename T> class EdgeFactWrapper : public EdgeFact {
+private:
   T fact;
 
- public:
+public:
   EdgeFactWrapper(T f) : fact(f) {}
   virtual ~EdgeFactWrapper() = default;
   T get() { return fact; }
-  std::ostream &print(std::ostream &os) const override { return os << fact << '\n'; }
+  std::ostream &print(std::ostream &os) const override {
+    return os << fact << '\n';
+  }
 };
 
 #endif

@@ -75,7 +75,8 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite) override;
+                           const llvm::Instruction *retSite,
+                           std::set<const llvm::Function *> callees) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,

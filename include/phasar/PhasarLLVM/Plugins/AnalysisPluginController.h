@@ -10,6 +10,7 @@
 #ifndef ANALYSIS_PLUGIN_CONTROLLER_H_
 #define ANALYSIS_PLUGIN_CONTROLLER_H_
 
+#include <json.hpp>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
@@ -24,7 +25,6 @@
 #include <set>
 #include <string>
 #include <vector>
-#include <json.hpp>
 using namespace std;
 using json = nlohmann::json;
 

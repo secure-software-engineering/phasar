@@ -41,7 +41,8 @@ public:
 
   IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDETabulationProblem<N, D, M, BinaryDomain, I>(), problem(ifdsProblem) {
-    // cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()" << endl;
+    // cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()" <<
+    // endl;
     this->solver_config = problem.getSolverConfiguration();
   }
 
@@ -59,9 +60,9 @@ public:
     return problem.getRetFlowFunction(callSite, calleeMthd, exitStmt, retSite);
   }
 
-  shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite,
-                                                       N retSite) override {
-    return problem.getCallToRetFlowFunction(callSite, retSite);
+  shared_ptr<FlowFunction<D>>
+  getCallToRetFlowFunction(N callSite, N retSite, set<M> callees) override {
+    return problem.getCallToRetFlowFunction(callSite, retSite, callees);
   }
 
   shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
@@ -98,7 +99,7 @@ public:
     if (problem.isZeroValue(srcNode))
       return ALL_BOTTOM;
     else
-      return EdgeIdentity<BinaryDomain>::v();
+      return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   shared_ptr<EdgeFunction<BinaryDomain>>
@@ -107,7 +108,7 @@ public:
     if (problem.isZeroValue(srcNode))
       return ALL_BOTTOM;
     else
-      return EdgeIdentity<BinaryDomain>::v();
+      return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   shared_ptr<EdgeFunction<BinaryDomain>>
@@ -116,7 +117,7 @@ public:
     if (problem.isZeroValue(exitNode))
       return ALL_BOTTOM;
     else
-      return EdgeIdentity<BinaryDomain>::v();
+      return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   shared_ptr<EdgeFunction<BinaryDomain>>
@@ -125,13 +126,13 @@ public:
     if (problem.isZeroValue(callNode))
       return ALL_BOTTOM;
     else
-      return EdgeIdentity<BinaryDomain>::v();
+      return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   shared_ptr<EdgeFunction<BinaryDomain>>
   getSummaryEdgeFunction(N callStmt, D callNode, N retSite,
                          D retSiteNode) override {
-    return EdgeIdentity<BinaryDomain>::v();
+    return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
   string DtoString(D d) const override { return problem.DtoString(d); }

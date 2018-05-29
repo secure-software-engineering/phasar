@@ -60,7 +60,8 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite) override;
+                           const llvm::Instruction *retSite,
+                           std::set<const llvm::Function *> callees) override;
 
   map<const llvm::Instruction *, set<const llvm::Value *>>
   initialSeeds() override;

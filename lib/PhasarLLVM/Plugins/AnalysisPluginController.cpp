@@ -11,7 +11,8 @@
 
 AnalysisPluginController::AnalysisPluginController(
     vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
-    vector<string> EntryPoints, json &Results) : FinalResultsJson(Results) {
+    vector<string> EntryPoints, json &Results)
+    : FinalResultsJson(Results) {
   auto &lg = lg::get();
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
     SOL SharedLib(AnalysisPlugin);

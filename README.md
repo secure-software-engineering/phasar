@@ -261,9 +261,16 @@ Please be careful and check if errors occur during the compilation.
 
 When using CMake to compile Phasar the following optional parameters can be used:
 
-| parameter | valid option | effect |
-|-----------|--------------|--------|
-| CMAKE_BUILD_TYPE | Debug or Release | builds Phasar in debug or release mode |
+| Parameter : Type|  Effect |
+|-----------|--------|
+| <b>BUILD_SHARED_LIBS</b> : BOOL | Build shared libraries (default is OFF) |
+| <b>CMAKE_BUILD_TYPE</b> : STRING | Build Phasar in 'Debug' or 'Release' mode <br> (default is 'Debug') |
+| <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where Phasar will be installed if <br> “make install” is invoked or the “install” <br> target is built (default is /usr/local) |
+| <b>PHASAR_BUILD_DOC</b> : BOOL | Build Phasar documentation (default is OFF) |
+| <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build Phasar unittests (default is OFF) |
+| <b>PHASAR_ENABLE_PAMM</b> : BOOL | Enable the performance measurement <br> mechanism (default is OFF) |
+| <b>PHASAR_ENABLE_PIC</b> : BOOL | Build Position-Independed Code (default is ON) |
+| <b>PHASAR_ENABLE_WARNINGS</b> : BOOL | Enable compiler warnings (default is ON) |
 
 
 #### A remark on compile time

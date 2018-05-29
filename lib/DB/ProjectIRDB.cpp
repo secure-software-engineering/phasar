@@ -210,8 +210,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PAMM_FACTORY;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
-  //const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
-  START_TIMER("LLVM Passes"/* + moduleID*/);
+  // const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
+  START_TIMER("LLVM Passes" /* + moduleID*/);
   BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier();
   // TODO Have a look at this stuff from the future at some point in time
   /// PassManagerBuilder - This class is used to set up a standard
@@ -290,8 +290,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   }
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
-  STOP_TIMER("LLVM Passes"/* + moduleID*/);
-  START_TIMER("PTG Construction"/* + moduleID*/);
+  STOP_TIMER("LLVM Passes" /* + moduleID*/);
+  START_TIMER("PTG Construction" /* + moduleID*/);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
   for (auto &F : *M) {
@@ -305,7 +305,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
-  STOP_TIMER("PTG Construction"/* + moduleID*/);
+  STOP_TIMER("PTG Construction" /* + moduleID*/);
   buildIDModuleMapping(M);
 }
 
@@ -673,7 +673,8 @@ set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() {
   return allocated_types;
 }
 
-std::string ProjectIRDB::getGlobalVariableModuleName(const std::string &GlobalVariableName) {
+std::string ProjectIRDB::getGlobalVariableModuleName(
+    const std::string &GlobalVariableName) {
   if (globals.count(GlobalVariableName)) {
     return globals[GlobalVariableName];
   }

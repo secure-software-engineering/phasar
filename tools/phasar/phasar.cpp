@@ -32,6 +32,11 @@ static llvm::cl::extrahelp CommonHelp(
     clang::tooling::CommonOptionsParser::HelpMessage);
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
 
+static const string MORE_PHASAR_LLVM_HELP(
+  #include "../phasar-llvm_more_help.txt"
+);
+static const string MORE_PHASAR_CLANG_HELP("");
+
 namespace boost {
 void throw_exception(std::exception const &e) {}
 }  // namespace boost
@@ -149,7 +154,6 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-
   PAMM &pamm = PAMM::getInstance();
   START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it
@@ -200,6 +204,7 @@ int main(int argc, const char **argv) {
       // clang-format off
 		Generic.add_options()
 			("help,h", "Print help message")
+      ("more_help", "Print more help")
 		  ("config", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
       ("silent", "Suppress any non-result output");
       // clang-format on
@@ -256,7 +261,7 @@ int main(int argc, const char **argv) {
                      "A LLVM-based static analysis framework\n\n";
       }
       // check if we have anything at all or a call for help
-      if ((argc < 3 || VariablesMap.count("help")) & !VariablesMap.count("silent")){
+      if ((argc < 3 || VariablesMap.count("help")) && !VariablesMap.count("silent")){
         std::cout << Visible << '\n';
         return 0;
       }
@@ -266,6 +271,13 @@ int main(int argc, const char **argv) {
 
       if (!VariablesMap.count("silent")) {
         // Print current configuration
+        if (VariablesMap.count("more_help")) {
+          if (!VariablesMap.count("help")) {
+            std::cout << Visible << '\n';
+          }
+          std::cout << MORE_PHASAR_LLVM_HELP << '\n';
+          return 0;
+        }
         std::cout << "--- Configuration ---\n";
         if (VariablesMap.count("config")) {
           std::cout << "Configuration file: "

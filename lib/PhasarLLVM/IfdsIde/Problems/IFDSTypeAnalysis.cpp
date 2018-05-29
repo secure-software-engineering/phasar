@@ -57,8 +57,9 @@ IFDSTypeAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                           const llvm::Instruction *retSite) {
+IFDSTypeAnalysis::getCallToRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    std::set<const llvm::Function *> callees) {
   cout << "type analysis getCallToRetFlowFunction()" << endl;
   struct TAFF : FlowFunction<const llvm::Value *> {
     set<const llvm::Value *>

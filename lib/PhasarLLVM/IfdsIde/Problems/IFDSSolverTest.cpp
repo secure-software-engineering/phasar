@@ -29,7 +29,7 @@ IFDSSolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                       const llvm::Instruction *succ) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getNormalFlowFunction()";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -37,7 +37,7 @@ IFDSSolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
                                     const llvm::Function *destMthd) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallFlowFunction()";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -47,15 +47,16 @@ IFDSSolverTest::getRetFlowFunction(const llvm::Instruction *callSite,
                                    const llvm::Instruction *retSite) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getRetFlowFunction()";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                         const llvm::Instruction *retSite) {
+IFDSSolverTest::getCallToRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    std::set<const llvm::Function *> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallToRetFlowFunction()";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>

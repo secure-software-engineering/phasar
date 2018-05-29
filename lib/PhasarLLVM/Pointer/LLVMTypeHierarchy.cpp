@@ -53,7 +53,7 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
         continue;
 
       for (unsigned i = 0; i < initializer->getNumOperands(); ++i) {
-        if(llvm::ConstantArray *constant_array =
+        if (llvm::ConstantArray *constant_array =
                 llvm::dyn_cast<llvm::ConstantArray>(
                     initializer->getAggregateElement(i))) {
           if (llvm::ConstantExpr *constant_expr =
@@ -84,6 +84,9 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
   auto StructTypes = M.getIdentifiedStructTypes();
   for (auto StructType : StructTypes) {
     auto struct_type_name = StructType->getName().str();
+
+    // Avoid to have the struct.Myclass.base in the database, as it is not used
+    // by the code anywhere else than in type declaration for alignement reasons
     if (struct_type_name.compare(
           struct_type_name.size() - sizeof(".base") + 1,
           sizeof(".base") - 1,
@@ -127,9 +130,9 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 }
 
 void inline LLVMTypeHierarchy::uniformTypeName(std::string &TypeName) const {
-  if(TypeName.compare(0, sizeof("class.") - 1, "class.") == 0)
+  if (TypeName.compare(0, sizeof("class.") - 1, "class.") == 0)
     TypeName.erase(0, sizeof("class.") - 1);
-  else if(TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
     TypeName.erase(0, sizeof("struct.") - 1);
 
   TypeName = debasify(TypeName);
@@ -256,13 +259,14 @@ json LLVMTypeHierarchy::getAsJson() {
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, g); ei != ei_end;
          ++ei) {
-      J[JsonTypeHierarchyID][g[*vi_v].name] +=
-        g[boost::target(*ei, g)].name;
+      J[JsonTypeHierarchyID][g[*vi_v].name] += g[boost::target(*ei, g)].name;
     }
   }
   return J;
 }
 
-unsigned LLVMTypeHierarchy::getNumOfVertices() { return boost::num_vertices(g); }
+unsigned LLVMTypeHierarchy::getNumOfVertices() {
+  return boost::num_vertices(g);
+}
 
 unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
