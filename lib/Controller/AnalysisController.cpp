@@ -205,6 +205,25 @@ AnalysisController::AnalysisController(
         }
         break;
       }
+      case DataFlowAnalysisType::IFDS_LinearConstantAnalysis: {
+        IFDSLinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem,
+                                                               true);
+        llvmlcasolver.solve();
+        FinalResultsJson += llvmlcasolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmlcasolver.exportJSONDataModel(graph_id);
+        }
+        break;
+      }
+      case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
+        IDELinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
+        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmlcasolver(
+            lcaproblem, true);
+        llvmlcasolver.solve();
+        FinalResultsJson += llvmlcasolver.getAsJson();
+        break;
+      }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
         IFDSConstAnalysis constproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(

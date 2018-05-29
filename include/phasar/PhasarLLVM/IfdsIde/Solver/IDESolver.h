@@ -116,15 +116,11 @@ public:
         boost::algorithm::trim(n);
         string node = icfg.getMethodName(icfg.getMethodOf(curr)) + "::" + n;
         J[DataFlowID][node];
-        if (cells[i].c == nullptr) {
-          J[DataFlowID][node] += "nullptr";
-        } else {
-          string fact = ideTabulationProblem.DtoString(cells[i].c);
-          boost::algorithm::trim(fact);
-          string value = ideTabulationProblem.VtoString(cells[i].v);
-          boost::algorithm::trim(value);
-          J[DataFlowID][node]["Facts"] += {fact, value};
-        }
+        string fact = ideTabulationProblem.DtoString(cells[i].c);
+        boost::algorithm::trim(fact);
+        string value = ideTabulationProblem.VtoString(cells[i].v);
+        boost::algorithm::trim(value);
+        J[DataFlowID][node]["Facts"] += {fact, value};
       }
     }
     return J;
