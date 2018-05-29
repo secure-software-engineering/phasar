@@ -51,7 +51,7 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getNormalFlowFunction()";
-  return Identity<IFDSLinearConstantAnalysis::d_t>::v();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -61,7 +61,7 @@ IFDSLinearConstantAnalysis::getCallFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallFlowFunction()";
-  return Identity<IFDSLinearConstantAnalysis::d_t>::v();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -73,17 +73,18 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getRetFlowFunction()";
-  return Identity<IFDSLinearConstantAnalysis::d_t>::v();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
-    IFDSLinearConstantAnalysis::n_t retSite) {
+    IFDSLinearConstantAnalysis::n_t retSite,
+    set<IFDSLinearConstantAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()";
-  return Identity<IFDSLinearConstantAnalysis::d_t>::v();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>

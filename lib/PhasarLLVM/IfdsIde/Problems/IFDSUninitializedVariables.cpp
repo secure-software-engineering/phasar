@@ -174,7 +174,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(
   return make_shared<UVFF>(curr);
 
   // otherwise we do not care and nothing changes
-  return Identity<IFDSUnitializedVariables::d_t>::v();
+  return Identity<IFDSUnitializedVariables::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSUnitializedVariables::d_t>>
@@ -273,7 +273,7 @@ IFDSUnitializedVariables::getCallFlowFunction(
      * An invoke statement must be treated the same as an ordinary call
      * statement
      */
-    return Identity<IFDSUnitializedVariables::d_t>::v();
+    return Identity<IFDSUnitializedVariables::d_t>::getInstance();
   }
   cout << "error when getCallFlowFunction() was called\n"
           "instruction is neither a call- nor an invoke instruction!"
@@ -322,13 +322,14 @@ IFDSUnitializedVariables::getRetFlowFunction(
       return make_shared<UVFF>(call, ret);
     }
   }
-  return KillAll<IFDSUnitializedVariables::d_t>::v();
+  return KillAll<IFDSUnitializedVariables::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSUnitializedVariables::d_t>>
 IFDSUnitializedVariables::getCallToRetFlowFunction(
     IFDSUnitializedVariables::n_t callSite,
-    IFDSUnitializedVariables::n_t retSite) {
+    IFDSUnitializedVariables::n_t retSite,
+    set<IFDSUnitializedVariables::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSUnitializedVariables::getCallToRetFlowFunction()";
@@ -336,7 +337,7 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
   for (auto user : callSite->users()) {
     return make_shared<Kill<IFDSUnitializedVariables::d_t>>(user);
   }
-  return Identity<IFDSUnitializedVariables::d_t>::v();
+  return Identity<IFDSUnitializedVariables::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSUnitializedVariables::d_t>>

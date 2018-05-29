@@ -12,16 +12,17 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
 
-template <typename T>
-class FlowFactWrapper : public FlowFact {
- private:
+template <typename T> class FlowFactWrapper : public FlowFact {
+private:
   T fact;
 
- public:
+public:
   FlowFactWrapper(T f) : fact(f) {}
   virtual ~FlowFactWrapper() = default;
   T get() { return fact; }
-  std::ostream &print(std::ostream &os) const override { return os << fact << '\n'; }
+  std::ostream &print(std::ostream &os) const override {
+    return os << fact << '\n';
+  }
 };
 
 #endif

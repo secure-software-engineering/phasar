@@ -59,13 +59,13 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     };
     return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
   }
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
@@ -73,13 +73,14 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
-    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
+    set<IDETypeStateAnalysis::m_t> callees) {
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
@@ -115,7 +116,7 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -123,7 +124,7 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destiantionMethod,
     IDETypeStateAnalysis::d_t destNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -131,21 +132,21 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getCallToReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 IDETypeStateAnalysis::v_t IDETypeStateAnalysis::topElement() { return TOP; }

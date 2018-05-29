@@ -129,7 +129,8 @@ public:
    * @param retSite Return site.
    */
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.

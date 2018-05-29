@@ -19,12 +19,10 @@
 
 #include <set>
 
-using namespace std;
-
 template <typename D> class FlowFunction {
 public:
   virtual ~FlowFunction() = default;
-  virtual set<D> computeTargets(D source) = 0;
+  virtual std::set<D> computeTargets(D source) = 0;
 };
 
 #endif /* ANALYSIS_IFDS_IDE_FLOWFUNCTION_HH_ */

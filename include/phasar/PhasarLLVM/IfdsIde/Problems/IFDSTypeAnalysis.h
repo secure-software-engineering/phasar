@@ -52,7 +52,7 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 

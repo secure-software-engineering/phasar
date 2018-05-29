@@ -13,7 +13,7 @@
 #include <iostream>
 
 class FlowFact {
- public:
+public:
   virtual ~FlowFact() = default;
   virtual std::ostream &print(std::ostream &os) const = 0;
 };

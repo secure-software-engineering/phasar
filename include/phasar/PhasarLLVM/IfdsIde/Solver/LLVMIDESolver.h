@@ -56,17 +56,13 @@ public:
     if (results.empty()) {
       cout << "EMPTY" << endl;
     } else {
-      vector<typename Table<const llvm::Instruction *, D,
-                            V>::Cell>
-          cells;
+      vector<typename Table<const llvm::Instruction *, D, V>::Cell> cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
       sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, D,
-                             V>::Cell a,
-              typename Table<const llvm::Instruction *, D,
-                             V>::Cell b) {
+           [](typename Table<const llvm::Instruction *, D, V>::Cell a,
+              typename Table<const llvm::Instruction *, D, V>::Cell b) {
              return a.r < b.r;
            });
       const llvm::Instruction *prev = nullptr;
@@ -83,7 +79,7 @@ public:
           }
         }
         cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-               << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
+             << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
   }

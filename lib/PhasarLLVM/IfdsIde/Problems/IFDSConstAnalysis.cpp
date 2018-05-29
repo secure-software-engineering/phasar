@@ -70,7 +70,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                   string::npos) {
             BOOST_LOG_SEV(lg, DEBUG)
                 << "Store Instruction sets up or updates vtable - ignored!";
-            return Identity<IFDSConstAnalysis::d_t>::v();
+            return Identity<IFDSConstAnalysis::d_t>::getInstance();
           }
         }
       }
@@ -107,7 +107,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
   } /* end store instruction */
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::v();
+  return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
@@ -118,13 +118,13 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
   if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
     BOOST_LOG_SEV(lg, DEBUG) << "Call statement is a LLVM MemIntrinsic!";
-    return KillAll<IFDSConstAnalysis::d_t>::v();
+    return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   }
   // Check if its a Call Instruction or an Invoke Instruction. If so, we
   // need to map all actual parameters into formal parameters.
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    // return KillAll<IFDSConstAnalysis::d_t>::v();
+    // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
     BOOST_LOG_SEV(lg, DEBUG)
         << "Destination method: " << destMthd->getName().str();
@@ -136,7 +136,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::v();
+  return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
@@ -144,7 +144,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
                                       IFDSConstAnalysis::m_t calleeMthd,
                                       IFDSConstAnalysis::n_t exitStmt,
                                       IFDSConstAnalysis::n_t retSite) {
-  // return KillAll<IFDSConstAnalysis::d_t>::v();
+  // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getRetFlowFunction()";
   BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
@@ -167,8 +167,9 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
 }
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
-IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t callSite,
-                                            IFDSConstAnalysis::n_t retSite) {
+IFDSConstAnalysis::getCallToRetFlowFunction(
+    IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::n_t retSite,
+    set<IFDSConstAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSConstAnalysis::getCallToRetFlowFunction()";
   BOOST_LOG_SEV(lg, DEBUG) << "Call site: " << llvmIRToString(callSite);
@@ -196,7 +197,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(IFDSConstAnalysis::n_t callSite,
   }
 
   // Pass everything else as identity
-  return Identity<IFDSConstAnalysis::d_t>::v();
+  return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>

@@ -69,7 +69,8 @@ IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
-                                           IFDSTypeAnalysis::n_t retSite) {
+                                           IFDSTypeAnalysis::n_t retSite,
+                                           set<IFDSTypeAnalysis::m_t> callees) {
   cout << "type analysis getCallToRetFlowFunction()" << endl;
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>

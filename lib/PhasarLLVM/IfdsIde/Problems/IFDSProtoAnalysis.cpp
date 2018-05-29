@@ -32,14 +32,14 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
     return make_shared<Gen<IFDSProtoAnalysis::d_t>>(
         Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
   }
-  return Identity<IFDSProtoAnalysis::d_t>::v();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                        IFDSProtoAnalysis::m_t destMthd) {
   cout << "IFDSProtoAnalysis::getCallFlowFunction()\n";
-  return Identity<IFDSProtoAnalysis::d_t>::v();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
@@ -48,21 +48,22 @@ IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
                                       IFDSProtoAnalysis::n_t exitStmt,
                                       IFDSProtoAnalysis::n_t retSite) {
   cout << "IFDSProtoAnalysis::getRetFlowFunction()\n";
-  return Identity<IFDSProtoAnalysis::d_t>::v();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallToRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
-                                            IFDSProtoAnalysis::n_t retSite) {
+                                            IFDSProtoAnalysis::n_t retSite,
+                                            set<IFDSProtoAnalysis::m_t> callees) {
   cout << "IFDSProtoAnalysis::getCallToRetFlowFunction()\n";
-  return Identity<IFDSProtoAnalysis::d_t>::v();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                           IFDSProtoAnalysis::m_t destMthd) {
   cout << "IFDSProtoAnalysis::getSummaryFlowFunction()\n";
-  return Identity<IFDSProtoAnalysis::d_t>::v();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>>

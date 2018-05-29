@@ -131,7 +131,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
         });
   }
   // Otherwise we do not care and leave everything as it is
-  return Identity<IFDSTaintAnalysis::d_t>::v();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
@@ -145,7 +145,7 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   // call to return flow function.
   if (Sources.count(destMthd->getName().str()) ||
       Sinks.count(destMthd->getName().str())) {
-    return KillAll<IFDSTaintAnalysis::d_t>::v();
+    return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
@@ -154,7 +154,7 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                          destMthd);
   }
   // Pass everything else as identity
-  return Identity<IFDSTaintAnalysis::d_t>::v();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
@@ -177,7 +177,8 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallToRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
-                                            IFDSTaintAnalysis::n_t retSite) {
+                                            IFDSTaintAnalysis::n_t retSite,
+                                            set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()";
   // Process the effects of source or sink functions that are called
@@ -242,7 +243,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
     }
   }
   // Otherwise pass everything as it is
-  return Identity<IFDSTaintAnalysis::d_t>::v();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>

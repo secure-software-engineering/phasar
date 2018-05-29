@@ -17,11 +17,11 @@
 #ifndef ANALYSIS_GENERALSTATISTICSPASS_H_
 #define ANALYSIS_GENERALSTATISTICSPASS_H_
 
+#include "llvm/IR/IntrinsicInst.h"
 #include <iostream>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
-#include "llvm/IR/IntrinsicInst.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/PassSupport.h>
@@ -131,8 +131,8 @@ public:
   set<const llvm::Type *> getAllocatedTypes();
 
   /**
- * @brief Returns all stack and heap allocating instructions.
- */
+   * @brief Returns all stack and heap allocating instructions.
+   */
   set<const llvm::Value *> getAllocaInstructions();
 
   /**
