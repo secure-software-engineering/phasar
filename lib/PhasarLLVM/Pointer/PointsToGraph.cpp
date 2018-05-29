@@ -270,7 +270,7 @@ set<const llvm::Type *> PointsToGraph::computeTypesFromAllocationSites(
     } else {
       // usually if an allocating function is called, it is immediately
       // bit-casted
-      // to the desired allocated value and hence we can determine it frome the
+      // to the desired allocated value and hence we can determine it from the
       // destination type of that cast instruction.
       for (auto user : V->users()) {
         if (const llvm::BitCastInst *cast =

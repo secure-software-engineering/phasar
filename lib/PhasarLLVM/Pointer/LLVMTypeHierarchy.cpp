@@ -84,14 +84,20 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
   auto StructTypes = M.getIdentifiedStructTypes();
   for (auto StructType : StructTypes) {
     auto struct_type_name = StructType->getName().str();
-    uniformTypeName(struct_type_name);
-    // only add a new vertex to the graph if the type is currently unknown!
-    if (recognized_struct_types.find(struct_type_name) ==
-        recognized_struct_types.end()) {
-      type_vertex_map[struct_type_name] = boost::add_vertex(g);
-      g[type_vertex_map[struct_type_name]].llvmtype = StructType;
-      g[type_vertex_map[struct_type_name]].name =
-          StructType->getName().str();
+    if (struct_type_name.compare(
+          struct_type_name.size() - sizeof(".base") + 1,
+          sizeof(".base") - 1,
+          ".base") != 0) {
+      uniformTypeName(struct_type_name);
+
+      // only add a new vertex to the graph if the type is currently unknown!
+      if (recognized_struct_types.find(struct_type_name) ==
+          recognized_struct_types.end()) {
+        type_vertex_map[struct_type_name] = boost::add_vertex(g);
+        g[type_vertex_map[struct_type_name]].llvmtype = StructType;
+        g[type_vertex_map[struct_type_name]].name =
+            StructType->getName().str();
+      }
     }
   }
   // construct the edges between a type and its subtypes
@@ -125,6 +131,8 @@ void inline LLVMTypeHierarchy::uniformTypeName(std::string &TypeName) const {
     TypeName.erase(0, sizeof("class.") - 1);
   else if(TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
     TypeName.erase(0, sizeof("struct.") - 1);
+
+  TypeName = debasify(TypeName);
 }
 
 set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
@@ -192,7 +200,7 @@ bool LLVMTypeHierarchy::containsType(string TypeName) {
 string LLVMTypeHierarchy::getPlainTypename(string TypeName) {
   // types are named something like: 'struct.MyType' or 'struct.MyType.base'
   uniformTypeName(TypeName);
-  return debasify(TypeName);
+  return TypeName;
 }
 
 void LLVMTypeHierarchy::print() {
