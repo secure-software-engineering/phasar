@@ -265,7 +265,6 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
 }
 
 set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
-
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call";
   set<string> possible_call_targets;
@@ -294,6 +293,16 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
         WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
     auto possible_allocated_types =
         WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
+
+        // //DEBUG
+        //   llvm::outs() << "DEBUG possible_allocated_types" << "\n";
+        //   for (auto target : possible_allocated_types ) {
+        //     llvm::outs() << '\n';
+        //     target->print(llvm::outs());
+        //   }
+        //
+        //   llvm::outs() << "\n" << "END DEBUG possible_allocated_types\n";
+        //  //DEBUG
     // Now we must check if we have found some allocated struct types
     set<const llvm::StructType *> possible_types;
     for (auto type : possible_allocated_types) {
@@ -366,6 +375,15 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     }
   }
 
+  // //DEBUG
+  //   cout << "DEBUG" << "\n";
+  //   for (auto target : possible_call_targets ) {
+  //     cout << '\n' << cxx_demangle(target);
+  //   }
+  //
+  //   cout << "\n" << "END DEBUG\n";
+  //  //DEBUG
+
   return possible_call_targets;
 }
 
@@ -397,11 +415,12 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
       throw runtime_error("Receiver type is not a struct type!");
     }
 
-    string receiver_type_name = debasify(receiver_type->getName().str());
+    string receiver_type_name = receiver_type->getName().str();
 
+    string receiver_call_target = CH.getVTableEntry(receiver_type_name, vtable_index);
     // insert the receiver types vtable entry
-    possible_call_targets.insert(
-        CH.getVTableEntry(receiver_type_name, vtable_index));
+    if ( receiver_call_target.compare("__cxa_pure_virtual") != 0 )
+      possible_call_targets.insert(receiver_call_target);
 
     // also insert all possible subtypes vtable entries
     auto fallback_type_names =
@@ -436,6 +455,15 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
     throw runtime_error("possible call Targets empty");
   }
   */
+
+  // //DEBUG
+  //   cout << "DEBUG" << "\n";
+  //   for (auto target : possible_call_targets ) {
+  //     cout << '\n' << cxx_demangle(target);
+  //   }
+  //
+  //   cout << "\n" << "END DEBUG\n";
+  //  //DEBUG
   return possible_call_targets;
 }
 
@@ -469,6 +497,16 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
 
     // also insert all possible subtypes vtable entries
     auto possible_types = IRDB.getAllocatedTypes();
+
+    // //DEBUG
+    //   cout << "DEBUG" << "\n";
+    //   for (auto target : possible_types ) {
+    //     cout << '\n';
+    //     target->print(llvm::outs());
+    //   }
+    //
+    //   cout << "\n" << "END DEBUG\n";
+    //  //DEBUG
     auto reachable_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
     auto end_it = reachable_type_names.end();
@@ -504,6 +542,15 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     }
   }
 
+  // //DEBUG
+  //   cout << "DEBUG" << "\n";
+  //   for (auto target : possible_call_targets ) {
+  //     cout << '\n' << cxx_demangle(target);
+  //   }
+  //
+  //   cout << "\n" << "END DEBUG\n";
+  //  //DEBUG
+
   return possible_call_targets;
 }
 
@@ -524,6 +571,12 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
           VTable vtbl = CH.getVTable(type_name);
           for (const string &Fname : vtbl) {
             const llvm::Function *F = IRDB.getFunction(Fname);
+
+            if(!F) {
+              // Is a pure virtual function
+                return true;
+            }
+
             if (CS.getCalledValue()->getType()->isPointerTy()) {
               if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
                                           CS.getCalledValue()
@@ -537,6 +590,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
       }
     }
   }
+
   return false;
 }
 
