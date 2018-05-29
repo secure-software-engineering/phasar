@@ -17,8 +17,8 @@
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_IDENTITY_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_IDENTITY_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <memory>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
 using namespace std;
@@ -33,7 +33,7 @@ public:
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
   set<D> computeTargets(D source) override { return {source}; }
-  static shared_ptr<Identity> v() {
+  static shared_ptr<Identity> getInstance() {
     static shared_ptr<Identity> instance = shared_ptr<Identity>(new Identity);
     return instance;
   }

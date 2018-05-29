@@ -371,12 +371,11 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
 
 set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
-  //throw runtime_error("CHA called");
+  // throw runtime_error("CHA called");
   set<string> possible_call_targets;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call with CHA";
-  if(isVirtualFunctionCall(CS))
-  {
+  if (isVirtualFunctionCall(CS)) {
     BOOST_LOG_SEV(lg, DEBUG)
         << "Call virtual function: " << llvmIRToString(CS.getInstruction());
 
@@ -402,19 +401,18 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
     // insert the receiver types vtable entry
     possible_call_targets.insert(
-      CH.getVTableEntry(receiver_type_name, vtable_index));
+        CH.getVTableEntry(receiver_type_name, vtable_index));
 
     // also insert all possible subtypes vtable entries
     auto fallback_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
     for (auto &fallback_name : fallback_type_names) {
       possible_call_targets.insert(
-          CH.getVTableEntry(fallback_name, vtable_index));}
+          CH.getVTableEntry(fallback_name, vtable_index));
+    }
 
-    //Virtual Function Call
-  }
-  else
-  {
+    // Virtual Function Call
+  } else {
     // otherwise we have to deal with a function pointer
     // if we classified a member function call incorrectly as a function pointer
     // call, the following treatment is robust enough to handle it.
@@ -475,11 +473,14 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
         CH.getTransitivelyReachableTypes(receiver_type_name);
     auto end_it = reachable_type_names.end();
     for (auto possible_type : possible_types) {
-      if (auto possible_type_ptr = llvm::dyn_cast<llvm::PointerType>(possible_type)) {
-        if (auto possible_type_struct = llvm::dyn_cast<llvm::StructType>(possible_type_ptr->getElementType())) {
+      if (auto possible_type_ptr =
+              llvm::dyn_cast<llvm::PointerType>(possible_type)) {
+        if (auto possible_type_struct = llvm::dyn_cast<llvm::StructType>(
+                possible_type_ptr->getElementType())) {
           string type_name = possible_type_struct->getName().str();
           if (reachable_type_names.find(type_name) != end_it) {
-            possible_call_targets.insert(CH.getVTableEntry(type_name, vtable_index));
+            possible_call_targets.insert(
+                CH.getVTableEntry(type_name, vtable_index));
           }
         }
       }

@@ -68,7 +68,7 @@ public:
     return this == other.get();
   }
 
-  static shared_ptr<EdgeIdentity<V>> v() {
+  static shared_ptr<EdgeIdentity<V>> getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
     static shared_ptr<EdgeIdentity<V>> instance(new EdgeIdentity<V>());
     return instance;

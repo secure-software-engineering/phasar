@@ -16,8 +16,8 @@
 #include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -52,7 +52,7 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getNormalFlowFunction()";
-  return Identity<d_t>::v();
+  return Identity<d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -62,7 +62,7 @@ IFDSLinearConstantAnalysis::getCallFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallFlowFunction()";
-  return Identity<d_t>::v();
+  return Identity<d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -74,17 +74,18 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getRetFlowFunction()";
-  return Identity<d_t>::v();
+  return Identity<d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
-    IFDSLinearConstantAnalysis::n_t retSite) {
+    IFDSLinearConstantAnalysis::n_t retSite,
+    std::set<IFDSLinearConstantAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()";
-  return Identity<d_t>::v();
+  return Identity<d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>

@@ -88,23 +88,23 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
 bool GeneralStatisticsPass::doInitialization(llvm::Module &M) { return false; }
 
 bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
-  #ifdef PERFORMANCE_EVA
+#ifdef PERFORMANCE_EVA
   // add moduleID to counter names if performing MWA!
-  //const std::string moduleID = " [" + M.getModuleIdentifier() + "]";
+  // const std::string moduleID = " [" + M.getModuleIdentifier() + "]";
   // for performance reasons (and out of sheer convenience) we simply initialize
   // the counter with the values of the counter varibles, i.e. PAMM simply
   // holds the results.
   PAMM &pamm = PAMM::getInstance();
-  pamm.regCounter("GS Functions"/* + moduleID*/, functions);
-  pamm.regCounter("GS Globals"/* + moduleID*/, globals);
-  pamm.regCounter("GS Basic Blocks"/* + moduleID*/, basicblocks);
-  pamm.regCounter("GS Allocation-Sites"/* + moduleID*/, allocationsites);
-  pamm.regCounter("GS Call-Sites"/* + moduleID*/, callsites);
-  pamm.regCounter("GS Pointer Variables"/* + moduleID*/, pointers);
-  pamm.regCounter("GS Instructions"/* + moduleID*/, instructions);
-  pamm.regCounter("GS Store Instructions"/* + moduleID*/, storeInstructions);
-  pamm.regCounter("GS Memory Intrinsics"/* + moduleID*/, memIntrinsic);
-  pamm.regCounter("GS Allocated Types"/* + moduleID*/, allocatedTypes.size());
+  pamm.regCounter("GS Functions" /* + moduleID*/, functions);
+  pamm.regCounter("GS Globals" /* + moduleID*/, globals);
+  pamm.regCounter("GS Basic Blocks" /* + moduleID*/, basicblocks);
+  pamm.regCounter("GS Allocation-Sites" /* + moduleID*/, allocationsites);
+  pamm.regCounter("GS Call-Sites" /* + moduleID*/, callsites);
+  pamm.regCounter("GS Pointer Variables" /* + moduleID*/, pointers);
+  pamm.regCounter("GS Instructions" /* + moduleID*/, instructions);
+  pamm.regCounter("GS Store Instructions" /* + moduleID*/, storeInstructions);
+  pamm.regCounter("GS Memory Intrinsics" /* + moduleID*/, memIntrinsic);
+  pamm.regCounter("GS Allocated Types" /* + moduleID*/, allocatedTypes.size());
   return false;
 #else
   llvm::outs() << "GeneralStatisticsPass summary for module: '"

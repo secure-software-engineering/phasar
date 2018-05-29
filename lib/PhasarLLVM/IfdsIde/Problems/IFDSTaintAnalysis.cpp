@@ -35,7 +35,7 @@ const map<string, IFDSTaintAnalysis::SourceFunction> IFDSTaintAnalysis::Sources{
     {"fread", IFDSTaintAnalysis::SourceFunction("fread", {0}, false)},
     {"read", IFDSTaintAnalysis::SourceFunction("read", {1}, false)},
     {"fgetc", IFDSTaintAnalysis::SourceFunction("fgetc", true)},
-	{"fgets", IFDSTaintAnalysis::SourceFunction("fgets", {0}, true)},
+    {"fgets", IFDSTaintAnalysis::SourceFunction("fgets", {0}, true)},
     {"getc", IFDSTaintAnalysis::SourceFunction("getc", true)},
     {"getchar", IFDSTaintAnalysis::SourceFunction("getchar", true)},
     {"ungetc", IFDSTaintAnalysis::SourceFunction("ungetc", true)}};
@@ -108,9 +108,9 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     // };
     // return make_shared<TAFF>(Load);
     return make_shared<GenIf<const llvm::Value *>>(
-      Load, zeroValue(), [Load](const llvm::Value *source) {
-        return source == Load->getPointerOperand();
-      });
+        Load, zeroValue(), [Load](const llvm::Value *source) {
+          return source == Load->getPointerOperand();
+        });
   }
   // Check is a value is read from a pointer or struct
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
@@ -133,7 +133,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
         });
   }
   // Otherwise we do not care and leave everything as it is
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -147,7 +147,7 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
   // call to return flow function.
   if (Sources.count(destMthd->getName().str()) ||
       Sinks.count(destMthd->getName().str())) {
-    return KillAll<const llvm::Value *>::v();
+    return KillAll<const llvm::Value *>::getInstance();
   }
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
@@ -188,11 +188,13 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
     //     }
     //   }
     // };
-    // return make_shared<TAFF>(llvm::ImmutableCallSite(callStmt), destMthd, zeroValue(), this);
-    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt), destMthd);
+    // return make_shared<TAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
+    // zeroValue(), this);
+    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
+                                         destMthd);
   }
   // Pass everything else as identity
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -257,8 +259,9 @@ IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                            const llvm::Instruction *retSite) {
+IFDSTaintAnalysis::getCallToRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    set<const llvm::Function *> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()";
   // Process the effects of source or sink functions that are called
@@ -321,7 +324,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
     }
   }
   // Otherwise pass everything as it is
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>

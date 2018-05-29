@@ -149,7 +149,6 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-
   PAMM &pamm = PAMM::getInstance();
   START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it

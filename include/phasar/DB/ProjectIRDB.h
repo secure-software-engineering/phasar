@@ -40,8 +40,8 @@
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/PAMM.h>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>
 
 enum class IRDBOptions : uint32_t {
@@ -127,7 +127,8 @@ public:
   llvm::Function *getFunction(const std::string &FunctionName);
   llvm::GlobalVariable *
   getGlobalVariable(const std::string &GlobalVariableName);
-  std::string getGlobalVariableModuleName(const std::string &GlobalVariableName);
+  std::string
+  getGlobalVariableModuleName(const std::string &GlobalVariableName);
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);

@@ -28,14 +28,14 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                                         const llvm::Instruction *succ) {
   cout << "IFDSSignAnalysis::getNormalFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                       const llvm::Function *destMthd) {
   cout << "IFDSSignAnalysis::getCallFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -44,21 +44,22 @@ IFDSSignAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                      const llvm::Instruction *exitStmt,
                                      const llvm::Instruction *retSite) {
   cout << "IFDSSignAnalysis::getRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                           const llvm::Instruction *retSite) {
+IFDSSignAnalysis::getCallToRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    set<const llvm::Function *> callees) {
   cout << "IFDSSignAnalysis::getCallToRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSignAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
                                          const llvm::Function *destMthd) {
   cout << "IFDSSignAnalysis::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 map<const llvm::Instruction *, set<const llvm::Value *>>

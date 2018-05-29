@@ -24,6 +24,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
@@ -35,7 +36,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMMWAIFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>

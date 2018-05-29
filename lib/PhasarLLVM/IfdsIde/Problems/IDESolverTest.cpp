@@ -27,28 +27,29 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IDESolverTest::getNormalFlowFunction(const llvm::Instruction *curr,
                                      const llvm::Instruction *succ) {
   cout << "IDESolverTest::getNormalFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IDESolverTest::getCallFlowFunction(const llvm::Instruction *callStmt,
                                    const llvm::Function *destMthd) {
   cout << "IDESolverTest::getCallFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>> IDESolverTest::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   cout << "IDESolverTest::getRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
-IDESolverTest::getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                                        const llvm::Instruction *retSite) {
+IDESolverTest::getCallToRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    std::set<const llvm::Function *> callees) {
   cout << "IDESolverTest::getCallToRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -86,7 +87,7 @@ IDESolverTest::getNormalEdgeFunction(const llvm::Instruction *curr,
                                      const llvm::Instruction *succ,
                                      const llvm::Value *succNode) {
   cout << "IDESolverTest::getNormalEdgeFunction()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
@@ -95,7 +96,7 @@ IDESolverTest::getCallEdgeFunction(const llvm::Instruction *callStmt,
                                    const llvm::Function *destiantionMethod,
                                    const llvm::Value *destNode) {
   cout << "IDESolverTest::getCallEdgeFunction()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
@@ -106,7 +107,7 @@ IDESolverTest::getReturnEdgeFunction(const llvm::Instruction *callSite,
                                      const llvm::Instruction *reSite,
                                      const llvm::Value *retNode) {
   cout << "IDESolverTest::getReturnEdgeFunction()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
@@ -115,7 +116,7 @@ IDESolverTest::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
                                            const llvm::Instruction *retSite,
                                            const llvm::Value *retSiteNode) {
   cout << "IDESolverTest::getCallToReturnEdgeFunction()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
@@ -124,7 +125,7 @@ IDESolverTest::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
                                       const llvm::Instruction *retSite,
                                       const llvm::Value *retSiteNode) {
   cout << "IDESolverTest::getSummaryEdgeFunction()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 const llvm::Value *IDESolverTest::topElement() {
@@ -158,14 +159,14 @@ shared_ptr<EdgeFunction<const llvm::Value *>>
 IDESolverTest::IDESolverTestAllTop::composeWith(
     shared_ptr<EdgeFunction<const llvm::Value *>> secondFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::composeWith()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<EdgeFunction<const llvm::Value *>>
 IDESolverTest::IDESolverTestAllTop::joinWith(
     shared_ptr<EdgeFunction<const llvm::Value *>> otherFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::joinWith()\n";
-  return EdgeIdentity<const llvm::Value *>::v();
+  return EdgeIdentity<const llvm::Value *>::getInstance();
 }
 
 bool IDESolverTest::IDESolverTestAllTop::equalTo(

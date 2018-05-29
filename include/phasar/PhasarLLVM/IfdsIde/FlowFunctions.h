@@ -19,22 +19,20 @@
 
 #include "FlowFunction.h"
 #include <memory>
-#include <vector>
-
-using namespace std;
 
 template <typename N, typename D, typename M> class FlowFunctions {
 public:
   virtual ~FlowFunctions() = default;
-  virtual shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) = 0;
-  virtual shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
-                                                          M destMthd) = 0;
-  virtual shared_ptr<FlowFunction<D>>
+  virtual std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
+                                                                 N succ) = 0;
+  virtual std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
+                                                               M destMthd) = 0;
+  virtual std::shared_ptr<FlowFunction<D>>
   getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) = 0;
-  virtual shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite,
-                                                               N retSite) = 0;
-  virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N curr,
-                                                             M destMthd) = 0;
+  virtual std::shared_ptr<FlowFunction<D>>
+  getCallToRetFlowFunction(N callSite, N retSite, set<M> callees) = 0;
+  virtual std::shared_ptr<FlowFunction<D>>
+  getSummaryFlowFunction(N curr, M destMthd) = 0;
 };
 
 #endif /* ANALYSIS_ABSTRACTFLOWFUNCTIONS_HH_ */

@@ -60,7 +60,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;

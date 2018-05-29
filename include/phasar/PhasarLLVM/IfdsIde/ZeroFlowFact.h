@@ -14,9 +14,9 @@
 
 class ZeroFlowFact : public FlowFact {
 public:
-	~ZeroFlowFact() = default;
-	std::ostream &print(std::ostream &os) const override;
-	static FlowFact *getInstance();
+  ~ZeroFlowFact() = default;
+  std::ostream &print(std::ostream &os) const override;
+  static FlowFact *getInstance();
 };
 
 #endif

@@ -58,7 +58,9 @@ public:
     return isLLVMZeroValue(d);
   }
 
-  string DtoString(const llvm::Value *d) const override { return llvmIRToString(d); }
+  string DtoString(const llvm::Value *d) const override {
+    return llvmIRToString(d);
+  }
 
   string NtoString(const llvm::Instruction *n) const override {
     return llvmIRToString(n);

@@ -57,7 +57,8 @@ namespace bfs = boost::filesystem;
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
 #define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
 #define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
-#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC) pamm.addToHistogram(HID, std::to_string(VAL), OCC)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)                                    \
+  pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 #else
@@ -123,7 +124,8 @@ private:
   void printStoppedTimer() {
     std::cout << "Stopped timer\n";
     for (auto entry : StoppedTimer) {
-      std::cout << entry.first << " : " << elapsedTime<Period>(entry.first) << '\n';
+      std::cout << entry.first << " : " << elapsedTime<Period>(entry.first)
+                << '\n';
     }
   }
 
@@ -333,8 +335,7 @@ public:
     std::cout << "------------\n";
     for (auto timer : StoppedTimer) {
       unsigned long time = elapsedTime<Period>(timer.first);
-      std::cout << timer.first << " : "
-                << getPrintableDuration(time) << '\n';
+      std::cout << timer.first << " : " << getPrintableDuration(time) << '\n';
     }
     if (StoppedTimer.empty()) {
       std::cout << "No single Timer started!\n\n";

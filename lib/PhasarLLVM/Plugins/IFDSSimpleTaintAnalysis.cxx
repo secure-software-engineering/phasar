@@ -54,7 +54,7 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     };
     return make_shared<STA>(Store);
   }
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -69,7 +69,7 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
     } else {
     }
   }
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
@@ -78,14 +78,15 @@ IFDSSimpleTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                             const llvm::Instruction *exitStmt,
                                             const llvm::Instruction *retSite) {
   cout << "IFDSSimpleTaintAnalysis::getRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite) {
+    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
+    set<const llvm::Function *> callees) {
   cout << "IFDSSimpleTaintAnalysis::getCallToRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::v();
+  return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>

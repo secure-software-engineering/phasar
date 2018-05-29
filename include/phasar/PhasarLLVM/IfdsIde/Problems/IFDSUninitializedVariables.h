@@ -35,8 +35,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSSummaryPool.h>
-#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -74,7 +74,8 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite) override;
+                           const llvm::Instruction *retSite,
+                           std::set<const llvm::Function *> callees) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
