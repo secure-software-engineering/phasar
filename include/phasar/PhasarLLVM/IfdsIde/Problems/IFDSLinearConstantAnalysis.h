@@ -41,15 +41,16 @@ struct LCAPair {
   friend bool operator<(const LCAPair &lhs, const LCAPair &rhs);
 };
 
+}//namespace psr
 
 // Specialize std::hash to be used in containers like std::unordered_map
 namespace std {
-template <> struct hash<LCAPair> {
-  std::size_t operator()(const LCAPair &k) const;
+template <> struct hash<psr::LCAPair> {
+  std::size_t operator()(const psr::LCAPair &k) const;
 };
 } // namespace std
 
-
+namespace psr{
 
 class IFDSLinearConstantAnalysis
     : public DefaultIFDSTabulationProblem<const llvm::Instruction *, LCAPair,
