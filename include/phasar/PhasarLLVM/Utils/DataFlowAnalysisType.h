@@ -15,6 +15,8 @@
 #include <string>
 using namespace std;
 
+namespace psr{
+
 enum class DataFlowAnalysisType {
   IFDS_UninitializedVariables = 0,
   IFDS_ConstAnalysis,
@@ -36,5 +38,7 @@ extern const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
 extern const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString;
 
 ostream &operator<<(ostream &os, const DataFlowAnalysisType &k);
+
+}//namespace psr
 
 #endif

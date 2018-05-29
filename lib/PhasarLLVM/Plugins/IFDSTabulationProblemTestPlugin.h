@@ -19,6 +19,8 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+using namespace psr;
+namespace psr{
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
@@ -53,5 +55,7 @@ public:
 extern "C" unique_ptr<IFDSTabulationProblemPlugin>
 makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
                                     vector<string> EntryPoints);
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */

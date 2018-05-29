@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+using namespace psr;
+namespace psr{
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
@@ -44,3 +46,4 @@ const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
 ostream &operator<<(ostream &os, const DataFlowAnalysisType &D) {
   return os << DataFlowAnalysisTypeToString.at(D);
 }
+}//namespace psr

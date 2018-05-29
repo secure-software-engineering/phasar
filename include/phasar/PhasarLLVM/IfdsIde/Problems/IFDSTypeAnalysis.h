@@ -33,6 +33,7 @@
 #include <set>
 #include <string>
 using namespace std;
+namespace psr{
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, LLVMBasedICFG &> {
@@ -75,6 +76,7 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPE_ANALYSIS_IFDSTYPEANALYSIS_HH_   \
         */

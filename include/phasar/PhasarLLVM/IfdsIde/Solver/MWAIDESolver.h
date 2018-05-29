@@ -36,6 +36,7 @@
 #include <utility>
 
 using namespace std;
+namespace psr{
 
 template <typename N, typename D, typename M, typename V, typename I>
 class MWAIDESolver : public IDESolver<N, D, M, V, I> {
@@ -155,5 +156,7 @@ protected:
     cout << "MWAIDESolver::MWAIDESolver(IFDSTabulationProblem)" << endl;
   }
 };
+
+}//namespace psr
 
 #endif

@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDEProtoAnalysis.h>
+using namespace psr;
+namespace psr{
 
 IDEProtoAnalysis::IDEProtoAnalysis(LLVMBasedICFG &icfg,
                                    vector<string> EntryPoints)
@@ -193,3 +195,5 @@ string IDEProtoAnalysis::NtoString(const llvm::Instruction *n) const {
 string IDEProtoAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+
+}//namespace psr

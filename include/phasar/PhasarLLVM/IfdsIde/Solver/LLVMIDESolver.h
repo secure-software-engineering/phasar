@@ -21,6 +21,8 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 
+namespace psr{
+
 template <typename D, typename V, typename I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
                                        const llvm::Function *, V, I> {
@@ -130,5 +132,6 @@ public:
 
   void exportPATBCJSON() { cout << "LLVMIDESolver::exportPATBCJSON()\n"; }
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_ */

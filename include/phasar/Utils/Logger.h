@@ -43,6 +43,8 @@ using namespace std;
 namespace bl = boost::log;
 namespace bfs = boost::filesystem;
 
+namespace psr{
+
 // Additionally consult:
 //  - https://theboostcpplibraries.com/boost.log
 //  - http://www.boost.org/doc/libs/1_64_0/libs/log/doc/html/log/tutorial.html
@@ -96,5 +98,7 @@ struct LoggerExceptionHandler {
  * Initializes the logger.
  */
 void initializeLogger(bool use_logger, string log_file = "");
+
+}//namespace psr
 
 #endif /* UTILS_LOGGER_HH_ */

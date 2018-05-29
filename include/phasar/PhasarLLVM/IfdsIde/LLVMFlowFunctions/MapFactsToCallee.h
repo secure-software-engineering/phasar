@@ -19,6 +19,7 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
+namespace psr{
 
 /**
  * @brief Generates all valid formal parameter in the callee context.
@@ -56,5 +57,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLEE_H_ */

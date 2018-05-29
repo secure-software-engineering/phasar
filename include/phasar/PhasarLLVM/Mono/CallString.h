@@ -24,6 +24,8 @@
 #include <iterator>
 using namespace std;
 
+namespace psr{
+
 template <typename T, unsigned K> class CallString {
 private:
   deque<T> cs;
@@ -70,5 +72,7 @@ public:
     return os;
   }
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_MONOTONE_CALLSTRING_HH_ */

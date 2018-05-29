@@ -23,6 +23,9 @@
 #include <utility>
 #include <limits>
 using namespace std;
+using namespace psr;
+
+namespace psr{
 
 const int IDELinearConstantAnalysis::TOP = std::numeric_limits<int>::min();
 
@@ -178,3 +181,5 @@ string IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) co
 string IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+}//namespace psr

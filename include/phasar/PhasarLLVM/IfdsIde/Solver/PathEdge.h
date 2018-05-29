@@ -20,6 +20,7 @@
 #include <iostream>
 
 using namespace std;
+namespace psr{
 
 template <typename N, typename D> class PathEdge {
 private:
@@ -52,5 +53,7 @@ public:
               << pathEdge.dTarget << ">";
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_HH_ */

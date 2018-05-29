@@ -16,6 +16,11 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
 
+using namespace psr;
+namespace psr
+{
+
+
 const llvm::Function *
 LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) {
   return nullptr;
@@ -62,3 +67,4 @@ bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
 string LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) {
   return "";
 }
+}//namespace psr

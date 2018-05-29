@@ -26,6 +26,8 @@
 #include <set>
 #include <vector>
 using namespace std;
+using namespace psr;
+namespace psr{
 
 template <typename N, typename D, typename M, typename I,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
@@ -111,5 +113,7 @@ public:
     return summary;
   }
 };
+
+}//namespace psr
 
 #endif

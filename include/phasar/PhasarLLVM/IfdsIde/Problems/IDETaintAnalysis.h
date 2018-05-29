@@ -39,6 +39,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 class IDETaintAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
@@ -148,6 +150,8 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_   \
         */

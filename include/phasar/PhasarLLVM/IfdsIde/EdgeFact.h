@@ -11,11 +11,13 @@
 #define EDGEFACT_H_
 
 #include <iostream>
+namespace psr{
 
 class EdgeFact {
  public:
   virtual ~EdgeFact() = default;
   virtual std::ostream &print(std::ostream &os) const = 0;
 };
+}//namespace psr
 
 #endif

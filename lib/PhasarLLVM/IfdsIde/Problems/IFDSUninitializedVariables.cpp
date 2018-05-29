@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
+using namespace psr;
+namespace psr{
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(LLVMBasedICFG &icfg,
                                                    vector<string> EntryPoints)
@@ -361,3 +363,4 @@ string IFDSUnitializedVariables::NtoString(const llvm::Instruction *n) const {
 string IFDSUnitializedVariables::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+}//namespace psr

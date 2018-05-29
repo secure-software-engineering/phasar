@@ -48,6 +48,7 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
 // Functions that are considered as taint sensitve functions:
 //
 // Source functions - critical argument(s):
@@ -146,6 +147,7 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
         */

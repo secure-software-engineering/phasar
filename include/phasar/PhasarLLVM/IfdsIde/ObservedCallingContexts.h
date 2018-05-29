@@ -23,6 +23,7 @@
 #include <set>
 #include <vector>
 using namespace std;
+namespace psr{
 
 class ObservedCallingContexts {
 private:
@@ -37,5 +38,6 @@ public:
   set<vector<bool>> getObservedCTX(string FName);
   void print();
 };
+}//namespace psr
 
 #endif

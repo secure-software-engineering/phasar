@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+using namespace psr;
+namespace psr{
 
 string VTable::getFunctionByIdx(unsigned i) {
   if (i < vtbl.size())
@@ -58,3 +60,5 @@ vector<string>::const_iterator VTable::begin() const { return vtbl.begin(); }
 vector<string>::iterator VTable::end() { return vtbl.end(); }
 
 vector<string>::const_iterator VTable::end() const { return vtbl.end(); }
+
+}//namespace psr

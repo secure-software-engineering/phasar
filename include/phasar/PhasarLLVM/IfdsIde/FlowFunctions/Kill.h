@@ -20,6 +20,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 using namespace std;
+namespace psr{
 
 template <typename D> class Kill : public FlowFunction<D> {
 private:
@@ -35,5 +36,7 @@ public:
       return {source};
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_HH_ */

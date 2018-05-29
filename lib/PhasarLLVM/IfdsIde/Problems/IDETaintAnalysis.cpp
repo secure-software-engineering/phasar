@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+using namespace psr;
+namespace psr{
 
 bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
@@ -168,3 +170,5 @@ string IDETaintAnalysis::NtoString(const llvm::Instruction *n) const {
 string IDETaintAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+
+}//namespace psr

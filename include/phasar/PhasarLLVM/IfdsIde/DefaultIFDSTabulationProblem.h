@@ -22,6 +22,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <type_traits>
 
+namespace psr{
+
 template <typename N, typename D, typename M, typename I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
 protected:
@@ -49,5 +51,7 @@ public:
 
   D zeroValue() override { return zerovalue; }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_ */

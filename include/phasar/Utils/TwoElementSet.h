@@ -19,6 +19,8 @@
 
 #include <cstddef>
 
+namespace psr{
+
 template <typename E> class TwoElementSet {
 private:
   const E first, second;
@@ -28,5 +30,7 @@ public:
   size_t size() { return 2; }
   virtual ~TwoElementSet() = default;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_UTILS_TWOELEMENTSET_HH_ */

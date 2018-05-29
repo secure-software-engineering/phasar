@@ -30,6 +30,7 @@
 // class AllBottom;
 
 using namespace std;
+namespace psr{
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,
@@ -82,5 +83,7 @@ public:
 
   string toString() override { return "edge identity"; }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_HH_ */

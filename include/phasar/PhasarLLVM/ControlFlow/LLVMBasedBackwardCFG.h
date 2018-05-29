@@ -25,6 +25,7 @@
 #include <set>
 #include <vector>
 using namespace std;
+namespace psr{
 
 class LLVMBasedBackwardCFG
     : public CFG<const llvm::Instruction *, const llvm::Function *> {
@@ -60,5 +61,6 @@ public:
 
   virtual string getMethodName(const llvm::Function *fun) override;
 };
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_HH_ */

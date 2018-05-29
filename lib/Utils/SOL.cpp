@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/Utils/SOL.h>
+using namespace psr;
+namespace psr{
 
 SOL::SOL(const string &path) : path(path) {
   auto &lg = lg::get();
@@ -42,3 +44,4 @@ SOL::~SOL() {
   }
   dlclose(so_handle);
 }
+}//namespace psr

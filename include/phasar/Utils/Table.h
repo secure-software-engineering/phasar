@@ -24,6 +24,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 template <typename R, typename C, typename V> class Table {
 private:
   unordered_map<R, unordered_map<C, V>> table;
@@ -222,5 +224,7 @@ public:
     return os;
   }
 };
+
+}//namespace psr
 
 #endif /* UTILS_TABLE_HH_ */

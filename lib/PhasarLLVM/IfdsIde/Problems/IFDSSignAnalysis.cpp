@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSignAnalysis.h>
+using namespace psr;
+namespace psr{
 
 IFDSSignAnalysis::IFDSSignAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
@@ -92,3 +94,4 @@ string IFDSSignAnalysis::NtoString(const llvm::Instruction *n) const {
 string IFDSSignAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+}//namespace psr

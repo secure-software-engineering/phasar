@@ -43,6 +43,7 @@
 #include <set>
 #include <string>
 using namespace std;
+namespace psr{
 
 class IFDSUnitializedVariables
     : public DefaultIFDSTabulationProblem<
@@ -93,6 +94,8 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
         */

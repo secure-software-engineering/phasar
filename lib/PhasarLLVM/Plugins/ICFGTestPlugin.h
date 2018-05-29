@@ -17,6 +17,8 @@
 
 using namespace std;
 using json = nlohmann::json;
+using namespace psr;
+namespace psr{
 
 class ICFGTestPlugin : public ICFGPlugin {
 public:
@@ -79,5 +81,6 @@ public:
 
 extern "C" unique_ptr<ICFGPlugin>
 makeICFGTestPlugin(ProjectIRDB &IRDB, const vector<string> EntryPoints);
+}//namespace psr
 
 #endif

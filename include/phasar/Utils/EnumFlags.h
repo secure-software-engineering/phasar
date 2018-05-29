@@ -11,6 +11,7 @@
 #define ENUMFLAGS_H_
 
 #include <type_traits>
+namespace psr{
 
 template <typename T,
           typename = typename std::enable_if_t<std::is_enum<T>::value, T>>
@@ -72,5 +73,7 @@ template <typename T,
 constexpr T operator~(T t) {
   return static_cast<T>(~static_cast<typename std::underlying_type_t<T>>(t));
 }
+
+}//namespace psr
 
 #endif

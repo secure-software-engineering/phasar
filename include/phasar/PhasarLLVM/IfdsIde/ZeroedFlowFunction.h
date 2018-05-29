@@ -20,6 +20,7 @@
 #include "FlowFunction.h"
 #include <set>
 using namespace std;
+namespace psr{
 
 template <typename D> class ZeroedFlowFunction : public FlowFunction<D> {
 private:
@@ -39,5 +40,6 @@ public:
     }
   }
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_HH_ */

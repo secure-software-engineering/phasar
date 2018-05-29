@@ -20,6 +20,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
+namespace psr{
+
 template <typename D> class Gen : public FlowFunction<D> {
 private:
   D genValue;
@@ -35,5 +37,7 @@ public:
       return {source};
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_HH_ */

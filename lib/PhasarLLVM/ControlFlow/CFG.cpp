@@ -8,3 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+using namespace psr;
+namespace psr
+{
+
+}//namespace psr

@@ -18,6 +18,8 @@
 #include <string>
 using namespace std;
 
+namespace psr{
+
 class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 private:
@@ -32,5 +34,7 @@ public:
 extern map<string, unique_ptr<ICFGPlugin> (*)(ProjectIRDB &,
                                               const vector<string> EntryPoints)>
     ICFGPluginFactory;
+
+}//namespace psr
 
 #endif

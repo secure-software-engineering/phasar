@@ -11,6 +11,7 @@
 #define FLOWFACTWRAPPER_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+namespace psr{
 
 template <typename T>
 class FlowFactWrapper : public FlowFact {
@@ -23,5 +24,6 @@ class FlowFactWrapper : public FlowFact {
   T get() { return fact; }
   std::ostream &print(std::ostream &os) const override { return os << fact << '\n'; }
 };
+}//namespace psr
 
 #endif

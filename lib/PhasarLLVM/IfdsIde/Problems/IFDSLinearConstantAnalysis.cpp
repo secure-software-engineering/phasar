@@ -22,6 +22,9 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 using namespace std;
+using namespace psr;
+
+namespace psr{
 
 LCAPair::LCAPair() : first(nullptr), second(0) {}
 
@@ -135,3 +138,4 @@ string
 IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+}//namespace psr

@@ -36,6 +36,8 @@
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
+namespace psr{
+
 #ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()
@@ -458,5 +460,7 @@ public:
 
   void printStoppedTimer();
 };
+
+}//namespace psr
 
 #endif /* PAMM_H_ */

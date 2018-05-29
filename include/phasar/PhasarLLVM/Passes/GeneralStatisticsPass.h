@@ -33,6 +33,8 @@
 #include <string>
 #include <vector>
 
+namespace psr{
+
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute
  * some statistics about a Module. This includes the number of
@@ -140,5 +142,7 @@ public:
    */
   set<const llvm::Instruction *> getRetResInstructions();
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_GENERALSTATISTICSPASS_HH_ */

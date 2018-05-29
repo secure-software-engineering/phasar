@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 using namespace std;
+namespace psr{
 
 template <typename N, typename M> class CFG {
 public:
@@ -49,5 +50,7 @@ public:
 
   virtual string getMethodName(M fun) = 0;
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_ICFG_CFG_HH_ */

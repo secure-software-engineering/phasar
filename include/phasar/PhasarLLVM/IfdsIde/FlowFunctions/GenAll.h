@@ -21,6 +21,7 @@
 #include <set>
 
 using namespace std;
+namespace psr{
 
 template <typename D> class GenAll : public FlowFunction<D> {
 private:
@@ -40,5 +41,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_HH_ */

@@ -19,6 +19,7 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
+namespace psr{
 
 /**
  * @brief Generates all valid actual parameters and the return value in the
@@ -64,5 +65,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_ */

@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace psr{
+
 template <typename N, typename D> class DefaultSeeds {
 public:
   static map<N, set<D>> make(vector<N> node, D zeroNode) {
@@ -32,5 +34,7 @@ public:
     return res;
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_DEFAULTSEEDS_HH_ */

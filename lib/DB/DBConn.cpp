@@ -16,6 +16,10 @@
 
 #include <phasar/DB/DBConn.h>
 
+using namespace psr;
+
+namespace psr{
+
 const string DBConn::db_schema_name = "phasardb";
 const string DBConn::db_user = "root";
 const string DBConn::db_password = "1234";
@@ -1530,3 +1534,5 @@ void DBConn::dropDBAndRebuildScheme() {
   this_thread::sleep_for(5s);
   buildDBScheme();
 }
+
+} // namespace psr

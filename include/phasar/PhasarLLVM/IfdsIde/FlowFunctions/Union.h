@@ -22,6 +22,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr{
 
 template <typename D> class Union : public FlowFunction<D> {
 private:
@@ -50,5 +51,6 @@ public:
     return Union(vec);
   }
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_HH_ */

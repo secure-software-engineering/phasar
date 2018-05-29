@@ -26,6 +26,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 template <typename N, typename D, typename M, typename C>
 class IntraMonotoneSolver {
 protected:
@@ -82,5 +84,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif

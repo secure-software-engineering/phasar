@@ -15,6 +15,8 @@
 #include <string>
 using namespace std;
 
+namespace psr{
+
 enum class Scope { function, module, project };
 
 ostream &operator<<(ostream &os, const Scope &s);
@@ -22,5 +24,7 @@ ostream &operator<<(ostream &os, const Scope &s);
 extern const map<string, Scope> StringToScope;
 
 extern const map<Scope, string> ScopeToString;
+
+}//namespace psr
 
 #endif

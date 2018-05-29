@@ -17,6 +17,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 class IDETabulationProblemPlugin {};
 
 extern "C" unique_ptr<IDETabulationProblemPlugin>
@@ -25,5 +27,7 @@ makeIDETabulationProblemPlugin(LLVMBasedICFG &I, vector<string> EntryPoints);
 extern map<string, unique_ptr<IDETabulationProblemPlugin> (*)(
                        LLVMBasedICFG &I, vector<string> EntryPoints)>
     IDETabulationProblemPluginFactory;
+
+}//namespace psr
 
 #endif

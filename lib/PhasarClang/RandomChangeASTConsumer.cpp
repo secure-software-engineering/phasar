@@ -17,6 +17,10 @@
 #include <phasar/PhasarClang/RandomChangeASTConsumer.h>
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
 
+using namespace psr;
+
+namespace psr{
+
 RandomChangeASTConsumer::RandomChangeASTConsumer(clang::Rewriter &R)
     : Visitor(R) {}
 
@@ -24,3 +28,4 @@ void RandomChangeASTConsumer::HandleTranslationUnit(
     clang::ASTContext &Context) {
   Visitor.TraverseDecl(Context.getTranslationUnitDecl());
 }
+}//namespace psr

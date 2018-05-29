@@ -21,6 +21,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
+namespace psr{
+
 /**
  * @brief Generates the given value if the given predicate evaluates to true.
  * @tparam D The type of data-flow facts to be generated.
@@ -42,5 +44,7 @@ public:
       return {source};
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_ */

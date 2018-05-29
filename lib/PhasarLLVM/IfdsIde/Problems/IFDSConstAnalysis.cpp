@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+using namespace psr;
+namespace psr{
 
 IFDSConstAnalysis::IFDSConstAnalysis(LLVMBasedICFG &icfg,
                                      vector<string> EntryPoints)
@@ -443,3 +445,5 @@ void IFDSConstAnalysis::markAsInitialized(const llvm::Value *d) {
 size_t IFDSConstAnalysis::getInitializedSize() {
   return Initialized.size();
 }
+
+}//namespace psr

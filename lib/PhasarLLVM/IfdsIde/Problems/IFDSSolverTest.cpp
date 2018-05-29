@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
+using namespace psr;
+namespace psr{
 
 IFDSSolverTest::IFDSSolverTest(LLVMBasedICFG &I, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem<const llvm::Instruction *,
@@ -96,3 +98,4 @@ string IFDSSolverTest::NtoString(const llvm::Instruction *n) const {
 string IFDSSolverTest::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+}//namespace psr

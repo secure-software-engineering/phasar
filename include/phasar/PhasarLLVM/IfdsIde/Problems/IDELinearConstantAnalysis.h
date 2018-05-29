@@ -22,6 +22,8 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr{
+
 class LLVMBasedICFG;
 
 class IDELinearConstantAnalysis
@@ -110,6 +112,8 @@ public:
 
   std::string MtoString(m_t m) const override;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_HH_ \
         */

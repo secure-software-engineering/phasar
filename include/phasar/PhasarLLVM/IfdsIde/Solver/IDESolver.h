@@ -45,6 +45,8 @@
 
 using namespace std;
 using json = nlohmann::json;
+using namespace psr;
+namespace psr{
 
 // Forward declare the Transformation
 template <typename N, typename D, typename M, typename I>
@@ -1101,5 +1103,7 @@ protected:
     BOOST_LOG_SEV(lg, DEBUG) << "end endsummarytab entry";
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_HH_ */

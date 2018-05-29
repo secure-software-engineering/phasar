@@ -38,6 +38,7 @@
 #include <utility>
 #include <vector>
 using namespace std;
+namespace psr{
 
 class IDEProtoAnalysis
     : public DefaultIDETabulationProblem<
@@ -142,5 +143,7 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */

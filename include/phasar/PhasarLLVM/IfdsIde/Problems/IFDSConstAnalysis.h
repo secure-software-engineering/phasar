@@ -46,6 +46,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 /**
  * To test the CONSERVATIVE version of this analysis, just check
  * the comments of each flow function for information on
@@ -133,6 +135,8 @@ public:
   getContextRelevantPointsToSet(set<const llvm::Value *> &PointsToSet,
                                 const llvm::Function *Context);
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
         */

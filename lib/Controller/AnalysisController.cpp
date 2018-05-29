@@ -9,6 +9,10 @@
 
 #include <phasar/Controller/AnalysisController.h>
 
+using namespace psr;
+
+namespace psr {
+
 const std::map<std::string, ExportType> StringToExportType = {
     {"json", ExportType::JSON}};
 
@@ -535,3 +539,5 @@ void AnalysisController::writeResults(std::string filename) {
   std::ofstream ofs(filename);
   ofs << FinalResultsJson.dump(1);
 }
+
+} //namespace psr

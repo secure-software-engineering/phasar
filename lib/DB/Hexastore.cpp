@@ -9,8 +9,11 @@
 
 #include <phasar/DB/Hexastore.h>
 
+using namespace psr;
 using namespace boost;
 using namespace hexastore;
+
+namespace psr{
 
 Hexastore::Hexastore(string filename) {
   sqlite3_open(filename.c_str(), &hs_internal_db);
@@ -100,3 +103,5 @@ vector<hs_result> Hexastore::get(array<string, 3> edge_query,
   }
   return result;
 }
+
+}//namespace psr

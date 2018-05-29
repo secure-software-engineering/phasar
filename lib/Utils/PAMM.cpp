@@ -15,6 +15,9 @@
  */
 
 #include <phasar/Utils/PAMM.h>
+using namespace psr;
+
+namespace psr{
 
 PAMM &PAMM::getInstance() {
   static PAMM instance;
@@ -237,3 +240,4 @@ void PAMM::addCounterToJSON(json &jsonData) {
   if (!jMiscCounter.empty())
     jsonData["Misc Counter"] = jMiscCounter;
 }
+}//namespace psr

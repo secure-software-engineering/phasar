@@ -39,6 +39,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 class IDESolverTest
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
@@ -142,5 +144,7 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_ */

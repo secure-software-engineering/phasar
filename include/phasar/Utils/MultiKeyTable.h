@@ -23,6 +23,8 @@
 #include <unordered_map>
 using namespace std;
 
+namespace psr{
+
 template <typename R, typename C, typename V> class MultiKeyTable {
 private:
   unordered_multimap<R, unordered_multimap<C, V>> multi_key_table;
@@ -208,5 +210,7 @@ public:
     return os;
   }
 };
+
+}//namespace psr
 
 #endif /* UTILS_MULTIKEYTABLE_HH_ */

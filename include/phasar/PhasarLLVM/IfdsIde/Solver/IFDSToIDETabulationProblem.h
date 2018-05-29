@@ -26,6 +26,8 @@
 #include <utility>
 
 using namespace std;
+using namespace psr;
+namespace psr{
 
 extern const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
 
@@ -146,5 +148,7 @@ public:
 
   string NtoString(N n) const override { return problem.NtoString(n); }
 };
+
+}//namespace psr
 
 #endif

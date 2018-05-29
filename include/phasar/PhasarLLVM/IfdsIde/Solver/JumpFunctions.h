@@ -25,6 +25,8 @@
 #include <phasar/Utils/Table.h>
 
 using namespace std;
+using namespace psr;
+namespace psr{
 
 // Forward declare the IDETabulationProblem as we require its toString functionality.
 template <typename N, typename D, typename M, typename V, typename I>
@@ -233,5 +235,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_HH_ */

@@ -26,6 +26,7 @@
 #include <vector>
 using namespace std;
 using json = nlohmann::json;
+namespace psr{
 
 enum class CallGraphAnalysisType { CHA, RTA, DTA, VTA, OTF };
 
@@ -59,5 +60,7 @@ public:
 
   virtual json getAsJson() = 0;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_ICFG_HH_ */

@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr{
 
 class IFDSProtoAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
@@ -75,5 +76,7 @@ class IFDSProtoAnalysis : public DefaultIFDSTabulationProblem<
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDSPROTOANALYSIS_HH_ */

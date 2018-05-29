@@ -22,6 +22,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr{
 
 template <typename N, typename D, typename M> class FlowFunctions {
 public:
@@ -36,5 +37,6 @@ public:
   virtual shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N curr,
                                                              M destMthd) = 0;
 };
+}//namespace  psr
 
 #endif /* ANALYSIS_ABSTRACTFLOWFUNCTIONS_HH_ */

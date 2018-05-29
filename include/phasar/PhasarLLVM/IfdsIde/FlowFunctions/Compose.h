@@ -23,6 +23,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr{
 
 template <typename D> class Compose : FlowFunction<D> {
 private:
@@ -59,5 +60,7 @@ public:
     return make_shared<Compose>(vec);
   }
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_HH_ */

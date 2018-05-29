@@ -24,6 +24,8 @@
 #include "IntraMonotoneSolver.h"
 using namespace std;
 
+namespace psr{
+
 template <typename D, typename C>
 class LLVMIntraMonotoneSolver
     : public IntraMonotoneSolver<const llvm::Instruction *, D,
@@ -73,5 +75,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTRAMONOTONESOLVER_HH_ */

@@ -22,6 +22,7 @@
 #include <set>
 
 using namespace std;
+namespace psr{
 
 class DefaultSeeds {
 public:
@@ -33,5 +34,6 @@ public:
     return res;
   }
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_HH_ */

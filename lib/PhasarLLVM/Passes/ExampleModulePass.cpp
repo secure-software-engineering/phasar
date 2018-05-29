@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Passes/ExampleModulePass.h>
+using namespace psr;
+namespace psr{
 
 void ExampleModulePass::getAnalysisUsage(AnalysisUsage &AU) const {
   // AAResult::gettAnalysisUsage(AU);
@@ -75,3 +77,5 @@ bool ExampleModulePass::runOnModule(llvm::Module &M) {
 void ExampleModulePass::releaseMemory() {
   outs() << "\nMyAA: memory released!\n";
 }
+
+}//namespace psr

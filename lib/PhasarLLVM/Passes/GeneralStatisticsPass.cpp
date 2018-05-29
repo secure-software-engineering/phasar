@@ -16,6 +16,9 @@
 
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 
+using namespace psr;
+namespace psr{
+
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
@@ -152,3 +155,5 @@ set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
 set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
   return retResInstructions;
 }
+
+}//namespace psr

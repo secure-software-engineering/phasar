@@ -24,6 +24,8 @@
 
 using namespace std;
 
+namespace psr{
+
 // merges two graph by vertex-contraction
 template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename... Args>
@@ -89,5 +91,7 @@ void copy_graph(GraphTy &g1, const GraphTy &g2) {
                                                   get(boost::vertex_index, g2));
   boost::copy_graph(g2, g1, boost::orig_to_copy(mapV)); // means g1 += g2
 }
+
+}//namespace psr
 
 #endif /* SRC_LIB_GRAPHEXTENSIONS_HH_ */

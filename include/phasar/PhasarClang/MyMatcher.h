@@ -26,10 +26,13 @@ using namespace std;
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace llvm;
+namespace psr{
 
 class MyMatcher : public MatchFinder::MatchCallback {
 public:
   virtual void run(const MatchFinder::MatchResult &Result);
 };
+
+}//namespace psr
 
 #endif /* CLANG_MYMATCHER_HH_ */

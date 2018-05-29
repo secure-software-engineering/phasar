@@ -29,6 +29,9 @@
 
 using json = nlohmann::json;
 using namespace std;
+using namespace psr;
+
+namespace psr{
 
 template <typename D, typename I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
@@ -404,5 +407,6 @@ public:
 
   void exportPATBCJSON() { cout << "LLVMIFDSSolver::exportPATBCJSON()\n"; }
 };
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_HH_ */

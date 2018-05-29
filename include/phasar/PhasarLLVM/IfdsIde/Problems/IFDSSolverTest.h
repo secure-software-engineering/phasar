@@ -33,6 +33,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 class IFDSSolverTest : public DefaultIFDSTabulationProblem<
                            const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, LLVMBasedICFG &> {
@@ -77,6 +79,8 @@ public:
 
   string MtoString(const llvm::Function *m) const override;
 };
+
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_   \
         */

@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr{
 
 template <typename I, typename ConcreteIFDSTabulationProblem>
 class LLVMIFDSSummaryGenerator
@@ -84,5 +85,6 @@ public:
 
   virtual ~LLVMIFDSSummaryGenerator() = default;
 };
+}//namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_HH_ */

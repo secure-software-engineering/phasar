@@ -15,6 +15,8 @@
 #include "../IDETabulationProblem.h"
 #include "MWAIDESolver.h"
 
+namespace psr{
+
 template <typename D, typename V, typename I>
 class LLVMMWAIDESolver : public MWAIDESolver<const llvm::Instruction *, D,
                                              const llvm::Function *, V, I> {
@@ -139,5 +141,7 @@ public:
     }
   }
 };
+
+}//namespace psr
 
 #endif

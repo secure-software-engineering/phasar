@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
+using namespace psr;
+namespace psr{
 
 IDESolverTest::IDESolverTest(LLVMBasedICFG &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
@@ -190,3 +192,5 @@ string IDESolverTest::NtoString(const llvm::Instruction *n) const {
 string IDESolverTest::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+
+}//namespace psr

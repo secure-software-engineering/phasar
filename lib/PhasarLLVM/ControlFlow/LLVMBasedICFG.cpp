@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+using namespace psr;
+namespace psr
+{
 
 const map<string, WalkerStrategy> StringToWalkerStrategy = {
     {"Simple", WalkerStrategy::Simple},
@@ -942,3 +945,5 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
 unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
 
 unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
+
+}//namespace psr

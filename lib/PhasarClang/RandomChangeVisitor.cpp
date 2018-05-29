@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
+using namespace psr;
+
+namespace psr {
 
 RandomChangeVisitor::RandomChangeVisitor(clang::Rewriter &R) : RW(R) {}
 
@@ -84,3 +87,4 @@ bool RandomChangeVisitor::VisitVarDecl(clang::VarDecl *V) {
   }
   return true;
 }
+}//namespace psr

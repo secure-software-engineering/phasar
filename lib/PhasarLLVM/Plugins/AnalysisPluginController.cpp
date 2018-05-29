@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
+using namespace psr;
+namespace psr{
 
 AnalysisPluginController::AnalysisPluginController(
     vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
@@ -44,3 +46,5 @@ AnalysisPluginController::AnalysisPluginController(
     }
   }
 }
+
+}//namespace psr

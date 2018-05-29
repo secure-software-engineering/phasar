@@ -41,6 +41,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr{
+
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -230,5 +232,7 @@ public:
    */
   // friend void operator>>(DBConn& db, LLVMTypeHierarchy& STH);
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_LLVMTYPEHIERARCHY_HH_ */

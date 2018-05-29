@@ -44,6 +44,8 @@
 #include <set>
 #include <utility>
 
+namespace psr{
+
 enum class IRDBOptions : uint32_t {
   NONE = 0,
   MEM2REG = (1 << 0),
@@ -138,5 +140,7 @@ public:
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
   set<const llvm::Type *> getAllocatedTypes();
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_ProjectIRDB_HH_ */

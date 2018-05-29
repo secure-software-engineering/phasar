@@ -19,6 +19,7 @@
 
 #include <vector>
 using namespace std;
+namespace psr{
 
 template <typename T> class JoinHandlingNode {
 public:
@@ -57,5 +58,7 @@ public:
    */
   virtual JoinKey createJoinKey() = 0;
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODE_HH_ */

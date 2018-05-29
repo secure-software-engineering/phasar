@@ -16,6 +16,10 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 
+using namespace psr;
+
+namespace psr{
+
 /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
@@ -217,3 +221,5 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
   }
   return nullptr;
 }
+
+}//namespace psr

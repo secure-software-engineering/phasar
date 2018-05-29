@@ -16,6 +16,7 @@
 
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_H_
+namespace psr{
 
 /**
  * An {@link IFDSSolver} that tracks paths for reporting. To do so, it requires
@@ -36,5 +37,7 @@ class JoinHandlingNodesIFDSSolver {
   //		super(ifdsProblem);
   //	}
 };
+
+}//namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_HH_ */

@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+using namespace psr;
+namespace psr{
 
 // Source functions - critical argument(s) - signature:
 //  -fread - 0 - size_t fread(void *ptr, size_t size, size_t nmemb, FILE
@@ -377,3 +379,4 @@ string IFDSTaintAnalysis::NtoString(const llvm::Instruction *n) const {
 string IFDSTaintAnalysis::MtoString(const llvm::Function *m) const {
   return m->getName().str();
 }
+}//namespace psr

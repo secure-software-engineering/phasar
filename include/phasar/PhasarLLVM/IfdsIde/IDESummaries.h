@@ -15,6 +15,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Table.h>
 using namespace std;
+namespace psr{
 
 template <typename N, typename D, typename M, typename V> class IDESummaries {
 private:
@@ -28,5 +29,7 @@ public:
     return summaries;
   }
 };
+
+}//namespace psr
 
 #endif

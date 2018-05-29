@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+using namespace psr;
+namespace psr{
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;
@@ -225,4 +227,4 @@ json LLVMTypeHierarchy::getAsJson() {
 unsigned LLVMTypeHierarchy::getNumOfVertices() { return boost::num_vertices(g); }
 
 unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
-
+}//namespace psr

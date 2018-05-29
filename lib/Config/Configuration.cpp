@@ -16,6 +16,10 @@
 
 #include <phasar/Config/Configuration.h>
 
+using namespace psr;
+
+namespace psr {
+
 const std::string MetaDataKind("phasar.instruction.id");
 const std::string ConfigurationDirectory([]() {
   std::string phasar_config =
@@ -41,3 +45,5 @@ const std::string JsonCallGraphID("CallGraph");
 const std::string JsonTypeHierarchyID("TypeHierarchy");
 const std::string JsonPointToGraphID("PointsToGraph");
 const std::string JsonDataFlowID("DataFlowInformation");
+
+} //namespace psr

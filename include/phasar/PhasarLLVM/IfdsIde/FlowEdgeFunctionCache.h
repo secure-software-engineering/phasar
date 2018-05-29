@@ -20,6 +20,8 @@
 #include <phasar/Utils/Logger.h>
 #include <tuple>
 
+namespace psr{
+
 /**
  * This class caches flow and edge functions to avoid their reconstruction.
  * When a flow or edge function must be applied to multiple times, a cached
@@ -329,5 +331,7 @@ struct FlowEdgeFunctionCache {
 #endif
   }
 };
+
+}//namespace psr
 
 #endif

@@ -17,6 +17,8 @@
 #ifndef UTILS_SINGLETON_H_
 #define UTILS_SINGLETON_H_
 
+namespace psr{
+
 template <typename T> class Singleton {
 public:
   Singleton(const Singleton &s) = delete;
@@ -32,5 +34,7 @@ protected:
   Singleton() = default;
   ~Singleton() = default;
 };
+
+}//namespace psr
 
 #endif /* UTILS_SINGLETON_HH_ */

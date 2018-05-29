@@ -8,6 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
+using namespace psr;
+namespace psr{
 
 const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM =
     make_shared<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
+
+}//namespace psr

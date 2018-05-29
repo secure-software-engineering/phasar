@@ -15,8 +15,11 @@
 #include <iostream>
 #include <phasar/DB/Hexastore.h>
 
+using namespace psr;
 using namespace std;
 using namespace hexastore;
+
+namespace psr{
 
 int hs_empty_fields_test() {
   hexastore::Hexastore h("test1.sqlite");
@@ -291,3 +294,5 @@ void hs_serialization_test() {
 //   hs_empty_fields_test();
 // 	return 0;
 // }
+
+}//namespace psr
