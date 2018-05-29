@@ -26,6 +26,7 @@ build:
 #    - make test
   only:
     - master
+    - develop
     - restructure
   tags:
     - shared
