@@ -7,141 +7,122 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * IDEProtoAnalysis.h
- *
- *  Created on: 15.09.2017
- *      Author: philipp
- */
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_H_
-#define SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_H_
-
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <set>
 #include <string>
 #include <utility>
 #include <vector>
-using namespace std;
+
+namespace llvm {
+class Instruction;
+class Function;
+class Value;
+} // namespace llvm
+
+class LLVMBasedICFG;
 
 class IDEProtoAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, const llvm::Value *, LLVMBasedICFG &> {
 private:
-  vector<string> EntryPoints;
+  std::vector<std::string> EntryPoints;
 
 public:
-  IDEProtoAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
+  typedef const llvm::Value *d_t;
+  typedef const llvm::Instruction *n_t;
+  typedef const llvm::Function *m_t;
+  typedef const llvm::Value *v_t;
+  typedef LLVMBasedICFG &i_t;
+
+  IDEProtoAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDEProtoAnalysis() = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getNormalFlowFunction(const llvm::Instruction *curr,
-                        const llvm::Instruction *succ) override;
+  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+                                                           n_t succ) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallFlowFunction(const llvm::Instruction *callStmt,
-                      const llvm::Function *destMthd) override;
+  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+                                                         m_t destMthd) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeMthd,
-                     const llvm::Instruction *exitStmt,
-                     const llvm::Instruction *retSite) override;
+  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+                                                        m_t calleeMthd,
+                                                        n_t exitStmt,
+                                                        n_t retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite,
-                           std::set<const llvm::Function *> callees) override;
+  shared_ptr<FlowFunction<d_t>>
+  getCallToRetFlowFunction(n_t callSite,
+                           n_t retSite,
+                           std::set<m_t> callees) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd) override;
+  std::shared_ptr<FlowFunction<d_t>>
+  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
 
-  map<const llvm::Instruction *, set<const llvm::Value *>>
-  initialSeeds() override;
+  std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  const llvm::Value *createZeroValue() override;
+  d_t createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value *d) const override;
+  bool isZeroValue(d_t d) const override;
 
   // in addition provide specifications for the IDE parts
 
-  shared_ptr<EdgeFunction<const llvm::Value *>> getNormalEdgeFunction(
-      const llvm::Instruction *curr, const llvm::Value *currNode,
-      const llvm::Instruction *succ, const llvm::Value *succNode) override;
+  std::shared_ptr<EdgeFunction<v_t>>
+  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                        d_t succNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>>
-  getCallEdgeFunction(const llvm::Instruction *callStmt,
-                      const llvm::Value *srcNode,
-                      const llvm::Function *destiantionMethod,
-                      const llvm::Value *destNode) override;
+  std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
+                                                         d_t srcNode,
+                                                         m_t destiantionMethod,
+                                                         d_t destNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>> getReturnEdgeFunction(
-      const llvm::Instruction *callSite, const llvm::Function *calleeMethod,
-      const llvm::Instruction *exitStmt, const llvm::Value *exitNode,
-      const llvm::Instruction *reSite, const llvm::Value *retNode) override;
+  std::shared_ptr<EdgeFunction<v_t>>
+  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
+                        d_t exitNode, n_t reSite, d_t retNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>>
-  getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
-                              const llvm::Value *callNode,
-                              const llvm::Instruction *retSite,
-                              const llvm::Value *retSiteNode) override;
+  std::shared_ptr<EdgeFunction<v_t>>
+  getCallToReturnEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
+                              d_t retSiteNode) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>>
-  getSummaryEdgeFunction(const llvm::Instruction *callSite,
-                         const llvm::Value *callNode,
-                         const llvm::Instruction *retSite,
-                         const llvm::Value *retSiteNode) override;
+  std::shared_ptr<EdgeFunction<v_t>>
+  getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
+                         d_t retSiteNode) override;
 
-  const llvm::Value *topElement() override;
+  v_t topElement() override;
 
-  const llvm::Value *bottomElement() override;
+  v_t bottomElement() override;
 
-  const llvm::Value *join(const llvm::Value *lhs,
-                          const llvm::Value *rhs) override;
+  v_t join(v_t lhs, v_t rhs) override;
 
-  shared_ptr<EdgeFunction<const llvm::Value *>> allTopFunction() override;
+  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
   class IDEProtoAnalysisAllTop
-      : public EdgeFunction<const llvm::Value *>,
-        public enable_shared_from_this<IDEProtoAnalysisAllTop> {
-    const llvm::Value *computeTarget(const llvm::Value *source) override;
+      : public EdgeFunction<v_t>,
+        public std::enable_shared_from_this<IDEProtoAnalysisAllTop> {
+    v_t computeTarget(v_t source) override;
 
-    shared_ptr<EdgeFunction<const llvm::Value *>> composeWith(
-        shared_ptr<EdgeFunction<const llvm::Value *>> secondFunction) override;
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
-    shared_ptr<EdgeFunction<const llvm::Value *>> joinWith(
-        shared_ptr<EdgeFunction<const llvm::Value *>> otherFunction) override;
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
-    bool equalTo(shared_ptr<EdgeFunction<const llvm::Value *>> other) override;
+    bool equalTo(std::shared_ptr<EdgeFunction<v_t>> other) override;
   };
 
-  string DtoString(const llvm::Value *d) const override;
+  std::string DtoString(d_t d) const override;
 
-  string VtoString(const llvm::Value *v) const override;
+  std::string VtoString(v_t v) const override;
 
-  string NtoString(const llvm::Instruction *n) const override;
+  std::string NtoString(n_t n) const override;
 
-  string MtoString(const llvm::Function *m) const override;
+  std::string MtoString(m_t m) const override;
 };
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_ */

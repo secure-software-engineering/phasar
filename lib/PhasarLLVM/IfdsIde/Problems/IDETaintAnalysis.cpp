@@ -7,13 +7,27 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <utility>
+using namespace std;
 
 bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
+IDETaintAnalysis::IDETaintAnalysis(IDETaintAnalysis::i_t icfg,
                                    vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
@@ -21,151 +35,150 @@ IDETaintAnalysis::IDETaintAnalysis(LLVMBasedICFG &icfg,
 
 // start formulating our analysis by specifying the parts required for IFDS
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                        const llvm::Instruction *succ) {
-  return Identity<const llvm::Value *>::getInstance();
+shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::getNormalFlowFunction(IDETaintAnalysis::n_t curr,
+                                        IDETaintAnalysis::n_t succ) {
+  return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd) {
-  return Identity<const llvm::Value *>::getInstance();
+shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::getCallFlowFunction(IDETaintAnalysis::n_t callStmt,
+                                      IDETaintAnalysis::m_t destMthd) {
+  return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                     const llvm::Function *calleeMthd,
-                                     const llvm::Instruction *exitStmt,
-                                     const llvm::Instruction *retSite) {
-  return Identity<const llvm::Value *>::getInstance();
+shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::getRetFlowFunction(IDETaintAnalysis::n_t callSite,
+                                     IDETaintAnalysis::m_t calleeMthd,
+                                     IDETaintAnalysis::n_t exitStmt,
+                                     IDETaintAnalysis::n_t retSite) {
+  return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    set<const llvm::Function *> callees) {
-  return Identity<const llvm::Value *>::getInstance();
+shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::getCallToRetFlowFunction(IDETaintAnalysis::n_t callSite,
+                                           IDETaintAnalysis::n_t retSite,
+set<IDETaintAnalysis::m_t> callees) {
+  return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IDETaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
+IDETaintAnalysis::getSummaryFlowFunction(IDETaintAnalysis::n_t callStmt,
+                                         IDETaintAnalysis::m_t destMthd) {
   return nullptr;
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+                                  set<IDETaintAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-const llvm::Value *IDETaintAnalysis::createZeroValue() {
+IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
-bool IDETaintAnalysis::isZeroValue(const llvm::Value *d) const {
+bool IDETaintAnalysis::isZeroValue(IDETaintAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
-IDETaintAnalysis::getNormalEdgeFunction(const llvm::Instruction *curr,
-                                        const llvm::Value *currNode,
-                                        const llvm::Instruction *succ,
-                                        const llvm::Value *succNode) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
+IDETaintAnalysis::getNormalEdgeFunction(IDETaintAnalysis::n_t curr,
+                                        IDETaintAnalysis::d_t currNode,
+                                        IDETaintAnalysis::n_t succ,
+                                        IDETaintAnalysis::d_t succNode) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallEdgeFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Value *srcNode,
-                                      const llvm::Function *destiantionMethod,
-                                      const llvm::Value *destNode) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
+IDETaintAnalysis::getCallEdgeFunction(IDETaintAnalysis::n_t callStmt,
+                                      IDETaintAnalysis::d_t srcNode,
+                                      IDETaintAnalysis::m_t destiantionMethod,
+                                      IDETaintAnalysis::d_t destNode) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
-IDETaintAnalysis::getReturnEdgeFunction(const llvm::Instruction *callSite,
-                                        const llvm::Function *calleeMethod,
-                                        const llvm::Instruction *exitStmt,
-                                        const llvm::Value *exitNode,
-                                        const llvm::Instruction *reSite,
-                                        const llvm::Value *retNode) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
+IDETaintAnalysis::getReturnEdgeFunction(IDETaintAnalysis::n_t callSite,
+                                        IDETaintAnalysis::m_t calleeMethod,
+                                        IDETaintAnalysis::n_t exitStmt,
+                                        IDETaintAnalysis::d_t exitNode,
+                                        IDETaintAnalysis::n_t reSite,
+                                        IDETaintAnalysis::d_t retNode) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
-IDETaintAnalysis::getCallToReturnEdgeFunction(const llvm::Instruction *callSite,
-                                              const llvm::Value *callNode,
-                                              const llvm::Instruction *retSite,
-                                              const llvm::Value *retSiteNode) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
+IDETaintAnalysis::getCallToReturnEdgeFunction(
+    IDETaintAnalysis::n_t callSite, IDETaintAnalysis::d_t callNode,
+    IDETaintAnalysis::n_t retSite, IDETaintAnalysis::d_t retSiteNode) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
-IDETaintAnalysis::getSummaryEdgeFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Value *callNode,
-                                         const llvm::Instruction *retSite,
-                                         const llvm::Value *retSiteNode) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
+IDETaintAnalysis::getSummaryEdgeFunction(IDETaintAnalysis::n_t callStmt,
+                                         IDETaintAnalysis::d_t callNode,
+                                         IDETaintAnalysis::n_t retSite,
+                                         IDETaintAnalysis::d_t retSiteNode) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-const llvm::Value *IDETaintAnalysis::topElement() { return nullptr; }
+IDETaintAnalysis::v_t IDETaintAnalysis::topElement() { return nullptr; }
 
-const llvm::Value *IDETaintAnalysis::bottomElement() { return nullptr; }
+IDETaintAnalysis::v_t IDETaintAnalysis::bottomElement() { return nullptr; }
 
-const llvm::Value *IDETaintAnalysis::join(const llvm::Value *lhs,
-                                          const llvm::Value *rhs) {
+IDETaintAnalysis::v_t IDETaintAnalysis::join(IDETaintAnalysis::v_t lhs,
+                                             IDETaintAnalysis::v_t rhs) {
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
 IDETaintAnalysis::allTopFunction() {
   return make_shared<IDETainAnalysisAllTop>();
 }
 
-const llvm::Value *IDETaintAnalysis::IDETainAnalysisAllTop::computeTarget(
-    const llvm::Value *source) {
+IDETaintAnalysis::v_t IDETaintAnalysis::IDETainAnalysisAllTop::computeTarget(
+    IDETaintAnalysis::v_t source) {
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
 IDETaintAnalysis::IDETainAnalysisAllTop::composeWith(
-    shared_ptr<EdgeFunction<const llvm::Value *>> secondFunction) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> secondFunction) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<const llvm::Value *>>
+shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
 IDETaintAnalysis::IDETainAnalysisAllTop::joinWith(
-    shared_ptr<EdgeFunction<const llvm::Value *>> otherFunction) {
-  return EdgeIdentity<const llvm::Value *>::getInstance();
+    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> otherFunction) {
+  return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
 bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
-    shared_ptr<EdgeFunction<const llvm::Value *>> other) {
+    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> other) {
   return false;
 }
 
-string IDETaintAnalysis::DtoString(const llvm::Value *d) const {
+string IDETaintAnalysis::DtoString(IDETaintAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IDETaintAnalysis::VtoString(const llvm::Value *v) const {
+string IDETaintAnalysis::VtoString(IDETaintAnalysis::v_t v) const {
   return llvmIRToString(v);
 }
 
-string IDETaintAnalysis::NtoString(const llvm::Instruction *n) const {
+string IDETaintAnalysis::NtoString(IDETaintAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IDETaintAnalysis::MtoString(const llvm::Function *m) const {
+string IDETaintAnalysis::MtoString(IDETaintAnalysis::m_t m) const {
   return m->getName().str();
 }

@@ -28,7 +28,7 @@ const State IDETypeStateAnalysis::TOP = uninit;
 
 const State IDETypeStateAnalysis::BOTTOM = error;
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(LLVMBasedICFG &icfg,
+IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();

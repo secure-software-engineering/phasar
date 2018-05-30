@@ -7,94 +7,93 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * IFDSProtoAnalysis.cpp
- *
- *  Created on: 15.09.2017
- *      Author: philipp
- */
-
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSProtoAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+using namespace std;
 
-IFDSProtoAnalysis::IFDSProtoAnalysis(LLVMBasedICFG &I,
+IFDSProtoAnalysis::IFDSProtoAnalysis(IFDSProtoAnalysis::i_t icfg,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   LLVMBasedICFG &>(I),
-      EntryPoints(EntryPoints) {
-  DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+  IFDSProtoAnalysis::zerovalue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                         const llvm::Instruction *succ) {
+shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
+                                         IFDSProtoAnalysis::n_t succ) {
   cout << "IFDSProtoAnalysis::getNormalFlowFunction()\n";
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Gen<const llvm::Value *>>(
+    return make_shared<Gen<IFDSProtoAnalysis::d_t>>(
         Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
   }
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                       const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t callStmt,
+                                       IFDSProtoAnalysis::m_t destMthd) {
   cout << "IFDSProtoAnalysis::getCallFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                      const llvm::Function *calleeMthd,
-                                      const llvm::Instruction *exitStmt,
-                                      const llvm::Instruction *retSite) {
+shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
+                                      IFDSProtoAnalysis::m_t calleeMthd,
+                                      IFDSProtoAnalysis::n_t exitStmt,
+                                      IFDSProtoAnalysis::n_t retSite) {
   cout << "IFDSProtoAnalysis::getRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    std::set<const llvm::Function *> callees) {
+shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::getCallToRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
+                                            IFDSProtoAnalysis::n_t retSite,
+                                            set<IFDSProtoAnalysis::m_t> callees) {
   cout << "IFDSProtoAnalysis::getCallToRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSProtoAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                          const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
+IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t callStmt,
+                                          IFDSProtoAnalysis::m_t destMthd) {
   cout << "IFDSProtoAnalysis::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::initialSeeds() {
   cout << "IFDSProtoAnalysis::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+                                  set<IFDSProtoAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-const llvm::Value *IFDSProtoAnalysis::createZeroValue() {
+IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSProtoAnalysis::isZeroValue(const llvm::Value *d) const {
+bool IFDSProtoAnalysis::isZeroValue(IFDSProtoAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSProtoAnalysis::DtoString(const llvm::Value *d) const {
+string IFDSProtoAnalysis::DtoString(IFDSProtoAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IFDSProtoAnalysis::NtoString(const llvm::Instruction *n) const {
+string IFDSProtoAnalysis::NtoString(IFDSProtoAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IFDSProtoAnalysis::MtoString(const llvm::Function *m) const {
+string IFDSProtoAnalysis::MtoString(IFDSProtoAnalysis::m_t m) const {
   return m->getName().str();
 }

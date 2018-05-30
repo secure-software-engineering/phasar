@@ -28,8 +28,8 @@ const int IDELinearConstantAnalysis::TOP = std::numeric_limits<int>::min();
 
 const int IDELinearConstantAnalysis::BOTTOM = std::numeric_limits<int>::max();
 
-IDELinearConstantAnalysis::IDELinearConstantAnalysis(LLVMBasedICFG &icfg,
-                                                     vector<string> EntryPoints)
+IDELinearConstantAnalysis::IDELinearConstantAnalysis(
+    IDELinearConstantAnalysis::i_t &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }

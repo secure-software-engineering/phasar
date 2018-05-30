@@ -20,7 +20,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 using namespace std;
 
 LCAPair::LCAPair() : first(nullptr), second(0) {}
@@ -52,7 +51,7 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getNormalFlowFunction()";
-  return Identity<d_t>::getInstance();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -62,7 +61,7 @@ IFDSLinearConstantAnalysis::getCallFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallFlowFunction()";
-  return Identity<d_t>::getInstance();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -74,18 +73,18 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getRetFlowFunction()";
-  return Identity<d_t>::getInstance();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
     IFDSLinearConstantAnalysis::n_t retSite,
-    std::set<IFDSLinearConstantAnalysis::m_t> callees) {
+    set<IFDSLinearConstantAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG)
       << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()";
-  return Identity<d_t>::getInstance();
+  return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -102,10 +101,12 @@ map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::initialSeeds() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::initialSeeds()";
-  map<IFDSLinearConstantAnalysis::n_t, set<d_t>> SeedMap;
+  map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
+      SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<d_t>({zeroValue()})));
+    SeedMap.insert(
+        std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                       set<IFDSLinearConstantAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }

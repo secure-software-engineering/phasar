@@ -51,8 +51,7 @@ private:
   std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(LLVMBasedICFG &icfg,
-                    std::vector<std::string> EntryPoints = {"main"});
+  IFDSConstAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSConstAnalysis() = default;
 
@@ -216,5 +215,4 @@ public:
                                               m_t Context);
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONSTANALYSIS_H_                     \
-        */
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONSTANALYSIS_H_ */

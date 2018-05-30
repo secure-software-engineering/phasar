@@ -7,95 +7,106 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+using namespace std;
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(LLVMBasedICFG &icfg,
+IFDSTypeAnalysis::IFDSTypeAnalysis(IFDSTypeAnalysis::i_t icfg,
                                    vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
-  DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+  IFDSTypeAnalysis::zerovalue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                        const llvm::Instruction *succ) {
+shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t curr,
+                                        IFDSTypeAnalysis::n_t succ) {
   cout << "type analysis getNormalFlowFunction()" << endl;
-  struct TAFF : FlowFunction<const llvm::Value *> {
-    set<const llvm::Value *>
-    computeTargets(const llvm::Value *source) override {
-      return set<const llvm::Value *>{};
+  struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
+    set<IFDSTypeAnalysis::d_t>
+    computeTargets(IFDSTypeAnalysis::d_t source) override {
+      return set<IFDSTypeAnalysis::d_t>{};
     }
   };
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t callStmt,
+                                      IFDSTypeAnalysis::m_t destMthd) {
   cout << "type analysis getCallFlowFunction()" << endl;
-  struct TAFF : FlowFunction<const llvm::Value *> {
-    set<const llvm::Value *>
-    computeTargets(const llvm::Value *source) override {
-      return set<const llvm::Value *>{};
+  struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
+    set<IFDSTypeAnalysis::d_t>
+    computeTargets(IFDSTypeAnalysis::d_t source) override {
+      return set<IFDSTypeAnalysis::d_t>{};
     }
   };
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                     const llvm::Function *calleeMthd,
-                                     const llvm::Instruction *exitStmt,
-                                     const llvm::Instruction *retSite) {
+shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
+                                     IFDSTypeAnalysis::m_t calleeMthd,
+                                     IFDSTypeAnalysis::n_t exitStmt,
+                                     IFDSTypeAnalysis::n_t retSite) {
   cout << "type analysis getRetFlowFunction()" << endl;
-  struct TAFF : FlowFunction<const llvm::Value *> {
-    set<const llvm::Value *>
-    computeTargets(const llvm::Value *source) override {
-      return set<const llvm::Value *>{};
+  struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
+    set<IFDSTypeAnalysis::d_t>
+    computeTargets(IFDSTypeAnalysis::d_t source) override {
+      return set<IFDSTypeAnalysis::d_t>{};
     }
   };
   return make_shared<TAFF>();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTypeAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    std::set<const llvm::Function *> callees) {
+shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
+                                           IFDSTypeAnalysis::n_t retSite,
+                                           set<IFDSTypeAnalysis::m_t> callees) {
   cout << "type analysis getCallToRetFlowFunction()" << endl;
-  struct TAFF : FlowFunction<const llvm::Value *> {
-    set<const llvm::Value *>
-    computeTargets(const llvm::Value *source) override {
-      return set<const llvm::Value *>{};
+  struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
+    set<IFDSTypeAnalysis::d_t>
+    computeTargets(IFDSTypeAnalysis::d_t source) override {
+      return set<IFDSTypeAnalysis::d_t>{};
     }
   };
   return make_shared<TAFF>();
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<IFDSTypeAnalysis::n_t, set<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::initialSeeds() {
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<IFDSTypeAnalysis::n_t, set<IFDSTypeAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+                                  set<IFDSTypeAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-const llvm::Value *IFDSTypeAnalysis::createZeroValue() {
+IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTypeAnalysis::isZeroValue(const llvm::Value *d) const {
+bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTypeAnalysis::DtoString(const llvm::Value *d) const {
+string IFDSTypeAnalysis::DtoString(IFDSTypeAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IFDSTypeAnalysis::NtoString(const llvm::Instruction *n) const {
+string IFDSTypeAnalysis::NtoString(IFDSTypeAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IFDSTypeAnalysis::MtoString(const llvm::Function *m) const {
+string IFDSTypeAnalysis::MtoString(IFDSTypeAnalysis::m_t m) const {
   return m->getName().str();
 }
