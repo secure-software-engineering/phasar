@@ -56,15 +56,17 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
         if (llvm::ConstantArray *constant_array =
                 llvm::dyn_cast<llvm::ConstantArray>(
                     initializer->getAggregateElement(i))) {
-          if (llvm::ConstantExpr *constant_expr =
-                  llvm::dyn_cast<llvm::ConstantExpr>(
-                      constant_array->getAggregateElement(2))) {
-            if (constant_expr->isCast()) {
-              if (llvm::Constant *cast = llvm::ConstantExpr::getBitCast(
-                      constant_expr, constant_expr->getType())) {
-                if (llvm::Function *vfunc =
-                        llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
-                  vtable_map[struct_name].addEntry(vfunc->getName().str());
+          for (unsigned j = 0; j < constant_array->getNumOperands(); ++j) {
+            if (llvm::ConstantExpr *constant_expr =
+                    llvm::dyn_cast<llvm::ConstantExpr>(
+                        constant_array->getAggregateElement(j))) {
+              if (constant_expr->isCast()) {
+                if (llvm::Constant *cast = llvm::ConstantExpr::getBitCast(
+                        constant_expr, constant_expr->getType())) {
+                  if (llvm::Function *vfunc =
+                          llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
+                    vtable_map[struct_name].addEntry(vfunc->getName().str());
+                  }
                 }
               }
             }
@@ -132,6 +134,8 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 void inline LLVMTypeHierarchy::uniformTypeName(std::string &TypeName) const {
   if (TypeName.compare(0, sizeof("class.") - 1, "class.") == 0)
     TypeName.erase(0, sizeof("class.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
   else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
     TypeName.erase(0, sizeof("struct.") - 1);
 

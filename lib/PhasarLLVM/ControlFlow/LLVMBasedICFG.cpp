@@ -491,6 +491,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     // call, the following treatment is robust enough to handle it.
     BOOST_LOG_SEV(lg, DEBUG)
         << "Call function pointer: " << llvmIRToString(CS.getInstruction());
+
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
