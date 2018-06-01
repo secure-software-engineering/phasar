@@ -1,0 +1,41 @@
+ R"(
+===================================================================
+=== Phasar a LLVM-based Static Analysis Framework - User Manual ===
+===================================================================
+
+Analyses
+--------
+
+	cmd parameter - analysis name - analysis type
+
+	=== These analyses are only for testing purposes ===
+	none - / - /
+	ifds_solvertest - IFDS solver test - IFDS
+	ide_solvertest - IDE solver test - IDE
+	mono_intra_solvertest - MONOTONE intra solver test - MONO
+	mono_inter_solvertest - MONOTONE inter solver test (context-based) - MONO
+
+	=== The actual analyses ===
+	ifds_uninit - a simple uninitialized variables analysis - IFDS 
+	ifds_const - an immutability analysis - IFDS
+	ifds_taint - a taint analysis tracking IO - IFDS
+	ifds_type - type analysis - IFDS
+	ifds_lca - linear constant propagation - IFDS
+	ide_taint - an IDE version of the taint analysis - IDE
+	ide_typestate - a simple type analysis - IDE
+	ide_lca - an IDE version of the linear constant propagation - IDE
+	mono_intra_fullconstpropagation - full constant propagation analysis - MONO
+	
+	=== The analysis plugin mechanism ===
+	-D plugin --analysis_plugin <?>
+
+Currently the following analysis plugins are available:
+	
+	* IFDSTabulationProblemPlugin
+	* IDETabulationProblemPlugin
+	* IntraMonotoneProblemPlugin
+	* InterMonotoneProblemPlugin
+	* ICFGPlugin
+
+Of course the user can choose more than one analysis to be run on the code.
+)"
