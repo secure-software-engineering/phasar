@@ -2,6 +2,8 @@ language: c++
 
 os:
   - linux
+  
+dist: bionic
 
 sudo: enabled
 
