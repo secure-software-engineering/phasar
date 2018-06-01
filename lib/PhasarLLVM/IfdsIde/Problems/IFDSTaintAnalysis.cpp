@@ -7,7 +7,30 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Type.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <utility>
+using namespace std;
 
 // Source functions - critical argument(s) - signature:
 //  -fread - 0 - size_t fread(void *ptr, size_t size, size_t nmemb, FILE
@@ -52,36 +75,37 @@ const map<string, IFDSTaintAnalysis::SinkFunction> IFDSTaintAnalysis::Sinks{
     {"putchar", IFDSTaintAnalysis::SinkFunction("putchar", {0})},
     {"puts", IFDSTaintAnalysis::SinkFunction("puts", {0})}};
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(LLVMBasedICFG &icfg,
+IFDSTaintAnalysis::IFDSTaintAnalysis(IFDSTaintAnalysis::i_t icfg,
                                      vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
-  DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+  IFDSTaintAnalysis::zerovalue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                         const llvm::Instruction *succ) {
+shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
+                                         IFDSTaintAnalysis::n_t succ) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getNormalFlowFunction()";
   // Taint the commandline arguments
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
-    set<const llvm::Value *> CmdArgs;
+    set<IFDSTaintAnalysis::d_t> CmdArgs;
     for (auto &Arg : curr->getFunction()->args()) {
       CmdArgs.insert(&Arg);
       Arg.print(llvm::outs());
     }
-    return make_shared<GenAll<const llvm::Value *>>(CmdArgs, zeroValue());
+    return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(CmdArgs, zeroValue());
   }
   // If a tainted value is stored, the store location must be tainted too
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    struct TAFF : FlowFunction<const llvm::Value *> {
+    struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
       const llvm::StoreInst *store;
       TAFF(const llvm::StoreInst *s) : store(s){};
-      set<const llvm::Value *>
-      computeTargets(const llvm::Value *source) override {
+      set<IFDSTaintAnalysis::d_t>
+      computeTargets(IFDSTaintAnalysis::d_t source) override {
         if (store->getValueOperand() == source) {
-          return set<const llvm::Value *>{store->getPointerOperand(), source};
+          return set<IFDSTaintAnalysis::d_t>{store->getPointerOperand(),
+                                             source};
         } else if (store->getValueOperand() != source &&
                    store->getPointerOperand() == source) {
           return {};
@@ -94,51 +118,25 @@ IFDSTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   }
   // If a tainted value is loaded, the loaded value is of course tainted
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    // struct TAFF : FlowFunction<const llvm::Value *> {
-    //   const llvm::LoadInst *load;
-    //   TAFF(const llvm::LoadInst *l) : load(l) {}
-    //   set<const llvm::Value *>
-    //   computeTargets(const llvm::Value *source) override {
-    //     if (source == load->getPointerOperand()) {
-    //       return {load, source};
-    //     } else {
-    //       return {source};
-    //     }
-    //   }
-    // };
-    // return make_shared<TAFF>(Load);
-    return make_shared<GenIf<const llvm::Value *>>(
-        Load, zeroValue(), [Load](const llvm::Value *source) {
+    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+        Load, zeroValue(), [Load](IFDSTaintAnalysis::d_t source) {
           return source == Load->getPointerOperand();
         });
   }
   // Check is a value is read from a pointer or struct
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
-    // struct TAFF : FlowFunction<const llvm::Value *> {
-    //   const llvm::GetElementPtrInst *gep;
-    //   TAFF(const llvm::GetElementPtrInst *g) : gep(g) {}
-    //   set<const llvm::Value *>
-    //   computeTargets(const llvm::Value *source) override {
-    //     if (source == gep->getPointerOperand()) {
-    //       return {gep, source};
-    //     } else {
-    //       return {source};
-    //     }
-    //   }
-    // };
-    // return make_shared<TAFF>(GEP);
-    return make_shared<GenIf<const llvm::Value *>>(
-        GEP, zeroValue(), [GEP](const llvm::Value *source) {
+    return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
+        GEP, zeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
           return source == GEP->getPointerOperand();
         });
   }
   // Otherwise we do not care and leave everything as it is
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                       const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
+                                       IFDSTaintAnalysis::m_t destMthd) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallFlowFunction()";
   // Check if a source or sink function is called:
@@ -147,121 +145,40 @@ IFDSTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
   // call to return flow function.
   if (Sources.count(destMthd->getName().str()) ||
       Sinks.count(destMthd->getName().str())) {
-    return KillAll<const llvm::Value *>::getInstance();
+    return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    // Do the mapping
-    // struct TAFF : FlowFunction<const llvm::Value *> {
-    //   llvm::ImmutableCallSite callSite;
-    //   const llvm::Function *destMthd;
-    //   const llvm::Value *zerovalue;
-    //   const IFDSTaintAnalysis *taintanalysis;
-    //   vector<const llvm::Value *> actuals;
-    //   vector<const llvm::Value *> formals;
-    //   TAFF(llvm::ImmutableCallSite cs, const llvm::Function *dm,
-    //        const llvm::Value *zv, const IFDSTaintAnalysis *ta)
-    //       : callSite(cs), destMthd(dm), zerovalue(zv), taintanalysis(ta) {
-    //     // set up the actual parameters
-    //     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-    //       actuals.push_back(callSite.getArgOperand(idx));
-    //     }
-    //     // set up the actual parameters
-    //     for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-    //       formals.push_back(getNthFunctionArgument(destMthd, idx));
-    //     }
-    //   }
-    //   set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-    //     if (!taintanalysis->isZeroValue(source)) {
-    //       set<const llvm::Value *> res;
-    //       for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-    //         if (source == actuals[idx]) {
-    //           res.insert(formals[idx]); // corresponding formal
-    //           // res.insert(source); // corresponding actual
-    //           res.insert(zerovalue);
-    //         }
-    //       }
-    //       return res;
-    //     } else {
-    //       return {source};
-    //     }
-    //   }
-    // };
-    // return make_shared<TAFF>(llvm::ImmutableCallSite(callStmt), destMthd,
-    // zeroValue(), this);
     return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
                                          destMthd);
   }
   // Pass everything else as identity
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                      const llvm::Function *calleeMthd,
-                                      const llvm::Instruction *exitStmt,
-                                      const llvm::Instruction *retSite) {
+shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
+                                      IFDSTaintAnalysis::m_t calleeMthd,
+                                      IFDSTaintAnalysis::n_t exitStmt,
+                                      IFDSTaintAnalysis::n_t retSite) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getRetFlowFunction()";
-  // We must check if the return value is tainted, if so we must taint
-  // all useres of the function call.
-  return make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
-                                       calleeMthd, exitStmt);
-  // struct TAFF : FlowFunction<const llvm::Value *> {
-  //   llvm::ImmutableCallSite callSite;
-  //   const llvm::Function *calleeMthd;
-  //   const llvm::ReturnInst *exitStmt;
-  //   const llvm::Value *zerovalue;
-  //   const IFDSTaintAnalysis *taintanalysis;
-  //   vector<const llvm::Value *> actuals;
-  //   vector<const llvm::Value *> formals;
-  //   TAFF(llvm::ImmutableCallSite callsite, const llvm::Function *callemthd,
-  //        const llvm::Instruction *exitstmt, const llvm::Value *zv,
-  //        const IFDSTaintAnalysis *ta)
-  //       : callSite(callsite), calleeMthd(callemthd),
-  //         exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
-  //         zerovalue(zv), taintanalysis(ta) {
-  //     // set up the actual parameters
-  //     for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-  //       actuals.push_back(callSite.getArgOperand(idx));
-  //     }
-  //     // set up the actual parameters
-  //     for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-  //       formals.push_back(getNthFunctionArgument(calleeMthd, idx));
-  //     }
-  //   }
-  //   set<const llvm::Value *>
-  //   computeTargets(const llvm::Value *source) override {
-  //     if (!taintanalysis->isZeroValue(source)) {
-  //       set<const llvm::Value *> res;
-  //       res.insert(zerovalue);
-  //       // collect everything that is returned by value and pointer/
-  //       reference for (unsigned idx = 0; idx < formals.size(); ++idx) {
-  //         if (source == formals[idx] &&
-  //             formals[idx]->getType()->isPointerTy()) {
-  //           res.insert(actuals[idx]);
-  //         }
-  //       }
-  //       // collect taints returned by return value
-  //       if (source == exitStmt->getReturnValue()) {
-  //         res.insert(callSite.getInstruction());
-  //       }
-  //       return res;
-  //     }
-  //     // else just draw the zero edge
-  //     return {source};
-  //   }
-  // };
-  // return make_shared<TAFF>(llvm::ImmutableCallSite(callSite), calleeMthd,
-  //                          exitStmt, zeroValue(), this);
+  // We must check if the return value and formal parameter are tainted, if so
+  // we must taint all user's of the function call. We are only interested in
+  // formal parameters of pointer/reference type.
+  return make_shared<MapFactsToCaller>(
+      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+      [](IFDSTaintAnalysis::d_t formal) {
+        return formal->getType()->isPointerTy();
+      });
   // All other stuff is killed at this point
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    set<const llvm::Function *> callees) {
+shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::getCallToRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
+                                            IFDSTaintAnalysis::n_t retSite,
+                                            set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()";
   // Process the effects of source or sink functions that are called
@@ -271,10 +188,10 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       // process generated taints
       BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects";
       auto Source = Sources.at(FunctionName);
-      set<const llvm::Value *> ToGenerate;
+      set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
       for (auto FormalIndex : Source.genargs) {
-        const llvm::Value *V = CallSite.getArgOperand(FormalIndex);
+        IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
         // Insert the value V that gets tainted
         ToGenerate.insert(V);
         // We also have to collect all aliases of V and generate them
@@ -286,24 +203,26 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       if (Source.genreturn) {
         ToGenerate.insert(callSite);
       }
-      return make_shared<GenAll<const llvm::Value *>>(ToGenerate, zeroValue());
+      return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(ToGenerate,
+                                                         zeroValue());
     }
     if (Sinks.count(FunctionName)) {
       // process leaks
       BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects";
-      struct TAFF : FlowFunction<const llvm::Value *> {
+      struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
-        const llvm::Function *calledMthd;
+        IFDSTaintAnalysis::m_t calledMthd;
         SinkFunction sink;
-        map<const llvm::Instruction *, set<const llvm::Value *>> &Leaks;
+        map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
-        TAFF(llvm::ImmutableCallSite cs, const llvm::Function *calledMthd,
+        TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
              SinkFunction s,
-             map<const llvm::Instruction *, set<const llvm::Value *>> &leaks,
+             map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
             : callSite(cs), calledMthd(calledMthd), sink(s), Leaks(leaks),
               taintanalysis(ta) {}
-        set<const llvm::Value *> computeTargets(const llvm::Value *source) {
+        set<IFDSTaintAnalysis::d_t>
+        computeTargets(IFDSTaintAnalysis::d_t source) {
           // check if a tainted value flows into a sink
           // if so, add to Leaks and return id
           if (!taintanalysis->isZeroValue(source)) {
@@ -324,14 +243,14 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     }
   }
   // Otherwise pass everything as it is
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSTaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                          const llvm::Function *destMthd) {
-  SpecialSummaries<const llvm::Value *> &specialSummaries =
-      SpecialSummaries<const llvm::Value *>::getInstance();
+shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
+IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
+                                          IFDSTaintAnalysis::m_t destMthd) {
+  SpecialSummaries<IFDSTaintAnalysis::d_t> &specialSummaries =
+      SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();
   string FunctionName = destMthd->getName().str();
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
@@ -345,38 +264,38 @@ IFDSTaintAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
   }
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::initialSeeds() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::initialSeeds()";
   // just start in main()
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+                                  set<IFDSTaintAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-const llvm::Value *IFDSTaintAnalysis::createZeroValue() {
+IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()";
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSTaintAnalysis::isZeroValue(const llvm::Value *d) const {
+bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTaintAnalysis::DtoString(const llvm::Value *d) const {
+string IFDSTaintAnalysis::DtoString(IFDSTaintAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IFDSTaintAnalysis::NtoString(const llvm::Instruction *n) const {
+string IFDSTaintAnalysis::NtoString(IFDSTaintAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IFDSTaintAnalysis::MtoString(const llvm::Function *m) const {
+string IFDSTaintAnalysis::MtoString(IFDSTaintAnalysis::m_t m) const {
   return m->getName().str();
 }

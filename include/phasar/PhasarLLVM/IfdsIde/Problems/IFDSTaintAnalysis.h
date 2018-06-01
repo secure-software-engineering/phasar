@@ -7,46 +7,23 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * IFDSTaintAnalysis.h
- *
- *  Created on: 15.09.2016
- *      Author: pdschbrt
- */
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_H_
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
 
-#include <algorithm>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
 #include <map>
-#include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
-using namespace std;
+
+// Forward declaration of types for which we only use its pointer or ref type
+namespace llvm {
+class Instruction;
+class Function;
+class Value;
+} // namespace llvm
+
+class LLVMBasedICFG;
 
 // Functions that are considered as taint sensitve functions:
 //
@@ -72,81 +49,81 @@ class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-  vector<string> EntryPoints;
+  std::vector<std::string> EntryPoints;
 
 public:
+  typedef const llvm::Value *d_t;
+  typedef const llvm::Instruction *n_t;
+  typedef const llvm::Function *m_t;
+  typedef LLVMBasedICFG &i_t;
+
   struct SourceFunction {
-    string name;
-    vector<unsigned> genargs;
+    std::string name;
+    std::vector<unsigned> genargs;
     bool genreturn;
-    SourceFunction(string n, vector<unsigned> gen, bool genret)
+    SourceFunction(std::string n, std::vector<unsigned> gen, bool genret)
         : name(n), genargs(gen), genreturn(genret) {}
-    SourceFunction(string n, bool genret) : name(n), genreturn(genret) {}
-    friend ostream &operator<<(ostream &os, const SourceFunction &sf) {
+    SourceFunction(std::string n, bool genret) : name(n), genreturn(genret) {}
+    friend std::ostream &operator<<(std::ostream &os,
+                                    const SourceFunction &sf) {
       os << sf.name << ": ";
       for (auto arg : sf.genargs)
         os << arg << ",";
-      return os << ", " << sf.genreturn << endl;
+      return os << ", " << sf.genreturn << std::endl;
     }
   };
+
   struct SinkFunction {
-    string name;
-    vector<unsigned> sinkargs;
-    SinkFunction(string n, vector<unsigned> sink) : name(n), sinkargs(sink) {}
-    friend ostream &operator<<(ostream &os, const SinkFunction &sf) {
+    std::string name;
+    std::vector<unsigned> sinkargs;
+    SinkFunction(std::string n, std::vector<unsigned> sink)
+        : name(n), sinkargs(sink) {}
+    friend std::ostream &operator<<(std::ostream &os, const SinkFunction &sf) {
       os << sf.name << ": ";
       for (auto arg : sf.sinkargs)
         os << arg << ",";
-      return os << endl;
+      return os << std::endl;
     }
   };
 
-  map<const llvm::Instruction *, set<const llvm::Value *>> Leaks;
+  std::map<n_t, std::set<d_t>> Leaks;
 
-  static const map<string, SourceFunction> Sources;
+  static const std::map<std::string, SourceFunction> Sources;
 
-  static const map<string, SinkFunction> Sinks;
+  static const std::map<std::string, SinkFunction> Sinks;
 
-  IFDSTaintAnalysis(LLVMBasedICFG &icfg, vector<string> EntryPoints = {"main"});
+  IFDSTaintAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSTaintAnalysis() = default;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getNormalFlowFunction(const llvm::Instruction *curr,
-                        const llvm::Instruction *succ) override;
+  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+                                                           n_t succ) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallFlowFunction(const llvm::Instruction *callStmt,
-                      const llvm::Function *destMthd) override;
+  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+                                                         m_t destMthd) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeMthd,
-                     const llvm::Instruction *exitStmt,
-                     const llvm::Instruction *retSite) override;
+  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+                                                        m_t calleeMthd,
+                                                        n_t exitStmt,
+                                                        n_t retSite) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite,
-                           std::set<const llvm::Function *> callees) override;
+  std::shared_ptr<FlowFunction<d_t>>
+  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
 
-  shared_ptr<FlowFunction<const llvm::Value *>>
-  getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd) override;
+  std::shared_ptr<FlowFunction<d_t>>
+  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
 
-  map<const llvm::Instruction *, set<const llvm::Value *>>
-  initialSeeds() override;
+  std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  const llvm::Value *createZeroValue() override;
+  d_t createZeroValue() override;
 
-  bool isZeroValue(const llvm::Value *d) const override;
+  bool isZeroValue(d_t d) const override;
 
-  string DtoString(const llvm::Value *d) const override;
+  std::string DtoString(d_t d) const override;
 
-  string NtoString(const llvm::Instruction *n) const override;
+  std::string NtoString(n_t n) const override;
 
-  string MtoString(const llvm::Function *m) const override;
+  std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
-        */
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_ */

@@ -56,15 +56,17 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
         if (llvm::ConstantArray *constant_array =
                 llvm::dyn_cast<llvm::ConstantArray>(
                     initializer->getAggregateElement(i))) {
-          if (llvm::ConstantExpr *constant_expr =
-                  llvm::dyn_cast<llvm::ConstantExpr>(
-                      constant_array->getAggregateElement(2))) {
-            if (constant_expr->isCast()) {
-              if (llvm::Constant *cast = llvm::ConstantExpr::getBitCast(
-                      constant_expr, constant_expr->getType())) {
-                if (llvm::Function *vfunc =
-                        llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
-                  vtable_map[struct_name].addEntry(vfunc->getName().str());
+          for (unsigned j = 0; j < constant_array->getNumOperands(); ++j) {
+            if (llvm::ConstantExpr *constant_expr =
+                    llvm::dyn_cast<llvm::ConstantExpr>(
+                        constant_array->getAggregateElement(j))) {
+              if (constant_expr->isCast()) {
+                if (llvm::Constant *cast = llvm::ConstantExpr::getBitCast(
+                        constant_expr, constant_expr->getType())) {
+                  if (llvm::Function *vfunc =
+                          llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
+                    vtable_map[struct_name].addEntry(vfunc->getName().str());
+                  }
                 }
               }
             }
@@ -134,6 +136,8 @@ void inline LLVMTypeHierarchy::uniformTypeName(std::string &TypeName) const {
     TypeName.erase(0, sizeof("class.") - 1);
   else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
     TypeName.erase(0, sizeof("struct.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
 
   TypeName = debasify(TypeName);
 }
@@ -144,10 +148,14 @@ set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
   set<string> reachable_nodes;
   bidigraph_t tc;
   boost::transitive_closure(g, tc);
+
   // get all out edges of queried type
   typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
+
+  reachable_nodes.insert(g[type_vertex_map[TypeName]].name);
   for (tie(ei, ei_end) = boost::out_edges(type_vertex_map[TypeName], tc);
        ei != ei_end; ++ei) {
+
     auto source = boost::source(*ei, tc);
     auto target = boost::target(*ei, tc);
     reachable_nodes.insert(g[target].name);

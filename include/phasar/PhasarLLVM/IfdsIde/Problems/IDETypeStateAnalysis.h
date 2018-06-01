@@ -7,8 +7,8 @@
  *     Robin Suerig, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETYPESTATEANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETYPESTATEANALYSIS_H_
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_
 
 #include <map>
 #include <memory>
@@ -43,7 +43,7 @@ public:
   static const State TOP;
   static const State BOTTOM;
 
-  IDETypeStateAnalysis(LLVMBasedICFG &icfg,
+  IDETypeStateAnalysis(i_t icfg,
                        std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETypeStateAnalysis() = default;
@@ -114,4 +114,4 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_ */

@@ -14,12 +14,20 @@
  *      Author: pdschbrt
  */
 
+#include <llvm/IR/IntrinsicInst.h>
+#include <llvm/Support/raw_os_ostream.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/PAMM.h>
+
+using namespace std;
 
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
-  const std::set<std::string> mem_allocating_functions = {
+  static const std::set<std::string> mem_allocating_functions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
   for (auto &F : M) {
@@ -36,7 +44,7 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
           // do not add allocas from llvm internal functions
           allocaInstrucitons.insert(&I);
           ++allocationsites;
-        } // check bitcast instructions for possible types
+        }  // check bitcast instructions for possible types
         else {
           for (auto user : I.users()) {
             if (const llvm::BitCastInst *cast =
@@ -57,18 +65,41 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
           ++memIntrinsic;
         }
-
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++callsites;
           llvm::ImmutableCallSite CS(&I);
           if (CS.getCalledFunction()) {
-            if (mem_allocating_functions.find(
-                    cxx_demangle(CS.getCalledFunction()->getName().str())) !=
-                mem_allocating_functions.end()) {
+            if (mem_allocating_functions.count(
+                    cxx_demangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               allocaInstrucitons.insert(&I);
               ++allocationsites;
+              // check if an instance of a user-defined type is allocated on the
+              // heap
+              for (auto User : I.users()) {
+                if (auto Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+                  if (Cast->getDestTy()
+                          ->getPointerElementType()
+                          ->isStructTy()) {
+                    // finally check for ctor call
+                    for (auto User : Cast->users()) {
+                      if (llvm::isa<llvm::CallInst>(User) ||
+                          llvm::isa<llvm::InvokeInst>(User)) {
+                        // potential call to the structures ctor
+                        llvm::ImmutableCallSite CTor(User);
+                        if (CTor.getCalledFunction() &&
+                            getNthFunctionArgument(
+                                CTor.getCalledFunction(),
+                                0)->getType() == Cast->getDestTy()) {
+                          allocatedTypes.insert(
+                              Cast->getDestTy()->getPointerElementType());
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }

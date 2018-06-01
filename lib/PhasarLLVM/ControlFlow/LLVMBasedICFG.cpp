@@ -294,15 +294,6 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     auto possible_allocated_types =
         WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
 
-        // //DEBUG
-        //   llvm::outs() << "DEBUG possible_allocated_types" << "\n";
-        //   for (auto target : possible_allocated_types ) {
-        //     llvm::outs() << '\n';
-        //     target->print(llvm::outs());
-        //   }
-        //
-        //   llvm::outs() << "\n" << "END DEBUG possible_allocated_types\n";
-        //  //DEBUG
     // Now we must check if we have found some allocated struct types
     set<const llvm::StructType *> possible_types;
     for (auto type : possible_allocated_types) {
@@ -375,15 +366,6 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
     }
   }
 
-  // //DEBUG
-  //   cout << "DEBUG" << "\n";
-  //   for (auto target : possible_call_targets ) {
-  //     cout << '\n' << cxx_demangle(target);
-  //   }
-  //
-  //   cout << "\n" << "END DEBUG\n";
-  //  //DEBUG
-
   return possible_call_targets;
 }
 
@@ -455,15 +437,6 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
     throw runtime_error("possible call Targets empty");
   }
   */
-
-  // //DEBUG
-  //   cout << "DEBUG" << "\n";
-  //   for (auto target : possible_call_targets ) {
-  //     cout << '\n' << cxx_demangle(target);
-  //   }
-  //
-  //   cout << "\n" << "END DEBUG\n";
-  //  //DEBUG
   return possible_call_targets;
 }
 
@@ -498,28 +471,17 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     // also insert all possible subtypes vtable entries
     auto possible_types = IRDB.getAllocatedTypes();
 
-    // //DEBUG
-    //   cout << "DEBUG" << "\n";
-    //   for (auto target : possible_types ) {
-    //     cout << '\n';
-    //     target->print(llvm::outs());
-    //   }
-    //
-    //   cout << "\n" << "END DEBUG\n";
-    //  //DEBUG
     auto reachable_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
+
     auto end_it = reachable_type_names.end();
     for (auto possible_type : possible_types) {
-      if (auto possible_type_ptr =
-              llvm::dyn_cast<llvm::PointerType>(possible_type)) {
-        if (auto possible_type_struct = llvm::dyn_cast<llvm::StructType>(
-                possible_type_ptr->getElementType())) {
+      if (auto possible_type_struct =
+              llvm::dyn_cast<llvm::StructType>(possible_type)) {
           string type_name = possible_type_struct->getName().str();
-          if (reachable_type_names.find(type_name) != end_it) {
-            possible_call_targets.insert(
-                CH.getVTableEntry(type_name, vtable_index));
-          }
+        if (reachable_type_names.find(type_name) != end_it) {
+          possible_call_targets.insert(
+            CH.getVTableEntry(type_name, vtable_index));
         }
       }
     }
@@ -529,6 +491,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     // call, the following treatment is robust enough to handle it.
     BOOST_LOG_SEV(lg, DEBUG)
         << "Call function pointer: " << llvmIRToString(CS.getInstruction());
+
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
@@ -541,15 +504,6 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
       }
     }
   }
-
-  // //DEBUG
-  //   cout << "DEBUG" << "\n";
-  //   for (auto target : possible_call_targets ) {
-  //     cout << '\n' << cxx_demangle(target);
-  //   }
-  //
-  //   cout << "\n" << "END DEBUG\n";
-  //  //DEBUG
 
   return possible_call_targets;
 }

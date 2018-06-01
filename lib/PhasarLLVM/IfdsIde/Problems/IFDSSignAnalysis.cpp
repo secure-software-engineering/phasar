@@ -7,89 +7,88 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * IFDSSignAnalysis.cpp
- *
- *  Created on: 26.01.2018
- *      Author: philipp
- */
-
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSignAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+using namespace std;
 
-IFDSSignAnalysis::IFDSSignAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem<const llvm::Instruction *,
-                                   const llvm::Value *, const llvm::Function *,
-                                   LLVMBasedICFG &>(I),
-      EntryPoints(EntryPoints) {
-  DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
+IFDSSignAnalysis::IFDSSignAnalysis(IFDSSignAnalysis::i_t icfg,
+                                   vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+  IFDSSignAnalysis::zerovalue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
-                                        const llvm::Instruction *succ) {
+shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t curr,
+                                        IFDSSignAnalysis::n_t succ) {
   cout << "IFDSSignAnalysis::getNormalFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                      const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t callStmt,
+                                      IFDSSignAnalysis::m_t destMthd) {
   cout << "IFDSSignAnalysis::getCallFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                     const llvm::Function *calleeMthd,
-                                     const llvm::Instruction *exitStmt,
-                                     const llvm::Instruction *retSite) {
+shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
+                                     IFDSSignAnalysis::m_t calleeMthd,
+                                     IFDSSignAnalysis::n_t exitStmt,
+                                     IFDSSignAnalysis::n_t retSite) {
   cout << "IFDSSignAnalysis::getRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getCallToRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Instruction *retSite,
-    set<const llvm::Function *> callees) {
+shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t callSite,
+                                           IFDSSignAnalysis::n_t retSite,
+                                           set<IFDSSignAnalysis::m_t> callees) {
   cout << "IFDSSignAnalysis::getCallToRetFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
-IFDSSignAnalysis::getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                                         const llvm::Function *destMthd) {
+shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t callStmt,
+                                         IFDSSignAnalysis::m_t destMthd) {
   cout << "IFDSSignAnalysis::getSummaryFlowFunction()\n";
-  return Identity<const llvm::Value *>::getInstance();
+  return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-map<const llvm::Instruction *, set<const llvm::Value *>>
+map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::initialSeeds() {
   cout << "IFDSSignAnalysis::initialSeeds()\n";
-  map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
+  map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+                                  set<IFDSSignAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-const llvm::Value *IFDSSignAnalysis::createZeroValue() {
+IFDSSignAnalysis::d_t IFDSSignAnalysis::createZeroValue() {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSSignAnalysis::isZeroValue(const llvm::Value *d) const {
+bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSSignAnalysis::DtoString(const llvm::Value *d) const {
+string IFDSSignAnalysis::DtoString(IFDSSignAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IFDSSignAnalysis::NtoString(const llvm::Instruction *n) const {
+string IFDSSignAnalysis::NtoString(IFDSSignAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IFDSSignAnalysis::MtoString(const llvm::Function *m) const {
+string IFDSSignAnalysis::MtoString(IFDSSignAnalysis::m_t m) const {
   return m->getName().str();
 }
