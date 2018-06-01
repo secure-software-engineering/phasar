@@ -1,3 +1,5 @@
+![alt text](img/Logo_RGB/Phasar_Logo.png)
+
 Phasar a LLVM-based Static Analysis Framework
 =============================================
 
