@@ -15,7 +15,7 @@ branches:
 
 # install all dependencies 
 install: 
-  - apt update && apt-get install -y clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 git cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
+  - sudo apt update && apt-get install -y clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 git cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
   - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
   - git submodule update --init --recursive
 
