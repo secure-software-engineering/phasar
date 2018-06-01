@@ -3,7 +3,7 @@ language: c++
 os:
   - linux
   
-dist: artful
+dist: xenial
 
 sudo: enabled
 
