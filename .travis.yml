@@ -3,6 +3,8 @@ language: c++
 os:
   - linux
 
+sudo: enabled
+
 compiler:
   - g++
   - clang++
