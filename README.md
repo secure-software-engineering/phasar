@@ -56,7 +56,7 @@ Table of Contents
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
         * [Installing LLVM](#installing-llvm)
-        * [CMake](#cmake)
+    * [Compile Phasar](#compile-phasar)
     * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
     * [Creating the configuration files](#creating-the-configuration-files)
@@ -231,7 +231,7 @@ $ ./install-llvm-5.0.1.sh 4 ~/
 to build llvm-5.0.1 using 4 cores in your home directory.
 
 
-#### CMake
+### Compile Phasar
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 
 $ mkdir build
