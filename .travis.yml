@@ -38,8 +38,8 @@ matrix:
     - osx
       osx_image: xcode8
 
-#branches:
-#  development
+branches:
+  development
 
 # commands that need to be run before installing the dependencies
 # before_install:
