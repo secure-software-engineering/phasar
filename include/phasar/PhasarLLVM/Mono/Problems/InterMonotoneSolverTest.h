@@ -28,6 +28,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
@@ -73,5 +75,7 @@ public:
 
   virtual string CtoString(const llvm::Value *c) override;
 };
+
+} // namespace psr
 
 #endif

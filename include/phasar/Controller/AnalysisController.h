@@ -46,6 +46,7 @@
 #include <vector>
 
 using json = nlohmann::json;
+namespace psr {
 
 enum class ExportType { JSON = 0 };
 
@@ -67,5 +68,7 @@ public:
   ~AnalysisController() = default;
   void writeResults(std::string filename);
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_ANALYSISCONTROLLER_HH_ */

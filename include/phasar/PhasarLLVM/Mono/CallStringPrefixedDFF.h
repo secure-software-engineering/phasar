@@ -21,6 +21,8 @@
 #include <iostream>
 using namespace std;
 
+namespace psr {
+
 template <typename D> struct CallStringPrefixedDFF {
   D d;
   CallString<D, 3> d_callstring;
@@ -29,5 +31,7 @@ template <typename D> struct CallStringPrefixedDFF {
     return os << "[ " << d.d_callstring << " ] - " << d.d;
   }
 };
+
+} // namespace psr
 
 #endif

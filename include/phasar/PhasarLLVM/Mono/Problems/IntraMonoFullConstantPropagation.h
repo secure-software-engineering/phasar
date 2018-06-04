@@ -27,6 +27,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
 using namespace std;
+namespace psr {
 
 class IntraMonoFullConstantPropagation
     : public IntraMonotoneProblem<const llvm::Instruction *,
@@ -52,5 +53,7 @@ public:
 
   virtual string DtoString(pair<const llvm::Value *, unsigned> d) override;
 };
+
+} // namespace psr
 
 #endif

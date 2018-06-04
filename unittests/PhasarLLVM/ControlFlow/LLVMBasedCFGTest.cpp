@@ -3,6 +3,8 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 
+using namespace psr;
+
 TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});

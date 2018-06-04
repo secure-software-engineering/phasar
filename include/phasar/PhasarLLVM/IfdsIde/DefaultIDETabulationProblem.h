@@ -18,6 +18,7 @@
 #define ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_H_
 
 #include "IDETabulationProblem.h"
+namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class DefaultIDETabulationProblem : public IDETabulationProblem<N, D, M, V, I> {
@@ -41,5 +42,7 @@ public:
 
   D zeroValue() override { return zerovalue; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_HH_ */

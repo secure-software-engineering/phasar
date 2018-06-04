@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/Utils/Macros.h>
+using namespace psr;
+namespace psr {
 
 string cxx_demangle(const string &mangled_name) {
   int status = 0;
@@ -42,3 +44,4 @@ ostream &operator<<(ostream &os, const vector<bool> &bits) {
   }
   return os;
 }
+} // namespace psr

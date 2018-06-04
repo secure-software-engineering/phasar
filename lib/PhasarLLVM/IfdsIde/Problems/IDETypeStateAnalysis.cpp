@@ -23,6 +23,9 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const State IDETypeStateAnalysis::TOP = uninit;
 
@@ -40,24 +43,32 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-    // return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, zeroValue());
-
-    struct UnsereFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-      const llvm::AllocaInst *Alloc;
-      const llvm::Value *ZV;
-      UnsereFlowFunction(const llvm::AllocaInst *A, const llvm::Value *Z)
-          : Alloc(A), ZV(Z) {}
-
-      set<IDETypeStateAnalysis::d_t>
-      computeTargets(IDETypeStateAnalysis::d_t source) override {
-        if (source == ZV) {
-          return {source, Alloc};
-        } else {
-          return {source};
+    if (Alloca->getAllocatedType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Alloca->getAllocatedType()->getPointerElementType())) {
+        if (StructTy->getName().find("struct._IO_FILE") !=
+            llvm::StringRef::npos) {
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+                                                             zeroValue());
         }
       }
-    };
-    return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
+    }
+    // struct UnsereFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+    //   const llvm::AllocaInst *Alloc;
+    //   const llvm::Value *ZV;
+    //   UnsereFlowFunction(const llvm::AllocaInst *A, const llvm::Value *Z)
+    //       : Alloc(A), ZV(Z) {}
+
+    //   set<IDETypeStateAnalysis::d_t>
+    //   computeTargets(IDETypeStateAnalysis::d_t source) override {
+    //     if (source == ZV) {
+    //       return {source, Alloc};
+    //     } else {
+    //       return {source};
+    //     }
+    //   }
+    // };
+    // return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
@@ -181,3 +192,5 @@ string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
 string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

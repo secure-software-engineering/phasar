@@ -21,6 +21,7 @@
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/Frontend/CompilerInstance.h>
+namespace psr {
 
 class RandomChangeASTConsumer : public clang::ASTConsumer {
 private:
@@ -33,5 +34,7 @@ public:
 
   // virtual bool HandleTopLevelDecl(DeclGroupRef DG);
 };
+
+} // namespace psr
 
 #endif /* CLANG_MYASTCONSUMER_HH_ */

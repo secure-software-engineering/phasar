@@ -15,6 +15,8 @@
  */
 
 #include "IFDSSFB901TaintAnalysis.h"
+using namespace psr;
+namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin>
 makeIFDSSFB901TaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints) {
@@ -83,3 +85,5 @@ IFDSSFB901TaintAnalysis::initialSeeds() {
       set<const llvm::Value *>({zeroValue()})));
   return SeedMap;
 }
+
+} // namespace psr

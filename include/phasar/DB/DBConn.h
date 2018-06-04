@@ -54,6 +54,7 @@
 #include <typeinfo>
 #include <vector>
 using namespace std;
+namespace psr {
 
 enum class QueryReturnCode { TRUE, FALSE, ERROR };
 
@@ -156,5 +157,7 @@ public:
   IDESummary loadIDESummary(const string &FunctionName,
                             const string &AnalysisName);
 };
+
+} // namespace psr
 
 #endif /* DATABASE_DBCONN_HH_ */

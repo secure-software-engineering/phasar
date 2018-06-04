@@ -19,6 +19,7 @@
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
+using namespace psr;
 
 int main(int argc, const char **argv) {
   initializeLogger(false);

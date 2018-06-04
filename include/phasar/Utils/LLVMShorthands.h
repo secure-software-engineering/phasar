@@ -32,6 +32,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <vector>
 
+namespace psr {
+
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
  * @param V LLVM Value.
@@ -139,5 +141,7 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @return
  */
 std::size_t computeModuleHash(const llvm::Module *M);
+
+} // namespace psr
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

@@ -23,6 +23,7 @@
 #include <string>
 
 using namespace std;
+namespace psr {
 
 template <typename V>
 class AllTop : public EdgeFunction<V>,
@@ -61,5 +62,7 @@ public:
 
   string toString() override { return "alltop"; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_HH_ */

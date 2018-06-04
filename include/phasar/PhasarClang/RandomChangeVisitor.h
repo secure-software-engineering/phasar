@@ -38,6 +38,8 @@
 #include <sstream>
 #include <string>
 
+namespace psr {
+
 // std::random_device rd;
 // std::mt19937_64 mt(rd());
 // std::uniform_int_distribution<int> dist(0, 2);
@@ -58,5 +60,7 @@ public:
   virtual bool VisitStmt(clang::Stmt *S);
   virtual bool VisitFunctionDecl(clang::FunctionDecl *F);
 };
+
+} // namespace psr
 
 #endif /* CLANG_MYVISITOR_HH_ */

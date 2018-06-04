@@ -23,6 +23,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 class PointsToGraph;
 
@@ -215,4 +216,7 @@ public:
                                               m_t Context);
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONSTANALYSIS_H_ */
+} // namespace psr
+
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
+        */

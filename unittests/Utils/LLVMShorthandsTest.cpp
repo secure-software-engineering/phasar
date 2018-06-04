@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 
+using namespace psr;
+
 TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
   ProjectIRDB IRDB(
       {"../../../test/llvm_test_code/control_flow/global_stmt.ll"});

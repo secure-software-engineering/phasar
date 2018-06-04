@@ -9,6 +9,10 @@
 
 #include <phasar/Controller/AnalysisController.h>
 
+using namespace psr;
+
+namespace psr {
+
 const std::map<std::string, ExportType> StringToExportType = {
     {"json", ExportType::JSON}};
 
@@ -384,7 +388,8 @@ AnalysisController::AnalysisController(
   }
   // Perform module-wise (MW) analysis
   else {
-    throw runtime_error("This code will follow soon with an accompanying paper!");
+    throw runtime_error(
+        "This code will follow soon with an accompanying paper!");
   }
 }
 
@@ -392,3 +397,5 @@ void AnalysisController::writeResults(std::string filename) {
   std::ofstream ofs(filename);
   ofs << FinalResultsJson.dump(1);
 }
+
+} // namespace psr

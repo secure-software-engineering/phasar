@@ -26,6 +26,8 @@ class Value;
 
 class LLVMBasedICFG;
 
+namespace psr {
+
 class IDESolverTest
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
@@ -58,7 +60,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
@@ -123,4 +126,6 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVERTEST_H_ */
+} // namespace psr
+
+#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_ */

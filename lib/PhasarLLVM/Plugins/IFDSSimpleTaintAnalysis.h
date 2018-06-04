@@ -19,6 +19,8 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+using namespace psr;
+namespace psr {
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
 public:
@@ -53,5 +55,6 @@ public:
 
 extern "C" unique_ptr<IFDSTabulationProblemPlugin>
 makeIFDSSimpleTaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints);
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_ */

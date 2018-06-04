@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+using namespace psr;
+namespace psr {
 
 const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType = {
     {"CHA", CallGraphAnalysisType::CHA},
@@ -33,3 +35,4 @@ const map<CallGraphAnalysisType, string> CallGraphAnalysisTypeToString = {
 ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
   return os << CallGraphAnalysisTypeToString.at(CGA);
 }
+} // namespace psr
