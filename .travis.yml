@@ -43,13 +43,12 @@ install:
   - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
   - git submodule update --init --recursive
   # Install boost 1.67
-  - mkdir boost_build
-  - cd boost_build
   - wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz
-  - tar xvf boost_1_67_0.tar.gz
+  - tar xf boost_1_67_0.tar.gz
   - cd boost_1_67_0/
-  - ./bootstrap.sh
-  - sudo ./b2 -j4 install
+  - ./bootstrap.sh 1> /dev/null
+  - sudo ./b2 -j2 install 1> /dev/null
+  - cd ..
 
 # commands that need to be run before execution
 # before_script
@@ -62,7 +61,7 @@ script:
   - cat /proc/meminfo
   - echo "checking CPU(s)"
   - cat /proc/cpuinfo
-  - cmake -G "Unix Makefiles" -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
 # Fix the unit tests first 
 #  - make test
