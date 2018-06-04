@@ -51,7 +51,7 @@ install:
   - tar xf boost_1_67_0.tar.gz
   - cd boost_1_67_0/
   - ./bootstrap.sh 1> /dev/null
-  - travis_wait 40 sudo ./b2 -j2 install
+  - travis_wait 40 sudo ./b2 -j2 -d0 install
   - cd ..
 
 # commands that need to be run before execution
