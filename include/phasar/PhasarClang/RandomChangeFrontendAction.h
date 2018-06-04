@@ -32,6 +32,8 @@
 #include <llvm/Support/CommandLine.h>
 #include <memory>
 
+namespace psr {
+
 class RandomChangeFrontendAction : public clang::ASTFrontendAction {
 private:
   clang::Rewriter RW;
@@ -44,5 +46,7 @@ public:
   std::unique_ptr<clang::ASTConsumer>
   CreateASTConsumer(clang::CompilerInstance &CI, llvm::StringRef file) override;
 };
+
+} // namespace psr
 
 #endif /* CLANG_MYFRONTENDACTION_HH_ */

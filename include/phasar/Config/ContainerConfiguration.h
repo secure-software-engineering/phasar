@@ -32,6 +32,8 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+namespace psr {
 // check if we forgot some more useful container implementations
 
 // define the set implementation to use for the ICFG classes ------------------
@@ -64,5 +66,7 @@ using MonoMap = std::map<T, U>; // boost::container::flat_map<T, U>;
 template <typename T>
 using MonoSet = std::set<T>; // boost::container::flat_set<T>;
 // ----------------------------------------------------------------------------
+
+} // namespace psr
 
 #endif

@@ -24,6 +24,8 @@ class Value;
 
 class LLVMBasedICFG;
 
+using namespace std;
+namespace psr {
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, LLVMBasedICFG &> {
@@ -52,7 +54,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -66,5 +69,6 @@ public:
 
   std::string MtoString(m_t m) const override;
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPEANALYSIS_H_ */

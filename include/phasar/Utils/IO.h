@@ -22,8 +22,12 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 string readFile(const string &path);
 
 void writeFile(const string &path, const string &content);
+
+} // namespace psr
 
 #endif /* SRC_UTILS_IO_HH_ */

@@ -5,6 +5,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
+using namespace psr;
+
 /* ============== TEST FIXTURE ============== */
 
 class IFDSConstAnalysisTest : public ::testing::Test {

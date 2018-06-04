@@ -11,6 +11,7 @@
 #define FLOWFACTWRAPPER_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+namespace psr {
 
 template <typename T> class FlowFactWrapper : public FlowFact {
 private:
@@ -24,5 +25,6 @@ public:
     return os << fact << '\n';
   }
 };
+} // namespace psr
 
 #endif

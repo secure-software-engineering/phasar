@@ -27,6 +27,7 @@
 #include <string>
 
 using namespace std;
+namespace psr {
 
 template <typename D, typename I>
 class LLVMMWAIFDSSolver : public MWAIFDSSolver<const llvm::Instruction *, D,
@@ -147,5 +148,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif

@@ -15,6 +15,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 class IntraMonotoneProblemPlugin {};
 
 extern "C" unique_ptr<IntraMonotoneProblemPlugin>
@@ -22,5 +24,7 @@ makeIntraMonotoneProblemPlugin();
 
 extern map<string, unique_ptr<IntraMonotoneProblemPlugin> (*)()>
     IntraMonotoneProblemPluginFactory;
+
+} // namespace psr
 
 #endif

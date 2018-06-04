@@ -18,6 +18,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 class SOL {
 private:
   char *error;
@@ -38,5 +40,7 @@ public:
     return sym;
   }
 };
+
+} // namespace psr
 
 #endif

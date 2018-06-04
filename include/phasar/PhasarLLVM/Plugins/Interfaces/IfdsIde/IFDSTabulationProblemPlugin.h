@@ -30,6 +30,8 @@
 #include <vector>
 using namespace std;
 
+namespace psr {
+
 class IFDSTabulationProblemPlugin
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
@@ -74,5 +76,7 @@ public:
 extern map<string, unique_ptr<IFDSTabulationProblemPlugin> (*)(
                        LLVMBasedICFG &I, vector<string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */

@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 using namespace std;
+namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working
 extern const string LLVMZeroValueInternalName;
@@ -82,5 +83,6 @@ public:
   // Do not specify a destructor (at all)!
   static LLVMZeroValue *getInstance();
 };
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_ZEROVALUE_HH_ */

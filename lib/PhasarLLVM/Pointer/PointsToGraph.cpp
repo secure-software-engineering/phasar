@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+using namespace psr;
+namespace psr {
 
 void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
                   const llvm::Value *V2, const llvm::Module *M) {
@@ -482,3 +484,5 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
 unsigned PointsToGraph::getNumOfVertices() { return boost::num_vertices(ptg); }
 
 unsigned PointsToGraph::getNumOfEdges() { return boost::num_edges(ptg); }
+
+} // namespace psr

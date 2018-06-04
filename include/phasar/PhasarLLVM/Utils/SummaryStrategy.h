@@ -14,6 +14,8 @@
 #include <map>
 using namespace std;
 
+namespace psr {
+
 enum class SummaryGenerationStrategy {
   always_all = 0,
   powerset,
@@ -29,5 +31,7 @@ extern const map<string, SummaryGenerationStrategy>
     StringToSummaryGenerationStrategy;
 
 ostream &operator<<(ostream &os, const SummaryGenerationStrategy &s);
+
+} // namespace psr
 
 #endif

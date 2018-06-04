@@ -17,6 +17,8 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
 
+namespace psr {
+
 /**
  * An {@link IFDSSolver} that tracks paths for reporting. To do so, it requires
  * that data-flow abstractions implement the LinkedNode interface.
@@ -64,5 +66,7 @@ class PathTrackingIFDSSolver : public IFDSSolver<N, D, M, I> {
   //
   //	};
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_HH_ */

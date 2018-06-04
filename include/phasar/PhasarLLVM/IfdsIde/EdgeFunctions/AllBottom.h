@@ -24,6 +24,7 @@
 #include <string>
 //#include "EdgeIdentity.h"
 //#include "AllTop.h"
+namespace psr {
 template <typename V> class EdgeIdentity;
 
 template <typename V> class AllTop;
@@ -82,5 +83,7 @@ public:
 
   string toString() override { return "allbottom"; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_HH_ */

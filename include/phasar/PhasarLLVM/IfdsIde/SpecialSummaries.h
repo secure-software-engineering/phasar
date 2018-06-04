@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
 private:
@@ -133,5 +134,6 @@ public:
     return os;
   }
 };
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_ */

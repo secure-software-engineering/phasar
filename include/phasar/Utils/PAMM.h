@@ -36,6 +36,8 @@
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
+namespace psr {
+
 #ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()
@@ -130,8 +132,8 @@ private:
   }
 
   // friend tests
-  FRIEND_TEST(PAMMTest, HandleSetHisto);
-  FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
+  // FRIEND_TEST(PAMMTest, HandleSetHisto);
+  // FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
 
 public:
   /// PAMM is used as singleton.
@@ -459,5 +461,7 @@ public:
 
   void printStoppedTimer();
 };
+
+} // namespace psr
 
 #endif /* PAMM_H_ */

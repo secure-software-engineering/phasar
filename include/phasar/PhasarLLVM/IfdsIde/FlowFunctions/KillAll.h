@@ -22,6 +22,7 @@
 #include <set>
 
 using namespace std;
+namespace psr {
 
 template <typename D> class KillAll : public FlowFunction<D> {
 private:
@@ -37,5 +38,6 @@ public:
     return instance;
   }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_KILLALL_HH_ */

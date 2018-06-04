@@ -19,6 +19,7 @@
 
 #include <iostream>
 using namespace std;
+namespace psr {
 
 struct SolverConfiguration {
   SolverConfiguration() = default;
@@ -41,5 +42,7 @@ struct SolverConfiguration {
   bool computePersistedSummaries = false;
   friend ostream &operator<<(ostream &os, const SolverConfiguration &sc);
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_ */

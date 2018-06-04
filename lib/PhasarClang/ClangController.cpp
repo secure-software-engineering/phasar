@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarClang/ClangController.h>
+using namespace psr;
+
+namespace psr {
 
 ClangController::ClangController(
     clang::tooling::CommonOptionsParser &OptionsParser) {
@@ -25,3 +28,4 @@ ClangController::ClangController(
           .get());
   BOOST_LOG_SEV(lg, DEBUG) << "finished clang ast analysis.";
 }
+} // namespace psr

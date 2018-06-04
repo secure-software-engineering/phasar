@@ -19,10 +19,15 @@
 
 #include <set>
 
+using namespace std;
+namespace psr {
+
 template <typename D> class FlowFunction {
 public:
   virtual ~FlowFunction() = default;
   virtual std::set<D> computeTargets(D source) = 0;
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOWFUNCTION_HH_ */

@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
+using namespace psr;
+
+namespace psr {
 
 RandomChangeFrontendAction::RandomChangeFrontendAction() {}
 
@@ -32,3 +35,4 @@ RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
   return llvm::make_unique<RandomChangeASTConsumer>(RW);
 }
+} // namespace psr

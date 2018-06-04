@@ -24,6 +24,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 
 class IDEProtoAnalysis
@@ -58,8 +59,7 @@ public:
                                                         n_t retSite) override;
 
   shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite,
-                           n_t retSite,
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
@@ -125,4 +125,6 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_ */
+} // namespace psr
+
+#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */

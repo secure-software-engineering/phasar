@@ -23,6 +23,9 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const State IDETypeStateAnalysis::TOP = uninit;
 
@@ -163,8 +166,9 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::join(
-    IDETypeStateAnalysis::v_t lhs, IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::v_t
+IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
+                           IDETypeStateAnalysis::v_t rhs) {
   return (lhs == BOTTOM || rhs == BOTTOM) ? BOTTOM : TOP;
 }
 
@@ -188,3 +192,5 @@ string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
 string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

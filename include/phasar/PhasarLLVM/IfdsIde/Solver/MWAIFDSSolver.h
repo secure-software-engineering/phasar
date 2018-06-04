@@ -15,6 +15,7 @@
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <set>
+namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class MWAIFDSSolver : public MWAIDESolver<N, D, M, BinaryDomain, I> {
@@ -25,5 +26,7 @@ public:
 
   virtual ~MWAIFDSSolver() = default;
 };
+
+} // namespace psr
 
 #endif
