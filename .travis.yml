@@ -1,6 +1,5 @@
 language: c++
 
-
 addons:
   apt:
     packages:
@@ -28,8 +27,6 @@ addons:
       - llvm-toolchain-trusty main
 
 matrix:
-  include:
-  
   os:
     - linux
       dist: xenial
@@ -50,6 +47,14 @@ branches:
 install: 
   - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
   - git submodule update --init --recursive
+  # Install boost 1.67
+  - mkdir boost_build
+  - cd boost_build
+  - wget https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz
+  - tar xvf boost_1_67_0.tar.gz
+  - cd boost_1_67_0/
+  - ./bootstrap.sh
+  - sudo ./b2 -j4 install
 
 # commands that need to be run before execution
 # before_script
