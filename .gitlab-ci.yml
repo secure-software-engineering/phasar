@@ -24,6 +24,12 @@ build:
     # - run-clang-tidy.py 
 # Fix the unit tests first 
 #    - make test
+# Install Phasar and test the examples
+    - make install
+    - cd ../examples/llvm-hello_world
+    - make
+    - cd ../plugins
+    - make
   only:
     - master
     - restructure
