@@ -3,7 +3,7 @@ language: c++
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+      # - ubuntu-toolchain-r-test
     packages:
       - clang-5.0
       - libclang-5.0-dev
@@ -19,10 +19,7 @@ addons:
       - libncurses5-dev 
       - graphviz 
       - doxygen 
-      - libcurl4-gnutls-dev 
-      - libboost1.62-all-dev 
-      - libboost1.62-dev 
-      - libboost-dev 
+      - libcurl4-gnutls-dev
       - libmysqlcppconn-dev
 
 matrix:
@@ -31,7 +28,6 @@ matrix:
     dist: xenial
     sudo: enabled
     compiler:
-      - g++
       - clang++
   - os: osx
     osx_image: xcode8
