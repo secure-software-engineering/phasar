@@ -3,6 +3,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 
+using namespace psr;
+
 /* ============== TEST FIXTURE ============== */
 
 class IFDSConstAnalysisTest : public ::testing::Test {

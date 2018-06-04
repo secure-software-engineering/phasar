@@ -3,6 +3,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 
+using namespace psr;
+
 TEST(SecondTest1, SecondTestName1) {
   initializeLogger(true);
   ProjectIRDB IRDB(

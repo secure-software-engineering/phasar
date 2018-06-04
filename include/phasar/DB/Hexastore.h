@@ -10,32 +10,30 @@
 #ifndef HEXASTORE_H_
 #define HEXASTORE_H_
 
-#include "Queries.h"
+#include <sqlite3.h>
 #include <array>
 #include <boost/format.hpp>
 #include <iostream>
-#include <sqlite3.h>
 #include <string>
 #include <vector>
+#include "Queries.h"
 
-using namespace std;
-
-namespace hexastore {
+namespace psr {
 /**
  * @brief Holds the results of a query to the Hexastore.
  */
 struct hs_result {
   /// Used for the source node.
-  string subject;
+  std::string subject;
   /// Used for the edge.
-  string predicate;
+  std::string predicate;
   /// Used for the destination node.
-  string object;
+  std::string object;
   hs_result() = default;
-  hs_result(string s, string p, string o)
+  hs_result(std::string s, std::string p, std::string o)
       : subject(s), predicate(p), object(o) {}
   /// Prints an entry of the results to the command-line
-  friend ostream &operator<<(ostream &os, const hs_result &hsr) {
+  friend std::ostream &operator<<(std::ostream &os, const hs_result &hsr) {
     return os << "[ subject: " << hsr.subject
               << " | predicate: " << hsr.predicate
               << " | object: " << hsr.object << " ]";
@@ -60,12 +58,12 @@ struct hs_result {
  * @brief Efficient data structure for holding graphs in databases.
  */
 class Hexastore {
-private:
+ private:
   sqlite3 *hs_internal_db;
   static int callback(void *NotUsed, int argc, char **argv, char **azColName);
-  void doPut(string query, array<string, 3> edge);
+  void doPut(std::string query, std::array<std::string, 3> edge);
 
-public:
+ public:
   /**
    * If the given filename matches an already created Hexastore, no
    * new Hexastore will be created. Instead the already created Hexastore
@@ -74,7 +72,7 @@ public:
    * @brief Constructs a Hexastore under the given filename.
    * @param filename Filename of the Hexastore.
    */
-  Hexastore(string filename);
+  Hexastore(std::string filename);
 
   /**
    * Destructor.
@@ -92,7 +90,7 @@ public:
    *        hexastore.put({{"subject", "predicate", "object"}});
    * @param edge New entry in the form of a 3-tuple.
    */
-  void put(array<string, 3> edge);
+  void put(std::array<std::string, 3> edge);
 
   /**
    * A query is always in the form of a 3-tuple (source, edge, destination)
@@ -109,10 +107,10 @@ public:
    * @param result_size_hint Used for possible optimization.
    * @return An object of hs_result, holding the queried information.
    */
-  vector<hs_result> get(array<string, 3> edge_query,
-                        size_t result_size_hint = 0);
+  std::vector<hs_result> get(std::array<std::string, 3> edge_query,
+                             size_t result_size_hint = 0);
 };
 
-} /* end namespace hexastore */
+} /* end namespace psr */
 
 #endif /* HEXASTORE_HH_ */

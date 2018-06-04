@@ -130,8 +130,8 @@ private:
   }
 
   // friend tests
-  FRIEND_TEST(PAMMTest, HandleSetHisto);
-  FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
+  // FRIEND_TEST(PAMMTest, HandleSetHisto);
+  // FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
 
 public:
   /// PAMM is used as singleton.

@@ -17,12 +17,11 @@
 
 using namespace psr;
 using namespace std;
-using namespace hexastore;
 
 namespace psr{
 
 int hs_empty_fields_test() {
-  hexastore::Hexastore h("test1.sqlite");
+  Hexastore h("test1.sqlite");
   // init with some stuff
   h.put({{"one", "", ""}});
   h.put({{"two", "", ""}});
@@ -42,7 +41,7 @@ int hs_empty_fields_test() {
 }
 
 int hs_more_tests() {
-  hexastore::Hexastore h("test.sqlite");
+  Hexastore h("test.sqlite");
   // init with some stuff
   h.put({{"mary", "likes", "hexastores"}});
   h.put({{"mary", "likes", "apples"}});
@@ -109,7 +108,7 @@ int hs_more_tests() {
 }
 
 int hs_test_main() {
-  hexastore::Hexastore h("test.sqlite");
+  Hexastore h("test.sqlite");
   // init with some stuff
   h.put({{"mary", "likes", "hexastores"}});
   h.put({{"mary", "likes", "apples"}});
@@ -192,7 +191,7 @@ void hs_serialization_test() {
   boost::add_edge(v4, v2, G);
   std::cout << "Graph G:" << std::endl;
   boost::print_graph(G, boost::get(&Vertex::name, G));
-  hexastore::Hexastore hs("my_boost_graph.sqlite");
+  Hexastore hs("my_boost_graph.sqlite");
   cout << "serialize G\n";
   typename boost::graph_traits<graph_t>::edge_iterator ei_start, e_end;
   for (tie(ei_start, e_end) = boost::edges(G); ei_start != e_end; ++ei_start) {
@@ -204,7 +203,7 @@ void hs_serialization_test() {
   graph_t H;
   set<string> recognized;
   map<string, vertex_t> vertices;
-  vector<hexastore::hs_result> result_set =
+  vector<hs_result> result_set =
       hs.get({{"?", "no label", "?"}}, 20);
   for (auto entry : result_set) {
     cout << entry << endl;
@@ -251,7 +250,7 @@ void hs_serialization_test() {
     //		auto target = boost::target(*ei_start, I);
     cout << boost::get(&Edge::edge_name, I, *ei_start) << endl;
   }
-  hexastore::Hexastore hsi("hexastore_with_labels.sqlite");
+  Hexastore hsi("hexastore_with_labels.sqlite");
   cout << "serialize I\n";
   for (tie(ei_start, e_end) = boost::edges(I); ei_start != e_end; ++ei_start) {
     auto source = boost::source(*ei_start, I);
@@ -263,7 +262,7 @@ void hs_serialization_test() {
   graph_t J;
   set<string> recognized_vertices_hsi;
   map<string, vertex_t> vertices_hsi;
-  vector<hexastore::hs_result> hsi_res = hsi.get({{"?", "?", "?"}}, 10);
+  vector<hs_result> hsi_res = hsi.get({{"?", "?", "?"}}, 10);
   for (auto entry : hsi_res) {
     cout << entry << endl;
     if (recognized_vertices_hsi.find(entry.subject) ==

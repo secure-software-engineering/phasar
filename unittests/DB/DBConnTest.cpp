@@ -2,6 +2,8 @@
 #include <phasar/DB/DBConn.h>
 #include <phasar/DB/ProjectIRDB.h>
 
+using namespace psr;
+
 std::vector<std::vector<std::string>> IRFiles{
     /* IRFiles[0] */
     {"../../../test/llvm_test_code/virtual_callsites/cross_module/base.ll"},
