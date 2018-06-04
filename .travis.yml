@@ -7,6 +7,7 @@ addons:
       - clang-5.0
       - libclang-5.0-dev
       - llvm-5.0
+      - llvm-5.0-dev
       - sqlite3 
       - libsqlite3-dev 
       - bear 
@@ -24,6 +25,7 @@ addons:
       - libmysqlcppconn-dev
     sources: &sources
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-trusty main
 
 matrix:
   include:
