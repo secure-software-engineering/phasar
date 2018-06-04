@@ -19,7 +19,7 @@ CXX_FLAGS += -g
 CXX_FLAGS += -rdynamic
 
 # llvm flags
-LLVM_FLAGS :=  `llvm-config --cppflags --ldflags`
+LLVM_FLAGS := `llvm-config --cppflags --ldflags`
 
 # llvm libraries
 LLVM_LIBS := `llvm-config --system-libs --libs all`
