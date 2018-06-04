@@ -13,25 +13,25 @@ build:
   stage: build
   # build all interesting targets
   script: 
-#     - mkdir -p build
-#     - cd build
-#     - echo "checking RAM"
-#     - cat /proc/meminfo
-#     - echo "checking CPU(s)"
-#     - cat /proc/cpuinfo
-#     - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
-#     - make -j4
-#     # - run-clang-tidy.py 
-# # Fix the unit tests first 
-# #    - make test
-# # Install Phasar and test the examples
-#     - make install
+    - mkdir -p build
+    - cd build
+    - echo "checking RAM"
+    - cat /proc/meminfo
+    - echo "checking CPU(s)"
+    - cat /proc/cpuinfo
+    - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
+    - make -j4
+    # - run-clang-tidy.py 
+# Fix the unit tests first 
+#    - make test
+# Install Phasar and test the examples
+    - make install
     - cd /builds/pdschbrt/sse_dfa_llvm/examples/llvm-hello_world/
     - make all
-    # - cd /builds/pdschbrt/sse_dfa_llvm/examples/plugins/
-    # - make all
+    - cd /builds/pdschbrt/sse_dfa_llvm/examples/plugins/
+    - make all
     # Jump back to save the artifacts
-    # - cd /builds/pdschbrt/sse_dfa_llvm/build
+    - cd /builds/pdschbrt/sse_dfa_llvm/build
   only:
     - master
     - restructure
