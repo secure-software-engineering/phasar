@@ -2,7 +2,7 @@ language: c++
 
 cache:
   directories:
-    - $TRAVIS_BUILD_DIR/boost_1_67_0
+    - $TRAVIS_BUILD_DIR/boost_1_67_0/
 
 addons:
   apt:
@@ -51,7 +51,7 @@ install:
   - tar xf boost_1_67_0.tar.gz
   - cd boost_1_67_0/
   - ./bootstrap.sh 1> /dev/null
-  - travis_wait 40 sudo ./b2 -j2 install 1> /dev/null
+  - travis_wait 40 sudo ./b2 -j2 install
   - cd ..
 
 # commands that need to be run before execution
