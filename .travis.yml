@@ -2,6 +2,8 @@ language: c++
 
 addons:
   apt:
+    sources:
+      - ubuntu-toolchain-r-test
     packages:
       - clang-5.0
       - libclang-5.0-dev
@@ -22,19 +24,17 @@ addons:
       - libboost1.62-dev 
       - libboost-dev 
       - libmysqlcppconn-dev
-    sources: &sources
-      - ubuntu-toolchain-r-test
 
 matrix:
-  os:
-    - linux
-      dist: xenial
-      sudo: enabled
-      compiler:
-          - g++
-          - clang++
-    - osx
-      osx_image: xcode8
+  include:
+  - os: linux
+    dist: xenial
+    sudo: enabled
+    compiler:
+      - g++
+      - clang++
+  - os: osx
+    osx_image: xcode8
 
 branches:
   - development
