@@ -24,7 +24,6 @@ addons:
       - libmysqlcppconn-dev
     sources: &sources
       - ubuntu-toolchain-r-test
-      - llvm-toolchain-trusty main
 
 matrix:
   os:
@@ -38,7 +37,7 @@ matrix:
       osx_image: xcode8
 
 branches:
-  development
+  - development
 
 # commands that need to be run before installing the dependencies
 # before_install:
