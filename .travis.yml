@@ -28,11 +28,11 @@ addons:
 
 matrix:
   include:
-  #- os: linux
-#    dist: xenial
-#    sudo: enabled
-#    compiler:
-#      - clang++
+  - os: linux
+    dist: xenial
+    sudo: enabled
+    compiler:
+       - clang++
   # FIXME
   - os: osx
     osx_image: xcode8
