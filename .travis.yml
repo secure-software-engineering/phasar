@@ -13,29 +13,29 @@ addons:
       - libclang-5.0-dev
       - llvm-5.0
       - llvm-5.0-dev
-      - sqlite3 
-      - libsqlite3-dev 
-      - bear 
-      - python3 
-      - git 
-      - cmake 
-      - zlib1g-dev 
-      - libncurses5-dev 
-      - graphviz 
-      - doxygen 
+      - sqlite3
+      - libsqlite3-dev
+      - bear
+      - python3
+      - git
+      - cmake
+      - zlib1g-dev
+      - libncurses5-dev
+      - graphviz
+      - doxygen
       - libcurl4-gnutls-dev
       - libmysqlcppconn-dev
 
 matrix:
   include:
-  - os: linux
-    dist: xenial
-    sudo: enabled
-    compiler:
-      - clang++
+  #- os: linux
+#    dist: xenial
+#    sudo: enabled
+#    compiler:
+#      - clang++
   # FIXME
-  # - os: osx
-  #   osx_image: xcode8
+  - os: osx
+    osx_image: xcode8
 
 branches:
   - development
@@ -43,8 +43,12 @@ branches:
 # commands that need to be run before installing the dependencies
 # before_install:
 
-# install all dependencies 
-install: 
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew bundle ; fi
+
+# install all dependencies
+install:
   - export PATH="/usr/lib/llvm-5.0/bin:$PATH"
   - git submodule update --init --recursive
   # Install boost 1.67
@@ -59,7 +63,7 @@ install:
 # before_script
 
 # build all interesting targets
-script: 
+script:
   - mkdir -p build
   - cd build
   - echo "checking RAM"
@@ -74,5 +78,5 @@ script:
   - make
   - cd $TRAVIS_BUILD_DIR/examples/plugins
   - make
-# Fix the unit tests first 
+# Fix the unit tests first
 #  - make test
