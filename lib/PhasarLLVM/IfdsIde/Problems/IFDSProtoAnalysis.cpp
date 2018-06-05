@@ -17,6 +17,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSProtoAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSProtoAnalysis::IFDSProtoAnalysis(IFDSProtoAnalysis::i_t icfg,
                                      vector<string> EntryPoints)
@@ -52,9 +54,9 @@ IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
-IFDSProtoAnalysis::getCallToRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
-                                            IFDSProtoAnalysis::n_t retSite,
-                                            set<IFDSProtoAnalysis::m_t> callees) {
+IFDSProtoAnalysis::getCallToRetFlowFunction(
+    IFDSProtoAnalysis::n_t callSite, IFDSProtoAnalysis::n_t retSite,
+    set<IFDSProtoAnalysis::m_t> callees) {
   cout << "IFDSProtoAnalysis::getCallToRetFlowFunction()\n";
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
@@ -97,3 +99,4 @@ string IFDSProtoAnalysis::NtoString(IFDSProtoAnalysis::n_t n) const {
 string IFDSProtoAnalysis::MtoString(IFDSProtoAnalysis::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr

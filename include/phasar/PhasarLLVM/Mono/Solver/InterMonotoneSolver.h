@@ -24,21 +24,22 @@
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <utility>
 #include <vector>
-using namespace std;
+
+namespace psr {
 
 template <typename N, typename D, typename M, typename C, unsigned K,
           typename I>
 class InterMonotoneSolver {
 protected:
   InterMonotoneProblem<N, D, M, C, I> &IMProblem;
-  deque<pair<N, N>> Worklist;
+  std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoMap<CallString<C, K>, MonoSet<D>>> Analysis;
   I ICFG;
   size_t prealloc_hint;
 
   void initialize() {
     for (auto &seed : IMProblem.initialSeeds()) {
-      vector<pair<N, N>> edges =
+      std::vector<std::pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
       Analysis[seed.first][CallString<C, K>{ICFG.getMethodOf(seed.first)}]
@@ -46,15 +47,15 @@ protected:
     }
   }
 
-  bool isIntraEdge(pair<N, N> edge) {
+  bool isIntraEdge(std::pair<N, N> edge) {
     return ICFG.getMethodOf(edge.first) == ICFG.getMethodOf(edge.second);
   }
 
-  bool isCallEdge(pair<N, N> edge) {
+  bool isCallEdge(std::pair<N, N> edge) {
     return !isIntraEdge(edge) && ICFG.isCallStmt(edge.first);
   }
 
-  bool isReturnEdge(pair<N, N> edge) {
+  bool isReturnEdge(std::pair<N, N> edge) {
     return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
   }
 
@@ -65,16 +66,17 @@ public:
   ~InterMonotoneSolver() = default;
 
   virtual void solve() {
-    cout << "starting the InterMonotoneSolver::solve() procedure!\n";
+    std::cout << "starting the InterMonotoneSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
-      cout << "worklist size: " << Worklist.size() << "\n";
-      pair<N, N> edge = Worklist.front();
+      std::cout << "worklist size: " << Worklist.size() << "\n";
+      std::pair<N, N> edge = Worklist.front();
       Worklist.pop_front();
       auto src = edge.first;
       auto dst = edge.second;
-      cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
-           << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst) << ">\n";
+      std::cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
+                << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst)
+                << ">\n";
       MonoMap<CallString<C, K>, MonoSet<D>> Out;
       // Add an id context to get the next loop to work
       Analysis[src][CallString<C, K>{ICFG.getMethodOf(src)}];
@@ -135,7 +137,8 @@ public:
                 Worklist.push_back({dst, first_inst});
               }
               // Add intra edges of callee
-              vector<pair<N, N>> edges = ICFG.getAllControlFlowEdges(callee);
+              std::vector<std::pair<N, N>> edges =
+                  ICFG.getAllControlFlowEdges(callee);
               Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
               // Add inter return edges
               for (auto ret : ICFG.getExitPointsOf(callee)) {
@@ -153,5 +156,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif

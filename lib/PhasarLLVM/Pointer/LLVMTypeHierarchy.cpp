@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;
@@ -89,10 +92,8 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 
     // Avoid to have the struct.Myclass.base in the database, as it is not used
     // by the code anywhere else than in type declaration for alignement reasons
-    if (struct_type_name.compare(
-          struct_type_name.size() - sizeof(".base") + 1,
-          sizeof(".base") - 1,
-          ".base") != 0) {
+    if (struct_type_name.compare(struct_type_name.size() - sizeof(".base") + 1,
+                                 sizeof(".base") - 1, ".base") != 0) {
       uniformTypeName(struct_type_name);
 
       // only add a new vertex to the graph if the type is currently unknown!
@@ -100,8 +101,7 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
           recognized_struct_types.end()) {
         type_vertex_map[struct_type_name] = boost::add_vertex(g);
         g[type_vertex_map[struct_type_name]].llvmtype = StructType;
-        g[type_vertex_map[struct_type_name]].name =
-            StructType->getName().str();
+        g[type_vertex_map[struct_type_name]].name = StructType->getName().str();
       }
     }
   }
@@ -278,3 +278,4 @@ unsigned LLVMTypeHierarchy::getNumOfVertices() {
 }
 
 unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
+} // namespace psr

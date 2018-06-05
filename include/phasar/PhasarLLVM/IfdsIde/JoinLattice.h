@@ -16,6 +16,7 @@
 
 #ifndef ANALYSIS_IFDS_IDE_JOINLATTICE_H_
 #define ANALYSIS_IFDS_IDE_JOINLATTICE_H_
+namespace psr {
 
 template <typename V> class JoinLattice {
 public:
@@ -24,5 +25,6 @@ public:
   virtual V bottomElement() = 0;
   virtual V join(V lhs, V rhs) = 0;
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_JOINLATTICE_HH_ */

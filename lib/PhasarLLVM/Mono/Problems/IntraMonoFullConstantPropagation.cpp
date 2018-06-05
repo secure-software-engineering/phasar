@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+using namespace psr;
+using namespace std;
+namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     LLVMBasedCFG &Cfg, const llvm::Function *F)
@@ -47,3 +50,4 @@ string IntraMonoFullConstantPropagation::DtoString(
   s += ", " + to_string(d.second) + " >";
   return s;
 }
+} // namespace psr

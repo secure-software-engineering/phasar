@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 const map<SummaryGenerationStrategy, string> SummaryGenerationStrategyToString =
     {{SummaryGenerationStrategy::always_all, "always_all"},
@@ -28,3 +31,4 @@ const map<string, SummaryGenerationStrategy> StringToSummaryGenerationStrategy =
 ostream &operator<<(ostream &os, const SummaryGenerationStrategy &s) {
   return os << SummaryGenerationStrategyToString.at(s);
 }
+} // namespace psr

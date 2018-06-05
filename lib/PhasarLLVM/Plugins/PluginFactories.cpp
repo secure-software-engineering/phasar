@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 // Maps for registering the plugins
 map<string, unique_ptr<IFDSTabulationProblemPlugin> (*)(LLVMBasedICFG &,
@@ -27,3 +30,5 @@ map<string, unique_ptr<InterMonotoneProblemPlugin> (*)()>
 map<string,
     unique_ptr<ICFGPlugin> (*)(ProjectIRDB &, const vector<string> EntryPoints)>
     ICFGPluginFactory;
+
+} // namespace psr

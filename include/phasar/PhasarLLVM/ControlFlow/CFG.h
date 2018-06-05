@@ -17,11 +17,10 @@
 #ifndef SRC_ANALYSIS_ICFG_CFG_H_
 #define SRC_ANALYSIS_ICFG_CFG_H_
 
-#include <iostream>
-#include <set>
+#include <string>
 #include <utility>
 #include <vector>
-using namespace std;
+namespace psr {
 
 template <typename N, typename M> class CFG {
 public:
@@ -29,13 +28,13 @@ public:
 
   virtual M getMethodOf(N stmt) = 0;
 
-  virtual vector<N> getPredsOf(N stmt) = 0;
+  virtual std::vector<N> getPredsOf(N stmt) = 0;
 
-  virtual vector<N> getSuccsOf(N stmt) = 0;
+  virtual std::vector<N> getSuccsOf(N stmt) = 0;
 
-  virtual vector<pair<N, N>> getAllControlFlowEdges(M fun) = 0;
+  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(M fun) = 0;
 
-  virtual vector<N> getAllInstructionsOf(M fun) = 0;
+  virtual std::vector<N> getAllInstructionsOf(M fun) = 0;
 
   virtual bool isExitStmt(N stmt) = 0;
 
@@ -45,9 +44,11 @@ public:
 
   virtual bool isBranchTarget(N stmt, N succ) = 0;
 
-  virtual string getStatementId(N stmt) = 0;
+  virtual std::string getStatementId(N stmt) = 0;
 
-  virtual string getMethodName(M fun) = 0;
+  virtual std::string getMethodName(M fun) = 0;
 };
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_ICFG_CFG_HH_ */

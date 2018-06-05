@@ -22,6 +22,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <type_traits>
 
+namespace psr {
+
 template <typename N, typename D, typename M, typename I>
 class DefaultIFDSTabulationProblem : public IFDSTabulationProblem<N, D, M, I> {
 protected:
@@ -40,7 +42,7 @@ public:
 
   virtual ~DefaultIFDSTabulationProblem() = default;
 
-  virtual shared_ptr<FlowFunction<D>>
+  virtual std::shared_ptr<FlowFunction<D>>
   getSummaryFlowFunction(N callStmt, M destMthd) override {
     return nullptr;
   }
@@ -49,5 +51,7 @@ public:
 
   D zeroValue() override { return zerovalue; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_ */

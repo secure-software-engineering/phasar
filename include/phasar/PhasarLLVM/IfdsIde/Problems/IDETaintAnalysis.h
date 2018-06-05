@@ -23,6 +23,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 
 class IDETaintAnalysis
@@ -129,4 +130,7 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINTANALYSIS_H_ */
+} // namespace psr
+
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_   \
+        */

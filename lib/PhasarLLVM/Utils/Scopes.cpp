@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/Scopes.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 const map<string, Scope> StringToScope{{"function", Scope::function},
                                        {"module", Scope::module},
@@ -20,3 +23,4 @@ const map<Scope, string> ScopeToString{{Scope::function, "function"},
 ostream &operator<<(ostream &os, const Scope &s) {
   return os << ScopeToString.at(s);
 }
+} // namespace psr

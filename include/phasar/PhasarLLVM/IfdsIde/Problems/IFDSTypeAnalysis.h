@@ -22,6 +22,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
@@ -52,7 +53,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -66,5 +68,6 @@ public:
 
   std::string MtoString(m_t m) const override;
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPEANALYSIS_H_ */

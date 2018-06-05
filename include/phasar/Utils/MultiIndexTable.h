@@ -25,7 +25,7 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
+namespace psr {
 
 struct ORDERED_ROW_COL_KEY_TAG {};
 struct HASHED_ROW_COL_KEY_TAG {};
@@ -71,9 +71,11 @@ template <typename R, typename C, typename V> struct MultiIndexTable {
   // the indexed table containing instances of TableData
   InternTable IndexedTable;
 
-  friend ostream &operator<<(ostream &os, const InternTable &itab) {
+  friend std::ostream &operator<<(std::ostream &os, const InternTable &itab) {
     return os << "error: unsupported operation!";
   }
 };
+
+} // namespace psr
 
 #endif /* UTILS_MULTIINDEXTABLE_HH_ */

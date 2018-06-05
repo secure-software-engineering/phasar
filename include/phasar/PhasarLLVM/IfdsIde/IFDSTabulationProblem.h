@@ -25,7 +25,7 @@
 #include <string>
 #include <type_traits>
 
-using namespace std;
+namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class IFDSTabulationProblem : public FlowFunctions<N, D, M> {
@@ -33,16 +33,17 @@ public:
   SolverConfiguration solver_config;
   virtual ~IFDSTabulationProblem() = default;
   virtual I interproceduralCFG() = 0;
-  virtual map<N, set<D>> initialSeeds() = 0;
+  virtual std::map<N, std::set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
   virtual bool isZeroValue(D d) const = 0;
-  virtual string DtoString(D d) const = 0;
-  virtual string NtoString(N n) const = 0;
-  virtual string MtoString(M m) const = 0;
+  virtual std::string DtoString(D d) const = 0;
+  virtual std::string NtoString(N n) const = 0;
+  virtual std::string MtoString(M m) const = 0;
   void setSolverConfiguration(SolverConfiguration conf) {
     solver_config = conf;
   }
   SolverConfiguration getSolverConfiguration() { return solver_config; }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_HH_ */

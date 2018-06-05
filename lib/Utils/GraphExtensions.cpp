@@ -15,3 +15,7 @@
  */
 
 #include <phasar/Utils/GraphExtensions.h>
+
+using namespace psr;
+
+namespace psr {} // namespace psr

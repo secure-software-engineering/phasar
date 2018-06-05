@@ -15,6 +15,9 @@
  */
 
 #include "IFDSSimpleTaintAnalysis.h"
+using namespace std;
+using namespace psr;
+namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin>
 makeIFDSSimpleTaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints) {
@@ -106,3 +109,5 @@ IFDSSimpleTaintAnalysis::initialSeeds() {
   }
   return SeedMap;
 }
+
+} // namespace psr

@@ -8,3 +8,5 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESummaryGenerator.h>
+using namespace psr;
+namespace psr {} // namespace psr

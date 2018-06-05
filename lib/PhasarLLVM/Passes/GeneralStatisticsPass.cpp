@@ -23,6 +23,8 @@
 #include <phasar/Utils/PAMM.h>
 
 using namespace std;
+using namespace psr;
+namespace psr {
 
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
@@ -44,7 +46,7 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
           // do not add allocas from llvm internal functions
           allocaInstrucitons.insert(&I);
           ++allocationsites;
-        }  // check bitcast instructions for possible types
+        } // check bitcast instructions for possible types
         else {
           for (auto user : I.users()) {
             if (const llvm::BitCastInst *cast =
@@ -89,9 +91,8 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
                         // potential call to the structures ctor
                         llvm::ImmutableCallSite CTor(User);
                         if (CTor.getCalledFunction() &&
-                            getNthFunctionArgument(
-                                CTor.getCalledFunction(),
-                                0)->getType() == Cast->getDestTy()) {
+                            getNthFunctionArgument(CTor.getCalledFunction(), 0)
+                                    ->getType() == Cast->getDestTy()) {
                           allocatedTypes.insert(
                               Cast->getDestTy()->getPointerElementType());
                         }
@@ -183,3 +184,5 @@ set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
 set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
   return retResInstructions;
 }
+
+} // namespace psr

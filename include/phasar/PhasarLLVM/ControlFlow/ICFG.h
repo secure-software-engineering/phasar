@@ -19,21 +19,25 @@
 
 #include <iostream>
 #include <json.hpp>
+#include <map>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <set>
 #include <string>
 #include <vector>
-using namespace std;
 using json = nlohmann::json;
+
+namespace psr {
 
 enum class CallGraphAnalysisType { CHA, RTA, DTA, VTA, OTF };
 
-extern const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType;
+extern const std::map<std::string, CallGraphAnalysisType>
+    StringToCallGraphAnalysisType;
 
-extern const map<CallGraphAnalysisType, string> CallGraphAnalysisTypeToString;
+extern const std::map<CallGraphAnalysisType, std::string>
+    CallGraphAnalysisTypeToString;
 
-ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA);
+std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
 template <typename N, typename M> class ICFG : public CFG<N, M> {
 public:
@@ -41,23 +45,25 @@ public:
 
   virtual bool isCallStmt(N stmt) = 0;
 
-  virtual M getMethod(const string &fun) = 0;
+  virtual M getMethod(const std::string &fun) = 0;
 
-  virtual set<N> allNonCallStartNodes() = 0;
+  virtual std::set<N> allNonCallStartNodes() = 0;
 
-  virtual set<M> getCalleesOfCallAt(N stmt) = 0;
+  virtual std::set<M> getCalleesOfCallAt(N stmt) = 0;
 
-  virtual set<N> getCallersOf(M fun) = 0;
+  virtual std::set<N> getCallersOf(M fun) = 0;
 
-  virtual set<N> getCallsFromWithin(M fun) = 0;
+  virtual std::set<N> getCallsFromWithin(M fun) = 0;
 
-  virtual set<N> getStartPointsOf(M fun) = 0;
+  virtual std::set<N> getStartPointsOf(M fun) = 0;
 
-  virtual set<N> getExitPointsOf(M fun) = 0;
+  virtual std::set<N> getExitPointsOf(M fun) = 0;
 
-  virtual set<N> getReturnSitesOfCallAt(N stmt) = 0;
+  virtual std::set<N> getReturnSitesOfCallAt(N stmt) = 0;
 
   virtual json getAsJson() = 0;
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_ICFG_HH_ */

@@ -26,7 +26,8 @@
 #include <set>
 #include <string>
 #include <vector>
-using namespace std;
+
+namespace psr {
 
 class LLVMBasedCFG
     : public CFG<const llvm::Instruction *, const llvm::Function *> {
@@ -38,16 +39,17 @@ public:
   virtual const llvm::Function *
   getMethodOf(const llvm::Instruction *stmt) override;
 
-  virtual vector<const llvm::Instruction *>
+  virtual std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *stmt) override;
 
-  virtual vector<const llvm::Instruction *>
+  virtual std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *stmt) override;
 
-  virtual vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
+  virtual std::vector<
+      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  virtual vector<const llvm::Instruction *>
+  virtual std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *fun) override;
 
   virtual bool isExitStmt(const llvm::Instruction *stmt) override;
@@ -60,9 +62,11 @@ public:
   virtual bool isBranchTarget(const llvm::Instruction *stmt,
                               const llvm::Instruction *succ) override;
 
-  virtual string getStatementId(const llvm::Instruction *stmt) override;
+  virtual std::string getStatementId(const llvm::Instruction *stmt) override;
 
-  virtual string getMethodName(const llvm::Function *fun) override;
+  virtual std::string getMethodName(const llvm::Function *fun) override;
 };
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_ICFG_LLVMBASEDCFG_HH_ */

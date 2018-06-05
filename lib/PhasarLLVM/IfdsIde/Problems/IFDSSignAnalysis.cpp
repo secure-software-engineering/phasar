@@ -16,6 +16,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSignAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSSignAnalysis::IFDSSignAnalysis(IFDSSignAnalysis::i_t icfg,
                                    vector<string> EntryPoints)
@@ -92,3 +94,4 @@ string IFDSSignAnalysis::NtoString(IFDSSignAnalysis::n_t n) const {
 string IFDSSignAnalysis::MtoString(IFDSSignAnalysis::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr

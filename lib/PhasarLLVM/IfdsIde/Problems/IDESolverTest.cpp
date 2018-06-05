@@ -20,8 +20,9 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/Utils/LLVMShorthands.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IDESolverTest::IDESolverTest(IDESolverTest::i_t icfg,
                              vector<string> EntryPoints)
@@ -55,7 +56,7 @@ shared_ptr<FlowFunction<IDESolverTest::d_t>> IDESolverTest::getRetFlowFunction(
 shared_ptr<FlowFunction<IDESolverTest::d_t>>
 IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t callSite,
                                         IDESolverTest::n_t retSite,
-set<IDESolverTest::m_t> callees) {
+                                        set<IDESolverTest::m_t> callees) {
   cout << "IDESolverTest::getCallToRetFlowFunction()\n";
   return Identity<IDESolverTest::d_t>::getInstance();
 }
@@ -196,3 +197,5 @@ string IDESolverTest::NtoString(IDESolverTest::n_t n) const {
 string IDESolverTest::MtoString(IDESolverTest::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

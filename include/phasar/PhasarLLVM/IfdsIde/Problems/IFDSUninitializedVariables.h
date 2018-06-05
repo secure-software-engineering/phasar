@@ -23,6 +23,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 
 class IFDSUnitializedVariables
@@ -58,7 +59,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite, std::set<m_t> callees) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
@@ -76,4 +78,7 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZEDVARIABLES_H_ */
+} // namespace psr
+
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
+        */

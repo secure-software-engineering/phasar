@@ -23,6 +23,9 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const int IDELinearConstantAnalysis::TOP = std::numeric_limits<int>::min();
 
@@ -182,3 +185,5 @@ string
 IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

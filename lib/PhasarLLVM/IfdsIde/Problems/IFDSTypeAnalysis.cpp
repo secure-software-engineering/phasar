@@ -19,6 +19,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(IFDSTypeAnalysis::i_t icfg,
                                    vector<string> EntryPoints)
@@ -110,3 +112,4 @@ string IFDSTypeAnalysis::NtoString(IFDSTypeAnalysis::n_t n) const {
 string IFDSTypeAnalysis::MtoString(IFDSTypeAnalysis::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr

@@ -23,6 +23,7 @@
 #include <string>
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
+namespace psr {
 
 /// Stores the label/ tag with which we annotate the LLVM IR.
 extern const std::string MetaDataKind;
@@ -52,5 +53,7 @@ extern const std::string JsonTypeHierarchyID;
 extern const std::string JsonPointToGraphID;
 /// Identifier for data-flow results export
 extern const std::string JsonDataFlowID;
+
+} // namespace psr
 
 #endif /* SRC_CONFIG_CONFIGURATION_H_ */

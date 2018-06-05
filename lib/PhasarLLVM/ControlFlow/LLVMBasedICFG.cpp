@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 const map<string, WalkerStrategy> StringToWalkerStrategy = {
     {"Simple", WalkerStrategy::Simple},
@@ -399,9 +402,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
     string receiver_type_name = receiver_type->getName().str();
 
-    string receiver_call_target = CH.getVTableEntry(receiver_type_name, vtable_index);
+    string receiver_call_target =
+        CH.getVTableEntry(receiver_type_name, vtable_index);
     // insert the receiver types vtable entry
-    if ( receiver_call_target.compare("__cxa_pure_virtual") != 0 )
+    if (receiver_call_target.compare("__cxa_pure_virtual") != 0)
       possible_call_targets.insert(receiver_call_target);
 
     // also insert all possible subtypes vtable entries
@@ -478,10 +482,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     for (auto possible_type : possible_types) {
       if (auto possible_type_struct =
               llvm::dyn_cast<llvm::StructType>(possible_type)) {
-          string type_name = possible_type_struct->getName().str();
+        string type_name = possible_type_struct->getName().str();
         if (reachable_type_names.find(type_name) != end_it) {
           possible_call_targets.insert(
-            CH.getVTableEntry(type_name, vtable_index));
+              CH.getVTableEntry(type_name, vtable_index));
         }
       }
     }
@@ -526,9 +530,9 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
           for (const string &Fname : vtbl) {
             const llvm::Function *F = IRDB.getFunction(Fname);
 
-            if(!F) {
+            if (!F) {
               // Is a pure virtual function
-                return true;
+              return true;
             }
 
             if (CS.getCalledValue()->getType()->isPointerTy()) {
@@ -957,3 +961,5 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
 unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
 
 unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
+
+} // namespace psr

@@ -33,8 +33,9 @@ matrix:
     sudo: enabled
     compiler:
       - clang++
-  - os: osx
-    osx_image: xcode8
+  # FIXME
+  # - os: osx
+  #   osx_image: xcode8
 
 branches:
   - development
@@ -67,5 +68,11 @@ script:
   - cat /proc/cpuinfo
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
+  - sudo make install
+  # Build the examples
+  - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
+  - make
+  - cd $TRAVIS_BUILD_DIR/examples/plugins
+  - make
 # Fix the unit tests first 
 #  - make test

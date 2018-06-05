@@ -15,6 +15,10 @@
  */
 
 #include <phasar/DB/DBConn.h>
+using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const string DBConn::db_schema_name = "phasardb";
 const string DBConn::db_user = "root";
@@ -619,7 +623,7 @@ void operator<<(DBConn &db, const PointsToGraph &PTG) {
   // UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not synchronized
   // with an ProjectIRCompiledDB object!");
   // static PHSStringConverter converter(*db.IRDB);
-  // hexastore::Hexastore h("ptg_hexastore.db");
+  // Hexastore h("ptg_hexastore.db");
   // cout << "writing points-to graph of function ";
   // for (const auto& fname : PTG.ContainedFunctions) {
   //   cout << fname << " ";
@@ -681,7 +685,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   // 	UNRECOVERABLE_CXX_ERROR_COND(db.isSynchronized(), "DBConn not
   // synchronized with an ProjectIRCompiledDB object!");
   // 	static PHSStringConverter converter(*db.IRDB);
-  //   hexastore::Hexastore h("ptg_hexastore.db");
+  //   Hexastore h("ptg_hexastore.db");
   //   // using set instead of vector because searching in a set is easier
   // 	set<string> fnames(PTG.ContainedFunctions);
   //   cout << "reading points-to graph ";
@@ -690,7 +694,7 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
   //   }
   //   cout << "from hexastore!\n";
   //   auto result = h.get({{"?", "?", "?"}});
-  //   for_each(result.begin(), result.end(), [fnames,&PTG](hexastore::hs_result
+  //   for_each(result.begin(), result.end(), [fnames,&PTG](hs_result
   //   r){
   // //    cout << r << endl;
   //     // holds the function name, if it's not a global variable; otherwise
@@ -894,7 +898,7 @@ PointsToGraph DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
 
 void DBConn::storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
                                 const string hex_id) {
-  hexastore::Hexastore h(hex_id);
+  Hexastore h(hex_id);
   typename boost::graph_traits<LLVMTypeHierarchy::bidigraph_t>::edge_iterator
       ei_start,
       e_end;
@@ -918,7 +922,7 @@ void DBConn::storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
   }
   auto result = h.get({{"?", "?", "?"}});
   for_each(result.begin(), result.end(),
-           [](hexastore::hs_result r) { cout << r << endl; });
+           [](hs_result r) { cout << r << endl; });
 }
 
 void DBConn::storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
@@ -1530,3 +1534,5 @@ void DBConn::dropDBAndRebuildScheme() {
   this_thread::sleep_for(5s);
   buildDBScheme();
 }
+
+} // namespace psr

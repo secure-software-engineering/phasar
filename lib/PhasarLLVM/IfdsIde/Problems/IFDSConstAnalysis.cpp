@@ -26,15 +26,13 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(IFDSConstAnalysis::i_t icfg,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg),
-      ptg(icfg.getWholeModulePTG()),
+    : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
       EntryPoints(EntryPoints) {
   PAMM_FACTORY;
   REG_HISTOGRAM("Context-relevant-PT");
@@ -128,8 +126,8 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
     BOOST_LOG_SEV(lg, DEBUG) << "Call statement: " << llvmIRToString(callStmt);
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination method: "
-                             << destMthd->getName().str();
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Destination method: " << destMthd->getName().str();
     return make_shared<MapFactsToCallee>(
         llvm::ImmutableCallSite(callStmt), destMthd,
         [](IFDSConstAnalysis::d_t actual) {
@@ -179,8 +177,8 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
   // Process the effects of a llvm memory intrinsic function.
   if (llvm::isa<llvm::MemIntrinsic>(callSite)) {
     IFDSConstAnalysis::d_t pointerOp = callSite->getOperand(0);
-    BOOST_LOG_SEV(lg, DEBUG) << "Pointer Operand: "
-                             << llvmIRToString(pointerOp);
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Pointer Operand: " << llvmIRToString(pointerOp);
     set<IFDSConstAnalysis::d_t> pointsToSet = ptg.getPointsToSet(pointerOp);
     for (auto alias : pointsToSet) {
       if (isInitialized(alias)) {
@@ -277,19 +275,19 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
         BOOST_LOG_SEV(lg, DEBUG) << "instruction within current function will "
                                     "be generated as a new fact!";
       }
-    }  // Case (ii)
+    } // Case (ii)
     else if (llvm::isa<llvm::GlobalValue>(alias)) {
       ToGenerate.insert(alias);
       BOOST_LOG_SEV(lg, DEBUG)
           << "global variable will be generated as a new fact!";
-    }  // Case (iii)
+    } // Case (iii)
     else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(alias)) {
       if (A->getParent() == CurrentContext) {
         ToGenerate.insert(alias);
         BOOST_LOG_SEV(lg, DEBUG)
             << "formal argument will be generated as a new fact!";
       }
-    }  // ignore everything else
+    } // ignore everything else
   }
   PAUSE_TIMER("Compute ContextRelevantPointsToSet");
   ADD_TO_HIST("Context-relevant-PT", ToGenerate.size());
@@ -307,3 +305,5 @@ void IFDSConstAnalysis::markAsInitialized(IFDSConstAnalysis::d_t d) {
 size_t IFDSConstAnalysis::initMemoryLocationCount() {
   return Initialized.size();
 }
+
+} // namespace psr

@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 ostream &operator<<(ostream &os, const SolverConfiguration &sc) {
   return os << "SolverConfiguration:\n"
@@ -17,3 +20,5 @@ ostream &operator<<(ostream &os, const SolverConfiguration &sc) {
             << "\trecordEdges: " << sc.recordEdges << "\n"
             << "\tcomputePersistedSummaries: " << sc.computePersistedSummaries;
 }
+
+} // namespace psr

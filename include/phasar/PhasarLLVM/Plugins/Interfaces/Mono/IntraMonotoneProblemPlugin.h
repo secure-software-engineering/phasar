@@ -13,14 +13,17 @@
 #include <map>
 #include <memory>
 #include <string>
-using namespace std;
+
+namespace psr {
 
 class IntraMonotoneProblemPlugin {};
 
-extern "C" unique_ptr<IntraMonotoneProblemPlugin>
+extern "C" std::unique_ptr<IntraMonotoneProblemPlugin>
 makeIntraMonotoneProblemPlugin();
 
-extern map<string, unique_ptr<IntraMonotoneProblemPlugin> (*)()>
+extern std::map<std::string, std::unique_ptr<IntraMonotoneProblemPlugin> (*)()>
     IntraMonotoneProblemPluginFactory;
+
+} // namespace psr
 
 #endif

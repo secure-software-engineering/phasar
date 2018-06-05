@@ -21,6 +21,8 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 
+namespace psr {
+
 template <typename D, typename V, typename I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
                                        const llvm::Function *, V, I> {
@@ -48,15 +50,15 @@ public:
   }
 
   void dumpResults() {
-    cout << "### DUMP LLVMIDESolver results\n";
+    std::cout << "### DUMP LLVMIDESolver results\n";
     // for the following line have a look at:
     // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
     // https://isocpp.org/wiki/faq/templates#nondependent-name-lookup-members
     auto results = this->valtab.cellSet();
     if (results.empty()) {
-      cout << "EMPTY" << endl;
+      std::cout << "EMPTY" << std::endl;
     } else {
-      vector<typename Table<const llvm::Instruction *, D, V>::Cell> cells;
+      std::vector<typename Table<const llvm::Instruction *, D, V>::Cell> cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
@@ -71,32 +73,33 @@ public:
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          cout << "--- IDE START RESULT RECORD ---\n";
-          cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "--- IDE START RESULT RECORD ---\n";
+          std::cout << "N: " << Problem.NtoString(cells[i].r)
+                    << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            cout << inst->getFunction()->getName().str() << "\n";
+            std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-             << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
+        std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
+                  << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
   }
 
   void dumpAllInterPathEdges() {
-    cout << "COMPUTED INTER PATH EDGES" << endl;
+    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "TO" << endl;
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "FACTS" << endl;
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -105,18 +108,18 @@ public:
   }
 
   void dumpAllIntraPathEdges() {
-    cout << "COMPUTED INTRA PATH EDGES" << endl;
+    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "TO" << endl;
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "FACTS" << endl;
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -124,7 +127,8 @@ public:
     }
   }
 
-  void exportPATBCJSON() { cout << "LLVMIDESolver::exportPATBCJSON()\n"; }
+  void exportPATBCJSON() { std::cout << "LLVMIDESolver::exportPATBCJSON()\n"; }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_ */

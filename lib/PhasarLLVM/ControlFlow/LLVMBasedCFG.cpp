@@ -16,6 +16,10 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 
+using namespace std;
+using namespace psr;
+namespace psr {
+
 const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) {
   return stmt->getParent()->getParent();
 }
@@ -126,3 +130,4 @@ string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) {
 string LLVMBasedCFG::getMethodName(const llvm::Function *fun) {
   return fun->getName().str();
 }
+} // namespace psr

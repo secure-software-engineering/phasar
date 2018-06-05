@@ -8,9 +8,12 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
-InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
-                                                 vector<string> EntryPoints)
+InterMonotoneSolverTest::InterMonotoneSolverTest(
+    LLVMBasedICFG &Icfg, std::vector<std::string> EntryPoints)
     : InterMonotoneProblem<const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, const llvm::Value *,
                            LLVMBasedICFG &>(Icfg),
@@ -91,3 +94,5 @@ string InterMonotoneSolverTest::DtoString(const llvm::Value *d) {
 string InterMonotoneSolverTest::CtoString(const llvm::Value *c) {
   return llvmIRToString(c);
 }
+
+} // namespace psr

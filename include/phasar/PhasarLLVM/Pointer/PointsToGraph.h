@@ -44,8 +44,9 @@
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMM.h>
 #include <vector>
-using namespace std;
 using json = nlohmann::json;
+
+namespace psr {
 
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
@@ -81,9 +82,11 @@ inline void PrintLoadStoreResults(const char *Msg, bool P,
 
 enum class PointerAnalysisType { CFLSteens, CFLAnders };
 
-extern const map<string, PointerAnalysisType> StringToPointerAnalysisType;
+extern const std::map<std::string, PointerAnalysisType>
+    StringToPointerAnalysisType;
 
-extern const map<PointerAnalysisType, string> PointerAnalysisTypeToString;
+extern const std::map<PointerAnalysisType, std::string>
+    PointerAnalysisTypeToString;
 
 // TODO: add a more high level description.
 /**
@@ -113,7 +116,7 @@ public:
     const llvm::Value *value = nullptr;
 
     /// Holds the llvm IR code for that vertex.
-    string ir_code;
+    std::string ir_code;
 
     /**
      *  For an instruction the id is equal to the annotated id of the
@@ -134,7 +137,7 @@ public:
     const llvm::Value *value = nullptr;
 
     /// Holds the llvm IR code for that edge.
-    string ir_code;
+    std::string ir_code;
 
     /**
      * For an instruction the id is equal to the annotated id of the
@@ -165,20 +168,20 @@ public:
   typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
 
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
-  const static set<string> HeapAllocationFunctions;
+  const static std::set<std::string> HeapAllocationFunctions;
 
 private:
   struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
     // collect the allocation sites that are found
-    set<const llvm::Value *> &allocation_sites;
+    std::set<const llvm::Value *> &allocation_sites;
     // keeps track of the current path
-    vector<vertex_t> visitor_stack;
+    std::vector<vertex_t> visitor_stack;
     // the call stack that can be matched against the visitor stack
-    const vector<const llvm::Instruction *> &call_stack;
+    const std::vector<const llvm::Instruction *> &call_stack;
 
     allocation_site_dfs_visitor(
-        set<const llvm::Value *> &allocation_sizes,
-        const vector<const llvm::Instruction *> &call_stack)
+        std::set<const llvm::Value *> &allocation_sizes,
+        const std::vector<const llvm::Instruction *> &call_stack)
         : allocation_sites(allocation_sizes), call_stack(call_stack) {}
 
     template <typename Vertex, typename Graph>
@@ -236,8 +239,9 @@ private:
   };
 
   struct reachability_dfs_visitor : boost::default_dfs_visitor {
-    set<vertex_t> &points_to_set;
-    reachability_dfs_visitor(set<vertex_t> &result) : points_to_set(result) {}
+    std::set<vertex_t> &points_to_set;
+    reachability_dfs_visitor(std::set<vertex_t> &result)
+        : points_to_set(result) {}
     template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       points_to_set.insert(u);
@@ -246,9 +250,9 @@ private:
 
   /// The points to graph.
   graph_t ptg;
-  map<const llvm::Value *, vertex_t> value_vertex_map;
+  std::map<const llvm::Value *, vertex_t> value_vertex_map;
   /// Keep track of what has already been merged into this points-to graph.
-  set<string> ContainedFunctions;
+  std::set<std::string> ContainedFunctions;
 
 public:
   /**
@@ -273,7 +277,7 @@ public:
    * that are contained in the points-to graph.
    * @param fnames Names of functions contained in the points-to graph.
    */
-  PointsToGraph(vector<string> fnames);
+  PointsToGraph(std::vector<std::string> fnames);
 
   /**
    * @brief This will create an empty points-to graph. It is used when points-to
@@ -295,7 +299,7 @@ public:
    * @return Vector holding function argument pointers and the function argument
    * number.
    */
-  vector<pair<unsigned, const llvm::Value *>>
+  std::vector<std::pair<unsigned, const llvm::Value *>>
   getPointersEscapingThroughParams();
 
   /**
@@ -303,7 +307,7 @@ public:
    *        function return statements.
    * @return Vector with pointers.
    */
-  vector<const llvm::Value *> getPointersEscapingThroughReturns();
+  std::vector<const llvm::Value *> getPointersEscapingThroughReturns();
 
   /**
    * @brief Returns all reachable allocation sites from a given pointer.
@@ -311,9 +315,9 @@ public:
    * an allocating function.
    * @return Set of Allocation sites.
    */
-  set<const llvm::Value *>
+  std::set<const llvm::Value *>
   getReachableAllocationSites(const llvm::Value *V,
-                              vector<const llvm::Instruction *> CallStack);
+                              std::vector<const llvm::Instruction *> CallStack);
 
   /**
    * @brief Computes all possible types from a given set of allocation sites.
@@ -322,8 +326,8 @@ public:
    * @param AS Set of Allocation site.
    * @return Set of Types.
    */
-  set<const llvm::Type *>
-  computeTypesFromAllocationSites(set<const llvm::Value *> AS);
+  std::set<const llvm::Type *>
+  computeTypesFromAllocationSites(std::set<const llvm::Value *> AS);
 
   /**
    * @brief Checks if a given value is represented by a vertex in the points-to
@@ -335,15 +339,14 @@ public:
   /**
    * @brief Computes the Points-to set for a given pointer.
    */
-  set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
+  std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
 
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
-  void
-  mergeWith(const PointsToGraph &Other,
-            const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>>
-                &Calls);
+  void mergeWith(const PointsToGraph &Other,
+                 const std::vector<std::pair<llvm::ImmutableCallSite,
+                                             const llvm::Function *>> &Calls);
   void mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
                  const llvm::Function *F);
 
@@ -369,7 +372,7 @@ public:
    * @brief Prints the points-to graph as a .dot file.
    * @param filename Filename of the .dot file.
    */
-  void printAsDot(const string &filename);
+  void printAsDot(const std::string &filename);
 
   unsigned getNumOfVertices();
 
@@ -379,5 +382,7 @@ public:
    */
   json getAsJson();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 size_t ValueAnnotationPass::unique_value_id = 0;
 
@@ -61,3 +64,5 @@ void ValueAnnotationPass::resetValueID() {
   cout << "Reset ID" << endl;
   unique_value_id = 0;
 }
+
+} // namespace psr

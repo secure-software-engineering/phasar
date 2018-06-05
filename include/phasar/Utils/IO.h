@@ -20,10 +20,13 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <string>
-using namespace std;
 
-string readFile(const string &path);
+namespace psr {
 
-void writeFile(const string &path, const string &content);
+std::string readFile(const std::string &path);
+
+void writeFile(const std::string &path, const std::string &content);
+
+} // namespace psr
 
 #endif /* SRC_UTILS_IO_HH_ */

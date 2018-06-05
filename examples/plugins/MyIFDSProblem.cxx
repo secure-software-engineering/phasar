@@ -1,5 +1,8 @@
 #include "MyIFDSProblem.h"
 
+using namespace std;
+using namespace psr;
+
 // Factory function that is used to create an instance by the Phasar framework.
 unique_ptr<IFDSTabulationProblemPlugin>
 makeMyIFDSProblem(LLVMBasedICFG &I, vector<string> EntryPoints) {

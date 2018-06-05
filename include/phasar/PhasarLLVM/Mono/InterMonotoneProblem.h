@@ -19,7 +19,8 @@
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <string>
-using namespace std;
+
+namespace psr {
 
 template <typename N, typename D, typename M, typename C, typename I>
 class InterMonotoneProblem {
@@ -39,8 +40,10 @@ public:
   virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
                                    const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
-  virtual string DtoString(D d) = 0;
-  virtual string CtoString(C c) = 0;
+  virtual std::string DtoString(D d) = 0;
+  virtual std::string CtoString(C c) = 0;
 };
+
+} // namespace psr
 
 #endif

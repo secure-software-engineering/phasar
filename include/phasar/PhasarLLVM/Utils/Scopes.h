@@ -13,14 +13,17 @@
 #include <iostream>
 #include <map>
 #include <string>
-using namespace std;
+
+namespace psr {
 
 enum class Scope { function, module, project };
 
-ostream &operator<<(ostream &os, const Scope &s);
+std::ostream &operator<<(std::ostream &os, const Scope &s);
 
-extern const map<string, Scope> StringToScope;
+extern const std::map<std::string, Scope> StringToScope;
 
-extern const map<Scope, string> ScopeToString;
+extern const std::map<Scope, std::string> ScopeToString;
+
+} // namespace psr
 
 #endif

@@ -15,6 +15,10 @@
  */
 
 #include <phasar/Utils/IO.h>
+using namespace std;
+using namespace psr;
+
+namespace psr {
 
 string readFile(const string &path) {
   if (boost::filesystem::exists(path) &&
@@ -40,3 +44,4 @@ void writeFile(const string &path, const string &content) {
   }
   throw ios_base::failure("could not write file: " + path);
 }
+} // namespace psr

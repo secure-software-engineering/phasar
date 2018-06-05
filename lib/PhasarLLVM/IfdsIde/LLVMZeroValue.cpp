@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+using namespace psr;
+using namespace std;
+namespace psr {
 
 const string LLVMZeroValueInternalName("zero_value");
 const string LLVMZeroValueInternalModuleName("zero_module");
@@ -46,3 +49,5 @@ LLVMZeroValue *LLVMZeroValue::getInstance() {
   static LLVMZeroValue *zv = new LLVMZeroValue;
   return zv;
 }
+
+} // namespace psr

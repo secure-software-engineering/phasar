@@ -21,6 +21,13 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 using namespace std;
+using namespace psr;
+
+std::size_t std::hash<LCAPair>::operator()(const LCAPair &k) const {
+  return std::hash<const llvm::Value *>()(k.first) ^ std::hash<int>()(k.second);
+}
+
+namespace psr {
 
 LCAPair::LCAPair() : first(nullptr), second(0) {}
 
@@ -32,10 +39,6 @@ bool operator==(const LCAPair &lhs, const LCAPair &rhs) {
 
 bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
   return std::tie(lhs.first, lhs.second) < std::tie(rhs.first, rhs.second);
-}
-
-std::size_t hash<LCAPair>::operator()(const LCAPair &k) const {
-  return std::hash<const llvm::Value *>()(k.first) ^ std::hash<int>()(k.second);
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
@@ -137,3 +140,5 @@ string
 IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

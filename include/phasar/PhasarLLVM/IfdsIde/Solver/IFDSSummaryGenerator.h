@@ -25,7 +25,8 @@
 #include <iostream>
 #include <set>
 #include <vector>
-using namespace std;
+
+namespace psr {
 
 template <typename N, typename D, typename M, typename I,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
@@ -35,16 +36,16 @@ protected:
   const I icfg;
   const SummaryGenerationStrategy CTXStrategy;
 
-  virtual vector<D> getInputs() = 0;
-  virtual vector<bool> generateBitPattern(const vector<D> &inputs,
-                                          const set<D> &subset) = 0;
+  virtual std::vector<D> getInputs() = 0;
+  virtual std::vector<bool> generateBitPattern(const std::vector<D> &inputs,
+                                               const std::set<D> &subset) = 0;
 
   class CTXFunctionProblem : public ConcreteTabulationProblem {
   public:
     const N start;
-    set<D> facts;
+    std::set<D> facts;
 
-    CTXFunctionProblem(N start, set<D> facts, I icfg)
+    CTXFunctionProblem(N start, std::set<D> facts, I icfg)
         : ConcreteTabulationProblem(icfg), start(start), facts(facts) {
       this->solver_config.followReturnsPastSeeds = false;
       this->solver_config.autoAddZero = true;
@@ -53,8 +54,8 @@ protected:
       this->solver_config.computePersistedSummaries = false;
     }
 
-    virtual map<N, set<D>> initialSeeds() override {
-      map<N, set<D>> seeds;
+    virtual std::map<N, std::set<D>> initialSeeds() override {
+      std::map<N, std::set<D>> seeds;
       seeds.insert(make_pair(start, facts));
       return seeds;
     }
@@ -64,24 +65,24 @@ public:
   IFDSSummaryGenerator(M Function, I icfg, SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(icfg), CTXStrategy(Strategy) {}
   virtual ~IFDSSummaryGenerator() = default;
-  virtual set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>>
+  virtual std::set<pair<std::vector<bool>, shared_ptr<FlowFunction<D>>>>
   generateSummaryFlowFunction() {
-    set<pair<vector<bool>, shared_ptr<FlowFunction<D>>>> summary;
-    vector<D> inputs = getInputs();
-    set<D> inputset;
+    std::set<pair<std::vector<bool>, shared_ptr<FlowFunction<D>>>> summary;
+    std::vector<D> inputs = getInputs();
+    std::set<D> inputset;
     inputset.insert(inputs.begin(), inputs.end());
-    set<set<D>> InputCombinations;
+    std::set<std::set<D>> InputCombinations;
     // initialize the input combinations that should be considered
     switch (CTXStrategy) {
     case SummaryGenerationStrategy::always_all:
       InputCombinations.insert(inputset);
       break;
     case SummaryGenerationStrategy::always_none:
-      InputCombinations.insert(set<D>());
+      InputCombinations.insert(std::set<D>());
       break;
     case SummaryGenerationStrategy::all_and_none:
       InputCombinations.insert(inputset);
-      InputCombinations.insert(set<D>());
+      InputCombinations.insert(std::set<D>());
       break;
     case SummaryGenerationStrategy::powerset:
       InputCombinations = computePowerSet(inputset);
@@ -99,8 +100,8 @@ public:
       solver.solve();
       // get the result at the end of this function and
       // create a flow function from this set using the GenAll class
-      set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
-      set<D> results;
+      std::set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
+      std::set<D> results;
       for (auto fact : solver.resultsAt(*LastInsts.begin())) {
         results.insert(fact.first);
       }
@@ -111,5 +112,7 @@ public:
     return summary;
   }
 };
+
+} // namespace psr
 
 #endif

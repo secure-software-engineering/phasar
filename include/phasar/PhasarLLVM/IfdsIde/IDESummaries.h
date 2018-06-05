@@ -14,19 +14,23 @@
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Table.h>
-using namespace std;
+
+namespace psr {
 
 template <typename N, typename D, typename M, typename V> class IDESummaries {
 private:
-  Table<N, D, Table<N, D, shared_ptr<EdgeFunction<V>>>> summaries;
+  Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> summaries;
 
 public:
-  void addSummaries(Table<N, D, Table<N, D, shared_ptr<EdgeFunction<V>>>> Sum) {
+  void
+  addSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> Sum) {
     summaries.insert(Sum);
   }
-  Table<N, D, Table<N, D, shared_ptr<EdgeFunction<V>>>> getSummaries() {
+  Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> getSummaries() {
     return summaries;
   }
 };
+
+} // namespace psr
 
 #endif

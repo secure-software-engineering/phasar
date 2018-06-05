@@ -24,7 +24,7 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>
 
-using namespace std;
+namespace psr {
 
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
@@ -34,7 +34,7 @@ class IDETabulationProblem;
 template <typename N, typename D, typename M, typename L, typename I>
 class JumpFunctions {
 private:
-  shared_ptr<EdgeFunction<L>> allTop;
+  std::shared_ptr<EdgeFunction<L>> allTop;
   const IDETabulationProblem<N, D, M, L, I> &problem;
 
 protected:
@@ -43,21 +43,23 @@ protected:
   // where the list is implemented as a mapping from the source value to the
   // function
   // we exclude empty default functions
-  Table<N, D, map<D, shared_ptr<EdgeFunction<L>>>> nonEmptyReverseLookup;
+  Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
+      nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions
   // where the list is implemented as a mapping from the source value to the
   // function
   // we exclude empty default functions
-  Table<D, N, map<D, shared_ptr<EdgeFunction<L>>>> nonEmptyForwardLookup;
+  Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
+      nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
   // we exclude empty default functions
-  unordered_map<N, Table<D, D, shared_ptr<EdgeFunction<L>>>>
+  std::unordered_map<N, Table<D, D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(shared_ptr<EdgeFunction<L>> allTop,
+  JumpFunctions(std::shared_ptr<EdgeFunction<L>> allTop,
                 const IDETabulationProblem<N, D, M, L, I> &p)
       : allTop(allTop), problem(p) {}
 
@@ -68,7 +70,7 @@ public:
    * @see PathEdge
    */
   void addFunction(D sourceVal, N target, D targetVal,
-                   shared_ptr<EdgeFunction<L>> function) {
+                   std::shared_ptr<EdgeFunction<L>> function) {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
     BOOST_LOG_SEV(lg, DEBUG)
@@ -80,11 +82,11 @@ public:
     // we do not store the default function (all-top)
     if (function->equalTo(allTop))
       return;
-    map<D, shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
+    std::map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc.insert({sourceVal, function});
     //	printNonEmptyReverseLookup();
-    map<D, shared_ptr<EdgeFunction<L>>> &targetValToFunc =
+    std::map<D, std::shared_ptr<EdgeFunction<L>>> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc.insert({targetVal, function});
     //	printNonEmptyForwardLookup();
@@ -98,9 +100,10 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  map<D, shared_ptr<EdgeFunction<L>>> reverseLookup(N target, D targetVal) {
+  std::map<D, std::shared_ptr<EdgeFunction<L>>> reverseLookup(N target,
+                                                              D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal))
-      return map<D, shared_ptr<EdgeFunction<L>>>{};
+      return std::map<D, std::shared_ptr<EdgeFunction<L>>>{};
     else
       return nonEmptyReverseLookup.get(target, targetVal);
   }
@@ -110,9 +113,10 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  map<D, shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal, N target) {
+  std::map<D, std::shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal,
+                                                              N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target))
-      return map<D, shared_ptr<EdgeFunction<L>>>{};
+      return std::map<D, std::shared_ptr<EdgeFunction<L>>>{};
     else
       return nonEmptyForwardLookup.get(sourceVal, target);
   }
@@ -123,9 +127,9 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<D, D, shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
+  Table<D, D, std::shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
     // if (nonEmptyLookupByTargetNode.count(target))
-    //	return Table<D, D, shared_ptr<EdgeFunction<L>>>{};
+    //	return Table<D, D, std::shared_ptr<EdgeFunction<L>>>{};
     // else
     return nonEmptyLookupByTargetNode[target];
   }
@@ -194,8 +198,9 @@ public:
   }
 
   void printNonEmptyReverseLookup() {
-    cout << "DUMP nonEmptyReverseLookup" << endl;
-    cout << "Table<N, D, map<D, shared_ptr<EdgeFunction<L>>>>" << endl;
+    std::cout << "DUMP nonEmptyReverseLookup" << std::endl;
+    std::cout << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
+              << std::endl;
     auto cellset = nonEmptyReverseLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -208,8 +213,9 @@ public:
   }
 
   void printNonEmptyForwardLookup() {
-    cout << "DUMP nonEmptyForwardLookup" << endl;
-    cout << "Table<D, N, map<D, shared_ptr<EdgeFunction<L>>>>" << endl;
+    std::cout << "DUMP nonEmptyForwardLookup" << std::endl;
+    std::cout << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
+              << std::endl;
     auto cellset = nonEmptyForwardLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -222,9 +228,10 @@ public:
   }
 
   void printNonEmptyLookupByTargetNode() {
-    cout << "DUMP nonEmptyLookupByTargetNode" << endl;
-    cout << "unordered_map<N, Table<D, D, shared_ptr<EdgeFunction<L>>>>"
-         << endl;
+    std::cout << "DUMP nonEmptyLookupByTargetNode" << std::endl;
+    std::cout << "std::unordered_map<N, Table<D, D, "
+                 "std::shared_ptr<EdgeFunction<L>>>>"
+              << std::endl;
     for (auto node : nonEmptyLookupByTargetNode) {
       node.first->dump();
       auto table = nonEmptyLookupByTargetNode[node.first];
@@ -237,5 +244,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_HH_ */

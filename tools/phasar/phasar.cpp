@@ -25,6 +25,8 @@
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
+using namespace std;
+using namespace psr;
 
 // setup programs command line options (via Clang)
 static llvm::cl::OptionCategory StaticAnalysisCategory("Static Analysis");

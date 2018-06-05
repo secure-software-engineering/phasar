@@ -8,6 +8,9 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/ObservedCallingContexts.h>
+using namespace psr;
+using namespace std;
+namespace psr {
 
 void ObservedCallingContexts::addObservedCTX(string FName, vector<bool> CTX) {
   ObservedCTX[FName].insert(CTX);
@@ -29,3 +32,4 @@ void ObservedCallingContexts::print() {
     }
   }
 }
+} // namespace psr

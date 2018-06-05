@@ -15,6 +15,9 @@
  */
 
 #include <phasar/Utils/Logger.h>
+using namespace std;
+using namespace psr;
+namespace psr {
 
 const map<string, severity_level> StringToSeverityLevel = {
     {"DEBUG", DEBUG},
@@ -88,3 +91,4 @@ void initializeLogger(bool use_logger, string log_file) {
   bl::core::get()->set_exception_handler(
       bl::make_exception_handler<std::exception>(LoggerExceptionHandler()));
 }
+} // namespace psr

@@ -8,6 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/DB/ProjectIRDB.h>
+using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const std::set<std::string> ProjectIRDB::unknown_flags = {
     "-g",
@@ -680,3 +684,4 @@ std::string ProjectIRDB::getGlobalVariableModuleName(
   }
   return "";
 }
+} // namespace psr

@@ -29,6 +29,8 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(
     IFDSUnitializedVariables::i_t icfg, vector<string> EntryPoints)
@@ -296,7 +298,6 @@ IFDSUnitializedVariables::getRetFlowFunction(
   // check if callSite is usual call instruction
   if (const llvm::ReturnInst *ret =
           llvm::dyn_cast<llvm::ReturnInst>(exitStmt)) {
-
     struct UVFF : FlowFunction<IFDSUnitializedVariables::d_t> {
       const llvm::CallInst *call;
       const llvm::ReturnInst *ret;
@@ -398,3 +399,4 @@ string
 IFDSUnitializedVariables::MtoString(IFDSUnitializedVariables::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr
