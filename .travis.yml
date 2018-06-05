@@ -47,8 +47,9 @@ branches:
 
 # install all dependencies
 install:
-  - echo $TRAVIS_OS_NAME
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew bundle ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; echo "checking machine"; hostinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew search mysql ; brew bundle ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
   - git submodule update --init --recursive
@@ -64,8 +65,6 @@ install:
 script:
   - mkdir -p build
   - cd build
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; echo "checking machine"; hostinfo ; fi
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
   - sudo make install
