@@ -71,7 +71,6 @@ script:
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make
-  - cd $TRAVIS_BUILD_DIR/examples/plugins
-  - make
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
 # Fix the unit tests first
 #  - make test
