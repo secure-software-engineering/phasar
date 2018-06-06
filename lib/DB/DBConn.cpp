@@ -317,11 +317,11 @@ QueryReturnCode DBConn::moduleHasTypeHierarchy(const unsigned moduleID) {
         "SELECT module_id FROM module_has_type_hierarchy WHERE module_id=?"));
     pstmt->setInt(1, moduleID);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
-    return res->next() ? QueryReturnCode::TRUE : QueryReturnCode::FALSE;
+    return res->next() ? QueryReturnCode::DBTrue : QueryReturnCode::DBFalse;
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  return QueryReturnCode::ERROR;
+  return QueryReturnCode::DBError;
 }
 
 QueryReturnCode
@@ -332,14 +332,14 @@ DBConn::globalVariableIsDeclaration(const unsigned globalVariableID) {
     pstmt->setInt(1, globalVariableID);
     unique_ptr<sql::ResultSet> res(pstmt->executeQuery());
     if (res->next()) {
-      return res->getBoolean("declaration") ? QueryReturnCode::TRUE
-                                            : QueryReturnCode::FALSE;
+      return res->getBoolean("declaration") ? QueryReturnCode::DBTrue
+                                            : QueryReturnCode::DBFalse;
     }
-    return QueryReturnCode::ERROR;
+    return QueryReturnCode::DBError;
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
-  return QueryReturnCode::ERROR;
+  return QueryReturnCode::DBError;
 }
 
 string DBConn::getDBName() { return db_schema_name; }
@@ -355,7 +355,7 @@ bool DBConn::insertGlobalVariable(const llvm::GlobalVariable &G,
       cout << id << " ";
     int newGlobalID = getNextAvailableID("global_variable");
     QueryReturnCode GIsDeclarataion =
-        G.isDeclaration() ? QueryReturnCode::TRUE : QueryReturnCode::FALSE;
+        G.isDeclaration() ? QueryReturnCode::DBTrue : QueryReturnCode::DBFalse;
     bool newGlobVar = false;
     // Do not write duplicate global variables
     if (globalVariableIDs.size() == 0 ||
@@ -947,7 +947,7 @@ void DBConn::storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
         insertModule(ProjectName, M);
         THContainsNewInformation = true;
       } else if (!THContainsNewInformation &&
-                 moduleHasTypeHierarchy(moduleID) == QueryReturnCode::FALSE) {
+                 moduleHasTypeHierarchy(moduleID) == QueryReturnCode::DBFalse) {
         THContainsNewInformation = true;
       }
     }

@@ -55,7 +55,7 @@
 
 namespace psr {
 
-enum class QueryReturnCode { TRUE, FALSE, ERROR };
+enum class QueryReturnCode { DBTrue, DBFalse, DBError };
 
 #define SQL_STD_ERROR_HANDLING                                                 \
   cout << "# ERR: SQLException in " << __FILE__;                               \
