@@ -40,7 +40,9 @@ matrix:
       - clang++
 
 branches:
-  - development
+  only:
+    - development
+    - master
 
 # commands that need to be run before installing the dependencies
 # before_install:
