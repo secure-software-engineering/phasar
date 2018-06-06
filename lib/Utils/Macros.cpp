@@ -27,6 +27,28 @@ string debasify(const string &name) {
   }
 }
 
+string uniformTypeName(const string &name) {
+  std::string TypeName = debasify(name);
+  if (TypeName.compare(0, sizeof("class.") - 1, "class.") == 0)
+    TypeName.erase(0, sizeof("class.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
+
+  return TypeName;
+}
+
+llvm::Type* stripPointer(llvm::Type* pointer) {
+  auto next = llvm::dyn_cast<llvm::PointerType>(pointer);
+  while(next) {
+    pointer = next->getElementType();
+    next = llvm::dyn_cast<llvm::PointerType>(pointer);
+  }
+
+  return pointer;
+}
+
 bool isMangled(const string &name) { return name != cxx_demangle(name); }
 
 vector<string> splitString(const string &str, const string &delimiter) {

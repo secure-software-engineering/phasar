@@ -35,6 +35,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
 #include <set>
 #include <string>
 #include <tuple>
@@ -126,14 +127,6 @@ public:
    * and edges accordingly to the type hierarchy graph.
    */
   void analyzeModule(const llvm::Module &M);
-
-  /**
-   * @brief Transform the type name to use it.
-   * @param TypeName Name of the type.
-   *
-   * Erase the 'class.' or 'struct.' at the head of type names.
-   */
-  void inline uniformTypeName(std::string &TypeName) const;
 
   /**
    * 	@brief Computes all types, which are transitiv reachable from

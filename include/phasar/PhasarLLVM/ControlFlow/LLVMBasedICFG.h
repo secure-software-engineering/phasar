@@ -45,6 +45,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -87,7 +88,7 @@ private:
              {WalkerStrategy::VariableType,
               &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
              {WalkerStrategy::DeclaredType,
-              &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
+              &LLVMBasedICFG::resolveIndirectCallWalkerDTA},
              {WalkerStrategy::Pointer,
               &LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis}};
   const map<ResolveStrategy,
@@ -102,6 +103,7 @@ private:
   set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   vector<const llvm::Instruction *> CallStack;
+  std::map<const llvm::Function*, TypeGraph*> tgs;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
@@ -138,7 +140,7 @@ private:
   bidigraph_t cg;
 
   /// Maps function names to the corresponding vertex id.
-  map<string, vertex_t> function_vertex_map;
+  std::map<std::string, vertex_t> function_vertex_map;
 
   /**
    * Resolved an indirect call using points-to information in order to
@@ -149,7 +151,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  set<string> resolveIndirectCallOTF(llvm::ImmutableCallSite CS);
+  std::set<std::string> resolveIndirectCallOTF(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using class hierarchy information.
@@ -190,26 +192,35 @@ private:
    *
    * @brief A simple function walking along the control flow graph.
    * @param F function to start in
-   * @param R resolving function to use for an indirect call site
    */
   void resolveIndirectCallWalkerSimple(const llvm::Function *F);
 
   /**
-   * Walking along the control flow resolving indirect
-   * call-sites using the resolving function R. This walker does perform
-   * a variable- or declared type analysis in order to build an type
-   * propagation graph. This type propagation graph can then be used
-   * by the resolving function R.
+   * A simple function walking along the control flow resolving indirect
+   * call-sites using Declare Type Analysis function. This walker does not perform
+   * any analysis by itself.
    *
-   * @brief Walking along the control flow graph performing a type analysis.
+   * @brief A function walking along the control flow graph construction a DTA Graph.
    * @param F function to start in
-   * @param R resolving function to use for an indirect call site
-   * @param useVTA use VTA otherwise DTA is used for type propagation graph
-   * construction
    */
-  void resolveIndirectCallWalkerTypeAnalysis(
-      const llvm::Function *F,
-      function<set<string>(llvm::ImmutableCallSite CS)> R, bool useVTA = true);
+  void resolveIndirectCallWalkerDTA(const llvm::Function *F);
+
+  // /**
+  //  * Walking along the control flow resolving indirect
+  //  * call-sites using the resolving function R. This walker does perform
+  //  * a variable- or declared type analysis in order to build an type
+  //  * propagation graph. This type propagation graph can then be used
+  //  * by the resolving function R.
+  //  *
+  //  * @brief Walking along the control flow graph performing a type analysis.
+  //  * @param F function to start in
+  //  * @param R resolving function to use for an indirect call site
+  //  * @param useVTA use VTA otherwise DTA is used for type propagation graph
+  //  * construction
+  //  */
+  // void resolveIndirectCallWalkerTypeAnalysis(
+  //     const llvm::Function *F,
+  //     function<set<string>(llvm::ImmutableCallSite CS)> R, bool useVTA = true);
 
   /**
    * Walking along the control flow resolving indirect call-sites using
