@@ -40,7 +40,6 @@ matrix:
       - clang++
 
 branches:
-  only:
     - development
     - master
 
