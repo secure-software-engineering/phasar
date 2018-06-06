@@ -1,0 +1,11 @@
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+project (MyProject)
+set (MyProject_VERSION_MAJOR 1)
+set (MyProject_VERSION_MINOR 0)
+
+file(GLOB_RECURSE SRCS *.c)
+file(GLOB_RECURSE HDRS *.h)
+include_directories(${CMAKE_SOURCE_DIR})
+
+ADD_EXECUTABLE(MyProject  ${SRCS} ${HDRS})
+TARGET_LINK_LIBRARIES(MyProject)

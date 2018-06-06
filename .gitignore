@@ -1,0 +1,132 @@
+##### ignored directories
+
+# bin/ directory
+bin/*
+
+# build directory for cmake
+build/
+
+# external git submodules
+external/*
+
+# obj/ directory
+obj/
+
+# doc/ directory
+doc/*
+
+# log/ directory
+log/*
+
+# CMake build dir
+build/*
+
+# MS VS Code
+.vscode/*
+
+# Eclipse
+.cproject
+.project
+.settings/*
+.pydevproject
+
+# CLion
+.idea/*
+
+##### ignored files
+
+# dot files
+*.dot
+
+# ignore all auto-generated LLVM IR code
+*.ll
+
+# auto generated test files
+*.test
+
+# ignore all auto-generated compile command and symbol databases
+compile_commands.json
+find_all_symbols_db.yaml
+
+# ignore all auto-generated dot files
+*.dot
+
+# ignore all database files that the framework may creates
+*.db
+*.db3
+*.s3db
+*.sqlite
+*.sqlite3
+
+# dot files
+*.dot
+
+# temporary files
+*.*~
+*.dwo
+
+# Header dependency files
+*.d
+
+# Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.ko
+*.obj
+*.elf
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# Debug files
+*.dSYM/
+*.su
+
+# Emacs convenience metadata
+TAGS
+
+# config files
+compiler_info.txt
+standard_header_paths.conf
+
+# CMake temporary files
+CMakeFiles
+CMakeCache.txt
+*.cmake
+!cmake/*.cmake
+*.pc
+Makefile
+!test/*/Makefile
+
+# Unit test output
+Testing/
+unittests/DB/DBConnTest
+unittests/PhasarLLVM/ControlFlow/LLVMBasedCFGTest
+unittests/PhasarLLVM/ifdside/Problems/IFDSConstAnalysisTest
+unittests/PhasarLLVM/ifdside/Problems/IFDSTaintAnalysisTest
+unittests/PhasarLLVM/Pointer/LLVMTypeHierarchyTest
+unittests/Utils/LLVMShorthandsTest
+unittests/Utils/PAMMTest

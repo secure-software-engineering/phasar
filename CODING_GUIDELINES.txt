@@ -1,0 +1,9 @@
+Coding Guidelines
+=================
+
+In order to unify the look and feel of the Phasar code base, code should be 
+written according to the LLVM coding guidelines wherever possible. The LLVM
+coding guidelines can be here:
+
+	https://llvm.org/docs/CodingStandards.html
+

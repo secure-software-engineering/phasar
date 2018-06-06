@@ -1,0 +1,11 @@
+add_subdirectory(ControlFlow)
+add_subdirectory(IfdsIde)
+add_subdirectory(Mono)
+add_subdirectory(Passes)
+# Workaround: Remove Plugins for MacOS for now
+if(APPLE)
+else()
+  add_subdirectory(Plugins)
+endif()
+add_subdirectory(Pointer)
+add_subdirectory(Utils)
