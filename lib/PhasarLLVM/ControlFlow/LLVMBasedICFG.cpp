@@ -199,6 +199,10 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
   }
 
+  if (VisitedFunctions.size() == 1) {
+
+  }
+
   TypeGraph *graph = new TypeGraph();
   tgs[F] = graph;
 
@@ -208,7 +212,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
 
     if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
       for ( auto user : BitCast->users() ) {
-        if ( llvm::isa<llvm::StoreInst>(user) ) {
+        if ( llvm::isa<llvm::StoreInst>(user) || llvm::isa<llvm::TerminatorInst>(user) ) {
           // We add the connection between the two types in the DTA graph
           auto src = BitCast->getSrcTy();
           auto dest = BitCast->getDestTy();
