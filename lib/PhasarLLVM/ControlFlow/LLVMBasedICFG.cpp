@@ -136,6 +136,19 @@ void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
     function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
     cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
   }
+
+  if (VisitedFunctions.size() == 1) {
+    auto func_type = F->getFunctionType();
+
+    for ( auto param : func_type->params() ) {
+      if ( llvm::isa<llvm::PointerType>(param) ) {
+        if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
+          unsound_types.insert(struct_ty);
+        }
+      }
+    }
+  }
+
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
        ++I) {
     const llvm::Instruction &Inst = *I;
@@ -200,7 +213,15 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
   }
 
   if (VisitedFunctions.size() == 1) {
+    auto func_type = F->getFunctionType();
 
+    for ( auto param : func_type->params() ) {
+      if ( llvm::isa<llvm::PointerType>(param) ) {
+        if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
+          unsound_types.insert(struct_ty);
+        }
+      }
+    }
   }
 
   TypeGraph *graph = new TypeGraph();
@@ -564,6 +585,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
       throw runtime_error("Receiver type is not a struct type!");
     }
 
+    // If the type is unsound, return all a sound possibility
+    if (unsound_types.find(receiver_type) != unsound_types.end())
+      return resolveIndirectCallCHA(CS);
+
     string receiver_type_name = debasify(receiver_type->getName().str());
 
     // also insert all possible subtypes vtable entries
@@ -632,6 +657,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
     if (!receiver_type) {
       throw runtime_error("Receiver type is not a struct type!");
     }
+
+    // If the type is unsound, return all a sound possibility
+    if (unsound_types.find(receiver_type) != unsound_types.end())
+      return resolveIndirectCallCHA(CS);
 
     string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
 

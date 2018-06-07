@@ -104,7 +104,12 @@ private:
   set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   vector<const llvm::Instruction *> CallStack;
+
+  // Keeps track of the type graph already constructed
   std::map<const llvm::Function*, TypeGraph*> tgs;
+
+  // Any types that could be initialized outside of the module
+  std::set<const llvm::StructType*> unsound_types;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
