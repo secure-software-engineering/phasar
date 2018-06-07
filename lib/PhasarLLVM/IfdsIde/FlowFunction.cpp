@@ -15,3 +15,6 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+
+using namespace psr;
+namespace psr {} // namespace psr

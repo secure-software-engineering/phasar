@@ -22,6 +22,8 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
+
 class LLVMBasedICFG;
 
 enum State { uninit = 0, error };
@@ -114,4 +116,6 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_ */
+} // namespace psr
+
+#endif

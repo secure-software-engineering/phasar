@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
+using namespace psr;
+namespace psr {
 
 IntraMonotoneSolverTest::IntraMonotoneSolverTest(LLVMBasedCFG &Cfg,
                                                  const llvm::Function *F)
@@ -59,3 +61,5 @@ IntraMonotoneSolverTest::initialSeeds() {
 string IntraMonotoneSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
 }
+
+} // namespace psr

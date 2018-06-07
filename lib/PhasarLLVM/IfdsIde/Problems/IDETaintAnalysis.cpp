@@ -19,9 +19,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
-using namespace std;
+using namespace psr;
+namespace psr {
 
 bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
@@ -58,7 +57,7 @@ IDETaintAnalysis::getRetFlowFunction(IDETaintAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IDETaintAnalysis::d_t>>
 IDETaintAnalysis::getCallToRetFlowFunction(IDETaintAnalysis::n_t callSite,
                                            IDETaintAnalysis::n_t retSite,
-set<IDETaintAnalysis::m_t> callees) {
+                                           set<IDETaintAnalysis::m_t> callees) {
   return Identity<IDETaintAnalysis::d_t>::getInstance();
 }
 
@@ -182,3 +181,5 @@ string IDETaintAnalysis::NtoString(IDETaintAnalysis::n_t n) const {
 string IDETaintAnalysis::MtoString(IDETaintAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

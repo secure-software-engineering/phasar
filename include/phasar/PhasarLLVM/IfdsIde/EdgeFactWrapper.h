@@ -11,6 +11,7 @@
 #define EDGEFACTWRAPPER_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFact.h>
+namespace psr {
 
 template <typename T> class EdgeFactWrapper : public EdgeFact {
 private:
@@ -24,5 +25,7 @@ public:
     return os << fact << '\n';
   }
 };
+
+} // namespace psr
 
 #endif

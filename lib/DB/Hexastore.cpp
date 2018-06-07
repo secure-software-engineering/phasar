@@ -9,12 +9,15 @@
 
 #include <phasar/DB/Hexastore.h>
 
+using namespace psr;
+using namespace std;
 using namespace boost;
-using namespace hexastore;
+
+namespace psr {
 
 Hexastore::Hexastore(string filename) {
   sqlite3_open(filename.c_str(), &hs_internal_db);
-  const string query = hexastore::INIT;
+  const string query = INIT;
   char *err;
   sqlite3_exec(hs_internal_db, query.c_str(), callback, 0, &err);
   if (err != NULL)
@@ -32,12 +35,12 @@ int Hexastore::callback(void *NotUsed, int argc, char **argv,
 }
 
 void Hexastore::put(array<string, 3> edge) {
-  doPut(hexastore::SPO_INSERT, edge);
-  doPut(hexastore::SOP_INSERT, edge);
-  doPut(hexastore::PSO_INSERT, edge);
-  doPut(hexastore::POS_INSERT, edge);
-  doPut(hexastore::OSP_INSERT, edge);
-  doPut(hexastore::OPS_INSERT, edge);
+  doPut(SPO_INSERT, edge);
+  doPut(SOP_INSERT, edge);
+  doPut(PSO_INSERT, edge);
+  doPut(POS_INSERT, edge);
+  doPut(OSP_INSERT, edge);
+  doPut(OPS_INSERT, edge);
 }
 
 void Hexastore::doPut(string query, array<string, 3> edge) {
@@ -100,3 +103,5 @@ vector<hs_result> Hexastore::get(array<string, 3> edge_query,
   }
   return result;
 }
+
+} // namespace psr

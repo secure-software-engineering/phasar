@@ -14,9 +14,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
-#include <phasar/Utils/LLVMShorthands.h>
-using namespace std;
+using namespace psr;
+namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(IFDSSolverTest::i_t icfg,
                                vector<string> EntryPoints)
@@ -97,3 +96,4 @@ string IFDSSolverTest::NtoString(IFDSSolverTest::n_t n) const {
 string IFDSSolverTest::MtoString(IFDSSolverTest::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr

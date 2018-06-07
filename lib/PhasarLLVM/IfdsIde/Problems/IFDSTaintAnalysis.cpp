@@ -27,10 +27,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <utility>
-using namespace std;
+using namespace psr;
+namespace psr {
 
 // Source functions - critical argument(s) - signature:
 //  -fread - 0 - size_t fread(void *ptr, size_t size, size_t nmemb, FILE
@@ -176,9 +174,9 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
 }
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
-IFDSTaintAnalysis::getCallToRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
-                                            IFDSTaintAnalysis::n_t retSite,
-                                            set<IFDSTaintAnalysis::m_t> callees) {
+IFDSTaintAnalysis::getCallToRetFlowFunction(
+    IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
+    set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()";
   // Process the effects of source or sink functions that are called
@@ -299,3 +297,4 @@ string IFDSTaintAnalysis::NtoString(IFDSTaintAnalysis::n_t n) const {
 string IFDSTaintAnalysis::MtoString(IFDSTaintAnalysis::m_t m) const {
   return m->getName().str();
 }
+} // namespace psr

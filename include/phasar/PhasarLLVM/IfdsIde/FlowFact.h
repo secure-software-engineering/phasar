@@ -11,11 +11,14 @@
 #define FLOWFACT_H_
 
 #include <iostream>
+namespace psr {
 
 class FlowFact {
 public:
   virtual ~FlowFact() = default;
   virtual std::ostream &print(std::ostream &os) const = 0;
 };
+
+} // namespace psr
 
 #endif

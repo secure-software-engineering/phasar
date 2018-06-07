@@ -24,6 +24,8 @@
 #include <unordered_map>
 using namespace std;
 
+namespace psr {
+
 template <typename S, typename E, typename D> class HexaStoreGraph {
 private:
   Table<S, E, D> sed;
@@ -111,5 +113,7 @@ public:
     return os << hsg.sed;
   }
 };
+
+} // namespace psr
 
 #endif /* UTILS_HEXASTOREGRAPH_HH_ */

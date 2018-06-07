@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+using namespace psr;
+namespace psr {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;
@@ -89,31 +91,30 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 
     // Avoid to have the struct.Myclass.base in the database, as it is not used
     // by the code anywhere else than in type declaration for alignement reasons
-    if (struct_type_name.compare(
-          struct_type_name.size() - sizeof(".base") + 1,
-          sizeof(".base") - 1,
-          ".base") != 0) {
-      struct_type_name = uniformTypeName(struct_type_name);
+
+
+    if (struct_type_name.compare(struct_type_name.size() - sizeof(".base") + 1,
+                                 sizeof(".base") - 1, ".base") != 0) {
+      struct_type_name = psr::uniformTypeName(struct_type_name);
 
       // only add a new vertex to the graph if the type is currently unknown!
       if (recognized_struct_types.find(struct_type_name) ==
           recognized_struct_types.end()) {
         type_vertex_map[struct_type_name] = boost::add_vertex(g);
         g[type_vertex_map[struct_type_name]].llvmtype = StructType;
-        g[type_vertex_map[struct_type_name]].name =
-            StructType->getName().str();
+        g[type_vertex_map[struct_type_name]].name = StructType->getName().str();
       }
     }
   }
   // construct the edges between a type and its subtypes
   for (auto StructType : StructTypes) {
-    auto struct_type_name = uniformTypeName(StructType->getName().str());
+    auto struct_type_name = psr::uniformTypeName(StructType->getName().str());
 
     for (auto Subtype : StructType->subtypes()) {
       if (Subtype->isStructTy()) {
         llvm::StructType *StructSubType =
             llvm::dyn_cast<llvm::StructType>(Subtype);
-        auto struct_sub_type_name = uniformTypeName(StructSubType->getName().str());
+        auto struct_sub_type_name = psr::uniformTypeName(StructSubType->getName().str());
 
         boost::add_edge(type_vertex_map[struct_sub_type_name],
                         type_vertex_map[struct_type_name], g);
@@ -122,14 +123,14 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
   }
   for_each(StructTypes.begin(), StructTypes.end(),
            [this](const llvm::StructType *ST) {
-             auto struct_type_name = uniformTypeName(ST->getName().str());
+             auto struct_type_name = psr::uniformTypeName(ST->getName().str());
 
              recognized_struct_types.insert(struct_type_name);
            });
 }
 
 set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
-  TypeName = uniformTypeName(TypeName);
+  TypeName = psr::uniformTypeName(TypeName);
 
   set<string> reachable_nodes;
   bidigraph_t tc;
@@ -150,7 +151,7 @@ set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
 }
 
 string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
-  TypeName = uniformTypeName(TypeName);
+  TypeName = psr::uniformTypeName(TypeName);
 
   auto iter = vtable_map.find(TypeName);
   if (iter != vtable_map.end()) {
@@ -160,43 +161,43 @@ string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
 }
 
 VTable LLVMTypeHierarchy::getVTable(string TypeName) {
-  TypeName = uniformTypeName(TypeName);
+  TypeName = psr::uniformTypeName(TypeName);
 
   return vtable_map[TypeName];
 }
 
 bool LLVMTypeHierarchy::hasSuperType(string TypeName, string SuperTypeName) {
-  TypeName = uniformTypeName(TypeName);
-  SuperTypeName = uniformTypeName(SuperTypeName);
+  TypeName = psr::uniformTypeName(TypeName);
+  SuperTypeName = psr::uniformTypeName(SuperTypeName);
 
   cout << "NOT SUPPORTED YET" << endl;
   return false;
 }
 
 bool LLVMTypeHierarchy::hasSubType(string TypeName, string SubTypeName) {
-  TypeName = uniformTypeName(TypeName);
-  SubTypeName = uniformTypeName(SubTypeName);
+  TypeName = psr::uniformTypeName(TypeName);
+  SubTypeName = psr::uniformTypeName(SubTypeName);
 
   auto reachable_types = getTransitivelyReachableTypes(TypeName);
   return reachable_types.find(SubTypeName) != reachable_types.end();
 }
 
 bool LLVMTypeHierarchy::containsVTable(string TypeName) const {
-  TypeName = uniformTypeName(TypeName);
+  TypeName = psr::uniformTypeName(TypeName);
 
   auto iter = vtable_map.find(TypeName);
   return iter != vtable_map.end();
 }
 
 bool LLVMTypeHierarchy::containsType(string TypeName) {
-  TypeName = uniformTypeName(TypeName);
+  TypeName = psr::uniformTypeName(TypeName);
 
   return recognized_struct_types.count(TypeName);
 }
 
 string LLVMTypeHierarchy::getPlainTypename(string TypeName) {
   // types are named something like: 'struct.MyType' or 'struct.MyType.base'
-  return uniformTypeName(TypeName);
+  return psr::uniformTypeName(TypeName);
 }
 
 void LLVMTypeHierarchy::print() {
@@ -263,3 +264,4 @@ unsigned LLVMTypeHierarchy::getNumOfVertices() {
 }
 
 unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
+} // namespace psr

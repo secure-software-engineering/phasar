@@ -47,6 +47,8 @@
 using namespace std;
 using json = nlohmann::json;
 
+namespace psr {
+
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
 // http://llvm.org/docs/doxygen/html/AliasAnalysisEvaluator_8cpp_source.html
@@ -379,5 +381,7 @@ public:
    */
   json getAsJson();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_POINTSTOGRAPH_HH_ */

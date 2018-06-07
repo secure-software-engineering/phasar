@@ -17,8 +17,12 @@
 #ifndef ANALYSIS_FLOWFUNCTIONS_H_
 #define ANALYSIS_FLOWFUNCTIONS_H_
 
-#include "FlowFunction.h"
 #include <memory>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <vector>
+
+using namespace std;
+namespace psr {
 
 template <typename N, typename D, typename M> class FlowFunctions {
 public:
@@ -34,5 +38,6 @@ public:
   virtual std::shared_ptr<FlowFunction<D>>
   getSummaryFlowFunction(N curr, M destMthd) = 0;
 };
+} // namespace  psr
 
 #endif /* ANALYSIS_ABSTRACTFLOWFUNCTIONS_HH_ */

@@ -30,6 +30,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 #define MYDEBUG
 
 #define HEREANDNOW                                                             \
@@ -97,5 +99,6 @@ template <typename T> set<set<T>> computePowerSet(const set<T> &s) {
 }
 
 ostream &operator<<(ostream &os, const vector<bool> &bits);
+} // namespace psr
 
 #endif

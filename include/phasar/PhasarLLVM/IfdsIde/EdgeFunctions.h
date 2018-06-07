@@ -21,6 +21,7 @@
 #include <memory>
 
 using namespace std;
+namespace psr {
 
 template <typename N, typename D, typename M, typename V> class EdgeFunctions {
 public:
@@ -39,5 +40,7 @@ public:
   virtual shared_ptr<EdgeFunction<V>>
   getSummaryEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTIONS_HH_ */

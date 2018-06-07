@@ -27,6 +27,8 @@
 
 using namespace std;
 
+namespace psr {
+
 struct ORDERED_ROW_COL_KEY_TAG {};
 struct HASHED_ROW_COL_KEY_TAG {};
 
@@ -75,5 +77,7 @@ template <typename R, typename C, typename V> struct MultiIndexTable {
     return os << "error: unsupported operation!";
   }
 };
+
+} // namespace psr
 
 #endif /* UTILS_MULTIINDEXTABLE_HH_ */

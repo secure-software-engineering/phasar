@@ -1,5 +1,8 @@
 #include "MyICFGPlugin.h"
 
+using namespace std;
+using namespace psr;
+
 __attribute__((constructor)) void init() {
   cout << "init - MyICFGPlugin\n";
   ICFGPluginFactory["icfg_testplugin"] = &makeMyICFGPlugin;
@@ -25,14 +28,14 @@ const llvm::Function *MyICFGPlugin::getMethodOf(const llvm::Instruction *stmt) {
   return nullptr;
 }
 
-vector<const llvm::Instruction *>
-MyICFGPlugin::getPredsOf(const llvm::Instruction *stmt) {
+vector<const llvm::Instruction *> MyICFGPlugin::getPredsOf(
+    const llvm::Instruction *stmt) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-vector<const llvm::Instruction *>
-MyICFGPlugin::getSuccsOf(const llvm::Instruction *stmt) {
+vector<const llvm::Instruction *> MyICFGPlugin::getSuccsOf(
+    const llvm::Instruction *stmt) {
   throw logic_error("Not implemented yet!");
   return {};
 }
@@ -43,8 +46,8 @@ MyICFGPlugin::getAllControlFlowEdges(const llvm::Function *fun) {
   return {};
 }
 
-vector<const llvm::Instruction *>
-MyICFGPlugin::getAllInstructionsOf(const llvm::Function *fun) {
+vector<const llvm::Instruction *> MyICFGPlugin::getAllInstructionsOf(
+    const llvm::Function *fun) {
   throw logic_error("Not implemented yet!");
   return {};
 }
@@ -86,38 +89,38 @@ set<const llvm::Instruction *> MyICFGPlugin::allNonCallStartNodes() {
   return {};
 }
 
-set<const llvm::Function *>
-MyICFGPlugin::getCalleesOfCallAt(const llvm::Instruction *stmt) {
+set<const llvm::Function *> MyICFGPlugin::getCalleesOfCallAt(
+    const llvm::Instruction *stmt) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-set<const llvm::Instruction *>
-MyICFGPlugin::getCallersOf(const llvm::Function *fun) {
+set<const llvm::Instruction *> MyICFGPlugin::getCallersOf(
+    const llvm::Function *fun) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-set<const llvm::Instruction *>
-MyICFGPlugin::getCallsFromWithin(const llvm::Function *fun) {
+set<const llvm::Instruction *> MyICFGPlugin::getCallsFromWithin(
+    const llvm::Function *fun) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-set<const llvm::Instruction *>
-MyICFGPlugin::getStartPointsOf(const llvm::Function *fun) {
+set<const llvm::Instruction *> MyICFGPlugin::getStartPointsOf(
+    const llvm::Function *fun) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-set<const llvm::Instruction *>
-MyICFGPlugin::getExitPointsOf(const llvm::Function *fun) {
+set<const llvm::Instruction *> MyICFGPlugin::getExitPointsOf(
+    const llvm::Function *fun) {
   throw logic_error("Not implemented yet!");
   return {};
 }
 
-set<const llvm::Instruction *>
-MyICFGPlugin::getReturnSitesOfCallAt(const llvm::Instruction *stmt) {
+set<const llvm::Instruction *> MyICFGPlugin::getReturnSitesOfCallAt(
+    const llvm::Instruction *stmt) {
   throw logic_error("Not implemented yet!");
   return {};
 }

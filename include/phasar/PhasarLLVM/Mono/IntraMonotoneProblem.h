@@ -21,6 +21,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 template <typename N, typename D, typename M, typename C>
 class IntraMonotoneProblem {
 protected:
@@ -38,5 +40,7 @@ public:
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
   virtual string DtoString(D d) = 0;
 };
+
+} // namespace psr
 
 #endif

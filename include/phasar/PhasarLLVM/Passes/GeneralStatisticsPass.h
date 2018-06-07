@@ -17,16 +17,18 @@
 #ifndef ANALYSIS_GENERALSTATISTICSPASS_H_
 #define ANALYSIS_GENERALSTATISTICSPASS_H_
 
+#include <iostream>
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/PassSupport.h>
-#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
+
+namespace psr {
 
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute
@@ -46,7 +48,7 @@
  * @brief Computes general statistics for a Module.
  */
 class GeneralStatisticsPass : public llvm::ModulePass {
- private:
+private:
   size_t functions = 0;
   size_t globals = 0;
   size_t basicblocks = 0;
@@ -60,7 +62,7 @@ class GeneralStatisticsPass : public llvm::ModulePass {
   std::set<const llvm::Value *> allocaInstrucitons;
   std::set<const llvm::Instruction *> retResInstructions;
 
- public:
+public:
   // TODO What's the ID good for?
   static char ID;
   // TODO What exactly does the constructor do?
@@ -135,5 +137,7 @@ class GeneralStatisticsPass : public llvm::ModulePass {
    */
   std::set<const llvm::Instruction *> getRetResInstructions();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_GENERALSTATISTICSPASS_HH_ */

@@ -57,6 +57,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr {
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
@@ -336,5 +337,7 @@ public:
 
   vector<string> getDependencyOrderedFunctions();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */

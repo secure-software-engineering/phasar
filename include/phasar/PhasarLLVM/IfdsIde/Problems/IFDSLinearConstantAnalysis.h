@@ -25,6 +25,7 @@ class Function;
 class Value;
 } // namespace llvm
 
+namespace psr {
 class LLVMBasedICFG;
 
 // A small pair data type to encode data flow facts for this LCA
@@ -37,12 +38,16 @@ struct LCAPair {
   friend bool operator<(const LCAPair &lhs, const LCAPair &rhs);
 };
 
+} // namespace psr
+
 // Specialize std::hash to be used in containers like std::unordered_map
 namespace std {
-template <> struct hash<LCAPair> {
-  std::size_t operator()(const LCAPair &k) const;
+template <> struct hash<psr::LCAPair> {
+  std::size_t operator()(const psr::LCAPair &k) const;
 };
 } // namespace std
+
+namespace psr {
 
 class IFDSLinearConstantAnalysis
     : public DefaultIFDSTabulationProblem<const llvm::Instruction *, LCAPair,
@@ -73,9 +78,9 @@ public:
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+  std::shared_ptr<FlowFunction<d_t>> getCallToRetFlowFunction(
+      n_t callSite, n_t retSite,
+      std::set<IFDSLinearConstantAnalysis::m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
@@ -93,4 +98,7 @@ public:
   std::string MtoString(m_t m) const override;
 };
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_ */
+} // namespace psr
+
+#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
+        */

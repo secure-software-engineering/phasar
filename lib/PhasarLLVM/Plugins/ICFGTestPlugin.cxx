@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include "ICFGTestPlugin.h"
+using namespace psr;
+namespace psr {
 
 __attribute__((constructor)) void init() {
   cout << "init - ICFGTestPlugin\n";
@@ -141,3 +143,5 @@ string ICFGTestPlugin::getStatementId(const llvm::Instruction *stmt) {
 }
 
 json ICFGTestPlugin::getAsJson() { return json{}; }
+
+} // namespace psr

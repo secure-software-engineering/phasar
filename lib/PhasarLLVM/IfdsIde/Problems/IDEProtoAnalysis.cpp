@@ -20,8 +20,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDEProtoAnalysis.h>
-#include <phasar/Utils/LLVMShorthands.h>
-using namespace std;
+using namespace psr;
+namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(IDEProtoAnalysis::i_t icfg,
                                    vector<string> EntryPoints)
@@ -57,7 +57,7 @@ IDEProtoAnalysis::getRetFlowFunction(IDEProtoAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t callSite,
                                            IDEProtoAnalysis::n_t retSite,
-  set<IDEProtoAnalysis::m_t> callees){
+                                           set<IDEProtoAnalysis::m_t> callees) {
   cout << "IDEProtoAnalysis::getCallToRetFlowFunction()\n";
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
@@ -200,3 +200,5 @@ string IDEProtoAnalysis::NtoString(IDEProtoAnalysis::n_t n) const {
 string IDEProtoAnalysis::MtoString(IDEProtoAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

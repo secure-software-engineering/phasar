@@ -9,7 +9,7 @@ void TypeGraph::dfs_visitor::finish_edge(TypeGraph::edge_t e, TypeGraph::graph_t
   TypeGraph::vertex_t target = boost::target(e, u);
 
   for (auto target_type : u[target].types) {
-    auto name = uniformTypeName(target_type->getName().str());
+    auto name = psr::uniformTypeName(target_type->getName().str());
     // (*g)[src].name += ", " + name; // To debug
     (*g)[src].types.insert(target_type);
   }
@@ -22,14 +22,14 @@ void TypeGraph::reverse_type_propagation_dfs_visitor::examine_edge(rev_edge_t e,
   TypeGraph::rev_vertex_t target = boost::target(e, u);
 
   for (auto src_type : u[src].types) {
-    auto name = uniformTypeName(src_type->getName().str());
+    auto name = psr::uniformTypeName(src_type->getName().str());
     // (*g)[target].name += ", " + name; // To debug
     (*g)[target].types.insert(src_type);
   }
 }
 
 TypeGraph::vertex_t TypeGraph::addType(const llvm::StructType* new_type) {
-  auto name = uniformTypeName(new_type->getName().str());
+  auto name = psr::uniformTypeName(new_type->getName().str());
 
   if(type_vertex_map.find(name) == type_vertex_map.end()) {
     auto vertex = boost::add_vertex(g);
@@ -73,7 +73,7 @@ void TypeGraph::aggregateTypes() {
 }
 
 void TypeGraph::reverseTypePropagation(const llvm::StructType *base_struct) {
-  auto name = uniformTypeName(base_struct->getName().str());
+  auto name = psr::uniformTypeName(base_struct->getName().str());
 
   std::vector<boost::default_color_type> color_map(boost::num_vertices(g));
 
@@ -88,6 +88,8 @@ void TypeGraph::reverseTypePropagation(const llvm::StructType *base_struct) {
 
 std::set<const llvm::StructType*> TypeGraph::getTypes(const llvm::StructType *struct_type) {
   auto struct_ty_vertex = addType(struct_type);
+
+  printAsDot();
 
   return g[struct_ty_vertex].types;
 }

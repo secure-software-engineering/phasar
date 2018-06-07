@@ -21,6 +21,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr {
 
 template <typename N, typename M> class BiDiICFG : public ICFG<N, M> {
 public:
@@ -54,5 +55,7 @@ public:
    */
   virtual bool isReachable(N u) = 0;
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_BIDIICFG_HH_ */

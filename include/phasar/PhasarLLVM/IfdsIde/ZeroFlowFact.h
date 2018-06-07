@@ -11,6 +11,7 @@
 #define ZEROFLOWFACT_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+namespace psr {
 
 class ZeroFlowFact : public FlowFact {
 public:
@@ -18,5 +19,6 @@ public:
   std::ostream &print(std::ostream &os) const override;
   static FlowFact *getInstance();
 };
+} // namespace psr
 
 #endif

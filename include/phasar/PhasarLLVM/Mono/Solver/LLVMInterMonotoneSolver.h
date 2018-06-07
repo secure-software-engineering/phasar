@@ -23,6 +23,8 @@
 #include <llvm/IR/Instruction.h>
 using namespace std;
 
+namespace psr {
+
 template <typename D, unsigned K, typename I>
 class LLVMInterMonotoneSolver
     : public InterMonotoneSolver<const llvm::Instruction *, D,
@@ -84,5 +86,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_ */

@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+using namespace psr;
+namespace psr {
 
 const map<string, WalkerStrategy> StringToWalkerStrategy = {
     {"Simple", WalkerStrategy::Simple},
@@ -205,15 +207,19 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     const llvm::Instruction &Inst = *I;
 
     if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
-      // We add the connection between the two types in the DTA graph
-      auto src = BitCast->getSrcTy();
-      auto dest = BitCast->getDestTy();
+      for ( auto user : BitCast->users() ) {
+        if ( llvm::isa<llvm::StoreInst>(user) ) {
+          // We add the connection between the two types in the DTA graph
+          auto src = BitCast->getSrcTy();
+          auto dest = BitCast->getDestTy();
 
-      auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
-      auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
+          auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
+          auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
 
-      if(src_struct_type && dest_struct_type)
-        graph->addLink(dest_struct_type, src_struct_type);
+          if(src_struct_type && dest_struct_type)
+            graph->addLink(dest_struct_type, src_struct_type);
+        }
+      }
     }
   }
 
@@ -486,9 +492,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
     string receiver_type_name = receiver_type->getName().str();
 
-    string receiver_call_target = CH.getVTableEntry(receiver_type_name, vtable_index);
+    string receiver_call_target =
+        CH.getVTableEntry(receiver_type_name, vtable_index);
     // insert the receiver types vtable entry
-    if ( receiver_call_target.compare("__cxa_pure_virtual") != 0 )
+    if (receiver_call_target.compare("__cxa_pure_virtual") != 0)
       possible_call_targets.insert(receiver_call_target);
 
     // also insert all possible subtypes vtable entries
@@ -565,10 +572,10 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     for (auto possible_type : possible_types) {
       if (auto possible_type_struct =
               llvm::dyn_cast<llvm::StructType>(possible_type)) {
-          string type_name = possible_type_struct->getName().str();
+        string type_name = possible_type_struct->getName().str();
         if (reachable_type_names.find(type_name) != end_it) {
           possible_call_targets.insert(
-            CH.getVTableEntry(type_name, vtable_index));
+              CH.getVTableEntry(type_name, vtable_index));
         }
       }
     }
@@ -622,17 +629,20 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
       throw runtime_error("Receiver type is not a struct type!");
     }
 
-    string receiver_type_name = uniformTypeName(receiver_type->getName().str());
+    string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
 
     auto possible_types = tgs[CS.getCaller()]->getTypes(receiver_type);
+    auto allocated_types = IRDB.getAllocatedTypes();
 
     auto end_it = possible_types.end();
     for (auto possible_type : possible_types) {
       if (auto possible_type_struct =
               llvm::dyn_cast<llvm::StructType>(possible_type)) {
-          string type_name = possible_type_struct->getName().str();
-          possible_call_targets.insert(
-            CH.getVTableEntry(type_name, vtable_index));
+          if ( allocated_types.find(possible_type_struct) != allocated_types.end() ) {
+            string type_name = possible_type_struct->getName().str();
+            possible_call_targets.insert(
+              CH.getVTableEntry(type_name, vtable_index));
+          }
       }
     }
   } else {
@@ -672,9 +682,9 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
           for (const string &Fname : vtbl) {
             const llvm::Function *F = IRDB.getFunction(Fname);
 
-            if(!F) {
+            if (!F) {
               // Is a pure virtual function
-                return true;
+              return true;
             }
 
             if (CS.getCalledValue()->getType()->isPointerTy()) {
@@ -1103,3 +1113,5 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
 unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
 
 unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
+
+} // namespace psr
