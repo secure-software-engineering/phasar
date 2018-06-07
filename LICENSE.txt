@@ -1,5 +1,5 @@
 ===============================================================================
-Phasar Release License
+Phasar Release License (MIT license)
 ===============================================================================
 
 Copyright (c) 2017 Philipp Schubert and others
