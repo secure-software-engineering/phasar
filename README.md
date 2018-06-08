@@ -97,7 +97,7 @@ in the area of program analysis.
 
 ### Errors
 This framework is still under development. Thus, it might contain errors that
-are (un)known to the developers. If you find an error please create an issue [in our tracker on Github](./issues). The report should include at least a summary of what you 
+are (un)known to the developers. If you find an error please create an issue [in our tracker on Github](../../issues). The report should include at least a summary of what you 
 were doing when you hit the error and a complete error message (if possible). 
 We will try to fix bugs as quickly as possible, please help us achieving this goal.
 If you are familiar with program analysis and LLVM you are free to fix the bug,
