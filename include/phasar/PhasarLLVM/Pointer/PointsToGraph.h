@@ -91,9 +91,8 @@ extern const map<PointerAnalysisType, string> PointerAnalysisTypeToString;
 /**
  * 	This class is a representation of a points-to graph. It is possible to
  * 	construct a points-to graph for a single function using the results of
- *the
- *	llvm alias analysis or merge several points-to graphs into a single
- *	points-to graph, e.g. to onstruct a whole program points-to graph.
+ *  the llvm alias analysis or merge several points-to graphs into a single
+ *	points-to graph, e.g. to construct a whole program points-to graph.
  *
  *	The graph itself is undirectional and can have labeled edges.
  *
@@ -305,7 +304,15 @@ public:
    *        function return statements.
    * @return Vector with pointers.
    */
-  vector<const llvm::Value *> getPointersEscapingThroughReturns();
+  vector<const llvm::Value *> getPointersEscapingThroughReturns() const;
+
+  /**
+   * @brief Returns a vector containing pointers which are escaping through
+   *        function return statements for a specific function.
+   * @param F Function pointer
+   * @return Vector with pointers.
+   */
+  std::vector<const llvm::Value *> getPointersEscapingThroughReturnsForFunction(const llvm::Function* Fd) const;
 
   /**
    * @brief Returns all reachable allocation sites from a given pointer.
