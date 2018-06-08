@@ -431,7 +431,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-$ main -m path/to/your/main.ll -a ifds_solvertest
+$ main -m path/to/your/main.ll -D ifds_solvertest
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
