@@ -117,10 +117,10 @@ def getBaseclass():
             sys.exit(2)
         file=file.split()
 
-        #extract filename
+        #extract classname and ignore enum classes
         y=0
         for i in range(len(file)):
-            if(file[i]=="class"):
+            if(file[i]=="class" and file[i-1]!="enum"):
                 y=i+1
                 break
         if "debug" in globals():
@@ -232,16 +232,16 @@ def generateHeaderFile():
 
     if "baseclass" in globals():  
         for i in baseclass:
-            d["include"]+="#include\""+i+"\"\n"
+            d["include"]+="#include \""+i+"\"\n"
     
     if "headerincludes" in globals():
         if "debug" in globals():
             print("including:"+str(headerincludes))
         for x in headerincludes:
             if x.find(".h")!=-1:
-                d["include"]+="#include\""+x+"\"\n"
+                d["include"]+="#include \""+x+"\"\n"
             else:
-                d["include"]+="#include<"+x+">\n"
+                d["include"]+="#include <"+x+">\n"
     
     #class template line is generated here
     if "tpl" in globals():
