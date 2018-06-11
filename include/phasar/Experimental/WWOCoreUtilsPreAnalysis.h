@@ -23,11 +23,14 @@
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/SOL.h>
+namespace psr {
 
 void analyzeCoreUtilsUsingPreAnalysis(ProjectIRDB &&IRDB,
                                       vector<DataFlowAnalysisType> Analyses);
 
 void analyzeCoreUtilsWithoutUsingPreAnalysis(
     ProjectIRDB &&IRDB, vector<DataFlowAnalysisType> Analyses);
+
+} // namespace psr
 
 #endif

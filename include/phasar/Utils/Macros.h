@@ -30,6 +30,8 @@
 #include <string>
 using namespace std;
 
+namespace psr {
+
 #define MYDEBUG
 
 #define HEREANDNOW                                                             \
@@ -53,6 +55,10 @@ using namespace std;
 string cxx_demangle(const string &mangled_name);
 
 string debasify(const string &name);
+
+std::string uniformTypeName(const std::string &name);
+
+llvm::Type* stripPointer(llvm::Type* pointer);
 
 bool isMangled(const string &name);
 
@@ -93,5 +99,6 @@ template <typename T> set<set<T>> computePowerSet(const set<T> &s) {
 }
 
 ostream &operator<<(ostream &os, const vector<bool> &bits);
+} // namespace psr
 
 #endif

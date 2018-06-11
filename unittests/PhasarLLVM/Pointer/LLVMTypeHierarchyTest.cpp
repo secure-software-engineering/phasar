@@ -2,6 +2,8 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
+using namespace psr;
+
 // TODO: figure out how to automatically compare graphs for these tests
 TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph) {
   ProjectIRDB IRDB(

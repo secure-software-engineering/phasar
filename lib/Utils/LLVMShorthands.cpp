@@ -16,6 +16,10 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 
+using namespace psr;
+
+namespace psr {
+
 /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
 const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
                                              "calloc", "realloc"};
@@ -96,14 +100,16 @@ globalValuesUsedinFunction(const llvm::Function *F) {
 
 std::string getMetaDataID(const llvm::Value *V) {
   if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    return llvm::cast<llvm::MDString>(I->getMetadata(MetaDataKind)->getOperand(0))
-      ->getString()
-      .str();
-  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (!isLLVMZeroValue(V)) {
-      return llvm::cast<llvm::MDString>(GV->getMetadata(MetaDataKind)->getOperand(0))
+    return llvm::cast<llvm::MDString>(
+               I->getMetadata(MetaDataKind)->getOperand(0))
         ->getString()
         .str();
+  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    if (!isLLVMZeroValue(V)) {
+      return llvm::cast<llvm::MDString>(
+                 GV->getMetadata(MetaDataKind)->getOperand(0))
+          ->getString()
+          .str();
     }
   }
   return "-1";
@@ -217,3 +223,5 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
   }
   return nullptr;
 }
+
+} // namespace psr

@@ -21,6 +21,7 @@
 #include <memory>
 #include <string>
 using namespace std;
+namespace psr {
 
 template <typename V> class EdgeFunction {
 public:
@@ -40,5 +41,7 @@ public:
 
   virtual string toString() { return "edge function"; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTION_HH_ */

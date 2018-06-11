@@ -32,6 +32,8 @@
 #include <string>
 #include <vector>
 
+namespace psr {
+
 /**
  * This class uses the Module Pass Mechanism of LLVM to annotate every
  * every Instruction and Global Variable of a Module with a unique ID.
@@ -91,5 +93,7 @@ public:
    */
   static void resetValueID();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_VALUEANNOTATIONPASS_HH_ */

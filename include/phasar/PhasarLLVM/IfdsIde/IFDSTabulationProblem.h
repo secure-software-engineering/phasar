@@ -26,6 +26,7 @@
 #include <type_traits>
 
 using namespace std;
+namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class IFDSTabulationProblem : public FlowFunctions<N, D, M> {
@@ -44,5 +45,6 @@ public:
   }
   SolverConfiguration getSolverConfiguration() { return solver_config; }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_HH_ */

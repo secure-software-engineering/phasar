@@ -17,12 +17,13 @@
 #ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
 #define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
 
+#include <llvm/IR/Instruction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <llvm/IR/Instruction.h>
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr {
 
 template <typename D, typename N> class IFDSSummary : FlowFunction<D> {
 private:
@@ -50,5 +51,7 @@ public:
 
   N getEndNode() const { return EndNode; }
 };
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_ */

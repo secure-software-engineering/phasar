@@ -21,17 +21,14 @@
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
-#include "llvm/IR/IntrinsicInst.h"
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/PassSupport.h>
-#include <llvm/Support/raw_os_ostream.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
 #include <set>
 #include <string>
 #include <vector>
+
+namespace psr {
 
 /**
  * This class uses the Module Pass Mechanism of LLVM to compute
@@ -61,9 +58,9 @@ private:
   size_t storeInstructions = 0;
   size_t memIntrinsic = 0;
   size_t pointers = 0;
-  set<const llvm::Type *> allocatedTypes;
-  set<const llvm::Value *> allocaInstrucitons;
-  set<const llvm::Instruction *> retResInstructions;
+  std::set<const llvm::Type *> allocatedTypes;
+  std::set<const llvm::Value *> allocaInstrucitons;
+  std::set<const llvm::Instruction *> retResInstructions;
 
 public:
   // TODO What's the ID good for?
@@ -128,17 +125,19 @@ public:
   /**
    * @brief Returns all possible Types.
    */
-  set<const llvm::Type *> getAllocatedTypes();
+  std::set<const llvm::Type *> getAllocatedTypes();
 
   /**
- * @brief Returns all stack and heap allocating instructions.
- */
-  set<const llvm::Value *> getAllocaInstructions();
+   * @brief Returns all stack and heap allocating instructions.
+   */
+  std::set<const llvm::Value *> getAllocaInstructions();
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  set<const llvm::Instruction *> getRetResInstructions();
+  std::set<const llvm::Instruction *> getRetResInstructions();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_GENERALSTATISTICSPASS_HH_ */

@@ -16,9 +16,11 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
-#include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMM.h>
 #include <tuple>
+
+namespace psr {
 
 /**
  * This class caches flow and edge functions to avoid their reconstruction.
@@ -39,7 +41,7 @@ struct FlowEdgeFunctionCache {
       CallFlowFunctionCache;
   std::map<std::tuple<N, M, N, N>, std::shared_ptr<FlowFunction<D>>>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, N, std::set<M>>, std::shared_ptr<FlowFunction<D>>>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
@@ -146,20 +148,22 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallToRetFlowFunction(N callSite,
-                                                            N retSite) {
+  std::shared_ptr<FlowFunction<D>>
+  getCallToRetFlowFunction(N callSite, N retSite, std::set<M> callees) {
     PAMM_FACTORY;
-    auto key = std::tie(callSite, retSite);
+    auto key = std::tie(callSite, retSite, callees);
     if (CallToRetFlowFunctionCache.count(key)) {
       INC_COUNTER("CallToRet-FF Cache Hit");
       return CallToRetFlowFunctionCache.at(key);
     } else {
       INC_COUNTER("CallToRet-FF Construction");
-      auto ff = (autoAddZero)
-                    ? make_shared<ZeroedFlowFunction<D>>(
-                          problem.getCallToRetFlowFunction(callSite, retSite),
-                          zeroValue)
-                    : problem.getCallToRetFlowFunction(callSite, retSite);
+      auto ff =
+          (autoAddZero)
+              ? make_shared<ZeroedFlowFunction<D>>(
+                    problem.getCallToRetFlowFunction(callSite, retSite,
+                                                     callees),
+                    zeroValue)
+              : problem.getCallToRetFlowFunction(callSite, retSite, callees);
       CallToRetFlowFunctionCache.insert(make_pair(key, ff));
       return ff;
     }
@@ -289,9 +293,9 @@ struct FlowEdgeFunctionCache {
     //"Summary-FF Cache Hit"});
     BOOST_LOG_SEV(lg, INFO)
         << "total flow function constructions: "
-        << GET_SUM_COUNT(
-               {"Normal-FF Construction", "Call-FF Construction",
-                "Return-FF Construction", "CallToRet-FF Construction"/*,
+        << GET_SUM_COUNT({"Normal-FF Construction", "Call-FF Construction",
+                          "Return-FF Construction",
+                          "CallToRet-FF Construction" /*,
                 "Summary-FF Construction"*/});
     BOOST_LOG_SEV(lg, INFO) << " ";
     BOOST_LOG_SEV(lg, INFO) << "normal edge function cache hits: "
@@ -321,13 +325,14 @@ struct FlowEdgeFunctionCache {
                           "Summary-EF Cache Hit"});
     BOOST_LOG_SEV(lg, INFO)
         << "total edge function constructions: "
-        << GET_SUM_COUNT(
-               {"Normal-EF Construction", "Call-EF Construction",
-                "Return-EF Construction", "CallToRet-EF Construction",
-                "Summary-EF Construction"});
+        << GET_SUM_COUNT({"Normal-EF Construction", "Call-EF Construction",
+                          "Return-EF Construction", "CallToRet-EF Construction",
+                          "Summary-EF Construction"});
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
 #endif
   }
 };
+
+} // namespace psr
 
 #endif

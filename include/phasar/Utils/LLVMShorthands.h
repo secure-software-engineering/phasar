@@ -17,9 +17,9 @@
 #ifndef SRC_LIB_LLVMSHORTHANDS_H_
 #define SRC_LIB_LLVMSHORTHANDS_H_
 
+#include <boost/algorithm/string/trim.hpp>
 #include <functional>
 #include <iostream>
-#include <boost/algorithm/string/trim.hpp>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/CallSite.h>
@@ -31,6 +31,8 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <vector>
+
+namespace psr {
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
@@ -139,5 +141,7 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier);
  * @return
  */
 std::size_t computeModuleHash(const llvm::Module *M);
+
+} // namespace psr
 
 #endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */

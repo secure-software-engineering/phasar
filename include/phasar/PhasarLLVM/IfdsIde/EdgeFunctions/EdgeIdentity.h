@@ -30,6 +30,7 @@
 // class AllBottom;
 
 using namespace std;
+namespace psr {
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,
@@ -68,7 +69,7 @@ public:
     return this == other.get();
   }
 
-  static shared_ptr<EdgeIdentity<V>> v() {
+  static shared_ptr<EdgeIdentity<V>> getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
     static shared_ptr<EdgeIdentity<V>> instance(new EdgeIdentity<V>());
     return instance;
@@ -82,5 +83,7 @@ public:
 
   string toString() override { return "edge identity"; }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_HH_ */

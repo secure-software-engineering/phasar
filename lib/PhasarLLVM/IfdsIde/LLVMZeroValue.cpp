@@ -15,12 +15,14 @@
  */
 
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+using namespace psr;
+namespace psr {
 
 const string LLVMZeroValueInternalName("zero_value");
 const string LLVMZeroValueInternalModuleName("zero_module");
 const unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX(new llvm::LLVMContext);
-const unique_ptr<llvm::Module>
-    LLVMZeroValueMod(new llvm::Module(LLVMZeroValueInternalModuleName, *LLVMZeroValueCTX));
+const unique_ptr<llvm::Module> LLVMZeroValueMod(
+    new llvm::Module(LLVMZeroValueInternalModuleName, *LLVMZeroValueCTX));
 
 bool isLLVMZeroValue(const llvm::Value *V) {
   if (V->hasName()) {
@@ -31,13 +33,14 @@ bool isLLVMZeroValue(const llvm::Value *V) {
 }
 
 LLVMZeroValue::LLVMZeroValue()
-    : llvm::GlobalVariable(
-          *LLVMZeroValueMod, llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2), true,
-          llvm::GlobalValue::LinkageTypes::ExternalLinkage,
-          llvm::ConstantInt::get(*LLVMZeroValueCTX, llvm::APInt(/*nbits*/ 2,
-                                                            /*value*/ 0,
-                                                            /*signed*/ true)),
-          LLVMZeroValueInternalName) {
+    : llvm::GlobalVariable(*LLVMZeroValueMod,
+                           llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2), true,
+                           llvm::GlobalValue::LinkageTypes::ExternalLinkage,
+                           llvm::ConstantInt::get(*LLVMZeroValueCTX,
+                                                  llvm::APInt(/*nbits*/ 2,
+                                                              /*value*/ 0,
+                                                              /*signed*/ true)),
+                           LLVMZeroValueInternalName) {
   setAlignment(4);
 }
 
@@ -45,3 +48,5 @@ LLVMZeroValue *LLVMZeroValue::getInstance() {
   static LLVMZeroValue *zv = new LLVMZeroValue;
   return zv;
 }
+
+} // namespace psr

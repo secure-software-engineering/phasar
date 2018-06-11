@@ -29,6 +29,9 @@
 
 using json = nlohmann::json;
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 template <typename D, typename I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
@@ -46,8 +49,7 @@ public:
                  bool dumpResults = false)
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
-        DUMP_RESULTS(dumpResults), Problem(problem) {
-  }
+        DUMP_RESULTS(dumpResults), Problem(problem) {}
 
   virtual void solve() override {
     // Solve the analaysis problem
@@ -66,17 +68,16 @@ public:
     if (results.empty()) {
       cout << "EMPTY\n";
     } else {
-      vector<typename Table<const llvm::Instruction *, D,
-                            BinaryDomain>::Cell>
+      vector<typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
           cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
-      sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, D,
-                             BinaryDomain>::Cell a,
-              typename Table<const llvm::Instruction *, D,
-                             BinaryDomain>::Cell b) { return a.r < b.r; });
+      sort(
+          cells.begin(), cells.end(),
+          [](typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell a,
+             typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell
+                 b) { return a.r < b.r; });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
@@ -91,7 +92,7 @@ public:
           }
         }
         cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-               << "\tV:  " << cells[i].v << "\n";
+             << "\tV:  " << cells[i].v << "\n";
       }
     }
     STOP_TIMER("DFA Result Dumping");
@@ -404,5 +405,6 @@ public:
 
   void exportPATBCJSON() { cout << "LLVMIFDSSolver::exportPATBCJSON()\n"; }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_HH_ */

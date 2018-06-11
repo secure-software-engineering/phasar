@@ -40,9 +40,11 @@
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/PAMM.h>
-#include <string>
 #include <set>
+#include <string>
 #include <utility>
+
+namespace psr {
 
 enum class IRDBOptions : uint32_t {
   NONE = 0,
@@ -82,7 +84,7 @@ private:
   std::map<std::size_t, llvm::Instruction *> instructions;
   // Maps a function to its points-to graph
   std::map<std::string, std::unique_ptr<PointsToGraph>> ptgs;
-  set<const llvm::Type *> allocated_types;
+  std::set<const llvm::Type *> allocated_types;
 
   void buildFunctionModuleMapping(llvm::Module *M);
   void buildGlobalModuleMapping(llvm::Module *M);
@@ -127,7 +129,8 @@ public:
   llvm::Function *getFunction(const std::string &FunctionName);
   llvm::GlobalVariable *
   getGlobalVariable(const std::string &GlobalVariableName);
-  std::string getGlobalVariableModuleName(const std::string &GlobalVariableName);
+  std::string
+  getGlobalVariableModuleName(const std::string &GlobalVariableName);
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);
@@ -138,5 +141,7 @@ public:
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
   set<const llvm::Type *> getAllocatedTypes();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_ProjectIRDB_HH_ */

@@ -15,6 +15,9 @@
  */
 
 #include <phasar/PhasarClang/MyMatcher.h>
+using namespace psr;
+
+namespace psr {
 
 // StatementMatcher myStmtMatcher =
 // forStmt(hasLoopInit(declStmt(hasSingleDecl(varDecl(hasInitializer(integerLiteral(equals(0)))))))).bind("forLoop");
@@ -50,3 +53,4 @@ void MyMatcher::run(const MatchFinder::MatchResult &Result) {
 /// CharSourceRange::getTokenRange(R),
 ////                      None, &AST->getSourceManager());
 ////  }
+} // namespace psr

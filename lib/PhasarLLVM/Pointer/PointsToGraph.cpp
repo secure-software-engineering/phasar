@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+using namespace psr;
+namespace psr {
 
 void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
                   const llvm::Value *V2, const llvm::Module *M) {
@@ -26,7 +28,8 @@ void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
       V2->printAsOperand(os2, true, M);
     }
 
-    if (o2 < o1) std::swap(o1, o2);
+    if (o2 < o1)
+      std::swap(o1, o2);
     llvm::errs() << "  " << Msg << ":\t" << o1 << ", " << o2 << "\n";
   }
 }
@@ -107,10 +110,10 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
   BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
   ContainedFunctions.insert(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
-  PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = 1;
+  PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = true;
   // ModRef information
   bool PrintNoModRef, PrintMod, PrintRef, PrintModRef;
-  PrintNoModRef = PrintMod = PrintRef = PrintModRef = 0;
+  PrintNoModRef = PrintMod = PrintRef = PrintModRef = false;
   const llvm::DataLayout &DL = F->getParent()->getDataLayout();
   llvm::SetVector<llvm::Value *> Pointers;
   llvm::SmallSetVector<llvm::CallSite, 16> CallSites;
@@ -118,14 +121,16 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
   llvm::SetVector<llvm::Value *> Stores;
 
   for (auto &I : F->args())
-    if (I.getType()->isPointerTy())  // Add all pointer arguments.
+    if (I.getType()->isPointerTy()) // Add all pointer arguments.
       Pointers.insert(&I);
 
   for (llvm::inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
-    if (I->getType()->isPointerTy())  // Add all pointer instructions.
+    if (I->getType()->isPointerTy()) // Add all pointer instructions.
       Pointers.insert(&*I);
-    if (llvm::isa<llvm::LoadInst>(&*I)) Loads.insert(&*I);
-    if (llvm::isa<llvm::StoreInst>(&*I)) Stores.insert(&*I);
+    if (llvm::isa<llvm::LoadInst>(&*I))
+      Loads.insert(&*I);
+    if (llvm::isa<llvm::StoreInst>(&*I))
+      Stores.insert(&*I);
     llvm::Instruction &Inst = *I;
     if (auto CS = llvm::CallSite(&Inst)) {
       llvm::Value *Callee = CS.getCalledValue();
@@ -134,14 +139,16 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
         Pointers.insert(Callee);
       // Consider formals.
       for (llvm::Use &DataOp : CS.data_ops())
-        if (isInterestingPointer(DataOp)) Pointers.insert(DataOp);
+        if (isInterestingPointer(DataOp))
+          Pointers.insert(DataOp);
       CallSites.insert(CS);
     } else {
       // Consider all operands.
       for (llvm::Instruction::op_iterator OI = Inst.op_begin(),
                                           OE = Inst.op_end();
            OI != OE; ++OI)
-        if (isInterestingPointer(*OI)) Pointers.insert(*OI);
+        if (isInterestingPointer(*OI))
+          Pointers.insert(*OI);
     }
   }
 
@@ -160,37 +167,39 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
     uint64_t I1Size = llvm::MemoryLocation::UnknownSize;
     llvm::Type *I1ElTy =
         llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
-    if (I1ElTy->isSized()) I1Size = DL.getTypeStoreSize(I1ElTy);
+    if (I1ElTy->isSized())
+      I1Size = DL.getTypeStoreSize(I1ElTy);
     for (llvm::SetVector<llvm::Value *>::iterator I2 = Pointers.begin();
          I2 != I1; ++I2) {
       uint64_t I2Size = llvm::MemoryLocation::UnknownSize;
       llvm::Type *I2ElTy =
           llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
-      if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
+      if (I2ElTy->isSized())
+        I2Size = DL.getTypeStoreSize(I2ElTy);
       if (!onlyConsiderMustAlias) {
         switch (AA.alias(llvm::MemoryLocation(*I1, I1Size),
                          llvm::MemoryLocation(*I2, I2Size))) {
-          case llvm::NoAlias:
-            // PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
-            break;
-          case llvm::MayAlias:
-            // PrintResults("MayAlias", PrintMayAlias, *I1, *I2,
-            // F->getParent());
-            boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-            break;
-          case llvm::PartialAlias:
-            // PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
-            // 						 F->getParent());
-            boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-            break;
-          case llvm::MustAlias:
-            // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
-            //              F->getParent());
-            boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
-            break;
-          default:
-            // Do nothing
-            break;
+        case llvm::NoAlias:
+          // PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F->getParent());
+          break;
+        case llvm::MayAlias:
+          // PrintResults("MayAlias", PrintMayAlias, *I1, *I2,
+          // F->getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+        case llvm::PartialAlias:
+          // PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+          // 						 F->getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+        case llvm::MustAlias:
+          // PrintResults("MustAlias", PrintMustAlias, *I1, *I2,
+          //              F->getParent());
+          boost::add_edge(value_vertex_map[*I1], value_vertex_map[*I2], ptg);
+          break;
+        default:
+          // Do nothing
+          break;
         }
       } else {
         if (AA.alias(llvm::MemoryLocation(*I1, I1Size),
@@ -226,12 +235,26 @@ PointsToGraph::getPointersEscapingThroughParams() {
   return escaping_pointers;
 }
 
-vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturns() {
+vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturns() const {
   vector<const llvm::Value *> escaping_pointers;
   for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(ptg);
        vp.first != vp.second; ++vp.first) {
     for (auto user : ptg[*vp.first].value->users()) {
       if (llvm::isa<llvm::ReturnInst>(user)) {
+        escaping_pointers.push_back(ptg[*vp.first].value);
+      }
+    }
+  }
+  return escaping_pointers;
+}
+
+vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturnsForFunction(const llvm::Function* F) const {
+  vector<const llvm::Value *> escaping_pointers;
+  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(ptg);
+       vp.first != vp.second; ++vp.first) {
+    for (auto user : ptg[*vp.first].value->users()) {
+      if ( auto R = llvm::dyn_cast<llvm::ReturnInst>(user) ) {
+        if ( R->getFunction() == F )
         escaping_pointers.push_back(ptg[*vp.first].value);
       }
     }
@@ -255,12 +278,13 @@ set<const llvm::Value *> PointsToGraph::getReachableAllocationSites(
 bool PointsToGraph::containsValue(llvm::Value *V) {
   pair<vertex_iterator_t, vertex_iterator_t> vp;
   for (vp = boost::vertices(ptg); vp.first != vp.second; ++vp.first)
-    if (ptg[*vp.first].value == V) return true;
+    if (ptg[*vp.first].value == V)
+      return true;
   return false;
 }
 
-set<const llvm::Type *> PointsToGraph::computeTypesFromAllocationSites(
-    set<const llvm::Value *> AS) {
+set<const llvm::Type *>
+PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
   set<const llvm::Type *> types;
   // an allocation site can either be an AllocaInst or a call to an allocating
   // function
@@ -270,7 +294,7 @@ set<const llvm::Type *> PointsToGraph::computeTypesFromAllocationSites(
     } else {
       // usually if an allocating function is called, it is immediately
       // bit-casted
-      // to the desired allocated value and hence we can determine it frome the
+      // to the desired allocated value and hence we can determine it from the
       // destination type of that cast instruction.
       for (auto user : V->users()) {
         if (const llvm::BitCastInst *cast =
@@ -304,7 +328,6 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   return result;
 }
 
-
 bool PointsToGraph::representsSingleFunction() {
   return ContainedFunctions.size() == 1;
 }
@@ -331,11 +354,11 @@ void PointsToGraph::print() const {
 
 void PointsToGraph::printAsDot(const string &filename) {
   ofstream ofs(filename);
-  boost::write_graphviz(
-      ofs, ptg, boost::make_label_writer(
-                    boost::get(&PointsToGraph::VertexProperties::ir_code, ptg)),
-      boost::make_label_writer(
-          boost::get(&PointsToGraph::EdgeProperties::ir_code, ptg)));
+  boost::write_graphviz(ofs, ptg,
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::VertexProperties::ir_code, ptg)),
+                        boost::make_label_writer(boost::get(
+                            &PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
 json PointsToGraph::getAsJson() {
@@ -400,6 +423,18 @@ void PointsToGraph::mergeWith(
                 Call.first.getInstruction()));
       }
     }
+
+    for ( auto Formal : Other.getPointersEscapingThroughReturnsForFunction(Call.second) ) {
+      if (value_vertex_map.count(Call.first.getInstruction()) &&
+          Other.value_vertex_map.count(Formal)) {
+            v_in_g1_u_in_g2.push_back(
+                tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
+                      const llvm::Instruction *>(
+                    value_vertex_map[Call.first.getInstruction()],
+                    Other.value_vertex_map.at(Formal),
+                    Call.first.getInstruction()));
+      }
+    }
     ContainedFunctions.insert(Call.second->getName().str());
   }
   merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t,
@@ -427,6 +462,14 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
                         value_vertex_map[Formal], CS.getInstruction(), ptg);
       }
     }
+
+    for ( auto Formal : getPointersEscapingThroughReturnsForFunction(F) ) {
+      if (value_vertex_map.count(CS.getInstruction()) &&
+          value_vertex_map.count(Formal)) {
+        boost::add_edge(value_vertex_map[CS.getInstruction()],
+                        value_vertex_map[Formal], CS.getInstruction(), ptg);
+      }
+    }
   } else {
     ContainedFunctions.insert(F->getName().str());
     // TODO this function has to check if F's points-to graph is already merged
@@ -444,6 +487,16 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
                       Other.value_vertex_map[Formal]));
       }
     }
+
+    for ( auto Formal : Other.getPointersEscapingThroughReturnsForFunction(F) ) {
+      if (value_vertex_map.count(CS.getInstruction()) &&
+          Other.value_vertex_map.count(Formal)) {
+            v_in_g1_u_in_g2.push_back(
+              make_pair(value_vertex_map[CS.getInstruction()],
+                        Other.value_vertex_map[Formal]));
+      }
+    }
+
     typedef
         typename boost::property_map<PointsToGraph::graph_t,
                                      boost::vertex_index_t>::type index_map_t;
@@ -459,7 +512,7 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
     IsoMap mapV = boost::make_iterator_property_map(
         orig2copy_data.begin(), get(boost::vertex_index, Other.ptg));
     boost::copy_graph(Other.ptg, ptg,
-                      boost::orig_to_copy(mapV));  // means g1 += g2
+                      boost::orig_to_copy(mapV)); // means g1 += g2
     for (auto &entry : v_in_g1_u_in_g2) {
       PointsToGraph::vertex_t u_in_g1 = mapV[entry.second];
       boost::add_edge(entry.first, u_in_g1, CS.getInstruction(), ptg);
@@ -475,3 +528,5 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
 unsigned PointsToGraph::getNumOfVertices() { return boost::num_vertices(ptg); }
 
 unsigned PointsToGraph::getNumOfEdges() { return boost::num_edges(ptg); }
+
+} // namespace psr

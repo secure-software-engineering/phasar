@@ -7,6 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <limits>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -17,19 +18,21 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
-#include <limits>
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const int IDELinearConstantAnalysis::TOP = std::numeric_limits<int>::min();
 
 const int IDELinearConstantAnalysis::BOTTOM = std::numeric_limits<int>::max();
 
-IDELinearConstantAnalysis::IDELinearConstantAnalysis(LLVMBasedICFG &icfg,
-                                                     vector<string> EntryPoints)
+IDELinearConstantAnalysis::IDELinearConstantAnalysis(
+    IDELinearConstantAnalysis::i_t &icfg, vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
@@ -39,14 +42,14 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(LLVMBasedICFG &icfg,
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t curr, IDELinearConstantAnalysis::n_t succ) {
-  return Identity<IDELinearConstantAnalysis::d_t>::v();
+  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
-  return Identity<IDELinearConstantAnalysis::d_t>::v();
+  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
@@ -55,14 +58,14 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::m_t calleeMthd,
     IDELinearConstantAnalysis::n_t exitStmt,
     IDELinearConstantAnalysis::n_t retSite) {
-  return Identity<IDELinearConstantAnalysis::d_t>::v();
+  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
-    IDELinearConstantAnalysis::n_t retSite) {
-  return Identity<IDELinearConstantAnalysis::d_t>::v();
+    IDELinearConstantAnalysis::n_t retSite, std::set<m_t> callees) {
+  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
@@ -103,7 +106,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t currNode,
     IDELinearConstantAnalysis::n_t succ,
     IDELinearConstantAnalysis::d_t succNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::v();
+  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
@@ -112,7 +115,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::d_t srcNode,
     IDELinearConstantAnalysis::m_t destiantionMethod,
     IDELinearConstantAnalysis::d_t destNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::v();
+  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
@@ -123,7 +126,7 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t exitNode,
     IDELinearConstantAnalysis::n_t reSite,
     IDELinearConstantAnalysis::d_t retNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::v();
+  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
@@ -132,7 +135,7 @@ IDELinearConstantAnalysis::getCallToReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::v();
+  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
@@ -141,7 +144,7 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::v();
+  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::topElement() {
@@ -163,18 +166,24 @@ IDELinearConstantAnalysis::allTopFunction() {
   return make_shared<AllTop<IDELinearConstantAnalysis::v_t>>(TOP);
 }
 
-string IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
+string
+IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
   return llvmIRToString(d);
 }
 
-string IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
+string
+IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
   return to_string(v);
 }
 
-string IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) const {
+string
+IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) const {
   return llvmIRToString(n);
 }
 
-string IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
+string
+IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

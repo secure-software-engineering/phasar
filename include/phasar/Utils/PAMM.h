@@ -36,6 +36,8 @@
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
+namespace psr {
+
 #ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()
@@ -57,7 +59,8 @@ namespace bfs = boost::filesystem;
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
 #define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
 #define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
-#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC) pamm.addToHistogram(HID, std::to_string(VAL), OCC)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)                                    \
+  pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 #else
@@ -123,13 +126,14 @@ private:
   void printStoppedTimer() {
     std::cout << "Stopped timer\n";
     for (auto entry : StoppedTimer) {
-      std::cout << entry.first << " : " << elapsedTime<Period>(entry.first) << '\n';
+      std::cout << entry.first << " : " << elapsedTime<Period>(entry.first)
+                << '\n';
     }
   }
 
   // friend tests
-  FRIEND_TEST(PAMMTest, HandleSetHisto);
-  FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
+  // FRIEND_TEST(PAMMTest, HandleSetHisto);
+  // FRIEND_TEST(PAMMTest, PerformanceTimerPAMM);
 
 public:
   /// PAMM is used as singleton.
@@ -333,8 +337,7 @@ public:
     std::cout << "------------\n";
     for (auto timer : StoppedTimer) {
       unsigned long time = elapsedTime<Period>(timer.first);
-      std::cout << timer.first << " : "
-                << getPrintableDuration(time) << '\n';
+      std::cout << timer.first << " : " << getPrintableDuration(time) << '\n';
     }
     if (StoppedTimer.empty()) {
       std::cout << "No single Timer started!\n\n";
@@ -458,5 +461,7 @@ public:
 
   void printStoppedTimer();
 };
+
+} // namespace psr
 
 #endif /* PAMM_H_ */

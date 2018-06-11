@@ -16,18 +16,22 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 using namespace std;
+using namespace psr;
+
+namespace psr {
 
 const State IDETypeStateAnalysis::TOP = uninit;
 
 const State IDETypeStateAnalysis::BOTTOM = error;
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(LLVMBasedICFG &icfg,
+IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
@@ -38,13 +42,41 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(LLVMBasedICFG &icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+    if (Alloca->getAllocatedType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Alloca->getAllocatedType()->getPointerElementType())) {
+        if (StructTy->getName().find("struct._IO_FILE") !=
+            llvm::StringRef::npos) {
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+                                                             zeroValue());
+        }
+      }
+    }
+    // struct UnsereFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+    //   const llvm::AllocaInst *Alloc;
+    //   const llvm::Value *ZV;
+    //   UnsereFlowFunction(const llvm::AllocaInst *A, const llvm::Value *Z)
+    //       : Alloc(A), ZV(Z) {}
+
+    //   set<IDETypeStateAnalysis::d_t>
+    //   computeTargets(IDETypeStateAnalysis::d_t source) override {
+    //     if (source == ZV) {
+    //       return {source, Alloc};
+    //     } else {
+    //       return {source};
+    //     }
+    //   }
+    // };
+    // return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
+  }
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
@@ -52,13 +84,14 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
-    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite) {
-  return Identity<IDETypeStateAnalysis::d_t>::v();
+    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
+    set<IDETypeStateAnalysis::m_t> callees) {
+  return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
@@ -94,7 +127,7 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -102,7 +135,7 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destiantionMethod,
     IDETypeStateAnalysis::d_t destNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -110,21 +143,21 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getCallToReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::v();
+  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
 IDETypeStateAnalysis::v_t IDETypeStateAnalysis::topElement() { return TOP; }
@@ -159,3 +192,5 @@ string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
 string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+} // namespace psr

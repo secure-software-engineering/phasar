@@ -17,6 +17,8 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
 
+namespace psr {
+
 /**
  * A data-flow fact that can be linked with other equal facts.
  * Equality and hash-code operations must <i>not</i> take the linking data
@@ -35,5 +37,7 @@ public:
   virtual void addNeighbor(D originalAbstraction) = 0;
   virtual void setCallingContext(D callingContext) = 0;
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_HH_ */

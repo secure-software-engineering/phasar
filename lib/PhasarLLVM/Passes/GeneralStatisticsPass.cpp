@@ -14,12 +14,23 @@
  *      Author: pdschbrt
  */
 
+#include <llvm/IR/IntrinsicInst.h>
+#include <llvm/Support/raw_os_ostream.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/PAMM.h>
+
+using namespace std;
+
+using namespace psr;
+namespace psr {
 
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
-  const std::set<std::string> mem_allocating_functions = {
+  static const std::set<std::string> mem_allocating_functions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
   for (auto &F : M) {
@@ -57,18 +68,40 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
           ++memIntrinsic;
         }
-
         // check for function calls
         if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
           ++callsites;
           llvm::ImmutableCallSite CS(&I);
           if (CS.getCalledFunction()) {
-            if (mem_allocating_functions.find(
-                    cxx_demangle(CS.getCalledFunction()->getName().str())) !=
-                mem_allocating_functions.end()) {
+            if (mem_allocating_functions.count(
+                    cxx_demangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               allocaInstrucitons.insert(&I);
               ++allocationsites;
+              // check if an instance of a user-defined type is allocated on the
+              // heap
+              for (auto User : I.users()) {
+                if (auto Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+                  if (Cast->getDestTy()
+                          ->getPointerElementType()
+                          ->isStructTy()) {
+                    // finally check for ctor call
+                    for (auto User : Cast->users()) {
+                      if (llvm::isa<llvm::CallInst>(User) ||
+                          llvm::isa<llvm::InvokeInst>(User)) {
+                        // potential call to the structures ctor
+                        llvm::ImmutableCallSite CTor(User);
+                        if (CTor.getCalledFunction() &&
+                            getNthFunctionArgument(CTor.getCalledFunction(), 0)
+                                    ->getType() == Cast->getDestTy()) {
+                          allocatedTypes.insert(
+                              Cast->getDestTy()->getPointerElementType());
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -88,23 +121,23 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
 bool GeneralStatisticsPass::doInitialization(llvm::Module &M) { return false; }
 
 bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
-  #ifdef PERFORMANCE_EVA
+#ifdef PERFORMANCE_EVA
   // add moduleID to counter names if performing MWA!
-  //const std::string moduleID = " [" + M.getModuleIdentifier() + "]";
+  // const std::string moduleID = " [" + M.getModuleIdentifier() + "]";
   // for performance reasons (and out of sheer convenience) we simply initialize
   // the counter with the values of the counter varibles, i.e. PAMM simply
   // holds the results.
   PAMM &pamm = PAMM::getInstance();
-  pamm.regCounter("GS Functions"/* + moduleID*/, functions);
-  pamm.regCounter("GS Globals"/* + moduleID*/, globals);
-  pamm.regCounter("GS Basic Blocks"/* + moduleID*/, basicblocks);
-  pamm.regCounter("GS Allocation-Sites"/* + moduleID*/, allocationsites);
-  pamm.regCounter("GS Call-Sites"/* + moduleID*/, callsites);
-  pamm.regCounter("GS Pointer Variables"/* + moduleID*/, pointers);
-  pamm.regCounter("GS Instructions"/* + moduleID*/, instructions);
-  pamm.regCounter("GS Store Instructions"/* + moduleID*/, storeInstructions);
-  pamm.regCounter("GS Memory Intrinsics"/* + moduleID*/, memIntrinsic);
-  pamm.regCounter("GS Allocated Types"/* + moduleID*/, allocatedTypes.size());
+  pamm.regCounter("GS Functions" /* + moduleID*/, functions);
+  pamm.regCounter("GS Globals" /* + moduleID*/, globals);
+  pamm.regCounter("GS Basic Blocks" /* + moduleID*/, basicblocks);
+  pamm.regCounter("GS Allocation-Sites" /* + moduleID*/, allocationsites);
+  pamm.regCounter("GS Call-Sites" /* + moduleID*/, callsites);
+  pamm.regCounter("GS Pointer Variables" /* + moduleID*/, pointers);
+  pamm.regCounter("GS Instructions" /* + moduleID*/, instructions);
+  pamm.regCounter("GS Store Instructions" /* + moduleID*/, storeInstructions);
+  pamm.regCounter("GS Memory Intrinsics" /* + moduleID*/, memIntrinsic);
+  pamm.regCounter("GS Allocated Types" /* + moduleID*/, allocatedTypes.size());
   return false;
 #else
   llvm::outs() << "GeneralStatisticsPass summary for module: '"
@@ -121,6 +154,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   llvm::outs() << "allocated types:\n";
   for (auto type : allocatedTypes) {
     type->print(llvm::outs());
+    llvm::outs() << " ";
   }
   llvm::outs() << "\n\n";
   return false;
@@ -152,3 +186,5 @@ set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
 set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
   return retResInstructions;
 }
+
+} // namespace psr

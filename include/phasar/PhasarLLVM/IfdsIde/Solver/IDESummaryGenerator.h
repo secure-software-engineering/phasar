@@ -23,6 +23,8 @@
 #include <set>
 #include <string>
 using namespace std;
+using namespace psr;
+namespace psr {
 
 template <typename N, typename D, typename M, typename I, typename V,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
@@ -79,5 +81,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif

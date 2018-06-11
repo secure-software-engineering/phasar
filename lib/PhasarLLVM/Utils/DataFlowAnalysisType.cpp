@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+using namespace psr;
+namespace psr {
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
@@ -17,6 +19,8 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
     {"ide_typestate", DataFlowAnalysisType::IDE_TypeStateAnalysis},
     {"ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest},
+    {"ifds_lca", DataFlowAnalysisType::IFDS_LinearConstantAnalysis},
+    {"ide_lca", DataFlowAnalysisType::IDE_LinearConstantAnalysis},
     {"ide_solvertest", DataFlowAnalysisType::IDE_SolverTest},
     {"mono_intra_fullconstpropagation",
      DataFlowAnalysisType::MONO_Intra_FullConstantPropagation},
@@ -33,6 +37,8 @@ const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
     {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
     {DataFlowAnalysisType::IDE_TypeStateAnalysis, "ide_typestate"},
     {DataFlowAnalysisType::IFDS_SolverTest, "ifds_solvertest"},
+    {DataFlowAnalysisType::IFDS_LinearConstantAnalysis, "ifds_lca"},
+    {DataFlowAnalysisType::IDE_LinearConstantAnalysis, "ide_lca"},
     {DataFlowAnalysisType::IDE_SolverTest, "ide_solvertest"},
     {DataFlowAnalysisType::MONO_Intra_FullConstantPropagation,
      "mono_intra_fullconstpropagation"},
@@ -44,3 +50,4 @@ const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
 ostream &operator<<(ostream &os, const DataFlowAnalysisType &D) {
   return os << DataFlowAnalysisTypeToString.at(D);
 }
+} // namespace psr

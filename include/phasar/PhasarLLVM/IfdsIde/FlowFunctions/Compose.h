@@ -17,12 +17,13 @@
 #ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include "Identity.h"
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 #include <vector>
 
 using namespace std;
+namespace psr {
 
 template <typename D> class Compose : FlowFunction<D> {
 private:
@@ -50,14 +51,16 @@ public:
   compose(const vector<FlowFunction<D>> &funcs) {
     vector<FlowFunction<D>> vec;
     for (const FlowFunction<D> &func : funcs)
-      if (func != Identity<D>::v())
+      if (func != Identity<D>::getInstance())
         vec.insert(func);
     if (vec.size == 1)
       return vec[0];
     else if (vec.empty())
-      return Identity<D>::v();
+      return Identity<D>::getInstance();
     return make_shared<Compose>(vec);
   }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_HH_ */

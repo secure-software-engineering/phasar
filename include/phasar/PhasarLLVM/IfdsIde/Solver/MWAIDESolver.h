@@ -36,6 +36,7 @@
 #include <utility>
 
 using namespace std;
+namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class MWAIDESolver : public IDESolver<N, D, M, V, I> {
@@ -116,11 +117,11 @@ public:
       for (const D &value : seed.second) {
         cout << "submitInitalSeedsForSummary - Value:" << endl;
         value->print(llvm::outs());
-        this->propagate(value, startPoint, value, EdgeIdentity<V>::v(), nullptr,
-                        false);
+        this->propagate(value, startPoint, value,
+                        EdgeIdentity<V>::getInstance(), nullptr, false);
       }
       this->jumpFn->addFunction(this->zeroValue, startPoint, this->zeroValue,
-                                EdgeIdentity<V>::v());
+                                EdgeIdentity<V>::getInstance());
     }
   }
 
@@ -155,5 +156,7 @@ protected:
     cout << "MWAIDESolver::MWAIDESolver(IFDSTabulationProblem)" << endl;
   }
 };
+
+} // namespace psr
 
 #endif

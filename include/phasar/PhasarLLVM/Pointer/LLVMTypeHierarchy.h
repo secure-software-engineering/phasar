@@ -35,11 +35,14 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
 #include <set>
 #include <string>
 #include <tuple>
 #include <vector>
 using namespace std;
+
+namespace psr {
 
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
@@ -75,7 +78,7 @@ public:
   typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;
   /// The type for edge representative objects.
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
-    // Let us have some further handy typedefs.
+  // Let us have some further handy typedefs.
   typedef boost::graph_traits<bidigraph_t>::vertex_iterator vertex_iterator;
   typedef boost::graph_traits<bidigraph_t>::out_edge_iterator out_edge_iterator;
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
@@ -230,5 +233,7 @@ public:
    */
   // friend void operator>>(DBConn& db, LLVMTypeHierarchy& STH);
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_LLVMTYPEHIERARCHY_HH_ */

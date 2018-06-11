@@ -27,6 +27,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr {
 
 template <typename D, typename N> class IFDSSummaryPool {
 private:
@@ -67,5 +68,7 @@ public:
     }
   }
 };
+
+} // namespace psr
 
 #endif

@@ -13,10 +13,13 @@
 #include <iostream>
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 #include <phasar/Utils/Logger.h>
+namespace psr {
 
 class ClangController {
 public:
   ClangController(clang::tooling::CommonOptionsParser &OptionsParser);
 };
+
+} // namespace psr
 
 #endif

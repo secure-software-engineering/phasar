@@ -22,6 +22,7 @@
 #include <vector>
 
 using namespace std;
+namespace psr {
 
 template <typename D> class Union : public FlowFunction<D> {
 private:
@@ -41,14 +42,15 @@ public:
   static FlowFunction<D> setunion(const vector<FlowFunction<D>> &funcs) {
     vector<FlowFunction<D>> vec;
     for (const FlowFunction<D> &func : funcs)
-      if (func != Identity<D>::v())
+      if (func != Identity<D>::getInstance())
         vec.add(func);
     if (vec.size() == 1)
       return vec[0];
     else if (vec.empty())
-      return Identity<D>::v();
+      return Identity<D>::getInstance();
     return Union(vec);
   }
 };
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_HH_ */

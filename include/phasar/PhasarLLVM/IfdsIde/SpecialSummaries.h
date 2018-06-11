@@ -32,6 +32,7 @@
 #include <string>
 #include <vector>
 using namespace std;
+namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
 private:
@@ -61,9 +62,9 @@ private:
     // insert default flow and edge functions
     for (auto &function_name : SpecialFunctionNames) {
       SpecialFlowFunctions.insert(
-          std::make_pair(function_name, Identity<D>::v()));
+          std::make_pair(function_name, Identity<D>::getInstance()));
       SpecialEdgeFunctions.insert(
-          std::make_pair(function_name, EdgeIdentity<V>::v()));
+          std::make_pair(function_name, EdgeIdentity<V>::getInstance()));
     }
   }
 
@@ -133,5 +134,6 @@ public:
     return os;
   }
 };
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_ */

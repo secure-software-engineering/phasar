@@ -26,6 +26,8 @@
 using namespace std;
 using json = nlohmann::json;
 
+namespace psr {
+
 /**
  * 	@brief Represents a virtual method table.
  *
@@ -87,5 +89,7 @@ public:
 
   json exportPATBCJSON();
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_VTABLE_HH_ */

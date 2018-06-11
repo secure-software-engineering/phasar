@@ -1,4 +1,7 @@
 #include <phasar/Experimental/WWOCoreUtilsPreAnalysis.h>
+using namespace psr;
+
+namespace psr {
 
 void analyzeCoreUtilsUsingPreAnalysis(ProjectIRDB &&IRDB,
                                       vector<DataFlowAnalysisType> Analyses) {}
@@ -153,9 +156,9 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
   }
   case DataFlowAnalysisType::Plugin: {
     // vector<string> AnalysisPlugins =
-        // VariablesMap["analysis_plugin"].as<vector<string>>();
+    // VariablesMap["analysis_plugin"].as<vector<string>>();
     // AnalysisPluginController PluginController(AnalysisPlugins, ICFG,
-                                              // EntryPoints);
+    // EntryPoints);
     break;
   }
   case DataFlowAnalysisType::None: {
@@ -166,3 +169,4 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     break;
   }
 }
+} // namespace psr

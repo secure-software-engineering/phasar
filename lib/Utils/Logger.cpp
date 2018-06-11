@@ -15,6 +15,8 @@
  */
 
 #include <phasar/Utils/Logger.h>
+using namespace psr;
+namespace psr {
 
 const map<string, severity_level> StringToSeverityLevel = {
     {"DEBUG", DEBUG},
@@ -32,9 +34,7 @@ const map<severity_level, string> SeverityLevelToString = {
 
 severity_level logFilterLevel = DEBUG;
 
-void setLoggerFilterLevel(severity_level level) {
-  logFilterLevel = level;
-}
+void setLoggerFilterLevel(severity_level level) { logFilterLevel = level; }
 
 ostream &operator<<(ostream &os, enum severity_level l) {
   return os << SeverityLevelToString.at(l);
@@ -76,7 +76,8 @@ void initializeLogger(bool use_logger, string log_file) {
   //   bfs::create_directory(LogFileDirectory);
   // }
   // // we could also use a output file stream of course
-  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time + log_file);
+  // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
+  // log_file);
   // }
   sink->locked_backend()->add_stream(stream);
   sink->set_filter(&LogFilter);
@@ -89,3 +90,4 @@ void initializeLogger(bool use_logger, string log_file) {
   bl::core::get()->set_exception_handler(
       bl::make_exception_handler<std::exception>(LoggerExceptionHandler()));
 }
+} // namespace psr

@@ -21,6 +21,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <set>
+namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class IFDSSolver : public IDESolver<N, D, M, BinaryDomain, I> {
@@ -29,8 +30,8 @@ public:
       : IDESolver<N, D, M, BinaryDomain, I>(ifdsProblem) {
     // cout << "IFDSSolver::IFDSSolver()" << endl;
     // cout << ifdsProblem.NtoString(getNthInstruction(
-                // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
-        //  << endl;
+    // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
+    //  << endl;
   }
 
   virtual ~IFDSSolver() = default;
@@ -44,5 +45,7 @@ public:
     return keyset;
   }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_HH_ */

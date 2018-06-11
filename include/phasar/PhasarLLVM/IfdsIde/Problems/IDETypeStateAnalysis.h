@@ -7,8 +7,8 @@
  *     Robin Suerig, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETYPESTATEANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETYPESTATEANALYSIS_H_
+#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_
+#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TYPESTATEANALYSIS_H_
 
 #include <map>
 #include <memory>
@@ -21,6 +21,8 @@ class Instruction;
 class Function;
 class Value;
 } // namespace llvm
+
+namespace psr {
 
 class LLVMBasedICFG;
 
@@ -43,7 +45,7 @@ public:
   static const State TOP;
   static const State BOTTOM;
 
-  IDETypeStateAnalysis(LLVMBasedICFG &icfg,
+  IDETypeStateAnalysis(i_t icfg,
                        std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETypeStateAnalysis() = default;
@@ -62,7 +64,8 @@ public:
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite) override;
+  getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                           std::set<m_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
@@ -112,5 +115,7 @@ public:
 
   std::string MtoString(m_t m) const override;
 };
+
+} // namespace psr
 
 #endif

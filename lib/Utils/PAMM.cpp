@@ -15,6 +15,9 @@
  */
 
 #include <phasar/Utils/PAMM.h>
+using namespace psr;
+
+namespace psr {
 
 PAMM &PAMM::getInstance() {
   static PAMM instance;
@@ -140,7 +143,8 @@ void PAMM::regHistogram(std::string HID) {
 
 void PAMM::addToHistogram(std::string HID, std::string VAL, unsigned long OCC) {
   bool validHistoID = Histogram.count(HID);
-  assert(validHistoID && "adding data point to histogram failed due to invalid id");
+  assert(validHistoID &&
+         "adding data point to histogram failed due to invalid id");
   if (Histogram[HID].count(VAL)) {
     Histogram[HID][VAL] += OCC;
   } else {
@@ -212,8 +216,10 @@ void PAMM::addCounterToJSON(json &jsonData) {
                counter.first.find("Process") != std::string::npos ||
                counter.first.find("FF Queries") != std::string::npos ||
                counter.first.find("EF Queries") != std::string::npos ||
-               counter.first.find("SpecialSummary-FF Application") != std::string::npos ||
-               counter.first.find("SpecialSummary-EF Queries") != std::string::npos ||
+               counter.first.find("SpecialSummary-FF Application") !=
+                   std::string::npos ||
+               counter.first.find("SpecialSummary-EF Queries") !=
+                   std::string::npos ||
                counter.first.find("Value Computation") != std::string::npos ||
                counter.first.find("Value Propagation") != std::string::npos) {
       jDFACounter[counter.first] = counter.second;
@@ -237,3 +243,4 @@ void PAMM::addCounterToJSON(json &jsonData) {
   if (!jMiscCounter.empty())
     jsonData["Misc Counter"] = jMiscCounter;
 }
+} // namespace psr

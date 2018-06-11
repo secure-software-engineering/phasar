@@ -27,6 +27,8 @@
 
 using namespace llvm;
 
+namespace psr {
+
 class ExampleModulePass : public ModulePass, AAResultBase<BasicAAResult> {
 public:
   static char ID;
@@ -40,5 +42,7 @@ public:
   //	AliasResult alias(const Value *V1, unsigned V1Size,
   //			  	  	  const Value *V2, unsigned V2Size);
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_MYALIASANALYSISPASS_HH_ */

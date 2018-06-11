@@ -17,10 +17,11 @@
 #ifndef ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
 #define ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
 
+#include <boost/algorithm/string/trim.hpp>
 #include <chrono>
+#include <json.hpp>
 #include <map>
 #include <memory>
-#include <boost/algorithm/string/trim.hpp>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -39,12 +40,13 @@
 #include <phasar/Utils/Table.h>
 #include <set>
 #include <string>
-#include <json.hpp>
 #include <type_traits>
 #include <utility>
 
 using namespace std;
 using json = nlohmann::json;
+using namespace psr;
+namespace psr {
 
 // Forward declare the Transformation
 template <typename N, typename D, typename M, typename I>
@@ -78,7 +80,8 @@ public:
         computePersistedSummaries(
             tabulationProblem.solver_config.computePersistedSummaries),
         allTop(tabulationProblem.allTopFunction()),
-        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop, ideTabulationProblem)),
+        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop,
+                                                         ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {
     cout << "called IDESolver::IDESolver() ctor with IDEProblem" << endl;
   }
@@ -101,8 +104,7 @@ public:
     if (results.empty()) {
       J[DataFlowID] = "EMPTY";
     } else {
-      vector<typename Table<N, D, V>::Cell>
-          cells;
+      vector<typename Table<N, D, V>::Cell> cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
@@ -112,19 +114,15 @@ public:
       N curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
-          string n = ideTabulationProblem.NtoString(cells[i].r);
-           boost::algorithm::trim(n);
-          string node = icfg.getMethodName(icfg.getMethodOf(curr)) + "::" + n;
-          J[DataFlowID][node];
-        if (cells[i].c == nullptr) {
-          J[DataFlowID][node] += "nullptr";
-        } else {
-          string fact = ideTabulationProblem.DtoString(cells[i].c);
-          boost::algorithm::trim(fact);
-          string value = ideTabulationProblem.VtoString(cells[i].v);
-          boost::algorithm::trim(value);
-          J[DataFlowID][node]["Facts"] += { fact, value };
-        }
+        string n = ideTabulationProblem.NtoString(cells[i].r);
+        boost::algorithm::trim(n);
+        string node = icfg.getMethodName(icfg.getMethodOf(curr)) + "::" + n;
+        J[DataFlowID][node];
+        string fact = ideTabulationProblem.DtoString(cells[i].c);
+        boost::algorithm::trim(fact);
+        string value = ideTabulationProblem.VtoString(cells[i].v);
+        boost::algorithm::trim(value);
+        J[DataFlowID][node]["Facts"] += {fact, value};
       }
     }
     return J;
@@ -245,10 +243,10 @@ public:
 #ifdef PERFORMANCE_EVA
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:";
-    BOOST_LOG_SEV(lg, INFO) << "flow function query count: "
-                            << GET_COUNTER("FF Queries");
-    BOOST_LOG_SEV(lg, INFO) << "edge function query count: "
-                            << GET_COUNTER("EF Queries");
+    BOOST_LOG_SEV(lg, INFO)
+        << "flow function query count: " << GET_COUNTER("FF Queries");
+    BOOST_LOG_SEV(lg, INFO)
+        << "edge function query count: " << GET_COUNTER("EF Queries");
     BOOST_LOG_SEV(lg, INFO) << "data-flow value propagation count: "
                             << GET_COUNTER("Value Propagation");
     BOOST_LOG_SEV(lg, INFO) << "data-flow value computation count: "
@@ -257,10 +255,10 @@ public:
                             << GET_COUNTER("SpecialSummary-FF Application");
     BOOST_LOG_SEV(lg, INFO)
         << "jump fn construciton count: " << GET_COUNTER("JumpFn Construction");
-    BOOST_LOG_SEV(lg, INFO) << "Phase I duration: "
-                            << PRINT_TIMER("DFA Phase I");
-    BOOST_LOG_SEV(lg, INFO) << "Phase II duration: "
-                            << PRINT_TIMER("DFA Phase II");
+    BOOST_LOG_SEV(lg, INFO)
+        << "Phase I duration: " << PRINT_TIMER("DFA Phase I");
+    BOOST_LOG_SEV(lg, INFO)
+        << "Phase II duration: " << PRINT_TIMER("DFA Phase II");
     BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
     cachedFlowEdgeFunctions.print();
 #endif
@@ -391,7 +389,8 @@ private:
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
-            propagate(d3, sP, d3, EdgeIdentity<V>::v(), n, false); // line 15
+            propagate(d3, sP, d3, EdgeIdentity<V>::getInstance(), n,
+                      false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
             // line 15.1 of Naeem/Lhotak/Rodriguez
             addIncoming(sP, d3, n, d2);
@@ -456,7 +455,8 @@ private:
       // process intra-procedural flows along call-to-return flow functions
       for (N returnSiteN : returnSiteNs) {
         shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
-            cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN);
+            cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
+                                                             callees);
         INC_COUNTER("FF Queries");
         set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
@@ -710,7 +710,8 @@ protected:
         computePersistedSummaries(
             ideTabulationProblem.solver_config.computePersistedSummaries),
         allTop(ideTabulationProblem.allTopFunction()),
-        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop, ideTabulationProblem)),
+        jumpFn(make_shared<JumpFunctions<N, D, M, V, I>>(allTop,
+                                                         ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
     // cout << "called IDESolver::IDESolver() ctor with IFDSProblem" << endl;
   }
@@ -767,11 +768,11 @@ protected:
       for (const D &value : seed.second) {
         // cout << "submitInitialSeeds - Value:" << endl;
         // value->print(llvm::outs());
-        propagate(zeroValue, startPoint, value, EdgeIdentity<V>::v(), nullptr,
-                  false);
+        propagate(zeroValue, startPoint, value, EdgeIdentity<V>::getInstance(),
+                  nullptr, false);
       }
       jumpFn->addFunction(zeroValue, startPoint, zeroValue,
-                          EdgeIdentity<V>::v());
+                          EdgeIdentity<V>::getInstance());
     }
   }
 
@@ -1101,5 +1102,7 @@ protected:
     BOOST_LOG_SEV(lg, DEBUG) << "end endsummarytab entry";
   }
 };
+
+} // namespace psr
 
 #endif /* ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_HH_ */

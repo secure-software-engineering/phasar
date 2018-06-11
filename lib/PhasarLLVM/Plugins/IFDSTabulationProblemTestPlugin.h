@@ -19,6 +19,8 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+using namespace psr;
+namespace psr {
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
@@ -40,7 +42,8 @@ public:
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
-                           const llvm::Instruction *retSite) override;
+                           const llvm::Instruction *retSite,
+                           set<const llvm::Function *> callees) override;
 
   shared_ptr<FlowFunction<const llvm::Value *>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
@@ -53,5 +56,7 @@ public:
 extern "C" unique_ptr<IFDSTabulationProblemPlugin>
 makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
                                     vector<string> EntryPoints);
+
+} // namespace psr
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_HH_ */
