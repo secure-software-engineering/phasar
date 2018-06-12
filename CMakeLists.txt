@@ -255,10 +255,12 @@ target_link_libraries(myphasartool
   gtest
 )
 
-# Add Phasar unittests
+# Add Phasar unittests and .ll file generation
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
   add_subdirectory(unittests)
+  message("Generation of .ll files")
+  add_subdirectory(test)
 endif()
 
 # Install Phasar executable and libraries
