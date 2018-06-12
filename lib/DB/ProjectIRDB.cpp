@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/DB/ProjectIRDB.h>
+#include <iostream>
 using namespace psr;
 
 namespace psr {
@@ -40,7 +41,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   for (auto &File : IRFiles) {
     source_files.insert(File);
     // if we have a file that is already compiled to llvm ir
-    if (File.find(".ll") != File.npos) {
+    if (File.find(".ll") != File.npos && boost::filesystem::exists(File)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);
@@ -51,6 +52,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       if (broken_debug_info) {
         std::cout << "caution: debug info is broken\n";
       }
+
       buildFunctionModuleMapping(M.get());
       buildGlobalModuleMapping(M.get());
       contexts.insert(std::make_pair(File, std::move(C)));
@@ -90,7 +92,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
   for (auto &Path : Modules) {
     source_files.insert(Path);
     // if we have a file that is already compiled to llvm ir
-    if (Path.find(".ll") != Path.npos) {
+    if (Path.find(".ll") != Path.npos && boost::filesystem::exists(Path)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);

@@ -102,7 +102,9 @@ private:
   set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
-  FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
+  // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
+  FRIEND_TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph);
+  FRIEND_TEST(LTHTest, GraphConstruction);
 
 public:
   /**

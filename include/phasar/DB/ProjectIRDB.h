@@ -43,6 +43,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <boost/filesystem.hpp>
 
 namespace psr {
 

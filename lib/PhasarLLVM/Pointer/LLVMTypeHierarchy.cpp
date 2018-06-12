@@ -167,11 +167,7 @@ VTable LLVMTypeHierarchy::getVTable(string TypeName) {
 }
 
 bool LLVMTypeHierarchy::hasSuperType(string TypeName, string SuperTypeName) {
-  TypeName = psr::uniformTypeName(TypeName);
-  SuperTypeName = psr::uniformTypeName(SuperTypeName);
-
-  cout << "NOT SUPPORTED YET" << endl;
-  return false;
+  return hasSubType(SuperTypeName, TypeName);
 }
 
 bool LLVMTypeHierarchy::hasSubType(string TypeName, string SubTypeName) {
