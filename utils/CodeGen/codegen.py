@@ -338,13 +338,15 @@ def generateHeaderFile():
         if "debug" in globals():
             print("Additional attributes are generated...")
         for par in attributes.split(","):
+            #replace :: so that split can seperate parts of definition
+            par=par.replace("::","§")
             a = par.split(":")
             if(a[0] == "public"):
-                d["pbattributes"]+= "    "+a[2] + " " + a[1] +";\n"
+                d["pbattributes"]+= "    "+a[2].replace("§","::") + " " + a[1].replace("§","::") +";\n"
             if(a[0] == "private"):
-                d["pvattributes"]+= "    "+a[2] + " " + a[1] +";\n"
+                d["pvattributes"]+= "    "+a[2].replace("§","::") + " " + a[1].replace("§","::") +";\n"
             if(a[0] == "protected"):
-                d["ptattributes"]+= "    "+a[2] + " " + a[1] +";\n"
+                d["ptattributes"]+= "    "+a[2].replace("§","::") + " " + a[1].replace("§","::") +";\n"
     else:
         d["pbattributes"]=""
         d["pvattributes"]=""

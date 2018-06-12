@@ -23,3 +23,5 @@ header file!!!
 
 Example call:
 python3 codegen.py -n test -b abc.h -d -t A,B,C -a public:a:int,private:b:string,protected:c:char,public:w:*int -f public:func1:void:[a=0:int]:[static,const]:[override,static]:[A,B,C],protected:func2:int -o None
+
+python3 codegen.py -n MyIFDSAnalysis -a public:a:std::pair, public:d:LLVMBasedICFG& 
