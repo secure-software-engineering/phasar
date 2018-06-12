@@ -11,8 +11,8 @@ Secure Software Engineering Group
 
 |branch | status |
 | :---: | :---: |
-| master | <img src="https://travis-ci.org/pdschubert/phasar.svg?branch=master"> |
-| development | <img src="https://travis-ci.org/pdschubert/phasar.svg?branch=development"> |
+| master | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=master"> |
+| development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
 
 Currently supported version of LLVM
 -----------------------------------
