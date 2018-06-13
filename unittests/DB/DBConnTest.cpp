@@ -4,34 +4,20 @@
 
 using namespace psr;
 
-std::vector<std::vector<std::string>> IRFiles{
-    /* IRFiles[0] */
-    {"../../../test/llvm_test_code/virtual_callsites/cross_module/base.ll"},
-    /* IRFiles[1] */
-    {"../../../test/llvm_test_code/virtual_callsites/cross_module/main.ll",
-     "../../../test/llvm_test_code/virtual_callsites/cross_module/utils.ll",
-     "../../../test/llvm_test_code/virtual_callsites/cross_module/base.ll",
-     "../../../test/llvm_test_code/virtual_callsites/cross_module/derived.ll"},
-    /* IRFiles[2] */
-    {"../../../test/llvm_test_code/module_wise/module_wise_9/src1.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_9/src2.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_9/src3.ll"},
-    /* IRFiles[3] */
-    {"../../../test/llvm_test_code/module_wise/module_wise_12/src1.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_12/src2.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_12/main.ll"},
-    /* IRFiles[4] */
-    {"../../../test/llvm_test_code/module_wise/module_wise_13/src1.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_13/src2.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_13/main.ll"},
-    /* IRFiles[5] */
-    {"../../../test/llvm_test_code/module_wise/module_wise_14/src1.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_14/src2.ll",
-     "../../../test/llvm_test_code/module_wise/module_wise_14/main.ll"}};
+class DBConnTest : public ::testing::Test {
+protected:
+  const std::string pathToLLFiles =
+      PhasarDirectory + "build/test/llvm_test_code/";
+};
 
-TEST(StoreLLVMTypeHierarchyTest, HandleMultipleProjects) {
-  ProjectIRDB firstIRDB(IRFiles[4]);
-  ProjectIRDB secondIRDB(IRFiles[5]);
+TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
+  ProjectIRDB firstIRDB({pathToLLFiles + "module_wise/module_wise_13/src1.ll",
+                         pathToLLFiles + "module_wise/module_wise_13/src2.ll",
+                         pathToLLFiles + "module_wise/module_wise_13/main.ll"});
+  ProjectIRDB secondIRDB(
+      {pathToLLFiles + "module_wise/module_wise_14/src1.ll",
+       pathToLLFiles + "module_wise/module_wise_14/src2.ll",
+       pathToLLFiles + "module_wise/module_wise_14/main.ll"});
 
   DBConn &db = DBConn::getInstance();
   LLVMTypeHierarchy TH1(firstIRDB);
@@ -44,19 +30,23 @@ TEST(StoreLLVMTypeHierarchyTest, HandleMultipleProjects) {
   db.storeProjectIRDB("second_project", secondIRDB);
 }
 
-TEST(StoreLLVMTypeHierarchyTest, HandleWriteToHex) {
-  ProjectIRDB IRDB(IRFiles[2]);
-  DBConn &db = DBConn::getInstance();
-  db.storeProjectIRDB("phasardbtest", IRDB);
-  LLVMTypeHierarchy TH(IRDB);
-  std::cout << "\n\n";
-  TH.print();
-  std::cout << '\n';
-  db.storeLLVMTypeHierarchy(TH, "phasardbtest", true);
-}
+// TEST_F(DBConnTest, HandleLTHWriteToHex) {
+//   ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
+//                     pathToLLFiles + "module_wise/module_wise_9/src2.ll",
+//                     pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
+//   DBConn &db = DBConn::getInstance();
+//   db.storeProjectIRDB("phasardbtest", IRDB);
+//   LLVMTypeHierarchy TH(IRDB);
+//   std::cout << "\n\n";
+//   TH.print();
+//   std::cout << '\n';
+//   db.storeLLVMTypeHierarchy(TH, "phasardbtest", true);
+// }
 
-TEST(StoreLLVMTypeHierarchyTest, HandleWriteToDot) {
-  ProjectIRDB IRDB(IRFiles[2]);
+TEST_F(DBConnTest, HandleLTHWriteToDot) {
+  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src2.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
   LLVMTypeHierarchy TH(IRDB);
@@ -66,8 +56,10 @@ TEST(StoreLLVMTypeHierarchyTest, HandleWriteToDot) {
   db.storeLLVMTypeHierarchy(TH, "phasardbtest", false);
 }
 
-TEST(StoreProjectIRDBTest, StoreProjectIRDBTest) {
-  ProjectIRDB IRDB(IRFiles[2]);
+TEST_F(DBConnTest, StoreProjectIRDBTest) {
+  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src2.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
 }

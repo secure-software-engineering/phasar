@@ -1,5 +1,5 @@
-#include <phasar/Utils/PAMM.h>
 #include <gtest/gtest.h>
+#include <phasar/Utils/PAMM.h>
 #include <thread>
 
 using namespace psr;
@@ -183,37 +183,51 @@ TEST_F(PAMMTest, PerformanceTimerBasic) {
   time_point start_15 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(20000));
   time_point end_15 = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - start_1);
+  auto duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_1 - start_1);
   std::cout << "timer_1 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_2 - start_2);
-  std::cout << "timer_2 : " <<  duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_3 - start_3);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_2 - start_2);
+  std::cout << "timer_2 : " << duration.count() << std::endl;
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_3 - start_3);
   std::cout << "timer_3 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_4 - start_4);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_4 - start_4);
   std::cout << "timer_4 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_5 - start_5);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_5 - start_5);
   std::cout << "timer_5 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_6 - start_6);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_6 - start_6);
   std::cout << "timer_6 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_7 - start_7);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_7 - start_7);
   std::cout << "timer_7 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_8 - start_8);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_8 - start_8);
   std::cout << "timer_8 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_9 - start_9);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_9 - start_9);
   std::cout << "timer_9 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_10 - start_10);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_10 - start_10);
   std::cout << "timer_10 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_11 - start_11);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_11 - start_11);
   std::cout << "timer_11 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_12 - start_12);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_12 - start_12);
   std::cout << "timer_12 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_13 - start_13);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_13 - start_13);
   std::cout << "timer_13 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_14 - start_14);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_14 - start_14);
   std::cout << "timer_14 : " << duration.count() << std::endl;
-  duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_15 - start_15);
+  duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(end_15 - start_15);
   std::cout << "timer_15 : " << duration.count() << std::endl;
-
 }
 
 // TEST_F(PAMMTest, PerformanceTimerPAMM) {

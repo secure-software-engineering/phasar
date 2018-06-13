@@ -103,8 +103,8 @@ private:
 
   void reconstructVTable(const llvm::Module &M);
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
-  FRIEND_TEST(LTHGraphDotTest, HandleLoadAndPrintOfNonEmptyGraph);
   FRIEND_TEST(LTHTest, GraphConstruction);
+  FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 public:
   /**
