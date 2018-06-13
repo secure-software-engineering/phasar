@@ -1,6 +1,8 @@
 #include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
 
 using namespace std;
+using namespace psr;
+namespace psr {
 
 TypeGraph::dfs_visitor::dfs_visitor(TypeGraph::graph_t *_g) : g(_g) {}
 
@@ -61,6 +63,24 @@ void TypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to
   already_visited = false;
 }
 
+void TypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to) {
+  if (already_visited)
+    return;
+
+  already_visited = true;
+
+  auto from_vertex = addType(from);
+  auto to_vertex = addType(to);
+
+  boost::add_edge(from_vertex, to_vertex, g);
+
+  for ( auto parent_g : parent_graphs ) {
+    parent_g->addLink(from, to);
+  }
+
+  already_visited = false;
+}
+
 void TypeGraph::printAsDot(const std::string &path) const {
   std::ofstream ofs(path);
   boost::write_graphviz(
@@ -88,9 +108,6 @@ void TypeGraph::reverseTypePropagation(const llvm::StructType *base_struct) {
 
 std::set<const llvm::StructType*> TypeGraph::getTypes(const llvm::StructType *struct_type) {
   auto struct_ty_vertex = addType(struct_type);
-
-  printAsDot();
-
   return g[struct_ty_vertex].types;
 }
 
@@ -108,4 +125,6 @@ void TypeGraph::merge(TypeGraph *tg) {
 
     addLink(tg->g[src].base_type, tg->g[target].base_type);
   }
+}
+
 }
