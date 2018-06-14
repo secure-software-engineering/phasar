@@ -154,6 +154,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   llvm::outs() << "allocated types:\n";
   for (auto type : allocatedTypes) {
     type->print(llvm::outs());
+    llvm::outs() << " ";
   }
   llvm::outs() << "\n\n";
   return false;

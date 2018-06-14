@@ -56,6 +56,10 @@ string cxx_demangle(const string &mangled_name);
 
 string debasify(const string &name);
 
+std::string uniformTypeName(const std::string &name);
+
+llvm::Type* stripPointer(llvm::Type* pointer);
+
 bool isMangled(const string &name);
 
 vector<string> splitString(const string &str, const string &delimiter);

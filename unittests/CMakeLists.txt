@@ -1,5 +1,6 @@
 add_custom_target(UnitTests)
 set_target_properties(UnitTests PROPERTIES FOLDER "Tests")
+add_dependencies(UnitTests LLFileGeneration)
 
 add_subdirectory(Config)
 add_subdirectory(Controller)

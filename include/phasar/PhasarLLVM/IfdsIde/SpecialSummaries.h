@@ -44,13 +44,14 @@ private:
   // llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
   // flow functions.
   SpecialSummaries() {
-    string glibc = readFile(ConfigurationDirectory + GLIBCFunctionListFileName);
+    string glibc = readFile(PhasarDirectory + ConfigurationDirectory +
+                            GLIBCFunctionListFileName);
     vector<string> glibcfunctions = splitString(glibc, "\n");
     // Insert glibc function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),
                                 glibcfunctions.begin(), glibcfunctions.end());
-    string llvmintrinsics =
-        readFile(ConfigurationDirectory + LLVMIntrinsicFunctionListFileName);
+    string llvmintrinsics = readFile(PhasarDirectory + ConfigurationDirectory +
+                                     LLVMIntrinsicFunctionListFileName);
     vector<string> llvmintrinsicfunctions = splitString(llvmintrinsics, "\n");
     // Insert llvm intrinsic function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),

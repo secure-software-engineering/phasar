@@ -43,6 +43,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <boost/filesystem.hpp>
 
 namespace psr {
 
@@ -84,7 +85,7 @@ private:
   std::map<std::size_t, llvm::Instruction *> instructions;
   // Maps a function to its points-to graph
   std::map<std::string, std::unique_ptr<PointsToGraph>> ptgs;
-  set<const llvm::Type *> allocated_types;
+  std::set<const llvm::Type *> allocated_types;
 
   void buildFunctionModuleMapping(llvm::Module *M);
   void buildGlobalModuleMapping(llvm::Module *M);

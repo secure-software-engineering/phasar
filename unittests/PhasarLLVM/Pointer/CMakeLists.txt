@@ -1,5 +1,6 @@
 set(PointerSources
 	LLVMTypeHierarchyTest.cpp
+	TypeGraphTest.cpp
 )
 
 foreach(TEST_SRC ${PointerSources})

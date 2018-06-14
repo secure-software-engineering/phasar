@@ -80,7 +80,6 @@ private:
   const static string db_password;
   const static string db_schema_name;
   const static string db_server_address;
-
   // Functions for internal use only
   int getNextAvailableID(const string &TableName);
   int getProjectID(const string &Identifier);
@@ -115,7 +114,6 @@ private:
   void storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
                           const string hex_id);
 
-  FRIEND_TEST(StoreProjectIRDBTest, StoreProjectIRDBTest);
 
 public:
   DBConn(const DBConn &db) = delete;
