@@ -42,9 +42,9 @@ string uniformTypeName(const string &name) {
   return TypeName;
 }
 
-llvm::Type* stripPointer(llvm::Type* pointer) {
+llvm::Type *stripPointer(llvm::Type *pointer) {
   auto next = llvm::dyn_cast<llvm::PointerType>(pointer);
-  while(next) {
+  while (next) {
     pointer = next->getElementType();
     next = llvm::dyn_cast<llvm::PointerType>(pointer);
   }

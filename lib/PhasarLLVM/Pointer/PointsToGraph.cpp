@@ -236,7 +236,8 @@ PointsToGraph::getPointersEscapingThroughParams() {
   return escaping_pointers;
 }
 
-vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturns() const {
+vector<const llvm::Value *>
+PointsToGraph::getPointersEscapingThroughReturns() const {
   vector<const llvm::Value *> escaping_pointers;
   for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(ptg);
        vp.first != vp.second; ++vp.first) {
@@ -249,14 +250,16 @@ vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturns() c
   return escaping_pointers;
 }
 
-vector<const llvm::Value *> PointsToGraph::getPointersEscapingThroughReturnsForFunction(const llvm::Function* F) const {
+vector<const llvm::Value *>
+PointsToGraph::getPointersEscapingThroughReturnsForFunction(
+    const llvm::Function *F) const {
   vector<const llvm::Value *> escaping_pointers;
   for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(ptg);
        vp.first != vp.second; ++vp.first) {
     for (auto user : ptg[*vp.first].value->users()) {
-      if ( auto R = llvm::dyn_cast<llvm::ReturnInst>(user) ) {
-        if ( R->getFunction() == F )
-        escaping_pointers.push_back(ptg[*vp.first].value);
+      if (auto R = llvm::dyn_cast<llvm::ReturnInst>(user)) {
+        if (R->getFunction() == F)
+          escaping_pointers.push_back(ptg[*vp.first].value);
       }
     }
   }
@@ -425,15 +428,16 @@ void PointsToGraph::mergeWith(
       }
     }
 
-    for ( auto Formal : Other.getPointersEscapingThroughReturnsForFunction(Call.second) ) {
+    for (auto Formal :
+         Other.getPointersEscapingThroughReturnsForFunction(Call.second)) {
       if (value_vertex_map.count(Call.first.getInstruction()) &&
           Other.value_vertex_map.count(Formal)) {
-            v_in_g1_u_in_g2.push_back(
-                tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
-                      const llvm::Instruction *>(
-                    value_vertex_map[Call.first.getInstruction()],
-                    Other.value_vertex_map.at(Formal),
-                    Call.first.getInstruction()));
+        v_in_g1_u_in_g2.push_back(
+            tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
+                  const llvm::Instruction *>(
+                value_vertex_map[Call.first.getInstruction()],
+                Other.value_vertex_map.at(Formal),
+                Call.first.getInstruction()));
       }
     }
     ContainedFunctions.insert(Call.second->getName().str());
@@ -464,7 +468,7 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
       }
     }
 
-    for ( auto Formal : getPointersEscapingThroughReturnsForFunction(F) ) {
+    for (auto Formal : getPointersEscapingThroughReturnsForFunction(F)) {
       if (value_vertex_map.count(CS.getInstruction()) &&
           value_vertex_map.count(Formal)) {
         boost::add_edge(value_vertex_map[CS.getInstruction()],
@@ -489,12 +493,12 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
       }
     }
 
-    for ( auto Formal : Other.getPointersEscapingThroughReturnsForFunction(F) ) {
+    for (auto Formal : Other.getPointersEscapingThroughReturnsForFunction(F)) {
       if (value_vertex_map.count(CS.getInstruction()) &&
           Other.value_vertex_map.count(Formal)) {
-            v_in_g1_u_in_g2.push_back(
-              make_pair(value_vertex_map[CS.getInstruction()],
-                        Other.value_vertex_map[Formal]));
+        v_in_g1_u_in_g2.push_back(
+            make_pair(value_vertex_map[CS.getInstruction()],
+                      Other.value_vertex_map[Formal]));
       }
     }
 

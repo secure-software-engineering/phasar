@@ -106,10 +106,10 @@ private:
   std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
-  std::map<const llvm::Function*, TypeGraph*> tgs;
+  std::map<const llvm::Function *, TypeGraph *> tgs;
 
   // Any types that could be initialized outside of the module
-  std::set<const llvm::StructType*> unsound_types;
+  std::set<const llvm::StructType *> unsound_types;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
@@ -203,10 +203,11 @@ private:
 
   /**
    * A simple function walking along the control flow resolving indirect
-   * call-sites using Declare Type Analysis function. This walker does not perform
-   * any analysis by itself.
+   * call-sites using Declare Type Analysis function. This walker does not
+   * perform any analysis by itself.
    *
-   * @brief A function walking along the control flow graph construction a DTA Graph.
+   * @brief A function walking along the control flow graph construction a DTA
+   * Graph.
    * @param F function to start in
    */
   void resolveIndirectCallWalkerDTA(const llvm::Function *F);

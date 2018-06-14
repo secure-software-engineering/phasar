@@ -141,9 +141,10 @@ void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
   if (VisitedFunctions.size() == 1) {
     auto func_type = F->getFunctionType();
 
-    for ( auto param : func_type->params() ) {
-      if ( llvm::isa<llvm::PointerType>(param) ) {
-        if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
+    for (auto param : func_type->params()) {
+      if (llvm::isa<llvm::PointerType>(param)) {
+        if (auto struct_ty =
+                llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
           unsound_types.insert(struct_ty);
         }
       }
@@ -216,9 +217,10 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
   if (VisitedFunctions.size() == 1) {
     auto func_type = F->getFunctionType();
 
-    for ( auto param : func_type->params() ) {
-      if ( llvm::isa<llvm::PointerType>(param) ) {
-        if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
+    for (auto param : func_type->params()) {
+      if (llvm::isa<llvm::PointerType>(param)) {
+        if (auto struct_ty =
+                llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
           unsound_types.insert(struct_ty);
         }
       }
@@ -233,16 +235,19 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     const llvm::Instruction &Inst = *I;
 
     if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
-      for ( auto user : BitCast->users() ) {
-        if ( llvm::isa<llvm::StoreInst>(user) || llvm::isa<llvm::TerminatorInst>(user) ) {
+      for (auto user : BitCast->users()) {
+        if (llvm::isa<llvm::StoreInst>(user) ||
+            llvm::isa<llvm::TerminatorInst>(user)) {
           // We add the connection between the two types in the DTA graph
           auto src = BitCast->getSrcTy();
           auto dest = BitCast->getDestTy();
 
-          auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
-          auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
+          auto src_struct_type =
+              llvm::dyn_cast<llvm::StructType>(stripPointer(src));
+          auto dest_struct_type =
+              llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
 
-          if(src_struct_type && dest_struct_type)
+          if (src_struct_type && dest_struct_type)
             graph->addLink(dest_struct_type, src_struct_type);
         }
       }
@@ -663,7 +668,8 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
     if (unsound_types.find(receiver_type) != unsound_types.end())
       return resolveIndirectCallCHA(CS);
 
-    string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
+    string receiver_type_name =
+        psr::uniformTypeName(receiver_type->getName().str());
 
     auto possible_types = tgs[CS.getCaller()]->getTypes(receiver_type);
     auto allocated_types = IRDB.getAllocatedTypes();
@@ -672,11 +678,12 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
     for (auto possible_type : possible_types) {
       if (auto possible_type_struct =
               llvm::dyn_cast<llvm::StructType>(possible_type)) {
-          if ( allocated_types.find(possible_type_struct) != allocated_types.end() ) {
-            string type_name = possible_type_struct->getName().str();
-            possible_call_targets.insert(
+        if (allocated_types.find(possible_type_struct) !=
+            allocated_types.end()) {
+          string type_name = possible_type_struct->getName().str();
+          possible_call_targets.insert(
               CH.getVTableEntry(type_name, vtable_index));
-          }
+        }
       }
     }
   } else {

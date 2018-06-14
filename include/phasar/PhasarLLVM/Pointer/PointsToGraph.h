@@ -314,7 +314,8 @@ public:
    * @param F Function pointer
    * @return Vector with pointers.
    */
-  std::vector<const llvm::Value *> getPointersEscapingThroughReturnsForFunction(const llvm::Function* Fd) const;
+  std::vector<const llvm::Value *>
+  getPointersEscapingThroughReturnsForFunction(const llvm::Function *Fd) const;
 
   /**
    * @brief Returns all reachable allocation sites from a given pointer.

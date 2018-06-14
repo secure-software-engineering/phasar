@@ -6,7 +6,8 @@ namespace psr {
 
 TypeGraph::dfs_visitor::dfs_visitor(TypeGraph::graph_t *_g) : g(_g) {}
 
-void TypeGraph::dfs_visitor::finish_edge(TypeGraph::edge_t e, TypeGraph::graph_t const& u) {
+void TypeGraph::dfs_visitor::finish_edge(TypeGraph::edge_t e,
+                                         TypeGraph::graph_t const &u) {
   TypeGraph::vertex_t src = boost::source(e, u);
   TypeGraph::vertex_t target = boost::target(e, u);
 
@@ -17,9 +18,12 @@ void TypeGraph::dfs_visitor::finish_edge(TypeGraph::edge_t e, TypeGraph::graph_t
   }
 }
 
-TypeGraph::reverse_type_propagation_dfs_visitor::reverse_type_propagation_dfs_visitor(rev_graph_t *_g) : g(_g) {}
+TypeGraph::reverse_type_propagation_dfs_visitor::
+    reverse_type_propagation_dfs_visitor(rev_graph_t *_g)
+    : g(_g) {}
 
-void TypeGraph::reverse_type_propagation_dfs_visitor::examine_edge(rev_edge_t e, rev_graph_t const& u) {
+void TypeGraph::reverse_type_propagation_dfs_visitor::examine_edge(
+    rev_edge_t e, rev_graph_t const &u) {
   TypeGraph::rev_vertex_t src = boost::source(e, u);
   TypeGraph::rev_vertex_t target = boost::target(e, u);
 
@@ -30,10 +34,10 @@ void TypeGraph::reverse_type_propagation_dfs_visitor::examine_edge(rev_edge_t e,
   }
 }
 
-TypeGraph::vertex_t TypeGraph::addType(const llvm::StructType* new_type) {
+TypeGraph::vertex_t TypeGraph::addType(const llvm::StructType *new_type) {
   auto name = psr::uniformTypeName(new_type->getName().str());
 
-  if(type_vertex_map.find(name) == type_vertex_map.end()) {
+  if (type_vertex_map.find(name) == type_vertex_map.end()) {
     auto vertex = boost::add_vertex(g);
     type_vertex_map[name] = vertex;
     g[vertex].name = name;
@@ -44,7 +48,8 @@ TypeGraph::vertex_t TypeGraph::addType(const llvm::StructType* new_type) {
   return type_vertex_map[name];
 }
 
-void TypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to) {
+void TypeGraph::addLink(const llvm::StructType *from,
+                        const llvm::StructType *to) {
   if (already_visited)
     return;
 
@@ -56,14 +61,15 @@ void TypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to
   boost::add_edge(from_vertex, to_vertex, g);
   reverseTypePropagation(to);
 
-  for ( auto parent_g : parent_graphs ) {
+  for (auto parent_g : parent_graphs) {
     parent_g->addLink(from, to);
   }
 
   already_visited = false;
 }
 
-void TypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to) {
+void TypeGraph::addLinkWithoutReversePropagation(const llvm::StructType *from,
+                                                 const llvm::StructType *to) {
   if (already_visited)
     return;
 
@@ -74,7 +80,7 @@ void TypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, c
 
   boost::add_edge(from_vertex, to_vertex, g);
 
-  for ( auto parent_g : parent_graphs ) {
+  for (auto parent_g : parent_graphs) {
     parent_g->addLink(from, to);
   }
 
@@ -83,8 +89,9 @@ void TypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, c
 
 void TypeGraph::printAsDot(const std::string &path) const {
   std::ofstream ofs(path);
-  boost::write_graphviz(
-      ofs, g, boost::make_label_writer(boost::get(&TypeGraph::VertexProperties::name, g)));
+  boost::write_graphviz(ofs, g,
+                        boost::make_label_writer(
+                            boost::get(&TypeGraph::VertexProperties::name, g)));
 }
 
 void TypeGraph::aggregateTypes() {
@@ -97,16 +104,19 @@ void TypeGraph::reverseTypePropagation(const llvm::StructType *base_struct) {
 
   std::vector<boost::default_color_type> color_map(boost::num_vertices(g));
 
-  auto reversed = boost::reverse_graph<TypeGraph::graph_t, TypeGraph::graph_t&>(g);
+  auto reversed =
+      boost::reverse_graph<TypeGraph::graph_t, TypeGraph::graph_t &>(g);
   reverse_type_propagation_dfs_visitor vis(&reversed);
 
-  boost::depth_first_visit(reversed,
-    type_vertex_map[name],
-    vis,
-    boost::make_iterator_property_map(color_map.begin(), boost::get(boost::vertex_index, reversed), color_map[0]));
+  boost::depth_first_visit(reversed, type_vertex_map[name], vis,
+                           boost::make_iterator_property_map(
+                               color_map.begin(),
+                               boost::get(boost::vertex_index, reversed),
+                               color_map[0]));
 }
 
-std::set<const llvm::StructType*> TypeGraph::getTypes(const llvm::StructType *struct_type) {
+std::set<const llvm::StructType *>
+TypeGraph::getTypes(const llvm::StructType *struct_type) {
   auto struct_ty_vertex = addType(struct_type);
   return g[struct_ty_vertex].types;
 }
@@ -119,7 +129,7 @@ void TypeGraph::merge(TypeGraph *tg) {
   auto begin = p.first;
   auto end = p.second;
 
-  for ( auto e = begin; e != end; ++e) {
+  for (auto e = begin; e != end; ++e) {
     vertex_t src = boost::source(*e, tg->g);
     vertex_t target = boost::target(*e, tg->g);
 
@@ -127,4 +137,4 @@ void TypeGraph::merge(TypeGraph *tg) {
   }
 }
 
-}
+} // namespace psr

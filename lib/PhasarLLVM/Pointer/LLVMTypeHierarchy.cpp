@@ -93,7 +93,6 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
     // Avoid to have the struct.Myclass.base in the database, as it is not used
     // by the code anywhere else than in type declaration for alignement reasons
 
-
     if (struct_type_name.compare(struct_type_name.size() - sizeof(".base") + 1,
                                  sizeof(".base") - 1, ".base") != 0) {
       struct_type_name = psr::uniformTypeName(struct_type_name);
@@ -115,7 +114,8 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
       if (Subtype->isStructTy()) {
         llvm::StructType *StructSubType =
             llvm::dyn_cast<llvm::StructType>(Subtype);
-        auto struct_sub_type_name = psr::uniformTypeName(StructSubType->getName().str());
+        auto struct_sub_type_name =
+            psr::uniformTypeName(StructSubType->getName().str());
 
         boost::add_edge(type_vertex_map[struct_sub_type_name],
                         type_vertex_map[struct_type_name], g);

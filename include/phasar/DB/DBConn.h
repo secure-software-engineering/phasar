@@ -114,7 +114,6 @@ private:
   void storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
                           const std::string hex_id);
 
-
 public:
   DBConn(const DBConn &db) = delete;
   DBConn(DBConn &&db) = delete;

@@ -11,6 +11,7 @@
 #define ANALYSIS_ProjectIRDB_H_
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <cassert>
 #include <clang/Basic/Diagnostic.h>
 #include <clang/CodeGen/CodeGenAction.h>
@@ -43,7 +44,6 @@
 #include <set>
 #include <string>
 #include <utility>
-#include <boost/filesystem.hpp>
 
 namespace psr {
 
