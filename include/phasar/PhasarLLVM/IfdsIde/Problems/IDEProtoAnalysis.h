@@ -58,7 +58,7 @@ public:
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  shared_ptr<FlowFunction<d_t>>
+  std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 

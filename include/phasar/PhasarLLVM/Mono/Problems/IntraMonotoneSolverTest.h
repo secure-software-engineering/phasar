@@ -26,7 +26,6 @@
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
-using namespace std;
 
 namespace psr {
 
@@ -52,7 +51,7 @@ public:
   virtual MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
   initialSeeds() override;
 
-  virtual string DtoString(const llvm::Value *d) override;
+  virtual std::string DtoString(const llvm::Value *d) override;
 };
 
 } // namespace psr

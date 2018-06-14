@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

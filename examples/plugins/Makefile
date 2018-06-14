@@ -7,21 +7,15 @@ CXX_FLAGS += -fPIC
 CXX_FLAGS += -shared
 LLVM_FLAGS := `llvm-config --cppflags`
 
-ICFGPluginSrc := MyICFGPlugin.cxx
 IFDSPluginSrc := MyIFDSProblem.cxx
-ICFGPlugin := $(patsubst %.cxx,%.so,$(ICFGPluginSrc))
 IFDSPlugin := $(patsubst %.cxx,%.so,$(IFDSPluginSrc))
 
-all: ifdsproblem callgraph
+all: ifdsproblem
 
 ifdsproblem:
 	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) $(IFDSPluginSrc) -o $(IFDSPlugin)
 
-callgraph:
-	$(CXX) $(CXX_FLAGS) $(LLVM_FLAGS) $(ICFGPluginSrc) -o $(ICFGPlugin)
-
 clean:
-	rm -f $(ICFGPlugin)
 	rm -f $(IFDSPlugin)
 	rm -f *.dot
 	rm -f *.json

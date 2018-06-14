@@ -19,7 +19,6 @@
 
 #include <iostream>
 
-using namespace std;
 namespace psr {
 
 template <typename N, typename D> class PathEdge {
@@ -48,7 +47,7 @@ public:
 
   D factAtTarget() { return dTarget; }
 
-  friend ostream &operator<<(ostream &os, const PathEdge &pathEdge) {
+  friend std::ostream &operator<<(std::ostream &os, const PathEdge &pathEdge) {
     return os << "<" << pathEdge.dSource << "> -> <" << pathEdge.target << ","
               << pathEdge.dTarget << ">";
   }

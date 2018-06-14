@@ -15,17 +15,18 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <string>
 #include <vector>
-using namespace std;
 
 namespace psr {
 
 class IDETabulationProblemPlugin {};
 
-extern "C" unique_ptr<IDETabulationProblemPlugin>
-makeIDETabulationProblemPlugin(LLVMBasedICFG &I, vector<string> EntryPoints);
+extern "C" std::unique_ptr<IDETabulationProblemPlugin>
+makeIDETabulationProblemPlugin(LLVMBasedICFG &I,
+                               std::vector<std::string> EntryPoints);
 
-extern map<string, unique_ptr<IDETabulationProblemPlugin> (*)(
-                       LLVMBasedICFG &I, vector<string> EntryPoints)>
+extern std::map<std::string,
+                std::unique_ptr<IDETabulationProblemPlugin> (*)(
+                    LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
     IDETabulationProblemPluginFactory;
 
 } // namespace psr

@@ -22,13 +22,12 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
-using namespace std;
 
 namespace psr {
 
 template <typename R, typename C, typename V> class Table {
 private:
-  unordered_map<R, unordered_map<C, V>> table;
+  std::unordered_map<R, std::unordered_map<C, V>> table;
 
 public:
   struct Cell {
@@ -45,14 +44,14 @@ public:
     R getRowKey() { return r; }
     C getColumnKey() { return c; }
     V getValue() { return v; }
-    friend ostream &operator<<(ostream &os, const Cell &c) {
+    friend std::ostream &operator<<(std::ostream &os, const Cell &c) {
       return os << "Cell: " << c.r << ", " << c.c << ", " << c.v;
     }
     friend bool operator<(const Cell &lhs, const Cell &rhs) {
-      return tie(lhs.r, lhs.c, lhs.v) < tie(rhs.r, rhs.c, rhs.v);
+      return std::tie(lhs.r, lhs.c, lhs.v) < std::tie(rhs.r, rhs.c, rhs.v);
     }
     friend bool operator==(const Cell &lhs, const Cell &rhs) {
-      return tie(lhs.r, lhs.c, lhs.v) == tie(rhs.r, rhs.c, rhs.v);
+      return std::tie(lhs.r, lhs.c, lhs.v) == std::tie(rhs.r, rhs.c, rhs.v);
     }
   };
 
@@ -82,9 +81,9 @@ public:
 
   size_t size() { return table.size(); }
 
-  set<Cell> cellSet() {
+  std::set<Cell> cellSet() {
     // Returns a set of all row key / column key / value triplets.
-    set<Cell> s;
+    std::set<Cell> s;
     for (auto &m1 : table) {
       for (auto &m2 : m1.second) {
         s.insert(Cell(m1.first, m2.first, m2.second));
@@ -93,9 +92,9 @@ public:
     return s;
   }
 
-  vector<Cell> cellVec() {
+  std::vector<Cell> cellVec() {
     // Returns a vector of all row key / column key / value triplets.
-    vector<Cell> v;
+    std::vector<Cell> v;
     for (auto &m1 : table) {
       for (auto &m2 : m1.second) {
         v.push_back(Cell(m1.first, m2.first, m2.second));
@@ -104,9 +103,9 @@ public:
     return v;
   }
 
-  unordered_map<R, V> column(C columnKey) {
+  std::unordered_map<R, V> column(C columnKey) {
     // Returns a view of all mappings that have the given column key.
-    unordered_map<R, V> column;
+    std::unordered_map<R, V> column;
     for (auto &row : table) {
       if (row.second.count(columnKey))
         column[row.first] = row.second[columnKey];
@@ -114,19 +113,19 @@ public:
     return column;
   }
 
-  multiset<C> columnKeySet() {
+  std::multiset<C> columnKeySet() {
     // Returns a set of column keys that have one or more values in the table.
-    multiset<C> colkeys;
+    std::multiset<C> colkeys;
     for (auto &m1 : table)
       for (auto &m2 : m1.second)
         colkeys.insert(m2.first);
     return colkeys;
   }
 
-  unordered_map<C, unordered_map<R, V>> columnMap() {
+  std::unordered_map<C, std::unordered_map<R, V>> columnMap() {
     // Returns a view that associates each column key with the corresponding map
     // from row keys to values.
-    unordered_map<C, unordered_map<R, V>> columnmap;
+    std::unordered_map<C, std::unordered_map<R, V>> columnmap;
     for (auto &m1 : table) {
       for (auto &m2 : table.second) {
         columnmap[m2.first][m1.first] = m2.second;
@@ -180,28 +179,28 @@ public:
 
   void remove(R rowKey) { table.erase(rowKey); }
 
-  unordered_map<C, V> &row(R rowKey) {
+  std::unordered_map<C, V> &row(R rowKey) {
     // Returns a view of all mappings that have the given row key.
     return table[rowKey];
   }
 
-  multiset<R> rowKeySet() {
+  std::multiset<R> rowKeySet() {
     // Returns a set of row keys that have one or more values in the table.
-    multiset<R> s;
+    std::multiset<R> s;
     for (auto &m1 : table)
       s.insert(m1.first);
     return s;
   }
 
-  unordered_map<R, unordered_map<C, V>> rowMap() {
+  std::unordered_map<R, std::unordered_map<C, V>> rowMap() {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return table;
   }
 
-  multiset<V> values() {
+  std::multiset<V> values() {
     // Returns a collection of all values, which may contain duplicates.
-    multiset<V> s;
+    std::multiset<V> s;
     for (auto &m1 : table)
       for (auto &m2 : m1.second)
         s.insert(m2.second);
@@ -216,7 +215,7 @@ public:
     return lhs.table < rhs.table;
   }
 
-  friend ostream &operator<<(ostream &os, const Table<R, C, V> &t) {
+  friend std::ostream &operator<<(std::ostream &os, const Table<R, C, V> &t) {
     for (auto &m1 : t.table)
       for (auto &m2 : m1.second)
         os << "< " << m1.first << " , " << m2.first << " , " << m2.second

@@ -36,9 +36,9 @@ public:
 
   virtual ~IFDSSolver() = default;
 
-  set<D> ifdsResultsAt(N stmt) {
-    set<D> keyset;
-    unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
+  std::set<D> ifdsResultsAt(N stmt) {
+    std::set<D> keyset;
+    std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
     for (auto d : map) {
       keyset.insert(d.first);
     }

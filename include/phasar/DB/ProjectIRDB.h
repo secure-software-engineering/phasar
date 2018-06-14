@@ -140,7 +140,7 @@ public:
   void exportPATBCJSON();
   std::string valueToPersistedString(const llvm::Value *V);
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
-  set<const llvm::Type *> getAllocatedTypes();
+  std::set<const llvm::Type *> getAllocatedTypes();
 };
 
 } // namespace psr

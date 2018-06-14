@@ -42,7 +42,7 @@ public:
 
   virtual ~DefaultIFDSTabulationProblem() = default;
 
-  virtual shared_ptr<FlowFunction<D>>
+  virtual std::shared_ptr<FlowFunction<D>>
   getSummaryFlowFunction(N callStmt, M destMthd) override {
     return nullptr;
   }

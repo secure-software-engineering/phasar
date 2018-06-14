@@ -23,9 +23,8 @@ class Function;
 class Value;
 } // namespace llvm
 
-class LLVMBasedICFG;
-
 namespace psr {
+class LLVMBasedICFG;
 
 class IDETaintAnalysis
     : public DefaultIDETabulationProblem<

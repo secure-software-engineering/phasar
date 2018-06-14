@@ -140,4 +140,5 @@ string
 IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
+
 } // namespace psr

@@ -25,8 +25,6 @@
 #include <set>
 #include <vector>
 
-using namespace std;
-
 class LLVMBasedBackwardsICFG : public BiDiICFG<const llvm::Instruction*, const
 llvm::Function*> {
 private:

@@ -1,0 +1,77 @@
+language: c++
+
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/boost_1_67_0/
+
+addons:
+  apt:
+    sources:
+      # - ubuntu-toolchain-r-test
+    packages:
+      - clang-5.0
+      - libclang-5.0-dev
+      - llvm-5.0
+      - llvm-5.0-dev
+      - sqlite3
+      - libsqlite3-dev
+      - bear
+      - python3
+      - git
+      - cmake
+      - zlib1g-dev
+      - libncurses5-dev
+      - graphviz
+      - doxygen
+      - libcurl4-gnutls-dev
+      - libmysqlcppconn-dev
+
+matrix:
+  include:
+  - os: linux
+    dist: xenial
+    sudo: enabled
+    compiler:
+       - clang++
+  # FIXME
+  - os: osx
+    osx_image: xcode8
+    compiler:
+      - clang++
+
+branches:
+    - development
+    - master
+
+# commands that need to be run before installing the dependencies
+# before_install:
+
+# install all dependencies
+install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew bundle ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
+  - git submodule update --init --recursive
+  # Install boost 1.67
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz; tar xf boost_1_67_0.tar.gz; cd boost_1_67_0/ ; ./bootstrap.sh 1> /dev/null ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
+
+# commands that need to be run before execution
+# before_script
+
+# build all interesting targets
+script:
+  - mkdir -p build
+  - cd build
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
+  - make -j2
+  - sudo make install
+  # Build the examples
+  - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
+  - make
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
+# Fix the unit tests first
+#  - make test

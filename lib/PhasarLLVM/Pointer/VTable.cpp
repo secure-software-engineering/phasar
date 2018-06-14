@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

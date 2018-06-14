@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/Utils/Macros.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

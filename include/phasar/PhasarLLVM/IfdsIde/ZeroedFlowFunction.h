@@ -17,22 +17,22 @@
 #ifndef ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_H_
 #define ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_H_
 
-#include "FlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
-using namespace std;
+
 namespace psr {
 
 template <typename D> class ZeroedFlowFunction : public FlowFunction<D> {
 private:
-  shared_ptr<FlowFunction<D>> delegate;
+  std::shared_ptr<FlowFunction<D>> delegate;
   D zerovalue;
 
 public:
-  ZeroedFlowFunction(shared_ptr<FlowFunction<D>> ff, D zv)
+  ZeroedFlowFunction(std::shared_ptr<FlowFunction<D>> ff, D zv)
       : delegate(ff), zerovalue(zv) {}
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == zerovalue) {
-      set<D> result = delegate->computeTargets(source);
+      std::set<D> result = delegate->computeTargets(source);
       result.insert(zerovalue);
       return result;
     } else {

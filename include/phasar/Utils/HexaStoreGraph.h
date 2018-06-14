@@ -17,12 +17,9 @@
 #ifndef UTILS_HEXASTOREGRAPH_H_
 #define UTILS_HEXASTOREGRAPH_H_
 
-#include "../db/DBConn.h"
 #include "Table.hh"
 #include <iostream>
 #include <set>
-#include <unordered_map>
-using namespace std;
 
 namespace psr {
 
@@ -83,7 +80,7 @@ public:
 
   bool empty() { return sed.empty(); }
 
-  set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
+  std::set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
 
   multiset<S> sourceSet() { return sed.rowKeySet(); }
 
@@ -109,7 +106,7 @@ public:
     return lhs.sed < rhs.sed;
   }
 
-  friend ostream &operator<<(ostream &os, const HexaStoreGraph &hsg) {
+  friend std::ostream &operator<<(std::ostream &os, const HexaStoreGraph &hsg) {
     return os << hsg.sed;
   }
 };

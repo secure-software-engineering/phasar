@@ -39,7 +39,6 @@
 #include <phasar/Config/Configuration.h>
 #include <string>
 
-using namespace std;
 namespace bl = boost::log;
 namespace bfs = boost::filesystem;
 
@@ -51,13 +50,13 @@ namespace psr {
 
 enum severity_level { DEBUG = 0, INFO, WARNING, ERROR, CRITICAL };
 
-extern const map<string, severity_level> StringToSeverityLevel;
+extern const std::map<std::string, severity_level> StringToSeverityLevel;
 
-extern const map<severity_level, string> SeverityLevelToString;
+extern const std::map<severity_level, std::string> SeverityLevelToString;
 
 extern severity_level logFilterLevel;
 
-ostream &operator<<(ostream &os, enum severity_level l);
+std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
 // Register the logger and use it a singleton then, get the logger with:
 // bl::sources::severity_logger<severity_level>& lg = lg::get();
@@ -97,7 +96,7 @@ struct LoggerExceptionHandler {
 /**
  * Initializes the logger.
  */
-void initializeLogger(bool use_logger, string log_file = "");
+void initializeLogger(bool use_logger, std::string log_file = "");
 
 } // namespace psr
 

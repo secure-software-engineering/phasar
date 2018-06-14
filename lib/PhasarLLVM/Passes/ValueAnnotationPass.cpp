@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

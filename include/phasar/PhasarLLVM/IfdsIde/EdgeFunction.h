@@ -20,7 +20,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
-using namespace std;
+
 namespace psr {
 
 template <typename V> class EdgeFunction {
@@ -29,17 +29,17 @@ public:
 
   virtual V computeTarget(V source) = 0;
 
-  virtual shared_ptr<EdgeFunction<V>>
-  composeWith(shared_ptr<EdgeFunction<V>> secondFunction) = 0;
+  virtual std::shared_ptr<EdgeFunction<V>>
+  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) = 0;
 
-  virtual shared_ptr<EdgeFunction<V>>
-  joinWith(shared_ptr<EdgeFunction<V>> otherFunction) = 0;
+  virtual std::shared_ptr<EdgeFunction<V>>
+  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) = 0;
 
-  virtual bool equalTo(shared_ptr<EdgeFunction<V>> other) = 0;
+  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) = 0;
 
   virtual void dump() { std::cout << "edge function\n"; }
 
-  virtual string toString() { return "edge function"; }
+  virtual std::string toString() { return "edge function"; }
 };
 
 } // namespace psr

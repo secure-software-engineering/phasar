@@ -22,20 +22,20 @@
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
-using namespace std;
+#include <stdexcept>
 
 namespace psr {
 
 template <typename T, unsigned K> class CallString {
 private:
-  deque<T> cs;
+  std::deque<T> cs;
   static const unsigned k = K;
 
 public:
   CallString() = default;
-  CallString(initializer_list<T> ilist) : cs(ilist) {
+  CallString(std::initializer_list<T> ilist) : cs(ilist) {
     if (ilist.size() > k) {
-      throw runtime_error(
+      throw std::runtime_error(
           "initial call string length exceeds maximal length K");
     }
   }
@@ -56,7 +56,7 @@ public:
     }
   }
   size_t size() { return cs.size(); }
-  deque<T> getInternalCS() const { return cs; }
+  std::deque<T> getInternalCS() const { return cs; }
   friend bool operator==(const CallString &lhs, const CallString &rhs) {
     return lhs.cs == rhs.cs;
   }
@@ -66,8 +66,8 @@ public:
   friend bool operator<(const CallString &lhs, const CallString &rhs) {
     return lhs.cs < rhs.cs;
   }
-  friend ostream &operator<<(ostream &os, const CallString &c) {
-    copy(c.cs.begin(), --c.cs.end(), std::ostream_iterator<T>(os, " * "));
+  friend std::ostream &operator<<(std::ostream &os, const CallString &c) {
+    std::copy(c.cs.begin(), --c.cs.end(), std::ostream_iterator<T>(os, " * "));
     os << c.cs.back();
     return os;
   }

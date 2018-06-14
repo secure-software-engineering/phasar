@@ -19,7 +19,6 @@
 
 #include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class FlowFunction {

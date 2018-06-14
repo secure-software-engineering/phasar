@@ -31,28 +31,29 @@
 #include <sstream>
 #include <string>
 #include <vector>
-using namespace std;
+
 namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
 private:
-  map<string, shared_ptr<FlowFunction<D>>> SpecialFlowFunctions;
-  map<string, shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
-  vector<string> SpecialFunctionNames;
+  std::map<std::string, std::shared_ptr<FlowFunction<D>>> SpecialFlowFunctions;
+  std::map<std::string, std::shared_ptr<EdgeFunction<V>>> SpecialEdgeFunctions;
+  std::vector<std::string> SpecialFunctionNames;
 
   // Constructs the SpecialSummaryMap such that it contains all glibc,
   // llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
   // flow functions.
   SpecialSummaries() {
-    string glibc = readFile(PhasarDirectory + ConfigurationDirectory +
-                            GLIBCFunctionListFileName);
-    vector<string> glibcfunctions = splitString(glibc, "\n");
+    std::string glibc =
+        readFile(ConfigurationDirectory + GLIBCFunctionListFileName);
+    std::vector<std::string> glibcfunctions = splitString(glibc, "\n");
     // Insert glibc function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),
                                 glibcfunctions.begin(), glibcfunctions.end());
-    string llvmintrinsics = readFile(PhasarDirectory + ConfigurationDirectory +
-                                     LLVMIntrinsicFunctionListFileName);
-    vector<string> llvmintrinsicfunctions = splitString(llvmintrinsics, "\n");
+    std::string llvmintrinsics =
+        readFile(ConfigurationDirectory + LLVMIntrinsicFunctionListFileName);
+    std::vector<std::string> llvmintrinsicfunctions =
+        splitString(llvmintrinsics, "\n");
     // Insert llvm intrinsic function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),
                                 llvmintrinsicfunctions.begin(),
@@ -82,17 +83,17 @@ public:
   }
 
   // Returns true, when an existing function is overwritten, false otherwise.
-  bool provideSpecialSummary(const string &name,
-                             shared_ptr<FlowFunction<D>> flowfunction) {
+  bool provideSpecialSummary(const std::string &name,
+                             std::shared_ptr<FlowFunction<D>> flowfunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     return Override;
   }
 
   // Returns true, when an existing function is overwritten, false otherwise.
-  bool provideSpecialSummary(const string &name,
-                             shared_ptr<FlowFunction<D>> flowfunction,
-                             shared_ptr<EdgeFunction<V>> edgefunction) {
+  bool provideSpecialSummary(const std::string &name,
+                             std::shared_ptr<FlowFunction<D>> flowfunction,
+                             std::shared_ptr<EdgeFunction<V>> edgefunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     SpecialEdgeFunctions[name] = edgefunction;
@@ -103,31 +104,32 @@ public:
     return containsSpecialSummary(function->getName().str());
   }
 
-  bool containsSpecialSummary(const string &name) {
+  bool containsSpecialSummary(const std::string &name) {
     return SpecialFlowFunctions.count(name);
   }
 
-  shared_ptr<FlowFunction<D>>
+  std::shared_ptr<FlowFunction<D>>
   getSpecialFlowFunctionSummary(const llvm::Function *function) {
     return getSpecialFlowFunctionSummary(function->getName().str());
   }
 
-  shared_ptr<FlowFunction<D>>
-  getSpecialFlowFunctionSummary(const string &name) {
+  std::shared_ptr<FlowFunction<D>>
+  getSpecialFlowFunctionSummary(const std::string &name) {
     return SpecialFlowFunctions[name];
   }
 
-  shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   getSpecialEdgeFunctionSummary(const llvm::Function *function) {
     return getSpecialEdgeFunctionSummary(function->getName().str());
   }
 
-  shared_ptr<EdgeFunction<V>>
-  getSpecialEdgeFunctionSummary(const string &name) {
+  std::shared_ptr<EdgeFunction<V>>
+  getSpecialEdgeFunctionSummary(const std::string &name) {
     return SpecialEdgeFunctions[name];
   }
 
-  friend ostream &operator<<(ostream &os, const SpecialSummaries<D> &ss) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const SpecialSummaries<D> &ss) {
     os << "SpecialSummaries:\n";
     for (auto &entry : ss.SpecialFunctionNames) {
       os << entry.first << " ";

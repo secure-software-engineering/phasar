@@ -4,8 +4,8 @@ using namespace std;
 using namespace psr;
 
 // Factory function that is used to create an instance by the Phasar framework.
-unique_ptr<IFDSTabulationProblemPlugin> makeMyIFDSProblem(
-    LLVMBasedICFG &I, vector<string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin>
+makeMyIFDSProblem(LLVMBasedICFG &I, vector<string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
       new MyIFDSProblem(I, EntryPoints));
 }

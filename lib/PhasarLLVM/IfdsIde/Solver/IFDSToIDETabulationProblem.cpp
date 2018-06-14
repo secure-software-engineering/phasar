@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

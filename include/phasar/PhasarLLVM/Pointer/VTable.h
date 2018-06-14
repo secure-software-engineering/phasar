@@ -23,7 +23,7 @@
 #include <llvm/IR/Type.h>
 #include <string>
 #include <vector>
-using namespace std;
+
 using json = nlohmann::json;
 
 namespace psr {
@@ -36,7 +36,7 @@ namespace psr {
  */
 class VTable {
 private:
-  vector<string> vtbl;
+  std::vector<std::string> vtbl;
 
 public:
   VTable() = default;
@@ -47,7 +47,7 @@ public:
    * 	@param i Index of the entry.
    * 	@return Function identifier.
    */
-  string getFunctionByIdx(unsigned i);
+  std::string getFunctionByIdx(unsigned i);
 
   /**
    * 	@brief Returns position index of the given function identifier
@@ -55,7 +55,7 @@ public:
    * 	@param fname Function identifier.
    * 	@return Index of the functions entry.
    */
-  int getEntryByFunctionName(string fname) const;
+  int getEntryByFunctionName(std::string fname) const;
 
   /**
    * 	@brief Adds the given entry to the VTable.
@@ -63,29 +63,29 @@ public:
    *
    * 	A new entry will be added at the end of the VTable.
    */
-  void addEntry(string entry);
+  void addEntry(std::string entry);
 
   /**
    * 	@brief Checks if the VTable has no entries.
    * 	@return True, if VTable is empty, false otherwise.
    */
   bool empty();
-  vector<string>::iterator begin();
-  vector<string>::const_iterator begin() const;
-  vector<string>::iterator end();
-  vector<string>::const_iterator end() const;
+  std::vector<std::string>::iterator begin();
+  std::vector<std::string>::const_iterator begin() const;
+  std::vector<std::string>::iterator end();
+  std::vector<std::string>::const_iterator end() const;
   /**
    * 	@brief Returns the VTable as a std::vector.
    * 	@return std::vector holding all information of the VTable.
    */
-  vector<string> getVTable() const;
+  std::vector<std::string> getVTable() const;
 
   /**
    * 	@brief VTable's print operator.
    * 	@param os A character output stream.
    * 	@param t A VTable to be printed.
    */
-  friend ostream &operator<<(ostream &os, const VTable &t);
+  friend std::ostream &operator<<(std::ostream &os, const VTable &t);
 
   json exportPATBCJSON();
 };

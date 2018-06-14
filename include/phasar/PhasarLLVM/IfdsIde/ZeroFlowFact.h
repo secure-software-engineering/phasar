@@ -10,6 +10,7 @@
 #ifndef ZEROFLOWFACT_H_
 #define ZEROFLOWFACT_H_
 
+#include <iostream>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
 namespace psr {
 
@@ -19,6 +20,7 @@ public:
   std::ostream &print(std::ostream &os) const override;
   static FlowFact *getInstance();
 };
+
 } // namespace psr
 
 #endif

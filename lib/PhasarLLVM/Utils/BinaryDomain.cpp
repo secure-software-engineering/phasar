@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

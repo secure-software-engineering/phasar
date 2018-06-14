@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

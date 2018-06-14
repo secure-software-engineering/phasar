@@ -1,3 +1,5 @@
+![alt text](img/Logo_RGB/Phasar_Logo.png)
+
 Phasar a LLVM-based Static Analysis Framework
 =============================================
 
@@ -6,6 +8,11 @@ Secure Software Engineering Group
 
 + Philipp Schubert (philipp.schubert@upb.de) and others
 + Please also refer to https://phasar.org/
+
+|branch | status |
+| :---: | :---: |
+| master | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=master"> |
+| development | <img src="https://travis-ci.org/secure-software-engineering/phasar.svg?branch=development"> |
 
 Currently supported version of LLVM
 -----------------------------------
@@ -48,6 +55,7 @@ Table of Contents
 
 * [Purpose of this tool](#purpose-of-this-tool)
 * [Errors](#errors)
+    * [Observations](#observations)
 * [Installation](#installation)
     * [Brief example using an Ubuntu system](#brief-example-using-an-ubuntu-system)
         * [Installing SQLITE3](#installing-sqlite3)
@@ -56,7 +64,7 @@ Table of Contents
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
         * [Installing LLVM](#installing-llvm)
-        * [CMake](#cmake)
+    * [Compile Phasar](#compile-phasar)
     * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
     * [Creating the configuration files](#creating-the-configuration-files)
@@ -89,12 +97,24 @@ in the area of program analysis.
 
 ### Errors
 This framework is still under development. Thus, it might contain errors that
-are (un)known to the developers. If you find an error please send mail and report
-it to the developers. The report should include at least a summary of what you 
+are (un)known to the developers. If you find an error please create an issue [in our tracker on Github](../../issues). The report should include at least a summary of what you 
 were doing when you hit the error and a complete error message (if possible). 
 We will try to fix bugs as quickly as possible, please help us achieving this goal.
 If you are familiar with program analysis and LLVM you are free to fix the bug,
 improve Phasar, and send a pull request.
+
+#### Observations
+We experienced some segmentation faults caused by the OS's stack size limit when analyzing programs with more than
+ ~ > 240 k IR instructions or ~ > 21 k call-sites.
+The limits can be check with
+
+`$ ulimit -a`
+
+In case you would like to analyze larger programs adjust the stack size limit to your needs e.g. set the
+limit to 16 MB:
+
+`$ ulimit -s 16777216`
+
 
 Installation
 ------------
@@ -135,7 +155,7 @@ can be installed using the apt package management system.
 #### Installing ZLIB
 ZLIB can just be installed from the Ubuntu sources:
 
-$ sudo apt-get install zlib1g-dev
+`$ sudo apt-get install zlib1g-dev`
 
 That's it - done.
 
@@ -143,7 +163,7 @@ That's it - done.
 #### Installing LIBCURSES
 LIBCURSES can just be installed from the Ubuntu sources:
 
-$ sudo apt-get install libncurses5-dev
+`$ sudo apt-get install libncurses5-dev`
 
 Done!
 
@@ -151,19 +171,19 @@ Done!
 #### Installing SQLITE3
 SQLITE3 can just be installed from the Ubuntu sources:
 
-$ sudo apt-get install sqlite3 libsqlite3-dev
+`$ sudo apt-get install sqlite3 libsqlite3-dev`
 
 That's it - done.
 
 #### Installing MySQL
 MySQL can be installed from the Ubuntu sources using:
 
-$ sudo apt-get install libmysqlcppconn-dev
+`$ sudo apt-get install libmysqlcppconn-dev`
 
 #### Installing BEAR
 BEAR can just be installed from the Ubuntu sources:
 
-$ sudo apt-get install bear
+`$ sudo apt-get install bear`
 
 Done!
 
@@ -171,7 +191,7 @@ Done!
 Python3 can be installed using the Ubuntu sources as well. Just use
 the command:
 
-$ sudo apt-get install python3
+`$ sudo apt-get install python3`
 
 and you are done.
 
@@ -181,7 +201,7 @@ If you want to generate the documentation running 'make doc' you have to install
 [Doxygen](www.doxygen.org) and [Graphviz](www.graphviz.org).
 To install them just use the command:
   
-  $ sudo apt-get install doxygen graphviz
+  `$ sudo apt-get install doxygen graphviz`
 
 Done!
 
@@ -189,33 +209,33 @@ Done!
 #### Installing BOOST
 First you have to download the BOOST source files. This can be achieved by:
 
-$ wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
+`$ wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz`
 
 Next the archive file must be extracted by using:
 
-$ tar xvf boost_1_66_0.tar.gz
+`$ tar xvf boost_1_66_0.tar.gz`
 
 Jump into the directory!
 
-$ cd boost_1_66_0/
+`$ cd boost_1_66_0/`
 
 The next command which prepares the compilation process assumes that you have
 write permission in your system's /usr/local/ directory.
 
-$ ./bootstrap.sh
+`$ ./bootstrap.sh`
 
 If no errors occur boost can now be installed using admin permission:
 
-$ sudo ./b2 install
+`$ sudo ./b2 install`
 
 You should be able to find the boost installation on your system now.
 
-$ ls /usr/local/lib
+`$ ls /usr/local/lib`
 
 Should output a lot of library files prefixed with 'libboost_'.
 The result of the command
 
-$ ls /usr/local/include
+`$ ls /usr/local/include`
 
 should contain one directory which is called 'boost'. Congratulations, now you
 have installed boost.
@@ -226,21 +246,20 @@ install-llvm-*.sh that can be found in Phasar project directory utils/. Paramete
 shall be used for compilation (more is better) and tell it where you would like LLVM to
 be downloaded and build. E.g. use
 
-$ ./install-llvm-5.0.1.sh 4 ~/
+`$ ./install-llvm-5.0.1.sh 4 ~/`
 
 to build llvm-5.0.1 using 4 cores in your home directory.
 
 
-#### CMake
+### Compile Phasar
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 
+```
 $ mkdir build
-
 $ cd build/
-
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
-
 $ make -j $(nproc) # or use a different number of cores to compile it
+```
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
 
@@ -249,11 +268,11 @@ After compilation using cmake the following two binaries can be found in the bui
 
 Use the command:
 
-$ ./phasar --help
+`$ ./phasar --help`
 
 in order to display the manual and help message.
 
-$ sudo make install
+`$ sudo make install`
 
 Please be careful and check if errors occur during the compilation.
 
@@ -279,8 +298,10 @@ Mac OS 10.13.1 or higher only !
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
 The needed packages are
+```
 $ brew install boost
 $ brew install python3
+```
 
 **To be continued.**
 
@@ -288,7 +309,7 @@ $ brew install python3
 ##### Running a test solver
 To test if everything works as expected please run the following command:
 
-$ phasar --module test/build_systems_tests/installation_tests/module.ll --analysis ifds_solvertest
+`$ phasar --module test/build_systems_tests/installation_tests/module.ll -D ifds_solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
@@ -301,9 +322,10 @@ In the following we will describe how Phasar can be used to perform data-flow an
 Phasar's built-in analyses can be selected using the -D or --analysis command-line option. 
 Note: more than one analysis can be selected to be executed on the code under analsis. Example:
 
+```
 $ phasar -m module.ll -D ifds_solvertest
-
 $ phasar -m module.ll -D ifds_uninit
+```
 
 If no analysis is selected only the call-graph and other support data structures are created. 
 If a call using "-D none" fails, there is definitely an error within the code or project under 
@@ -386,7 +408,7 @@ Since all analysis solvers are working on the LLVM IR we probably want to see th
 
 The above C/C++ code can be translated into the LLVM IR using programs of the LLVM compiler tool chain. In our case we call the clang compiler and ask it to emit the LLVM IR code.
 
-$ clang++ -emit-llvm -S main.cpp
+`$ clang++ -emit-llvm -S main.cpp`
 
 After running this command a file named main.ll can be found within the current directory. The main.ll should contain code similar to:
 ```C++
@@ -424,7 +446,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-$ main -m path/to/your/main.ll -a ifds_solvertest
+`$ main -m path/to/your/main.ll -D ifds_solvertest`
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
@@ -433,7 +455,7 @@ The LLVM infrastructure supports many different passes that can be run on the in
 TODO!!!
 Let us have a look what the mem2reg pass does to our IR code from above. We run the pass by using the opt tool provided by the compiler tool chain.
 
-$ opt -mem2reg -S main.ll
+`$ opt -mem2reg -S main.ll`
 
 The output of that command should look similar to
 
@@ -582,13 +604,13 @@ There are three cases which are worth mentioning:
 
 This is probably the easiest case. Here the project under analysis just consists of a bunch of C/C++ source files that can be - when compiled accordingly - directly linked into an executable file. No external libraries are used. You can use the external python script that will compile all files registed in the 'compile_commands.json' file with the correct parameterization using the external clang(++) front-end. The script only needs one parameter specifying the project directory containing the 'compile_commands.json' file. The script creates a new directory containing the LLVM IR compiled sources. Using the command line and changing into this directory you should be able to compile all of the *.ll files into the executable using:
 
-$ clang++ *.ll -o main
+`$ clang++ *.ll -o main`
 
 If no errors occur, these are all the source files in LLVM IR needed in order to produce the final program. When you would like to perform a simple whole program analysis, you can link all LLVM IR code from the .ll files into a single IR file using the following command:
 
-$ llvm-link -S *.ll -o main.ll
+`$ llvm-link -S *.ll -o main.ll`
 
-This file can now be feed into the framework using the '-m' switch. But you can also feed the .ll files into Phasar like: $ phasar -m file1.ll file2.ll ...
+This file can now be feed into the framework using the '-m' switch. But you can also feed the .ll files into Phasar like: `$ phasar -m file1.ll file2.ll ...`
 
 
 **(ii) single self-contained program using at least one library**
@@ -604,7 +626,7 @@ Since the linker just told you, that some symbols are missing, you have to provi
 
 This case is hard. Here your project encodes more than one program and may use external libraries. This case can be detected again by compiling all files in the 'compile_commands.json' into llvm IR using the external compilation script. Trying to link all .ll files into an executable file leads to violations of the one definition rule (ODR) and may result in unresolved reference errors. How to handle this case? Now your UNIX shell skills are required. The basic idea is to look for definitions of main() within the llvm IR files.
 
-$ grep -R "define i32 @main("
+`$ grep -R "define i32 @main("`
 
 The resulting list of files shows how many seperate programs your project actually contains. The idea now is to get rid of all but one file containing main in order to find what code belongs to that program. Now you try to relink the llvm IR code into an executable. If a again multiple definitions of the same symbol are found you have to use the UNIX commands in order to find what files to remove. Proceed until ODR is no more violated and only unresolved reference errors are shown by the linker. Make sure that these unresolved reference error really result from the use of external libraries and not from yourself having blindly removed too many .ll files. At this stage you can proceed as described in (ii), that is link all of your remaining .ll files into a single .ll file containig just the code for the program you have isolated. The remaining .ll code can now be analyzed using Phasar. Provide summaries for the library functions if you want to have your code analyzed correctly. Of course you have to repeat the very same procedure with the other files defining a main() function that you previoursly got rid off.
 

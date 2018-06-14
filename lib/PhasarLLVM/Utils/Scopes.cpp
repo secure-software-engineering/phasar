@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Utils/Scopes.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

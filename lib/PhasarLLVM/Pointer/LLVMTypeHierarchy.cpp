@@ -15,6 +15,7 @@
  */
 
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

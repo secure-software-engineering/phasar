@@ -22,15 +22,11 @@
 #include <iostream>
 #include <string>
 
-using namespace std;
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace llvm;
 namespace psr {
 
-class MyMatcher : public MatchFinder::MatchCallback {
+class MyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:
-  virtual void run(const MatchFinder::MatchResult &Result);
+  virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &Result);
 };
 
 } // namespace psr

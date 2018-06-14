@@ -29,12 +29,11 @@
 // template<typename V>
 // class AllBottom;
 
-using namespace std;
 namespace psr {
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,
-                     public enable_shared_from_this<EdgeIdentity<V>> {
+                     public std::enable_shared_from_this<EdgeIdentity<V>> {
 private:
   EdgeIdentity() = default;
 
@@ -47,13 +46,13 @@ public:
 
   virtual V computeTarget(V source) override { return source; }
 
-  virtual shared_ptr<EdgeFunction<V>>
-  composeWith(shared_ptr<EdgeFunction<V>> secondFunction) override {
+  virtual std::shared_ptr<EdgeFunction<V>>
+  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
     return secondFunction;
   }
 
-  virtual shared_ptr<EdgeFunction<V>>
-  joinWith(shared_ptr<EdgeFunction<V>> otherFunction) override {
+  virtual std::shared_ptr<EdgeFunction<V>>
+  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     if ((otherFunction.get() == this) ||
         otherFunction->equalTo(this->shared_from_this()))
       return this->shared_from_this();
@@ -65,23 +64,24 @@ public:
     return otherFunction->joinWith(this->shared_from_this());
   }
 
-  virtual bool equalTo(shared_ptr<EdgeFunction<V>> other) override {
+  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) override {
     return this == other.get();
   }
 
-  static shared_ptr<EdgeIdentity<V>> getInstance() {
+  static std::shared_ptr<EdgeIdentity<V>> getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static shared_ptr<EdgeIdentity<V>> instance(new EdgeIdentity<V>());
+    static std::shared_ptr<EdgeIdentity<V>> instance(new EdgeIdentity<V>());
     return instance;
   }
 
-  friend ostream &operator<<(ostream &os, const EdgeIdentity &edgeIdentity) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const EdgeIdentity &edgeIdentity) {
     return os << "edge identity";
   }
 
-  void dump() override { cout << "edge identity\n"; }
+  void dump() override { std::cout << "edge identity\n"; }
 
-  string toString() override { return "edge identity"; }
+  std::string toString() override { return "edge identity"; }
 };
 
 } // namespace psr

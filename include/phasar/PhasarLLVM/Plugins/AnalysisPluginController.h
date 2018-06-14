@@ -25,7 +25,7 @@
 #include <set>
 #include <string>
 #include <vector>
-using namespace std;
+
 using json = nlohmann::json;
 
 namespace psr {
@@ -35,8 +35,9 @@ private:
   json &FinalResultsJson;
 
 public:
-  AnalysisPluginController(vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
-                           vector<string> EntryPoints, json &Results);
+  AnalysisPluginController(std::vector<std::string> AnalysisPlygins,
+                           LLVMBasedICFG &ICFG,
+                           std::vector<std::string> EntryPoints, json &Results);
 };
 
 } // namespace psr

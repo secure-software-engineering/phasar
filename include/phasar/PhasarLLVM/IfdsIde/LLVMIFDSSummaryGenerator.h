@@ -34,7 +34,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-using namespace std;
+
 namespace psr {
 
 template <typename I, typename ConcreteIFDSTabulationProblem>
@@ -44,8 +44,8 @@ class LLVMIFDSSummaryGenerator
                                   I, ConcreteIFDSTabulationProblem,
                                   LLVMIFDSSolver<const llvm::Value *, I>> {
 private:
-  virtual vector<const llvm::Value *> getInputs() {
-    vector<const llvm::Value *> inputs;
+  virtual std::vector<const llvm::Value *> getInputs() {
+    std::vector<const llvm::Value *> inputs;
     // collect arguments
     for (auto &arg : this->toSummarize->args()) {
       inputs.push_back(&arg);
@@ -56,11 +56,11 @@ private:
     return inputs;
   }
 
-  virtual vector<bool>
-  generateBitPattern(const vector<const llvm::Value *> &inputs,
-                     const set<const llvm::Value *> &subset) {
+  virtual std::vector<bool>
+  generateBitPattern(const std::vector<const llvm::Value *> &inputs,
+                     const std::set<const llvm::Value *> &subset) {
     // initialize all bits to zero
-    vector<bool> bitpattern(inputs.size(), 0);
+    std::vector<bool> bitpattern(inputs.size(), 0);
     if (subset.empty()) {
       return bitpattern;
     }

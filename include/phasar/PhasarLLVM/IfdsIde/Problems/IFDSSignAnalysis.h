@@ -23,9 +23,8 @@ class Function;
 class Value;
 } // namespace llvm
 
-class LLVMBasedICFG;
-using namespace std;
 namespace psr {
+class LLVMBasedICFG;
 
 class IFDSSignAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,

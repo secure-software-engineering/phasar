@@ -21,13 +21,12 @@
 #include <set>
 #include <tuple>
 #include <unordered_map>
-using namespace std;
 
 namespace psr {
 
 template <typename R, typename C, typename V> class MultiKeyTable {
 private:
-  unordered_multimap<R, unordered_multimap<C, V>> multi_key_table;
+  std::unordered_multimap<R, std::unordered_multimap<C, V>> multi_key_table;
 
 public:
   struct Cell {
@@ -103,10 +102,10 @@ public:
     return colkeys;
   }
 
-  unordered_multimap<C, unordered_multimap<R, V>> columnMap() {
+  std::unordered_multimap<C, std::unordered_multimap<R, V>> columnMap() {
     // Returns a view that associates each column key with the corresponding map
     // from row keys to values.
-    unordered_multimap<C, unordered_multimap<R, V>> columnmap;
+    std::unordered_multimap<C, std::unordered_multimap<R, V>> columnmap;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : multi_key_table.second) {
         columnmap[m2.first][m1.first] = m2.second;
@@ -145,7 +144,7 @@ public:
     return false;
   }
 
-  vector<V> get(R rowKey, C columnKey) {
+  std::vector<V> get(R rowKey, C columnKey) {
     // Returns the value corresponding to the given row and column keys, or null
     // if no such mapping exists.
     // if (table.count(rowKey))
@@ -164,7 +163,7 @@ public:
     return v;
   }
 
-  unordered_multimap<C, V> &row(R rowKey) {
+  std::unordered_multimap<C, V> &row(R rowKey) {
     // Returns a view of all mappings that have the given row key.
     return multi_key_table[rowKey];
   }
@@ -177,7 +176,7 @@ public:
     return s;
   }
 
-  unordered_multimap<R, unordered_multimap<C, V>> rowMap() {
+  std::unordered_multimap<R, std::unordered_multimap<C, V>> rowMap() {
     // Returns a view that associates each row key with the corresponding map
     // from column keys to values.
     return multi_key_table;
@@ -202,7 +201,8 @@ public:
     return lhs.multi_key_table < rhs.multi_key_table;
   }
 
-  friend ostream &operator<<(ostream &os, const MultiKeyTable<R, C, V> &t) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const MultiKeyTable<R, C, V> &t) {
     for (auto &m1 : t.multi_key_table)
       for (auto &m2 : m1.second)
         os << "< " << m1.first << " , " << m2.first << " , " << m2.second

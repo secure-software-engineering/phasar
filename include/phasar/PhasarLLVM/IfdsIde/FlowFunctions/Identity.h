@@ -21,7 +21,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class Identity : public FlowFunction<D> {
@@ -33,9 +32,10 @@ public:
   Identity(const Identity &i) = delete;
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
-  set<D> computeTargets(D source) override { return {source}; }
-  static shared_ptr<Identity> getInstance() {
-    static shared_ptr<Identity> instance = shared_ptr<Identity>(new Identity);
+  std::set<D> computeTargets(D source) override { return {source}; }
+  static std::shared_ptr<Identity> getInstance() {
+    static std::shared_ptr<Identity> instance =
+        std::shared_ptr<Identity>(new Identity);
     return instance;
   }
 };

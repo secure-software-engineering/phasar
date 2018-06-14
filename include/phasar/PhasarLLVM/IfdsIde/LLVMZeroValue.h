@@ -23,14 +23,14 @@
 #include <llvm/IR/Module.h>
 #include <memory>
 #include <string>
-using namespace std;
+
 namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working
-extern const string LLVMZeroValueInternalName;
-extern const string LLVMZeroValueInternalModuleName;
-extern const unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX;
-extern const unique_ptr<llvm::Module> LLVMZeroValueMod;
+extern const std::string LLVMZeroValueInternalName;
+extern const std::string LLVMZeroValueInternalModuleName;
+extern const std::unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX;
+extern const std::unique_ptr<llvm::Module> LLVMZeroValueMod;
 
 /**
  * This function can be used to determine if a Value is a ZeroVale.

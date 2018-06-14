@@ -12,7 +12,6 @@
 
 #include <iostream>
 #include <map>
-using namespace std;
 
 namespace psr {
 
@@ -24,13 +23,13 @@ enum class SummaryGenerationStrategy {
   always_none
 };
 
-extern const map<SummaryGenerationStrategy, string>
+extern const std::map<SummaryGenerationStrategy, std::string>
     SummaryGenerationStrategyToString;
 
-extern const map<string, SummaryGenerationStrategy>
+extern const std::map<std::string, SummaryGenerationStrategy>
     StringToSummaryGenerationStrategy;
 
-ostream &operator<<(ostream &os, const SummaryGenerationStrategy &s);
+std::ostream &operator<<(std::ostream &os, const SummaryGenerationStrategy &s);
 
 } // namespace psr
 

@@ -101,7 +101,7 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Normal-FF Construction");
       auto ff = (autoAddZero)
-                    ? make_shared<ZeroedFlowFunction<D>>(
+                    ? std::make_shared<ZeroedFlowFunction<D>>(
                           problem.getNormalFlowFunction(curr, succ), zeroValue)
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
@@ -119,7 +119,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Call-FF Construction");
       auto ff =
           (autoAddZero)
-              ? make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D>>(
                     problem.getCallFlowFunction(callStmt, destMthd), zeroValue)
               : problem.getCallFlowFunction(callStmt, destMthd);
       CallFlowFunctionCache.insert(make_pair(key, ff));
@@ -137,7 +137,7 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Return-FF Construction");
       auto ff = (autoAddZero)
-                    ? make_shared<ZeroedFlowFunction<D>>(
+                    ? std::make_shared<ZeroedFlowFunction<D>>(
                           problem.getRetFlowFunction(callSite, calleeMthd,
                                                      exitStmt, retSite),
                           zeroValue)
@@ -159,7 +159,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("CallToRet-FF Construction");
       auto ff =
           (autoAddZero)
-              ? make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D>>(
                     problem.getCallToRetFlowFunction(callSite, retSite,
                                                      callees),
                     zeroValue)

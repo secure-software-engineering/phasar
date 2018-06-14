@@ -18,8 +18,8 @@
 #define ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class Kill : public FlowFunction<D> {
@@ -29,7 +29,7 @@ private:
 public:
   Kill(D killValue) : killValue(killValue) {}
   virtual ~Kill() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == killValue)
       return {};
     else

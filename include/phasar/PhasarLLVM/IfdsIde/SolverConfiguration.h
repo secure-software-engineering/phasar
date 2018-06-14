@@ -18,7 +18,7 @@
 #define ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_H_
 
 #include <iostream>
-using namespace std;
+
 namespace psr {
 
 struct SolverConfiguration {
@@ -40,7 +40,8 @@ struct SolverConfiguration {
   bool computeValues = false;
   bool recordEdges = false;
   bool computePersistedSummaries = false;
-  friend ostream &operator<<(ostream &os, const SolverConfiguration &sc);
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const SolverConfiguration &sc);
 };
 
 } // namespace psr

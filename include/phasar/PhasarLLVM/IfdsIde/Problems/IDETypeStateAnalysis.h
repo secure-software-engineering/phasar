@@ -23,7 +23,6 @@ class Value;
 } // namespace llvm
 
 namespace psr {
-
 class LLVMBasedICFG;
 
 enum State { uninit = 0, error };

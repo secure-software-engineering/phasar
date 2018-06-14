@@ -20,13 +20,12 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <string>
-using namespace std;
 
 namespace psr {
 
-string readFile(const string &path);
+std::string readFile(const std::string &path);
 
-void writeFile(const string &path, const string &content);
+void writeFile(const std::string &path, const std::string &content);
 
 } // namespace psr
 

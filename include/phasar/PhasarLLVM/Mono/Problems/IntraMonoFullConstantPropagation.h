@@ -26,15 +26,16 @@
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
-using namespace std;
+#include <utility>
+
 namespace psr {
 
 class IntraMonoFullConstantPropagation
     : public IntraMonotoneProblem<const llvm::Instruction *,
-                                  pair<const llvm::Value *, unsigned>,
+                                  std::pair<const llvm::Value *, unsigned>,
                                   const llvm::Function *, LLVMBasedCFG &> {
 public:
-  typedef pair<const llvm::Value *, unsigned> DFF;
+  typedef std::pair<const llvm::Value *, unsigned> DFF;
 
   IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
   virtual ~IntraMonoFullConstantPropagation() = default;
@@ -51,7 +52,8 @@ public:
   virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>>
   initialSeeds() override;
 
-  virtual string DtoString(pair<const llvm::Value *, unsigned> d) override;
+  virtual std::string
+  DtoString(std::pair<const llvm::Value *, unsigned> d) override;
 };
 
 } // namespace psr

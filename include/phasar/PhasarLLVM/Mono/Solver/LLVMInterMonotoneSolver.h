@@ -17,11 +17,12 @@
 #ifndef SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_H_
 #define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_H_
 
-#include "../InterMonotoneProblem.h"
-#include "InterMonotoneSolver.h"
 #include <iostream>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
-using namespace std;
+#include <llvm/IR/Value.h>
+#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneSolver.h>
 
 namespace psr {
 
@@ -57,32 +58,32 @@ public:
   }
 
   void dumpResults() {
-    cout << "Monotone solver results:\n";
+    std::cout << "Monotone solver results:\n";
     // Iterate instructions
     for (auto &node :
          InterMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, const llvm::Value *, K,
                              I>::Analysis) {
-      cout << "Instruction: " << llvmIRToString(node.first) << " in "
-           << node.first->getFunction()->getName().str() << "\n";
+      std::cout << "Instruction: " << llvmIRToString(node.first) << " in "
+                << node.first->getFunction()->getName().str() << "\n";
       // Iterate call-string - flow fact set pairs
       for (auto &flowfacts : node.second) {
-        cout << "Context: ";
+        std::cout << "Context: ";
         // Print the elements of the call string
         for (auto cstring : flowfacts.first.getInternalCS()) {
-          cout
+          std::cout
               << ((llvm::isa<llvm::Function>(cstring))
                       ? llvm::dyn_cast<llvm::Function>(cstring)->getName().str()
                       : IMP.CtoString(cstring))
               << " * ";
         }
-        cout << "\nFacts:\n";
+        std::cout << "\nFacts:\n";
         // Print the elements of the corresponding set of flow facts
         for (auto &flowfact : flowfacts.second) {
-          cout << IMP.DtoString(flowfact) << '\n';
+          std::cout << IMP.DtoString(flowfact) << '\n';
         }
       }
-      cout << "\n\n";
+      std::cout << "\n\n";
     }
   }
 };

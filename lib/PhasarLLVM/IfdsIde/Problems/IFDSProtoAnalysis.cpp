@@ -15,6 +15,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSProtoAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

@@ -15,7 +15,9 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType = {

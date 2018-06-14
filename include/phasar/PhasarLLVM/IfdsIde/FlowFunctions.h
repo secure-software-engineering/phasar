@@ -21,7 +21,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <vector>
 
-using namespace std;
 namespace psr {
 
 template <typename N, typename D, typename M> class FlowFunctions {
@@ -34,7 +33,7 @@ public:
   virtual std::shared_ptr<FlowFunction<D>>
   getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) = 0;
   virtual std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite, set<M> callees) = 0;
+  getCallToRetFlowFunction(N callSite, N retSite, std::set<M> callees) = 0;
   virtual std::shared_ptr<FlowFunction<D>>
   getSummaryFlowFunction(N curr, M destMthd) = 0;
 };

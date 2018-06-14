@@ -9,6 +9,7 @@
 
 #include <phasar/Controller/AnalysisController.h>
 
+using namespace std;
 using namespace psr;
 
 namespace psr {

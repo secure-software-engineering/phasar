@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <iostream>
+using namespace std;
 using namespace psr;
 
 namespace psr {

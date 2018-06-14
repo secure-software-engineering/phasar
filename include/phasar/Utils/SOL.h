@@ -10,13 +10,12 @@
 #ifndef SOL_H_
 #define SOL_H_
 
-#include "Logger.h"
 #include <dlfcn.h>
 #include <iostream>
 #include <memory>
+#include <phasar/Utils/Logger.h>
 #include <stdexcept>
 #include <string>
-using namespace std;
 
 namespace psr {
 
@@ -24,19 +23,19 @@ class SOL {
 private:
   char *error;
   void *so_handle;
-  const string path;
+  const std::string path;
 
 public:
-  SOL(const string &path);
+  SOL(const std::string &path);
   ~SOL();
   SOL(SOL &&);
   SOL &operator=(SOL &&);
   SOL(const SOL &) = delete;
   SOL &operator=(const SOL &) = delete;
-  template <typename Signature> auto loadSymbol(const string &name) {
+  template <typename Signature> auto loadSymbol(const std::string &name) {
     auto sym = reinterpret_cast<Signature>(dlsym(so_handle, name.c_str()));
     if (!sym)
-      throw invalid_argument("symbol not found");
+      throw std::invalid_argument("symbol not found");
     return sym;
   }
 };

@@ -20,6 +20,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDEProtoAnalysis.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

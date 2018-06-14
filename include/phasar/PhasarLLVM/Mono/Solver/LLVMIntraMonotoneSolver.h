@@ -18,11 +18,10 @@
 #define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTRAMONOTONESOLVER_H_
 
 #include <iostream>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
-
-#include "../IntraMonotoneProblem.h"
-#include "IntraMonotoneSolver.h"
-using namespace std;
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/Solver/IntraMonotoneSolver.h>
 
 namespace psr {
 
@@ -56,22 +55,22 @@ public:
   }
 
   void dumpResults() {
-    cout << "Monotone solver results:\n"
-            "------------------------\n";
+    std::cout << "Monotone solver results:\n"
+                 "------------------------\n";
     for (auto &entry :
          IntraMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, C>::Analysis) {
-      cout << "Instruction:\n";
+      std::cout << "Instruction:\n";
       entry.first->print(llvm::outs());
-      cout << "Facts:\n";
+      std::cout << "Facts:\n";
       if (entry.second.empty()) {
-        cout << "\tEMPTY\n";
+        std::cout << "\tEMPTY\n";
       } else {
         for (auto fact : entry.second) {
-          cout << IMP.DtoString(fact) << '\n';
+          std::cout << IMP.DtoString(fact) << '\n';
         }
       }
-      cout << "\n\n";
+      std::cout << "\n\n";
     }
   }
 };

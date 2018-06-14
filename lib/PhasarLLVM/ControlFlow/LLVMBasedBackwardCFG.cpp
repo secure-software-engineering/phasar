@@ -24,22 +24,22 @@ LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) {
   return nullptr;
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
   return {};
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
   return {};
 }
 
-vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
+std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *fun) {
   return {};
 }
 
-vector<const llvm::Instruction *>
+std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getAllInstructionsOf(const llvm::Function *fun) {
   return {};
 }
@@ -62,7 +62,7 @@ bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
   return false;
 }
 
-string LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) {
+std::string LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) {
   return "";
 }
 } // namespace psr

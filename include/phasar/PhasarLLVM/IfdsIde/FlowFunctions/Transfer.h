@@ -20,7 +20,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class Transfer : public FlowFunction<D> {
@@ -31,7 +30,7 @@ private:
 public:
   Transfer(D toValue, D fromValue) : toValue(toValue), fromValue(fromValue) {}
   virtual ~Transfer() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == fromValue)
       return {source, toValue};
     else if (source == toValue)

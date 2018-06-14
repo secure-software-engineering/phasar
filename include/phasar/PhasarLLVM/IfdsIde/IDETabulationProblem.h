@@ -31,8 +31,8 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
                              public JoinLattice<V> {
 public:
   virtual ~IDETabulationProblem() = default;
-  virtual shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
-  virtual string VtoString(V v) const = 0;
+  virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
+  virtual std::string VtoString(V v) const = 0;
 };
 } // namespace psr
 

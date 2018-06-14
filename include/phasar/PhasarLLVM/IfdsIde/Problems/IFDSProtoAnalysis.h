@@ -23,7 +23,6 @@ class Function;
 class Value;
 } // namespace llvm
 
-using namespace std;
 namespace psr {
 class LLVMBasedICFG;
 

@@ -20,19 +20,18 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class GenAll : public FlowFunction<D> {
 private:
-  set<D> genValues;
+  std::set<D> genValues;
   D zeroValue;
 
 public:
-  GenAll(set<D> genValues, D zeroValue)
+  GenAll(std::set<D> genValues, D zeroValue)
       : genValues(genValues), zeroValue(zeroValue) {}
   virtual ~GenAll() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == zeroValue) {
       genValues.insert(source);
       return genValues;

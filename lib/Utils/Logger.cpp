@@ -15,6 +15,7 @@
  */
 
 #include <phasar/Utils/Logger.h>
+using namespace std;
 using namespace psr;
 namespace psr {
 

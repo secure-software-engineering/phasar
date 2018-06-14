@@ -15,6 +15,7 @@
  */
 
 #include "IFDSSFB901TaintAnalysis.h"
+using namespace std;
 using namespace psr;
 namespace psr {
 

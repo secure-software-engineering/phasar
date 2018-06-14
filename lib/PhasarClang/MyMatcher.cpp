@@ -15,6 +15,10 @@
  */
 
 #include <phasar/PhasarClang/MyMatcher.h>
+using namespace std;
+using namespace clang;
+using namespace clang::ast_matchers;
+using namespace llvm;
 using namespace psr;
 
 namespace psr {

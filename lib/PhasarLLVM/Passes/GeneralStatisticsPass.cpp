@@ -23,7 +23,6 @@
 #include <phasar/Utils/PAMM.h>
 
 using namespace std;
-
 using namespace psr;
 namespace psr {
 
