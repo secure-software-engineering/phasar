@@ -3,6 +3,7 @@ import sys
 import platform
 import os
 
+#Console colors
 class bcolors:
     if(platform.system()=="Linux"):
         HEADER = '\033[95m'
@@ -26,13 +27,15 @@ class bcolors:
 #filepath for baseclass search
 script_dir = os.path.dirname(__file__)
 
-def getelem(x, split,startignore, stopignore):
+#splits a string on element split and ignores every split element enclosed in startignore and stopignore
+def getelem(x, split,startignore, stopignore, startignore2 = None , stopignore2 = None):
     y=[]
     count = 0
+    count2=0
     func = 0
     y.append("")
     for i in x:
-        if(i == split and count == 0):
+        if(i == split and count == 0 and count2 == 0):
             func +=1
             y.append("")
         elif(i == startignore):
@@ -41,30 +44,38 @@ def getelem(x, split,startignore, stopignore):
         elif(i == stopignore and count>0):
             count -=1
             y[func]+=i
+        elif(i == startignore2):
+            count2 += 1
+            y[func]+=i
+        elif(i == stopignore2 and count2>0):
+            count2 -=1
+            y[func]+=i
         else:
             y[func]+=i
     return y
 
+#splits a string at a comma but ignores every comma that is enclosed by square or pointy brackets
 def disectstring(x):
-    y=getelem(x, ",", "[","]")
+    y=getelem(x, ",", "[","]", "<", ">")
     for i in range(0, len(y)):
-        y[i]=getelem(y[i], ":", "[", "]")
+        y[i]=getelem(y[i], ":", "[", "]", "<" , ">")
     return y
 
 def generateparamlist(x):
     out=[]
     y=x.replace("[","")
     y=y.replace("]","")
-    for i in y.split(","):
+    for i in getelem(y,",","<",">"):
+        i=i.replace("::","§")
         j = i.split(":")
-        out.append(j[1] +" "+ j[0])
+        out.append(j[1].replace("§","::") +" "+ j[0])
     return ",".join(out)
 
 def generatemodifier(x):
     out=[]
     y=x.replace("[","")
     y=y.replace("]","")
-    for i in y.split(","):
+    for i in getelem(y,",","<",">"):
         out.append(i)
     return " ".join(out)
 
@@ -72,9 +83,60 @@ def generatetempl(x):
     out=[]
     y=x.replace("[","")
     y=y.replace("]","")
-    for i in y.split(","):
+    for i in getelem(y,",","<",">"):
         out.append("typename " + i)
     return "template <" + ",".join(out) +">"
+
+#generates all additional functions
+def genfunctions(typ, classname=None):
+    global functions
+    d={}
+    functions=functions.replace("::","§")
+    functions2=disectstring(functions)
+    if(typ=="header"):
+        d["pbfunc"]=""
+        d["pvfunc"]=""
+        d["ptfunc"]=""
+    else:
+        d["func"]=""
+        d["classname"]=classname
+
+    for i in functions2:
+        d["param"]=""
+        d["pref"]=""
+        d["post"]=""
+        d["ftmpl"]=""
+        d["fname"]=i[1]
+        d["rettype"]=i[2].replace("§","::")
+        if len(i)==4:
+            d["param"] = generateparamlist(i[3].replace("§","::"))
+        elif len(i)==5:
+            d["param"] = generateparamlist(i[3].replace("§","::"))
+            d["pref"] = generatemodifier(i[4])+" "
+        elif len(i)==6:
+            d["param"] = generateparamlist(i[3].replace("§","::"))
+            d["pref"] = generatemodifier(i[4])+" "
+            d["post"] = " "+generatemodifier(i[5])
+        elif len(i)==7:
+            d["param"] = generateparamlist(i[3].replace("§","::"))
+            d["pref"] = generatemodifier(i[4])+" "
+            d["post"] = " "+generatemodifier(i[5])
+            d["ftmpl"] = generatetempl(i[6].replace("§","::"))
+        if(typ=="header"):
+            with open("template/hfunction.template","r") as f:
+                fu = f.read()
+
+            if(i[0] == "public"):
+                d["pbfunc"]+= fu.format(**d)
+            if(i[0] == "private"):
+                d["pvfunc"]+= fu.format(**d)
+            if(i[0] == "protected"):
+                d["ptfunc"]+= fu.format(**d)
+        else:
+            with open("template/cppfunction.template","r") as f:
+                fu = f.read()
+            d["func"]+= fu.format(**d)
+    return d
 
 def usage():
     print("Options for using the program code generator:")
@@ -221,8 +283,10 @@ def getBaseclass():
         print(bcolors.OKGREEN+"STOP:Reading baseclass files..."+bcolors.ENDC)
 
 def generateHeaderFile():
+    global functions
     global headerincludes
     global virtualfunctions
+    
     if "debug" in globals():
         print(bcolors.OKGREEN+"START:Generating Header files..."+bcolors.ENDC)
     d={}
@@ -230,6 +294,7 @@ def generateHeaderFile():
     d["define"]="_"+classname.upper()+"_H_"
     d["include"]=""
 
+    #generate include list
     if "baseclass" in globals():  
         for i in baseclass:
             d["include"]+="#include \""+i+"\"\n"
@@ -287,42 +352,9 @@ def generateHeaderFile():
     if "functions" in globals():
         if "debug" in globals():
             print("Additional functions are generated...")
-        d["pbfunc"]=""
-        d["pvfunc"]=""
-        d["ptfunc"]=""
-        functions2=disectstring(functions)
+        #generates functions heads
+        d={**d,**genfunctions("header")}
 
-        for i in functions2:
-            d["param"]=""
-            d["pref"]=""
-            d["post"]=""
-            d["ftmpl"]=""
-            d["fname"]=i[1]
-            d["rettype"]=i[2]
-            if len(i)==4:
-                d["param"] = generateparamlist(i[3])
-            elif len(i)==5:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])+" "
-            elif len(i)==6:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])+" "
-                d["post"] = " "+generatemodifier(i[5])
-            elif len(i)==7:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])+" "
-                d["post"] = " "+generatemodifier(i[5])
-                d["ftmpl"] = generatetempl(i[6])
-
-            with open("template/hfunction.template","r") as f:
-                fu = f.read()
-
-            if(i[0] == "public"):
-                d["pbfunc"]+= fu.format(**d)
-            if(i[0] == "private"):
-                d["pvfunc"]+= fu.format(**d)
-            if(i[0] == "protected"):
-                d["ptfunc"]+= fu.format(**d)
     else:
         d["pbfunc"]=""
         d["pvfunc"]=""
@@ -337,7 +369,7 @@ def generateHeaderFile():
         d["ptattributes"]=""
         if "debug" in globals():
             print("Additional attributes are generated...")
-        for par in attributes.split(","):
+        for par in getelem(attributes, ",","<", ">"):
             #replace :: so that split can seperate parts of definition
             par=par.replace("::","§")
             a = par.split(":")
@@ -378,35 +410,8 @@ def generateImplementationFiles():
     if "functions" in globals():
         if "debug" in globals():
             print("Additional functions are generated...")
-        d["func"]=""
-        functions2=disectstring(functions)
+        d={**d,**genfunctions("Implemantation",classname)}
 
-        for i in functions2:
-            d["param"]=""
-            d["pref"]=""
-            d["post"]=""
-            d["ftmpl"]=""
-            d["fname"]=i[1]
-            d["rettype"]=i[2]
-            if len(i)==4:
-                d["param"] = generateparamlist(i[3])
-            elif len(i)==5:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])
-            elif len(i)==6:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])
-                d["post"] = generatemodifier(i[5])
-            elif len(i)==7:
-                d["param"] = generateparamlist(i[3])
-                d["pref"] = generatemodifier(i[4])
-                d["post"] = generatemodifier(i[5])
-                d["ftmpl"] = generatetempl(i[6])
-
-            with open("template/cppfunction.template","r") as f:
-                fu = f.read()
-
-            d["func"]+= fu.format(**d)
     else:
         d["func"]=""
 
