@@ -1,4 +1,5 @@
 {binclude}
+{namespacestart}
 
 {classname}::{classname}()
 {{
@@ -27,3 +28,4 @@
 }}
 
 {func}
+{namespacestop}

@@ -286,6 +286,7 @@ def generateHeaderFile():
     global functions
     global headerincludes
     global virtualfunctions
+    global namespace
     
     if "debug" in globals():
         print(bcolors.OKGREEN+"START:Generating Header files..."+bcolors.ENDC)
@@ -293,6 +294,14 @@ def generateHeaderFile():
     d["classname"]=classname
     d["define"]="_"+classname.upper()+"_H_"
     d["include"]=""
+    d["namespacestart"]=""
+    d["namespacestop"]=""
+
+    #generate namespace start
+    if "namespace" in globals():
+        d["namespacestart"] = "using namespace "+namespace+";\nnamespace "+namespace+"\n{"
+        d["namespacestop"]="} //namespace "+namespace
+    
 
     #generate include list
     if "baseclass" in globals():  
@@ -399,12 +408,20 @@ def generateHeaderFile():
 def generateImplementationFiles():
     global virtualfunctions
     global baseclass
+    global namespace
     if "debug" in globals():
         print(bcolors.OKGREEN+"START:Generating implementation file..."+bcolors.ENDC)
 
     d={}
     d["classname"]=classname
     d["binclude"]= "#include \""+ classname +".h\"\n"
+    d["namespacestart"]=""
+    d["namespacestop"]=""
+
+    #generate namespace start
+    if "namespace" in globals():
+        d["namespacestart"] = "namespace "+namespace+"\n{"
+        d["namespacestop"]="} //namespace "+namespace
     
     #additional functions are generated here
     if "functions" in globals():
@@ -477,7 +494,13 @@ def main(argv):
             nocpp = 1
         elif opt in ("-n", "--name"):
             global classname
-            classname=arg
+            if(arg.find("::")!=-1):
+                arg=arg.split("::")
+                classname=arg[1]
+                global namespace
+                namespace = arg[0]
+            else:
+                classname=arg
         elif opt in ("-b", "--baseclass"):
             global baseclass
             baseclass=arg

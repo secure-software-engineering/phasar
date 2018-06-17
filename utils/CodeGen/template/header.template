@@ -2,20 +2,26 @@
 #define {define}
 
 {include}
+{namespacestart}
 {template}
 class {classname} {baseclass}
-{{
+{{
+
 public:
 {pbattributes}
 {stdf}
-{pbfunc}
+{pbfunc}
+
 private:
 {pvattributes}
 {basefunc}
-{pvfunc}
+{pvfunc}
+
 protected:
 {ptattributes}
-{ptfunc}
+{ptfunc}
+
 }};
+{namespacestop}
 
 #endif
