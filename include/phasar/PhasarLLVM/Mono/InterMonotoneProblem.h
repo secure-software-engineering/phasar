@@ -36,8 +36,12 @@ public:
   virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
   virtual MonoSet<D> normalFlow(N Stmt, const MonoSet<D> &In) = 0;
   virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In) = 0;
+  virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In, const MonoSet<D> &KnownOut) = 0;
   virtual MonoSet<D> returnFlow(N CallSite, M Callee, N RetStmt, N RetSite,
                                 const MonoSet<D> &In) = 0;
+  virtual MonoSet<D> returnFlow(N CallSite, M Callee, N RetStmt, N RetSite,
+                                const MonoSet<D> &In,
+                                const MonoSet<D> &KnownOut) = 0;
   virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
                                    const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;

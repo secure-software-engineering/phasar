@@ -22,10 +22,9 @@ class Instruction;
 class Function;
 class Value;
 } // namespace llvm
-
-class LLVMBasedICFG;
-
 namespace psr {
+  
+class LLVMBasedICFG;
 
 class IFDSSolverTest : public DefaultIFDSTabulationProblem<
                            const llvm::Instruction *, const llvm::Value *,

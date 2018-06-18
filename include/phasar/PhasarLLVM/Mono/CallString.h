@@ -26,7 +26,7 @@ using namespace std;
 
 namespace psr {
 
-template <typename T, unsigned K> class CallString {
+template <typename T, unsigned K, typename U> class CallString {
 private:
   deque<T> cs;
   static const unsigned k = K;
@@ -55,16 +55,28 @@ public:
       cs.pop_back();
     }
   }
+
+  void enterFunction(T src, T dest, U &In) {
+    push(src);
+  }
+
+  void exitFunction(T src, T dest, U &In) {
+    pop();
+  }
+
   size_t size() { return cs.size(); }
   deque<T> getInternalCS() const { return cs; }
   friend bool operator==(const CallString &lhs, const CallString &rhs) {
-    return lhs.cs == rhs.cs;
+    return lhs.cs == rhs.cs || (lhs.cs.size() == 0) || (rhs.cs.size() == 0);
   }
   friend bool operator!=(const CallString &lhs, const CallString &rhs) {
     return !(lhs == rhs);
   }
   friend bool operator<(const CallString &lhs, const CallString &rhs) {
-    return lhs.cs < rhs.cs;
+    // Base : lhs.cs < rhs.cs
+    // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
+    // Enable that every empty call-string context match every context
+    return lhs.cs < rhs.cs && (lhs.cs.size() != 0) && (rhs.cs.size() != 0);
   }
   friend ostream &operator<<(ostream &os, const CallString &c) {
     copy(c.cs.begin(), --c.cs.end(), std::ostream_iterator<T>(os, " * "));

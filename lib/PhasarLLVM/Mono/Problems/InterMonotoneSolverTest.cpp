@@ -60,12 +60,30 @@ InterMonotoneSolverTest::callFlow(const llvm::Instruction *CallSite,
   return Result;
 }
 
+MonoSet<const llvm::Value *>
+InterMonotoneSolverTest::callFlow(const llvm::Instruction *CallSite,
+                                  const llvm::Function *Callee,
+                                  const MonoSet<const llvm::Value *> &In,
+                                  const MonoSet<const llvm::Value *> &KnownOut) {
+  cout << "InterMonotoneSolverTest::callFlow() with known out\n";
+  return KnownOut;
+}
+
 MonoSet<const llvm::Value *> InterMonotoneSolverTest::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
     const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
     const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonotoneSolverTest::returnFlow()\n";
   return In;
+}
+
+MonoSet<const llvm::Value *> InterMonotoneSolverTest::returnFlow(
+    const llvm::Instruction *CallSite, const llvm::Function *Callee,
+    const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
+    const MonoSet<const llvm::Value *> &In,
+    const MonoSet<const llvm::Value *> &KnownOut) {
+  cout << "InterMonotoneSolverTest::returnFlow() with known out\n";
+  return KnownOut;
 }
 
 MonoSet<const llvm::Value *>
