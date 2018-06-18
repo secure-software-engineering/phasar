@@ -4,18 +4,18 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Nicolas Bellec and others
  *****************************************************************************/
 
 /*
  * InterMonotoneSolver.h
  *
- *  Created on: 19.06.2017
- *      Author: philipp
+ *  Created on: 15.06.2018
+ *      Author: nicolas
  */
 
-#ifndef INTERMONOTONESOLVER_H_
-#define INTERMONOTONESOLVER_H_
+#ifndef INTERMONOTONEGENERALIZEDSOLVER_H_
+#define INTERMONOTONEGENERALIZEDSOLVER_H_
 
 #include <deque>
 #include <iostream>

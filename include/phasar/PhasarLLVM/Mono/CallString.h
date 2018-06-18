@@ -22,67 +22,75 @@
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
-using namespace std;
+#include <phasar/PhasarLLVM/Mono/ContextBase.h>
+#include <phasar/Config/ContainerConfiguration.h>
 
 namespace psr {
 
-template <typename T, unsigned K, typename U> class CallString {
-private:
-  deque<T> cs;
+template <typename N, typename V, unsigned K>
+class CallString : public ContextBase<N, V, CallString<N,V,K>>{
+protected:
+  std::deque<N> cs;
   static const unsigned k = K;
 
 public:
   CallString() = default;
-  CallString(initializer_list<T> ilist) : cs(ilist) {
+  CallString(std::initializer_list<N> ilist) : cs(ilist) {
     if (ilist.size() > k) {
       throw runtime_error(
           "initial call string length exceeds maximal length K");
     }
   }
-  void push(T s) {
+
+  void push(N s) {
     if (cs.size() > k - 1) {
       cs.pop_front();
     }
     cs.push_back(s);
   }
-  T returnSite() {
+
+  N returnSite() {
     if (cs.size() > 0)
       return cs.back();
     return nullptr;
   }
+
   void pop() {
     if (cs.size() > 0) {
       cs.pop_back();
     }
   }
 
-  void enterFunction(T src, T dest, U &In) {
+  virtual void enterFunction(N src, N dest, MonoSet<V> &In) override {
     push(src);
   }
 
-  void exitFunction(T src, T dest, U &In) {
+  virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
     pop();
   }
 
-  size_t size() { return cs.size(); }
-  deque<T> getInternalCS() const { return cs; }
-  friend bool operator==(const CallString &lhs, const CallString &rhs) {
-    return lhs.cs == rhs.cs || (lhs.cs.size() == 0) || (rhs.cs.size() == 0);
+  virtual bool isEqual(const CallString &rhs) const override {
+    return cs == rhs.cs || (cs.size() == 0) || (rhs.cs.size() == 0);
   }
-  friend bool operator!=(const CallString &lhs, const CallString &rhs) {
-    return !(lhs == rhs);
+
+  virtual bool isDifferent(const CallString &rhs) const override {
+    return !isEqual(rhs);
   }
-  friend bool operator<(const CallString &lhs, const CallString &rhs) {
+
+  virtual bool isLessThan(const CallString &rhs) const override {
     // Base : lhs.cs < rhs.cs
     // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
     // Enable that every empty call-string context match every context
-    return lhs.cs < rhs.cs && (lhs.cs.size() != 0) && (rhs.cs.size() != 0);
+    return cs < rhs.cs && (cs.size() != 0) && (rhs.cs.size() != 0);
   }
-  friend ostream &operator<<(ostream &os, const CallString &c) {
-    copy(c.cs.begin(), --c.cs.end(), std::ostream_iterator<T>(os, " * "));
-    os << c.cs.back();
-    return os;
+
+  virtual void print(std::ostream &os) const override {
+    std::copy(cs.begin(), --cs.end(), std::ostream_iterator<N>(os, " * "));
+    os << cs.back();
   }
+
+  size_t size() const { return cs.size(); }
+  std::deque<N> getInternalCS() const { return cs; }
 };
 
 } // namespace psr

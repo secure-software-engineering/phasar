@@ -13,7 +13,6 @@
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
 #include <phasar/PhasarLLVM/Mono/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
-#include <phasar/Config/ContainerConfiguration.h>
 #include <gtest/gtest.h>
 
 // DEBUG
@@ -38,9 +37,9 @@ TEST(InterMonotoneGeneralizedSolverTest, Running) {
     I.printAsDot("call_graph.dot");
     InterMonotoneSolverTest T(I, {"main"});
     InterMonotoneGeneralizedSolver<const llvm::Instruction *,
-                        const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *, const llvm::Function *,
                                   const llvm::Value *, LLVMBasedICFG &,
-                                  CallString<const llvm::Value *, 2, MonoSet<const llvm::Value*>>> S(T);
+                                  CallString<const llvm::Value *, const llvm::Value*, 2>> S(T);
     S.solve();
   } else {
     llvm::outs() << "Module does not contain a 'main' function, abort!\n";
