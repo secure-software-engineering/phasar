@@ -1,5 +1,5 @@
 command line options:
--n [--name] {input} has to be given. classname of generated class
+-n [--name] {input} has to be provided. classname of generated class, use namespacename::classname to put the class in the described namespace
 -? [--help] displayes help message
 -d [--debug] turns on debug messages
 -e [--empty] turns off generation of standard functions (ctors, dtors)
@@ -20,6 +20,7 @@ and deleting the reference afterwards in the
 header file!!!
 
 -i [--include] {input} list of include files for the header file, seperated by comma; "" and <> will be decided automatically 
+-k [--config] {input} input file for easier use of long baseclass,attribute and function lists. Example file: example.cfg
 
 Example call:
 python3 codegen.py -n test -b abc.h -d -t A,B,C -a public:a:int,private:b:string,protected:c:char,public:w:*int -f public:func1:void:[a=0:int]:[static,const]:[override,static]:[A,B,C],protected:func2:int -o None

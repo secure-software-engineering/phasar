@@ -102,6 +102,8 @@ def genfunctions(typ, classname=None):
         d["classname"]=classname
 
     for i in functions2:
+        #delete leading whitespace to correct input errors
+        i=i.lstrip()
         d["param"]=""
         d["pref"]=""
         d["post"]=""
@@ -138,13 +140,56 @@ def genfunctions(typ, classname=None):
             d["func"]+= fu.format(**d)
     return d
 
+#reads config content from file and writes it to the right global variable
+def readconfigfile(s):
+    global baseclass
+    global attributes
+    global functions
+    try:
+        with open(s) as fi:
+            next(fi)
+            file = fi.read()
+    except IOError:
+        print(bcolors.FAIL+"ERROR:config file could not be opened. Ignoring config file..."+bcolors.ENDC)
+        return
+    else:
+        file = file.split()
+        b = file.index("--baseclass")
+        a = file.index("--attributes")
+        f = file.index("--functions")
+        if(b==-1 or a==-1 or f==-1):
+            print(bcolors.FAIL+"ERROR:wrong formatted config file. Ignoring config file..."+bcolors.ENDC)
+            return
+        else:
+            b=file[b+1:a]
+            a=file[a+1:f]
+            f=file[f+1:]
+            if(b!=[]):
+                b=" ".join(b)
+                if "baseclass" in globals():
+                    baseclass+=b
+                else:
+                    baseclass=b
+            if(a!=[]):
+                a=" ".join(a)
+                if "attributes" in globals():
+                    attributes+=a
+                else:
+                    attributes=a
+            if(f!=[]):
+                f=" ".join(f)
+                if "functions" in globals():
+                    functions+=f
+                else:
+                    functions=f
+
 def usage():
     print("Options for using the program code generator:")
     print("-? [--help]               : prints this message")
     print("-d [--debug]              : turns on the debug option")
     print("-h [--header]             : DISABLES generation of a header file")
     print("-c [--cpp]                : DISABLES generation of a cpp file")
-    print("-n [--name] <input>       : name for the generated class")
+    print("-n [--name] <input>       : name for the generated class, supports namespaces: namespacename::classname")
     print("-b [--baseclass] <input>  : header files of one or more baseclasses; comma seperated")
     print("-e [--empty]              : no standard methods will be generated")
     print("-a [--attributes] <input> : list of class attributes that should be generated")
@@ -160,6 +205,7 @@ def usage():
     print("-o [--clang-format] <style> turns on clang-format for the output files, only available on Linux systems")
     print("                            Style Options: None = default, LLVM, Google, Chromium, Mozilla, WebKit")
     print("-i [--include] <input>    : comma seperated list of files that should be included in the header file, <> and \"\" will be computed automaticly")
+    print("-k [--config] <input>     : config file for easier use of long baseclass,attribute and functions lists. Example file: example.cfg")
 
 def getBaseclass():
     if "debug" in globals():
@@ -170,6 +216,8 @@ def getBaseclass():
     global baseclassn
     baseclassn=[]
     for inp in baseclass:
+        #delete leading whitespace to correct input error
+        inp=inp.lstrip()
         #read in baseclass files
         try:
             with open(os.path.join(script_dir,inp)) as f:
@@ -381,6 +429,8 @@ def generateHeaderFile():
         for par in getelem(attributes, ",","<", ">"):
             #replace :: so that split can seperate parts of definition
             par=par.replace("::","§")
+            #removes leading whitespace to correct for input errors
+            par=par.lstrip()
             a = par.split(":")
             if(a[0] == "public"):
                 d["pbattributes"]+= "    "+a[2].replace("§","::") + " " + a[1].replace("§","::") +";\n"
@@ -473,7 +523,7 @@ def generateImplementationFiles():
 def main(argv):
     #get parameter from console
     try:
-        opts,args = getopt.getopt(argv, "hcdn:b:?ea:f:t:o:i:", ["header", "cpp", "debug", "name=","baseclass=","help","empty","attributes=","functions=","template=","clang-format=","include="])
+        opts,args = getopt.getopt(argv, "hcdn:b:?ea:f:t:o:i:k:", ["header", "cpp", "debug", "name=","baseclass=","help","empty","attributes=","functions=","template=","clang-format=","include=","config="])
     except getopt.GetoptError as err:
         print(bcolors.FAIL+"ERROR:",str(err)+bcolors.ENDC)
         usage()
@@ -527,6 +577,9 @@ def main(argv):
         elif opt in ("-i", "--include"):
             global headerincludes
             headerincludes = arg.split(",")
+        elif opt in ("-k", "--config"):
+            #reads config file and saves the content to the fitting global variables
+            readconfigfile(arg)
 
     if "classname" not in globals():
         print(bcolors.FAIL+"ERROR: A classname has to be provided"+bcolors.ENDC)
