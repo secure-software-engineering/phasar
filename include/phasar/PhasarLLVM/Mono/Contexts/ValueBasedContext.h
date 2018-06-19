@@ -21,27 +21,31 @@
 #include <iostream>
 #include <iterator>
 #include <set>
-#include <phasar/PhasarLLVM/Mono/Interfaces/ContextBase.h>
 #include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
+
+#include "ContextBase.h"
+
 
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets
+ *  Value = Values inside the monotone sets (must be a sub class of ValueBase<Id,V>)
  */
-template <typename N, typename V>
-class ValueBasedContext : public ContextBase<N, V, ValueBasedContext<N,V>> {
+template <typename N, typename Value>
+class ValueBasedContext : public ContextBase<N, Value, ValueBasedContext<N,Value>> {
 protected:
-  std::set<V> args;
+  std::set<Value> args;
 
 public:
   ValueBasedContext() = default;
 
-  virtual void enterFunction(N src, N dest, MonoSet<V> &In) override {
+  virtual void enterFunction(N src, N dest, MonoSet<Value> &In) override {
     //TODO
   }
 
-  virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
+  virtual void exitFunction(N src, N dest, MonoSet<Value> &In) override {
     //TODO
   }
 

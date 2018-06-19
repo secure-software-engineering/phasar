@@ -19,22 +19,40 @@
 
 #include <deque>
 #include <iostream>
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <utility>
 #include <vector>
+
+#include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 using namespace std;
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename C, typename I,
+/*
+ *  N = Node of the CFG
+ *  V = Values in the set of the edges (must be a inherited class
+ *   of ValueBase)
+ *
+ */
+
+template <typename N, typename V, typename M, typename C, typename I,
           typename Context>
 class InterMonotoneGeneralizedSolver {
+private:
+  template <typename T1, typename T2>
+  void InterMonotoneGeneralizedSolver_check() {
+    static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V> with T1, T2 templates\n");
+    static_assert(std::is_base_of<ContextBase<N, V, Context>, Context>::value, "Template class Context must be a sub class of ContextBase<N, V, Context>\n");
+  }
+
 protected:
-  InterMonotoneProblem<N, D, M, C, I> &IMProblem;
+  InterMonotoneProblem<N, V, M, C, I> &IMProblem;
   deque<pair<N, N>> Worklist;
   // set<pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<Context, MonoSet<D>>> Analysis;
+  MonoMap<N, MonoMap<Context, MonoSet<V>>> Analysis;
   I ICFG;
   set<M> visited_once;
   // size_t prealloc_hint;
@@ -67,7 +85,7 @@ protected:
   }
 
 public:
-  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, D, M, C, I> &IMP)
+  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, C, I> &IMP)
                       // size_t prealloc_hint = 0)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {} //, prealloc_hint(prealloc_hint) {}
   ~InterMonotoneGeneralizedSolver() = default;
@@ -106,7 +124,7 @@ public:
       cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
            << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst) << ">\n";
       // DEBUG
-      MonoMap<Context, MonoSet<D>> Out;
+      MonoMap<Context, MonoSet<V>> Out;
       // Add an id context to get the next loop to work
       Analysis[src][Context{ICFG.getMethodOf(src)}];
       for (auto context_entry : Analysis[src]) {
@@ -171,10 +189,10 @@ public:
           } else {
             if (isCallEdge(edge)) {
               Analysis[dst][inter_context] =
-                  IMProblem.join(Analysis[dst][context], Out[inter_context]);
+                  IMProblem.join(Analysis[dst][inter_context], Out[inter_context]);
             } else {
-              Analysis[dst][context] =
-                  IMProblem.join(Analysis[dst][context], Out[inter_context]);
+              Analysis[dst][inter_context] =
+                  IMProblem.join(Analysis[dst][inter_context], Out[inter_context]);
             }
           }
           // Handle function call and add inter call edges

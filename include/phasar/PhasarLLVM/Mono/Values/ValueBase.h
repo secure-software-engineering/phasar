@@ -17,11 +17,7 @@
 #ifndef SRC_ANALYSIS_MONOTONE_VALUEBASE_H_
 #define SRC_ANALYSIS_MONOTONE_VALUEBASE_H_
 
-#include <algorithm>
-#include <iostream>
-#include <iterator>
-#include <set>
-#include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/Utils/Macros.h>
 
 namespace psr {
 
@@ -30,11 +26,16 @@ namespace psr {
  */
 template <typename Id, typename V, typename ConcreteValue>
 class ValueBase {
+private:
+  void ValueBase_check() {
+    static_assert(std::is_base_of<ValueBase<Id, V, ConcreteValue>, ConcreteValue>::value, "Template class ConcreteValue must be a sub class of ValueBase<Id, V, ConcreteValue>\n");
+  }
+  
 public:
   virtual Id getId() const = 0;
   virtual V getValue() const = 0;
 
-  virtual bool isEqual(const ConcreteValue &lhs) = 0; 
+  virtual bool isEqual(const ConcreteValue &lhs) = 0;
 
   friend bool operator==(const ConcreteValue &lhs, const ConcreteValue &rhs) {
     return lhs.isEqual(rhs);

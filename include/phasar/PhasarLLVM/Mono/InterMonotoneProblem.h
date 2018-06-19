@@ -17,14 +17,23 @@
 #ifndef INTERMONOTONEPROBLEM_H_
 #define INTERMONOTONEPROBLEM_H_
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <string>
+#include <phasar/Config/ContainerConfiguration.h>
+
+#include <phasar/Utils/Macros.h>
+#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 using namespace std;
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename C, typename I>
 class InterMonotoneProblem {
+private:
+  template <typename T1, typename T2>
+  void InterMonotoneProblem_check() {
+    static_assert(std::is_base_of<ValueBase<T1, T2, D>, D>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
+  }
+
 protected:
   I ICFG;
 

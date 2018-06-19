@@ -22,17 +22,20 @@
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
-#include "ContextBase.h"
 #include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
+
+#include "ContextBase.h"
+
 
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets
+ *  V = Values inside the monotone sets (must be a sub class of ValueBase)
  *  K = Maximum depth of CallString
  */
 template <typename N, typename V, unsigned K>
-class CallString : public ContextBase<N, V, CallString<N,V,K>>{
+class CallString : public ContextBase<N, V, CallString<N,V,K>> {
 protected:
   std::deque<N> cs;
   static const unsigned k = K;
