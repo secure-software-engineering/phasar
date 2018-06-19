@@ -23,7 +23,7 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  S = Values inside the monotone sets
+ *  V = Values inside the monotone sets
  *  ConcreteContext = The class that implement the context
  */
 template <typename N, typename V, typename ConcreteContext>
@@ -38,6 +38,11 @@ public:
    *
    */
   virtual void enterFunction(N src, N dest, MonoSet<V> &In) = 0;
+
+  /*
+   *
+   */
+  virtual bool isTotal() = 0;
 
   /*
    *

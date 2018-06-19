@@ -11,12 +11,10 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/CallString.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
 #include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
 #include <gtest/gtest.h>
-
-// DEBUG
-#include <set>
 
 namespace bfs = boost::filesystem;
 

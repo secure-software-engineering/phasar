@@ -22,11 +22,15 @@
 #include <initializer_list>
 #include <iostream>
 #include <iterator>
-#include <phasar/PhasarLLVM/Mono/ContextBase.h>
+#include "ContextBase.h"
 #include <phasar/Config/ContainerConfiguration.h>
 
 namespace psr {
 
+/*  N = Node in the CFG
+ *  V = Values inside the monotone sets
+ *  K = Maximum depth of CallString
+ */
 template <typename N, typename V, unsigned K>
 class CallString : public ContextBase<N, V, CallString<N,V,K>>{
 protected:
@@ -67,6 +71,11 @@ public:
 
   virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
     pop();
+  }
+
+  virtual bool isTotal() override {
+    // We may be a bit more precise in the future
+    return false;
   }
 
   virtual bool isEqual(const CallString &rhs) const override {

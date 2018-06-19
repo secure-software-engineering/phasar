@@ -20,7 +20,7 @@
 #include <deque>
 #include <iostream>
 #include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/CallString.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <utility>
 #include <vector>
@@ -34,7 +34,7 @@ class InterMonotoneSolver {
 protected:
   InterMonotoneProblem<N, D, M, C, I> &IMProblem;
   deque<pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<CallString<C, MonoSet<D>, K>, MonoSet<D>>> Analysis;
+  MonoMap<N, MonoMap<CallString<C, D, K>, MonoSet<D>>> Analysis;
   I ICFG;
   size_t prealloc_hint;
 
@@ -43,7 +43,7 @@ protected:
       vector<pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-      Analysis[seed.first][CallString<C, MonoSet<D>, K>{ICFG.getMethodOf(seed.first)}]
+      Analysis[seed.first][CallString<C, D, K>{ICFG.getMethodOf(seed.first)}]
           .insert(seed.second.begin(), seed.second.end());
     }
   }
@@ -77,9 +77,9 @@ public:
       auto dst = edge.second;
       cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
            << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst) << ">\n";
-      MonoMap<CallString<C, MonoSet<D>, K>, MonoSet<D>> Out;
+      MonoMap<CallString<C, D, K>, MonoSet<D>> Out;
       // Add an id context to get the next loop to work
-      Analysis[src][CallString<C, MonoSet<D>, K>{ICFG.getMethodOf(src)}];
+      Analysis[src][CallString<C, D, K>{ICFG.getMethodOf(src)}];
       for (auto context_entry : Analysis[src]) {
         auto context = context_entry.first;
         auto inter_context = context;
