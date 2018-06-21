@@ -9,7 +9,7 @@
 {{
 }}
 
-{classname}::~{classname}()
+virtual {classname}::~{classname}()
 {{
 }}
 

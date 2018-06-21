@@ -165,7 +165,8 @@ def readconfigfile(s):
             a=file[a+1:f]
             f=file[f+1:]
             if(b!=[]):
-                b=" ".join(b)
+                for i in range(len(b)):
+                    b[i]=b[i].replace(",","")
                 if "baseclass" in globals():
                     baseclass+=b
                 else:
@@ -294,7 +295,7 @@ def getBaseclass():
             end=0
             count=0
             for i in range(x):
-                if(-1!=file[i].find(";") or -1!=file[i].find(":")):
+                if(-1!=file[i].find(";") or -1!=file[i].find(":") or -1!=file[i].find("}")):
                     semikolon=i
             for i in range(x+1, len(file)):
                 if(-1!=file[i].find(";")):
@@ -321,7 +322,7 @@ def getBaseclass():
         out=[]
         for x in func:
             for i in range(len(x)):
-                if(x[i]==";" or x[i]==":"):
+                if(x[i]==";" or x[i]==":" or x[i]=="}"):
                     x=x[i+1:]
                     x=x[:max(x.find(";"),x.find("{"))]
                     out.append(x)
@@ -378,7 +379,7 @@ def generateHeaderFile():
         
     #input information from baseclass
     if "baseclass" in globals():
-        d["baseclass"]=" : "+",".join(baseclassn)
+        d["baseclass"]=" : public "+", public ".join(baseclassn)
         if "debug" in globals():
             print("Baseclass defined:"+",".join(baseclassn)+"...")
         d["basefunc"]=""
@@ -486,12 +487,12 @@ def generateImplementationFiles():
         func=[]
         for i in range(len(virtualfunctions)):
             j=virtualfunctions[i].split()
-            if(j[-1].find("0")!=-1 and j[-1].find("default")!=-1):
+            if(j[-1].find("0")==-1 and j[-1].find("default")==-1):
                 func.append("")
                 for k in j:
                     if(k.find("(")!=-1):
                         k=classname+"::"+k
-                    func[i]+= " "+k
+                    func[-1]+= " "+k
         for i in func:
             d["func"]+= i +"\n{\n\n}\n\n"
         

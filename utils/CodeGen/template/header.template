@@ -11,10 +11,10 @@ public:
 {pbattributes}
 {stdf}
 {pbfunc}
+{basefunc}
 
 private:
 {pvattributes}
-{basefunc}
 {pvfunc}
 
 protected:
