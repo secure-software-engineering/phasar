@@ -361,10 +361,11 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-        InterMonotoneSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &> solver(
-            inter, true);
-        solver.solve();
+        // InterMonotoneSolverTest inter(ICFG, EntryPoints);
+        // //WARNING For testing purpose LLVMBasedICFG & -> LLVMBasedICFG
+        // LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG> solver(
+        //     inter, true);
+        // solver.solve();
         break;
       }
       case DataFlowAnalysisType::Plugin: {
@@ -400,7 +401,19 @@ AnalysisController::AnalysisController(
           << "Construct (partial) call-graph for: " << M->getModuleIdentifier();
       LLVMBasedICFG ICFG(CH, IRDB, *M, CGWalker, CGResolve);
       // store them away for later use
-      MWICFGs.insert(make_pair(M, ICFG));
+
+      //WARNING Doesn't store it, just copy it (just delete the copy constructor of ICFG to see it)
+      //WARNING Possibly a huge performance lost
+      //NOTE Should try to use move semantic or to use proper pointer
+      // ex: MWICFGs.emplace(std::piecewise_construct,
+      //         std::forward_as_tuple(M),
+      //         std::forward_as_tuple(CH, IRDB, *M, CGWalker, CGResolve));
+      // should work better (construct directly the object in the map, just check
+      // that there is no copy of CH, IRDB, ... but normally, it's just reference)
+      // MWICFGs.insert(make_pair(M, ICFG));
+      MWICFGs.emplace(std::piecewise_construct,
+              std::forward_as_tuple(M),
+              std::forward_as_tuple(CH, IRDB, *M, CGWalker, CGResolve));
     }
     BOOST_LOG_SEV(lg, INFO) << "Call-graphs have been constructed";
     // Perform all the analysis that the user has chosen.
@@ -498,9 +511,9 @@ AnalysisController::AnalysisController(
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         auto M = IRDB.getModuleDefiningFunction("main");
-        LLVMBasedICFG I = MWICFGs.at(M);
+        LLVMBasedICFG& I = MWICFGs.at(M);
         BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
-        for (auto entry : MWICFGs) {
+        for (auto &entry : MWICFGs) {
           if (M != entry.first) {
             I.mergeWith(entry.second);
           }
@@ -522,9 +535,9 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         auto M = IRDB.getModuleDefiningFunction("main");
-        LLVMBasedICFG I = MWICFGs.at(M);
+        LLVMBasedICFG &I = MWICFGs.at(M);
         BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
-        for (auto entry : MWICFGs) {
+        for (auto &entry : MWICFGs) {
           if (M != entry.first) {
             I.mergeWith(entry.second);
           }
