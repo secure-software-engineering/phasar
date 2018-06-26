@@ -17,25 +17,30 @@
 #ifndef INTERMONOTONEGENERALIZEDSOLVER_H_
 #define INTERMONOTONEGENERALIZEDSOLVER_H_
 
-#include <deque>
+// #include <deque>
 #include <iostream>
-#include <utility>
+#include <utility> // std::make_pair, std::pair
 #include <vector>
+#include <functional> // std::greater
+#include <set>
+#include <map>
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
-using namespace std;
+#include <phasar/Utils/LLVMShorthands.h>
+// using namespace std;
 
 namespace psr {
 
 /*
  *  N = Node of the CFG
- *  V = Values in the set of the edges (must be a inherited class
- *   of ValueBase)
- *
+ *  V = Values in the set of the edges
+ *  M = Method type of the CFG
+ *  C =
+ *  I = CFG/ICFG type (must be a inherited class of CFG<N,M>)
  */
 
 template <typename N, typename V, typename M, typename C, typename I,
@@ -44,201 +49,244 @@ class InterMonotoneGeneralizedSolver {
 private:
   template <typename T1, typename T2>
   void InterMonotoneGeneralizedSolver_check() {
-    static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V> with T1, T2 templates\n");
+    // static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V> with T1, T2 templates\n");
     static_assert(std::is_base_of<ContextBase<N, V, Context>, Context>::value, "Template class Context must be a sub class of ContextBase<N, V, Context>\n");
+    static_assert(std::is_base_of<CFG<N, M>, I>::value, "Template class I must be a sub class of CFG<N, M>\n");
   }
 
 protected:
-  InterMonotoneProblem<N, V, M, C, I> &IMProblem;
-  deque<pair<N, N>> Worklist;
-  // set<pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<Context, MonoSet<V>>> Analysis;
-  I ICFG;
-  set<M> visited_once;
-  // size_t prealloc_hint;
-
-  void initialize() {
-    for (auto &seed : IMProblem.initialSeeds()) {
-      M method = ICFG.getMethodOf(seed.first);
-      if ( !visited_once.count(method) ) {
-        visited_once.insert(ICFG.getMethodOf(seed.first));
-        vector<pair<N, N>> edges =
-            ICFG.getAllControlFlowEdges(method);
-        Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-      }
-      Analysis[seed.first][Context{method}]
-          .insert(seed.second.begin(), seed.second.end());
-      cout << " *** One Seed deployed *** \n";
-    }
-  }
-
-  bool isIntraEdge(pair<N, N> edge) {
-    return ICFG.getMethodOf(edge.first) == ICFG.getMethodOf(edge.second);
-  }
-
-  bool isCallEdge(pair<N, N> edge) {
-    return !isIntraEdge(edge) && ICFG.isCallStmt(edge.first);
-  }
-
-  bool isReturnEdge(pair<N, N> edge) {
-    return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
-  }
-
-public:
-  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, C, I> &IMP)
-                      // size_t prealloc_hint = 0)
-      : IMProblem(IMP), ICFG(IMP.getICFG()) {} //, prealloc_hint(prealloc_hint) {}
-  ~InterMonotoneGeneralizedSolver() = default;
+  using analysis_t = MonoMap<N, MonoMap<Context, MonoSet<V>>>;
+  using edge_t = std::pair<N, N>;
+  using priority_t = unsigned int;
 
   // DEBUG : Only for test purpose, should be a special fonction
   // To think later, probably require to provide an implementation of
   // this fonction
-  // int static compareN(const N lhs, const N rhs) {
-  //   if (llvm::getMetaDataId(lhs) < llvm::getMetaDataId(rhs))
-  //     return -1;
-  //   if (llvm::getMetaDataId(lhs) > llvm::getMetaDataId(rhs))
-  //     return 1;
-  //   return 0;
+  struct lessEdgeN {
+    bool lessN(const edge_t& lhs, const edge_t& rhs) const {
+      return std::stol(getMetaDataId(lhs)) < std::stol(getMetaDataId(rhs));
+    }
+
+    bool operator() (const edge_t& lhs, const edge_t& rhs) const {
+      return lhs.first < rhs.first || (!(rhs.first < lhs.first) && lhs.second < rhs.second);
+    }
+  };
+  // DEBUG
+
+  InterMonotoneProblem<N, V, M, C, I> &IMProblem;
+  std::map<std::pair<priority_t, Context>, std::set<edge_t, lessEdgeN>, std::greater<std::pair<priority_t, Context>>> Worklist;
+
+  using WL_first_it_t = typename decltype(Worklist)::iterator;
+  using WL_second_const_it_t = typename decltype(Worklist)::mapped_type::const_iterator;
+  analysis_t Analysis;
+  I &ICFG;
+
+  Context current_context;
+  priority_t current_priority = 0;
+  WL_first_it_t current_it_on_priority;
+  WL_second_const_it_t current_it_on_edge;
+  std::set<edge_t> call_edges;
+
+//TODO: initialize the Analysis map with different contexts
+  // void initialize_with_context() {
+  //   for ( const auto& seed : IMProblem.initialSeeds() ) {
+  //     for ( const auto& context : seed.second ) {
+  //       Analysis[seed.first][context.first]
+  //         .insert(context.second.begin(), context.second.end());
+  //     }
+  //   } // Seeds
   // }
-  // // DEBUG
-  //
-  // bool static lessPairN(const pair<N, N> lhs, const pair<N, N> rhs) {
-  //   const int comp_first = 2*compareN(lhs.first, rhs.first);
-  //   const int comp_second = compareN(lhs.second, rhs.second);
-  //   const int final_comp = comp_first + comp_second;
-  //   return final_comp < 0;
-  // }
+
+  void initialize() {
+    for ( const auto& seed : IMProblem.initialSeeds() ) {
+      Analysis[seed.first][current_context]
+          .insert(seed.second.begin(), seed.second.end());
+    }
+  }
+
+  virtual void analyse_function(M method) {
+    analyse_function(method, current_context, current_priority);
+  }
+
+  virtual void analyse_function(M method, Context& new_context) {
+    analyse_function(method, new_context, current_priority);
+  }
+
+  virtual void analyse_function(M method, Context& new_context, priority_t new_priority) {
+      std::vector<edge_t> edges =
+            ICFG.getAllControlFlowEdges(method);
+      auto current_pair = make_pair(new_priority, new_context);
+        Worklist[current_pair].insert(edges.begin(), edges.end());
+  }
+
+  bool isIntraEdge(const edge_t& edge) const {
+    return ICFG.getMethodOf(edge.first) == ICFG.getMethodOf(edge.second);
+  }
+
+  bool isCallEdge(const edge_t& edge) const {
+    return call_edges.count(edge);
+  }
+
+  bool isReturnEdge(const edge_t& edge) const {
+    return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
+  }
+
+  virtual void getNext() {
+    // We assure before using it that WL is not empty
+    current_it_on_priority =  Worklist.begin();
+    current_priority = current_it_on_priority->first.first;
+    current_context = current_it_on_priority->first.second;
+    current_it_on_edge = Worklist.cbegin()->second.cbegin();
+  }
+
+  virtual bool isWLempty() const noexcept {
+    return Worklist.empty() || Worklist.cbegin()->second.empty();
+  }
+
+  virtual void eraseWL() {
+    if ( call_edges.count(*current_it_on_edge) )
+      call_edges.erase(*current_it_on_edge);
+
+    auto& inside_set = current_it_on_priority->second;
+    inside_set.erase(current_it_on_edge);
+
+    if ( inside_set.empty() )
+      Worklist.erase(current_it_on_priority);
+  }
+
+public:
+  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, C, I> &IMP, Context& context, M method)
+      : IMProblem(IMP), ICFG(IMP.getICFG()),
+        current_context(context) {
+        initialize();
+        analyse_function(method);
+      }
+
+  ~InterMonotoneGeneralizedSolver() noexcept = default;
+  InterMonotoneGeneralizedSolver(const InterMonotoneGeneralizedSolver& copy) = delete;
+  InterMonotoneGeneralizedSolver(InterMonotoneGeneralizedSolver &&move) = delete;
+  InterMonotoneGeneralizedSolver& operator=(const InterMonotoneGeneralizedSolver &copy) = delete;
+  InterMonotoneGeneralizedSolver& operator=(InterMonotoneGeneralizedSolver&& move) = delete;
 
   virtual void solve() {
-    cout << "starting the InterMonotoneSolver::solve() procedure!\n";
-    initialize();
-    while (!Worklist.empty()) {
-      // DEBUG
-      cout << "worklist size: " << Worklist.size() << "\n";
-      // DEBUG
-      pair<N, N> edge = Worklist.front();
-      Worklist.pop_front();
-      auto src = edge.first;
-      auto dst = edge.second;
-      // DEBUG
-      cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
-           << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst) << ">\n";
-      // DEBUG
-      MonoMap<Context, MonoSet<V>> Out;
-      // Add an id context to get the next loop to work
-      Analysis[src][Context{ICFG.getMethodOf(src)}];
-      for (auto context_entry : Analysis[src]) {
-        auto context = context_entry.first;
-        auto inter_context = context;
-        if (ICFG.isCallStmt(src)) {
-          // Handle call and call-to-ret flow
-          if (!isIntraEdge(edge)) {
-            inter_context.enterFunction(src, dst, Analysis[src][context]);
-            /* WARNING : this is the interface for the std::map, boost::map or
-             *   other library may not work with count to check the existence of
-             *   the key in the map
-             */
-            if ( Analysis[src].count(inter_context) ) {
-              Out[inter_context] = IMProblem.callFlow(src, ICFG.getMethodOf(dst),
-                                                      Analysis[src][context],
-                                                      Analysis[src][inter_context]);
-            } else {
-              Out[inter_context] = IMProblem.callFlow(src, ICFG.getMethodOf(dst),
-                                                      Analysis[src][context]);
-            }
-          } else {
-            Out[context] =
-                IMProblem.callToRetFlow(src, dst, Analysis[src][context]);
-          }
-        } else if (ICFG.isExitStmt(src)) {
-          // Handle return flow
-          auto callsites = ICFG.getPredsOf(dst);
-          auto callsite = (callsites.size() == 1) ? callsites[0] : nullptr;
-          assert(callsite && "call-site not valid!");
-          assert(ICFG.isCallStmt(callsite) == true && "call-site not found!");
-          inter_context.exitFunction(src, dst, Analysis[src][context]);
+    while ( !isWLempty() ) {
+      getNext();
+      auto& edge = *current_it_on_edge;
 
-          if ( Analysis[src].count(inter_context) ) {
-            Out[inter_context] =
-                IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst,
-                                     Analysis[src][context],
-                                     Analysis[src][inter_context]);
-          } else {
-            Out[inter_context] =
-                IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst,
-                                     Analysis[src][context]);
-          }
+      const auto& src = edge.first;
+      const auto& dst = edge.second;
 
-        } else {
-          // Handle normal flow
-          Out[context] = IMProblem.normalFlow(src, Analysis[src][context]);
-        }
-        // Check if data-flow facts have changed and if so add them to worklist
-        // again. Caution: inter and intra edge must be distinguished, because
-        // for inter edges the contexts changes.
-        bool flowfactsstabilized =
-            (isIntraEdge(edge))
-                ? IMProblem.sqSubSetEqual(Out[context], Analysis[dst][context])
-                : IMProblem.sqSubSetEqual(Out[inter_context],
-                                          Analysis[dst][inter_context]);
-        if (!flowfactsstabilized) {
-          // Only join facts which have the same context
-          if (isIntraEdge(edge)) {
-            Analysis[dst][context] =
-                IMProblem.join(Analysis[dst][context], Out[context]);
-          } else {
-            if (isCallEdge(edge)) {
-              Analysis[dst][inter_context] =
-                  IMProblem.join(Analysis[dst][inter_context], Out[inter_context]);
-            } else {
-              Analysis[dst][inter_context] =
-                  IMProblem.join(Analysis[dst][inter_context], Out[inter_context]);
-            }
-          }
-          // Handle function call and add inter call edges
-          if (ICFG.isCallStmt(dst)) {
-            for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
-              // Add call edges
-              for (auto first_inst : ICFG.getStartPointsOf(callee)) {
-                Worklist.push_back({dst, first_inst});
-              }
-              // Add intra edges of callee
-              vector<pair<N, N>> edges = ICFG.getAllControlFlowEdges(callee);
-              Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-              // Add inter return edges
-              for (auto ret : ICFG.getExitPointsOf(callee)) {
-                for (auto retsite : ICFG.getReturnSitesOfCallAt(dst)) {
-                  Worklist.push_back({ret, retsite});
-                }
-              }
-            }
-          }
-          for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
-            Worklist.push_back({dst, nprimeprime});
-          }
-        }
+      MonoSet<V> Out;
 
-        if ( ICFG.isCallStmt(dst) ) {
-          for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
-            if ( !visited_once.count(callee) ) {
-              visited_once.insert(callee);
-              for (auto first_inst : ICFG.getStartPointsOf(callee)) {
-                Worklist.push_back({dst, first_inst});
-              }
+      Context src_context(current_context);
+      Context dst_context(src_context);
 
-              vector<pair<N, N>> edges = ICFG.getAllControlFlowEdges(callee);
-              Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-              // Add inter return edges
-              for (auto ret : ICFG.getExitPointsOf(callee)) {
-                for (auto retsite : ICFG.getReturnSitesOfCallAt(dst)) {
-                  Worklist.push_back({ret, retsite});
-                }
-              }
-            }
-          }
-        }
+      if ( isCallEdge(edge) ) {
+        // Handle call and call-to-ret flow
+        if ( !isIntraEdge(edge) ) {
+          Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst),
+                                                    Analysis[src][src_context]);
+        } //  !isIntraEdge(edge)
+        else {
+          Out =
+              IMProblem.callToRetFlow(src, dst, Analysis[src][src_context]);
+        } // isIntraEdge(edge)
+
+        // Even in a call-to-ret (like recursion) the context can change
+        // (e.g. called with a different set of parameters)
+        dst_context.enterFunction(src, dst, Analysis[src][src_context]);
+      } // isCallEdge(edge)
+
+      else if ( ICFG.isExitStmt(src) ) {
+        // Handle return flow
+        Out =
+            IMProblem.returnFlow(dst, ICFG.getMethodOf(src), src,
+                                   Analysis[src][src_context]);
+        dst_context.exitFunction(src, dst, Analysis[src][src_context]);
+      } // ICFG.isExitStmt(src)
+      else {
+        // Handle normal flow
+        Out = IMProblem.normalFlow(src, Analysis[src][src_context]);
       }
-    }
+
+      bool dst_context_already_exist = Analysis[dst].count(dst_context);
+
+      // If there is no context equal to dst_context already in Analysis[dst]
+      // we generate one so the next loop we'll work.
+      if ( !dst_context_already_exist )
+        Analysis[dst][dst_context];
+
+      // We can have multiple context that are similar to dst_context
+      // if the Comparison (in general std::less) is not strick weak order.
+      // In that case, equal_range works to get every key with a similar context
+      //WARNING: set::equal_range works here but it may be a bug from this version
+      // of the lib. If it breaks, we should try to use a multiset to keep the
+      // analysis results.
+      auto dst_range = Analysis[dst].equal_range(dst_context);
+      for ( auto& analysis_dst_it = dst_range.first;
+            analysis_dst_it != dst_range.second; ++analysis_dst_it ) {
+
+        // flowfactsstabilized = true <-> Same set + already visited once
+        bool flowfactsstabilized =
+          dst_context_already_exist
+            ? IMProblem.sqSubSetEqual(Out, analysis_dst_it->second)
+            : false;
+
+        if ( !flowfactsstabilized ) {
+          analysis_dst_it->second =
+              IMProblem.join(analysis_dst_it->second, Out);
+
+          if ( isIntraEdge(edge) ) {
+            for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
+              //NOTE: current_it_on_priority->second could be changed by
+              //      Worklist[std::make_pair(current_priority, analysis_dst_it->first)].
+              //      That would make the context change for each context found in
+              //      Analysis[dst], but there is almost 0 chance that there is more
+              //      than 1 context for an intra-edge and using current_context reduce
+              //      the numbre of edges inserted overall.
+              current_it_on_priority->second.insert(std::make_pair(dst, nprimeprime));
+            }
+          }
+        } // unstabilized flow fact
+
+        if ( isIntraEdge(edge) ) {
+            if ( ICFG.isCallStmt(dst) ) {
+            // The dst is a call stmt, we create the edge between the call and
+            // the start point of the callees
+            auto key = std::make_pair(current_priority+1, current_context);
+            for ( auto callee : ICFG.getCalleesOfCallAt(dst) ) {
+              for ( auto entry_point : ICFG.getStartPointsOf(callee) ) {
+                auto new_edge = std::make_pair(dst, entry_point);
+                Worklist[key].insert(new_edge);
+                call_edges.insert(std::move(new_edge));
+              } // entry_points of callee (~ 1 entry_point)
+            } // callee of method
+          }
+        } // Intra edge
+
+        if ( isCallEdge(edge) ) {
+          if ( !flowfactsstabilized
+            || dst_context.isUnsure() || IMProblem.recompute(ICFG.getMethodOf(dst)) ) {
+            // We never computed the function or the flow facts have changed or
+            // in case we want to handle some side-effects, the context does not
+            // assured perfect equality or any reason we would want to restart the
+            // computation of the function
+
+            analyse_function(ICFG.getMethodOf(dst), dst_context);
+          } // Compute a call
+          // Computed or not, we called a callFlow or callToRetFlow so we generate the
+          // exit edges to call the corresponding RetFlow
+
+          for ( auto exit_point : ICFG.getExitPointsOf(ICFG.getMethodOf(dst)) ) {
+            Worklist[std::make_pair(current_priority, dst_context)].emplace(make_pair(exit_point, src));
+          }
+        } // Is a call edge
+
+        // Nothing to do in particular if an Exit statement
+      }
+
+      eraseWL();
+    } // WL not empty
   }
 };
 

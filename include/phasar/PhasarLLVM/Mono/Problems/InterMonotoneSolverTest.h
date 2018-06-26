@@ -33,9 +33,8 @@ namespace psr {
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
-                                  const llvm::Value *, LLVMBasedICFG &> {
-private:
-  LLVMBasedICFG &ICFG;
+                                  const llvm::Value *, LLVMBasedICFG&> {
+protected:
   vector<string> EntryPoints;
 
 public:
@@ -59,19 +58,9 @@ public:
            const MonoSet<const llvm::Value *> &In) override;
 
   virtual MonoSet<const llvm::Value *>
-  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-                    const MonoSet<const llvm::Value *> &In,
-                    const MonoSet<const llvm::Value *> &KnownOut) override;
-
-  virtual MonoSet<const llvm::Value *>
   returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
+             const llvm::Instruction *RetSite,
              const MonoSet<const llvm::Value *> &In) override;
-  virtual MonoSet<const llvm::Value *>
-  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
-             const MonoSet<const llvm::Value *> &In,
-             const MonoSet<const llvm::Value *> &KnownOut) override;
 
   virtual MonoSet<const llvm::Value *>
   callToRetFlow(const llvm::Instruction *CallSite,
@@ -84,6 +73,8 @@ public:
   virtual string DtoString(const llvm::Value *d) override;
 
   virtual string CtoString(const llvm::Value *c) override;
+
+  virtual bool recompute(const llvm::Function* Callee) override;
 };
 
 } // namespace psr

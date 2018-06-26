@@ -31,7 +31,6 @@ namespace psr {
       std::string name;
       std::set<const llvm::StructType*> types;
       const llvm::StructType* base_type;
-      // bool no_change;
     };
 
     struct EdgeProperties {
@@ -61,7 +60,6 @@ namespace psr {
       dfs_visitor(graph_t *_g);
 
       void finish_edge(edge_t e, graph_t const& u);
-      // void finish_vertex(vertex_t v, graph_t const& u);
 
       graph_t *g;
     };

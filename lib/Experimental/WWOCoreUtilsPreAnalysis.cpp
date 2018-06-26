@@ -149,9 +149,9 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
   }
   case DataFlowAnalysisType::MONO_Inter_SolverTest: {
     InterMonotoneSolverTest inter(ICFG, EntryPoints);
-    LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &> solver(
-        inter, true);
-    solver.solve();
+    // LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &> solver(
+    //     inter, true);
+    // solver.solve();
     break;
   }
   case DataFlowAnalysisType::Plugin: {

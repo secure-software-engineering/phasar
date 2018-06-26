@@ -31,7 +31,7 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets (must be a sub class of ValueBase)
+ *  V = Values inside the monotone sets
  *  K = Maximum depth of CallString
  */
 template <typename N, typename V, unsigned K>
@@ -76,9 +76,9 @@ public:
     pop();
   }
 
-  virtual bool isTotal() override {
+  virtual bool isUnsure() override {
     // We may be a bit more precise in the future
-    return false;
+    return true;
   }
 
   virtual bool isEqual(const CallString &rhs) const override {

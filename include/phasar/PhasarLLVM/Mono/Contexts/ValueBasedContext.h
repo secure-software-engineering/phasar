@@ -49,8 +49,8 @@ public:
     //TODO
   }
 
-  virtual bool isTotal() override {
-    return true;
+  virtual bool isUnsure() override {
+    return false;
   }
 
   virtual bool isEqual(const ValueBasedContext &rhs) const override {

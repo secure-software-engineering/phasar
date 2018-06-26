@@ -30,10 +30,12 @@ private:
   void ValueBase_check() {
     static_assert(std::is_base_of<ValueBase<Id, V, ConcreteValue>, ConcreteValue>::value, "Template class ConcreteValue must be a sub class of ValueBase<Id, V, ConcreteValue>\n");
   }
-  
+
 public:
   virtual Id getId() const = 0;
   virtual V getValue() const = 0;
+
+  virtual ~ValueBase() = default;
 
   virtual bool isEqual(const ConcreteValue &lhs) = 0;
 

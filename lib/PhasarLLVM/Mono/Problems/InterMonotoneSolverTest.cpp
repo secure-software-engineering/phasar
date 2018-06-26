@@ -16,12 +16,12 @@ InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
     : InterMonotoneProblem<const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, const llvm::Value *,
                            LLVMBasedICFG &>(Icfg),
-      ICFG(Icfg), EntryPoints(EntryPoints) {}
+      EntryPoints(EntryPoints) {}
 
 MonoSet<const llvm::Value *>
 InterMonotoneSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
                               const MonoSet<const llvm::Value *> &Rhs) {
-  cout << "InterMonotoneSolverTest::join()\n";
+  // cout << "InterMonotoneSolverTest::join()\n";
   MonoSet<const llvm::Value *> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
@@ -31,7 +31,7 @@ InterMonotoneSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
 bool InterMonotoneSolverTest::sqSubSetEqual(
     const MonoSet<const llvm::Value *> &Lhs,
     const MonoSet<const llvm::Value *> &Rhs) {
-  cout << "InterMonotoneSolverTest::sqSubSetEqual()\n";
+  // cout << "InterMonotoneSolverTest::sqSubSetEqual()\n";
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
@@ -52,38 +52,20 @@ InterMonotoneSolverTest::callFlow(const llvm::Instruction *CallSite,
                                   const llvm::Function *Callee,
                                   const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonotoneSolverTest::callFlow()\n";
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
-  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
-    Result.insert(Call);
-  }
-  return Result;
-}
-
-MonoSet<const llvm::Value *>
-InterMonotoneSolverTest::callFlow(const llvm::Instruction *CallSite,
-                                  const llvm::Function *Callee,
-                                  const MonoSet<const llvm::Value *> &In,
-                                  const MonoSet<const llvm::Value *> &KnownOut) {
-  cout << "InterMonotoneSolverTest::callFlow() with known out\n";
-  return KnownOut;
-}
-
-MonoSet<const llvm::Value *> InterMonotoneSolverTest::returnFlow(
-    const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
-    const MonoSet<const llvm::Value *> &In) {
-  cout << "InterMonotoneSolverTest::returnFlow()\n";
+  // MonoSet<const llvm::Value *> Result;
+  // Result.insert(In.begin(), In.end());
+  // if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
+  //   Result.insert(Call);
+  // }
   return In;
 }
 
 MonoSet<const llvm::Value *> InterMonotoneSolverTest::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
-    const MonoSet<const llvm::Value *> &In,
-    const MonoSet<const llvm::Value *> &KnownOut) {
-  cout << "InterMonotoneSolverTest::returnFlow() with known out\n";
-  return KnownOut;
+    const llvm::Instruction *RetSite,
+    const MonoSet<const llvm::Value *> &In) {
+  cout << "InterMonotoneSolverTest::returnFlow()\n";
+  return In;
 }
 
 MonoSet<const llvm::Value *>
@@ -110,6 +92,10 @@ string InterMonotoneSolverTest::DtoString(const llvm::Value *d) {
 
 string InterMonotoneSolverTest::CtoString(const llvm::Value *c) {
   return llvmIRToString(c);
+}
+
+bool InterMonotoneSolverTest::recompute(const llvm::Function* Callee) {
+  return false;
 }
 
 } // namespace psr

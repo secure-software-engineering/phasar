@@ -26,9 +26,9 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets (must be a sub class of ValueBase)
+ *  V = Values inside the monotone sets
  *  ConcreteContext = The class that implement the context (must be a sub class
- *                    of ContextBase)
+ *                    of ContextBase<N,V,ConcreteContext>)
  */
 template <typename N, typename V, typename ConcreteContext>
 class ContextBase {
@@ -36,12 +36,12 @@ private:
   template<typename T1, typename T2>
   void ValueBase_check() {
     static_assert(std::is_base_of<ContextBase<N, V, ConcreteContext>, ConcreteContext>::value, "Template class ConcreteContext must be a sub class of ContextBase<N, V, ConcreteContext>\n");
-    static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V>\n");
+    // static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V>\n");
   }
-  
+
 public:
   /*
-   *
+   * Update the context at the exit of a function
    */
   virtual void exitFunction(N src, N dest, MonoSet<V> &In) = 0;
 
@@ -53,7 +53,7 @@ public:
   /*
    *
    */
-  virtual bool isTotal() = 0;
+  virtual bool isUnsure() = 0;
 
   /*
    *
