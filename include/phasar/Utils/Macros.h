@@ -15,7 +15,9 @@
 #include <iosfwd>
 #include <iterator>
 
-#include <llvm/IR/Type.h>
+namespace llvm {
+  class Type;
+}
 
 namespace psr {
 

@@ -26,7 +26,7 @@ private:
 
 public:
   TwoElementSet(E first, E second) : first(first), second(second){};
-  size_t size() { return 2; }
+  std::size_t size() { return 2; }
   virtual ~TwoElementSet() = default;
 };
 

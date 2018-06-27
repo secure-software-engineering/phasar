@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
+#include <ostream>
 
 #include <phasar/PhasarLLVM/Utils/Scopes.h>
 

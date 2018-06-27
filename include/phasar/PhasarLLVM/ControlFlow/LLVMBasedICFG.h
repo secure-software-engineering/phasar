@@ -28,8 +28,6 @@
 #include <llvm/IR/Function.h>
 
 #include <boost/graph/adjacency_list.hpp>
-// #include <boost/graph/graph_utility.hpp>
-// #include <boost/graph/graphviz.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
@@ -223,14 +221,7 @@ private:
    */
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
-  struct dependency_visitor : boost::default_dfs_visitor {
-    std::vector<vertex_t> &vertices;
-    dependency_visitor(std::vector<vertex_t> &v) : vertices(v) {}
-    template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
-      vertices.push_back(u);
-    }
-  };
+  struct dependency_visitor;
 
 public:
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);

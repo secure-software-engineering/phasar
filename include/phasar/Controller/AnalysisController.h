@@ -18,8 +18,9 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 
-using json = nlohmann::json;
 namespace psr {
+
+using json = nlohmann::json;
 
 enum class ExportType { JSON = 0 };
 

@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include "../db/DBConn.h"
-#include "Table.hh"
 #include <iostream>
 #include <set>
-#include <unordered_map>
+// #include <unordered_map>
+
+#include <phasar/DB/DBConn.h>
+#include "Table.hh"
 
 namespace psr {
 
@@ -83,11 +84,11 @@ public:
 
   std::set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
 
-  multiset<S> sourceSet() { return sed.rowKeySet(); }
+  std::multiset<S> sourceSet() { return sed.rowKeySet(); }
 
-  multiset<E> edgeSet() { return sed.columnKeySet(); }
+  std::multiset<E> edgeSet() { return sed.columnKeySet(); }
 
-  multiset<D> destinationSet() { return sed.values(); }
+  std::multiset<D> destinationSet() { return sed.values(); }
 
   void loadHexaStoreGraphFromDB(const std::string &tablename) {
     cerr << "Not implemented yet!" << std::endl;

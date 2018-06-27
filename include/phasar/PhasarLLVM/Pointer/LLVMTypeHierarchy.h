@@ -20,22 +20,26 @@
 #include <set>
 #include <string>
 #include <vector>
-// #include <iosfwd>
+#include <iosfwd>
 
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/transitive_closure.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
+#include <gtest/gtest_prod.h>
 
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Module.h>
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
 
-#include <phasar/DB/ProjectIRDB.h>
+#include <json.hpp>
+
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+
+namespace llvm {
+  class Module;
+  class Type;
+  class Function;
+}
 
 namespace psr {
 
+class ProjectIRDB;
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -47,6 +51,7 @@ class LLVMTypeHierarchy {
 public:
   /// necessary for storing/loading the LLVMTypeHierarchy to/from database
   friend class DBConn;
+  using json = nlohmann::json;
 
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;

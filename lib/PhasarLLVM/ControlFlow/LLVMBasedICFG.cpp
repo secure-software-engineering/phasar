@@ -17,8 +17,11 @@
 
 #include <llvm/IR/InstIterator.h>
 
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/copy.hpp>
 // #include <boost/log/sources/severity_feature.hpp>
 #include <boost/log/sources/record_ostream.hpp>
+
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
@@ -69,6 +72,15 @@ const map<ResolveStrategy, string> ResolveStrategyToString = {
 ostream &operator<<(ostream &os, const ResolveStrategy R) {
   return os << ResolveStrategyToString.at(R);
 }
+
+struct LLVMBasedICFG::dependency_visitor : boost::default_dfs_visitor {
+  std::vector<vertex_t> &vertices;
+  dependency_visitor(std::vector<vertex_t> &v) : vertices(v) {}
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, const Graph &g) {
+    vertices.push_back(u);
+  }
+};
 
 LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function *f,
                                                   bool isDecl)

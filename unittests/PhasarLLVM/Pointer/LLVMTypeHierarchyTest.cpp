@@ -1,5 +1,9 @@
 #include <boost/graph/isomorphism.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
+
 #include <gtest/gtest.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>

@@ -9,12 +9,10 @@
 
 #pragma once
 
-#include "Logger.h"
-#include <dlfcn.h>
-#include <iostream>
-#include <memory>
 #include <stdexcept>
 #include <string>
+
+#include <dlfcn.h>
 
 namespace psr {
 

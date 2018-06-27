@@ -7,25 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <algorithm>
-#include <type_traits>
-#include <iostream>
+// #include <algorithm>
+// #include <type_traits>
+#include <ostream>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
+// #include <boost/container/flat_map.hpp>
+// #include <boost/container/flat_set.hpp>
 
-
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
 
 #include <cxxabi.h>
-
-// #include "IO.h"
 
 #include <phasar/Utils/Macros.h>
 

@@ -16,11 +16,12 @@
 
 #pragma once
 
+#include <vector>
+#include <utility> // std::pair
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graph_utility.hpp>
-#include <vector>
-#include <utility> // std::pair
 
 namespace psr {
 

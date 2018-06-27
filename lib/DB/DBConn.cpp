@@ -13,8 +13,14 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-// #include <iostream>
+
 #include <thread>
+
+#include <llvm/IR/Module.h>
+#include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Function.h>
+
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>

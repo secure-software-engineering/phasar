@@ -14,6 +14,9 @@
  *      Author: rleer
  */
 
+#include <iomanip>
+#include <sstream>
+
 #include <phasar/Utils/PAMM.h>
 
 using namespace std;

@@ -16,19 +16,26 @@
 
 #include <iostream>
 #include <algorithm>
-// #include <fstream>
 
 // #include <boost/log/sources/severity_feature.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
-#include <llvm/IR/Instructions.h>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/graph/transitive_closure.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/property_map/dynamic_property_map.hpp>
 
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Constant.h>
+
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMM.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
-
 
 using namespace psr;
 using namespace std;

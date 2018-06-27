@@ -21,6 +21,10 @@
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/Constants.h>
 
+#include <boost/graph/copy.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>

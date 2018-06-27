@@ -7,7 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/Utils/SOL.h>
+#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;

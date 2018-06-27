@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include <iostream>
+#include <ostream>
 
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 

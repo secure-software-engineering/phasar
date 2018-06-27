@@ -4,6 +4,8 @@
 #include <set>
 #include <string>
 
+#include <gtest/gtest_prod.h>
+
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>

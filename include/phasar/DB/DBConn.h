@@ -26,6 +26,13 @@
 #include <mysql_connection.h>
 #include <sqlite3.h>
 
+namespace llvm {
+  class Module;
+  class GlobalVariable;
+  class LLVMContext;
+  class StructType;
+}
+
 namespace psr {
 
 enum class QueryReturnCode { TRUE, FALSE, ERROR };

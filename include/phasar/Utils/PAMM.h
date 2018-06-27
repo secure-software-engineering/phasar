@@ -16,20 +16,17 @@
 
 #pragma once
 
-#include "json.hpp"
-#include <boost/filesystem.hpp>
 #include <cassert>
 #include <chrono>
-#include <fstream>
-#include <gtest/gtest_prod.h>
-#include <iomanip>
 #include <iostream>
-#include <map>
 #include <set>
-#include <sstream>
 #include <string>
-#include <tuple>
 #include <unordered_map>
+
+#include <boost/filesystem.hpp>
+
+#include "json.hpp"
+
 
 // for convenience
 using json = nlohmann::json;

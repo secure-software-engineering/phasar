@@ -16,22 +16,15 @@
 
 #pragma once
 
-// #include <fstream>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/copy.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
 
 #include <llvm/IR/CallSite.h>
 
 #include <json.hpp>
 
 #include <phasar/Config/Configuration.h>
-
-using json = nlohmann::json;
 
 namespace llvm {
   class Value;
@@ -43,6 +36,8 @@ namespace llvm {
 }
 
 namespace psr {
+
+using json = nlohmann::json;
 
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html

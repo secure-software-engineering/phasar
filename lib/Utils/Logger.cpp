@@ -27,7 +27,6 @@
 #include <boost/log/attributes.hpp>
 #include <boost/log/utility/exception_handler.hpp>
 
-
 #include <phasar/Utils/Logger.h>
 
 using namespace std;

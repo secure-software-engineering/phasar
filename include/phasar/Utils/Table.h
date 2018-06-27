@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <set>
 #include <tuple>
 #include <unordered_map>
