@@ -7,17 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_ProjectIRDB_H_
-#define ANALYSIS_ProjectIRDB_H_
+#pragma once
 
-#include <algorithm>
-#include <cassert>
+#include <set>
+#include <string>
+#include <utility>
+#include <map>
+#include <memory>
+
 #include <clang/Basic/Diagnostic.h>
 #include <clang/CodeGen/CodeGenAction.h>
 #include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/CompilerInvocation.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
+
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/BasicAliasAnalysis.h>
 #include <llvm/Analysis/CFLAndersAliasAnalysis.h>
@@ -31,19 +35,17 @@
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
 #include <llvm/Transforms/Scalar.h>
-#include <map>
-#include <memory>
+
+#include <boost/filesystem.hpp>
+
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 #include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/PAMM.h>
-#include <set>
-#include <string>
-#include <utility>
-#include <boost/filesystem.hpp>
+
+
 
 namespace psr {
 
@@ -140,9 +142,7 @@ public:
   void exportPATBCJSON();
   std::string valueToPersistedString(const llvm::Value *V);
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
-  set<const llvm::Type *> getAllocatedTypes();
+  std::set<const llvm::Type *> getAllocatedTypes();
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_ProjectIRDB_HH_ */

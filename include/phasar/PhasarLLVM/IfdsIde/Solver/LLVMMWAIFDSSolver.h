@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef LLVMMWAIFDSSOLVER_H_
-#define LLVMMWAIFDSSOLVER_H_
+#pragma once
 
 /*
  * LLVMIFDSSolver.h
@@ -26,7 +25,6 @@
 #include <phasar/Utils/Table.h>
 #include <string>
 
-using namespace std;
 namespace psr {
 
 template <typename D, typename I>
@@ -57,7 +55,7 @@ public:
   }
 
   virtual void combine() override {
-    cout << "LLVMMWAIFDSSolver::combine()\n";
+    std::cout << "LLVMMWAIFDSSolver::combine()\n";
     MWAIFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                   I>::combine();
     if (DUMP_RESULTS)
@@ -65,12 +63,12 @@ public:
   }
 
   void dumpResults() {
-    cout << "### DUMP LLVMIFDSSolver results\n";
+    std::cout << "### DUMP LLVMIFDSSolver results\n";
     auto results = this->valtab.cellSet();
     if (results.empty()) {
-      cout << "EMPTY\n";
+      std::cout << "EMPTY\n";
     } else {
-      vector<typename Table<const llvm::Instruction *, const llvm::Value *,
+      std::vector<typename Table<const llvm::Instruction *, const llvm::Value *,
                             BinaryDomain>::Cell>
           cells;
       for (auto cell : results) {
@@ -87,38 +85,38 @@ public:
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          cout << "--- IFDS START RESULT RECORD ---\n";
-          cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "--- IFDS START RESULT RECORD ---\n";
+          std::cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            cout << inst->getFunction()->getName().str() << "\n";
+            std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t";
+        std::cout << "D:\t";
         if (cells[i].c == nullptr)
-          cout << "  nullptr " << endl;
+          std::cout << "  nullptr " << std::endl;
         else
-          cout << Problem.DtoString(cells[i].c) << " "
+          std::cout << Problem.DtoString(cells[i].c) << " "
                << "\tV:  " << cells[i].v << "\n";
       }
     }
   }
 
   void dumpAllInterPathEdges() {
-    cout << "COMPUTED INTER PATH EDGES" << endl;
+    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "TO" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "FACTS" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -127,20 +125,20 @@ public:
   }
 
   void dumpAllIntraPathEdges() {
-    cout << "COMPUTED INTRA PATH EDGES" << endl;
+    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "TO" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "FACTS" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -150,5 +148,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

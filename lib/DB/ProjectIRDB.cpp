@@ -7,9 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/DB/ProjectIRDB.h>
+
 #include <iostream>
+#include <algorithm>
+#include <cassert>
+
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/IO.h>
+
 using namespace psr;
+using namespace std;
 
 namespace psr {
 

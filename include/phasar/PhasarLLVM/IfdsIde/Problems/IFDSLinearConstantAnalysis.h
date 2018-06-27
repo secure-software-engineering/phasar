@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_
+#pragma once
 
 #include <functional>
 #include <map>
@@ -28,7 +27,7 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-// A small pair data type to encode data flow facts for this LCA
+// A small std::pair data type to encode data flow facts for this LCA
 struct LCAPair {
   const llvm::Value *first;
   int second;
@@ -99,6 +98,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
-        */

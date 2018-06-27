@@ -7,10 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <stdexcept>
+
+#include <boost/filesystem.hpp>
+#include <boost/program_options.hpp>
+#include <boost/throw_exception.hpp>
+
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/CompilationDatabase.h>
 #include <clang/Tooling/Tooling.h>
+
 #include <llvm/Support/CommandLine.h>
+
 #include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarClang/ClangController.h>
@@ -18,13 +26,16 @@
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <boost/throw_exception.hpp>
-#include <stdexcept>
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
+
+using namespace std;
 using namespace psr;
 
 // setup programs command line options (via Clang)

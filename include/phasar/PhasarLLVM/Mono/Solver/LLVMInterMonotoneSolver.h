@@ -14,8 +14,7 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_H_
-#define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_H_
+#pragma once
 
 #include "../InterMonotoneProblem.h"
 #include "InterMonotoneGeneralizedSolver.h"
@@ -24,9 +23,6 @@
 #include <iostream>
 
 #include <llvm/IR/Instruction.h>
-
-
-// using namespace std;
 
 namespace psr {
 //
@@ -59,36 +55,34 @@ namespace psr {
 //   }
 //
 //   void dumpResults() {
-//     cout << "Monotone solver results:\n";
+//     std::cout << "Monotone solver results:\n";
 //     // Iterate instructions
 //     for (auto &node :
 //          InterMonotoneGeneralizedSolver<const llvm::Instruction *, D,
 //                              const llvm::Function *, const llvm::Value *,
 //                              I, CallString<const llvm::Instruction *, D, K>>::Analysis) {
-//       cout << "Instruction: " << llvmIRToString(node.first) << " in "
+//       std::cout << "Instruction: " << llvmIRToString(node.first) << " in "
 //            << node.first->getFunction()->getName().str() << "\n";
-//       // Iterate call-string - flow fact set pairs
+//       // Iterate call-std::string - flow fact std::set pairs
 //       for (auto &flowfacts : node.second) {
-//         cout << "Context: ";
-//         // Print the elements of the call string
-//         for (auto cstring : flowfacts.first.getInternalCS()) {
-//           cout
-//               << ((llvm::isa<llvm::Function>(cstring))
-//                       ? llvm::dyn_cast<llvm::Function>(cstring)->getName().str()
-//                       : IMProblem.CtoString(cstring))
+//         std::cout << "Context: ";
+//         // Print the elements of the call std::string
+//         for (auto cstd::string : flowfacts.first.getInternalCS()) {
+//           std::cout
+//               << ((llvm::isa<llvm::Function>(cstd::string))
+//                       ? llvm::dyn_cast<llvm::Function>(cstd::string)->getName().str()
+//                       : IMProblem.CtoString(cstd::string))
 //               << " * ";
 //         }
-//         cout << "\nFacts:\n";
-//         // Print the elements of the corresponding set of flow facts
+//         std::cout << "\nFacts:\n";
+//         // Print the elements of the corresponding std::set of flow facts
 //         for (auto &flowfact : flowfacts.second) {
-//           cout << IMProblem.DtoString(flowfact) << '\n';
+//           std::cout << IMProblem.DtoString(flowfact) << '\n';
 //         }
 //       }
-//       cout << "\n\n";
+//       std::cout << "\n\n";
 //     }
 //   }
 // };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTERMONOTONESOLVER_HH_ */

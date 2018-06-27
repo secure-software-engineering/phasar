@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_MULTIINDEXTABLE_H_
-#define UTILS_MULTIINDEXTABLE_H_
+#pragma once
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
@@ -24,8 +23,6 @@
 #include <boost/multi_index_container.hpp>
 #include <iostream>
 #include <string>
-
-using namespace std;
 
 namespace psr {
 
@@ -73,11 +70,9 @@ template <typename R, typename C, typename V> struct MultiIndexTable {
   // the indexed table containing instances of TableData
   InternTable IndexedTable;
 
-  friend ostream &operator<<(ostream &os, const InternTable &itab) {
+  friend std::ostream &operator<<(std::ostream &os, const InternTable &itab) {
     return os << "error: unsupported operation!";
   }
 };
 
 } // namespace psr
-
-#endif /* UTILS_MULTIINDEXTABLE_HH_ */

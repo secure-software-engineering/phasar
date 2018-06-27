@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPEANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPEANALYSIS_H_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -24,7 +23,6 @@ class Value;
 
 class LLVMBasedICFG;
 
-using namespace std;
 namespace psr {
 class IFDSTypeAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
@@ -70,5 +68,3 @@ public:
   std::string MtoString(m_t m) const override;
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TYPEANALYSIS_H_ */

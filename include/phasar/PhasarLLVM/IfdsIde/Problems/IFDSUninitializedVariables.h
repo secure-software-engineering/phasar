@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZEDVARIABLES_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_UNINITIALIZEDVARIABLES_H_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -24,7 +23,6 @@ class Value;
 } // namespace llvm
 
 class LLVMBasedICFG;
-using namespace std;
 namespace psr {
 
 class IFDSUnitializedVariables
@@ -80,6 +78,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
-        */

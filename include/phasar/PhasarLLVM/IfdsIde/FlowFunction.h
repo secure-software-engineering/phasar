@@ -14,12 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOWFUNCTION_H_
-#define ANALYSIS_IFDS_IDE_FLOWFUNCTION_H_
+#pragma once
 
 #include <set>
 
-using namespace std;
 namespace psr {
 
 template <typename D> class FlowFunction {
@@ -29,5 +27,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOWFUNCTION_HH_ */

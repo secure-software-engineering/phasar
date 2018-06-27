@@ -7,8 +7,7 @@
  *     Christian Stritzke and others
  *****************************************************************************/
 
-#ifndef QUERIES_H_
-#define QUERIES_H_
+#pragma once
 
 #include <string>
 
@@ -45,5 +44,3 @@ const std::string SEARCH_XXX;
 const std::string INIT;
 
 } /* end namespace psr */
-
-#endif /* QUERIES_HH_ */

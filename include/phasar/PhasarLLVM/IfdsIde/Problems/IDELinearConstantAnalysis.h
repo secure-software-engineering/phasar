@@ -6,10 +6,7 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
-
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
-
+#pragma once
 #include <map>
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
@@ -115,6 +112,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_HH_ \
-        */

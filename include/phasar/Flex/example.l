@@ -18,9 +18,9 @@
 %{
 
 
-string yy_current_file = "";
-string yy_head = "";
-string yy_chunks = "";
+std::string yy_current_file = "";
+std::string yy_head = "";
+std::string yy_chunks = "";
 size_t yy_brackets = 0;
 MyFile yy_myfile;
 MyFunction yy_global_func;

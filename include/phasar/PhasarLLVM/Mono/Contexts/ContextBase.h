@@ -14,8 +14,7 @@
  *      Author: nicolas
  */
 
-#ifndef CONTEXTBASE_H_
-#define CONTEXTBASE_H_
+#pragma once
 
 #include <iostream>
 #include <phasar/Utils/Macros.h>
@@ -79,4 +78,3 @@ public:
 };
 
 }
-#endif

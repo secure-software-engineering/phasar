@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYFRONTENDACTION_H_
-#define CLANG_MYFRONTENDACTION_H_
+#pragma once
+
 
 #include "RandomChangeASTConsumer.h"
 #include <clang/AST/AST.h>
@@ -48,5 +48,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* CLANG_MYFRONTENDACTION_HH_ */

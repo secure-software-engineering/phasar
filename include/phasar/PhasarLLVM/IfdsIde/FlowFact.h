@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWFACT_H_
-#define FLOWFACT_H_
+#pragma once
 
 #include <iostream>
+
 namespace psr {
 
 class FlowFact {
@@ -20,5 +20,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

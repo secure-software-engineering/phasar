@@ -14,13 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef FLEX_EXTRACTION_HH_
-#define FLEX_EXTRACTION_HH_
+#pragma once
 
 namespace psr {
 
 class FlexExtraction {};
 
 } // namespace psr
-
-#endif /* FLEX_CCEXTRACTIONIFACE_HH_ */

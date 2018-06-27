@@ -14,76 +14,53 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_LLVMBASEDICFG_H_
-#define ANALYSIS_LLVMBASEDICFG_H_
+#pragma once
 
-#include <array>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <functional>
-#include <initializer_list>
-#include <iostream>
-#include <llvm/ADT/SCCIterator.h>
-#include <llvm/Analysis/CallGraph.h>
-#include <llvm/IR/BasicBlock.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Pass.h>
-#include <llvm/Support/Casting.h>
 #include <map>
-#include <memory>
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
-#include <phasar/Utils/GraphExtensions.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
-#include <set>
-#include <stdexcept>
 #include <string>
-#include <tuple>
+#include <iosfwd>
 #include <vector>
 
-using namespace std;
+#include <boost/graph/adjacency_list.hpp>
+// #include <boost/graph/graph_utility.hpp>
+// #include <boost/graph/graphviz.hpp>
+
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+
 namespace psr {
+
+//Forward declaration
+class TypeGraph;
+class ProjectIRDB;
+class LLVMTypeHierarchy;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
 
-extern const map<string, WalkerStrategy> StringToWalkerStrategy;
+extern const std::map<std::string, WalkerStrategy> StringToWalkerStrategy;
 
-extern const map<WalkerStrategy, string> WalkerStrategyToString;
+extern const std::map<WalkerStrategy, std::string> WalkerStrategyToString;
 
-ostream &operator<<(ostream &os, const WalkerStrategy W);
+std::ostream &operator<<(std::ostream &os, const WalkerStrategy W);
 
 // Describes the strategy that is used for resolving indirect call-sites;
 enum class ResolveStrategy { CHA = 0, RTA, TA, OTF };
 
-extern const map<string, ResolveStrategy> StringToResolveStrategy;
+extern const std::map<std::string, ResolveStrategy> StringToResolveStrategy;
 
-extern const map<ResolveStrategy, string> ResolveStrategyToString;
+extern const std::map<ResolveStrategy, std::string> ResolveStrategyToString;
 
-ostream &operator<<(ostream &os, const ResolveStrategy R);
+std::ostream &operator<<(std::ostream &os, const ResolveStrategy R);
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 private:
   WalkerStrategy W;
   ResolveStrategy R;
-  const map<WalkerStrategy,
-            function<void(LLVMBasedICFG *, const llvm::Function *)>>
+  const std::map<WalkerStrategy,
+            std::function<void(LLVMBasedICFG *, const llvm::Function *)>>
       Walker{{WalkerStrategy::Simple,
               &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
              {WalkerStrategy::VariableType,
@@ -92,8 +69,8 @@ private:
               &LLVMBasedICFG::resolveIndirectCallWalkerDTA},
              {WalkerStrategy::Pointer,
               &LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis}};
-  const map<ResolveStrategy,
-            function<set<string>(LLVMBasedICFG *, llvm::ImmutableCallSite)>>
+  const std::map<ResolveStrategy,
+            std::function<std::set<std::string>(LLVMBasedICFG *, llvm::ImmutableCallSite)>>
       Resolver{{ResolveStrategy::CHA, &LLVMBasedICFG::resolveIndirectCallCHA},
                {ResolveStrategy::RTA, &LLVMBasedICFG::resolveIndirectCallRTA},
                {ResolveStrategy::TA, &LLVMBasedICFG::resolveIndirectCallTA},
@@ -101,9 +78,9 @@ private:
   LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
   PointsToGraph WholeModulePTG;
-  set<const llvm::Function *> VisitedFunctions;
+  std::set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
-  vector<const llvm::Instruction *> CallStack;
+  std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
   std::map<const llvm::Function*, TypeGraph*> tgs;
@@ -114,7 +91,7 @@ private:
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *function = nullptr;
-    string functionName;
+    std::string functionName;
     bool isDeclaration;
     VertexProperties() = default;
     VertexProperties(const llvm::Function *f, bool isDecl = false);
@@ -123,7 +100,7 @@ private:
   // The EdgeProperties for our call-graph.
   struct EdgeProperties {
     const llvm::Instruction *callsite = nullptr;
-    string ir_code;
+    std::string ir_code;
     size_t id = 0;
     EdgeProperties() = default;
     EdgeProperties(const llvm::Instruction *i);
@@ -168,7 +145,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  set<string> resolveIndirectCallCHA(llvm::ImmutableCallSite CS);
+  std::set<std::string> resolveIndirectCallCHA(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using class hierarchy information but taking
@@ -179,7 +156,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  set<string> resolveIndirectCallRTA(llvm::ImmutableCallSite CS);
+  std::set<std::string> resolveIndirectCallRTA(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using type information that are obtained by
@@ -189,7 +166,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  set<string> resolveIndirectCallTA(llvm::ImmutableCallSite CS);
+  std::set<std::string> resolveIndirectCallTA(llvm::ImmutableCallSite CS);
 
   /**
    * A simple function walking along the control flow resolving indirect
@@ -226,7 +203,7 @@ private:
   //  */
   // void resolveIndirectCallWalkerTypeAnalysis(
   //     const llvm::Function *F,
-  //     function<set<string>(llvm::ImmutableCallSite CS)> R, bool useVTA = true);
+  //     function<std::set<std::string>(llvm::ImmutableCallSite CS)> R, bool useVTA = true);
 
   /**
    * Walking along the control flow resolving indirect call-sites using
@@ -242,8 +219,8 @@ private:
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
   struct dependency_visitor : boost::default_dfs_visitor {
-    vector<vertex_t> &vertices;
-    dependency_visitor(vector<vertex_t> &v) : vertices(v) {}
+    std::vector<vertex_t> &vertices;
+    dependency_visitor(std::vector<vertex_t> &v) : vertices(v) {}
     template <typename Vertex, typename Graph>
     void finish_vertex(Vertex u, const Graph &g) {
       vertices.push_back(u);
@@ -255,11 +232,11 @@ public:
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, WalkerStrategy W,
                 ResolveStrategy R,
-                const vector<string> &EntryPoints = {"main"});
+                const std::vector<std::string> &EntryPoints = {"main"});
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 const llvm::Module &M, WalkerStrategy W, ResolveStrategy R,
-                vector<string> EntryPoints = {});
+                std::vector<std::string> EntryPoints = {});
 
   virtual ~LLVMBasedICFG() = default;
 
@@ -267,16 +244,16 @@ public:
 
   const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
 
-  vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *I) override;
 
-  vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *I) override;
 
-  vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
+  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *fun) override;
 
   bool isExitStmt(const llvm::Instruction *stmt) override;
@@ -289,46 +266,46 @@ public:
   bool isBranchTarget(const llvm::Instruction *stmt,
                       const llvm::Instruction *succ) override;
 
-  string getMethodName(const llvm::Function *fun) override;
-  string getStatementId(const llvm::Instruction *stmt) override;
+  std::string getMethodName(const llvm::Function *fun) override;
+  std::string getStatementId(const llvm::Instruction *stmt) override;
 
-  const llvm::Function *getMethod(const string &fun) override;
+  const llvm::Function *getMethod(const std::string &fun) override;
 
-  set<const llvm::Function *>
+  std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *n) override;
 
-  set<const llvm::Instruction *> getCallersOf(const llvm::Function *m) override;
+  std::set<const llvm::Instruction *> getCallersOf(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *>
+  std::set<const llvm::Instruction *>
   getCallsFromWithin(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *>
+  std::set<const llvm::Instruction *>
   getStartPointsOf(const llvm::Function *m) override;
 
-  set<const llvm::Instruction *>
+  std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *fun) override;
 
-  set<const llvm::Instruction *>
+  std::set<const llvm::Instruction *>
   getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
   bool isCallStmt(const llvm::Instruction *stmt) override;
 
-  set<const llvm::Instruction *> allNonCallStartNodes() override;
+  std::set<const llvm::Instruction *> allNonCallStartNodes() override;
 
-  const llvm::Instruction *getLastInstructionOf(const string &name);
+  const llvm::Instruction *getLastInstructionOf(const std::string &name);
 
-  vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const string &name);
+  std::vector<const llvm::Instruction *>
+  getAllInstructionsOfFunction(const std::string &name);
 
   void mergeWith(const LLVMBasedICFG &other);
 
-  bool isPrimitiveFunction(const string &name);
+  bool isPrimitiveFunction(const std::string &name);
 
   void print();
 
-  void printAsDot(const string &filename);
+  void printAsDot(const std::string &filename);
 
-  void printInternalPTGAsDot(const string &filename);
+  void printInternalPTGAsDot(const std::string &filename);
 
   json getAsJson() override;
 
@@ -340,9 +317,7 @@ public:
 
   PointsToGraph &getWholeModulePTG();
 
-  vector<string> getDependencyOrderedFunctions();
+  std::vector<std::string> getDependencyOrderedFunctions();
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_LLVMBASEDINTERPROCEDURALCFG_HH_ */

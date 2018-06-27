@@ -14,11 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODE_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODE_H_
+#pragma once
 
 #include <vector>
-using namespace std;
+
 namespace psr {
 
 template <typename T> class JoinHandlingNode {
@@ -36,7 +35,7 @@ public:
 
   class JoinKey {
   private:
-    vector<T> elements;
+    std::vector<T> elements;
 
   public:
     /**
@@ -44,7 +43,7 @@ public:
      * @param elements Passed elements must be immutable with respect to their
      * hashCode and equals implementations.
      */
-    JoinKey(vector<T> elems) : elements(elems) {}
+    JoinKey(std::vector<T> elems) : elements(elems) {}
     int hash() { return 0; }
     bool equals() { return false; }
   };
@@ -60,5 +59,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODE_HH_ */

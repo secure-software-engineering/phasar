@@ -14,13 +14,12 @@
  *      Author: philipp
  */
 
-#ifndef SRC_CONFIG_CONFIGURATION_H_
-#define SRC_CONFIG_CONFIGURATION_H_
+#pragma once
 
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <cstdlib>
 #include <string>
+
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
 namespace psr {
@@ -40,7 +39,7 @@ extern const std::string LLVMIntrinsicFunctionListFileName;
 extern const std::string HeaderSearchPathsFileName;
 /// Name of the compile_commands.json file (in case we wish to rename)
 extern const std::string CompileCommandsJson;
-/// Variables map of the parsed command-line parameters
+/// Variables std::map of the parsed command-line parameters
 extern bpo::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;
@@ -55,5 +54,3 @@ extern const std::string JsonPointToGraphID;
 extern const std::string JsonDataFlowID;
 
 } // namespace psr
-
-#endif /* SRC_CONFIG_CONFIGURATION_H_ */

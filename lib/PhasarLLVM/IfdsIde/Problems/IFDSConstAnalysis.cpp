@@ -26,6 +26,11 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+
+using namespace std;
 using namespace psr;
 namespace psr {
 

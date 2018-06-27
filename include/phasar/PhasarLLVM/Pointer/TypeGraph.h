@@ -1,11 +1,8 @@
-#include <algorithm>
-#include <fstream>
-#include <initializer_list>
-#include <iostream>
+#pragma once
+
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
@@ -15,13 +12,8 @@
 
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
 
-#include <phasar/Utils/Macros.h>
-#include <phasar/Utils/Logger.h>
 #include <phasar/DB/ProjectIRDB.h>
-// #include <phasar/PhasarLLVM/Pointer/VTable.h>
 
 
 namespace psr {

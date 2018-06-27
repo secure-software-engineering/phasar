@@ -14,8 +14,7 @@
  *      Author: nicolas
  */
 
-#ifndef INTERMONOTONEGENERALIZEDSOLVER_H_
-#define INTERMONOTONEGENERALIZEDSOLVER_H_
+#pragma once
 
 // #include <deque>
 #include <iostream>
@@ -31,13 +30,12 @@
 #include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 #include <phasar/Utils/LLVMShorthands.h>
-// using namespace std;
 
 namespace psr {
 
 /*
  *  N = Node of the CFG
- *  V = Values in the set of the edges
+ *  V = Values in the std::set of the edges
  *  M = Method type of the CFG
  *  C =
  *  I = CFG/ICFG type (must be a inherited class of CFG<N,M>)
@@ -87,7 +85,7 @@ protected:
   WL_second_const_it_t current_it_on_edge;
   std::set<edge_t> call_edges;
 
-//TODO: initialize the Analysis map with different contexts
+//TODO: initialize the Analysis std::map with different contexts
   // void initialize_with_context() {
   //   for ( const auto& seed : IMProblem.initialSeeds() ) {
   //     for ( const auto& context : seed.second ) {
@@ -115,7 +113,7 @@ protected:
   virtual void analyse_function(M method, Context& new_context, priority_t new_priority) {
       std::vector<edge_t> edges =
             ICFG.getAllControlFlowEdges(method);
-      auto current_pair = make_pair(new_priority, new_context);
+      auto current_pair = std::make_pair(new_priority, new_context);
         Worklist[current_pair].insert(edges.begin(), edges.end());
   }
 
@@ -193,7 +191,7 @@ public:
         } // isIntraEdge(edge)
 
         // Even in a call-to-ret (like recursion) the context can change
-        // (e.g. called with a different set of parameters)
+        // (e.g. called with a different std::set of parameters)
         dst_context.enterFunction(src, dst, Analysis[src][src_context]);
       } // isCallEdge(edge)
 
@@ -219,14 +217,14 @@ public:
       // We can have multiple context that are similar to dst_context
       // if the Comparison (in general std::less) is not strick weak order.
       // In that case, equal_range works to get every key with a similar context
-      //WARNING: set::equal_range works here but it may be a bug from this version
+      //WARNING: std::set::equal_range works here but it may be a bug from this version
       // of the lib. If it breaks, we should try to use a multiset to keep the
       // analysis results.
       auto dst_range = Analysis[dst].equal_range(dst_context);
       for ( auto& analysis_dst_it = dst_range.first;
             analysis_dst_it != dst_range.second; ++analysis_dst_it ) {
 
-        // flowfactsstabilized = true <-> Same set + already visited once
+        // flowfactsstabilized = true <-> Same std::set + already visited once
         bool flowfactsstabilized =
           dst_context_already_exist
             ? IMProblem.sqSubSetEqual(Out, analysis_dst_it->second)
@@ -278,7 +276,7 @@ public:
           // exit edges to call the corresponding RetFlow
 
           for ( auto exit_point : ICFG.getExitPointsOf(ICFG.getMethodOf(dst)) ) {
-            Worklist[std::make_pair(current_priority, dst_context)].emplace(make_pair(exit_point, src));
+            Worklist[std::make_pair(current_priority, dst_context)].emplace(std::make_pair(exit_point, src));
           }
         } // Is a call edge
 
@@ -291,5 +289,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

@@ -14,15 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_HEXASTOREGRAPH_H_
-#define UTILS_HEXASTOREGRAPH_H_
+#pragma once
 
 #include "../db/DBConn.h"
 #include "Table.hh"
 #include <iostream>
 #include <set>
 #include <unordered_map>
-using namespace std;
 
 namespace psr {
 
@@ -83,7 +81,7 @@ public:
 
   bool empty() { return sed.empty(); }
 
-  set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
+  std::set<typename Table<S, E, D>::Cell> tripleSet() { return sed.cellSet(); }
 
   multiset<S> sourceSet() { return sed.rowKeySet(); }
 
@@ -91,12 +89,12 @@ public:
 
   multiset<D> destinationSet() { return sed.values(); }
 
-  void loadHexaStoreGraphFromDB(const string &tablename) {
-    cerr << "Not implemented yet!" << endl;
+  void loadHexaStoreGraphFromDB(const std::string &tablename) {
+    cerr << "Not implemented yet!" << std::endl;
   }
 
-  void storeHexaStoreGraphToDB(const string &tablename) {
-    cerr << "Not implemented yet!" << endl;
+  void storeHexaStoreGraphToDB(const std::string &tablename) {
+    cerr << "Not implemented yet!" << std::endl;
   }
 
   friend bool operator==(const HexaStoreGraph<S, E, D> &lhs,
@@ -109,11 +107,9 @@ public:
     return lhs.sed < rhs.sed;
   }
 
-  friend ostream &operator<<(ostream &os, const HexaStoreGraph &hsg) {
+  friend std::ostream &operator<<(std::ostream &os, const HexaStoreGraph &hsg) {
     return os << hsg.sed;
   }
 };
 
 } // namespace psr
-
-#endif /* UTILS_HEXASTOREGRAPH_HH_ */

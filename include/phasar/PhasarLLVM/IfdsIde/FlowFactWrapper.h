@@ -7,10 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWFACTWRAPPER_H_
-#define FLOWFACTWRAPPER_H_
+#pragma once
+
+#include <iostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+
 namespace psr {
 
 template <typename T> class FlowFactWrapper : public FlowFact {
@@ -26,5 +28,3 @@ public:
   }
 };
 } // namespace psr
-
-#endif

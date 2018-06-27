@@ -14,33 +14,25 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_LLVMTYPEHIERARCHY_H_
-#define ANALYSIS_LLVMTYPEHIERARCHY_H_
+#pragma once
 
-#include <algorithm>
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+// #include <iosfwd>
+
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/transitive_closure.hpp>
 #include <boost/property_map/dynamic_property_map.hpp>
-#include <fstream>
-#include <initializer_list>
-#include <iostream>
-#include <llvm/IR/CallSite.h>
+
 #include <llvm/IR/Constants.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
-#include <map>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
-#include <set>
-#include <string>
-#include <tuple>
-#include <vector>
-using namespace std;
 
 namespace psr {
 
@@ -60,7 +52,7 @@ public:
     llvm::Type *llvmtype = nullptr;
     /// always StructType so far - is it used anywhere???
     /// Name of the class/struct the vertex is representing.
-    string name;
+    std::string name;
   };
 
   /// Edges in the class hierarchy graph doesn't hold any additional
@@ -84,22 +76,15 @@ public:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
 private:
-  struct reachability_dfs_visitor : boost::default_dfs_visitor {
-    set<vertex_t> &subtypes;
-    reachability_dfs_visitor(set<vertex_t> &types) : subtypes(types) {}
-    template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
-      subtypes.insert(u);
-    }
-  };
+  struct reachability_dfs_visitor;
 
   bidigraph_t g;
-  map<string, vertex_t> type_vertex_map;
-  // maps type names to the corresponding vtable
-  map<string, VTable> vtable_map;
-  set<string> recognized_struct_types;
+  std::map<std::string, vertex_t> type_vertex_map;
+  // std::maps type names to the corresponding vtable
+  std::map<std::string, VTable> vtable_map;
+  std::set<std::string> recognized_struct_types;
   // holds all modules that are included in the type hierarchy
-  set<const llvm::Module *> contained_modules;
+  std::set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
@@ -138,9 +123,9 @@ public:
    * 	@param TypeName Name of the type.
    * 	@return Set of reachable types.
    */
-  set<string> getTransitivelyReachableTypes(string TypeName);
+  std::set<std::string> getTransitivelyReachableTypes(std::string TypeName);
   // not used?
-  vector<const llvm::Function *> constructVTable(const llvm::Type *T,
+  std::vector<const llvm::Function *> constructVTable(const llvm::Type *T,
                                                  const llvm::Module *M);
 
   /**
@@ -150,7 +135,7 @@ public:
    * 	@param idx Index in the VTable.
    * 	@return A function identifier.
    */
-  string getVTableEntry(string TypeName, unsigned idx);
+  std::string getVTableEntry(std::string TypeName, unsigned idx);
 
   /**
    * 	@brief Checks if one of the given types is a super-type of the
@@ -162,9 +147,9 @@ public:
    *
    * 	NOT YET SUPPORTED!
    */
-  bool hasSuperType(string TypeName, string SuperTypeName);
+  bool hasSuperType(std::string TypeName, std::string SuperTypeName);
 
-  VTable getVTable(string TypeName);
+  VTable getVTable(std::string TypeName);
 
   /**
    * 	@brief Checks if one of the given types is a sub-type of the
@@ -174,7 +159,7 @@ public:
    * 	@return True, if the one type is a sub-type of the other.
    * 	        False otherwise.
    */
-  bool hasSubType(string TypeName, string SubTypeName);
+  bool hasSubType(std::string TypeName, std::string SubTypeName);
 
   /**
    *	@brief Checks if the given type has a virtual method table.
@@ -182,7 +167,7 @@ public:
    *	@return True, if the given type has a virtual method table.
    *	        False otherwise.
    */
-  bool containsVTable(string TypeName) const;
+  bool containsVTable(std::string TypeName) const;
 
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
@@ -197,15 +182,15 @@ public:
    * 	@brief Prints the class hierarchy to a .dot file.
    * 	@param path Path where the .dot file is created.
    */
-  void printAsDot(const string &path = "struct_type_hierarchy.dot");
+  void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
 
-  bool containsType(string TypeName);
+  bool containsType(std::string TypeName);
 
-  string getPlainTypename(string TypeName);
+  std::string getPlainTypename(std::string TypeName);
 
-  void printGraphAsDot(ostream &out);
+  void printGraphAsDot(std::ostream &out);
 
-  static bidigraph_t loadGraphFormDot(istream &in);
+  static bidigraph_t loadGraphFormDot(std::istream &in);
 
   json getAsJson();
 
@@ -237,5 +222,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_LLVMTYPEHIERARCHY_HH_ */

@@ -2,8 +2,13 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
 
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 class LTHTest : public ::testing::Test {
 protected:

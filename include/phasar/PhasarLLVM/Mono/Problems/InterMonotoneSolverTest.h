@@ -14,8 +14,7 @@
  *      Author: philipp
  */
 
-#ifndef INTERMONOTONESOLVERTEST_H_
-#define INTERMONOTONESOLVERTEST_H_
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -26,7 +25,6 @@
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
-using namespace std;
 
 namespace psr {
 
@@ -35,11 +33,11 @@ class InterMonotoneSolverTest
                                   const llvm::Value *, const llvm::Function *,
                                   const llvm::Value *, LLVMBasedICFG&> {
 protected:
-  vector<string> EntryPoints;
+  std::vector<std::string> EntryPoints;
 
 public:
   InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
-                          vector<string> EntryPoints = {"main"});
+                          std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
   virtual MonoSet<const llvm::Value *>
@@ -70,13 +68,11 @@ public:
   virtual MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
   initialSeeds() override;
 
-  virtual string DtoString(const llvm::Value *d) override;
+  virtual std::string DtoString(const llvm::Value *d) override;
 
-  virtual string CtoString(const llvm::Value *c) override;
+  virtual std::string CtoString(const llvm::Value *c) override;
 
   virtual bool recompute(const llvm::Function* Callee) override;
 };
 
 } // namespace psr
-
-#endif

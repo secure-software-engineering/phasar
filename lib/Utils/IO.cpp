@@ -14,8 +14,14 @@
  *      Author: philipp
  */
 
+#include <fstream>
+
+#include <boost/filesystem.hpp>
+
 #include <phasar/Utils/IO.h>
+
 using namespace psr;
+using namespace std;
 
 namespace psr {
 

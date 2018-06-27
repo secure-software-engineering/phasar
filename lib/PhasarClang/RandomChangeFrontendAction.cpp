@@ -15,6 +15,8 @@
  */
 
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
+
+using namespace std;
 using namespace psr;
 
 namespace psr {

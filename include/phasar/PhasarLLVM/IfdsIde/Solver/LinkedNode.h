@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
+#pragma once
 
 namespace psr {
 
@@ -39,5 +38,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_HH_ */

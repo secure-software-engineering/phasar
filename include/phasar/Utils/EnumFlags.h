@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ENUMFLAGS_H_
-#define ENUMFLAGS_H_
+#pragma once
 
 #include <type_traits>
+
 namespace psr {
 
 template <typename T,
@@ -75,5 +75,3 @@ constexpr T operator~(T t) {
 }
 
 } // namespace psr
-
-#endif

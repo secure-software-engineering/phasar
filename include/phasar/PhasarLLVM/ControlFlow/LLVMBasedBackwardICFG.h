@@ -15,8 +15,7 @@
  *      Author: pdschbrt
 
 
-#ifndef ANALYSIS_LLVMBASEDBACKWARDSICFG_H_
-#define ANALYSIS_LLVMBASEDBACKWARDSICFG_H_
+#pragma once
 
 #include "ifds_ide/BiDiICFG.h"
 #include <llvm/IR/Function.h>
@@ -24,8 +23,6 @@
 #include <llvm/IR/Instructions.h>
 #include <set>
 #include <vector>
-
-using namespace std;
 
 class LLVMBasedBackwardsICFG : public BiDiICFG<const llvm::Instruction*, const
 llvm::Function*> {
@@ -38,15 +35,15 @@ public:
         virtual ~LLVMBasedBackwardsICFG();
 
         //swapped
-        vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n)
+        std::vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n)
 override;
 
         //swapped
-        set<const llvm::Instruction*> getStartPointsOf(const llvm::Function* m)
+        std::set<const llvm::Instruction*> getStartPointsOf(const llvm::Function* m)
 override;
 
         //swapped
-        set<const llvm::Instruction*> getReturnSitesOfCallAt(const
+        std::set<const llvm::Instruction*> getReturnSitesOfCallAt(const
 llvm::Instruction* n) override;
 
         //swapped
@@ -56,36 +53,36 @@ llvm::Instruction* n) override;
         bool isStartPoint(const llvm::Instruction* stmt) override;
 
         //swapped
-        set<const llvm::Instruction*> allNonCallStartNodes() override;
+        std::set<const llvm::Instruction*> allNonCallStartNodes() override;
 
         //swapped
-        vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* u)
+        std::vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* u)
 override;
 
         //swapped
-        set<const llvm::Instruction*> getEndPointsOf(const llvm::Function* m)
+        std::set<const llvm::Instruction*> getEndPointsOf(const llvm::Function* m)
 override;
 
         //swapped
-        vector<const llvm::Instruction*> getPredsOfCallAt(const
+        std::vector<const llvm::Instruction*> getPredsOfCallAt(const
 llvm::Instruction* u) override;
 
         //swapped
-        set<const llvm::Instruction*> allNonCallEndNodes() override;
+        std::set<const llvm::Instruction*> allNonCallEndNodes() override;
 
         //same
         const llvm::Function* getMethodOf(const llvm::Instruction* n) override;
 
         //same
-        set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction*
+        std::set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction*
 n) override;
 
         //same
-        set<const llvm::Instruction*> getCallersOf(const llvm::Function* m)
+        std::set<const llvm::Instruction*> getCallersOf(const llvm::Function* m)
 override;
 
         //same
-        set<const llvm::Instruction*> getCallsFromWithin(const llvm::Function*
+        std::set<const llvm::Instruction*> getCallsFromWithin(const llvm::Function*
 m) override;
 
         //same
@@ -96,7 +93,7 @@ m) override;
 llvm::Function* m) override;
 
         //same
-        vector<const llvm::Instruction*> getParameterRefs(const llvm::Function*
+        std::vector<const llvm::Instruction*> getParameterRefs(const llvm::Function*
 m) override;
 
         bool isFallThroughSuccessor(const llvm::Instruction* stmt, const
@@ -112,6 +109,4 @@ llvm::Instruction* succ) override;
         bool isReachable(const llvm::Instruction* u) override;
 
 };
-
-#endif  ANALYSIS_LLVMBASEDBACKWARDSICFG_HH_
 */

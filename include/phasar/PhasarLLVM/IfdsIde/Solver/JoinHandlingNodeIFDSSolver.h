@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_H_
+#pragma once
 namespace psr {
 
 /**
@@ -39,5 +38,3 @@ class JoinHandlingNodesIFDSSolver {
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_JOINHANDLINGNODEIFDSSOLVER_HH_ */

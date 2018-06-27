@@ -2,6 +2,7 @@
 #include <phasar/Utils/PAMM.h>
 #include <thread>
 
+using namespace std;
 using namespace psr;
 
 /* Test fixture */

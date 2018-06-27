@@ -14,25 +14,15 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYMATCHER_H_
-#define CLANG_MYMATCHER_H_
+#pragma once
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <iostream>
-#include <string>
 
-using namespace std;
-using namespace clang;
-using namespace clang::ast_matchers;
-using namespace llvm;
 namespace psr {
 
-class MyMatcher : public MatchFinder::MatchCallback {
+class MyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback {
 public:
-  virtual void run(const MatchFinder::MatchResult &Result);
+  virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &Result);
 };
 
 } // namespace psr
-
-#endif /* CLANG_MYMATCHER_HH_ */

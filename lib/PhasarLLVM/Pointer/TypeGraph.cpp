@@ -1,7 +1,16 @@
+// #include <algorithm>
+
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
+
 #include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
+
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 TypeGraph::dfs_visitor::dfs_visitor(TypeGraph::graph_t *_g) : g(_g) {}

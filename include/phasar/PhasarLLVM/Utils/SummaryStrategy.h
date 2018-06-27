@@ -7,12 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef SUMMARYSTRATEGY_H_
-#define SUMMARYSTRATEGY_H_
+#pragma once
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
-using namespace std;
+#include <string>
 
 namespace psr {
 
@@ -24,14 +23,12 @@ enum class SummaryGenerationStrategy {
   always_none
 };
 
-extern const map<SummaryGenerationStrategy, string>
+extern const std::map<SummaryGenerationStrategy, std::string>
     SummaryGenerationStrategyToString;
 
-extern const map<string, SummaryGenerationStrategy>
+extern const std::map<std::string, SummaryGenerationStrategy>
     StringToSummaryGenerationStrategy;
 
-ostream &operator<<(ostream &os, const SummaryGenerationStrategy &s);
+std::ostream &operator<<(std::ostream &os, const SummaryGenerationStrategy &s);
 
 } // namespace psr
-
-#endif

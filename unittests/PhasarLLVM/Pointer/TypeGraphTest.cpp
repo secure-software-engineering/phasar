@@ -2,9 +2,12 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
 #include <boost/graph/isomorphism.hpp>
-#include <iostream>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
 
+using namespace std;
 using namespace psr;
+
 namespace psr {
   TEST(TypeGraphTest, AddType) {
     ProjectIRDB IRDB({

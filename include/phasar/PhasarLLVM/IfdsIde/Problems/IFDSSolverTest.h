@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVERTEST_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVERTEST_H_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -23,7 +22,7 @@ class Function;
 class Value;
 } // namespace llvm
 namespace psr {
-  
+
 class LLVMBasedICFG;
 
 class IFDSSolverTest : public DefaultIFDSTabulationProblem<
@@ -74,6 +73,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_SOLVER_TEST_IFDSSOLVERTEST_HH_   \
-        */

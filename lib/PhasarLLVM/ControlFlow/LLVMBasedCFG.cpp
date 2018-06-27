@@ -15,8 +15,12 @@
  */
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <llvm/IR/Instructions.h>
+#include <phasar/Config/Configuration.h>
 
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) {

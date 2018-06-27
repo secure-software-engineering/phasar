@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef MWAIFDSSOLVER_H_
-#define MWAIFDSSOLVER_H_
+#pragma once
 
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/MWAIDESolver.h>
@@ -28,5 +27,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

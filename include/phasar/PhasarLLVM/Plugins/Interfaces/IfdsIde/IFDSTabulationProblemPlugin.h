@@ -14,8 +14,7 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
-#define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
+#pragma once
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
@@ -28,7 +27,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <string>
 #include <vector>
-using namespace std;
 
 namespace psr {
 
@@ -37,11 +35,11 @@ class IFDSTabulationProblemPlugin
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
 protected:
-  vector<string> EntryPoints;
+  std::vector<std::string> EntryPoints;
 
 public:
   IFDSTabulationProblemPlugin(LLVMBasedICFG &ICFG,
-                              vector<string> EntryPoints = {"main"})
+                              std::vector<std::string> EntryPoints = {"main"})
       : DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                      const llvm::Value *,
                                      const llvm::Function *, LLVMBasedICFG &>(
@@ -60,23 +58,21 @@ public:
     return isLLVMZeroValue(d);
   }
 
-  string DtoString(const llvm::Value *d) const override {
+  std::string DtoString(const llvm::Value *d) const override {
     return llvmIRToString(d);
   }
 
-  string NtoString(const llvm::Instruction *n) const override {
+  std::string NtoString(const llvm::Instruction *n) const override {
     return llvmIRToString(n);
   }
 
-  string MtoString(const llvm::Function *m) const override {
+  std::string MtoString(const llvm::Function *m) const override {
     return llvmIRToString(m);
   }
 };
 
-extern map<string, unique_ptr<IFDSTabulationProblemPlugin> (*)(
-                       LLVMBasedICFG &I, vector<string> EntryPoints)>
+extern std::map<std::string, std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
+                       LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */

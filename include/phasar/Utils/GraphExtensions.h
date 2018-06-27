@@ -14,15 +14,13 @@
  *      Author: philipp
  */
 
-#ifndef SRC_LIB_GRAPHEXTENSIONS_H_
-#define SRC_LIB_GRAPHEXTENSIONS_H_
+#pragma once
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <vector>
-
-using namespace std;
+#include <utility> // std::pair
 
 namespace psr {
 
@@ -30,7 +28,7 @@ namespace psr {
 template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename... Args>
 void merge_graphs(GraphTy &g1, const GraphTy &g2,
-                  vector<pair<VertexTy, VertexTy>> v_in_g1_u_in_g2,
+                  std::vector<std::pair<VertexTy, VertexTy>> v_in_g1_u_in_g2,
                   Args &&... args) {
   typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
       index_map_t;
@@ -41,7 +39,7 @@ void merge_graphs(GraphTy &g1, const GraphTy &g2,
       IsoMap;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
-  vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
+  std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
   IsoMap mapV = boost::make_iterator_property_map(orig2copy_data.begin(),
                                                   get(boost::vertex_index, g2));
   boost::copy_graph(g2, g1, boost::orig_to_copy(mapV)); // means g1 += g2
@@ -55,7 +53,7 @@ void merge_graphs(GraphTy &g1, const GraphTy &g2,
 template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename Arg>
 void merge_graphs(GraphTy &g1, const GraphTy &g2,
-                  vector<tuple<VertexTy, VertexTy, Arg>> v_in_g1_u_in_g2_prop) {
+                  std::vector<std::tuple<VertexTy, VertexTy, Arg>> v_in_g1_u_in_g2_prop) {
   typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
       index_map_t;
   // for simple adjacency_list<> this type would be more efficient:
@@ -65,7 +63,7 @@ void merge_graphs(GraphTy &g1, const GraphTy &g2,
       IsoMap;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
-  vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
+  std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
   IsoMap mapV = boost::make_iterator_property_map(orig2copy_data.begin(),
                                                   get(boost::vertex_index, g2));
   boost::copy_graph(g2, g1, boost::orig_to_copy(mapV)); // means g1 += g2
@@ -86,12 +84,10 @@ void copy_graph(GraphTy &g1, const GraphTy &g2) {
       IsoMap;
   // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
   // IsoMap;
-  vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
+  std::vector<VertexTy> orig2copy_data(boost::num_vertices(g2));
   IsoMap mapV = boost::make_iterator_property_map(orig2copy_data.begin(),
                                                   get(boost::vertex_index, g2));
   boost::copy_graph(g2, g1, boost::orig_to_copy(mapV)); // means g1 += g2
 }
 
 } // namespace psr
-
-#endif /* SRC_LIB_GRAPHEXTENSIONS_HH_ */

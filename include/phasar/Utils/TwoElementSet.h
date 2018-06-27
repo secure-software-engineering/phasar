@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_UTILS_TWOELEMENTSET_H_
-#define ANALYSIS_IFDS_IDE_UTILS_TWOELEMENTSET_H_
+#pragma once
 
 #include <cstddef>
 
@@ -32,5 +31,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_UTILS_TWOELEMENTSET_HH_ */

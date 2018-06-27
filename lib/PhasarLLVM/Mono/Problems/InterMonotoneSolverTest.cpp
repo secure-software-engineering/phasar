@@ -8,7 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,

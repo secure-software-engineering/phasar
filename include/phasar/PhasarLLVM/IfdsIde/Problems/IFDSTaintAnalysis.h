@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
+#pragma once
 
 #include <map>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
@@ -128,5 +127,3 @@ public:
   std::string MtoString(m_t m) const override;
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_ */

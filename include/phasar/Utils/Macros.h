@@ -7,65 +7,51 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#pragma once
 
-#include "IO.h"
-#include <algorithm>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/container/flat_map.hpp>
-#include <boost/container/flat_set.hpp>
-#include <cxxabi.h>
-#include <fstream>
-#include <iostream>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
 #include <set>
-#include <sstream>
+#include <vector>
 #include <string>
-#include <type_traits>
-using namespace std;
+#include <iosfwd>
+#include <iterator>
+
+#include <llvm/IR/Type.h>
 
 namespace psr {
 
 #define MYDEBUG
 
 #define HEREANDNOW                                                             \
-  cerr << "file: " << __FILE__ << " line: " << __LINE__                        \
-       << " function: " << __func__ << endl;
+  std::cerr << "file: " << __FILE__ << " line: " << __LINE__                        \
+       << " function: " << __func__ << std::endl;
 
 #define DIE_HARD exit(-1);
 
 #define UNRECOVERABLE_CXX_ERROR_COND(BOOL, STRING)                             \
   if (!BOOL) {                                                                 \
     HEREANDNOW;                                                                \
-    cerr << STRING << endl;                                                    \
+    std::cerr << STRING << std::endl;                                                    \
     exit(-1);                                                                  \
   }
 
 #define UNRECOVERABLE_CXX_ERROR_UNCOND(STRING)                                 \
   HEREANDNOW;                                                                  \
-  cerr << STRING << endl;                                                      \
+  std::cerr << STRING << std::endl;                                                      \
   exit(-1);
 
-string cxx_demangle(const string &mangled_name);
+std::string cxx_demangle(const std::string &mangled_name);
 
-string debasify(const string &name);
+std::string debasify(const std::string &name);
 
 std::string uniformTypeName(const std::string &name);
 
 llvm::Type* stripPointer(llvm::Type* pointer);
 
-bool isMangled(const string &name);
+bool isMangled(const std::string &name);
 
-vector<string> splitString(const string &str, const string &delimiter);
+std::vector<std::string> splitString(const std::string &str, const std::string &delimiter);
 
-template <typename T> set<set<T>> computePowerSet(const set<T> &s) {
+template <typename T> std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   // compute all subsets of {a, b, c, d}
   //  bit-pattern - {d, c, b, a}
   //  0000  {}
@@ -84,10 +70,10 @@ template <typename T> set<set<T>> computePowerSet(const set<T> &s) {
   //  1101  {a, c, d}
   //  1110  {b, c, d}
   //  1111  {a, b, c, d}
-  set<set<T>> powerset;
-  for (size_t i = 0; i < (1 << s.size()); ++i) {
-    set<T> subset;
-    for (size_t j = 0; j < s.size(); ++j) {
+  std::set<std::set<T>> powerset;
+  for (std::size_t i = 0; i < (1 << s.size()); ++i) {
+    std::set<T> subset;
+    for (std::size_t j = 0; j < s.size(); ++j) {
       if ((i & (1 << j)) > 0) {
         auto it = s.begin();
         advance(it, j);
@@ -99,7 +85,5 @@ template <typename T> set<set<T>> computePowerSet(const set<T> &s) {
   return powerset;
 }
 
-ostream &operator<<(ostream &os, const vector<bool> &bits);
+std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
 } // namespace psr
-
-#endif

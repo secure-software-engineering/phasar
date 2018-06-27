@@ -16,6 +16,7 @@
 
 #include <phasar/Config/Configuration.h>
 
+using namespace std;
 using namespace psr;
 
 namespace psr {

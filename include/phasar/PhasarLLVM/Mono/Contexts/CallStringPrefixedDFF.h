@@ -14,24 +14,20 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_CALLSTRINGPREFIXEDDFF_H_
-#define SRC_ANALYSIS_MONOTONE_CALLSTRINGPREFIXEDDFF_H_
+#pragma once
 
 #include "CallString.h"
 #include <iostream>
-using namespace std;
 
 namespace psr {
 
 template <typename D> struct CallStringPrefixedDFF {
   D d;
-  CallString<D, 3> d_callstring;
-  CallStringPrefixedDFF(D d, CallString<D, 3> cs) : d(d), d_callstring(cs) {}
-  friend ostream &operator<<(ostream &os, const CallStringPrefixedDFF &d) {
-    return os << "[ " << d.d_callstring << " ] - " << d.d;
+  CallString<D, 3> d_callstd::string;
+  CallStringPrefixedDFF(D d, CallString<D, 3> cs) : d(d), d_callstd::string(cs) {}
+  friend std::ostream &operator<<(std::ostream &os, const CallStringPrefixedDFF &d) {
+    return os << "[ " << d.d_callstd::string << " ] - " << d.d;
   }
 };
 
 } // namespace psr
-
-#endif

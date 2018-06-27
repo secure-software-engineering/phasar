@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_SINGLETON_H_
-#define UTILS_SINGLETON_H_
+#pragma once
 
 namespace psr {
 
@@ -36,5 +35,3 @@ protected:
 };
 
 } // namespace psr
-
-#endif /* UTILS_SINGLETON_HH_ */

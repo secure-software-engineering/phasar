@@ -7,8 +7,44 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/Controller/AnalysisController.h>
+#include <iostream>
 
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/Support/SMLoc.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/Scalar.h>
+
+
+#include <phasar/Controller/AnalysisController.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMMWAIFDSSolver.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/Utils/SOL.h>
+
+using namespace std;
 using namespace psr;
 
 namespace psr {

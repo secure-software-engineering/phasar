@@ -7,18 +7,19 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWEDGEFUNCTIONCACHE_H_
-#define FLOWEDGEFUNCTIONCACHE_H_
+#pragma once
 
 #include <map>
 #include <memory>
+#include <tuple>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMM.h>
-#include <tuple>
+
 
 namespace psr {
 
@@ -101,7 +102,7 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Normal-FF Construction");
       auto ff = (autoAddZero)
-                    ? make_shared<ZeroedFlowFunction<D>>(
+                    ? std::make_shared<ZeroedFlowFunction<D>>(
                           problem.getNormalFlowFunction(curr, succ), zeroValue)
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
@@ -119,10 +120,10 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Call-FF Construction");
       auto ff =
           (autoAddZero)
-              ? make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D>>(
                     problem.getCallFlowFunction(callStmt, destMthd), zeroValue)
               : problem.getCallFlowFunction(callStmt, destMthd);
-      CallFlowFunctionCache.insert(make_pair(key, ff));
+      CallFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -137,13 +138,13 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Return-FF Construction");
       auto ff = (autoAddZero)
-                    ? make_shared<ZeroedFlowFunction<D>>(
+                    ? std::make_shared<ZeroedFlowFunction<D>>(
                           problem.getRetFlowFunction(callSite, calleeMthd,
                                                      exitStmt, retSite),
                           zeroValue)
                     : problem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
                                                  retSite);
-      ReturnFlowFunctionCache.insert(make_pair(key, ff));
+      ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -159,12 +160,12 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("CallToRet-FF Construction");
       auto ff =
           (autoAddZero)
-              ? make_shared<ZeroedFlowFunction<D>>(
+              ? std::make_shared<ZeroedFlowFunction<D>>(
                     problem.getCallToRetFlowFunction(callSite, retSite,
                                                      callees),
                     zeroValue)
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
-      CallToRetFlowFunctionCache.insert(make_pair(key, ff));
+      CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -187,7 +188,7 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Normal-EF Construction");
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
-      NormalEdgeFunctionCache.insert(make_pair(key, ef));
+      NormalEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -203,7 +204,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Call-EF Construction");
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
                                             destiantionMethod, destNode);
-      CallEdgeFunctionCache.insert(make_pair(key, ef));
+      CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -222,7 +223,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Return-EF Construction");
       auto ef = problem.getReturnEdgeFunction(callSite, calleeMethod, exitStmt,
                                               exitNode, reSite, retNode);
-      ReturnEdgeFunctionCache.insert(make_pair(key, ef));
+      ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -240,7 +241,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("CallToRet-EF Construction");
       auto ef = problem.getCallToReturnEdgeFunction(callSite, callNode, retSite,
                                                     retSiteNode);
-      CallToRetEdgeFunctionCache.insert(make_pair(key, ef));
+      CallToRetEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -256,7 +257,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Summary-EF Construction");
       auto ef = problem.getSummaryEdgeFunction(callSite, callNode, retSite,
                                                retSiteNode);
-      SummaryEdgeFunctionCache.insert(make_pair(key, ef));
+      SummaryEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -334,5 +335,3 @@ struct FlowEdgeFunctionCache {
 };
 
 } // namespace psr
-
-#endif

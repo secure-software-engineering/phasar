@@ -14,30 +14,27 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_OBSERVEDCALLINGCONTEXTS_H_
-#define ANALYSIS_IFDS_IDE_OBSERVEDCALLINGCONTEXTS_H_
+#pragma once
 
 #include <algorithm>
 #include <iostream>
 #include <map>
 #include <set>
 #include <vector>
-using namespace std;
+
 namespace psr {
 
 class ObservedCallingContexts {
 private:
-  // Maps a function to the set of contexts that have been recognized so far
-  map<string, set<vector<bool>>> ObservedCTX;
+  // Maps a function to the std::set of contexts that have been recognized so far
+  std::map<std::string, std::set<std::vector<bool>>> ObservedCTX;
 
 public:
   ObservedCallingContexts() = default;
   ~ObservedCallingContexts() = default;
-  void addObservedCTX(string FName, vector<bool> CTX);
-  bool containsCTX(string FName);
-  set<vector<bool>> getObservedCTX(string FName);
+  void addObservedCTX(std::string FName, std::vector<bool> CTX);
+  bool containsCTX(std::string FName);
+  std::set<std::vector<bool>> getObservedCTX(std::string FName);
   void print();
 };
 } // namespace psr
-
-#endif

@@ -8,7 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 // Maps for registering the plugins

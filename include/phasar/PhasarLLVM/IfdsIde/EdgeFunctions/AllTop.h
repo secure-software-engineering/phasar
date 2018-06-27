@@ -14,20 +14,18 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
+#pragma once
 
-#include "../EdgeFunction.h"
 #include <iostream>
 #include <memory>
-#include <string>
 
-using namespace std;
+#include "../EdgeFunction.h"
+
 namespace psr {
 
 template <typename V>
 class AllTop : public EdgeFunction<V>,
-               public enable_shared_from_this<AllTop<V>> {
+               public std::enable_shared_from_this<AllTop<V>> {
 private:
   const V topElement;
 
@@ -38,31 +36,29 @@ public:
 
   virtual V computeTarget(V source) override { return topElement; }
 
-  virtual shared_ptr<EdgeFunction<V>>
-  composeWith(shared_ptr<EdgeFunction<V>> secondFunction) override {
+  virtual std::shared_ptr<EdgeFunction<V>>
+  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
     return this->shared_from_this();
   }
 
-  virtual shared_ptr<EdgeFunction<V>>
-  joinWith(shared_ptr<EdgeFunction<V>> otherFunction) override {
+  virtual std::shared_ptr<EdgeFunction<V>>
+  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     return otherFunction;
   }
 
-  virtual bool equalTo(shared_ptr<EdgeFunction<V>> other) override {
+  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) override {
     if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other.get()))
       return (alltop->topElement == topElement);
     return false;
   }
 
-  friend ostream &operator<<(ostream &os, const AllTop &alltop) {
+  friend std::ostream &operator<<(std::ostream &os, const AllTop &alltop) {
     return os << "alltop";
   }
 
-  void dump() override { cout << "alltop\n"; }
+  void dump() override { std::cout << "alltop\n"; }
 
-  string toString() override { return "alltop"; }
+  std::string toString() override { return "alltop"; }
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_HH_ */

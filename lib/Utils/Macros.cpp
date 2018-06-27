@@ -7,9 +7,31 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <type_traits>
+#include <iostream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
+#include <boost/container/flat_map.hpp>
+#include <boost/container/flat_set.hpp>
+
+
+#include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+
+#include <cxxabi.h>
+
+// #include "IO.h"
+
 #include <phasar/Utils/Macros.h>
 
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 string cxx_demangle(const string &mangled_name) {

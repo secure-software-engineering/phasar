@@ -14,8 +14,7 @@
  *      Author: nicolas
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_VALUEBASE_H_
-#define SRC_ANALYSIS_MONOTONE_VALUEBASE_H_
+#pragma once
 
 #include <phasar/Utils/Macros.h>
 
@@ -44,5 +43,3 @@ public:
   }
 };
 }
-
-#endif

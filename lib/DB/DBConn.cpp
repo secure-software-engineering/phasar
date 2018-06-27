@@ -13,10 +13,27 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
+// #include <iostream>
+#include <thread>
+
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
 
 #include <phasar/DB/DBConn.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/IO.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
 
 using namespace psr;
+using namespace std;
 
 namespace psr {
 

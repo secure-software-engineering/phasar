@@ -7,7 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
+#include <phasar/Utils/Logger.h>
 #include <phasar/PhasarClang/ClangController.h>
+
+using namespace std;
 using namespace psr;
 
 namespace psr {

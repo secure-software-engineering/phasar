@@ -5,6 +5,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
+using namespace std;
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */

@@ -14,31 +14,32 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
-#define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
+#pragma once
+
+#include <vector>
+#include <set>
 
 #include <llvm/IR/Instruction.h>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <string>
-#include <vector>
-using namespace std;
+
 namespace psr {
 
 template <typename D, typename N> class IFDSSummary : FlowFunction<D> {
 private:
   N StartNode;
   N EndNode;
-  vector<bool> Context;
-  set<D> Outputs;
+  std::vector<bool> Context;
+  std::set<D> Outputs;
   D ZeroValue;
 
 public:
-  IFDSSummary(N Start, N End, vector<bool> C, set<D> Gen, D ZV)
+  IFDSSummary(N Start, N End, std::vector<bool> C, std::set<D> Gen, D ZV)
       : StartNode(Start), EndNode(End), Context(C), Outputs(Gen),
         ZeroValue(ZV) {}
   virtual ~IFDSSummary() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == ZeroValue) {
       Outputs.insert(source);
       return Outputs;
@@ -53,5 +54,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_ */

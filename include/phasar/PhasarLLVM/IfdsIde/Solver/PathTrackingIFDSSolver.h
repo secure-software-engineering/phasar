@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_H_
+#pragma once
 
 namespace psr {
 
@@ -68,5 +67,3 @@ class PathTrackingIFDSSolver : public IFDSSolver<N, D, M, I> {
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_PATHTRACKINGIFDSSOLVER_HH_ */

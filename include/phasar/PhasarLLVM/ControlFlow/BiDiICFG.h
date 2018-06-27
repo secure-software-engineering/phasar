@@ -14,31 +14,30 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_BIDIICFG_H_
-#define ANALYSIS_IFDS_IDE_BIDIICFG_H_
+#pragma once
 
-#include "ICFG.h"
 #include <vector>
 
-using namespace std;
+#include "ICFG.h"
+
 namespace psr {
 
 template <typename N, typename M> class BiDiICFG : public ICFG<N, M> {
 public:
   virtual ~BiDiICFG() = default;
 
-  virtual vector<N> getPredsOf(N u) = 0;
+  virtual std::vector<N> getPredsOf(N u) = 0;
 
-  virtual set<N> getEndPointsOf(M m) = 0;
+  virtual std::set<N> getEndPointsOf(M m) = 0;
 
-  virtual vector<N> getPredsOfCallAt(N u) = 0;
+  virtual std::vector<N> getPredsOfCallAt(N u) = 0;
 
-  virtual set<N> allNonCallEndNodes() = 0;
+  virtual std::set<N> allNonCallEndNodes() = 0;
 
   // also exposed to some clients who need it
   // virtual DirectedGraph<N> getOrCreateUnitGraph(M body) = 0;
 
-  virtual vector<N> getParameterRefs(M m) = 0;
+  virtual std::vector<N> getParameterRefs(M m) = 0;
 
   /**
    * Gets whether the given statement is a return site of at least one call
@@ -57,5 +56,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_BIDIICFG_HH_ */

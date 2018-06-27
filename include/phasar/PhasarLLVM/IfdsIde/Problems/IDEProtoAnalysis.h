@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_PROTOANALYSIS_H_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -58,7 +57,7 @@ public:
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  shared_ptr<FlowFunction<d_t>>
+  std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
@@ -126,5 +125,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDEPROTOANALYSIS_HH_ */

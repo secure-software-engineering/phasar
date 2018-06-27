@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PLUGINFACTORIES_H_
-#define PLUGINFACTORIES_H_
+#pragma once
 
 // Problem plug-ins
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
@@ -18,5 +17,3 @@
 
 // Inter-procedural control flow graph plug-ins
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
-
-#endif

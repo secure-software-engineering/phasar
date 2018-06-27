@@ -14,9 +14,6 @@
  *      Author: philipp
  */
 
-#ifndef INTRAMONOTONESOLVER_H_
-#define INTRAMONOTONESOLVER_H_
-
 #include <deque>
 #include <iostream>
 #include <map>
@@ -24,7 +21,6 @@
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <utility>
 #include <vector>
-using namespace std;
 
 namespace psr {
 
@@ -32,17 +28,17 @@ template <typename N, typename D, typename M, typename C>
 class IntraMonotoneSolver {
 protected:
   IntraMonotoneProblem<N, D, M, C> &IMProblem;
-  deque<pair<N, N>> Worklist;
+  std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
   C CFG;
   size_t prealloc_hint;
 
   void initialize() {
-    vector<pair<N, N>> edges =
+    std::vector<std::pair<N, N>> edges =
         CFG.getAllControlFlowEdges(IMProblem.getFunction());
     // add all edges to the worklist
     Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-    // set all analysis information to the empty set
+    // std::set all analysis information to the empty std::set
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }
@@ -63,8 +59,8 @@ public:
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
-      cout << "worklist size: " << Worklist.size() << "\n";
-      pair<N, N> path = Worklist.front();
+      std::cout << "worklist size: " << Worklist.size() << "\n";
+      std::pair<N, N> path = Worklist.front();
       Worklist.pop_front();
       N src = path.first;
       N dst = path.second;
@@ -86,5 +82,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

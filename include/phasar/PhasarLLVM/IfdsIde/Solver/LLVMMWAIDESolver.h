@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef LLVMMWAIDESOLVER_H_
-#define LLVMMWAIDESOLVER_H_
+#pragma once
 
 #include "../../control_flow/ICFG.h"
 #include "../../misc/SummaryStrategy.h"
@@ -44,18 +43,18 @@ public:
   }
 
   void combine() override {
-    cout << "LLVMMWAIDESolver::combine()\n";
+    std::cout << "LLVMMWAIDESolver::combine()\n";
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::combine();
   }
 
   void dumpResults() {
-    cout << "### DUMP LLVMIDESolver results\n";
+    std::cout << "### DUMP LLVMIDESolver results\n";
     auto results = this->valtab.cellSet();
     if (results.empty()) {
-      cout << "EMPTY" << endl;
+      std::cout << "EMPTY" << std::endl;
     } else {
-      vector<typename Table<const llvm::Instruction *, const llvm::Value *,
+      std::vector<typename Table<const llvm::Instruction *, const llvm::Value *,
                             const llvm::Value *>::Cell>
           cells;
       for (auto cell : results) {
@@ -74,46 +73,46 @@ public:
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          cout << "--- IDE START RESULT RECORD ---\n";
-          cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "--- IDE START RESULT RECORD ---\n";
+          std::cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            cout << inst->getFunction()->getName().str() << "\n";
+            std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t";
+        std::cout << "D:\t";
         if (cells[i].c == nullptr)
-          cout << "  nullptr " << endl;
+          std::cout << "  nullptr " << std::endl;
         else
-          cout << Problem.DtoString(cells[i].c) << " "
+          std::cout << Problem.DtoString(cells[i].c) << " "
                << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
-    //		cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << endl;
+    //		std::cout << "### IDE RESULTS AT LAST STATEMENT OF MAIN" << std::endl;
     //		auto resultAtEnd =
     // this->resultsAt(this->icfg.getLastInstructionOf("main"));
     //		for (auto entry : resultAtEnd) {
-    //			cout << "\t--- begin entry ---" << endl;
+    //			std::cout << "\t--- begin entry ---" << std::endl;
     //			entry.first->dump();
-    //			cout << entry.second << endl;
-    //			cout << "\t--- end entry ---" << endl;
+    //			std::cout << entry.second << std::endl;
+    //			std::cout << "\t--- end entry ---" << std::endl;
     //		}
-    //		cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << endl;
+    //		std::cout << "### IDE END RESULTS AT LAST STATEMENT OF MAIN" << std::endl;
   }
 
   void dumpAllInterPathEdges() {
-    cout << "COMPUTED INTER PATH EDGES" << endl;
+    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "TO" << endl;
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "FACTS" << endl;
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -122,18 +121,18 @@ public:
   }
 
   void dumpAllIntraPathEdges() {
-    cout << "COMPUTED INTRA PATH EDGES" << endl;
+    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "TO" << endl;
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "FACTS" << endl;
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -143,5 +142,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

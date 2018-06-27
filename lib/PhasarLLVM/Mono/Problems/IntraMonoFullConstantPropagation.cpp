@@ -8,7 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(

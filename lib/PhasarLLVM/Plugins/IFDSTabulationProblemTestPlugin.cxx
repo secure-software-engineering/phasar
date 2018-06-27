@@ -15,7 +15,10 @@
  */
 
 #include "IFDSTabulationProblemTestPlugin.h"
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin>

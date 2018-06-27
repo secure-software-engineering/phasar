@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ICFGPlugin_H_
-#define ICFGPlugin_H_
+#pragma once
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
@@ -16,7 +15,6 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <string>
-using namespace std;
 
 namespace psr {
 
@@ -24,17 +22,15 @@ class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 private:
   ProjectIRDB &IRDB;
-  const vector<string> EntryPoints;
+  const std::vector<std::string> EntryPoints;
 
 public:
-  ICFGPlugin(ProjectIRDB &IRDB, const vector<string> EntryPoints)
+  ICFGPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints)
       : IRDB(IRDB), EntryPoints(move(EntryPoints)) {}
 };
 
-extern map<string, unique_ptr<ICFGPlugin> (*)(ProjectIRDB &,
-                                              const vector<string> EntryPoints)>
+extern std::map<std::string, std::unique_ptr<ICFGPlugin> (*)(ProjectIRDB &,
+                                              const std::vector<std::string> EntryPoints)>
     ICFGPluginFactory;
 
 } // namespace psr
-
-#endif

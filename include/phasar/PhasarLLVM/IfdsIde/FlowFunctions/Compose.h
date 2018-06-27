@@ -14,32 +14,35 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
+#pragma once
 
-#include "Identity.h"
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+
+
 #include <set>
+#include <memory>
 #include <vector>
 
-using namespace std;
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+
+#include "Identity.h"
+
 namespace psr {
 
 template <typename D> class Compose : FlowFunction<D> {
 private:
-  const vector<FlowFunction<D>> funcs;
+  const std::vector<FlowFunction<D>> funcs;
 
 public:
-  Compose(const vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
+  Compose(const std::vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
 
   virtual ~Compose() = default;
 
-  set<D> computeTargets(const D &source) override {
-    set<D> current(source);
+  std::set<D> computeTargets(const D &source) override {
+    std::set<D> current(source);
     for (const FlowFunction<D> &func : funcs) {
-      set<D> next;
+      std::set<D> next;
       for (const D &d : current) {
-        set<D> target = func.computeTargets(d);
+        std::set<D> target = func.computeTargets(d);
         next.insert(target.begin(), target.end());
       }
       current = next;
@@ -47,9 +50,9 @@ public:
     return current;
   }
 
-  static shared_ptr<FlowFunction<D>>
-  compose(const vector<FlowFunction<D>> &funcs) {
-    vector<FlowFunction<D>> vec;
+  static std::shared_ptr<FlowFunction<D>>
+  compose(const std::vector<FlowFunction<D>> &funcs) {
+    std::vector<FlowFunction<D>> vec;
     for (const FlowFunction<D> &func : funcs)
       if (func != Identity<D>::getInstance())
         vec.insert(func);
@@ -57,10 +60,8 @@ public:
       return vec[0];
     else if (vec.empty())
       return Identity<D>::getInstance();
-    return make_shared<Compose>(vec);
+    return std::make_shared<Compose>(vec);
   }
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_HH_ */

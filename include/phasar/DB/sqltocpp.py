@@ -19,7 +19,7 @@ FOOTER = "BOOST_LOG_SEV(lg, DEBUG) << \"Database schema done\";"
 #   QUERY_BODY_START + <query_second_line> + QUERY_BODY_END +
 #   ...
 #   QUERY_FOOT_START + <query_name> + QUERY_FOOT_END
-QUERY_HEAD_START = "\nstatic const string "
+QUERY_HEAD_START = "\nstatic const std::string "
 QUERY_HEAD_END = "("
 QUERY_BODY_START = "\n    \""
 QUERY_BODY_END = " \""

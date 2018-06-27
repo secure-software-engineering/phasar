@@ -14,22 +14,22 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
+#pragma once
 
 #include <algorithm>
+#include <map>
+#include <string>
+
 #include <curl/curl.h>
 #include <json.hpp>
-#include <map>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/Utils/Table.h>
-#include <string>
+#include <phasar/Utils/PAMM.h>
 
 using json = nlohmann::json;
-using namespace std;
-using namespace psr;
 
 namespace psr {
 
@@ -63,12 +63,12 @@ public:
   void dumpResults() {
     PAMM_FACTORY;
     START_TIMER("DFA Result Dumping");
-    cout << "### DUMP LLVMIFDSSolver results\n";
+    std::cout << "### DUMP LLVMIFDSSolver results\n";
     auto results = this->valtab.cellSet();
     if (results.empty()) {
-      cout << "EMPTY\n";
+      std::cout << "EMPTY\n";
     } else {
-      vector<typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
+      std::vector<typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
           cells;
       for (auto cell : results) {
         cells.push_back(cell);
@@ -84,14 +84,14 @@ public:
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          cout << "--- IFDS START RESULT RECORD ---\n";
-          cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "--- IFDS START RESULT RECORD ---\n";
+          std::cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            cout << inst->getFunction()->getName().str() << "\n";
+            std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
+        std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
              << "\tV:  " << cells[i].v << "\n";
       }
     }
@@ -131,7 +131,7 @@ public:
 
   int node_number = 0;
   /**
-   * gets id for node from map or adds it if it doesn't exist
+   * gets id for node from std::map or adds it if it doesn't exist
    **/
   json
   getJsonOfNode(const llvm::Instruction *node,
@@ -141,7 +141,7 @@ public:
     json jsonNode;
 
     if (it == instruction_id_map->end()) {
-      cout << "adding new element to map " << endl;
+      std::cout << "adding new element to std::map " << std::endl;
 
       jsonNode = getJsonRepresentationForInstructionNode(node);
 
@@ -149,7 +149,7 @@ public:
       instruction_id_map->insert(
           std::pair<const llvm::Instruction *, int>(node, node_number));
     } else {
-      cout << "found element in map(inter): " << it->second << endl;
+      std::cout << "found element in std::map(inter): " << it->second << std::endl;
     }
     return jsonNode;
   }
@@ -157,22 +157,22 @@ public:
       const llvm::Instruction *currentNode,
       const llvm::Function *callerFunction,
       std::map<const llvm::Instruction *, int> *instruction_id_map) {
-    // In the next line we obtain the corresponding row map which maps (given a
+    // In the next line we obtain the corresponding row std::map which std::maps (given a
     // source node)
-    // the target node to the data flow fact map<D, set<D>. In the data flow
-    // fact map D is
-    // a fact F which holds at the source node whereas set<D> contains the facts
+    // the target node to the data flow fact std::map<D, std::set<D>. In the data flow
+    // fact std::map D is
+    // a fact F which holds at the source node whereas std::set<D> contains the facts
     // that are
     // produced by F and hold at statement TargetNode.
-    // Usually every node has one successor node, that is why the row map
+    // Usually every node has one successor node, that is why the row std::map
     // obtained by row usually
     // only contains just a single entry. BUT: in case of branch statements and
     // other advanced
     // instructions, one statement sometimes has multiple successor statments.
     // In these cases
-    // the row map contains entries for every single successor statement. After
+    // the row std::map contains entries for every single successor statement. After
     // having obtained
-    // the pairs <SourceNode, TargetNode> the data flow map can be obtained
+    // the pairs <SourceNode, TargetNode> the data flow std::map can be obtained
     // easily.
     // size_t from = getJsonRepresentationForInstructionNode(document,
     // currentNode);
@@ -180,17 +180,17 @@ public:
     json fromNode = getJsonOfNode(currentNode, instruction_id_map);
 
     auto TargetNodeMap = this->computedIntraPathEdges.row(currentNode);
-    cout << "node pointer current: " << currentNode << endl;
+    std::cout << "node pointer current: " << currentNode << std::endl;
 
-    cout << "TARGET NODE(S)\n";
+    std::cout << "TARGET NODE(S)\n";
     for (auto entry : TargetNodeMap) {
       auto TargetNode = entry.first;
-      // use map to store key value and match node to json id
+      // use std::map to store key value and match node to json id
       json toNode = getJsonOfNode(TargetNode, instruction_id_map);
-      cout << "node pointer target : " << TargetNode << endl;
+      std::cout << "node pointer target : " << TargetNode << std::endl;
 
       // getJsonRepresentationForInstructionEdge(from, to, document);
-      cout << "NODE (in function " << TargetNode->getFunction()->getName().str()
+      std::cout << "NODE (in function " << TargetNode->getFunction()->getName().str()
            << ")\n";
       TargetNode->print(llvm::outs());
 
@@ -199,12 +199,12 @@ public:
       // {
       //     auto FlowFactAtStart = FlowFactEntry.first;
       //     auto ProducedFlowFactsAtTarget = FlowFactEntry.second;
-      //     cout << "FLOW FACT AT SourceNode:\n";
+      //     std::cout << "FLOW FACT AT SourceNode:\n";
       //     FlowFactAtStart->dump(); // this would be the place for something
       //     like 'DtoString()'
       //     size_t fromData = getJsonRepresentationForFlowFactNode(document,
       //     from, &FlowFactAtStart);
-      //     cout << "IS PRODUCING FACTS AT TARGET NODE:\n";
+      //     std::cout << "IS PRODUCING FACTS AT TARGET NODE:\n";
       //     for (auto ProdFlowFact : ProducedFlowFactsAtTarget)
       //     {
       //         size_t toData = getJsonRepresentationForFlowFactNode(document,
@@ -217,7 +217,7 @@ public:
       // }
 
       if (this->computedInterPathEdges.containsRow(TargetNode)) {
-        cout << "FOUND Inter path edge !!" << endl;
+        std::cout << "FOUND Inter path edge !!" << std::endl;
         auto interEdgeTargetMap = this->computedInterPathEdges.row(TargetNode);
 
         for (auto interEntry : interEdgeTargetMap) {
@@ -226,7 +226,7 @@ public:
           // for easier debugging of the graph
           if (interEntry.first->getFunction()->getName().str().compare(
                   callerFunction->getName().str()) != 0) {
-            cout << "callsite: " << endl;
+            std::cout << "callsite: " << std::endl;
             TargetNode->print(llvm::outs());
             interEntry.first->print(llvm::outs());
             json callSiteNode =
@@ -239,7 +239,7 @@ public:
 
             // getJsonRepresentationForInstructionEdge(from, to);
 
-            cout << "NODE (in function (inter)"
+            std::cout << "NODE (in function (inter)"
                  << interEntry.first->getFunction()->getName().str() << ")\n";
             interEntry.first->print(llvm::outs());
             // add function start node here
@@ -247,7 +247,7 @@ public:
                                       TargetNode->getFunction(),
                                       instruction_id_map);
           } else {
-            cout << "FOUND Return Side" << endl;
+            std::cout << "FOUND Return Side" << std::endl;
             json returnSiteNode = getJsonRepresentationForReturnsite(
                 TargetNode, interEntry.first);
             // add function end node here
@@ -271,7 +271,7 @@ public:
     return size * nmemb;
   }
   CURL *curl;
-  string getIdFromWebserver() {
+  std::string getIdFromWebserver() {
     CURLcode res;
     std::string readBuffer;
 
@@ -330,14 +330,14 @@ public:
     }
   }
 
-  void exportJSONDataModel(string graph_id) {
+  void exportJSONDataModel(std::string graph_id) {
     curl_global_init(CURL_GLOBAL_ALL);
-    string id = graph_id;
-    cout << "my id: " << graph_id << endl;
+    std::string id = graph_id;
+    std::cout << "my id: " << graph_id << std::endl;
     /* get a curl handle */
     curl = curl_easy_init();
-    string url = "http://localhost:3000/api/framework/addGraph/" + id;
-    cout << url << endl;
+    std::string url = "http://localhost:3000/api/framework/addGraph/" + id;
+    std::cout << url << std::endl;
 
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 
@@ -346,11 +346,11 @@ public:
 
       auto SourceNode = Seed.first;
 
-      cout << "START NODE (in function "
+      std::cout << "START NODE (in function "
            << SourceNode->getFunction()->getName().str() << ")\n";
       SourceNode->print(llvm::outs());
-      cout << " source node name " << SourceNode->getName().str() << endl;
-      cout << " source node opcode name" << SourceNode->getOpcodeName() << endl;
+      std::cout << " source node name " << SourceNode->getName().str() << std::endl;
+      std::cout << " source node opcode name" << SourceNode->getOpcodeName() << std::endl;
 
       iterateExplodedSupergraph(SourceNode, SourceNode->getFunction(),
                                 &instruction_id_map);
@@ -360,20 +360,20 @@ public:
   }
 
   void dumpAllInterPathEdges() {
-    cout << "COMPUTED INTER PATH EDGES" << endl;
+    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "TO" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "FACTS" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -382,20 +382,20 @@ public:
   }
 
   void dumpAllIntraPathEdges() {
-    cout << "COMPUTED INTRA PATH EDGES" << endl;
+    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
-      cout << "FROM" << endl;
+      std::cout << "FROM" << std::endl;
       cell.r->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "TO" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "TO" << std::endl;
       cell.c->dump();
-      cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
-      cout << "FACTS" << endl;
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
-        cout << "fact" << endl;
+        std::cout << "fact" << std::endl;
         fact.first->dump();
-        cout << "produces" << endl;
+        std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
           out->dump();
         }
@@ -403,8 +403,6 @@ public:
     }
   }
 
-  void exportPATBCJSON() { cout << "LLVMIFDSSolver::exportPATBCJSON()\n"; }
+  void exportPATBCJSON() { std::cout << "LLVMIFDSSolver::exportPATBCJSON()\n"; }
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_HH_ */

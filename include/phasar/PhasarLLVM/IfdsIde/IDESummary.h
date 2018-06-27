@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef IDESUMMARY_H_
-#define IDESUMMARY_H_
+#pragma once
+
 namespace psr {
 
 // template <typename N, typename D, typename M, typename V, typename I>
@@ -17,5 +17,3 @@ public:
   IDESummary() {}
 };
 } // namespace psr
-
-#endif

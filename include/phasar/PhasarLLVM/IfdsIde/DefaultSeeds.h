@@ -14,27 +14,23 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_DEFAULTSEEDS_H_
-#define ANALYSIS_IFDS_IDE_DEFAULTSEEDS_H_
+#pragma once
 
 #include <map>
 #include <set>
-
-using namespace std;
+#include <vector>
 
 namespace psr {
 
 template <typename N, typename D> class DefaultSeeds {
 public:
-  static map<N, set<D>> make(vector<N> node, D zeroNode) {
-    map<N, set<D>> res;
+  static std::map<N, std::set<D>> make(std::vector<N> node, D zeroNode) {
+    std::map<N, std::set<D>> res;
     for (N n : node) {
-      res.insert(n, set<D>{zeroNode});
+      res.insert(n, std::set<D>{zeroNode});
     }
     return res;
   }
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_DEFAULTSEEDS_HH_ */

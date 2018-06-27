@@ -14,23 +14,19 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MISC_BINARYDOMAIN_H_
-#define SRC_ANALYSIS_MISC_BINARYDOMAIN_H_
+#pragma once
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
-using namespace std;
 
 namespace psr {
 
 enum class BinaryDomain { BOTTOM = 0, TOP = 1 };
 
-extern const map<string, BinaryDomain> StringToBinaryDomain;
+extern const std::map<std::string, BinaryDomain> StringToBinaryDomain;
 
-extern const map<BinaryDomain, string> BinaryDomainToString;
+extern const std::map<BinaryDomain, std::string> BinaryDomainToString;
 
-ostream &operator<<(ostream &os, const BinaryDomain &b);
+std::ostream &operator<<(std::ostream &os, const BinaryDomain &b);
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_MISC_BINARYDOMAIN_HH_ */

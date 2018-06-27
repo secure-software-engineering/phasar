@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_RANDOMCHANGEVISITOR_H_
-#define CLANG_RANDOMCHANGEVISITOR_H_
+#pragma once
 
 #include <clang/AST/AST.h>
 #include <clang/AST/ASTConsumer.h>
@@ -44,9 +43,9 @@ namespace psr {
 // std::mt19937_64 mt(rd());
 // std::uniform_int_distribution<int> dist(0, 2);
 // for (int i = 0; i < 10; ++i) {
-//   cout << dist(mt) << ' ';
+//   std::cout << dist(mt) << ' ';
 // }
-// cout << '\n';
+// std::cout << '\n';
 
 class RandomChangeVisitor
     : public clang::RecursiveASTVisitor<RandomChangeVisitor> {
@@ -62,5 +61,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* CLANG_MYVISITOR_HH_ */

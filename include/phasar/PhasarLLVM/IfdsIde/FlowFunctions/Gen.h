@@ -14,11 +14,11 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_H_
+#pragma once
+
+#include <set>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <set>
 
 namespace psr {
 
@@ -39,5 +39,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_HH_ */

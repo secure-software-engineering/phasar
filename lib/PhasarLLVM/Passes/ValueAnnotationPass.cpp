@@ -15,7 +15,10 @@
  */
 
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 size_t ValueAnnotationPass::unique_value_id = 0;

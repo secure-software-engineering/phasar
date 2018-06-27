@@ -14,13 +14,14 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
+#pragma once
 
 #include <memory>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <set>
+
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
@@ -28,17 +29,17 @@ class IFDSSolver : public IDESolver<N, D, M, BinaryDomain, I> {
 public:
   IFDSSolver(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDESolver<N, D, M, BinaryDomain, I>(ifdsProblem) {
-    // cout << "IFDSSolver::IFDSSolver()" << endl;
-    // cout << ifdsProblem.NtoString(getNthInstruction(
+    // std::cout << "IFDSSolver::IFDSSolver()" << std::endl;
+    // std::cout << ifdsProblem.NtoString(getNthInstruction(
     // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
-    //  << endl;
+    //  << std::endl;
   }
 
   virtual ~IFDSSolver() = default;
 
-  set<D> ifdsResultsAt(N stmt) {
-    set<D> keyset;
-    unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
+  std::set<D> ifdsResultsAt(N stmt) {
+    std::set<D> keyset;
+    std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
     for (auto d : map) {
       keyset.insert(d.first);
     }
@@ -47,5 +48,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_HH_ */

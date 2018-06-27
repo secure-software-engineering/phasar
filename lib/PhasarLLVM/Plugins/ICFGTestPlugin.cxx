@@ -6,9 +6,15 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
+#include <set>
+#include <stdexcept>
+#include <utility>
 
 #include "ICFGTestPlugin.h"
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 __attribute__((constructor)) void init() {

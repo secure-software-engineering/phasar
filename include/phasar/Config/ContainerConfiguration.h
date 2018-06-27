@@ -14,8 +14,7 @@
  *      Author: philipp
  */
 
-#ifndef SRC_UTILS_CONTAINERCONFIGURATION_H_
-#define SRC_UTILS_CONTAINERCONFIGURATION_H_
+#pragma once
 
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
@@ -36,37 +35,35 @@
 namespace psr {
 // check if we forgot some more useful container implementations
 
-// define the set implementation to use for the ICFG classes ------------------
+// define the std::set implementation to use for the ICFG classes ------------------
 template <typename T> using ICFGSet = boost::container::flat_set<T>;
 // ----------------------------------------------------------------------------
 
-// define the set implementation to use for the flow functions ----------------
+// define the std::set implementation to use for the flow functions ----------------
 #define FFSetPreAllocSize 10
 
 template <typename T>
 using FFSet = boost::container::small_vector<T, FFSetPreAllocSize>;
 // ----------------------------------------------------------------------------
 
-// define the map implementation to use for the special summaries -------------
+// define the std::map implementation to use for the special summaries -------------
 template <typename T, typename U>
 using SSMap = boost::container::flat_map<T, U>;
 // ----------------------------------------------------------------------------
 
-// define the map implementation to use for the dynamic summaries -------------
+// define the std::map implementation to use for the dynamic summaries -------------
 template <typename T, typename U>
 using DSMap = boost::container::flat_map<T, U>;
 // ----------------------------------------------------------------------------
 
 // MonotoneSolver related container implementations ---------------------------
-// define the map implementation to use within the MonotoneSolver.hh ----------
+// define the std::map implementation to use within the MonotoneSolver.hh ----------
 template <typename T, typename U>
 using MonoMap = std::map<T, U>; // boost::container::flat_map<T, U>;
 // ----------------------------------------------------------------------------
-// define the set implementation to use within the MonotoneSolver.hh ----------
+// define the std::set implementation to use within the MonotoneSolver.hh ----------
 template <typename T>
 using MonoSet = std::set<T>; // boost::container::flat_set<T>;
 // ----------------------------------------------------------------------------
 
 } // namespace psr
-
-#endif

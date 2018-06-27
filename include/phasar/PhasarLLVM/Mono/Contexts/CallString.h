@@ -14,8 +14,7 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_CALLSTRING_H_
-#define SRC_ANALYSIS_MONOTONE_CALLSTRING_H_
+#pragma once
 
 #include <algorithm>
 #include <deque>
@@ -26,7 +25,6 @@
 #include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 
 #include "ContextBase.h"
-
 
 namespace psr {
 
@@ -44,8 +42,8 @@ public:
   CallString() = default;
   CallString(std::initializer_list<N> ilist) : cs(ilist) {
     if (ilist.size() > k) {
-      throw runtime_error(
-          "initial call string length exceeds maximal length K");
+      throw std::runtime_error(
+          "initial call std::string length exceeds maximal length K");
     }
   }
 
@@ -92,7 +90,7 @@ public:
   virtual bool isLessThan(const CallString &rhs) const override {
     // Base : lhs.cs < rhs.cs
     // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
-    // Enable that every empty call-string context match every context
+    // Enable that every empty call-std::string context match every context
     return cs < rhs.cs && (cs.size() != 0) && (rhs.cs.size() != 0);
   }
 
@@ -106,5 +104,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_MONOTONE_CALLSTRING_HH_ */

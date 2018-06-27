@@ -7,16 +7,18 @@
  *     Christian Stritzke, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef HEXASTORE_H_
-#define HEXASTORE_H_
+#pragma once
 
-#include "Queries.h"
 #include <array>
-#include <boost/format.hpp>
-#include <iostream>
-#include <sqlite3.h>
+#include <iosfwd>
 #include <string>
 #include <vector>
+
+#include <boost/format.hpp>
+
+#include <sqlite3.h>
+
+#include "Queries.h"
 
 namespace psr {
 /**
@@ -44,8 +46,8 @@ struct hs_result {
  * This approach is based on the paper "Database-Backed Program Analysis
  * for Scalable Error Propagation" by Weiss, Rubio-González and Libit.
  *
- * To store a graph into a database, we represent the graph by a set of
- * string 3-tuples by the form:
+ * To store a graph into a database, we represent the graph by a std::set of
+ * std::string 3-tuples by the form:
  *
  *          (source node, edge, destination node)
  *
@@ -112,5 +114,3 @@ public:
 };
 
 } /* end namespace psr */
-
-#endif /* HEXASTORE_HH_ */

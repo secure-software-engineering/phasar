@@ -27,6 +27,10 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
+#include <phasar/Utils/Logger.h>
+
+
+using namespace std;
 using namespace psr;
 namespace psr {
 

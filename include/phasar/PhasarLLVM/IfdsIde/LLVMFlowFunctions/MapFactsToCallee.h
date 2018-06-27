@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLEE_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLEE_H_
+#pragma once
 
 #include <functional>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -16,7 +15,7 @@
 namespace psr {
 
 /**
- * A predicate can be used to specifiy additonal requirements for mapping
+ * A predicate can be used to specifiy additonal requirements for std::mapping
  * actual parameter into formal parameter.
  * @brief Generates all valid formal parameter in the callee context.
  */
@@ -59,5 +58,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLEE_H_ */

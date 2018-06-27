@@ -14,13 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYASTCONSUMER_H_
-#define CLANG_MYASTCONSUMER_H_
+#pragma once
 
 #include "RandomChangeVisitor.h"
 #include <clang/AST/ASTConsumer.h>
 #include <clang/AST/ASTContext.h>
 #include <clang/Frontend/CompilerInstance.h>
+
 namespace psr {
 
 class RandomChangeASTConsumer : public clang::ASTConsumer {
@@ -36,5 +36,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* CLANG_MYASTCONSUMER_HH_ */

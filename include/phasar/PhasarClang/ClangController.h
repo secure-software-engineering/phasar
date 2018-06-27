@@ -7,12 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef CLANGCONTROLLER_H_
-#define CLANGCONTROLLER_H_
+#pragma once
 
-#include <iostream>
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
-#include <phasar/Utils/Logger.h>
+
 namespace psr {
 
 class ClangController {
@@ -21,5 +19,3 @@ public:
 };
 
 } // namespace psr
-
-#endif

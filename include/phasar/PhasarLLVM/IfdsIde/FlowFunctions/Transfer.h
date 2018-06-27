@@ -14,13 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_H_
+#pragma once
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
-using namespace std;
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+
 namespace psr {
 
 template <typename D> class Transfer : public FlowFunction<D> {
@@ -31,7 +30,7 @@ private:
 public:
   Transfer(D toValue, D fromValue) : toValue(toValue), fromValue(fromValue) {}
   virtual ~Transfer() = default;
-  set<D> computeTargets(D source) override {
+  std::set<D> computeTargets(D source) override {
     if (source == fromValue)
       return {source, toValue};
     else if (source == toValue)
@@ -41,5 +40,3 @@ public:
   }
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_HH_ */

@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
+#pragma once
 
 #include <functional>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -16,7 +15,7 @@
 namespace psr {
 
 /**
- * Predicates can be used to specifiy additonal requirements for mapping
+ * Predicates can be used to specifiy additonal requirements for std::mapping
  * actual parameters into formal parameters and the return value.
  * @note Currently, the return value predicate only allows checks regarding
  * the callee method.
@@ -74,5 +73,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_ */

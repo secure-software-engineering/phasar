@@ -14,6 +14,7 @@
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
 #include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <gtest/gtest.h>
 
 namespace bfs = boost::filesystem;

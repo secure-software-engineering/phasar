@@ -14,32 +14,19 @@
  *      Author: philipp
  */
 
-#ifndef UTILS_LOGGER_H_
-#define UTILS_LOGGER_H_
+#pragma once
 
-#include <algorithm>
-#include <array>
-#include <boost/algorithm/string.hpp>
-#include <boost/core/null_deleter.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/log/attributes.hpp>
-#include <boost/log/common.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/sources/logger.hpp>
+#include <string>
+#include <iosfwd>
+
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/support/date_time.hpp>
-#include <boost/log/utility/exception_handler.hpp>
-#include <boost/shared_ptr.hpp>
-#include <ctime>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <phasar/Config/Configuration.h>
-#include <string>
+#include <boost/log/sources/global_logger_storage.hpp>
+#include <boost/log/sinks.hpp>
 
-using namespace std;
+// Not useful here but enable all logging macros in files that include Logger.h
+#include <boost/log/sources/record_ostream.hpp>
+
 namespace bl = boost::log;
 namespace bfs = boost::filesystem;
 
@@ -51,13 +38,13 @@ namespace psr {
 
 enum severity_level { DEBUG = 0, INFO, WARNING, ERROR, CRITICAL };
 
-extern const map<string, severity_level> StringToSeverityLevel;
+extern const std::map<std::string, severity_level> StringToSeverityLevel;
 
-extern const map<severity_level, string> SeverityLevelToString;
+extern const std::map<severity_level, std::string> SeverityLevelToString;
 
 extern severity_level logFilterLevel;
 
-ostream &operator<<(ostream &os, enum severity_level l);
+std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
 // Register the logger and use it a singleton then, get the logger with:
 // bl::sources::severity_logger<severity_level>& lg = lg::get();
@@ -97,8 +84,6 @@ struct LoggerExceptionHandler {
 /**
  * Initializes the logger.
  */
-void initializeLogger(bool use_logger, string log_file = "");
+void initializeLogger(bool use_logger, std::string log_file = "");
 
 } // namespace psr
-
-#endif /* UTILS_LOGGER_HH_ */

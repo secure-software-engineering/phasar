@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
+
+using namespace std;
 using namespace psr;
 
 namespace psr {

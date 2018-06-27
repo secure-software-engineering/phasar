@@ -8,7 +8,10 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/IfdsIde/ZeroFlowFact.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 std::ostream &ZeroFlowFact::print(std::ostream &os) const {

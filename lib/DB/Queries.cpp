@@ -9,6 +9,7 @@
 
 #include <phasar/DB/Queries.h>
 
+using namespace std;
 using namespace psr;
 
 const std::string SPO_INSERT =
@@ -174,7 +175,7 @@ create table if not exists spo_object(
     unique(name, pid, sid)
 );
 
- 
+
 
 -- SOP Tables
 create table if not exists sop_subject (
@@ -198,7 +199,7 @@ create table if not exists sop_predicate(
     unique(name, oid, sid)
 );
 
- 
+
 
 -- PSO Tables
 create table if not exists pso_predicate (
@@ -222,7 +223,7 @@ create table if not exists pso_object(
     unique(name, sid, pid)
 );
 
- 
+
 
 -- POS Tables
 create table if not exists pos_predicate (
@@ -246,7 +247,7 @@ create table if not exists pos_subject(
     unique(name, oid, pid)
 );
 
- 
+
 
 -- OSP Tables
 create table if not exists osp_object (
@@ -270,7 +271,7 @@ create table if not exists osp_predicate(
     unique(name, sid, oid)
 );
 
- 
+
 
 -- OPS Tables
 create table if not exists ops_object (

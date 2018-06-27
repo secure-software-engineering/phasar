@@ -14,8 +14,7 @@
  *      Author: rleer
  */
 
-#ifndef PAMM_H_
-#define PAMM_H_
+#pragma once
 
 #include "json.hpp"
 #include <boost/filesystem.hpp>
@@ -58,9 +57,9 @@ namespace psr {
 #define GET_COUNTER(COUNTERID) pamm.getCounter(COUNTERID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
 #define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
-#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
+#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_std::string(VAL))
 #define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)                                    \
-  pamm.addToHistogram(HID, std::to_string(VAL), OCC)
+  pamm.addToHistogram(HID, std::to_std::string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 #else
@@ -196,7 +195,7 @@ public:
    * default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
-   * @note When using the macro, the period is set to milliseconds and cannot be
+   * @note When using the macro, the period is std::set to milliseconds and cannot be
    * customized by the macro.
    */
   template <typename Period = std::chrono::milliseconds>
@@ -258,7 +257,7 @@ public:
 
   /**
    * A running timer will not be stopped. The precision for time computation
-   * is set to milliseconds and the output is similar to a timestamp, e.g.
+   * is std::set to milliseconds and the output is similar to a timestamp, e.g.
    * '4h 8m 15sec 16ms'.
    *
    * @brief Returns the elapsed time for a given timer id - associated macro:
@@ -306,14 +305,14 @@ public:
   int getSumCount(std::set<std::string> counterIds);
 
   /**
-   * @brief Registers a new set as a set histogram.
-   * @param HID identifies the particular set.
+   * @brief Registers a new std::set as a std::set histogram.
+   * @param HID identifies the particular std::set.
    */
   void regHistogram(std::string HID);
 
   /**
-   * @brief Adds a new observed set size to the corresponding set histogram.
-   * @param HID ID of the set.
+   * @brief Adds a new observed std::set size to the corresponding std::set histogram.
+   * @param HID ID of the std::set.
    * @param OCC the added value.
    */
   void addToHistogram(std::string HID, std::string VAL, unsigned long OCC = 1);
@@ -463,5 +462,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* PAMM_H_ */

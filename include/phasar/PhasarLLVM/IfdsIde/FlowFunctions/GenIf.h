@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
+#pragma once
 
 #include <functional>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace psr {
@@ -38,5 +38,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_ */

@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_H_
-#define ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_H_
+#pragma once
 
 #include "IDETabulationProblem.h"
 namespace psr {
@@ -44,5 +43,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_HH_ */

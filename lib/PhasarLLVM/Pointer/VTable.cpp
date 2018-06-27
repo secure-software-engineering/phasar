@@ -14,8 +14,14 @@
  *      Author: pdschbrt
  */
 
+#include <iostream>
+#include <algorithm>
+
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 string VTable::getFunctionByIdx(unsigned i) {

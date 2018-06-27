@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_PROTOANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_PROTOANALYSIS_H_
+#pragma once
 
 #include <map>
 #include <memory>
@@ -23,7 +22,6 @@ class Function;
 class Value;
 } // namespace llvm
 
-using namespace std;
 namespace psr {
 class LLVMBasedICFG;
 
@@ -75,5 +73,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IFDSPROTOANALYSIS_HH_ */

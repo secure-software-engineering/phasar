@@ -15,7 +15,11 @@
  */
 
 #include <phasar/PhasarLLVM/Passes/ExampleModulePass.h>
+
+using namespace std;
 using namespace psr;
+using namespace llvm;
+
 namespace psr {
 
 void ExampleModulePass::getAnalysisUsage(AnalysisUsage &AU) const {

@@ -14,27 +14,27 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_H_
-#define SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_H_
+#pragma once
 
-#include "../../db/ProjectIRDB.h"
-#include "../../lib/LLVMShorthands.h"
-#include "../../utils/utils.h"
-#include "../control_flow/ICFG.h"
-#include "../control_flow/LLVMBasedICFG.h"
-#include "../ifds_ide/FlowFunction.h"
-#include "../ifds_ide/flow_func/GenAll.h"
-#include "DefaultIFDSTabulationProblem.h"
-#include "IFDSTabulationProblem.h"
-#include "solver/IFDSSummaryGenerator.h"
-#include "solver/LLVMIFDSSolver.h"
+#include <vector>
+#include <set>
+
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
-#include <memory>
-#include <string>
-#include <vector>
-using namespace std;
+
+// #include "../../db/ProjectIRDB.h"
+#include "../../lib/LLVMShorthands.h"
+#include "../../utils/utils.h"
+// #include "../control_flow/ICFG.h"
+// #include "../control_flow/LLVMBasedICFG.h"
+// #include "../ifds_ide/FlowFunction.h"
+// #include "../ifds_ide/flow_func/GenAll.h"
+#include "DefaultIFDSTabulationProblem.h".
+#include "IFDSTabulationProblem.h"
+#include "solver/IFDSSummaryGenerator.h"
+#include "solver/LLVMIFDSSolver.h"
+
 namespace psr {
 
 template <typename I, typename ConcreteIFDSTabulationProblem>
@@ -44,8 +44,8 @@ class LLVMIFDSSummaryGenerator
                                   I, ConcreteIFDSTabulationProblem,
                                   LLVMIFDSSolver<const llvm::Value *, I>> {
 private:
-  virtual vector<const llvm::Value *> getInputs() {
-    vector<const llvm::Value *> inputs;
+  virtual std::vector<const llvm::Value *> getInputs() {
+    std::vector<const llvm::Value *> inputs;
     // collect arguments
     for (auto &arg : this->toSummarize->args()) {
       inputs.push_back(&arg);
@@ -56,11 +56,11 @@ private:
     return inputs;
   }
 
-  virtual vector<bool>
-  generateBitPattern(const vector<const llvm::Value *> &inputs,
-                     const set<const llvm::Value *> &subset) {
+  virtual std::vector<bool>
+  generateBitPattern(const std::vector<const llvm::Value *> &inputs,
+                     const std::set<const llvm::Value *> &subset) {
     // initialize all bits to zero
-    vector<bool> bitpattern(inputs.size(), 0);
+    std::vector<bool> bitpattern(inputs.size(), 0);
     if (subset.empty()) {
       return bitpattern;
     }
@@ -86,5 +86,3 @@ public:
   virtual ~LLVMIFDSSummaryGenerator() = default;
 };
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_HH_ */

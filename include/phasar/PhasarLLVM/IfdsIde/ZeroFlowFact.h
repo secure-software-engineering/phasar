@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ZEROFLOWFACT_H_
-#define ZEROFLOWFACT_H_
+#pragma once
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+
 namespace psr {
 
 class ZeroFlowFact : public FlowFact {
@@ -20,5 +20,3 @@ public:
   static FlowFact *getInstance();
 };
 } // namespace psr
-
-#endif

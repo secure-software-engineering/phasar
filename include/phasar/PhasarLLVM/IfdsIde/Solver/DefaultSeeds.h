@@ -14,26 +14,22 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_H_
+#pragma once
 
-#include <llvm/IR/Instruction.h>
 #include <map>
 #include <set>
+#include <vector>
 
-using namespace std;
 namespace psr {
 
 class DefaultSeeds {
 public:
   template <typename N, typename D>
-  static map<N, set<D>> make(vector<N> instructions, D zeroNode) {
-    map<N, set<D>> res;
+  static std::map<N, std::set<D>> make(std::vector<N> instructions, D zeroNode) {
+    std::map<N, std::set<D>> res;
     for (const N &n : instructions)
-      res.insert({n, set<D>{zeroNode}});
+      res.insert({n, std::set<D>{zeroNode}});
     return res;
   }
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_HH_ */

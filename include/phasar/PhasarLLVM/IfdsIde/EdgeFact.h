@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef EDGEFACT_H_
-#define EDGEFACT_H_
+#pragma once
 
 #include <iostream>
+
 namespace psr {
 
 class EdgeFact {
@@ -19,5 +19,3 @@ public:
   virtual std::ostream &print(std::ostream &os) const = 0;
 };
 } // namespace psr
-
-#endif

@@ -7,8 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 const map<SummaryGenerationStrategy, string> SummaryGenerationStrategyToString =

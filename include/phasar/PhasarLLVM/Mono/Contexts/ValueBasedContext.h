@@ -14,8 +14,7 @@
  *      Author: nicolas
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_VALUEBASEDCONTEXT_H_
-#define SRC_ANALYSIS_MONOTONE_VALUEBASEDCONTEXT_H_
+#pragma once
 
 #include <algorithm>
 #include <iostream>
@@ -74,5 +73,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* SRC_ANALYSIS_MONOTONE_CALLSTRING_HH_ */

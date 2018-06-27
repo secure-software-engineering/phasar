@@ -14,12 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_H_
+#pragma once
 
 #include <iostream>
 
-using namespace std;
 namespace psr {
 
 template <typename N, typename D> class PathEdge {
@@ -48,12 +46,10 @@ public:
 
   D factAtTarget() { return dTarget; }
 
-  friend ostream &operator<<(ostream &os, const PathEdge &pathEdge) {
+  friend std::ostream &operator<<(std::ostream &os, const PathEdge &pathEdge) {
     return os << "<" << pathEdge.dSource << "> -> <" << pathEdge.target << ","
               << pathEdge.dTarget << ">";
   }
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_HH_ */

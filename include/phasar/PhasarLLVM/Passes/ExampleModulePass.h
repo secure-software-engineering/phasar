@@ -14,8 +14,7 @@
  *      Author: pdschbrt
  */
 
-#ifndef EXAMPLEMODULEPASS_H_
-#define EXAMPLEMODULEPASS_H_
+#pragma once
 
 #include <llvm/ADT/SCCIterator.h>
 #include <llvm/Analysis/AliasAnalysis.h>
@@ -25,15 +24,13 @@
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 
-using namespace llvm;
-
 namespace psr {
 
-class ExampleModulePass : public ModulePass, AAResultBase<BasicAAResult> {
+class ExampleModulePass : public llvm::ModulePass, llvm::AAResultBase<llvm::BasicAAResult> {
 public:
   static char ID;
-  ExampleModulePass() : ModulePass(ID) {}
-  void getAnalysisUsage(AnalysisUsage &AU) const override;
+  ExampleModulePass() : llvm::ModulePass(ID) {}
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   bool doInitialization(llvm::Module &M) override;
   bool runOnModule(llvm::Module &M) override;
   bool doFinalization(llvm::Module &M) override;
@@ -44,5 +41,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_MYALIASANALYSISPASS_HH_ */

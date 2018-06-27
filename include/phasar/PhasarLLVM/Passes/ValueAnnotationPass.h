@@ -14,10 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_VALUEANNOTATIONPASS_H_
-#define ANALYSIS_VALUEANNOTATIONPASS_H_
+#pragma once
 
 #include <iostream>
+#include <string>
+#include <vector>
+
 #include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/LLVMContext.h>
@@ -29,8 +31,7 @@
 #include <llvm/Support/raw_os_ostream.h>
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/Logger.h>
-#include <string>
-#include <vector>
+
 
 namespace psr {
 
@@ -95,5 +96,3 @@ public:
 };
 
 } // namespace psr
-
-#endif /* ANALYSIS_VALUEANNOTATIONPASS_HH_ */

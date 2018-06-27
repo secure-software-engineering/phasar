@@ -14,7 +14,4 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_H_
-
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_BIDIIDESOLVER_HH_ */
+#pragma once

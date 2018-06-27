@@ -14,33 +14,32 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_H_
+#pragma once
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 #include <vector>
 
-using namespace std;
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+
 namespace psr {
 
 template <typename D> class Union : public FlowFunction<D> {
 private:
-  const vector<FlowFunction<D>> funcs;
+  const std::vector<FlowFunction<D>> funcs;
 
 public:
-  Union(const vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
+  Union(const std::vector<FlowFunction<D>> &funcs) : funcs(funcs) {}
   virtual ~Union() = default;
-  set<D> computeTargets(const D &source) override {
-    set<D> result;
+  std::set<D> computeTargets(const D &source) override {
+    std::set<D> result;
     for (const FlowFunction<D> &func : funcs) {
-      set<D> target = func.computeTarget(source);
+      std::set<D> target = func.computeTarget(source);
       result.insert(target.begin(), target.end());
     }
     return result;
   }
-  static FlowFunction<D> setunion(const vector<FlowFunction<D>> &funcs) {
-    vector<FlowFunction<D>> vec;
+  static FlowFunction<D> setunion(const std::vector<FlowFunction<D>> &funcs) {
+    std::vector<FlowFunction<D>> vec;
     for (const FlowFunction<D> &func : funcs)
       if (func != Identity<D>::getInstance())
         vec.add(func);
@@ -52,5 +51,3 @@ public:
   }
 };
 } // namespace psr
-
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_HH_ */

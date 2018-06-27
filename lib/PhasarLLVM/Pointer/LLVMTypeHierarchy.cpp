@@ -14,9 +14,35 @@
  *      Author: pdschbrt
  */
 
+#include <iostream>
+#include <algorithm>
+// #include <fstream>
+
+// #include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+
+#include <llvm/IR/Instructions.h>
+
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/PAMM.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+
+
 using namespace psr;
+using namespace std;
+
 namespace psr {
+
+struct LLVMTypeHierarchy::reachability_dfs_visitor : boost::default_dfs_visitor {
+  set<vertex_t> &subtypes;
+  reachability_dfs_visitor(set<vertex_t> &types) : subtypes(types) {}
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, const Graph &g) {
+    subtypes.insert(u);
+  }
+};
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;

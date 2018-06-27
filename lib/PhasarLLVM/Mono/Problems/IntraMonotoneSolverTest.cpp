@@ -15,7 +15,10 @@
  */
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 IntraMonotoneSolverTest::IntraMonotoneSolverTest(LLVMBasedCFG &Cfg,

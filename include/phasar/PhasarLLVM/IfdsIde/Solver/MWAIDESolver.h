@@ -7,8 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef MWAIDESolver_H_
-#define MWAIDESolver_H_
+#pragma once
 
 #include <chrono>
 #include <iostream>
@@ -35,7 +34,6 @@
 #include <type_traits>
 #include <utility>
 
-using namespace std;
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
@@ -47,24 +45,24 @@ public:
   MWAIDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem,
                enum SummaryGenerationStrategy S)
       : IDESolver<N, D, M, V, I>(tabulationProblem), genStrategy(S) {
-    cout << "MWAIDESolver::MWAIDESolver(IDETabulationProblem)" << endl;
+    std::cout << "MWAIDESolver::MWAIDESolver(IDETabulationProblem)" << std::endl;
   }
 
   virtual ~MWAIDESolver() = default;
 
   virtual void summarize() {
-    cout << "MWAIDESolver::summarize()" << endl;
-    // clear potential entry points and set the entry points within the code
+    std::cout << "MWAIDESolver::summarize()" << std::endl;
+    // clear potential entry points and std::set the entry points within the code
     // under analysis
     IDESolver<N, D, M, V, I>::initialSeeds.clear();
-    cout << "dependency ordered functions" << endl;
+    std::cout << "dependency ordered functions" << std::endl;
     for (auto function :
          IDESolver<N, D, M, V, I>::icfg.getDependencyOrderedFunctions()) {
-      cout << function << endl;
+      std::cout << function << std::endl;
       if (IDESolver<N, D, M, V, I>::icfg.getMethod(function)) {
         for (auto startPoint : IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(
                  IDESolver<N, D, M, V, I>::icfg.getMethod(function))) {
-          set<D> initialValues = {IDESolver<N, D, M, V, I>::zeroValue};
+          std::set<D> initialValues = {IDESolver<N, D, M, V, I>::zeroValue};
           if (function != "main") {
             switch (genStrategy) {
             case SummaryGenerationStrategy::always_all:
@@ -93,9 +91,9 @@ public:
     // We start our analysis and construct exploded supergraph
     for (const auto &seed : IDESolver<N, D, M, V, I>::initialSeeds) {
       N startPoint = seed.first;
-      cout << "Start point:" << endl;
+      std::cout << "Start point:" << std::endl;
       startPoint->print(llvm::outs());
-      cout << "Value(s):" << endl;
+      std::cout << "Value(s):" << std::endl;
       for (const D &value : seed.second) {
         value->print(llvm::outs());
       }
@@ -109,13 +107,13 @@ public:
    * their own. Normally, solve() should be called instead.
    */
   void submitInitalSeedsForSummary() {
-    cout << "MWAIDESolver::submitInitalSeedsForSummary()" << endl;
+    std::cout << "MWAIDESolver::submitInitalSeedsForSummary()" << std::endl;
     for (const auto &seed : this->initialSeeds) {
       N startPoint = seed.first;
-      cout << "submitInitalSeedsForSummary - Start point:" << endl;
+      std::cout << "submitInitalSeedsForSummary - Start point:" << std::endl;
       startPoint->print(llvm::outs());
       for (const D &value : seed.second) {
-        cout << "submitInitalSeedsForSummary - Value:" << endl;
+        std::cout << "submitInitalSeedsForSummary - Value:" << std::endl;
         value->print(llvm::outs());
         this->propagate(value, startPoint, value,
                         EdgeIdentity<V>::getInstance(), nullptr, false);
@@ -129,23 +127,23 @@ public:
    * @brief Combines MWA information and performs a final repropagation step.
    */
   virtual void combine() {
-    cout << "MWAIDESolver::combine()" << endl;
-    cout << "Has precomputed summaries present: "
-         << !IDESolver<N, D, M, V, I>::endsummarytab.empty() << endl;
+    std::cout << "MWAIDESolver::combine()" << std::endl;
+    std::cout << "Has precomputed summaries present: "
+         << !IDESolver<N, D, M, V, I>::endsummarytab.empty() << std::endl;
     IDESolver<N, D, M, V, I>::submitInitalSeeds();
     if (IDESolver<N, D, M, V, I>::computevalues) {
-      cout << "computing values" << endl;
+      std::cout << "computing values" << std::endl;
       IDESolver<N, D, M, V, I>::computeValues();
     }
   }
 
-  void setSummaries(Table<N, D, Table<N, D, shared_ptr<EdgeFunction<V>>>> sum) {
-    cout << "Set summaries!\n";
+  void setSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> sum) {
+    std::cout << "Set summaries!\n";
     IDESolver<N, D, M, V, I>::endsummarytab = sum;
   }
 
-  Table<N, D, Table<N, D, shared_ptr<EdgeFunction<V>>>> getSummaries() {
-    cout << "Get summaries!\n";
+  Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> getSummaries() {
+    std::cout << "Get summaries!\n";
     return IDESolver<N, D, M, V, I>::endsummarytab;
   }
 
@@ -153,10 +151,8 @@ protected:
   MWAIDESolver(IFDSTabulationProblem<N, D, M, I> &tabulationProblem,
                enum SummaryGenerationStrategy S)
       : IDESolver<N, D, M, BinaryDomain, I>(tabulationProblem), genStrategy(S) {
-    cout << "MWAIDESolver::MWAIDESolver(IFDSTabulationProblem)" << endl;
+    std::cout << "MWAIDESolver::MWAIDESolver(IFDSTabulationProblem)" << std::endl;
   }
 };
 
 } // namespace psr
-
-#endif

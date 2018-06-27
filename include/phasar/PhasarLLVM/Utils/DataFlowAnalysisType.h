@@ -7,13 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef DATAFLOWANALYSISTYPE_H_
-#define DATAFLOWANALYSISTYPE_H_
+#pragma once
 
-#include <iostream>
 #include <map>
+#include <iosfwd>
 #include <string>
-using namespace std;
 
 namespace psr {
 
@@ -35,12 +33,10 @@ enum class DataFlowAnalysisType {
   None
 };
 
-extern const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
+extern const std::map<std::string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
 
-extern const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString;
+extern const std::map<DataFlowAnalysisType, std::string> DataFlowAnalysisTypeToString;
 
-ostream &operator<<(ostream &os, const DataFlowAnalysisType &k);
+std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
 
 } // namespace psr
-
-#endif

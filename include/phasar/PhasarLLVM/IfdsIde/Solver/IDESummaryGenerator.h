@@ -14,32 +14,30 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
-#define SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
+#pragma once
 
 #include <iostream>
 #include <map>
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <set>
 #include <string>
-using namespace std;
-using namespace psr;
+
 namespace psr {
 
 template <typename N, typename D, typename M, typename I, typename V,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
 class IDESummaryGenerator {
 protected:
-  const string toSummarize;
+  const std::string toSummarize;
   const I icfg;
   const SummaryGenerationStrategy CTXStrategy;
 
   class CTXFunctionProblem : public ConcreteTabulationProblem {
   public:
     const N start;
-    set<D> facts;
+    std::set<D> facts;
 
-    CTXFunctionProblem(N start, set<D> facts, I icfg)
+    CTXFunctionProblem(N start, std::set<D> facts, I icfg)
         : ConcreteTabulationProblem(icfg), start(start), facts(facts) {
       this->solver_config.followReturnsPastSeeds = false;
       this->solver_config.autoAddZero = true;
@@ -48,15 +46,15 @@ protected:
       this->solver_config.computePersistedSummaries = false;
     }
 
-    virtual map<N, set<D>> initialSeeds() override {
-      map<N, set<D>> seeds;
+    virtual std::map<N, std::set<D>> initialSeeds() override {
+      std::map<N, std::set<D>> seeds;
       seeds.insert(make_pair(start, facts));
       return seeds;
     }
   };
 
 public:
-  IDESummaryGenerator(string Function, I Icfg,
+  IDESummaryGenerator(std::string Function, I Icfg,
                       SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(Icfg), CTXStrategy(Strategy) {}
   virtual ~IDESummaryGenerator() = default;
@@ -83,5 +81,3 @@ public:
 };
 
 } // namespace psr
-
-#endif
