@@ -16,12 +16,12 @@
 
 #pragma once
 
-#include <llvm/IR/Constants.h>
+#include <memory>
+#include <string>
+
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <memory>
-#include <string>
 
 namespace psr {
 

@@ -17,19 +17,18 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
-#include <boost/algorithm/string/trim.hpp>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
-#include <phasar/Config/Configuration.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-
+namespace llvm {
+  class Value;
+  class FunctionType;
+  class Function;
+  class Argument;
+  class Instruction;
+  class TerminatorInst;
+  class StoreInst;
+  class Module;
+}
 
 namespace psr {
 

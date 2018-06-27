@@ -19,7 +19,7 @@
 #include <iostream>
 #include <memory>
 
-#include "../EdgeFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 
 namespace psr {
 

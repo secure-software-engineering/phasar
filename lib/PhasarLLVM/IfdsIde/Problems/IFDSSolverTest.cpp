@@ -7,20 +7,22 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
+ #include <llvm/IR/Function.h>
+ #include <llvm/IR/Instruction.h>
+ #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 
 
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(IFDSSolverTest::i_t icfg,

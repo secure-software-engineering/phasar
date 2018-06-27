@@ -11,10 +11,11 @@
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -22,8 +23,9 @@ class Function;
 class Value;
 } // namespace llvm
 
-class LLVMBasedICFG;
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IFDSSignAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,

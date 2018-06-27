@@ -22,19 +22,24 @@
 #include <iosfwd>
 #include <vector>
 
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
+
 #include <boost/graph/adjacency_list.hpp>
 // #include <boost/graph/graph_utility.hpp>
 // #include <boost/graph/graphviz.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/DB/ProjectIRDB.h>
 
 namespace psr {
 
 //Forward declaration
 class TypeGraph;
-class ProjectIRDB;
-class LLVMTypeHierarchy;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };

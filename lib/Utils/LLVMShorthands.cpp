@@ -14,6 +14,20 @@
  *      Author: philipp
  */
 
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
+
+#include <boost/algorithm/string/trim.hpp>
+
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+
+#include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;

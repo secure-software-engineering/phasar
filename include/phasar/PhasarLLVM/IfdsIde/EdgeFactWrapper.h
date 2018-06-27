@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <iosfwd>
+#include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFact.h>
 

@@ -16,12 +16,13 @@
 
 #pragma once
 
-#include "../EdgeFunction.h"
-#include "AllTop.h"
 #include <iostream>
 #include <memory>
 #include <string>
 
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+
+#include "AllTop.h"
 #include "AllBottom.h" // leads to a circular dependency
 // Must be resolved at some point, but for now just forward declare the
 // AllBottom<V> class
@@ -29,6 +30,8 @@
 // class AllBottom;
 
 namespace psr {
+
+template <typename V> class EdgeFunction;
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,

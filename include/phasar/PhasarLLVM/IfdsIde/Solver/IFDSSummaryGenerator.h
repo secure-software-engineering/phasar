@@ -16,14 +16,14 @@
 
 #pragma once
 
-#include "../../../utils/utils.h"
-#include "../../misc/SummaryStrategy.h"
-#include "../FlowFunction.h"
-#include "../ZeroValue.h"
-#include "../flow_func/GenAll.h"
-#include <iostream>
 #include <set>
 #include <vector>
+
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
+
 
 namespace psr {
 

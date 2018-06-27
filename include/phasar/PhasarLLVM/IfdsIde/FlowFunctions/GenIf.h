@@ -20,7 +20,7 @@ namespace psr {
  * @tparam D The type of data-flow facts to be generated.
  */
 template <typename D> class GenIf : public FlowFunction<D> {
-private:
+protected:
   D genValue;
   D zeroValue;
   std::function<bool(D)> Predicate;

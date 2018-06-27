@@ -29,6 +29,8 @@
 
 #include <boost/algorithm/string/trim.hpp>
 
+#include <llvm/Support/raw_ostream.h>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>

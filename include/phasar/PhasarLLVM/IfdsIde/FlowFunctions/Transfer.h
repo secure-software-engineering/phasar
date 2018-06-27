@@ -23,7 +23,7 @@
 namespace psr {
 
 template <typename D> class Transfer : public FlowFunction<D> {
-private:
+protected:
   D toValue;
   D fromValue;
 

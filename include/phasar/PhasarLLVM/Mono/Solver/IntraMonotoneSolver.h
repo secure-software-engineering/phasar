@@ -17,10 +17,13 @@
 #include <deque>
 #include <iostream>
 #include <map>
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <utility>
 #include <vector>
+
+#include <llvm/Support/raw_ostream.h>
+
+#include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 
 namespace psr {
 

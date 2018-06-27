@@ -16,16 +16,16 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 #include <memory>
+#include <string>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>
-#include <string>
-//#include "EdgeIdentity.h"
-//#include "AllTop.h"
+
+
 namespace psr {
 template <typename V> class EdgeIdentity;
-
 template <typename V> class AllTop;
 
 template <typename V>

@@ -17,19 +17,18 @@
 #pragma once
 
 #include <map>
+#include <vector>
 #include <memory>
-#include <phasar/Config/Configuration.h>
-#include <phasar/Config/ContainerConfiguration.h>
+#include <string>
+#include <ostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/IO.h>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
+#include <phasar/Utils/IO.h> // readFile
+
 
 namespace psr {
 

@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include <iostream>
+// #include <iostream>
 #include <map>
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <set>
 #include <string>
+
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 
 namespace psr {
 
@@ -48,7 +49,7 @@ protected:
 
     virtual std::map<N, std::set<D>> initialSeeds() override {
       std::map<N, std::set<D>> seeds;
-      seeds.insert(make_pair(start, facts));
+      seeds.insert(std::make_pair(start, facts));
       return seeds;
     }
   };

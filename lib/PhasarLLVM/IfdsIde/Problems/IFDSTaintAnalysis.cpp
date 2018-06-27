@@ -8,25 +8,21 @@
  *****************************************************************************/
 
 #include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/SpecialSummaries.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+
 #include <phasar/Utils/Logger.h>
 
 

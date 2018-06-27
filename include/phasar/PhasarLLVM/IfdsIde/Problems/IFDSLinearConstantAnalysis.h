@@ -11,11 +11,12 @@
 
 #include <functional>
 #include <map>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
+#include <memory>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {

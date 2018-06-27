@@ -28,8 +28,8 @@
 
 namespace psr {
 
-template <typename D> class Compose : FlowFunction<D> {
-private:
+template <typename D> class Compose : public FlowFunction<D> {
+protected:
   const std::vector<FlowFunction<D>> funcs;
 
 public:

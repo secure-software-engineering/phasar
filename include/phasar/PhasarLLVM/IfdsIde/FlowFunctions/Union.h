@@ -20,11 +20,12 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 
 namespace psr {
 
 template <typename D> class Union : public FlowFunction<D> {
-private:
+protected:
   const std::vector<FlowFunction<D>> funcs;
 
 public:

@@ -14,14 +14,18 @@
  *      Author: pdschbrt
  */
 
+
+#include <llvm/IR/InstIterator.h>
+
+// #include <boost/log/sources/severity_feature.hpp>
+#include <boost/log/sources/record_ostream.hpp>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-// #include <boost/log/sources/severity_feature.hpp>
-#include <boost/log/sources/record_ostream.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>

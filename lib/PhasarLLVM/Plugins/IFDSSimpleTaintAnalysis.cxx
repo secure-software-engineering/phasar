@@ -14,6 +14,9 @@
  *      Author: philipp
  */
 
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 #include "IFDSSimpleTaintAnalysis.h"
 
 using namespace std;

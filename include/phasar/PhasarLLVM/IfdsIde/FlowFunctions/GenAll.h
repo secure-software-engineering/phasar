@@ -23,7 +23,7 @@
 namespace psr {
 
 template <typename D> class GenAll : public FlowFunction<D> {
-private:
+protected:
   std::set<D> genValues;
   D zeroValue;
 

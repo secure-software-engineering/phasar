@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <string>
+
+#include <phasar/Config/ContainerConfiguration.h>
 
 namespace psr {
 

@@ -23,7 +23,7 @@
 namespace psr {
 
 template <typename D> class Kill : public FlowFunction<D> {
-private:
+protected:
   D killValue;
 
 public:

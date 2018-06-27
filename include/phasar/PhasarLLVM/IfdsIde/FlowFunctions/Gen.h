@@ -23,7 +23,7 @@
 namespace psr {
 
 template <typename D> class Gen : public FlowFunction<D> {
-private:
+protected:
   D genValue;
   D zeroValue;
 

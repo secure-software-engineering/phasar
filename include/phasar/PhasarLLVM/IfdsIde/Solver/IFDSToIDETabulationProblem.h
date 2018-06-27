@@ -9,13 +9,9 @@
 
 #pragma once
 
-#include <algorithm>
-// #include <map>
 #include <memory>
 #include <set>
 #include <sstream>
-// #include <type_traits>
-// #include <utility>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
@@ -23,7 +19,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-// #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 
 

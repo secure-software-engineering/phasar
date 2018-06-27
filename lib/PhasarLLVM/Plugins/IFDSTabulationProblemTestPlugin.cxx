@@ -14,6 +14,8 @@
  *      Author: philipp
  */
 
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 #include "IFDSTabulationProblemTestPlugin.h"
 
 using namespace std;

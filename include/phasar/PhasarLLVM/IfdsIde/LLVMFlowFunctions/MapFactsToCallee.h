@@ -10,8 +10,14 @@
 #pragma once
 
 #include <functional>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/Utils/LLVMShorthands.h>
+
+namespace llvm {
+  class Value;
+  class Function;
+}
 namespace psr {
 
 /**
@@ -20,7 +26,7 @@ namespace psr {
  * @brief Generates all valid formal parameter in the callee context.
  */
 class MapFactsToCallee : public FlowFunction<const llvm::Value *> {
-private:
+protected:
   std::vector<const llvm::Value *> actuals;
   std::vector<const llvm::Value *> formals;
   std::function<bool(const llvm::Value *)> predicate;
@@ -29,32 +35,10 @@ public:
   MapFactsToCallee(llvm::ImmutableCallSite callSite,
                    const llvm::Function *destMthd,
                    std::function<bool(const llvm::Value *)> predicate =
-                       [](const llvm::Value *) { return true; })
-      : predicate(predicate) {
-    // Set up the actual parameters
-    for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-      actuals.push_back(callSite.getArgOperand(idx));
-    }
-    // Set up the formal parameters
-    for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-      formals.push_back(getNthFunctionArgument(destMthd, idx));
-    }
-  }
+                       [](const llvm::Value *) { return true; });
   virtual ~MapFactsToCallee() = default;
-  std::set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-    if (!isLLVMZeroValue(source)) {
-      std::set<const llvm::Value *> res;
-      // Map actual parameter into corresponding formal parameter.
-      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-        if (source == actuals[idx] && predicate(actuals[idx])) {
-          res.insert(formals[idx]); // corresponding formal
-        }
-      }
-      return res;
-    } else {
-      return {source};
-    }
-  }
+
+  std::set<const llvm::Value *> computeTargets(const llvm::Value *source) override;
 };
 
 } // namespace psr

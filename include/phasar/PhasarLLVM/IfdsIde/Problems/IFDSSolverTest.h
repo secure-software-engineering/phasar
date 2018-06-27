@@ -11,10 +11,11 @@
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;

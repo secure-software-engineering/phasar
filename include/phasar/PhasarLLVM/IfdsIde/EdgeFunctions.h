@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include "EdgeFunction.h"
 #include <memory>
+
+#include "EdgeFunction.h"
 
 namespace psr {
 

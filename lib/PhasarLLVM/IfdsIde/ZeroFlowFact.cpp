@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/ZeroFlowFact.h>
 
 using namespace std;

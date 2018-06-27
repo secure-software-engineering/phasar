@@ -25,16 +25,22 @@
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+#include <llvm/IR/CallSite.h>
 
 #include <json.hpp>
 
 #include <phasar/Config/Configuration.h>
 
 using json = nlohmann::json;
+
+namespace llvm {
+  class Value;
+  class Module;
+  class Instruction;
+  class AAResults;
+  class Function;
+  class Type;
+}
 
 namespace psr {
 

@@ -15,6 +15,11 @@
  */
 #include <llvm/IR/Instructions.h>
 #include <llvm/ADT/SetVector.h>
+#include <llvm/IR/InstIterator.h>
+#include <llvm/IR/Value.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+#include <llvm/IR/Constants.h>
 
 #include <boost/log/sources/record_ostream.hpp>
 

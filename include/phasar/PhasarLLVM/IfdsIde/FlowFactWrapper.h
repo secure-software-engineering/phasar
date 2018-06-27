@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
 
