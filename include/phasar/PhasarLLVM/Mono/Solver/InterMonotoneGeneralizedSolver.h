@@ -241,8 +241,8 @@ public:
               //      That would make the context change for each context found in
               //      Analysis[dst], but there is almost 0 chance that there is more
               //      than 1 context for an intra-edge and using current_context reduce
-              //      the numbre of edges inserted overall.
-              current_it_on_priority->second.insert(std::make_pair(dst, nprimeprime));
+              //      the overall number of edges inserted.
+              current_it_on_priority->second.emplace(std::make_pair(dst, nprimeprime));
             }
           }
         } // unstabilized flow fact

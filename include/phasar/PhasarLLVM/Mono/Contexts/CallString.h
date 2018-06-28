@@ -19,10 +19,9 @@
 #include <algorithm>
 #include <deque>
 #include <initializer_list>
-#include <iostream>
+#include <ostream>
 #include <iterator>
 #include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 
 #include "ContextBase.h"
 
@@ -47,36 +46,27 @@ public:
     }
   }
 
-  void push(N s) {
+  virtual void enterFunction(N src, N dest, MonoSet<V> &In) override {
+    if ( k == 0 )
+      return;
     if (cs.size() > k - 1) {
       cs.pop_front();
     }
-    cs.push_back(s);
+    cs.push_back(src);
   }
 
-  N returnSite() {
-    if (cs.size() > 0)
-      return cs.back();
-    return nullptr;
-  }
-
-  void pop() {
+  virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
     if (cs.size() > 0) {
       cs.pop_back();
     }
   }
 
-  virtual void enterFunction(N src, N dest, MonoSet<V> &In) override {
-    push(src);
-  }
-
-  virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
-    pop();
-  }
-
   virtual bool isUnsure() override {
     // We may be a bit more precise in the future
-    return true;
+    if ( cs.size() == k )
+      return true;
+    else
+      return false;
   }
 
   virtual bool isEqual(const CallString &rhs) const override {
@@ -90,7 +80,9 @@ public:
   virtual bool isLessThan(const CallString &rhs) const override {
     // Base : lhs.cs < rhs.cs
     // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
-    // Enable that every empty call-std::string context match every context
+    // Enable that every empty call-string context match every context
+    // That allows an output of a retFlow with an empty callString context
+    // to be join with every analysis results at the arrival node.
     return cs < rhs.cs && (cs.size() != 0) && (rhs.cs.size() != 0);
   }
 
@@ -99,7 +91,7 @@ public:
     os << cs.back();
   }
 
-  size_t size() const { return cs.size(); }
+  std::size_t size() const { return cs.size(); }
   std::deque<N> getInternalCS() const { return cs; }
 };
 

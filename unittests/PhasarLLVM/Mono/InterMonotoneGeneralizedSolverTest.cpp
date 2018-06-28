@@ -35,12 +35,24 @@ TEST(InterMonotoneGeneralizedSolverTest, Running) {
     I.print();
     I.printAsDot("call_graph.dot");
     InterMonotoneSolverTest T(I, {"main"});
+
     CallString<const llvm::Value *, const llvm::Value*, 2> CS;
     InterMonotoneGeneralizedSolver<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
                                   const llvm::Value *, LLVMBasedICFG&,
-                                  CallString<const llvm::Value *, const llvm::Value*, 2>> S(T, CS, I.getMethod("main"));
-    S.solve();
+                                  CallString<const llvm::Value *, const llvm::Value*, 2>> S1(T, CS, I.getMethod("main"));
+    S1.solve();
+
+    CallString<const llvm::Value *, const llvm::Value*, 2> CS_os({I.getMethod("main"), I.getMethod("function")});
+    std::cout << CS_os << std::endl;
+
+    ValueBasedContext<const llvm::Value *, const llvm::Value*> VBC;
+    InterMonotoneGeneralizedSolver<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *, LLVMBasedICFG&,
+                                  ValueBasedContext<const llvm::Value *, const llvm::Value*>> S2(T, VBC, I.getMethod("main"));
+
+    S2.solve();
   } else {
     llvm::outs() << "Module does not contain a 'main' function, abort!\n";
   }
