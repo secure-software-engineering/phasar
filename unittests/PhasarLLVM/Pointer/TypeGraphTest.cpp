@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
+
 #include <boost/graph/isomorphism.hpp>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
@@ -16,8 +18,8 @@ namespace psr {
 
     unsigned int nb_struct = 0;
 
-    TypeGraph tg;
-    TypeGraph::graph_t g;
+    CachedTypeGraph tg;
+    CachedTypeGraph::graph_t g;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       ASSERT_TRUE(struct_type != nullptr);
@@ -51,10 +53,10 @@ namespace psr {
                      *structD = nullptr,
                      *structE = nullptr;
 
-    TypeGraph tg;
+    CachedTypeGraph tg;
 
     // Isomorphism to assure that the TypeGraph have the wanted structure
-    TypeGraph::graph_t g;
+    CachedTypeGraph::graph_t g;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {
@@ -187,8 +189,8 @@ namespace psr {
     unsigned int nb_struct = 0;
     llvm::StructType *structA = nullptr, *structB = nullptr;
 
-    TypeGraph tg;
-    TypeGraph::graph_t g;
+    CachedTypeGraph tg;
+    CachedTypeGraph::graph_t g;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {
@@ -272,10 +274,10 @@ namespace psr {
                      *structF = nullptr,
                      *structG = nullptr;
 
-    TypeGraph tg1, tg2, tg3, tg4, tg5;
+    CachedTypeGraph tg1, tg2, tg3, tg4, tg5;
 
     // Isomorphism to assure that the TypeGraph have the wanted structure
-    TypeGraph::graph_t g1, g2, g3, g4, g5;
+    CachedTypeGraph::graph_t g1, g2, g3, g4, g5;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {
@@ -970,10 +972,10 @@ namespace psr {
                      *structC = nullptr,
                      *structD = nullptr;
 
-    TypeGraph tg1, tg2, tg3;
+    CachedTypeGraph tg1, tg2, tg3;
 
     // Isomorphism to assure that the TypeGraph have the wanted structure
-    TypeGraph::graph_t g1, g2, g3;
+    CachedTypeGraph::graph_t g1, g2, g3;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {
@@ -1260,10 +1262,10 @@ namespace psr {
                      *structD = nullptr,
                      *structE = nullptr;
 
-    TypeGraph tg;
+    CachedTypeGraph tg;
 
     // Isomorphism to assure that the TypeGraph have the wanted structure
-    TypeGraph::graph_t g;
+    CachedTypeGraph::graph_t g;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {
@@ -1402,10 +1404,10 @@ namespace psr {
                      *structB = nullptr,
                      *structC = nullptr;
 
-    TypeGraph tg1, tg2;
+    CachedTypeGraph tg1, tg2;
 
     // Isomorphism to assure that the TypeGraph have the wanted structure
-    TypeGraph::graph_t g1, g2;
+    CachedTypeGraph::graph_t g1, g2;
 
     for ( auto struct_type : M->getIdentifiedStructTypes() ) {
       if ( struct_type ) {

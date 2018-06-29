@@ -16,12 +16,16 @@
 
 
 #include <llvm/IR/InstIterator.h>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Function.h>
 
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/copy.hpp>
-// #include <boost/log/sources/severity_feature.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <boost/log/sources/record_ostream.hpp>
-
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
@@ -29,10 +33,8 @@
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-
-#include <phasar/PhasarLLVM/Pointer/TypeGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
 
 
@@ -154,6 +156,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
   BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed";
 }
 
+LLVMBasedICFG::~LLVMBasedICFG() noexcept {
+  for ( auto type_graph : tgs) {
+    delete type_graph.second;
+  }
+}
+
 void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str();
@@ -228,6 +236,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
 }
 
 void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
+  static bool first_function = true;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str();
   // do not analyze functions more than once (this also acts as recursion
@@ -244,7 +253,14 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
   }
 
-  if (VisitedFunctions.size() == 1) {
+  if (first_function) {
+    // If it's the first analyzed function, insert the class pointed by
+    // argument as unsound (we use a CHA algorithm on them to assure a almost
+    // sound analysis (except if the program does a reverse hierarchy cast)
+    // (i.e. "class A {}; class B : A {}; B* b = (B*) new A()" ) as this results
+    // in unsound and almost everytime undefined behavior
+
+    first_function = false;
     auto func_type = F->getFunctionType();
 
     for ( auto param : func_type->params() ) {
@@ -256,7 +272,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     }
   }
 
-  TypeGraph *graph = new TypeGraph();
+  CachedTypeGraph *graph = new CachedTypeGraph();
   tgs[F] = graph;
 
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;

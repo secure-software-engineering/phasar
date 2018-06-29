@@ -22,11 +22,6 @@
 #include <iosfwd>
 #include <vector>
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Function.h>
-
 #include <boost/graph/adjacency_list.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
@@ -34,10 +29,17 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
 
+namespace llvm {
+  class Instruction;
+  class Function;
+  class Module;
+  class Instruction;
+}
+
 namespace psr {
 
 //Forward declaration
-class TypeGraph;
+class CachedTypeGraph;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
@@ -86,7 +88,7 @@ private:
   std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
-  std::map<const llvm::Function*, TypeGraph*> tgs;
+  std::map<const llvm::Function*, CachedTypeGraph*> tgs;
 
   // Any types that could be initialized outside of the module
   std::set<const llvm::StructType*> unsound_types;
@@ -234,7 +236,7 @@ public:
                 const llvm::Module &M, WalkerStrategy W, ResolveStrategy R,
                 std::vector<std::string> EntryPoints = {});
 
-  virtual ~LLVMBasedICFG() = default;
+  virtual ~LLVMBasedICFG() noexcept;
 
   bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 
