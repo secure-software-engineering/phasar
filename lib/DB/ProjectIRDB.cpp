@@ -12,10 +12,26 @@
 #include <algorithm>
 #include <cassert>
 
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/BasicAliasAnalysis.h>
+#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Transforms/Scalar.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>
+#include <phasar/Utils/PAMM.h>
+
 
 using namespace psr;
 using namespace std;

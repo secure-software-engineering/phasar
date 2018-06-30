@@ -22,30 +22,24 @@
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
 
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/BasicAliasAnalysis.h>
-#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/Linker/Linker.h>
-#include <llvm/Transforms/Scalar.h>
-
 #include <boost/filesystem.hpp>
+
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
 
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 #include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/PAMM.h>
 
-
+namespace llvm {
+  class Value;
+  class Instruction;
+  class Type;
+  class Function;
+  class GlobalVariable;
+}
 
 namespace psr {
 

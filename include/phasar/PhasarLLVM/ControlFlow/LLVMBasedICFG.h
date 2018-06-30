@@ -28,6 +28,7 @@
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/Utils/PAMM.h>
 
 namespace llvm {
   class Instruction;

@@ -16,11 +16,12 @@
 
 #include <thread>
 
-#include <llvm/IR/Module.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Function.h>
-
+#include <llvm/IR/Verifier.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IRReader/IRReader.h>
 
 #include <cppconn/driver.h>
 #include <cppconn/exception.h>
@@ -30,8 +31,7 @@
 
 #include <phasar/DB/DBConn.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+
 
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>

@@ -166,7 +166,7 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-  PAMM &pamm = PAMM::getInstance();
+  PAMM_FACTORY;
   START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it
   initializeLogger(false);
@@ -439,7 +439,8 @@ int main(int argc, const char **argv) {
     // At this point we have set-up all the parameters and can start the actual
     // analyses that have been choosen.
     AnalysisController Controller(
-        [&lg, &pamm](bool usingModules) {
+        [&lg](bool usingModules) {
+          PAMM_FACTORY;
           START_TIMER("IRDB Construction");
           BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
           IRDBOptions Opt = IRDBOptions::NONE;

@@ -17,7 +17,6 @@
 #include <iostream>
 #include <algorithm>
 
-// #include <boost/log/sources/severity_feature.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
 #include <boost/graph/graph_utility.hpp>
@@ -29,7 +28,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/Constant.h>
+#include <llvm/IR/Constants.h> // llvm::ConstantArray
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>

@@ -20,6 +20,7 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/Constants.h>
 
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/copy.hpp>

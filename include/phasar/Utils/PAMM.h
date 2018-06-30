@@ -16,6 +16,8 @@
 
 #pragma once
 
+#ifdef PERFORMANCE_EVA
+
 #include <cassert>
 #include <chrono>
 #include <iostream>
@@ -34,7 +36,6 @@ namespace bfs = boost::filesystem;
 
 namespace psr {
 
-#ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()
 #define START_TIMER(TIMERID) pamm.startTimer(TIMERID)
@@ -59,29 +60,6 @@ namespace psr {
   pamm.addToHistogram(HID, std::to_std::string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
-#else
-#define PAMM_FACTORY
-#define PAMM_RESET
-#define START_TIMER(TIMERID)
-#define RESET_TIMER(TIMERID)
-#define PAUSE_TIMER(TIMERID)
-#define STOP_TIMER(TIMERID)
-#define GET_TIMER(TIMERID)
-#define ACC_TIMER(...)
-#define PRINT_TIMER(TIMERID)
-#define REG_COUNTER(COUNTERID)
-#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
-#define INC_COUNTER(COUNTERID)
-#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
-#define DEC_COUNTER(COUNTERID)
-#define GET_COUNTER(COUNTERID)
-#define GET_SUM_COUNT(...)
-#define REG_HISTOGRAM(HID)
-#define ADD_TO_HIST(HID, VAL)
-#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
-#define PRINT_EVA_DATA
-#define EXPORT_EVA_DATA(CONFIG)
-#endif
 
 /**
  * This class offers functionality to measure different performance metrics.
@@ -254,7 +232,7 @@ public:
 
   /**
    * A running timer will not be stopped. The precision for time computation
-   * is std::set to milliseconds and the output is similar to a timestamp, e.g.
+   * is set to milliseconds and the output is similar to a timestamp, e.g.
    * '4h 8m 15sec 16ms'.
    *
    * @brief Returns the elapsed time for a given timer id - associated macro:
@@ -459,3 +437,27 @@ public:
 };
 
 } // namespace psr
+
+#else
+#define PAMM_FACTORY
+#define PAMM_RESET
+#define START_TIMER(TIMERID)
+#define RESET_TIMER(TIMERID)
+#define PAUSE_TIMER(TIMERID)
+#define STOP_TIMER(TIMERID)
+#define GET_TIMER(TIMERID)
+#define ACC_TIMER(...)
+#define PRINT_TIMER(TIMERID)
+#define REG_COUNTER(COUNTERID)
+#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
+#define INC_COUNTER(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
+#define DEC_COUNTER(COUNTERID)
+#define GET_COUNTER(COUNTERID)
+#define GET_SUM_COUNT(...)
+#define REG_HISTOGRAM(HID)
+#define ADD_TO_HIST(HID, VAL)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
+#define PRINT_EVA_DATA
+#define EXPORT_EVA_DATA(CONFIG)
+#endif

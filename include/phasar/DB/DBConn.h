@@ -20,8 +20,14 @@
 #include <set>
 #include <string>
 
+#include <llvm/IR/Module.h>
+
 #include <phasar/DB/Hexastore.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/DB/ProjectIRDB.h>
 
 #include <mysql_connection.h>
 #include <sqlite3.h>
@@ -45,11 +51,7 @@ enum class QueryReturnCode { TRUE, FALSE, ERROR };
   std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 
 // forward declarations
-class LLVMBasedICFG;
-class ProjectIRDB;
-class PointsToGraph;
 class VTable;
-class IDESummary;
 
 class DBConn {
 private:

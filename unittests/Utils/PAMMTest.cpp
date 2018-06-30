@@ -1,4 +1,7 @@
 #include <gtest/gtest.h>
+
+#define PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration ;)
+
 #include <phasar/Utils/PAMM.h>
 #include <thread>
 
