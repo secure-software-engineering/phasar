@@ -103,6 +103,12 @@ public:
   ProjectIRDB(const std::vector<std::string> &Files,
               std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
+  ProjectIRDB& operator=(ProjectIRDB &&) = delete;
+
+  ProjectIRDB(ProjectIRDB&) = delete;
+  ProjectIRDB& operator=(const ProjectIRDB&) = delete;
+
+
   ~ProjectIRDB() = default;
 
   void preprocessIR();

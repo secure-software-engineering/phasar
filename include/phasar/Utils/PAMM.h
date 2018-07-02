@@ -55,9 +55,9 @@ namespace psr {
 #define GET_COUNTER(COUNTERID) pamm.getCounter(COUNTERID)
 #define GET_SUM_COUNT(...) pamm.getSumCount(__VA_ARGS__)
 #define REG_HISTOGRAM(HID) pamm.regHistogram(HID)
-#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_std::string(VAL))
+#define ADD_TO_HIST(HID, VAL) pamm.addToHistogram(HID, std::to_string(VAL))
 #define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)                                    \
-  pamm.addToHistogram(HID, std::to_std::string(VAL), OCC)
+  pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
 

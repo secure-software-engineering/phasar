@@ -71,6 +71,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);
       bool broken_debug_info = false;
+      /* Crash in presence of llvm-3.9.1 module (segfault) */
       if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
         throw std::runtime_error(File + " could not be parsed correctly");
       }

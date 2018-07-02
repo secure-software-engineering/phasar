@@ -549,5 +549,7 @@ int main(int argc, const char **argv) {
   // PRINT_EVA_DATA;
   if(VariablesMap.count("config"))
     EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
+  else
+    EXPORT_EVA_DATA("PAMM_results.json");
   return 0;
 }

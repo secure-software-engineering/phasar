@@ -17,7 +17,9 @@
 #include <iomanip>
 #include <sstream>
 
-#define PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration ;)
+#ifndef PERFORMANCE_EVA
+  #define PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration is ;)
+#endif
 
 #include <phasar/Utils/PAMM.h>
 
@@ -32,6 +34,7 @@ PAMM &PAMM::getInstance() {
 }
 
 void PAMM::startTimer(std::string timerId) {
+  // cout << "\nStarting " + timerId + " timer\n";
   bool validTimerId =
       !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
   assert(validTimerId && "startTimer failed due to an invalid timer id");
@@ -53,10 +56,14 @@ void PAMM::resetTimer(std::string timerId) {
 }
 
 void PAMM::stopTimer(std::string timerId, bool pauseTimer) {
+  // cout << "\nStopping " + timerId + " timer\n";
   bool validTimerId =
-      RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+      RunningTimer.count(timerId) || StoppedTimer.count(timerId);
+  bool runningTimer =
+      RunningTimer.count(timerId);
   assert(validTimerId && "stopTimer failed due to an invalid timer id or timer "
                          "was already stopped");
+  assert(runningTimer && "stopTimer failed because timer was already stopped");
   if (validTimerId) {
     auto timer = RunningTimer.find(timerId);
     time_point end = std::chrono::high_resolution_clock::now();

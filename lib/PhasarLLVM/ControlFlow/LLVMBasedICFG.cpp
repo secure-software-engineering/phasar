@@ -91,10 +91,7 @@ LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function *f,
 
 LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction *i)
     : callsite(i), ir_code(llvmIRToString(i)),
-      id(stoull(llvm::cast<llvm::MDString>(
-                    i->getMetadata(MetaDataKind)->getOperand(0))
-                    ->getString()
-                    .str())) {}
+      id(stoull(getMetaDataID(i))) {}
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB)
     : CH(STH), IRDB(IRDB) {}
@@ -134,6 +131,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              const llvm::Module &M, WalkerStrategy WS,
                              ResolveStrategy RS, vector<string> EntryPoints)
     : W(WS), R(RS), CH(STH), IRDB(IRDB) {
+  PAMM_FACTORY;
   auto &lg = lg::get();
   BOOST_LOG_SEV(lg, INFO) << "Starting call graph construction using "
                              "WalkerStrategy: "
@@ -590,7 +588,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->print(llvm::outs());
+        // ftype->print(llvm::outs());
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());
@@ -667,7 +665,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->print(llvm::outs());
+        // ftype->print(llvm::outs());
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());
@@ -737,7 +735,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
     if (CS.getCalledValue()->getType()->isPointerTy()) {
       if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
               CS.getCalledValue()->getType()->getPointerElementType())) {
-        ftype->print(llvm::outs());
+        // ftype->print(llvm::outs());
         for (auto f : IRDB.getAllFunctions()) {
           if (matchesSignature(f, ftype)) {
             possible_call_targets.insert(f->getName().str());
