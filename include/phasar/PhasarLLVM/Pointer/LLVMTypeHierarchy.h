@@ -16,8 +16,9 @@
 
 #pragma once
 
-#include <map>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <vector>
 #include <iosfwd>
@@ -84,12 +85,12 @@ private:
   struct reachability_dfs_visitor;
 
   bidigraph_t g;
-  std::map<std::string, vertex_t> type_vertex_map;
+  std::unordered_map<std::string, vertex_t> type_vertex_map;
   // std::maps type names to the corresponding vtable
-  std::map<std::string, VTable> vtable_map;
-  std::set<std::string> recognized_struct_types;
+  std::unordered_map<std::string, VTable> vtable_map;
+  std::unordered_set<std::string> recognized_struct_types;
   // holds all modules that are included in the type hierarchy
-  std::set<const llvm::Module *> contained_modules;
+  std::unordered_set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
