@@ -30,6 +30,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>
+#include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMM.h>
 
 
@@ -185,7 +186,7 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
     commandstr += s;
     commandstr += ' ';
   }
-  BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr;
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr);
   std::unique_ptr<clang::CompilerInstance> ClangCompiler(
       new clang::CompilerInstance());
   clang::DiagnosticOptions *DiagOpts(new clang::DiagnosticOptions());
@@ -347,6 +348,7 @@ void ProjectIRDB::linkForWPA() {
   // the linkage. This is still very fast compared to compiling and
   // pre-processing
   // all modules.
+  // auto &lg = lg::get();
   if (modules.size() > 1) {
     llvm::Module *MainMod = getModuleDefiningFunction("main");
     assert(MainMod && "could not find main function");
@@ -411,7 +413,7 @@ void ProjectIRDB::linkForWPA() {
     WPAMOD = MainMod;
   } else if (modules.size() == 1) {
     // In this case we only have one module anyway, so we do not have
-    // to link at all. But we have to the the WPAMOD pointer!
+    // to link at all. But we have to update the the WPAMOD pointer!
     WPAMOD = modules.begin()->second.get();
   }
 }
@@ -672,10 +674,15 @@ std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
 }
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
+  auto &lg = lg::get();
   std::set<const llvm::Function *> funs;
   for (auto entry : functions) {
     const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
-    funs.insert(f);
+    if (f == nullptr) {
+       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << entry.first << " is not contained in the module\n");
+    }
+    else
+      funs.insert(f);
   }
   return funs;
 }

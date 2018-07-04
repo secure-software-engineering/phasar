@@ -29,7 +29,7 @@ namespace psr {
 
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass");
   static const std::set<std::string> mem_allocating_functions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};

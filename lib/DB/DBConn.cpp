@@ -50,7 +50,7 @@ const string DBConn::db_server_address = "tcp://127.0.0.1:3306";
 
 DBConn::DBConn() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Connect to database";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Connect to database");
   try {
     driver = get_driver_instance();
     conn = driver->connect(db_server_address, db_user, db_password);
@@ -68,7 +68,7 @@ DBConn::DBConn() {
 
 DBConn::~DBConn() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Close database connection";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Close database connection");
   delete conn;
 }
 
@@ -1165,7 +1165,7 @@ bool DBConn::schemeExists() {
 
 void DBConn::buildDBScheme() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Building database schema";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Building database schema");
 
   unique_ptr<sql::Statement> stmt(conn->createStatement());
   static const string old_unique_checks(
@@ -1546,7 +1546,7 @@ void DBConn::buildDBScheme() {
 
   static const string unique_checks("SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS; ");
   stmt->execute(unique_checks);
-  BOOST_LOG_SEV(lg, DEBUG) << "Database schema done";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Database schema done");
 }
 
 void DBConn::dropDBAndRebuildScheme() {

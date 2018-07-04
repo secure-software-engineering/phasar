@@ -7,15 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-// #include <algorithm>
-// #include <type_traits>
 #include <ostream>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-// #include <boost/container/flat_map.hpp>
-// #include <boost/container/flat_set.hpp>
 
 #include <llvm/IR/DerivedTypes.h>
 

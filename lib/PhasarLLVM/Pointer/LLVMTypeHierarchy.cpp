@@ -41,31 +41,39 @@ using namespace std;
 
 namespace psr {
 
-struct LLVMTypeHierarchy::reachability_dfs_visitor : boost::default_dfs_visitor {
-  set<vertex_t> &subtypes;
-  reachability_dfs_visitor(set<vertex_t> &types) : subtypes(types) {}
-  template <typename Vertex, typename Graph>
-  void finish_vertex(Vertex u, const Graph &g) {
-    subtypes.insert(u);
-  }
-};
-
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
   REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
   REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
+
+  //NOTE : Interesting statistic as CHA and RTA should only depends on that
+  //       and the total number of IR LoC
+  // //Only for mesure of performance
+  // bidigraph_t tc;
+  // boost::transitive_closure(g, tc);
+  //
+  // unsigned int max = 0;
+  // typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
+  //
+  // for ( auto vertex : type_vertex_map ) {
+  //   tie(ei, ei_end) = boost::out_edges(vertex.second, tc);
+  //   unsigned int dist = distance(ei, ei_end);
+  //   max = dist > max ? dist : max;
+  // }
+  //
+  // REG_COUNTER_WITH_VALUE("LTH Max Sub-graph", max);
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Reconstruct virtual function table for module: "
-                           << M.getModuleIdentifier();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Reconstruct virtual function table for module: "
+                           << M.getModuleIdentifier());
   const static string vtable_for = "vtable for ";
   llvm::Module &m = const_cast<llvm::Module &>(M);
   for (auto &global : m.globals()) {
@@ -113,8 +121,8 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
 
 void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Analyse types in module: "
-                           << M.getModuleIdentifier();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Analyse types in module: "
+                           << M.getModuleIdentifier());
   // store analyzed module
   contained_modules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();

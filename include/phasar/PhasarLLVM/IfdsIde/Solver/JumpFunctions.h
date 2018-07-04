@@ -74,13 +74,13 @@ public:
   void addFunction(D sourceVal, N target, D targetVal,
                    std::shared_ptr<EdgeFunction<L>> function) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at source: " << problem.DtoString(sourceVal);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at target: " << problem.DtoString(targetVal);
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target);
-    BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        << "Fact at source: " << problem.DtoString(sourceVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        << "Fact at target: " << problem.DtoString(targetVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString());
     // we do not store the default function (all-top)
     if (function->equalTo(allTop))
       return;
@@ -94,7 +94,7 @@ public:
     //	printNonEmptyForwardLookup();
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     //	printNonEmptyLookupByTargetNode();
-    BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
   }
 
   /**
@@ -184,15 +184,15 @@ public:
 
   void printJumpFunctions() {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:");
     for (auto &entry : nonEmptyLookupByTargetNode) {
-      BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first));
       for (auto cell : entry.second.cellSet()) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at src: " << problem.DtoString(cell.r);
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at dst: " << problem.DtoString(cell.c);
-        BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString();
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "fact at src: " << problem.DtoString(cell.r));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "fact at dst: " << problem.DtoString(cell.c));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString());
       }
     }
   }

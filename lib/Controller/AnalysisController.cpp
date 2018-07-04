@@ -65,13 +65,13 @@ AnalysisController::AnalysisController(
     : FinalResultsJson() {
   PAMM_FACTORY;
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
-  BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ");
   for (auto file : IRDB.getAllSourceFiles()) {
-    BOOST_LOG_SEV(lg, INFO) << "\t" << file;
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "\t" << file);
   }
   // Check if the chosen entry points are valid
-  BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
   if (VariablesMap.count("entry_points")) {
     std::vector<std::string> invalidEntryPoints;
@@ -82,8 +82,8 @@ AnalysisController::AnalysisController(
     }
     if (invalidEntryPoints.size()) {
       for (auto &invalidEntryPoint : invalidEntryPoints) {
-        BOOST_LOG_SEV(lg, ERROR)
-            << "Entry point '" << invalidEntryPoint << "' is not valid.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, ERROR)
+            << "Entry point '" << invalidEntryPoint << "' is not valid.");
       }
       throw logic_error("invalid entry points");
     }
@@ -94,11 +94,11 @@ AnalysisController::AnalysisController(
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
-    BOOST_LOG_SEV(lg, INFO)
-        << "link all llvm modules into a single module for WPA ...\n";
-    // START_TIMER("Link to WPA Module");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+        << "link all llvm modules into a single module for WPA ...\n");
+    START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
-    // STOP_TIMER("Link to WPA Module");
+    STOP_TIMER("Link to WPA Module");
   }
   IRDB.preprocessIR();
   // START_TIMER("DB Start Up");
@@ -108,11 +108,11 @@ AnalysisController::AnalysisController(
   // db.storeProjectIRDB("myphasarproject", IRDB);
   // STOP_TIMER("DB Store IRDB");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
   START_TIMER("LTH Construction");
   LLVMTypeHierarchy CH(IRDB);
   STOP_TIMER("LTH Construction");
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.");
   // START_TIMER("DB Store LTH");
   // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
   // STOP_TIMER("DB Store LTH");

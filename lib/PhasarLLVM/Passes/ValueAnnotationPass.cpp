@@ -25,7 +25,7 @@ size_t ValueAnnotationPass::unique_value_id = 0;
 
 bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Running ValueAnnotationPass";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running ValueAnnotationPass");
   for (auto &global : M.globals()) {
     llvm::MDNode *node = llvm::MDNode::get(
         context, llvm::MDString::get(context, std::to_string(unique_value_id)));

@@ -67,8 +67,8 @@ struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
             llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
       // If the call stack is empty, we completely ignore the calling context
       if (matches_stack(g) || call_stack.empty()) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "Found stack allocation: " << llvmIRToString(Alloc);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "Found stack allocation: " << llvmIRToString(Alloc));
         allocation_sites.insert(g[u].value);
       }
     }
@@ -82,8 +82,8 @@ struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: "
-                                   << llvmIRToString(CS.getInstruction());
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: "
+                                   << llvmIRToString(CS.getInstruction()));
           allocation_sites.insert(g[u].value);
         }
       }
@@ -206,7 +206,7 @@ const map<PointerAnalysisType, string> PointerAnalysisTypeToString = {
 PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str());
   ContainedFunctions.insert(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = true;

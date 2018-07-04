@@ -39,8 +39,8 @@ shared_ptr<FlowFunction<IFDSUnitializedVariables::d_t>>
 IFDSUnitializedVariables::getNormalFlowFunction(
     IFDSUnitializedVariables::n_t curr, IFDSUnitializedVariables::n_t succ) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSUnitializedVariables::getNormalFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getNormalFlowFunction()");
   // set every local variable as uninitialized, that is not a function parameter
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
@@ -181,7 +181,7 @@ IFDSUnitializedVariables::getCallFlowFunction(
     IFDSUnitializedVariables::n_t callStmt,
     IFDSUnitializedVariables::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getCallFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getCallFlowFunction()");
   // check for a usual function call
   if (const llvm::CallInst *call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
     // if (call->getCalledFunction()) {
@@ -288,7 +288,7 @@ IFDSUnitializedVariables::getRetFlowFunction(
     IFDSUnitializedVariables::n_t exitStmt,
     IFDSUnitializedVariables::n_t retSite) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::getRetFlowFunction()");
   // consider it a value gets store at the call site:
   // int x = call(...);
   // x shall be uninitialized then
@@ -329,8 +329,8 @@ IFDSUnitializedVariables::getCallToRetFlowFunction(
     IFDSUnitializedVariables::n_t retSite,
     set<IFDSUnitializedVariables::m_t> callees) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSUnitializedVariables::getCallToRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getCallToRetFlowFunction()");
   // handle a normal use of an initialized return value
   for (auto user : callSite->users()) {
     return make_shared<Kill<IFDSUnitializedVariables::d_t>>(user);
@@ -343,8 +343,8 @@ IFDSUnitializedVariables::getSummaryFlowFunction(
     IFDSUnitializedVariables::n_t callStmt,
     IFDSUnitializedVariables::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSUnitializedVariables::getSummaryFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSUnitializedVariables::getSummaryFlowFunction()");
   SpecialSummaries<IFDSUnitializedVariables::d_t, BinaryDomain> &SpecialSum =
       SpecialSummaries<IFDSUnitializedVariables::d_t,
                        BinaryDomain>::getInstance();
@@ -359,7 +359,7 @@ IFDSUnitializedVariables::getSummaryFlowFunction(
 map<IFDSUnitializedVariables::n_t, set<IFDSUnitializedVariables::d_t>>
 IFDSUnitializedVariables::initialSeeds() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::initialSeeds()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::initialSeeds()");
   map<IFDSUnitializedVariables::n_t, set<IFDSUnitializedVariables::d_t>>
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
@@ -372,7 +372,7 @@ IFDSUnitializedVariables::initialSeeds() {
 
 IFDSUnitializedVariables::d_t IFDSUnitializedVariables::createZeroValue() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::createZeroValue()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSUnitializedVariables::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

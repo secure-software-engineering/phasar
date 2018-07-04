@@ -82,8 +82,6 @@ public:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
 private:
-  struct reachability_dfs_visitor;
-
   bidigraph_t g;
   std::unordered_map<std::string, vertex_t> type_vertex_map;
   // std::maps type names to the corresponding vtable

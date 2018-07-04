@@ -46,6 +46,15 @@ extern severity_level logFilterLevel;
 
 std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
+// For performance reason, we want to disable any formatting computation
+// that would go straight into logs if logs are deactivated
+// This macro does just that
+
+#define LOG_IF_ENABLE(computation)            \
+if (bl::core::get()->get_logging_enabled()) { \
+  computation;                                \
+}
+
 // Register the logger and use it a singleton then, get the logger with:
 // bl::sources::severity_logger<severity_level>& lg = lg::get();
 BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(

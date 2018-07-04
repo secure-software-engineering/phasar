@@ -29,6 +29,7 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/PAMM.h>
 
 using namespace std;
 using namespace psr;
@@ -68,6 +69,8 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
   // FType->print(llvm::outs());
+  if (F == nullptr || FType == nullptr )
+    return false;
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     unsigned i = 0;

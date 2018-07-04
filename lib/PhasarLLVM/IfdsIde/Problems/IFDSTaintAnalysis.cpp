@@ -83,7 +83,7 @@ shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
                                          IFDSTaintAnalysis::n_t succ) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getNormalFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getNormalFlowFunction()");
   // Taint the commandline arguments
   if (curr->getFunction()->getName().str() == "main" &&
       icfg.isStartPoint(curr)) {
@@ -136,7 +136,7 @@ shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                        IFDSTaintAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallFlowFunction()");
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
   // The respective taints or leaks are then generated in the corresponding
@@ -161,7 +161,7 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
                                       IFDSTaintAnalysis::n_t exitStmt,
                                       IFDSTaintAnalysis::n_t retSite) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getRetFlowFunction()");
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -178,13 +178,13 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
     set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::getCallToRetFlowFunction()");
   // Process the effects of source or sink functions that are called
   for (auto *Callee : icfg.getCalleesOfCallAt(callSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
     if (Sources.count(FunctionName)) {
       // process generated taints
-      BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects");
       auto Source = Sources.at(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
@@ -206,7 +206,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     }
     if (Sinks.count(FunctionName)) {
       // process leaks
-      BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::m_t calledMthd;
@@ -265,7 +265,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
 map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::initialSeeds() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::initialSeeds()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::initialSeeds()");
   // just start in main()
   map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
@@ -277,7 +277,7 @@ IFDSTaintAnalysis::initialSeeds() {
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

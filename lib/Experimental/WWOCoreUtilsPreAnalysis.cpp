@@ -35,13 +35,13 @@ void analyzeCoreUtilsUsingPreAnalysis(ProjectIRDB &&IRDB,
 void analyzeCoreUtilsWithoutUsingPreAnalysis(
     ProjectIRDB &&IRDB, vector<DataFlowAnalysisType> Analyses) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
-  BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ");
   for (auto file : IRDB.getAllSourceFiles()) {
-    BOOST_LOG_SEV(lg, INFO) << "\t" << file;
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "\t" << file);
   }
   // Check if the chosen entry points are valid
-  BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
   if (VariablesMap.count("entry_points")) {
     vector<string> invalidEntryPoints;
@@ -52,8 +52,8 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     }
     if (invalidEntryPoints.size()) {
       for (auto &invalidEntryPoint : invalidEntryPoints) {
-        BOOST_LOG_SEV(lg, ERROR)
-            << "Entry point '" << invalidEntryPoint << "' is not valid.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, ERROR)
+            << "Entry point '" << invalidEntryPoint << "' is not valid.");
       }
       throw logic_error("invalid entry points");
     }
@@ -63,15 +63,15 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
   }
   // here we link every llvm module into a single module containing the entire
   // IR
-  BOOST_LOG_SEV(lg, INFO)
-      << "link all llvm modules into a single module for WPA ...\n";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+      << "link all llvm modules into a single module for WPA ...\n");
   IRDB.linkForWPA();
   IRDB.preprocessIR();
   IRDB.print();
   // Reconstruct the inter-modular class hierarchy and virtual function tables
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
   LLVMTypeHierarchy CH(IRDB);
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.");
   CH.printAsDot();
 
   // Perform whole program analysis (WPA) analysis
@@ -96,7 +96,7 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     throw runtime_error(
         "only one analysis at a time supported in this experiment");
   }
-  BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << Analyses.back();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << Analyses.back());
   switch (Analyses.back()) {
   case DataFlowAnalysisType::IFDS_TaintAnalysis: {
     IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
@@ -106,17 +106,17 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     // Here we can get the leaks
     map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
         taintanalysisproblem.Leaks;
-    BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
     if (Leaks.empty()) {
-      BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
     } else {
       for (auto Leak : Leaks) {
         string ModuleName = getModuleFromVal(Leak.first)->getModuleIdentifier();
-        BOOST_LOG_SEV(lg, INFO)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
             << "At instruction: '" << llvmIRToString(Leak.first)
-            << "' in file: '" << ModuleName << "'";
+            << "' in file: '" << ModuleName << "'");
         for (auto LeakValue : Leak.second) {
-          BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue));
         }
       }
     }
@@ -191,7 +191,7 @@ void analyzeCoreUtilsWithoutUsingPreAnalysis(
     break;
   }
   default:
-    BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid");
     break;
   }
 }

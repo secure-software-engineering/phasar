@@ -172,7 +172,7 @@ int main(int argc, const char **argv) {
   initializeLogger(false);
   auto &lg = lg::get();
   // handling the command line parameters
-  BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters");
   // Here we start creating Phasars top level operation mode:
   // Based on the mode, we delegate to the further subtools and their
   // corresponding argument parsers.
@@ -208,7 +208,7 @@ int main(int argc, const char **argv) {
   // Next we can check what operation mode was chosen and resume accordingly:
   if (ModeMap["mode"].as<std::string>() == "phasarLLVM") {
     // --- LLVM mode ---
-    BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarLLVM'";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarLLVM'");
     try {
       std::string ConfigFile;
       // Declare a group of options that will be allowed only on command line
@@ -259,9 +259,9 @@ int main(int argc, const char **argv) {
       bpo::notify(VariablesMap);
       ifstream ifs(ConfigFile.c_str());
       if (!ifs) {
-        BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.");
       } else {
-        BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile;
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile);
         bpo::store(bpo::parse_config_file(ifs, ConfigFileOptions),
                    VariablesMap);
         bpo::notify(VariablesMap);
@@ -277,8 +277,8 @@ int main(int argc, const char **argv) {
         std::cout << Visible << '\n';
         return 0;
       }
-      BOOST_LOG_SEV(lg, INFO)
-          << "Program options have been successfully parsed.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+          << "Program options have been successfully parsed.");
       bl::core::get()->flush();
 
       if (!VariablesMap.count("silent")) {
@@ -378,7 +378,7 @@ int main(int argc, const char **argv) {
       }
 
       // Validation
-      BOOST_LOG_SEV(lg, INFO) << "Check program options for logical errors.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check program options for logical errors.");
       // validate the logic of the command-line arguments
       if (VariablesMap.count("project") == VariablesMap.count("module")) {
         std::cerr << "Either a project OR a module must be specified for an "
@@ -442,7 +442,7 @@ int main(int argc, const char **argv) {
         [&lg](bool usingModules) {
           PAMM_FACTORY;
           START_TIMER("IRDB Construction");
-          BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.");
           IRDBOptions Opt = IRDBOptions::NONE;
           if (VariablesMap["wpa"].as<bool>()) {
             Opt |= IRDBOptions::WPA;
@@ -476,11 +476,11 @@ int main(int argc, const char **argv) {
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph_id"].as<std::string>());
-    BOOST_LOG_SEV(lg, INFO) << "Write results to file";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Write results to file");
     Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     // -- Clang mode ---
-    BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarClang'";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarClang'");
     std::string ConfigFile;
     // Declare a group of options that will be allowed only on command line
     bpo::options_description Generic("Command-line options");
@@ -508,9 +508,9 @@ int main(int argc, const char **argv) {
     bpo::notify(VariablesMap);
     ifstream ifs(ConfigFile.c_str());
     if (!ifs) {
-      BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.");
     } else {
-      BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile;
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile);
       bpo::store(bpo::parse_config_file(ifs, ConfigFileOptions), VariablesMap);
       bpo::notify(VariablesMap);
     }
@@ -540,7 +540,7 @@ int main(int argc, const char **argv) {
       ClangController CC(OptionsParser);
     }
   }
-  BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.");
   // free all resources handled by llvm
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
