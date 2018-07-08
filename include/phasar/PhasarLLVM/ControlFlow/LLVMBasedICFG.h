@@ -21,6 +21,8 @@
 #include <string>
 #include <iosfwd>
 #include <vector>
+#include <unordered_set>
+#include <unordered_map>
 
 #include <boost/graph/adjacency_list.hpp>
 
@@ -84,7 +86,7 @@ private:
   LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
   PointsToGraph WholeModulePTG;
-  std::set<const llvm::Function *> VisitedFunctions;
+  std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   std::vector<const llvm::Instruction *> CallStack;
 
@@ -129,7 +131,11 @@ private:
   bidigraph_t cg;
 
   /// Maps function names to the corresponding vertex id.
-  std::map<std::string, vertex_t> function_vertex_map;
+  std::unordered_map<std::string, vertex_t> function_vertex_map;
+
+  // Fallback solution when the resolution of virtual calls encounter a problem
+  // (in particular, encounter a function pointer instead of a virtual call)
+  std::set<std::string> fallbackResolving(llvm::ImmutableCallSite &CS);
 
   /**
    * Resolved an indirect call using points-to information in order to

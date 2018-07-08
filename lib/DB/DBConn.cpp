@@ -610,7 +610,7 @@ unique_ptr<llvm::Module> DBConn::getModule(const string &identifier,
       Mod->setModuleIdentifier(identifier);
       // check if everything has worked-out
       bool broken_debug_info = false;
-      if (llvm::verifyModule(*Mod, &llvm::errs(), &broken_debug_info)) {
+      if (Mod.get() == nullptr || llvm::verifyModule(*Mod, &llvm::errs(), &broken_debug_info)) {
         cout << "verifying module failed!" << endl;
       }
       if (broken_debug_info) {

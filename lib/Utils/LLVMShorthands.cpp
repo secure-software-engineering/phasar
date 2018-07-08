@@ -92,7 +92,7 @@ std::string llvmIRToString(const llvm::Value *V) {
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     RSO << ", ID: " << getMetaDataID(Inst);
   }
-  if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+  else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     RSO << ", ID: " << getMetaDataID(GV);
   }
   RSO.flush();

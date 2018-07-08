@@ -99,6 +99,8 @@ AnalysisController::AnalysisController(
     START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
     STOP_TIMER("Link to WPA Module");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+        << "link all llvm modules into a single module for WPA ended\n");
   }
   IRDB.preprocessIR();
   // START_TIMER("DB Start Up");
@@ -113,16 +115,19 @@ AnalysisController::AnalysisController(
   LLVMTypeHierarchy CH(IRDB);
   STOP_TIMER("LTH Construction");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.");
+
   // START_TIMER("DB Store LTH");
   // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
   // STOP_TIMER("DB Store LTH");
   // CH.printAsDot();
-  FinalResultsJson += CH.getAsJson();
+  // FinalResultsJson += CH.getAsJson();
+
   if (VariablesMap.count("classhierarchy_analysis")) {
     CH.print();
     CH.printAsDot("ch.dot");
   }
-  // Call graph construction stategy
+
+  //Call graph construction stategy
   CallGraphAnalysisType CGType(
       (VariablesMap.count("callgraph_analysis"))
           ? StringToCallGraphAnalysisType.at(
@@ -181,7 +186,7 @@ AnalysisController::AnalysisController(
      * Perform all the analysis that the user has chosen.
      */
     for (DataFlowAnalysisType analysis : Analyses) {
-      BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis);
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
@@ -193,18 +198,18 @@ AnalysisController::AnalysisController(
         // Here we can get the leaks
         map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
             taintanalysisproblem.Leaks;
-        BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
         if (Leaks.empty()) {
-          BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
         } else {
           for (auto Leak : Leaks) {
             string ModuleName =
                 getModuleFromVal(Leak.first)->getModuleIdentifier();
-            BOOST_LOG_SEV(lg, INFO)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "At instruction: '" << llvmIRToString(Leak.first)
-                << "' in file: '" << ModuleName << "'";
+                << "' in file: '" << ModuleName << "'");
             for (auto LeakValue : Leak.second) {
-              BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue));
             }
           }
         }
@@ -298,14 +303,14 @@ AnalysisController::AnalysisController(
             }
           }
         }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:");
         for (auto memloc : allMemoryLoc) {
-          BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc));
         }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "Printing return/resume instruction + dataflow facts:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "Printing return/resume instruction + dataflow facts:");
         for (auto RR : IRDB.getRetResInstructions()) {
           std::set<const llvm::Value *> facts =
               llvmconstsolver.ifdsResultsAt(RR);
@@ -326,12 +331,12 @@ AnalysisController::AnalysisController(
               }
             }
           } else {
-            BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR));
             for (auto fact : facts) {
               if (isAllocaInstOrHeapAllocaFunction(fact) ||
                   llvm::isa<llvm::GlobalValue>(fact)) {
-                BOOST_LOG_SEV(lg, DEBUG)
-                    << "   Fact: " << constproblem.DtoString(fact);
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "   Fact: " << constproblem.DtoString(fact));
                 // remove allocas that are mutable, i.e. are valid facts
                 allMemoryLoc.erase(fact);
               }
@@ -347,8 +352,8 @@ AnalysisController::AnalysisController(
         config.replace(extensionPos, cfp.extension().size(), "");
         ofstream ResultFile;
         ResultFile.open(config + "_memlocs.txt");
-        // BOOST_LOG_SEV(lg, INFO) << "-------------";
-        // BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
+        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory");
         for (auto memloc : allMemoryLoc) {
           if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
             ResultFile << llvmIRToString(memlocInst) << " in function "
@@ -360,7 +365,7 @@ AnalysisController::AnalysisController(
         }
         ResultFile.close();
         STOP_TIMER("DFA Result Computation");
-        BOOST_LOG_SEV(lg, INFO) << "-------------";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -417,7 +422,7 @@ AnalysisController::AnalysisController(
         break;
       }
       default:
-        BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid");
         break;
       }
       STOP_TIMER("DFA Runtime");
@@ -431,10 +436,10 @@ AnalysisController::AnalysisController(
         Summaries;
     // We build all the call- and points-to graphs which can be used for
     // all of the analysis of course.
-    BOOST_LOG_SEV(lg, INFO) << "Building module-wise icfgs";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Building module-wise icfgs");
     for (auto M : IRDB.getAllModules()) {
-      BOOST_LOG_SEV(lg, INFO)
-          << "Construct (partial) call-graph for: " << M->getModuleIdentifier();
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+          << "Construct (partial) call-graph for: " << M->getModuleIdentifier());
       LLVMBasedICFG ICFG(CH, IRDB, *M, CGWalker, CGResolve);
       // store them away for later use
 
@@ -451,7 +456,7 @@ AnalysisController::AnalysisController(
               std::forward_as_tuple(M),
               std::forward_as_tuple(CH, IRDB, *M, CGWalker, CGResolve));
     }
-    BOOST_LOG_SEV(lg, INFO) << "Call-graphs have been constructed";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call-graphs have been constructed");
     // Perform all the analysis that the user has chosen.
     for (DataFlowAnalysisType analysis : Analyses) {
       // switch to create the module wise results (TODO the code needs
@@ -464,16 +469,16 @@ AnalysisController::AnalysisController(
           // Only for modules which do not contain 'main'
           if (M->getFunction("main") == nullptr ||
               M->getFunction("main")->isDeclaration()) {
-            BOOST_LOG_SEV(lg, INFO)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Performing analysis: " << analysis
-                << " on module: " << M->getModuleIdentifier();
+                << " on module: " << M->getModuleIdentifier());
             IFDSTaintAnalysis taintanalysisproblem(I, {});
             LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
                 llvmtaintsolver(taintanalysisproblem,
                                 SummaryGenerationStrategy::always_none, false);
             llvmtaintsolver.summarize();
             Summaries.addSummaries(llvmtaintsolver.getSummaries());
-            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Generated summaries!");
           }
         }
         break;
@@ -493,16 +498,16 @@ AnalysisController::AnalysisController(
           // Only for modules which do not contain 'main'
           if (M->getFunction("main") == nullptr ||
               M->getFunction("main")->isDeclaration()) {
-            BOOST_LOG_SEV(lg, INFO)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Performing analysis: " << analysis
-                << " on module: " << M->getModuleIdentifier();
+                << " on module: " << M->getModuleIdentifier());
             IFDSUnitializedVariables uninitproblem(I, {});
             LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &>
                 llvmuninitsolver(uninitproblem,
                                  SummaryGenerationStrategy::always_none, false);
             llvmuninitsolver.summarize();
             Summaries.addSummaries(llvmuninitsolver.getSummaries());
-            BOOST_LOG_SEV(lg, INFO) << "Generated summaries!";
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Generated summaries!");
           }
         }
         break;
@@ -537,7 +542,7 @@ AnalysisController::AnalysisController(
         break;
       }
       default:
-        BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid");
         break;
       }
       // switch for combining the results (TODO the code needs improvement,
@@ -548,14 +553,14 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         auto M = IRDB.getModuleDefiningFunction("main");
         LLVMBasedICFG& I = MWICFGs.at(M);
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs");
         for (auto &entry : MWICFGs) {
           if (M != entry.first) {
             I.mergeWith(entry.second);
           }
         }
         I.printAsDot("call_graph.dot");
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n");
         IFDSTaintAnalysis problem(I, EntryPoints);
         LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> solver(
             problem, SummaryGenerationStrategy::always_none, true);
@@ -564,22 +569,22 @@ AnalysisController::AnalysisController(
         std::cout << tab << std::endl;
         solver.setSummaries(tab);
         solver.combine();
-        BOOST_LOG_SEV(lg, INFO)
-            << "Combining module-wise results done, computation completed!";
-        BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+            << "Combining module-wise results done, computation completed!");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.");
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         auto M = IRDB.getModuleDefiningFunction("main");
         LLVMBasedICFG &I = MWICFGs.at(M);
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Combining module-wise icfgs");
         for (auto &entry : MWICFGs) {
           if (M != entry.first) {
             I.mergeWith(entry.second);
           }
         }
         I.printAsDot("call_graph.dot");
-        BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Combining module-wise analysis results\n");
         IFDSUnitializedVariables problem(I, EntryPoints);
         LLVMMWAIFDSSolver<const llvm::Value *, LLVMBasedICFG &> solver(
             problem, SummaryGenerationStrategy::always_none, true);
@@ -588,9 +593,9 @@ AnalysisController::AnalysisController(
         std::cout << tab << std::endl;
         solver.setSummaries(tab);
         solver.combine();
-        BOOST_LOG_SEV(lg, INFO)
-            << "Combining module-wise results done, computation completed!";
-        BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+            << "Combining module-wise results done, computation completed!");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Data-flow analysis completed.");
         break;
       }
       default:
