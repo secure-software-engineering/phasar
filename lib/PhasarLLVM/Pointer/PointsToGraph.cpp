@@ -172,6 +172,8 @@ PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
                     ->getString()
                     .str());
   }
+  //WARNING: equivalent to llvmIRToString
+  //WARNING 2 : really really really slow (yes it is)
 }
 
 PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
@@ -188,6 +190,8 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
                       .str());
     }
   }
+  //WARNING: equivalent to llvmIRToString
+  //WARNING 2 : really really really slow (yes it is)
 }
 
 // points-to graph stuff

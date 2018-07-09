@@ -344,7 +344,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
           llvm::createLegacyPMAAResults(*BasicAAWP, F, BAAResult);
       // This line is a major slowdown
       // The problem comes from the generation of PtG is which far too slow
-      // due to the use of llvmIRToString
+      // due to the use of llvmIRToString (without it, the generation of PtG is very acceptable)
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }

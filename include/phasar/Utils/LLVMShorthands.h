@@ -51,9 +51,8 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
 /**
  * @brief Returns a std::string representation of a LLVM Value.
- * @note Expensive function (~30ms/call for a 2'OOO'OOO IR LoC module (phasar without debug),
- *       x4 if passes are activated, ~110ms/call for 50'000'000 IR LoC module (clang without debug))
- *       avoid to do it at each call
+ * @note Expensive function (between 20 to 550 ms per call)
+ *       avoid to do it often, it can kill the performances (c.f. warning in the implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 

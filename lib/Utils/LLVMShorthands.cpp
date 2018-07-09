@@ -86,15 +86,21 @@ bool matchesSignature(const llvm::Function *F,
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
+  //WARNING: Expensive function, cause is the V->print(RSO)
+  //         (20ms on a medium size code (phasar without debug)
+  //          80ms on a huge size code (clang without debug),
+  //          can be multiplied by times 3 to 5 if passes are enabled)
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
+
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     RSO << ", ID: " << getMetaDataID(Inst);
   }
   else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     RSO << ", ID: " << getMetaDataID(GV);
   }
+
   RSO.flush();
   boost::trim_left(IRBuffer);
   return IRBuffer;
