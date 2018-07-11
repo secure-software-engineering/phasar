@@ -18,6 +18,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -69,6 +70,16 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     //   }
     // };
     // return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
+    // return make_shared<Lambda<IDETypeStateAnalysis::d_t>>([Variablen der
+    // "Außenwelt können hier gecaptured werden"](IDETypeStateAnalysis::d_t
+    // source) {
+
+    //   return set<IDETypeStateAnalysis::d_t>{};
+    // });
+  }
+  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+  }
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
@@ -76,6 +87,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
+  if (destMthd->getName() == "fopen") {
+    return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -91,6 +105,11 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
+  for (auto Callee : callees) {
+    if (Callee->getName() == "fopen") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -166,9 +185,8 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t
-IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
-                           IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::v_t IDETypeStateAnalysis::join(
+    IDETypeStateAnalysis::v_t lhs, IDETypeStateAnalysis::v_t rhs) {
   return (lhs == BOTTOM || rhs == BOTTOM) ? BOTTOM : TOP;
 }
 
@@ -193,4 +211,4 @@ string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
 
-} // namespace psr
+}  // namespace psr
