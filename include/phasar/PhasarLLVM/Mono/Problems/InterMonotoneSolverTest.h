@@ -17,21 +17,20 @@
 #pragma once
 
 #include <algorithm>
-#include <iostream>
+#include <string>
+
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <string>
 
 namespace psr {
 
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
-                                  const llvm::Value *, LLVMBasedICFG&> {
+                                  LLVMBasedICFG> {
 protected:
   std::vector<std::string> EntryPoints;
 
@@ -69,8 +68,6 @@ public:
   initialSeeds() override;
 
   virtual std::string DtoString(const llvm::Value *d) override;
-
-  virtual std::string CtoString(const llvm::Value *c) override;
 
   virtual bool recompute(const llvm::Function* Callee) override;
 };

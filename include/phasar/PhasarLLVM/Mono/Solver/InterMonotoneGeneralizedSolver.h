@@ -16,7 +16,6 @@
 
 #pragma once
 
-// #include <deque>
 #include <iostream>
 #include <utility> // std::make_pair, std::pair
 #include <vector>
@@ -37,13 +36,21 @@ namespace psr {
  *  N = Node of the CFG
  *  V = Values in the std::set of the edges
  *  M = Method type of the CFG
- *  C =
  *  I = CFG/ICFG type (must be a inherited class of CFG<N,M>)
+ *  Context = Context type (must be a inherited class of ContextBase<N, V, Context>)
  */
 
-template <typename N, typename V, typename M, typename C, typename I,
-          typename Context>
+template <typename N, typename V, typename M, typename I,
+          typename Context, typename EdgeOrdering>
 class InterMonotoneGeneralizedSolver {
+public:
+  using Node_t      = N;
+  using Value_t     = V;
+  using Method_t    = M;
+  using ICFG_t      = I;
+  using Context_t   = Context;
+  using Ordering_t  = EdgeOrdering;
+
 private:
   template <typename T1, typename T2>
   void InterMonotoneGeneralizedSolver_check() {
@@ -57,22 +64,8 @@ protected:
   using edge_t = std::pair<N, N>;
   using priority_t = unsigned int;
 
-  // DEBUG : Only for test purpose, should be a special fonction
-  // To think later, probably require to provide an implementation of
-  // this fonction
-  struct lessEdgeN {
-    bool lessN(const edge_t& lhs, const edge_t& rhs) const {
-      return std::stol(getMetaDataId(lhs)) < std::stol(getMetaDataId(rhs));
-    }
-
-    bool operator() (const edge_t& lhs, const edge_t& rhs) const {
-      return lhs.first < rhs.first || (!(rhs.first < lhs.first) && lhs.second < rhs.second);
-    }
-  };
-  // DEBUG
-
-  InterMonotoneProblem<N, V, M, C, I> &IMProblem;
-  std::map<std::pair<priority_t, Context>, std::set<edge_t, lessEdgeN>, std::greater<std::pair<priority_t, Context>>> Worklist;
+  InterMonotoneProblem<N, V, M, I> &IMProblem;
+  std::map<std::pair<priority_t, Context>, std::set<edge_t, EdgeOrdering>, std::greater<std::pair<priority_t, Context>>> Worklist;
 
   using WL_first_it_t = typename decltype(Worklist)::iterator;
   using WL_second_const_it_t = typename decltype(Worklist)::mapped_type::const_iterator;
@@ -153,7 +146,7 @@ protected:
   }
 
 public:
-  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, C, I> &IMP, Context& context, M method)
+  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, I> &IMP, Context& context, M method)
       : IMProblem(IMP), ICFG(IMP.getICFG()),
         current_context(context) {
         initialize();

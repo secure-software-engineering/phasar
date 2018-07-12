@@ -26,12 +26,18 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename C, typename I>
+template <typename N, typename D, typename M, typename I>
 class InterMonotoneProblem {
+public:
+  using Node_t      = N;
+  using Value_t     = D;
+  using Method_t    = M;
+  using ICFG_t      = I;
+
 private:
   template <typename T1, typename T2>
   void InterMonotoneProblem_check() {
-    static_assert(std::is_base_of<ValueBase<T1, T2, D>, D>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
+    // static_assert(std::is_base_of<ValueBase<T1, T2, D>, D>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
     static_assert(std::is_base_of<CFG<N,M>, I>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
   }
 
@@ -59,7 +65,6 @@ public:
                                    const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
   virtual std::string DtoString(D d) = 0;
-  virtual std::string CtoString(C c) = 0;
   virtual bool recompute(M Callee) = 0;
 };
 

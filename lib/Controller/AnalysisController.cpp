@@ -37,6 +37,9 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMMWAIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+
+#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
+
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
@@ -103,6 +106,11 @@ AnalysisController::AnalysisController(
         << "link all llvm modules into a single module for WPA ended\n");
   }
   IRDB.preprocessIR();
+
+  // START_TIMER("print all-module");
+  // IRDB.getWPAModule()->print(llvm::errs(), nullptr);
+  // STOP_TIMER("print all-module");
+
   // START_TIMER("DB Start Up");
   // DBConn &db = DBConn::getInstance();
   // STOP_TIMER("DB Start Up");
@@ -122,10 +130,11 @@ AnalysisController::AnalysisController(
   // CH.printAsDot();
   // FinalResultsJson += CH.getAsJson();
 
-  if (VariablesMap.count("classhierarchy_analysis")) {
-    CH.print();
-    CH.printAsDot("ch.dot");
-  }
+  //WARNING
+  // if (VariablesMap.count("classhierarchy_analysis")) {
+  //   CH.print();
+  //   CH.printAsDot("ch.dot");
+  // }
 
   //Call graph construction stategy
   CallGraphAnalysisType CGType(
@@ -170,16 +179,17 @@ AnalysisController::AnalysisController(
     STOP_TIMER("ICFG Construction");
     ICFG.printAsDot("call_graph.dot");
     // Add the ICFG to final results
-    FinalResultsJson += ICFG.getAsJson();
-    if (VariablesMap.count("callgraph_analysis")) {
-      ICFG.print();
-      ICFG.printAsDot("icfg.dot");
-    }
-    FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    if (VariablesMap.count("pointer_analysis")) {
-      ICFG.getWholeModulePTG().print();
-      ICFG.getWholeModulePTG().printAsDot("wptg.dot");
-    }
+
+    // FinalResultsJson += ICFG.getAsJson();
+    // if (VariablesMap.count("callgraph_analysis")) {
+    //   ICFG.print();
+    //   ICFG.printAsDot("icfg.dot");
+    // }
+    // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
+    // if (VariablesMap.count("pointer_analysis")) {
+    //   ICFG.getWholeModulePTG().print();
+    //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
+    // }
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
@@ -402,11 +412,12 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::MONO_Inter_SolverTest: {
-        // InterMonotoneSolverTest inter(ICFG, EntryPoints);
-        // //WARNING For testing purpose LLVMBasedICFG & -> LLVMBasedICFG
-        // LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG> solver(
-        //     inter, true);
-        // solver.solve();
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        InterMonotoneSolverTest inter(ICFG, EntryPoints);
+        CallString<typename InterMonotoneSolverTest::Node_t,
+                   typename InterMonotoneSolverTest::Value_t, 3> Context;
+        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+        solver->solve();
         break;
       }
       case DataFlowAnalysisType::Plugin: {

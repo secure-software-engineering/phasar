@@ -7,7 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
@@ -17,8 +20,8 @@ namespace psr {
 InterMonotoneSolverTest::InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
                                                  vector<string> EntryPoints)
     : InterMonotoneProblem<const llvm::Instruction *, const llvm::Value *,
-                           const llvm::Function *, const llvm::Value *,
-                           LLVMBasedICFG &>(Icfg),
+                           const llvm::Function *,
+                           LLVMBasedICFG>(Icfg),
       EntryPoints(EntryPoints) {}
 
 MonoSet<const llvm::Value *>
@@ -91,10 +94,6 @@ InterMonotoneSolverTest::initialSeeds() {
 
 string InterMonotoneSolverTest::DtoString(const llvm::Value *d) {
   return llvmIRToString(d);
-}
-
-string InterMonotoneSolverTest::CtoString(const llvm::Value *c) {
-  return llvmIRToString(c);
 }
 
 bool InterMonotoneSolverTest::recompute(const llvm::Function* Callee) {

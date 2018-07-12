@@ -90,7 +90,10 @@ LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function *f,
     : function(f), functionName(f->getName().str()), isDeclaration(isDecl) {}
 
 LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction *i)
-    : callsite(i), ir_code(llvmIRToString(i)),
+    : callsite(i),
+    //WARNING: Huge cost
+    //, ir_code(llvmIRToString(i)),
+      ir_code(""),
       id(stoull(getMetaDataID(i))) {}
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB)
@@ -586,7 +589,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
 set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
   PAMM_FACTORY;
   START_TIMER("ICFG resolveCallCHA");
-  // throw runtime_error("CHA called");
+
   set<string> possible_call_targets;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call with CHA");
@@ -602,6 +605,8 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
         llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
 
     if (load == nullptr) {
+      // Apparently, the calledValue is always a Constant and a DerivedUser in that case
+      // (I don't know how it can happen)
       cout << "Error with resolveVirtualCall : no load\n"
            << llvmIRToString(CS.getInstruction())
            << "\n";

@@ -161,37 +161,37 @@ void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
     : value(v) {
-  // save the ir code
-  llvm::raw_string_ostream rso(ir_code);
-  value->print(rso);
-  // retrieve the id
-  if (const llvm::Instruction *inst =
-          llvm::dyn_cast<llvm::Instruction>(value)) {
-    id = stoull(llvm::cast<llvm::MDString>(
-                    inst->getMetadata(MetaDataKind)->getOperand(0))
-                    ->getString()
-                    .str());
-  }
   //WARNING: equivalent to llvmIRToString
   //WARNING 2 : really really really slow (yes it is)
+  // // save the ir code
+  // llvm::raw_string_ostream rso(ir_code);
+  // value->print(rso);
+  // // retrieve the id
+  // if (const llvm::Instruction *inst =
+  //         llvm::dyn_cast<llvm::Instruction>(value)) {
+  //   id = stoull(llvm::cast<llvm::MDString>(
+  //                   inst->getMetadata(MetaDataKind)->getOperand(0))
+  //                   ->getString()
+  //                   .str());
+  // }
 }
 
 PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
   // save the ir code
-  if (v) {
-    llvm::raw_string_ostream rso(ir_code);
-    value->print(rso);
-    // retrieve the id
-    if (const llvm::Instruction *inst =
-            llvm::dyn_cast<llvm::Instruction>(value)) {
-      id = stoull(llvm::cast<llvm::MDString>(
-                      inst->getMetadata(MetaDataKind)->getOperand(0))
-                      ->getString()
-                      .str());
-    }
-  }
   //WARNING: equivalent to llvmIRToString
   //WARNING 2 : really really really slow (yes it is)
+  // if (v) {
+  //   llvm::raw_string_ostream rso(ir_code);
+  //   value->print(rso);
+  //   // retrieve the id
+  //   if (const llvm::Instruction *inst =
+  //           llvm::dyn_cast<llvm::Instruction>(value)) {
+  //     id = stoull(llvm::cast<llvm::MDString>(
+  //                     inst->getMetadata(MetaDataKind)->getOperand(0))
+  //                     ->getString()
+  //                     .str());
+  //   }
+  // }
 }
 
 // points-to graph stuff
