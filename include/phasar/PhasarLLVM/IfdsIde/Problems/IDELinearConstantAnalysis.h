@@ -105,6 +105,28 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
+  class EdgeFunctionComposer
+      : public EdgeFunction<v_t>,
+        public std::enable_shared_from_this<EdgeFunctionComposer> {
+  private:
+    std::shared_ptr<EdgeFunction<v_t>> F;
+    std::shared_ptr<EdgeFunction<v_t>> G;
+
+  public:
+    EdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> f,
+                         std::shared_ptr<EdgeFunction<v_t>> g);
+
+    v_t computeTarget(v_t source) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equalTo(std::shared_ptr<EdgeFunction<v_t>> other) override;
+  };
+
   std::string DtoString(d_t d) const override;
 
   std::string VtoString(v_t v) const override;
