@@ -23,6 +23,7 @@
 
 #include <phasar/Utils/Macros.h>
 #include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 
 namespace psr {
 
@@ -37,8 +38,7 @@ public:
 private:
   template <typename T1, typename T2>
   void InterMonotoneProblem_check() {
-    // static_assert(std::is_base_of<ValueBase<T1, T2, D>, D>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
-    static_assert(std::is_base_of<CFG<N,M>, I>::value, "Template class D must be a sub class of ValueBase<T1, T2, D> with T1, T2 templates\n");
+    static_assert(std::is_base_of<psr::ICFG<N,M>, I>::value, "Template class I must be a sub class of ICFG<N, M>\n");
   }
 
 protected:

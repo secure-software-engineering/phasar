@@ -42,20 +42,24 @@ struct LLVMOrderingById {
 
 template <typename V, class Context, class Ordering = LLVMOrderingById>
 class LLVMInterMonotoneSolver
-  : public InterMonotoneGeneralizedSolver<const llvm::Instruction *, V,
-                                    const llvm::Function *, LLVMBasedICFG,
+  : public InterMonotoneGeneralizedSolver<
+                                    InterMonotoneProblem<const llvm::Instruction *, V,
+                                    const llvm::Function *, LLVMBasedICFG>,
                                     Context, Ordering> {
+  public:
+    using IMSBase_t = InterMonotoneGeneralizedSolver<
+                                      InterMonotoneProblem<const llvm::Instruction *, V,
+                                      const llvm::Function *, LLVMBasedICFG>,
+                                      Context, Ordering>;
 
   protected:
     bool DUMP_RESULTS;
   public:
-    LLVMInterMonotoneSolver(InterMonotoneProblem<const llvm::Instruction *, V,
-                                      const llvm::Function *, LLVMBasedICFG> &IMP,
-                                      Context &_Context,
-                                      const llvm::Function *Method,
-                                      bool dump = false)
-        : InterMonotoneGeneralizedSolver<const llvm::Instruction *, V,
-            const llvm::Function *, LLVMBasedICFG, Context, Ordering>(IMP, _Context, Method),
+    LLVMInterMonotoneSolver(typename IMSBase_t::IMP_t &IMP,
+                            Context &_Context,
+                            const llvm::Function *Method,
+                            bool dump = false)
+        : IMSBase_t(IMP, _Context, Method),
           DUMP_RESULTS(dump) {}
     virtual ~LLVMInterMonotoneSolver() = default;
 

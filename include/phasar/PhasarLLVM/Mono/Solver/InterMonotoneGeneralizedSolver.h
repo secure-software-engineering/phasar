@@ -40,39 +40,40 @@ namespace psr {
  *  Context = Context type (must be a inherited class of ContextBase<N, V, Context>)
  */
 
-template <typename N, typename V, typename M, typename I,
-          typename Context, typename EdgeOrdering>
+template <typename template_IMP, typename Context, typename EdgeOrdering>
 class InterMonotoneGeneralizedSolver {
 public:
-  using Node_t      = N;
-  using Value_t     = V;
-  using Method_t    = M;
-  using ICFG_t      = I;
+  using IMP_t       = template_IMP;
   using Context_t   = Context;
   using Ordering_t  = EdgeOrdering;
+  
+  using ICFG_t      = typename IMP_t::ICFG_t;
+  using Node_t      = typename IMP_t::Node_t;
+  using Value_t     = typename IMP_t::Value_t;
+  using Method_t    = typename IMP_t::Method_t;
 
 private:
-  template <typename T1, typename T2>
   void InterMonotoneGeneralizedSolver_check() {
-    // static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V> with T1, T2 templates\n");
-    static_assert(std::is_base_of<ContextBase<N, V, Context>, Context>::value, "Template class Context must be a sub class of ContextBase<N, V, Context>\n");
-    static_assert(std::is_base_of<CFG<N, M>, I>::value, "Template class I must be a sub class of CFG<N, M>\n");
+    static_assert(std::is_base_of<ContextBase<Node_t, Value_t, Context_t>, Context_t>::value, "Template class Context must be a sub class of ContextBase<N, V, Context>\n");
   }
 
 protected:
-  using analysis_t = MonoMap<N, MonoMap<Context, MonoSet<V>>>;
-  using edge_t = std::pair<N, N>;
+  using analysis_t = MonoMap<Node_t, MonoMap<Context_t, MonoSet<Value_t>>>;
+  using edge_t = std::pair<Node_t, Node_t>;
   using priority_t = unsigned int;
+  using WorkListKey_t = std::pair<priority_t, Context_t>;
+  using WorkListValue_t = std::set<edge_t, Ordering_t>;
 
-  InterMonotoneProblem<N, V, M, I> &IMProblem;
-  std::map<std::pair<priority_t, Context>, std::set<edge_t, EdgeOrdering>, std::greater<std::pair<priority_t, Context>>> Worklist;
+
+  IMP_t &IMProblem;
+  std::map<WorkListKey_t, WorkListValue_t, std::greater<WorkListKey_t>> Worklist;
 
   using WL_first_it_t = typename decltype(Worklist)::iterator;
   using WL_second_const_it_t = typename decltype(Worklist)::mapped_type::const_iterator;
   analysis_t Analysis;
-  I &ICFG;
+  ICFG_t &ICFG;
 
-  Context current_context;
+  Context_t current_context;
   priority_t current_priority = 0;
   WL_first_it_t current_it_on_priority;
   WL_second_const_it_t current_it_on_edge;
@@ -95,15 +96,15 @@ protected:
     }
   }
 
-  virtual void analyse_function(M method) {
+  virtual void analyse_function(Method_t method) {
     analyse_function(method, current_context, current_priority);
   }
 
-  virtual void analyse_function(M method, Context& new_context) {
+  virtual void analyse_function(Method_t method, Context_t& new_context) {
     analyse_function(method, new_context, current_priority);
   }
 
-  virtual void analyse_function(M method, Context& new_context, priority_t new_priority) {
+  virtual void analyse_function(Method_t method, Context_t& new_context, priority_t new_priority) {
       std::vector<edge_t> edges =
             ICFG.getAllControlFlowEdges(method);
       auto current_pair = std::make_pair(new_priority, new_context);
@@ -146,7 +147,7 @@ protected:
   }
 
 public:
-  InterMonotoneGeneralizedSolver(InterMonotoneProblem<N, V, M, I> &IMP, Context& context, M method)
+  InterMonotoneGeneralizedSolver(IMP_t &IMP, Context_t& context, Method_t method)
       : IMProblem(IMP), ICFG(IMP.getICFG()),
         current_context(context) {
         initialize();
@@ -167,10 +168,10 @@ public:
       const auto& src = edge.first;
       const auto& dst = edge.second;
 
-      MonoSet<V> Out;
+      MonoSet<Value_t> Out;
 
-      Context src_context(current_context);
-      Context dst_context(src_context);
+      Context_t src_context(current_context);
+      Context_t dst_context(src_context);
 
       if ( isCallEdge(edge) ) {
         // Handle call and call-to-ret flow
