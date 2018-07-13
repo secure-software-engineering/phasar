@@ -17,7 +17,7 @@
 #ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
 #define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
 
-#include "../EdgeFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -47,19 +47,15 @@ public:
     return otherFunction;
   }
 
-  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) override {
+  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other.get()))
       return (alltop->topElement == topElement);
     return false;
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const AllTop &alltop) {
-    return os << "alltop";
+  virtual void print(std::ostream &OS, bool isForDebug = false) const override { 
+    OS << "all_top";
   }
-
-  void dump() override { std::cout << "alltop\n"; }
-
-  std::string toString() override { return "alltop"; }
 };
 
 } // namespace psr

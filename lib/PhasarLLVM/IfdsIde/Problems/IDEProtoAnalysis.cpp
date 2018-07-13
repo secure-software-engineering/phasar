@@ -180,8 +180,8 @@ IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
   return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
 }
 
-bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> other) {
+bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
+    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> other) const {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()\n";
   return false;
 }

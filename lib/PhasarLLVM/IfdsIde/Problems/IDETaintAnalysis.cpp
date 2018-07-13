@@ -162,8 +162,8 @@ IDETaintAnalysis::IDETainAnalysisAllTop::joinWith(
   return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
-    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> other) {
+bool IDETaintAnalysis::IDETainAnalysisAllTop::equal_to(
+    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> other) const {
   return false;
 }
 
