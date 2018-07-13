@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <algorithm>
+// #include <algorithm>
 #include <ostream>
-#include <set>
 #include <map>
+#include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
 
@@ -34,7 +34,7 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  Value = Values inside the monotone sets
+ *  Domain = Domain of the results
  */
 template <typename N, typename Domain>
 class ValueBasedContext
@@ -51,12 +51,12 @@ protected:
 public:
   ValueBasedContext() = default;
 
-  virtual void enterFunction(const Node_t src, const Node_t dest, Domain_t &In) override {
+  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
     prev_context.swap(args); // O(1)
     args = In; // O(|In|)
   }
 
-  virtual void exitFunction(const Node_t src, const Node_t dest, Domain_t &In) override {
+  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
     args.swap(prev_context); // O(1)
     prev_context.clear(); // O(|prev_context|)
   }
@@ -103,101 +103,106 @@ public:
   }
 };
 
-// /*  N = Node in the CFG
-//  *  Value = Values inside the monotone sets
-//  */
-// template <typename N,
-//           typename Map,
-//           typename Id, typename D,
-//           typename IdGeneratorFromSrc,
-//           typename IdGeneratorFromDst>
-// class MappedValueBasedContext
-//   : public ContextBase<N, Map<Id, D>,
-//       MappedValueBasedContext<N,Map,Id,D,IdGeneratorFromSrc,IdGeneratorFromDst>> {
-// public:
-//   using Node_t = N;
-//   using Id_t = Id;
-//   using Domain_t = D;
-//   using IdGenSrc_t = IdGeneratorFromSrc;
-//   using IdGenDst_t = IdGeneratorFromDst;
-//
-//   using Value_t = Map<Id, D>;
-//
-// protected:
-//   MonoSet<Value_t> args;
-//   MonoSet<Value_t> prev_context;
-//   IdGeneratorFromSrc_t SrcIdGen;
-//   IdGeneratorFromDst_t DstIdGen;
-//
-// public:
-//   MappedValueBasedContext() = default;
-//   MappedValueBasedContext(MonoSet) = default;
-//
-//
-//   virtual void enterFunction(Node_t src, Node_t dest, const Value_t &In) override {
-//     prev_context.swap(args); // O(1)
-//
-//     args.clear() // O(|args|)
-//     auto src_ids = SrcIdGen(src);
-//     auto dest_ids = DstIdGen(dest);
-//
-//     // Check that they return the same type
-//     static_assert(decltype(src_ids) == decltype(dest_ids));
-//
-//     for ( id : src_ids ) {
-//       args.
-//     }
-//
-//     for ( id : dest_ids ) {
-//
-//     }
-//   }
-//
-//   virtual void exitFunction(Node_t src, Node_t dest, const MonoSet<Value_t> &In) override {
-//     args.swap(prev_context); // O(1)
-//     prev_context.clear(); // O(|prev_context|)
-//   }
-//
-//   virtual bool isUnsure() override {
-//     return false;
-//   }
-//
-//   virtual bool isEqual(const MappedValueBasedContext &rhs) const override {
-//     if (rhs.args.size() != args.size())
-//       return false;
-//
-//     return std::equal(args.cbegin(), args.cend(), rhs.args.cbegin());
-//   }
-//
-//   virtual bool isDifferent(const MappedValueBasedContext &rhs) const override {
-//     return !isEqual(rhs);
-//   }
-//
-//   virtual bool isLessThan(const MappedValueBasedContext &rhs) const override {
-//     if ( args.size() < rhs.args.size() )
-//       return true;
-//
-//     auto lhs_it = args.cbegin();
-//     const auto lhs_end = args.cend();
-//
-//     auto rhs_it = rhs.args.cbegin();
-//     const auto rhs_end = rhs.args.cend();
-//
-//     while ( lhs_it != lhs_end && rhs_it != rhs_end ) {
-//       if ( *lhs_it < *rhs_it )
-//         return true;
-//       if ( *lhs_it > *rhs_it )
-//         return false;
-//       ++lhs_it;
-//       ++rhs_it;
-//     }
-//
-//     return false;
-//   }
-//
-//   virtual void print(std::ostream &os) const override {
-//     //TODO
-//   }
-// };
+/*  N = Node in the CFG
+ *  Value = Values inside the monotone sets
+ */
+template <typename Node,
+          typename Key, typename Value,
+          typename IdGeneratorFromSrc,
+          typename IdGeneratorFromDst,
+          template<class, class, class...> class Map = std::map>
+class MappedValueBasedContext
+  : public ContextBase<Node, Map<Key, Value>,
+      MappedValueBasedContext<Node,Key,Value,IdGeneratorFromSrc,IdGeneratorFromDst,Map>> {
+public:
+  using Node_t = Node;
+  using Key_t = Key;
+  using Value_t = Value;
+  using IdGenSrc_t = IdGeneratorFromSrc;
+  using IdGenDst_t = IdGeneratorFromDst;
+
+  using Domain_t = Map<Key_t, Value_t>;
+
+protected:
+  Domain_t args;
+  Domain_t prev_context;
+  IdGenSrc_t SrcIdGen;
+  IdGenDst_t DstIdGen;
+
+public:
+  MappedValueBasedContext() = default;
+
+
+  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+    prev_context.swap(args); // O(1)
+
+    args.clear(); // O(|args|)
+    auto src_ids = SrcIdGen(src);
+    auto dest_ids = DstIdGen(dest);
+
+    // Check that they return the same type
+    static_assert(std::is_same<decltype(src_ids),decltype(dest_ids)>::value, "Problem : the IdGeneratorFromSrc call rendered a different type than the IdGeneratorFromDst");
+
+    for ( auto id : src_ids ) {
+      if (In.count(id) == 0) {
+        // An argument is not in the given entry, check if the analysis doesn't become unsound
+      }
+      args[id] = In[id];
+    }
+
+    for ( auto id : dest_ids ) {
+      if (In.count(id) == 0) {
+        // An argument is not in the given entry, check if the analysis doesn't become unsound
+      }
+      args[id] = In[id];
+    }
+  }
+
+  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+    args.swap(prev_context); // O(1)
+    prev_context.clear(); // O(|prev_context|)
+  }
+
+  virtual bool isUnsure() override {
+    return false;
+  }
+
+  virtual bool isEqual(const MappedValueBasedContext &rhs) const override {
+    if (rhs.args.size() != args.size())
+      return false;
+
+    return std::equal(args.cbegin(), args.cend(), rhs.args.cbegin());
+  }
+
+  virtual bool isDifferent(const MappedValueBasedContext &rhs) const override {
+    return !isEqual(rhs);
+  }
+
+  virtual bool isLessThan(const MappedValueBasedContext &rhs) const override {
+    if ( args.size() < rhs.args.size() )
+      return true;
+
+    auto lhs_it = args.cbegin();
+    const auto lhs_end = args.cend();
+
+    auto rhs_it = rhs.args.cbegin();
+    const auto rhs_end = rhs.args.cend();
+
+    while ( lhs_it != lhs_end && rhs_it != rhs_end ) {
+      if ( *lhs_it < *rhs_it )
+        return true;
+      if ( *lhs_it > *rhs_it )
+        return false;
+      ++lhs_it;
+      ++rhs_it;
+    }
+
+    return false;
+  }
+
+  virtual void print(std::ostream &os) const override {
+    //TODO
+  }
+};
 
 } // namespace psr
