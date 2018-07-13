@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <phasar/Utils/Macros.h>
-#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 
 #include <phasar/Config/ContainerConfiguration.h>
 
@@ -29,25 +28,28 @@ namespace psr {
  *  ConcreteContext = The class that implement the context (must be a sub class
  *                    of ContextBase<N,V,ConcreteContext>)
  */
-template <typename N, typename V, typename ConcreteContext>
+template <typename N, typename D, typename ConcreteContext>
 class ContextBase {
+public:
+  using Node_t    = N;
+  using Domain_t  = D;
+
 private:
   template<typename T1, typename T2>
   void ValueBase_check() {
-    static_assert(std::is_base_of<ContextBase<N, V, ConcreteContext>, ConcreteContext>::value, "Template class ConcreteContext must be a sub class of ContextBase<N, V, ConcreteContext>\n");
-    // static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V>\n");
+    static_assert(std::is_base_of<ContextBase<Node_t, Domain_t, ConcreteContext>, ConcreteContext>::value, "Template class ConcreteContext must be a sub class of ContextBase<N, V, ConcreteContext>\n");
   }
 
 public:
   /*
    * Update the context at the exit of a function
    */
-  virtual void exitFunction(N src, N dest, MonoSet<V> &In) = 0;
+  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) = 0;
 
   /*
    *
    */
-  virtual void enterFunction(N src, N dest, MonoSet<V> &In) = 0;
+  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) = 0;
 
   /*
    *

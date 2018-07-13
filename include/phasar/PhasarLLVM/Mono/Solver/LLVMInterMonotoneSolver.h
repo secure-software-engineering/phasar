@@ -21,10 +21,10 @@
 
 #include <llvm/IR/Instruction.h>
 
-#include "../InterMonotoneProblem.h"
-#include "InterMonotoneGeneralizedSolver.h"
-#include "../Contexts/CallString.h"
-#include "../Contexts/ValueBasedContext.h"
+#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
 namespace psr {
@@ -40,15 +40,15 @@ struct LLVMOrderingById {
   }
 };
 
-template <typename V, class Context, class Ordering = LLVMOrderingById>
+template <typename D, class Context, class Ordering = LLVMOrderingById>
 class LLVMInterMonotoneSolver
   : public InterMonotoneGeneralizedSolver<
-                                    InterMonotoneProblem<const llvm::Instruction *, V,
+                                    InterMonotoneProblem<const llvm::Instruction *, D,
                                     const llvm::Function *, LLVMBasedICFG>,
                                     Context, Ordering> {
   public:
     using IMSBase_t = InterMonotoneGeneralizedSolver<
-                                      InterMonotoneProblem<const llvm::Instruction *, V,
+                                      InterMonotoneProblem<const llvm::Instruction *, D,
                                       const llvm::Function *, LLVMBasedICFG>,
                                       Context, Ordering>;
 
@@ -95,25 +95,6 @@ class LLVMInterMonotoneSolver
 //     LLVMInterMonotoneValueBasedContextSolver(LLVMInterMonotoneValueBasedContextSolver& move) = delete;
 //     LLVMInterMonotoneValueBasedContextSolver& operator=(const LLVMInterMonotoneValueBasedContextSolver& copy) = delete;
 //     LLVMInterMonotoneValueBasedContextSolver& operator=(LLVMInterMonotoneValueBasedContextSolver&& move) = delete;
-// };
-//
-// template <typename V, class Ordering = LLVMOrderingById>
-// class LLVMInterMonotoneMappingValueBasedContextSolver
-//   : public LLVMInterMonotoneSolver<V, MappingValueBasedContext<const llvm::Instruction *, V>> {
-//   private:
-//     template <typename T1, typename T2>
-//     void InterMonotoneGeneralizedSolver_check() {
-//       static_assert(std::is_base_of<ValueBase<T1, T2, V>, V>::value, "Template class V must be a sub class of ValueBase<T1, T2, V> with T1, T2 templates\n");
-//     }
-//
-//   public:
-//     LLVMInterMonotoneMappingValueBasedContextSolver() = default;
-//     virtual ~LLVMInterMonotoneMappingValueBasedContextSolver() = default;
-//
-//     LLVMInterMonotoneMappingValueBasedContextSolver(const LLVMInterMonotoneMappingValueBasedContextSolver& copy) = delete;
-//     LLVMInterMonotoneMappingValueBasedContextSolver(LLVMInterMonotoneMappingValueBasedContextSolver& move) = delete;
-//     LLVMInterMonotoneMappingValueBasedContextSolver& operator=(const LLVMInterMonotoneMappingValueBasedContextSolver& copy) = delete;
-//     LLVMInterMonotoneMappingValueBasedContextSolver& operator=(LLVMInterMonotoneMappingValueBasedContextSolver&& move) = delete;
 // };
 
 //
@@ -178,8 +159,8 @@ class LLVMInterMonotoneSolver
 
 template<typename IMP_t, typename Context_t, typename Ordering_t = LLVMOrderingById>
 auto make_LLVMBasedIMS(IMP_t &IMP, Context_t &Context, typename IMP_t::Method_t Method, bool dump = false)
--> std::unique_ptr<LLVMInterMonotoneSolver<typename IMP_t::Value_t, Context_t, Ordering_t>> {
-  using ptr_t = LLVMInterMonotoneSolver<typename IMP_t::Value_t, Context_t, Ordering_t>;
+-> std::unique_ptr<LLVMInterMonotoneSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>> {
+  using ptr_t = LLVMInterMonotoneSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>;
   return std::make_unique<ptr_t>(IMP, Context, Method, dump);
 }
 

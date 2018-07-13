@@ -28,25 +28,29 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets
+ *  D = Domain of possible value (often a map or set but can not be)
  *  K = Maximum depth of CallString
  */
-template <typename N, typename V, unsigned K>
-class CallString : public ContextBase<N, V, CallString<N,V,K>> {
+template <typename N, typename D, unsigned K>
+class CallString : public ContextBase<N, D, CallString<N,D,K>> {
+public:
+  using Node_t    = N;
+  using Domain_t  = D;
+
 protected:
-  std::deque<N> cs;
+  std::deque<Node_t> cs;
   static const unsigned k = K;
 
 public:
   CallString() = default;
-  CallString(std::initializer_list<N> ilist) : cs(ilist) {
+  CallString(std::initializer_list<Node_t> ilist) : cs(ilist) {
     if (ilist.size() > k) {
       throw std::runtime_error(
           "initial call std::string length exceeds maximal length K");
     }
   }
 
-  virtual void enterFunction(N src, N dest, MonoSet<V> &In) override {
+  virtual void enterFunction(Node_t src, Node_t dest, const Domain_t &In) override {
     if ( k == 0 )
       return;
     if (cs.size() > k - 1) {
@@ -55,7 +59,7 @@ public:
     cs.push_back(src);
   }
 
-  virtual void exitFunction(N src, N dest, MonoSet<V> &In) override {
+  virtual void exitFunction(Node_t src, Node_t dest, const Domain_t &In) override {
     if (cs.size() > 0) {
       cs.pop_back();
     }
@@ -87,12 +91,12 @@ public:
   }
 
   virtual void print(std::ostream &os) const override {
-    std::copy(cs.begin(), --cs.end(), std::ostream_iterator<N>(os, " * "));
+    std::copy(cs.begin(), --cs.end(), std::ostream_iterator<Node_t>(os, " * "));
     os << cs.back();
   }
 
   std::size_t size() const { return cs.size(); }
-  std::deque<N> getInternalCS() const { return cs; }
+  std::deque<Node_t> getInternalCS() const { return cs; }
 };
 
 } // namespace psr

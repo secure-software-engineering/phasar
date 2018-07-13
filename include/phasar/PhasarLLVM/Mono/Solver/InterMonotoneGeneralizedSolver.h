@@ -26,39 +26,39 @@
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
 /*
- *  N = Node of the CFG
- *  V = Values in the std::set of the edges
- *  M = Method type of the CFG
+ *  IMP_temp = InterMonotoneProblem type
  *  I = CFG/ICFG type (must be a inherited class of CFG<N,M>)
  *  Context = Context type (must be a inherited class of ContextBase<N, V, Context>)
  */
 
-template <typename template_IMP, typename Context, typename EdgeOrdering>
+template <typename IMP_temp, typename Context, typename EdgeOrdering>
 class InterMonotoneGeneralizedSolver {
 public:
-  using IMP_t       = template_IMP;
+  using IMP_t       = IMP_temp;
   using Context_t   = Context;
   using Ordering_t  = EdgeOrdering;
-  
-  using ICFG_t      = typename IMP_t::ICFG_t;
+
   using Node_t      = typename IMP_t::Node_t;
-  using Value_t     = typename IMP_t::Value_t;
+  using Value_t     = typename IMP_t::Domain_t;
   using Method_t    = typename IMP_t::Method_t;
+  using ICFG_t      = typename IMP_t::ICFG_t;
+
+  using analysis_t = MonoMap<Node_t, MonoMap<Context_t, Value_t>>;
 
 private:
   void InterMonotoneGeneralizedSolver_check() {
-    static_assert(std::is_base_of<ContextBase<Node_t, Value_t, Context_t>, Context_t>::value, "Template class Context must be a sub class of ContextBase<N, V, Context>\n");
+    static_assert(std::is_base_of<ContextBase<Node_t, Value_t, Context_t>, Context_t>::value, "Context_t must be a sub class of ContextBase<Node_t, Value_t, Context_t>\n");
+    static_assert(std::is_base_of<InterMonotoneProblem<Node_t, Value_t, Method_t, ICFG_t>, IMP_t>::value, "IMP_t type must be a sub class of InterMonotoneProblem<Node_t, Value_t, Method_t, ICFG_t>\n");
+
   }
 
 protected:
-  using analysis_t = MonoMap<Node_t, MonoMap<Context_t, MonoSet<Value_t>>>;
   using edge_t = std::pair<Node_t, Node_t>;
   using priority_t = unsigned int;
   using WorkListKey_t = std::pair<priority_t, Context_t>;
@@ -160,6 +160,10 @@ public:
   InterMonotoneGeneralizedSolver& operator=(const InterMonotoneGeneralizedSolver &copy) = delete;
   InterMonotoneGeneralizedSolver& operator=(InterMonotoneGeneralizedSolver&& move) = delete;
 
+  analysis_t& getAnalysisResults() {
+    return Analysis;
+  }
+
   virtual void solve() {
     while ( !isWLempty() ) {
       getNext();
@@ -168,7 +172,7 @@ public:
       const auto& src = edge.first;
       const auto& dst = edge.second;
 
-      MonoSet<Value_t> Out;
+      Value_t Out;
 
       Context_t src_context(current_context);
       Context_t dst_context(src_context);

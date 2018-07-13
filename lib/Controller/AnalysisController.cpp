@@ -415,7 +415,7 @@ AnalysisController::AnalysisController(
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonotoneSolverTest inter(ICFG, EntryPoints);
         CallString<typename InterMonotoneSolverTest::Node_t,
-                   typename InterMonotoneSolverTest::Value_t, 3> Context;
+                   typename InterMonotoneSolverTest::Domain_t, 3> Context;
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
         break;

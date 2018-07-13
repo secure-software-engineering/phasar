@@ -17,13 +17,9 @@
 #pragma once
 
 #include <string>
-#include <utility>
+#include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
-
-#include <phasar/Utils/Macros.h>
-#include <phasar/PhasarLLVM/Mono/Values/ValueBase.h>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 
 namespace psr {
 
@@ -31,21 +27,21 @@ template <typename N, typename D, typename M, typename I>
 class InterMonotoneProblem {
 public:
   using Node_t      = N;
-  using Value_t     = D;
+  using Domain_t    = D;
   using Method_t    = M;
   using ICFG_t      = I;
 
 private:
   template <typename T1, typename T2>
   void InterMonotoneProblem_check() {
-    static_assert(std::is_base_of<psr::ICFG<N,M>, I>::value, "Template class I must be a sub class of ICFG<N, M>\n");
+    static_assert(std::is_base_of<psr::ICFG<Node_t,Method_t>, ICFG_t>::value, "Template class I must be a sub class of ICFG<N, M>\n");
   }
 
 protected:
-  I& ICFG;
+  ICFG_t& ICFG;
 
 public:
-  InterMonotoneProblem(I& Icfg) : ICFG(Icfg) {}
+  InterMonotoneProblem(ICFG_t& Icfg) : ICFG(Icfg) {}
 
   InterMonotoneProblem(const InterMonotoneProblem &copy) = delete;
   InterMonotoneProblem(InterMonotoneProblem &&move) = delete;
@@ -54,18 +50,18 @@ public:
 
 
   virtual ~InterMonotoneProblem() = default;
-  I& getICFG() noexcept { return ICFG; }
-  virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
-  virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
-  virtual MonoSet<D> normalFlow(N Stmt, const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> returnFlow(N CallSite, M Callee, N RetSite,
-                                const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
-                                   const MonoSet<D> &In) = 0;
-  virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
-  virtual std::string DtoString(D d) = 0;
-  virtual bool recompute(M Callee) = 0;
+  ICFG_t& getICFG() noexcept { return ICFG; }
+  virtual Domain_t join(const Domain_t &Lhs, const Domain_t &Rhs) = 0;
+  virtual bool sqSubSetEqual(const Domain_t &Lhs, const Domain_t &Rhs) = 0;
+  virtual Domain_t normalFlow(const Node_t Stmt, const Domain_t &In) = 0;
+  virtual Domain_t callFlow(const Node_t CallSite, const Method_t Callee, const Domain_t &In) = 0;
+  virtual Domain_t returnFlow(const Node_t CallSite, const Method_t Callee, const Node_t RetSite,
+                                const Domain_t &In) = 0;
+  virtual Domain_t callToRetFlow(const Node_t CallSite, const Node_t RetSite,
+                                   const Domain_t &In) = 0;
+  virtual MonoMap<Node_t, Domain_t> initialSeeds() = 0;
+  virtual std::string DtoString(const Domain_t d) = 0;
+  virtual bool recompute(const Method_t Callee) = 0;
 };
 
 } // namespace psr
