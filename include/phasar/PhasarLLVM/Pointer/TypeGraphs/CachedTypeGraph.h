@@ -80,7 +80,7 @@ namespace psr {
     vertex_t addType(const llvm::StructType* new_type);
     void reverseTypePropagation(const llvm::StructType *base_struct);
     void aggregateTypes();
-    void addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to);
+    bool addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to);
 
   public:
     CachedTypeGraph() = default;
@@ -92,7 +92,7 @@ namespace psr {
     CachedTypeGraph& operator=(CachedTypeGraph &&move) = delete;
 
 
-    virtual void addLink(const llvm::StructType* from, const llvm::StructType* to) override;
+    virtual bool addLink(const llvm::StructType* from, const llvm::StructType* to) override;
     virtual void printAsDot(const std::string &path = "typegraph.dot") const override;
     virtual std::set<const llvm::StructType*> getTypes(const llvm::StructType *struct_type) override;
     virtual void merge(CachedTypeGraph *tg) override;

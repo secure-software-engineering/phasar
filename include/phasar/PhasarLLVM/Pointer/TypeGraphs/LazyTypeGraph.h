@@ -80,9 +80,9 @@ namespace psr {
     LazyTypeGraph& operator=(LazyTypeGraph &&move) = delete;
 
 
-    void addLink(const llvm::StructType* from, const llvm::StructType* to) override;
-    void printAsDot(const std::string &path = "typegraph.dot") const override;
-    std::set<const llvm::StructType*> getTypes(const llvm::StructType *struct_type) override;
-    void merge(LazyTypeGraph *tg) override;
+    virtual bool addLink(const llvm::StructType* from, const llvm::StructType* to) override;
+    virtual void printAsDot(const std::string &path = "typegraph.dot") const override;
+    virtual std::set<const llvm::StructType*> getTypes(const llvm::StructType *struct_type) override;
+    virtual void merge(LazyTypeGraph *tg) override;
   };
 }

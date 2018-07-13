@@ -57,21 +57,24 @@ LazyTypeGraph::vertex_t LazyTypeGraph::addType(const llvm::StructType* new_type)
   return type_vertex_map[name];
 }
 
-void LazyTypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to) {
+bool LazyTypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to) {
   if (already_visited)
-    return;
+    return false;
 
   already_visited = true;
 
   auto from_vertex = addType(from);
   auto to_vertex = addType(to);
 
-  boost::add_edge(from_vertex, to_vertex, g);
+  auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
 
-  for ( auto parent_g : parent_graphs )
-    parent_g->addLink(from, to);
+  if (result_edge.second) {
+    for ( auto parent_g : parent_graphs )
+      parent_g->addLink(from, to);
+  }
 
   already_visited = false;
+  return result_edge.second;
 }
 
 void LazyTypeGraph::printAsDot(const std::string &path) const {

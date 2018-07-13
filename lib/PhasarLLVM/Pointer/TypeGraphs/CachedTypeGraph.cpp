@@ -74,41 +74,47 @@ CachedTypeGraph::vertex_t CachedTypeGraph::addType(const llvm::StructType* new_t
   return type_vertex_map[name];
 }
 
-void CachedTypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to) {
+bool CachedTypeGraph::addLink(const llvm::StructType* from, const llvm::StructType* to) {
   if (already_visited)
-    return;
+    return false;
 
   already_visited = true;
 
   auto from_vertex = addType(from);
   auto to_vertex = addType(to);
 
-  boost::add_edge(from_vertex, to_vertex, g);
-  reverseTypePropagation(to);
+  auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
+  if (result_edge.second) {
+    reverseTypePropagation(to);
 
-  for ( auto parent_g : parent_graphs ) {
-    parent_g->addLink(from, to);
+    for ( auto parent_g : parent_graphs ) {
+      parent_g->addLink(from, to);
+    }
   }
 
   already_visited = false;
+  return result_edge.second;
 }
 
-void CachedTypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to) {
+bool CachedTypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* from, const llvm::StructType* to) {
   if (already_visited)
-    return;
+    return false;
 
   already_visited = true;
 
   auto from_vertex = addType(from);
   auto to_vertex = addType(to);
 
-  boost::add_edge(from_vertex, to_vertex, g);
+  auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
 
-  for ( auto parent_g : parent_graphs ) {
-    parent_g->addLink(from, to);
+  if (result_edge.second) {
+    for ( auto parent_g : parent_graphs ) {
+      parent_g->addLink(from, to);
+    }
   }
 
   already_visited = false;
+  return result_edge.second;
 }
 
 void CachedTypeGraph::printAsDot(const std::string &path) const {
