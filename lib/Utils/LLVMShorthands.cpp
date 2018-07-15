@@ -14,6 +14,8 @@
  *      Author: philipp
  */
 
+#include <iostream>
+
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/CallSite.h>
@@ -30,6 +32,8 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/Macros.h>
+
 
 using namespace std;
 using namespace psr;
@@ -49,6 +53,36 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
     return false;
   }
   return false;
+}
+
+bool isConstructor(const llvm::Function *F) {
+  string demangled = cxx_demangle(F->getName().str());
+
+  int len = 0;
+  for (auto i : demangled) {
+    if( i == '(' ) {
+        break;
+    }
+    ++len;
+  }
+
+  if (len % 2 != 0) {
+    return false;
+  }
+
+  unsigned int middle = (len / 2);
+
+  if (demangled[middle] != ':' || demangled[middle-1] != ':') {
+    return false;
+  }
+
+  for (unsigned int pos1 = 0, pos2 = middle+1; pos1 < middle-1; ++pos1, ++pos2) {
+    if (demangled[pos1] != demangled[pos2]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {

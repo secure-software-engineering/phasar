@@ -28,6 +28,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/PAMM.h>
@@ -37,12 +38,10 @@ namespace llvm {
   class Function;
   class Module;
   class Instruction;
+  class BitCastInst;
 }
 
 namespace psr {
-
-//Forward declaration
-class CachedTypeGraph;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
@@ -91,7 +90,7 @@ private:
   std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
-  std::map<const llvm::Function*, CachedTypeGraph*> tgs;
+  CachedTypeGraph typegraph;
 
   // Any types that could be initialized outside of the module
   std::set<const llvm::StructType*> unsound_types;
@@ -230,6 +229,12 @@ private:
    */
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
+  /**
+   * An heuristic that return true if the edge is not a call to a inherited
+   * contructor (according to the heuristic) and false if the heuristic otherwise.
+   */
+  bool heuristic_anti_contructor(const llvm::BitCastInst* bitcast);
+
   struct dependency_visitor;
 
 public:
@@ -243,7 +248,7 @@ public:
                 const llvm::Module &M, WalkerStrategy W, ResolveStrategy R,
                 std::vector<std::string> EntryPoints = {});
 
-  virtual ~LLVMBasedICFG() noexcept;
+  virtual ~LLVMBasedICFG() = default;
 
   bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 

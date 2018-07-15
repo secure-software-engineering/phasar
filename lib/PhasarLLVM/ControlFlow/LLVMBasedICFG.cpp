@@ -34,7 +34,6 @@
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 #include <phasar/DB/ProjectIRDB.h>
 
@@ -172,12 +171,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
 }
 
-LLVMBasedICFG::~LLVMBasedICFG() noexcept {
-  for ( auto type_graph : tgs) {
-    delete type_graph.second;
-  }
-}
-
 void LLVMBasedICFG::resolveIndirectCallWalkerSimple(const llvm::Function *F) {
   PAMM_FACTORY;
   auto &lg = lg::get();
@@ -304,27 +297,20 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
     }
   }
 
-  CachedTypeGraph *graph = new CachedTypeGraph();
-  tgs[F] = graph;
-
   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
        ++I) {
     const llvm::Instruction &Inst = *I;
 
     if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
-      for ( auto user : BitCast->users() ) {
-        if ( llvm::isa<llvm::StoreInst>(user) || llvm::isa<llvm::TerminatorInst>(user) ) {
-          // We add the connection between the two types in the DTA graph
-          auto src = BitCast->getSrcTy();
-          auto dest = BitCast->getDestTy();
+      // We add the connection between the two types in the DTA graph
+      auto src = BitCast->getSrcTy();
+      auto dest = BitCast->getDestTy();
 
-          auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
-          auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
+      auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
+      auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
 
-          if(src_struct_type && dest_struct_type)
-            graph->addLink(dest_struct_type, src_struct_type);
-        }
-      }
+      if (src_struct_type && dest_struct_type && heuristic_anti_contructor(BitCast))
+        typegraph.addLink(dest_struct_type, src_struct_type);
     }
   }
 
@@ -372,8 +358,6 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
       // continue resolving
       for (auto possible_target : possible_targets) {
         resolveIndirectCallWalkerDTA(possible_target);
-        if (tgs[possible_target])
-          graph->merge(tgs[possible_target]);
       }
       // CallStack.pop_back();
     }
@@ -788,7 +772,7 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
 
     string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
 
-    auto possible_types = tgs[CS.getCaller()]->getTypes(receiver_type);
+    auto possible_types = typegraph.getTypes(receiver_type);
     auto allocated_types = IRDB.getAllocatedTypes();
 
     auto end_it = possible_types.end();
@@ -849,6 +833,34 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
     }
   }
   return false;
+}
+
+bool LLVMBasedICFG::heuristic_anti_contructor(const llvm::BitCastInst* bitcast) {
+  for ( const auto &user : bitcast->users() ) {
+    if ( auto cs = llvm::dyn_cast<llvm::CallInst>(user)) {
+      if ( auto called = cs->getCalledFunction() ) {
+        if ( auto caller = bitcast->getFunction() ) {
+          if ( isConstructor(called) && isConstructor(caller) ) {
+            if ( auto load = llvm::dyn_cast<llvm::LoadInst>(bitcast->getOperand(0))) {
+              if ( auto alloca = llvm::dyn_cast<llvm::AllocaInst>(load->getOperand(0))) {
+                for ( const auto &alloca_user : alloca->users() ) {
+                  if ( auto store = llvm::dyn_cast<llvm::StoreInst>(alloca_user) ) {
+                    if ( auto arg = llvm::dyn_cast<llvm::Argument>(store->getOperand(0)) ) {
+                      if ( arg->getArgNo() == 0 ) {
+                        return false;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return true;
 }
 
 const llvm::Function *

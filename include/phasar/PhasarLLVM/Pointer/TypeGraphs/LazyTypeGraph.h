@@ -63,7 +63,6 @@ namespace psr {
     struct dfs_visitor;
 
     std::map<std::string, vertex_t> type_vertex_map;
-    std::set<LazyTypeGraph*> parent_graphs;
     graph_t g;
     bool already_visited = false;
 
@@ -74,15 +73,14 @@ namespace psr {
     LazyTypeGraph() = default;
 
     virtual ~LazyTypeGraph() = default;
-    LazyTypeGraph(const LazyTypeGraph &copy) = delete;
-    LazyTypeGraph& operator=(const LazyTypeGraph &copy) = delete;
-    LazyTypeGraph(LazyTypeGraph &&move) = delete;
-    LazyTypeGraph& operator=(LazyTypeGraph &&move) = delete;
+    // LazyTypeGraph(const LazyTypeGraph &copy) = delete;
+    // LazyTypeGraph& operator=(const LazyTypeGraph &copy) = delete;
+    // LazyTypeGraph(LazyTypeGraph &&move) = delete;
+    // LazyTypeGraph& operator=(LazyTypeGraph &&move) = delete;
 
 
     virtual bool addLink(const llvm::StructType* from, const llvm::StructType* to) override;
     virtual void printAsDot(const std::string &path = "typegraph.dot") const override;
     virtual std::set<const llvm::StructType*> getTypes(const llvm::StructType *struct_type) override;
-    virtual void merge(LazyTypeGraph *tg) override;
   };
 }

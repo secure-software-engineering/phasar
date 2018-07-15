@@ -65,7 +65,6 @@ namespace psr {
     struct reverse_type_propagation_dfs_visitor;
 
     std::map<std::string, vertex_t> type_vertex_map;
-    std::set<CachedTypeGraph*> parent_graphs;
     graph_t g;
     bool already_visited = false;
 
@@ -86,15 +85,14 @@ namespace psr {
     CachedTypeGraph() = default;
 
     virtual ~CachedTypeGraph() = default;
-    CachedTypeGraph(const CachedTypeGraph &copy) = delete;
-    CachedTypeGraph& operator=(const CachedTypeGraph &copy) = delete;
-    CachedTypeGraph(CachedTypeGraph &&move) = delete;
-    CachedTypeGraph& operator=(CachedTypeGraph &&move) = delete;
+    // CachedTypeGraph(const CachedTypeGraph &copy) = delete;
+    // CachedTypeGraph& operator=(const CachedTypeGraph &copy) = delete;
+    // CachedTypeGraph(CachedTypeGraph &&move) = delete;
+    // CachedTypeGraph& operator=(CachedTypeGraph &&move) = delete;
 
 
     virtual bool addLink(const llvm::StructType* from, const llvm::StructType* to) override;
     virtual void printAsDot(const std::string &path = "typegraph.dot") const override;
     virtual std::set<const llvm::StructType*> getTypes(const llvm::StructType *struct_type) override;
-    virtual void merge(CachedTypeGraph *tg) override;
   };
 }

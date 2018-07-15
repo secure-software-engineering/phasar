@@ -68,11 +68,6 @@ bool LazyTypeGraph::addLink(const llvm::StructType* from, const llvm::StructType
 
   auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
 
-  if (result_edge.second) {
-    for ( auto parent_g : parent_graphs )
-      parent_g->addLink(from, to);
-  }
-
   already_visited = false;
   return result_edge.second;
 }
@@ -99,22 +94,6 @@ std::set<const llvm::StructType*> LazyTypeGraph::getTypes(const llvm::StructType
     boost::make_iterator_property_map(color_map.begin(), boost::get(boost::vertex_index, g), color_map[0]));
 
   return results;
-}
-
-void LazyTypeGraph::merge(LazyTypeGraph *tg) {
-  tg->parent_graphs.insert(this);
-
-  auto p = edges(tg->g);
-
-  auto begin = p.first;
-  auto end = p.second;
-
-  for ( auto e = begin; e != end; ++e) {
-    vertex_t src = boost::source(*e, tg->g);
-    vertex_t target = boost::target(*e, tg->g);
-
-    addLink(tg->g[src].type, tg->g[target].type);
-  }
 }
 
 }

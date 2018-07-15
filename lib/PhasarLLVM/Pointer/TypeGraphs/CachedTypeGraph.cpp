@@ -84,12 +84,9 @@ bool CachedTypeGraph::addLink(const llvm::StructType* from, const llvm::StructTy
   auto to_vertex = addType(to);
 
   auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
+
   if (result_edge.second) {
     reverseTypePropagation(to);
-
-    for ( auto parent_g : parent_graphs ) {
-      parent_g->addLink(from, to);
-    }
   }
 
   already_visited = false;
@@ -106,12 +103,6 @@ bool CachedTypeGraph::addLinkWithoutReversePropagation(const llvm::StructType* f
   auto to_vertex = addType(to);
 
   auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
-
-  if (result_edge.second) {
-    for ( auto parent_g : parent_graphs ) {
-      parent_g->addLink(from, to);
-    }
-  }
 
   already_visited = false;
   return result_edge.second;
@@ -145,22 +136,6 @@ void CachedTypeGraph::reverseTypePropagation(const llvm::StructType *base_struct
 std::set<const llvm::StructType*> CachedTypeGraph::getTypes(const llvm::StructType *struct_type) {
   auto struct_ty_vertex = addType(struct_type);
   return g[struct_ty_vertex].types;
-}
-
-void CachedTypeGraph::merge(CachedTypeGraph *tg) {
-  tg->parent_graphs.insert(this);
-
-  auto p = edges(tg->g);
-
-  auto begin = p.first;
-  auto end = p.second;
-
-  for ( auto e = begin; e != end; ++e) {
-    vertex_t src = boost::source(*e, tg->g);
-    vertex_t target = boost::target(*e, tg->g);
-
-    addLink(tg->g[src].base_type, tg->g[target].base_type);
-  }
 }
 
 }
