@@ -113,7 +113,7 @@ public:
     std::shared_ptr<EdgeFunction<v_t>>
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
-    bool equalTo(std::shared_ptr<EdgeFunction<v_t>> other) override;
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
   };
 
   std::string DtoString(d_t d) const override;

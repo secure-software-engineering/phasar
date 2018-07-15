@@ -16,8 +16,13 @@ namespace psr {
 class FlowFact {
 public:
   virtual ~FlowFact() = default;
-  virtual std::ostream &print(std::ostream &os) const = 0;
+  virtual void print(std::ostream &os) const = 0;
 };
+
+static inline std::ostream &operator<< (std::ostream &OS, const FlowFact& F) {
+  F.print(OS);
+  return OS;
+}
 
 } // namespace psr
 

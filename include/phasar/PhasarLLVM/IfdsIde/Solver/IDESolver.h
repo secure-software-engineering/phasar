@@ -857,7 +857,7 @@ protected:
             // site using the composed function
             for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
               std::shared_ptr<EdgeFunction<V>> f3 = valAndFunc.second;
-              if (!f3->equalTo(allTop)) {
+              if (!f3->equal_to(allTop)) {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
                 propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
@@ -1041,7 +1041,7 @@ protected:
       jumpFnE = allTop; // jump function is initialized to all-top
     }
     fPrime = jumpFnE->joinWith(f);
-    bool newFunction = !(fPrime->equalTo(jumpFnE));
+    bool newFunction = !(fPrime->equal_to(jumpFnE));
     if (newFunction) {
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
@@ -1107,7 +1107,7 @@ protected:
             << "eP: " << ideTabulationProblem.NtoString(inner_cell.r);
         BOOST_LOG_SEV(lg, DEBUG)
             << "d2: " << ideTabulationProblem.DtoString(inner_cell.c);
-        BOOST_LOG_SEV(lg, DEBUG) << "edge fun: " << inner_cell.v->toString();
+        BOOST_LOG_SEV(lg, DEBUG) << "edge fun: " << inner_cell.v->str();
       }
       BOOST_LOG_SEV(lg, DEBUG) << "-----";
     }

@@ -175,8 +175,8 @@ IDESolverTest::IDESolverTestAllTop::joinWith(
   return EdgeIdentity<IDESolverTest::v_t>::getInstance();
 }
 
-bool IDESolverTest::IDESolverTestAllTop::equalTo(
-    shared_ptr<EdgeFunction<IDESolverTest::v_t>> other) {
+bool IDESolverTest::IDESolverTestAllTop::equal_to(
+    shared_ptr<EdgeFunction<IDESolverTest::v_t>> other) const {
   cout << "IDESolverTest::IDESolverTestAllTop::equalTo()\n";
   return false;
 }

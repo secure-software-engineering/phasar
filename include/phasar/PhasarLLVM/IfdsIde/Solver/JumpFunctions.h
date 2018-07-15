@@ -78,9 +78,9 @@ public:
     BOOST_LOG_SEV(lg, DEBUG)
         << "Fact at target: " << problem.DtoString(targetVal);
     BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target);
-    BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->toString();
+    BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->str();
     // we do not store the default function (all-top)
-    if (function->equalTo(allTop))
+    if (function->equal_to(allTop))
       return;
     std::map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
@@ -192,7 +192,7 @@ public:
             << "fact at src: " << problem.DtoString(cell.r);
         BOOST_LOG_SEV(lg, DEBUG)
             << "fact at dst: " << problem.DtoString(cell.c);
-        BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString();
+        BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->str();
       }
     }
   }

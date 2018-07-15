@@ -17,7 +17,7 @@ namespace psr {
 class ZeroFlowFact : public FlowFact {
 public:
   ~ZeroFlowFact() = default;
-  std::ostream &print(std::ostream &os) const override;
+  void print(std::ostream &os) const override;
   static FlowFact *getInstance();
 };
 

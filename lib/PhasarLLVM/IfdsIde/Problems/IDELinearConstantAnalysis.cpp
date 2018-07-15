@@ -339,9 +339,9 @@ IDELinearConstantAnalysis::EdgeFunctionComposer::joinWith(
   }
 }
 
-bool IDELinearConstantAnalysis::EdgeFunctionComposer::equalTo(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) {
-  return F->equalTo(other);
+bool IDELinearConstantAnalysis::EdgeFunctionComposer::equal_to(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
+  return F->equal_to(other);
 }
 
 string

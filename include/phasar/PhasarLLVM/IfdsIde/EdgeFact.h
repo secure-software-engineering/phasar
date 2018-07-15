@@ -16,8 +16,14 @@ namespace psr {
 class EdgeFact {
 public:
   virtual ~EdgeFact() = default;
-  virtual std::ostream &print(std::ostream &os) const = 0;
+  virtual void print(std::ostream &os) const = 0;
 };
+
+static inline std::ostream &operator<< (std::ostream &OS, const EdgeFact &E) {
+  E.print(OS);
+  return OS;
+}
+
 } // namespace psr
 
 #endif
