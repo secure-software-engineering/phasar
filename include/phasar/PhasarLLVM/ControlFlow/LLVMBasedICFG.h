@@ -230,10 +230,17 @@ private:
   void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
   /**
-   * An heuristic that return true if the edge is not a call to a inherited
-   * contructor (according to the heuristic) and false if the heuristic otherwise.
+   * An heuristic that return true if the bitcast instruction is interesting to take into
+   * the DTA relational graph
    */
-  bool heuristic_anti_contructor(const llvm::BitCastInst* bitcast);
+  bool heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast);
+
+  /**
+   * Another heuristic that return true if the bitcast instruction is interesting to take into
+   * the DTA relational graph (use the presence or not of vtable)
+   */
+  bool heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast);
+
 
   struct dependency_visitor;
 

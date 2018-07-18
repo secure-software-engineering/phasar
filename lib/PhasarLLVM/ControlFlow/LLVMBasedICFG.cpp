@@ -309,7 +309,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
       auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
       auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
 
-      if (src_struct_type && dest_struct_type && heuristic_anti_contructor(BitCast))
+      if (src_struct_type && dest_struct_type && heuristic_anti_contructor_vtable_pos(BitCast))
         typegraph.addLink(dest_struct_type, src_struct_type);
     }
   }
@@ -851,20 +851,16 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return false;
 }
 
-bool LLVMBasedICFG::heuristic_anti_contructor(const llvm::BitCastInst* bitcast) {
+bool LLVMBasedICFG::heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast) {
+  // We check if the caller is a constructor, and if the this argument has the same type as the source
+  // type of the bitcast. If it is the case, it returns false, true otherwise.
+
   if ( auto caller = bitcast->getFunction() ) {
     if ( isConstructor(caller->getName().str()) ) {
-      if ( auto load = llvm::dyn_cast<llvm::LoadInst>(bitcast->getOperand(0))) {
-        if ( auto alloca = llvm::dyn_cast<llvm::AllocaInst>(load->getOperand(0))) {
-          for ( const auto &alloca_user : alloca->users() ) {
-            if ( auto store = llvm::dyn_cast<llvm::StoreInst>(alloca_user) ) {
-              if ( auto arg = llvm::dyn_cast<llvm::Argument>(store->getOperand(0)) ) {
-                if ( arg->getArgNo() == 0 ) {
-                  // cout << "Constructer caller : " << caller->getName().str() << "\n";
-                  return false;
-                }
-              }
-            }
+      if ( auto func_ty = caller->getFunctionType() ) {
+        if ( auto this_ty = func_ty->getParamType(0) ) {
+          if ( this_ty == bitcast->getSrcTy() ) {
+            return false;
           }
         }
       }
@@ -872,6 +868,65 @@ bool LLVMBasedICFG::heuristic_anti_contructor(const llvm::BitCastInst* bitcast) 
   }
 
   return true;
+}
+
+bool LLVMBasedICFG::heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast) {
+  // Better heuristic than the previous one, can handle the CRTP. Based on the previous one.
+
+  if ( heuristic_anti_contructor_this_type(bitcast) )
+    return true;
+
+  // We know that we are in a constructor and the source type of the bitcast is the same as the this argument.
+  // We then check where the bitcast is against the store instruction of the vtable.
+  auto struct_ty = stripPointer(bitcast->getSrcTy());
+  if (struct_ty == nullptr)
+    throw runtime_error("struct_ty == nullptr in the heuristic_anti_contructor");
+
+  // If it doesn't contain vtable, there is no reason to call this class in the
+  // DTA graph, so no need to add it
+  string struct_name = struct_ty->getStructName().str();
+
+  if ( CH.containsVTable(struct_name) )
+    return false;
+
+  // So there is a vtable, the question is, where is it compared to the bitcast instruction
+  // Carefull, there can be multiple vtable storage, we want to get the last one
+  // vtable storage typically are :
+  // store i32 (...)** bitcast (i8** getelementptr inbounds ({ [3 x i8*], [3 x i8*] }, { [3 x i8*], [3 x i8*] }* @_ZTV2AA, i32 0, inrange i32 1, i32 3) to i32 (...)**), i32 (...)*** %17, align 8
+  //WARNING: May break when changing llvm version or using clang with version > 5.0.1
+
+  auto caller = bitcast->getFunction();
+  if ( caller == nullptr ) {
+    throw runtime_error("A bitcast instruction has no associated function");
+  }
+
+  int i = 0, vtable_num = 0, bitcast_num = 0;
+
+  for ( auto I = inst_begin(caller), E = inst_end(caller); I != E;
+       ++I, ++i ) {
+    const auto& Inst = *I;
+
+    if ( auto store = llvm::dyn_cast<llvm::StoreInst>(&Inst) ) {
+      // We got a store instruction, now we are checking if it is a vtable storage
+      if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
+        if ( bitcast_expr->isCast() ) {
+          if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
+            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
+              if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
+                // We can here assume that we found a vtable
+                vtable_num = i;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if ( &Inst == bitcast )
+      bitcast_num = i;
+  }
+
+  return (bitcast_num > vtable_num);
 }
 
 const llvm::Function *
