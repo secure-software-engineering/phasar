@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <memory>
 
 #include <llvm/IR/Instruction.h>

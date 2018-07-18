@@ -16,16 +16,18 @@
 
 #pragma once
 
-#include <iostream>
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
+#include <set>
+
 #include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 #include <llvm/PassSupport.h>
-#include <set>
-#include <string>
-#include <vector>
+
+namespace llvm {
+  class Type;
+  class Value;
+  class Instruction;
+  class AnalysisUsage;
+} // namespace llvm
 
 namespace psr {
 

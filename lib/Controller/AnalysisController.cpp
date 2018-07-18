@@ -9,6 +9,8 @@
 
 #include <iostream>
 
+#include <llvm/Support/raw_os_ostream.h>
+
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/IRBuilder.h>
@@ -107,10 +109,6 @@ AnalysisController::AnalysisController(
   }
   IRDB.preprocessIR();
 
-  // START_TIMER("print all-module");
-  // IRDB.getWPAModule()->print(llvm::errs(), nullptr);
-  // STOP_TIMER("print all-module");
-
   // START_TIMER("DB Start Up");
   // DBConn &db = DBConn::getInstance();
   // STOP_TIMER("DB Start Up");
@@ -124,12 +122,31 @@ AnalysisController::AnalysisController(
   STOP_TIMER("LTH Construction");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.");
 
+  // llvm::errs() << "Allocated types\n";
+  // for (auto alloc : IRDB.getAllocatedTypes()) {
+  //   llvm::errs() << "\n";
+  //   alloc->print(llvm::errs());
+  //   llvm::errs() << "\n";
+  // }
+  // llvm::errs() << "End Allocated types\n";
+
+
+
   // START_TIMER("DB Store LTH");
   // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
   // STOP_TIMER("DB Store LTH");
   // CH.printAsDot();
   // FinalResultsJson += CH.getAsJson();
-
+  // START_TIMER("print all-module");
+  // ofstream ofs_module("module.log");
+  // llvm::raw_os_ostream stream_module(ofs_module);
+  // IRDB.getWPAModule()->print(stream_module, nullptr);
+  // STOP_TIMER("print all-module");
+  //
+  // auto CHJson = CH.getAsJson();
+  // ofstream ofs_ch("class_hierarchy.json");
+  //
+  // ofs_ch << CHJson.dump();
   //WARNING
   // if (VariablesMap.count("classhierarchy_analysis")) {
   //   CH.print();

@@ -16,17 +16,18 @@
 
 #pragma once
 
-#include <algorithm>
 #include <string>
-#include <set>
-
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
+#include <vector>
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+
+namespace llvm {
+  class Instruction;
+  class Value;
+  class Function;
+} // namespace llvm
 
 namespace psr {
 

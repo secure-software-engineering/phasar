@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <iostream>
 #include <utility> // std::make_pair, std::pair
 #include <vector>
 #include <functional> // std::greater

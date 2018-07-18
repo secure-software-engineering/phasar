@@ -40,8 +40,6 @@ namespace psr {
  */
 bool isFunctionPointer(const llvm::Value *V) noexcept;
 
-bool isConstructor(const llvm::Function *F);
-
 /**
  * @brief Checks if the given LLVM Value is either a alloca instruction or a
  * heap allocation function, e.g. new, new[], malloc, realloc or calloc.

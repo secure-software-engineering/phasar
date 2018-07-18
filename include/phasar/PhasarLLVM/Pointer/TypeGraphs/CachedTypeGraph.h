@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <string>
 
@@ -64,7 +64,7 @@ namespace psr {
     struct dfs_visitor;
     struct reverse_type_propagation_dfs_visitor;
 
-    std::map<std::string, vertex_t> type_vertex_map;
+    std::unordered_map<std::string, vertex_t> type_vertex_map;
     graph_t g;
     bool already_visited = false;
 

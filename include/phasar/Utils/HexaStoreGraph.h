@@ -16,9 +16,9 @@
 
 #pragma once
 
-#include <iostream>
+#include <ostream>
+#include <iostream> // cerr, to suppress once it is not used anymore
 #include <set>
-// #include <unordered_map>
 
 #include <phasar/DB/DBConn.h>
 #include "Table.hh"

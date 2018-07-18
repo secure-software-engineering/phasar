@@ -590,7 +590,8 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
     if (load == nullptr) {
       // Apparently, the calledValue is always a Constant and a DerivedUser in that case
-      // (I don't know how it can happen)
+      // (I don't know how it can happen) maybe a constantExpr, .. as they are not linked
+      // to any llvm::BasicBlock
       cout << "Error with resolveVirtualCall : no load\n"
            << llvmIRToString(CS.getInstruction())
            << "\n";
@@ -618,17 +619,19 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
     string receiver_call_target =
         CH.getVTableEntry(receiver_type_name, vtable_index);
     // insert the receiver types vtable entry
-    if (receiver_call_target.compare("__cxa_pure_virtual") != 0)
-      possible_call_targets.insert(receiver_call_target);
-    else {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "found __cxa_pure_virtual : excluded it");
-    }
+    // if (receiver_call_target.compare("__cxa_pure_virtual") != 0)
+    //   possible_call_targets.insert(receiver_call_target);
+    // else {
+    //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "found __cxa_pure_virtual : excluded it");
+    // }
     // also insert all possible subtypes vtable entries
     auto fallback_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
     for (auto &fallback_name : fallback_type_names) {
-      possible_call_targets.insert(
-          CH.getVTableEntry(fallback_name, vtable_index));
+      auto vtable_entry = CH.getVTableEntry(fallback_name, vtable_index);
+      if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
+        possible_call_targets.insert(vtable_entry);
+      }
     }
 
     PAUSE_TIMER("ICFG resolveCallCHA::VirtualCall");
@@ -646,7 +649,12 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
   return possible_call_targets;
 }
 
+//FIXME: The allocated type cannot deal with tier library
+// For exemple, if a type is always allocated through a std::make_uniq,
+// allocated_type will not contains the right types
 set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
+  throw runtime_error("RTA is currently unabled to deal with tier library, it has been disable until this is fixed");
+
   PAMM_FACTORY;
   START_TIMER("ICFG resolveCallRTA");
 
@@ -770,24 +778,32 @@ set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
     if (unsound_types.find(receiver_type) != unsound_types.end())
       possible_call_targets = resolveIndirectCallCHA(CS);
 
-    string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
+    else {
+      string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
 
-    auto possible_types = typegraph.getTypes(receiver_type);
-    auto allocated_types = IRDB.getAllocatedTypes();
+      auto possible_types = typegraph.getTypes(receiver_type);
 
-    auto end_it = possible_types.end();
-    for (auto possible_type : possible_types) {
-      if (auto possible_type_struct =
-              llvm::dyn_cast<llvm::StructType>(possible_type)) {
-          if ( allocated_types.find(possible_type_struct) != allocated_types.end() ) {
-            string type_name = possible_type_struct->getName().str();
-            possible_call_targets.insert(
-              CH.getVTableEntry(type_name, vtable_index));
+      //WARNING We deactivated the check on allocated because it is
+      // unabled to get the types allocated in the used libraries
+      // auto allocated_types = IRDB.getAllocatedTypes();
+      // auto end_it = allocated_types.end();
+      for (auto possible_type : possible_types) {
+        if (auto possible_type_struct =
+                llvm::dyn_cast<llvm::StructType>(possible_type)) {
+            // if ( allocated_types.find(possible_type_struct) != end_it ) {
+          string type_name = possible_type_struct->getName().str();
+          auto vtable_entry = CH.getVTableEntry(type_name, vtable_index);
+          if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
+            possible_call_targets.insert(vtable_entry);
           }
+        }
       }
     }
 
     PAUSE_TIMER("ICFG resolveCallDTA::VirtualCall");
+    if ( possible_call_targets.size() == 0 )
+      possible_call_targets = resolveIndirectCallCHA(CS);
+
   } else {
     // otherwise we have to deal with a function pointer
     // if we classified a member function call incorrectly as a function pointer
@@ -836,21 +852,16 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
 }
 
 bool LLVMBasedICFG::heuristic_anti_contructor(const llvm::BitCastInst* bitcast) {
-  for ( const auto &user : bitcast->users() ) {
-    if ( auto cs = llvm::dyn_cast<llvm::CallInst>(user)) {
-      if ( auto called = cs->getCalledFunction() ) {
-        if ( auto caller = bitcast->getFunction() ) {
-          if ( isConstructor(called) && isConstructor(caller) ) {
-            if ( auto load = llvm::dyn_cast<llvm::LoadInst>(bitcast->getOperand(0))) {
-              if ( auto alloca = llvm::dyn_cast<llvm::AllocaInst>(load->getOperand(0))) {
-                for ( const auto &alloca_user : alloca->users() ) {
-                  if ( auto store = llvm::dyn_cast<llvm::StoreInst>(alloca_user) ) {
-                    if ( auto arg = llvm::dyn_cast<llvm::Argument>(store->getOperand(0)) ) {
-                      if ( arg->getArgNo() == 0 ) {
-                        return false;
-                      }
-                    }
-                  }
+  if ( auto caller = bitcast->getFunction() ) {
+    if ( isConstructor(caller->getName().str()) ) {
+      if ( auto load = llvm::dyn_cast<llvm::LoadInst>(bitcast->getOperand(0))) {
+        if ( auto alloca = llvm::dyn_cast<llvm::AllocaInst>(load->getOperand(0))) {
+          for ( const auto &alloca_user : alloca->users() ) {
+            if ( auto store = llvm::dyn_cast<llvm::StoreInst>(alloca_user) ) {
+              if ( auto arg = llvm::dyn_cast<llvm::Argument>(store->getOperand(0)) ) {
+                if ( arg->getArgNo() == 0 ) {
+                  // cout << "Constructer caller : " << caller->getName().str() << "\n";
+                  return false;
                 }
               }
             }

@@ -35,6 +35,7 @@
 
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>
+#include <phasar/Utils/Logger.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 

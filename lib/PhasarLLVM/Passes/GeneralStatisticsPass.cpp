@@ -14,8 +14,14 @@
  *      Author: pdschbrt
  */
 
+#include <string>
+
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/IntrinsicInst.h>
 #include <llvm/Support/raw_os_ostream.h>
+
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>

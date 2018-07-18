@@ -14,6 +14,19 @@
  *      Author: pdschbrt
  */
 
+#include <iostream>
+#include <string>
+
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Metadata.h>
+#include <llvm/PassSupport.h>
+#include <llvm/Support/Casting.h>
+#include <llvm/Support/raw_os_ostream.h>
+
+#include <phasar/Config/Configuration.h>
+#include <phasar/Utils/Logger.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 
 using namespace std;

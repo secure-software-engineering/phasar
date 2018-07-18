@@ -21,10 +21,9 @@
 
 #pragma once
 
-// #include <algorithm>
 #include <ostream>
 #include <map>
-#include <type_traits>
+// #include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
 
@@ -104,53 +103,44 @@ public:
 };
 
 /*  N = Node in the CFG
- *  Value = Values inside the monotone sets
+ *  Key = Key type of the map
+ *  Value = Value type of the map
+ *  IdGenerator = Generator of Id from the source and destination (in that order)
+ *  Map = Partial type of Map used. The full type will be Map<Key, Value>
  */
 template <typename Node,
           typename Key, typename Value,
-          typename IdGeneratorFromSrc,
-          typename IdGeneratorFromDst,
+          typename IdGenerator,
           template<class, class, class...> class Map = std::map>
 class MappedValueBasedContext
   : public ContextBase<Node, Map<Key, Value>,
-      MappedValueBasedContext<Node,Key,Value,IdGeneratorFromSrc,IdGeneratorFromDst,Map>> {
+      MappedValueBasedContext<Node,Key,Value,IdGenerator,Map>> {
 public:
   using Node_t = Node;
   using Key_t = Key;
   using Value_t = Value;
-  using IdGenSrc_t = IdGeneratorFromSrc;
-  using IdGenDst_t = IdGeneratorFromDst;
+  using IdGen_t = IdGenerator;
 
   using Domain_t = Map<Key_t, Value_t>;
 
 protected:
   Domain_t args;
   Domain_t prev_context;
-  IdGenSrc_t SrcIdGen;
-  IdGenDst_t DstIdGen;
+  IdGen_t IdGen;
 
 public:
   MappedValueBasedContext() = default;
-
+  MappedValueBasedContext(IdGen_t &_IdGen) : IdGen(_IdGen) {}
+  template <class T>
+  MappedValueBasedContext(T&& _args, T&& _prev_context) : args(std::forward<T>(_args)), prev_context(std::forward<T>(_prev_context)) {}
 
   virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
     prev_context.swap(args); // O(1)
 
     args.clear(); // O(|args|)
-    auto src_ids = SrcIdGen(src);
-    auto dest_ids = DstIdGen(dest);
+    auto ids = SrcIdGen(src, dest);
 
-    // Check that they return the same type
-    static_assert(std::is_same<decltype(src_ids),decltype(dest_ids)>::value, "Problem : the IdGeneratorFromSrc call rendered a different type than the IdGeneratorFromDst");
-
-    for ( auto id : src_ids ) {
-      if (In.count(id) == 0) {
-        // An argument is not in the given entry, check if the analysis doesn't become unsound
-      }
-      args[id] = In[id];
-    }
-
-    for ( auto id : dest_ids ) {
+    for ( auto id : ids ) {
       if (In.count(id) == 0) {
         // An argument is not in the given entry, check if the analysis doesn't become unsound
       }

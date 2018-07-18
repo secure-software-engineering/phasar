@@ -13,7 +13,6 @@
 #include <vector>
 #include <string>
 #include <iosfwd>
-#include <iterator>
 
 namespace llvm {
   class Type;
@@ -42,6 +41,8 @@ namespace psr {
   exit(-1);
 
 std::string cxx_demangle(const std::string &mangled_name);
+
+bool isConstructor(const std::string &mangled_name);
 
 std::string debasify(const std::string &name);
 

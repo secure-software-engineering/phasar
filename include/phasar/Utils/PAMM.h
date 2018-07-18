@@ -20,7 +20,8 @@
 
 #include <cassert>
 #include <chrono>
-#include <iostream>
+#include <iostream> // Can we avoid it, it cost a lot for each building unit ?
+// Switch from cout to a generic std::ostream that would be passed directly :)
 #include <set>
 #include <string>
 #include <unordered_map>

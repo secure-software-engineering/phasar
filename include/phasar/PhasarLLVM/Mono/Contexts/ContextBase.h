@@ -24,9 +24,9 @@
 namespace psr {
 
 /*  N = Node in the CFG
- *  V = Values inside the monotone sets
+ *  D = Domain of the analysis
  *  ConcreteContext = The class that implement the context (must be a sub class
- *                    of ContextBase<N,V,ConcreteContext>)
+ *                    of ContextBase<N,D,ConcreteContext>)
  */
 template <typename N, typename D, typename ConcreteContext>
 class ContextBase {
@@ -35,7 +35,6 @@ public:
   using Domain_t  = D;
 
 private:
-  template<typename T1, typename T2>
   void ValueBase_check() {
     static_assert(std::is_base_of<ContextBase<Node_t, Domain_t, ConcreteContext>, ConcreteContext>::value, "Template class ConcreteContext must be a sub class of ContextBase<N, V, ConcreteContext>\n");
   }
