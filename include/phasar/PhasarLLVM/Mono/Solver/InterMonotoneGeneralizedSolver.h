@@ -32,8 +32,8 @@ namespace psr {
 
 /*
  *  IMP_temp = InterMonotoneProblem type
- *  I = CFG/ICFG type (must be a inherited class of CFG<N,M>)
  *  Context = Context type (must be a inherited class of ContextBase<N, V, Context>)
+ *  EdgeOrdering = class function that state the order of edge evaluation
  */
 
 template <typename IMP_temp, typename Context, typename EdgeOrdering>
@@ -207,7 +207,7 @@ public:
       bool dst_context_already_exist = Analysis[dst].count(dst_context);
 
       // If there is no context equal to dst_context already in Analysis[dst]
-      // we generate one so the next loop we'll work.
+      // we generate one so the next loop will work.
       if ( !dst_context_already_exist )
         Analysis[dst][dst_context];
 
@@ -221,7 +221,7 @@ public:
       for ( auto& analysis_dst_it = dst_range.first;
             analysis_dst_it != dst_range.second; ++analysis_dst_it ) {
 
-        // flowfactsstabilized = true <-> Same std::set + already visited once
+        // flowfactsstabilized = true <-> Same std::set & already visited once
         bool flowfactsstabilized =
           dst_context_already_exist
             ? IMProblem.sqSubSetEqual(Out, analysis_dst_it->second)
