@@ -145,6 +145,35 @@ protected:
       Worklist.erase(current_it_on_priority);
   }
 
+  virtual void insertSuccessor(Node_t dst) {
+    for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
+      //NOTE: current_it_on_priority->second could be changed by
+      //      Worklist[std::make_pair(current_priority, analysis_dst_it->first)].
+      //      That would make the context change for each context found in
+      //      Analysis[dst], but there is almost 0 chance that there is more
+      //      than 1 context for an intra-edge and using current_context reduce
+      //      the overall number of edges inserted.
+      current_it_on_priority->second.emplace(std::make_pair(dst, nprimeprime));
+    }
+  }
+
+  virtual void GenerateCallEdge(Node_t dst) {
+    auto key = std::make_pair(current_priority+1, current_context);
+    for ( auto callee : ICFG.getCalleesOfCallAt(dst) ) {
+      for ( auto entry_point : ICFG.getStartPointsOf(callee) ) {
+        auto new_edge = std::make_pair(dst, entry_point);
+        Worklist[key].insert(new_edge);
+        call_edges.insert(std::move(new_edge));
+      } // entry_points of callee (~ 1 entry_point)
+    } // callee of method
+  }
+
+  virtual void generateExitEdge(Node_t callSite, Node_t dst, Context_t &dst_context) {
+    for ( auto exit_point : ICFG.getExitPointsOf(ICFG.getMethodOf(dst)) ) {
+      Worklist[std::make_pair(current_priority, dst_context)].emplace(std::make_pair(exit_point, callSite));
+    }
+  }
+
 public:
   InterMonotoneGeneralizedSolver(IMP_t &IMP, Context_t& context, Method_t method)
       : IMProblem(IMP), ICFG(IMP.getICFG()),
@@ -232,30 +261,15 @@ public:
               IMProblem.join(analysis_dst_it->second, Out);
 
           if ( isIntraEdge(edge) ) {
-            for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
-              //NOTE: current_it_on_priority->second could be changed by
-              //      Worklist[std::make_pair(current_priority, analysis_dst_it->first)].
-              //      That would make the context change for each context found in
-              //      Analysis[dst], but there is almost 0 chance that there is more
-              //      than 1 context for an intra-edge and using current_context reduce
-              //      the overall number of edges inserted.
-              current_it_on_priority->second.emplace(std::make_pair(dst, nprimeprime));
-            }
+            insertSuccessor(dst);
           }
         } // unstabilized flow fact
 
         if ( isIntraEdge(edge) ) {
-            if ( ICFG.isCallStmt(dst) ) {
-            // The dst is a call stmt, we create the edge between the call and
-            // the start point of the callees
-            auto key = std::make_pair(current_priority+1, current_context);
-            for ( auto callee : ICFG.getCalleesOfCallAt(dst) ) {
-              for ( auto entry_point : ICFG.getStartPointsOf(callee) ) {
-                auto new_edge = std::make_pair(dst, entry_point);
-                Worklist[key].insert(new_edge);
-                call_edges.insert(std::move(new_edge));
-              } // entry_points of callee (~ 1 entry_point)
-            } // callee of method
+          if ( ICFG.isCallStmt(dst) ) {
+            // The dst is a call stmt, we generate a call edge from the dst node
+            // to the entry points of the callee function
+            GenerateCallEdge(dst);
           }
         } // Intra edge
 
@@ -272,9 +286,7 @@ public:
           // Computed or not, we called a callFlow or callToRetFlow so we generate the
           // exit edges to call the corresponding RetFlow
 
-          for ( auto exit_point : ICFG.getExitPointsOf(ICFG.getMethodOf(dst)) ) {
-            Worklist[std::make_pair(current_priority, dst_context)].emplace(std::make_pair(exit_point, src));
-          }
+          generateExitEdge(src, dst, dst_context);
         } // Is a call edge
 
         // Nothing to do in particular if an Exit statement
