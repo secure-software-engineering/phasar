@@ -23,7 +23,6 @@
 
 #include <ostream>
 #include <map>
-// #include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
 
