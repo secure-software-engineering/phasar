@@ -688,14 +688,18 @@ std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
   auto &lg = lg::get();
-  std::set<const llvm::Function *> funs;
-  for (auto entry : functions) {
-    const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
-    if (f == nullptr) {
-       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << entry.first << " is not contained in the module\n");
+
+  static std::set<const llvm::Function *> funs;
+
+  if ( funs.size() == 0 ) {
+    for (const auto &entry : functions) {
+      const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
+      if (f == nullptr) {
+         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << entry.first << " is not contained in the module\n");
+      }
+      else
+        funs.insert(f);
     }
-    else
-      funs.insert(f);
   }
   return funs;
 }
