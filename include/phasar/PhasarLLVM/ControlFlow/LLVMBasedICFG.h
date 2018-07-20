@@ -29,6 +29,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/PAMM.h>
@@ -63,6 +64,9 @@ std::ostream &operator<<(std::ostream &os, const ResolveStrategy R);
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
+public:
+  using TypeGraph_t = CachedTypeGraph;
+
 private:
   WalkerStrategy W;
   ResolveStrategy R;
@@ -90,7 +94,7 @@ private:
   std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
-  CachedTypeGraph typegraph;
+  TypeGraph_t typegraph;
 
   // Any types that could be initialized outside of the module
   std::set<const llvm::StructType*> unsound_types;

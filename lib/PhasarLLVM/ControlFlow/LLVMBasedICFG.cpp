@@ -618,12 +618,6 @@ set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 
     string receiver_call_target =
         CH.getVTableEntry(receiver_type_name, vtable_index);
-    // insert the receiver types vtable entry
-    // if (receiver_call_target.compare("__cxa_pure_virtual") != 0)
-    //   possible_call_targets.insert(receiver_call_target);
-    // else {
-    //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "found __cxa_pure_virtual : excluded it");
-    // }
     // also insert all possible subtypes vtable entries
     auto fallback_type_names =
         CH.getTransitivelyReachableTypes(receiver_type_name);
