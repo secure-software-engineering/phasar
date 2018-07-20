@@ -364,8 +364,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
   }
 }
 
-void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
-    const llvm::Function *F) {
+void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F) {
   PAMM_FACTORY;
   auto &lg = lg::get();
   // do not analyze functions more than once (this also acts as recursion
@@ -447,6 +446,7 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(
 
 set<string> LLVMBasedICFG::fallbackResolving(llvm::ImmutableCallSite &CS) {
   // We may want to optimise the time of this function as it is in fact most of the time
+  // spent in the ICFG construction and it grows rapidily
   PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

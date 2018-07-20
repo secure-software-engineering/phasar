@@ -57,20 +57,23 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
 
   //NOTE : Interesting statistic as CHA and RTA should only depends on that
   //       and the total number of IR LoC
-  // //Only for mesure of performance
+  //Only for mesure of performance
   // bidigraph_t tc;
   // boost::transitive_closure(g, tc);
   //
-  // unsigned int max = 0;
+  // unsigned int max = 0, total = 0;
   // typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
   //
   // for ( auto vertex : type_vertex_map ) {
   //   tie(ei, ei_end) = boost::out_edges(vertex.second, tc);
   //   unsigned int dist = distance(ei, ei_end);
   //   max = dist > max ? dist : max;
+  //   total += dist;
   // }
   //
   // REG_COUNTER_WITH_VALUE("LTH Max Sub-graph", max);
+  // REG_COUNTER_WITH_VALUE("LTH Total Sub-graph", total);
+  // REG_COUNTER_WITH_VALUE("LTH Mean Sub-graph", double(total)/double(getNumOfVertices()));
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
@@ -269,7 +272,6 @@ string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
     return iter->second.getFunctionByIdx(idx);
   }
 
-  cout << "getVTableEntry(" << TypeName<<", "<< idx << ")\n";
   return "";
 }
 
