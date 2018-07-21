@@ -56,6 +56,7 @@ public:
 
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;
+    std::set<std::string> reachableTypes; 
     /// always StructType so far - is it used anywhere???
     /// Name of the class/struct the vertex is representing.
     std::string name;

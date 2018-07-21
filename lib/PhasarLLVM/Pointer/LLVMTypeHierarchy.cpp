@@ -55,6 +55,21 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
   REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
 
+  bidigraph_t tc;
+  boost::transitive_closure(g, tc);
+
+  typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
+
+  for ( auto vertex : type_vertex_map ) {
+    tie(ei, ei_end) = boost::out_edges(vertex.second, tc);
+    for (; ei != ei_end; ++ei) {
+
+      auto source = boost::source(*ei, tc);
+      auto target = boost::target(*ei, tc);
+      g[vertex.second].reachableTypes.insert(g[target].name);
+    }
+  }
+
   //NOTE : Interesting statistic as CHA and RTA should only depends on that
   //       and the total number of IR LoC
   //Only for mesure of performance
@@ -215,6 +230,8 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
         type_vertex_map[struct_type_name] = boost::add_vertex(g);
         g[type_vertex_map[struct_type_name]].llvmtype = StructType;
         g[type_vertex_map[struct_type_name]].name = StructType->getName().str();
+        g[type_vertex_map[struct_type_name]].reachableTypes.insert(g[type_vertex_map[struct_type_name]].name);
+
       }
     }
   }
@@ -244,22 +261,23 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
   TypeName = psr::uniformTypeName(TypeName);
 
-  set<string> reachable_nodes;
-  bidigraph_t tc;
-  boost::transitive_closure(g, tc);
-
-  // get all out edges of queried type
-  typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
-
-  reachable_nodes.insert(g[type_vertex_map[TypeName]].name);
-  for (tie(ei, ei_end) = boost::out_edges(type_vertex_map[TypeName], tc);
-       ei != ei_end; ++ei) {
-
-    auto source = boost::source(*ei, tc);
-    auto target = boost::target(*ei, tc);
-    reachable_nodes.insert(g[target].name);
-  }
-  return reachable_nodes;
+  // set<string> reachable_nodes;
+  // bidigraph_t tc;
+  // boost::transitive_closure(g, tc);
+  //
+  // // get all out edges of queried type
+  // typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
+  //
+  // reachable_nodes.insert(g[type_vertex_map[TypeName]].name);
+  // for (tie(ei, ei_end) = boost::out_edges(type_vertex_map[TypeName], tc);
+  //      ei != ei_end; ++ei) {
+  //
+  //   auto source = boost::source(*ei, tc);
+  //   auto target = boost::target(*ei, tc);
+  //   reachable_nodes.insert(g[target].name);
+  // }
+  // return reachable_nodes;
+  return g[type_vertex_map[TypeName]].reachableTypes;
 }
 
 string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) const {
