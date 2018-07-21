@@ -48,12 +48,26 @@ void OTFResolver::TreatPossibleTarget(const llvm::ImmutableCallSite &CS, std::se
         << "Target name: " << possible_target->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
-    if (!IRDB.getModuleDefiningFunction(CS.getCaller()->getName().str())
-             ->getFunction(possible_target->getName().str())
-             ->isDeclaration()) {
-      PointsToGraph &callee_ptg =
-          *IRDB.getPointsToGraph(possible_target->getName().str());
-      WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
+
+    if (auto F = CS.getCaller()) {
+      if (auto M = F->getParent()) {
+        if (auto target = M->getFunction(possible_target->getName().str())) {
+          if (!target->isDeclaration()) {
+            PointsToGraph &callee_ptg =
+                *IRDB.getPointsToGraph(possible_target->getName().str());
+            WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
+          }
+        }
+        else {
+          throw runtime_error("target not get");
+        }
+      }
+      else {
+        throw runtime_error("M not get");
+      }
+    }
+    else {
+      throw runtime_error("F not get");
     }
   }
 }
