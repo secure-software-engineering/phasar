@@ -262,12 +262,12 @@ set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
   return reachable_nodes;
 }
 
-string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) {
+string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) const {
   TypeName = psr::uniformTypeName(TypeName);
 
 
 
-  auto iter = vtable_map.find(TypeName);
+  const auto iter = vtable_map.find(TypeName);
   if (iter != vtable_map.end()) {
     return iter->second.getFunctionByIdx(idx);
   }
@@ -300,7 +300,7 @@ bool LLVMTypeHierarchy::containsVTable(string TypeName) const {
   return iter != vtable_map.end();
 }
 
-bool LLVMTypeHierarchy::containsType(string TypeName) {
+bool LLVMTypeHierarchy::containsType(string TypeName) const {
   TypeName = psr::uniformTypeName(TypeName);
 
   return recognized_struct_types.count(TypeName);

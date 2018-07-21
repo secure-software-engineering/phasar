@@ -19,7 +19,7 @@
 #include <string>
 #include <set>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
 
 namespace llvm {
   class ImmutableCallSite;
@@ -28,12 +28,13 @@ namespace llvm {
 }
 
 namespace psr {
-  struct RTAResolver : virtual public CHAResolver {
+  struct RTAResolver : public CHAResolver {
   protected:
     std::set<const llvm::StructType*> unsound_types;
 
   public:
-    RTAResolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch);
+    RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+    virtual ~RTAResolver() = default;
 
     virtual void firstFunction(const llvm::Function* F) override;
     virtual std::set<std::string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;

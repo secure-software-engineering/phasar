@@ -23,27 +23,32 @@ namespace llvm {
   class Instruction;
   class ImmutableCallSite;
   class Function;
+  class StructType;
 }
 
 namespace psr {
   class ProjectIRDB;
   class LLVMTypeHierarchy;
 
-  struct Resolver {
+  class Resolver {
   protected:
     ProjectIRDB &IRDB;
     LLVMTypeHierarchy &CH;
 
   protected:
-    unsigned int getVtableIndex(const llvm::ImmutableCallSite &CS) const;
+    int getVtableIndex(const llvm::ImmutableCallSite &CS) const;
+    const llvm::StructType* getReceiverType(const llvm::ImmutableCallSite &CS) const;
     std::string getReceiverTypeName(const llvm::ImmutableCallSite &CS) const;
-    void insertVtableIntoResult(std::set<std::string> &results, std::string &struct_name, unsigned vtable_index);
+    void insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name, const unsigned vtable_index);
 
   public:
-    Resolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch);
+    Resolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+
+    virtual ~Resolver() = default;
 
     virtual void firstFunction(const llvm::Function* F);
     virtual void preCall(const llvm::Instruction* inst);
+    virtual void TreatPossibleTarget(const llvm::ImmutableCallSite &CS, std::set<const llvm::Function *> &possible_targets);
     virtual void postCall(const llvm::Instruction* inst);
     virtual void OtherInst(const llvm::Instruction* inst);
     virtual std::set<std::string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) = 0;

@@ -172,11 +172,11 @@ AnalysisController::AnalysisController(
     break;
   case CallGraphAnalysisType::DTA:
     CGWalker = WalkerStrategy::DeclaredType;
-    CGResolve = ResolveStrategy::TA;
+    CGResolve = ResolveStrategy::DTA;
     break;
   case CallGraphAnalysisType::VTA:
     CGWalker = WalkerStrategy::VariableType;
-    CGResolve = ResolveStrategy::TA;
+    CGResolve = ResolveStrategy::DTA;
     break;
   case CallGraphAnalysisType::OTF:
     CGWalker = WalkerStrategy::Pointer;

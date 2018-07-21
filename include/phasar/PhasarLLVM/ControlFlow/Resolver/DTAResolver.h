@@ -19,8 +19,9 @@
 #include <string>
 #include <set>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
-#include <phasar/PhasarLLVM/Utils/TypeGraphs/CachedTypeGraph.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
+#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 
 
 namespace llvm {
@@ -31,7 +32,7 @@ namespace llvm {
 namespace psr {
   class ProjectIRDB;
 
-  struct DTAResolver : virtual public CHAResolver {
+  struct DTAResolver : public CHAResolver {
   public:
     using TypeGraph_t = CachedTypeGraph;
 
@@ -39,12 +40,24 @@ namespace psr {
     TypeGraph_t typegraph;
     std::set<const llvm::StructType*> unsound_types;
 
-  public:
-    DTAResolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch);
+    /**
+     * An heuristic that return true if the bitcast instruction is interesting to take into
+     * the DTA relational graph
+     */
+    bool heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast);
 
-    virtual void preCall(const llvm::Instruction* inst) override;
-    virtual void postCall(const llvm::Instruction* inst) override;
-    virtual void OtherInst(const llvm::Instruction* inst) override;
+    /**
+     * Another heuristic that return true if the bitcast instruction is interesting to take into
+     * the DTA relational graph (use the presence or not of vtable)
+     */
+    bool heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast);
+
+  public:
+    DTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+    virtual ~DTAResolver() = default;
+
+    virtual void firstFunction(const llvm::Function* F) override;
+    virtual void OtherInst(const llvm::Instruction* Inst) override;
     virtual std::set<std::string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
   };
 } // namespace psr

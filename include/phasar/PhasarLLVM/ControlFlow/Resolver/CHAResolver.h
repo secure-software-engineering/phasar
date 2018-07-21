@@ -26,9 +26,10 @@ namespace llvm {
 }
 
 namespace psr {
-  struct CHAResolver : virtual public Resolver {
+  struct CHAResolver : public Resolver {
   public:
-    CHAResolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch);
+    CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+    virtual ~CHAResolver() = default;
 
     virtual std::set<std::string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
   };

@@ -48,7 +48,7 @@ std::string debasify(const std::string &name);
 
 std::string uniformTypeName(const std::string &name);
 
-llvm::Type* stripPointer(llvm::Type* pointer);
+const llvm::Type* stripPointer(const llvm::Type* pointer);
 
 bool isMangled(const std::string &name);
 

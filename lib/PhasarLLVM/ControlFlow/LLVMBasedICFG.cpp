@@ -30,6 +30,11 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
+
 
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -63,13 +68,13 @@ ostream &operator<<(ostream &os, const WalkerStrategy W) {
 const map<string, ResolveStrategy> StringToResolveStrategy = {
     {"CHA", ResolveStrategy::CHA},
     {"RTA", ResolveStrategy::RTA},
-    {"TA", ResolveStrategy::TA},
+    {"DTA", ResolveStrategy::DTA},
     {"OTF", ResolveStrategy::OTF}};
 
 const map<ResolveStrategy, string> ResolveStrategyToString = {
     {ResolveStrategy::CHA, "CHA"},
     {ResolveStrategy::RTA, "RTA"},
-    {ResolveStrategy::TA, "TA"},
+    {ResolveStrategy::DTA, "DTA"},
     {ResolveStrategy::OTF, "OTF"}};
 
 ostream &operator<<(ostream &os, const ResolveStrategy R) {
@@ -121,7 +126,30 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
           "Could not retrieve llvm::Function for entry point");
     PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
     WholeModulePTG.mergeWith(ptg, F);
-    Walker.at(W)(this, F);
+    // Should find a better way to do this
+    Resolver_t* resolver = nullptr;
+    switch(RS) {
+      case(ResolveStrategy::CHA):
+        resolver = new CHAResolver(IRDB, CH);
+        break;
+      case(ResolveStrategy::RTA):
+        resolver = new RTAResolver(IRDB, CH);
+        break;
+      case(ResolveStrategy::DTA):
+        resolver = new DTAResolver(IRDB, CH);
+        break;
+      case(ResolveStrategy::OTF):
+        resolver = new OTFResolver(IRDB, CH, WholeModulePTG);
+        break;
+      default:
+        throw runtime_error("Resolver strategy not properly instantiated");
+        break;
+    }
+
+    constructionWalker(F, resolver);
+
+    delete resolver;
+    // Walker.at(W)(this, F);
   }
   REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
   REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
@@ -159,14 +187,37 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     if (F && !F->isDeclaration()) {
       PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
       WholeModulePTG.mergeWith(ptg, F);
-      Walker.at(W)(this, F);
+      // Walker.at(W)(this, F);
+      Resolver_t* resolver = nullptr;
+      switch(RS) {
+        case(ResolveStrategy::CHA):
+          resolver = new CHAResolver(IRDB, CH);
+          break;
+        case(ResolveStrategy::RTA):
+          resolver = new RTAResolver(IRDB, CH);
+          break;
+        case(ResolveStrategy::DTA):
+          resolver = new DTAResolver(IRDB, CH);
+          break;
+        case(ResolveStrategy::OTF):
+          resolver = new OTFResolver(IRDB, CH, WholeModulePTG);
+          break;
+        default:
+          throw runtime_error("Resolver strategy not properly instantiated");
+          break;
+      }
+
+      constructionWalker(F, resolver);
+
+      delete resolver;
     }
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
 }
 
-void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &resolver) {
+void LLVMBasedICFG::constructionWalker(const llvm::Function* F, Resolver_t* resolver) {
   PAMM_FACTORY;
+  static bool first_function = true;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str());
 
@@ -183,16 +234,17 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &reso
     cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
   }
 
-  if (VisitedFunctions.size() == 1) {
-    resolver.firstFunction(F);
+  if (first_function) {
+    first_function = false;
+    resolver->firstFunction(F);
   }
 
-  for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
+  for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F); I != E;
        ++I) {
     const llvm::Instruction &Inst = *I;
 
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
-      resolver.preCall(&Inst);
+      resolver->preCall(&Inst);
 
       llvm::ImmutableCallSite cs(&Inst);
       set<const llvm::Function *> possible_targets;
@@ -209,11 +261,11 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &reso
         // call the resolve routine
         set<string> possible_target_names;
 
-        if (isVirtualFunctionCall(CS)) {
-          possible_target_names = resolver.resolveVirtualCall(cs);
+        if (isVirtualFunctionCall(cs)) {
+          possible_target_names = resolver->resolveVirtualCall(cs);
         }
         else {
-          possible_target_names = resolver.resolveFunctionPointer(cs);
+          possible_target_names = resolver->resolveFunctionPointer(cs);
         }
 
         for (auto &possible_target_name : possible_target_names) {
@@ -226,6 +278,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &reso
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
           << "Found " << possible_targets.size() << " possible target(s)");
 
+      resolver->TreatPossibleTarget(cs, possible_targets);
       // Insert possible target inside the graph and add the link with
       // the current function
       for (auto &possible_target : possible_targets) {
@@ -248,10 +301,10 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &reso
         constructionWalker(possible_target, resolver);
       }
 
-      resolver.postCall(&Inst);
+      resolver->postCall(&Inst);
     }
     else {
-      resolver.OtherInst(&Inst);
+      resolver->OtherInst(&Inst);
     }
   }
 }
@@ -340,190 +393,190 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function F*, Resolver_t &reso
 //   }
 // }
 
-void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
-  PAMM_FACTORY;
-  static bool first_function = true;
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str());
-  // do not analyze functions more than once (this also acts as recursion
-  // detection)
-  if (VisitedFunctions.count(F) || F->isDeclaration()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Function already visited or only declaration: "
-                             << F->getName().str());
-    return;
-  }
-  VisitedFunctions.insert(F);
-  // add a node for function F to the call graph (if not present already)
-  if (!function_vertex_map.count(F->getName().str())) {
-    function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
-    cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
-  }
+// void LLVMBasedICFG::resolveIndirectCallWalkerDTA(const llvm::Function *F) {
+//   PAMM_FACTORY;
+//   static bool first_function = true;
+//   auto &lg = lg::get();
+//   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str());
+//   // do not analyze functions more than once (this also acts as recursion
+//   // detection)
+//   if (VisitedFunctions.count(F) || F->isDeclaration()) {
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Function already visited or only declaration: "
+//                              << F->getName().str());
+//     return;
+//   }
+//   VisitedFunctions.insert(F);
+//   // add a node for function F to the call graph (if not present already)
+//   if (!function_vertex_map.count(F->getName().str())) {
+//     function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
+//     cg[function_vertex_map[F->getName().str()]] = VertexProperties(F);
+//   }
+//
+//   if (first_function) {
+//     // If it's the first analyzed function, insert the class pointed by
+//     // argument as unsound (we use a CHA algorithm on them to assure an almost
+//     // sound analysis (except if the program does a reverse hierarchy cast)
+//     // (i.e. "class A {}; class B : A {}; B* b = (B*) new A()" ) as this results
+//     // in unsound and almost everytime undefined behavior
+//
+//     first_function = false;
+//     auto func_type = F->getFunctionType();
+//
+//     for ( auto param : func_type->params() ) {
+//       if ( llvm::isa<llvm::PointerType>(param) ) {
+//         if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
+//           unsound_types.insert(struct_ty);
+//         }
+//       }
+//     }
+//   }
+//
+//   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
+//        ++I) {
+//     const llvm::Instruction &Inst = *I;
+//
+//     if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
+//       // We add the connection between the two types in the DTA graph
+//       auto src = BitCast->getSrcTy();
+//       auto dest = BitCast->getDestTy();
+//
+//       auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
+//       auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
+//
+//       if (src_struct_type && dest_struct_type && heuristic_anti_contructor_vtable_pos(BitCast))
+//         typegraph.addLink(dest_struct_type, src_struct_type);
+//     }
+//   }
+//
+//   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
+//        ++I) {
+//     const llvm::Instruction &Inst = *I;
+//
+//     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
+//       // CallStack.push_back(&Inst);
+//       llvm::ImmutableCallSite cs(&Inst);
+//       set<const llvm::Function *> possible_targets;
+//       // check if function call can be resolved statically
+//       if (cs.getCalledFunction() != nullptr) {
+//         possible_targets.insert(cs.getCalledFunction());
+//         INC_COUNTER("ICFG static calls");
+//         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
+//                                  << llvmIRToString(cs.getInstruction()));
+//       } else { // the function call must be resolved dynamically
+//         INC_COUNTER("ICFG dynamic calls");
+//         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
+//                                  << llvmIRToString(cs.getInstruction()));
+//         // call the resolve routine
+//         set<string> possible_target_names = Resolver.at(R)(this, cs);
+//         for (auto &possible_target_name : possible_target_names) {
+//           if (auto target_func = IRDB.getFunction(possible_target_name)) {
+//             possible_targets.insert(target_func);
+//           }
+//         }
+//       }
+//       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//           << "Found " << possible_targets.size() << " possible target(s)");
+//       for (auto possible_target : possible_targets) {
+//         if (!function_vertex_map.count(possible_target->getName().str())) {
+//           function_vertex_map[possible_target->getName().str()] =
+//               boost::add_vertex(cg);
+//           cg[function_vertex_map[possible_target->getName().str()]] =
+//               VertexProperties(possible_target,
+//                                possible_target->isDeclaration());
+//         }
+//         boost::add_edge(function_vertex_map[F->getName().str()],
+//                         function_vertex_map[possible_target->getName().str()],
+//                         EdgeProperties(cs.getInstruction()), cg);
+//       }
+//
+//       // continue resolving
+//       for (auto possible_target : possible_targets) {
+//         resolveIndirectCallWalkerDTA(possible_target);
+//       }
+//       // CallStack.pop_back();
+//     }
+//   }
+// }
 
-  if (first_function) {
-    // If it's the first analyzed function, insert the class pointed by
-    // argument as unsound (we use a CHA algorithm on them to assure an almost
-    // sound analysis (except if the program does a reverse hierarchy cast)
-    // (i.e. "class A {}; class B : A {}; B* b = (B*) new A()" ) as this results
-    // in unsound and almost everytime undefined behavior
-
-    first_function = false;
-    auto func_type = F->getFunctionType();
-
-    for ( auto param : func_type->params() ) {
-      if ( llvm::isa<llvm::PointerType>(param) ) {
-        if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(param)) ) {
-          unsound_types.insert(struct_ty);
-        }
-      }
-    }
-  }
-
-  for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
-       ++I) {
-    const llvm::Instruction &Inst = *I;
-
-    if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(&Inst)) {
-      // We add the connection between the two types in the DTA graph
-      auto src = BitCast->getSrcTy();
-      auto dest = BitCast->getDestTy();
-
-      auto src_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(src));
-      auto dest_struct_type = llvm::dyn_cast<llvm::StructType>(stripPointer(dest));
-
-      if (src_struct_type && dest_struct_type && heuristic_anti_contructor_vtable_pos(BitCast))
-        typegraph.addLink(dest_struct_type, src_struct_type);
-    }
-  }
-
-  for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
-       ++I) {
-    const llvm::Instruction &Inst = *I;
-
-    if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
-      // CallStack.push_back(&Inst);
-      llvm::ImmutableCallSite cs(&Inst);
-      set<const llvm::Function *> possible_targets;
-      // check if function call can be resolved statically
-      if (cs.getCalledFunction() != nullptr) {
-        possible_targets.insert(cs.getCalledFunction());
-        INC_COUNTER("ICFG static calls");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
-                                 << llvmIRToString(cs.getInstruction()));
-      } else { // the function call must be resolved dynamically
-        INC_COUNTER("ICFG dynamic calls");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
-                                 << llvmIRToString(cs.getInstruction()));
-        // call the resolve routine
-        set<string> possible_target_names = Resolver.at(R)(this, cs);
-        for (auto &possible_target_name : possible_target_names) {
-          if (auto target_func = IRDB.getFunction(possible_target_name)) {
-            possible_targets.insert(target_func);
-          }
-        }
-      }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-          << "Found " << possible_targets.size() << " possible target(s)");
-      for (auto possible_target : possible_targets) {
-        if (!function_vertex_map.count(possible_target->getName().str())) {
-          function_vertex_map[possible_target->getName().str()] =
-              boost::add_vertex(cg);
-          cg[function_vertex_map[possible_target->getName().str()]] =
-              VertexProperties(possible_target,
-                               possible_target->isDeclaration());
-        }
-        boost::add_edge(function_vertex_map[F->getName().str()],
-                        function_vertex_map[possible_target->getName().str()],
-                        EdgeProperties(cs.getInstruction()), cg);
-      }
-
-      // continue resolving
-      for (auto possible_target : possible_targets) {
-        resolveIndirectCallWalkerDTA(possible_target);
-      }
-      // CallStack.pop_back();
-    }
-  }
-}
-
-void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F) {
-  PAMM_FACTORY;
-  auto &lg = lg::get();
-  // do not analyze functions more than once (this also acts as recursion
-  // detection)
-  if (VisitedFunctions.count(F) || F->isDeclaration()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Function already visited or only declaration: "
-                             << F->getName().str());
-    return;
-  }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str());
-  VisitedFunctions.insert(F);
-  // add a node for function F to the call graph (if not present already)
-  if (!function_vertex_map.count(F->getName().str())) {
-    function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
-    cg[function_vertex_map[F->getName().str()]] =
-        VertexProperties(F, F->isDeclaration());
-  }
-  for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
-       ++I) {
-    const llvm::Instruction &Inst = *I;
-    if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
-      CallStack.push_back(&Inst);
-      llvm::ImmutableCallSite cs(&Inst);
-      set<const llvm::Function *> possible_targets;
-      // function can be resolved statically
-      if (cs.getCalledFunction() != nullptr) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
-                                 << llvmIRToString(cs.getInstruction()));
-        INC_COUNTER("ICFG static calls");
-        possible_targets.insert(cs.getCalledFunction());
-      } else {
-        // we have to resolve the called function ourselves using the accessible
-        // points-to information
-        INC_COUNTER("ICFG dynamic calls");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
-                                 << llvmIRToString(cs.getInstruction()));
-        // call the resolve routine
-        set<string> possible_target_names = Resolver.at(R)(this, cs);
-        for (auto &possible_target_name : possible_target_names) {
-          if (IRDB.getFunction(possible_target_name)) {
-            possible_targets.insert(IRDB.getFunction(possible_target_name));
-          }
-        }
-      }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-          << "Found " << possible_targets.size() << " possible target(s):");
-      for (auto possible_target : possible_targets) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-            << "Target name: " << possible_target->getName().str());
-        // Do the merge of the points-to graphs for all possible targets, but
-        // only if they are available
-        if (!F->getParent()
-                 ->getFunction(possible_target->getName().str())
-                 ->isDeclaration()) {
-          PointsToGraph &callee_ptg =
-              *IRDB.getPointsToGraph(possible_target->getName().str());
-          WholeModulePTG.mergeWith(callee_ptg, cs, possible_target);
-        }
-        // add into boost graph
-        if (!function_vertex_map.count(possible_target->getName().str())) {
-          function_vertex_map[possible_target->getName().str()] =
-              boost::add_vertex(cg);
-          cg[function_vertex_map[possible_target->getName().str()]] =
-              VertexProperties(possible_target,
-                               possible_target->isDeclaration());
-        }
-        boost::add_edge(function_vertex_map[F->getName().str()],
-                        function_vertex_map[possible_target->getName().str()],
-                        EdgeProperties(cs.getInstruction()), cg);
-      }
-      // continue resolving recursively
-      for (auto possible_target : possible_targets) {
-        resolveIndirectCallWalkerPointerAnalysis(possible_target);
-      }
-      CallStack.pop_back();
-    }
-  }
-}
+// void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F) {
+//   PAMM_FACTORY;
+//   auto &lg = lg::get();
+//   // do not analyze functions more than once (this also acts as recursion
+//   // detection)
+//   if (VisitedFunctions.count(F) || F->isDeclaration()) {
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Function already visited or only declaration: "
+//                              << F->getName().str());
+//     return;
+//   }
+//   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Walking in function: " << F->getName().str());
+//   VisitedFunctions.insert(F);
+//   // add a node for function F to the call graph (if not present already)
+//   if (!function_vertex_map.count(F->getName().str())) {
+//     function_vertex_map[F->getName().str()] = boost::add_vertex(cg);
+//     cg[function_vertex_map[F->getName().str()]] =
+//         VertexProperties(F, F->isDeclaration());
+//   }
+//   for (llvm::const_inst_iterator I = inst_begin(F), E = inst_end(F); I != E;
+//        ++I) {
+//     const llvm::Instruction &Inst = *I;
+//     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
+//       CallStack.push_back(&Inst);
+//       llvm::ImmutableCallSite cs(&Inst);
+//       set<const llvm::Function *> possible_targets;
+//       // function can be resolved statically
+//       if (cs.getCalledFunction() != nullptr) {
+//         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
+//                                  << llvmIRToString(cs.getInstruction()));
+//         INC_COUNTER("ICFG static calls");
+//         possible_targets.insert(cs.getCalledFunction());
+//       } else {
+//         // we have to resolve the called function ourselves using the accessible
+//         // points-to information
+//         INC_COUNTER("ICFG dynamic calls");
+//         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
+//                                  << llvmIRToString(cs.getInstruction()));
+//         // call the resolve routine
+//         set<string> possible_target_names = Resolver.at(R)(this, cs);
+//         for (auto &possible_target_name : possible_target_names) {
+//           if (IRDB.getFunction(possible_target_name)) {
+//             possible_targets.insert(IRDB.getFunction(possible_target_name));
+//           }
+//         }
+//       }
+//       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//           << "Found " << possible_targets.size() << " possible target(s):");
+//       for (auto possible_target : possible_targets) {
+//         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//             << "Target name: " << possible_target->getName().str());
+//         // Do the merge of the points-to graphs for all possible targets, but
+//         // only if they are available
+//         if (!F->getParent()
+//                  ->getFunction(possible_target->getName().str())
+//                  ->isDeclaration()) {
+//           PointsToGraph &callee_ptg =
+//               *IRDB.getPointsToGraph(possible_target->getName().str());
+//           WholeModulePTG.mergeWith(callee_ptg, cs, possible_target);
+//         }
+//         // add into boost graph
+//         if (!function_vertex_map.count(possible_target->getName().str())) {
+//           function_vertex_map[possible_target->getName().str()] =
+//               boost::add_vertex(cg);
+//           cg[function_vertex_map[possible_target->getName().str()]] =
+//               VertexProperties(possible_target,
+//                                possible_target->isDeclaration());
+//         }
+//         boost::add_edge(function_vertex_map[F->getName().str()],
+//                         function_vertex_map[possible_target->getName().str()],
+//                         EdgeProperties(cs.getInstruction()), cg);
+//       }
+//       // continue resolving recursively
+//       for (auto possible_target : possible_targets) {
+//         resolveIndirectCallWalkerPointerAnalysis(possible_target);
+//       }
+//       CallStack.pop_back();
+//     }
+//   }
+// }
 
 // set<string> LLVMBasedICFG::fallbackResolving(llvm::ImmutableCallSite &CS) {
 //   // We may want to optimise the time of this function as it is in fact most of the time
@@ -550,106 +603,106 @@ void LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis(const llvm::Functio
 //   return possible_call_targets;
 // }
 
-set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallOTF");
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
-  set<string> possible_call_targets;
-  // check if we have a virtual call-site
-  if (isVirtualFunctionCall(CS)) {
-    START_TIMER("ICFG resolveCallOTF::VirtualCall");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-    INC_COUNTER("ICFG virtual calls");
-    // deal with a virtual member function
-    // retrieve the vtable entry that is called
-    const llvm::LoadInst *load =
-        llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-    const llvm::GetElementPtrInst *gep =
-        llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-    unsigned vtable_index =
-        llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Virtual function table entry is: " << vtable_index);
-    const llvm::Value *receiver = CS.getArgOperand(0);
-    const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
-        receiver->getType()->getPointerElementType());
-    if (!receiver_type) {
-      throw runtime_error("Receiver type is not a struct type!");
-    }
-    // cout << "receiver type: " << receiver_type->getName().str() << endl;
-    auto alloc_sites =
-        WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
-    auto possible_allocated_types =
-        WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
-
-    // Now we must check if we have found some allocated struct types
-    set<const llvm::StructType *> possible_types;
-    for (auto type : possible_allocated_types) {
-      auto element_type = type;
-      while (element_type->isPointerTy()) {
-        element_type = element_type->getPointerElementType();
-      }
-      if (auto struct_type = llvm::dyn_cast<llvm::StructType>(element_type)) {
-        possible_types.insert(struct_type);
-      }
-    }
-    // Check if we have found something, otherwise we must use a fallback
-    // solution
-    if (possible_types.empty()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << "Could not find any other possible type "
-                                    "through allocation sites, using fall-back "
-                                    "solution");
-      // here we take the conservative fall-back solution
-      // insert declared type
-      // here we have to call debasify() since the following IR might be
-      // generated:
-      //   %struct.A = type <{ i32 (...)**, i32, [4 x i8] }>
-      //   %struct.B = type { %struct.A.base, [4 x i8] }
-      //   %struct.A.base = type <{ i32 (...)**, i32 }>
-      // in such a case %struct.A and %struct.A.base are treated as aliases
-      // and the vtable for A is stored
-      // under the name %struct.A whereas in the class hierarchy
-      // %struct.A.base is used!
-      // debasify() fixes that circumstance and returns it for all normal
-      // cases.
-      string receiver_type_name = debasify(receiver_type->getName().str());
-      // insert the receiver types vtable entry
-      possible_call_targets.insert(
-          CH.getVTableEntry(receiver_type_name, vtable_index));
-      // also insert all possible subtypes vtable entries
-      auto fallback_type_names =
-          CH.getTransitivelyReachableTypes(receiver_type_name);
-      for (auto &fallback_name : fallback_type_names) {
-        possible_call_targets.insert(
-            CH.getVTableEntry(fallback_name, vtable_index));
-      }
-
-      PAUSE_TIMER("ICFG resolveCallOTF::VirtualCall");
-    } else {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
-          << "Could find possible types through allocation sites");
-      for (auto type : possible_types) {
-        possible_call_targets.insert(CH.getVTableEntry(
-            debasify(type->getStructName().str()), vtable_index));
-      }
-    }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible targets are:");
-    for (auto entry : possible_call_targets) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << entry);
-    }
-  } else {
-    // otherwise we have to deal with a function pointer
-    // if we classified a member function call incorrectly as a function pointer
-    // call, the following treatment is robust enough to handle it.
-    possible_call_targets = fallbackResolving(CS);
-  }
-
-  PAUSE_TIMER("ICFG resolveCallOTF");
-
-  return possible_call_targets;
-}
+// set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
+//   PAMM_FACTORY;
+//   START_TIMER("ICFG resolveCallOTF");
+//   auto &lg = lg::get();
+//   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
+//   set<string> possible_call_targets;
+//   // check if we have a virtual call-site
+//   if (isVirtualFunctionCall(CS)) {
+//     START_TIMER("ICFG resolveCallOTF::VirtualCall");
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
+//     INC_COUNTER("ICFG virtual calls");
+//     // deal with a virtual member function
+//     // retrieve the vtable entry that is called
+//     const llvm::LoadInst *load =
+//         llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+//     const llvm::GetElementPtrInst *gep =
+//         llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
+//     unsigned vtable_index =
+//         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Virtual function table entry is: " << vtable_index);
+//     const llvm::Value *receiver = CS.getArgOperand(0);
+//     const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
+//         receiver->getType()->getPointerElementType());
+//     if (!receiver_type) {
+//       throw runtime_error("Receiver type is not a struct type!");
+//     }
+//     // cout << "receiver type: " << receiver_type->getName().str() << endl;
+//     auto alloc_sites =
+//         WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
+//     auto possible_allocated_types =
+//         WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
+//
+//     // Now we must check if we have found some allocated struct types
+//     set<const llvm::StructType *> possible_types;
+//     for (auto type : possible_allocated_types) {
+//       auto element_type = type;
+//       while (element_type->isPointerTy()) {
+//         element_type = element_type->getPointerElementType();
+//       }
+//       if (auto struct_type = llvm::dyn_cast<llvm::StructType>(element_type)) {
+//         possible_types.insert(struct_type);
+//       }
+//     }
+//     // Check if we have found something, otherwise we must use a fallback
+//     // solution
+//     if (possible_types.empty()) {
+//       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << "Could not find any other possible type "
+//                                     "through allocation sites, using fall-back "
+//                                     "solution");
+//       // here we take the conservative fall-back solution
+//       // insert declared type
+//       // here we have to call debasify() since the following IR might be
+//       // generated:
+//       //   %struct.A = type <{ i32 (...)**, i32, [4 x i8] }>
+//       //   %struct.B = type { %struct.A.base, [4 x i8] }
+//       //   %struct.A.base = type <{ i32 (...)**, i32 }>
+//       // in such a case %struct.A and %struct.A.base are treated as aliases
+//       // and the vtable for A is stored
+//       // under the name %struct.A whereas in the class hierarchy
+//       // %struct.A.base is used!
+//       // debasify() fixes that circumstance and returns it for all normal
+//       // cases.
+//       string receiver_type_name = debasify(receiver_type->getName().str());
+//       // insert the receiver types vtable entry
+//       possible_call_targets.insert(
+//           CH.getVTableEntry(receiver_type_name, vtable_index));
+//       // also insert all possible subtypes vtable entries
+//       auto fallback_type_names =
+//           CH.getTransitivelyReachableTypes(receiver_type_name);
+//       for (auto &fallback_name : fallback_type_names) {
+//         possible_call_targets.insert(
+//             CH.getVTableEntry(fallback_name, vtable_index));
+//       }
+//
+//       PAUSE_TIMER("ICFG resolveCallOTF::VirtualCall");
+//     } else {
+//       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
+//           << "Could find possible types through allocation sites");
+//       for (auto type : possible_types) {
+//         possible_call_targets.insert(CH.getVTableEntry(
+//             debasify(type->getStructName().str()), vtable_index));
+//       }
+//     }
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible targets are:");
+//     for (auto entry : possible_call_targets) {
+//       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << entry);
+//     }
+//   } else {
+//     // otherwise we have to deal with a function pointer
+//     // if we classified a member function call incorrectly as a function pointer
+//     // call, the following treatment is robust enough to handle it.
+//     possible_call_targets = fallbackResolving(CS);
+//   }
+//
+//   PAUSE_TIMER("ICFG resolveCallOTF");
+//
+//   return possible_call_targets;
+// }
 
 // set<string> LLVMBasedICFG::resolveIndirectCallCHA(llvm::ImmutableCallSite CS) {
 //   PAMM_FACTORY;
@@ -724,171 +777,171 @@ set<string> LLVMBasedICFG::resolveIndirectCallOTF(llvm::ImmutableCallSite CS) {
 //   return possible_call_targets;
 // }
 
-//FIXME: The allocated type cannot deal with tier library
-// For exemple, if a type is always allocated through a std::make_uniq,
-// allocated_type will not contains the right types
-set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
-  throw runtime_error("RTA is currently unabled to deal with tier library, it has been disable until this is fixed");
+// //FIXME: The allocated type cannot deal with tier library
+// // For exemple, if a type is always allocated through a std::make_uniq,
+// // allocated_type will not contains the right types
+// set<string> LLVMBasedICFG::resolveIndirectCallRTA(llvm::ImmutableCallSite CS) {
+//   throw runtime_error("RTA is currently unabled to deal with tier library, it has been disable until this is fixed");
+//
+//   PAMM_FACTORY;
+//   START_TIMER("ICFG resolveCallRTA");
+//
+//   auto &lg = lg::get();
+//   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
+//   set<string> possible_call_targets;
+//   // check if we have a virtual call-site
+//   if (isVirtualFunctionCall(CS)) {
+//     START_TIMER("ICFG resolveCallRTA::VirtualCall");
+//
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
+//     INC_COUNTER("ICFG virtual calls");
+//     // deal with a virtual member function
+//     // retrieve the vtable entry that is called
+//     const llvm::LoadInst *load =
+//         llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+//
+//     if (load == nullptr) {
+//       cout << "Error with resolveVirtualCall : no load\n"
+//            << llvmIRToString(CS.getInstruction())
+//            << "\n";
+//
+//       PAUSE_TIMER("ICFG resolveCallRTA::VirtualCall");
+//       PAUSE_TIMER("ICFG resolveCallRTA");
+//       return set<string>();
+//     }
+//     const llvm::GetElementPtrInst *gep =
+//         llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
+//     unsigned vtable_index =
+//         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Virtual function table entry is: " << vtable_index);
+//
+//     const llvm::Value *receiver = CS.getArgOperand(0);
+//     const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
+//         receiver->getType()->getPointerElementType());
+//     if (!receiver_type) {
+//       throw runtime_error("Receiver type is not a struct type!");
+//     }
+//
+//     // If the type is unsound, return all a sound possibility
+//     if (unsound_types.find(receiver_type) != unsound_types.end())
+//       return resolveIndirectCallCHA(CS);
+//
+//     string receiver_type_name = debasify(receiver_type->getName().str());
+//
+//     // also insert all possible subtypes vtable entries
+//     auto possible_types = IRDB.getAllocatedTypes();
+//
+//     auto reachable_type_names =
+//         CH.getTransitivelyReachableTypes(receiver_type_name);
+//
+//     auto end_it = reachable_type_names.end();
+//     for (auto possible_type : possible_types) {
+//       if (auto possible_type_struct =
+//               llvm::dyn_cast<llvm::StructType>(possible_type)) {
+//         string type_name = possible_type_struct->getName().str();
+//         if (reachable_type_names.find(type_name) != end_it) {
+//           possible_call_targets.insert(
+//               CH.getVTableEntry(type_name, vtable_index));
+//         }
+//       }
+//     }
+//
+//     PAUSE_TIMER("ICFG resolveCallRTA::VirtualCall");
+//   } else {
+//     // otherwise we have to deal with a function pointer
+//     // if we classified a member function call incorrectly as a function pointer
+//     // call, the following treatment is robust enough to handle it.
+//     possible_call_targets = fallbackResolving(CS);
+//   }
+//   PAUSE_TIMER("ICFG resolveCallRTA");
+//
+//   return possible_call_targets;
+// }
 
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallRTA");
-
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
-  set<string> possible_call_targets;
-  // check if we have a virtual call-site
-  if (isVirtualFunctionCall(CS)) {
-    START_TIMER("ICFG resolveCallRTA::VirtualCall");
-
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-    INC_COUNTER("ICFG virtual calls");
-    // deal with a virtual member function
-    // retrieve the vtable entry that is called
-    const llvm::LoadInst *load =
-        llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-
-    if (load == nullptr) {
-      cout << "Error with resolveVirtualCall : no load\n"
-           << llvmIRToString(CS.getInstruction())
-           << "\n";
-
-      PAUSE_TIMER("ICFG resolveCallRTA::VirtualCall");
-      PAUSE_TIMER("ICFG resolveCallRTA");
-      return set<string>();
-    }
-    const llvm::GetElementPtrInst *gep =
-        llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-    unsigned vtable_index =
-        llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Virtual function table entry is: " << vtable_index);
-
-    const llvm::Value *receiver = CS.getArgOperand(0);
-    const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
-        receiver->getType()->getPointerElementType());
-    if (!receiver_type) {
-      throw runtime_error("Receiver type is not a struct type!");
-    }
-
-    // If the type is unsound, return all a sound possibility
-    if (unsound_types.find(receiver_type) != unsound_types.end())
-      return resolveIndirectCallCHA(CS);
-
-    string receiver_type_name = debasify(receiver_type->getName().str());
-
-    // also insert all possible subtypes vtable entries
-    auto possible_types = IRDB.getAllocatedTypes();
-
-    auto reachable_type_names =
-        CH.getTransitivelyReachableTypes(receiver_type_name);
-
-    auto end_it = reachable_type_names.end();
-    for (auto possible_type : possible_types) {
-      if (auto possible_type_struct =
-              llvm::dyn_cast<llvm::StructType>(possible_type)) {
-        string type_name = possible_type_struct->getName().str();
-        if (reachable_type_names.find(type_name) != end_it) {
-          possible_call_targets.insert(
-              CH.getVTableEntry(type_name, vtable_index));
-        }
-      }
-    }
-
-    PAUSE_TIMER("ICFG resolveCallRTA::VirtualCall");
-  } else {
-    // otherwise we have to deal with a function pointer
-    // if we classified a member function call incorrectly as a function pointer
-    // call, the following treatment is robust enough to handle it.
-    possible_call_targets = fallbackResolving(CS);
-  }
-  PAUSE_TIMER("ICFG resolveCallRTA");
-
-  return possible_call_targets;
-}
-
-set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallDTA");
-
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
-  set<string> possible_call_targets;
-  // check if we have a virtual call-site
-  if (isVirtualFunctionCall(CS)) {
-    START_TIMER("ICFG resolveCallDTA::VirtualCall");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-    INC_COUNTER("ICFG virtual calls");
-    // deal with a virtual member function
-    // retrieve the vtable entry that is called
-    const llvm::LoadInst *load =
-        llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-
-    if (load == nullptr) {
-      cout << "Error with resolveVirtualCall : no load\n"
-           << llvmIRToString(CS.getInstruction())
-           << "\n";
-
-      PAUSE_TIMER("ICFG resolveCallDTA::VirtualCall");
-      PAUSE_TIMER("ICFG resolveCallDTA");
-      return set<string>();
-    }
-
-    const llvm::GetElementPtrInst *gep =
-        llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-    unsigned vtable_index =
-        llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Virtual function table entry is: " << vtable_index);
-
-    const llvm::Value *receiver = CS.getArgOperand(0);
-    const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
-        receiver->getType()->getPointerElementType());
-    if (!receiver_type) {
-      throw runtime_error("Receiver type is not a struct type!");
-    }
-
-    // If the type is unsound, return all a sound possibility
-    if (unsound_types.find(receiver_type) != unsound_types.end())
-      possible_call_targets = resolveIndirectCallCHA(CS);
-
-    else {
-      string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
-
-      auto possible_types = typegraph.getTypes(receiver_type);
-
-      //WARNING We deactivated the check on allocated because it is
-      // unabled to get the types allocated in the used libraries
-      // auto allocated_types = IRDB.getAllocatedTypes();
-      // auto end_it = allocated_types.end();
-      for (auto possible_type : possible_types) {
-        if (auto possible_type_struct =
-                llvm::dyn_cast<llvm::StructType>(possible_type)) {
-            // if ( allocated_types.find(possible_type_struct) != end_it ) {
-          string type_name = possible_type_struct->getName().str();
-          auto vtable_entry = CH.getVTableEntry(type_name, vtable_index);
-          if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
-            possible_call_targets.insert(vtable_entry);
-          }
-        }
-      }
-    }
-
-    PAUSE_TIMER("ICFG resolveCallDTA::VirtualCall");
-    if ( possible_call_targets.size() == 0 )
-      possible_call_targets = resolveIndirectCallCHA(CS);
-
-  } else {
-    // otherwise we have to deal with a function pointer
-    // if we classified a member function call incorrectly as a function pointer
-    // call, the following treatment is robust enough to handle it.
-    possible_call_targets = fallbackResolving(CS);
-  }
-  PAUSE_TIMER("ICFG resolveCallDTA");
-
-  return possible_call_targets;
-}
+// set<string> LLVMBasedICFG::resolveIndirectCallTA(llvm::ImmutableCallSite CS) {
+//   PAMM_FACTORY;
+//   START_TIMER("ICFG resolveCallDTA");
+//
+//   auto &lg = lg::get();
+//   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Resolve indirect call");
+//   set<string> possible_call_targets;
+//   // check if we have a virtual call-site
+//   if (isVirtualFunctionCall(CS)) {
+//     START_TIMER("ICFG resolveCallDTA::VirtualCall");
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
+//     INC_COUNTER("ICFG virtual calls");
+//     // deal with a virtual member function
+//     // retrieve the vtable entry that is called
+//     const llvm::LoadInst *load =
+//         llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+//
+//     if (load == nullptr) {
+//       cout << "Error with resolveVirtualCall : no load\n"
+//            << llvmIRToString(CS.getInstruction())
+//            << "\n";
+//
+//       PAUSE_TIMER("ICFG resolveCallDTA::VirtualCall");
+//       PAUSE_TIMER("ICFG resolveCallDTA");
+//       return set<string>();
+//     }
+//
+//     const llvm::GetElementPtrInst *gep =
+//         llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
+//     unsigned vtable_index =
+//         llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
+//     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+//         << "Virtual function table entry is: " << vtable_index);
+//
+//     const llvm::Value *receiver = CS.getArgOperand(0);
+//     const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
+//         receiver->getType()->getPointerElementType());
+//     if (!receiver_type) {
+//       throw runtime_error("Receiver type is not a struct type!");
+//     }
+//
+//     // If the type is unsound, return all a sound possibility
+//     if (unsound_types.find(receiver_type) != unsound_types.end())
+//       possible_call_targets = resolveIndirectCallCHA(CS);
+//
+//     else {
+//       string receiver_type_name = psr::uniformTypeName(receiver_type->getName().str());
+//
+//       auto possible_types = typegraph.getTypes(receiver_type);
+//
+//       //WARNING We deactivated the check on allocated because it is
+//       // unabled to get the types allocated in the used libraries
+//       // auto allocated_types = IRDB.getAllocatedTypes();
+//       // auto end_it = allocated_types.end();
+//       for (auto possible_type : possible_types) {
+//         if (auto possible_type_struct =
+//                 llvm::dyn_cast<llvm::StructType>(possible_type)) {
+//             // if ( allocated_types.find(possible_type_struct) != end_it ) {
+//           string type_name = possible_type_struct->getName().str();
+//           auto vtable_entry = CH.getVTableEntry(type_name, vtable_index);
+//           if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
+//             possible_call_targets.insert(vtable_entry);
+//           }
+//         }
+//       }
+//     }
+//
+//     PAUSE_TIMER("ICFG resolveCallDTA::VirtualCall");
+//     if ( possible_call_targets.size() == 0 )
+//       possible_call_targets = resolveIndirectCallCHA(CS);
+//
+//   } else {
+//     // otherwise we have to deal with a function pointer
+//     // if we classified a member function call incorrectly as a function pointer
+//     // call, the following treatment is robust enough to handle it.
+//     possible_call_targets = fallbackResolving(CS);
+//   }
+//   PAUSE_TIMER("ICFG resolveCallDTA");
+//
+//   return possible_call_targets;
+// }
 
 bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
@@ -926,83 +979,83 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return false;
 }
 
-bool LLVMBasedICFG::heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast) {
-  // We check if the caller is a constructor, and if the this argument has the same type as the source
-  // type of the bitcast. If it is the case, it returns false, true otherwise.
-
-  if ( auto caller = bitcast->getFunction() ) {
-    if ( isConstructor(caller->getName().str()) ) {
-      if ( auto func_ty = caller->getFunctionType() ) {
-        if ( auto this_ty = func_ty->getParamType(0) ) {
-          if ( this_ty == bitcast->getSrcTy() ) {
-            return false;
-          }
-        }
-      }
-    }
-  }
-
-  return true;
-}
-
-bool LLVMBasedICFG::heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast) {
-  // Better heuristic than the previous one, can handle the CRTP. Based on the previous one.
-
-  if ( heuristic_anti_contructor_this_type(bitcast) )
-    return true;
-
-  // We know that we are in a constructor and the source type of the bitcast is the same as the this argument.
-  // We then check where the bitcast is against the store instruction of the vtable.
-  auto struct_ty = stripPointer(bitcast->getSrcTy());
-  if (struct_ty == nullptr)
-    throw runtime_error("struct_ty == nullptr in the heuristic_anti_contructor");
-
-  // If it doesn't contain vtable, there is no reason to call this class in the
-  // DTA graph, so no need to add it
-  string struct_name = struct_ty->getStructName().str();
-
-  if ( CH.containsVTable(struct_name) )
-    return false;
-
-  // So there is a vtable, the question is, where is it compared to the bitcast instruction
-  // Carefull, there can be multiple vtable storage, we want to get the last one
-  // vtable storage typically are :
-  // store i32 (...)** bitcast (i8** getelementptr inbounds ({ [3 x i8*], [3 x i8*] }, { [3 x i8*], [3 x i8*] }* @_ZTV2AA, i32 0, inrange i32 1, i32 3) to i32 (...)**), i32 (...)*** %17, align 8
-  //WARNING: May break when changing llvm version or using clang with version > 5.0.1
-
-  auto caller = bitcast->getFunction();
-  if ( caller == nullptr ) {
-    throw runtime_error("A bitcast instruction has no associated function");
-  }
-
-  int i = 0, vtable_num = 0, bitcast_num = 0;
-
-  for ( auto I = inst_begin(caller), E = inst_end(caller); I != E;
-       ++I, ++i ) {
-    const auto& Inst = *I;
-
-    if ( auto store = llvm::dyn_cast<llvm::StoreInst>(&Inst) ) {
-      // We got a store instruction, now we are checking if it is a vtable storage
-      if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
-        if ( bitcast_expr->isCast() ) {
-          if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
-            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
-              if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
-                // We can here assume that we found a vtable
-                vtable_num = i;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    if ( &Inst == bitcast )
-      bitcast_num = i;
-  }
-
-  return (bitcast_num > vtable_num);
-}
+// bool LLVMBasedICFG::heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast) {
+//   // We check if the caller is a constructor, and if the this argument has the same type as the source
+//   // type of the bitcast. If it is the case, it returns false, true otherwise.
+//
+//   if ( auto caller = bitcast->getFunction() ) {
+//     if ( isConstructor(caller->getName().str()) ) {
+//       if ( auto func_ty = caller->getFunctionType() ) {
+//         if ( auto this_ty = func_ty->getParamType(0) ) {
+//           if ( this_ty == bitcast->getSrcTy() ) {
+//             return false;
+//           }
+//         }
+//       }
+//     }
+//   }
+//
+//   return true;
+// }
+//
+// bool LLVMBasedICFG::heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast) {
+//   // Better heuristic than the previous one, can handle the CRTP. Based on the previous one.
+//
+//   if ( heuristic_anti_contructor_this_type(bitcast) )
+//     return true;
+//
+//   // We know that we are in a constructor and the source type of the bitcast is the same as the this argument.
+//   // We then check where the bitcast is against the store instruction of the vtable.
+//   auto struct_ty = stripPointer(bitcast->getSrcTy());
+//   if (struct_ty == nullptr)
+//     throw runtime_error("struct_ty == nullptr in the heuristic_anti_contructor");
+//
+//   // If it doesn't contain vtable, there is no reason to call this class in the
+//   // DTA graph, so no need to add it
+//   string struct_name = struct_ty->getStructName().str();
+//
+//   if ( CH.containsVTable(struct_name) )
+//     return false;
+//
+//   // So there is a vtable, the question is, where is it compared to the bitcast instruction
+//   // Carefull, there can be multiple vtable storage, we want to get the last one
+//   // vtable storage typically are :
+//   // store i32 (...)** bitcast (i8** getelementptr inbounds ({ [3 x i8*], [3 x i8*] }, { [3 x i8*], [3 x i8*] }* @_ZTV2AA, i32 0, inrange i32 1, i32 3) to i32 (...)**), i32 (...)*** %17, align 8
+//   //WARNING: May break when changing llvm version or using clang with version > 5.0.1
+//
+//   auto caller = bitcast->getFunction();
+//   if ( caller == nullptr ) {
+//     throw runtime_error("A bitcast instruction has no associated function");
+//   }
+//
+//   int i = 0, vtable_num = 0, bitcast_num = 0;
+//
+//   for ( auto I = inst_begin(caller), E = inst_end(caller); I != E;
+//        ++I, ++i ) {
+//     const auto& Inst = *I;
+//
+//     if ( auto store = llvm::dyn_cast<llvm::StoreInst>(&Inst) ) {
+//       // We got a store instruction, now we are checking if it is a vtable storage
+//       if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
+//         if ( bitcast_expr->isCast() ) {
+//           if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
+//             if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
+//               if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
+//                 // We can here assume that we found a vtable
+//                 vtable_num = i;
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//
+//     if ( &Inst == bitcast )
+//       bitcast_num = i;
+//   }
+//
+//   return (bitcast_num > vtable_num);
+// }
 
 const llvm::Function *
 LLVMBasedICFG::getMethodOf(const llvm::Instruction *stmt) {

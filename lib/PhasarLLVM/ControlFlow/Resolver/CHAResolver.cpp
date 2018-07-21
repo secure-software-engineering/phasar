@@ -31,9 +31,9 @@
 using namespace std;
 using namespace psr;
 
-CHAResolver::CHAResolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch) : Resolver(irdb, ch);
+CHAResolver::CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch) : Resolver(irdb, ch) {}
 
-set<string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   PAMM_FACTORY;
   START_TIMER("ICFG resolveCallCHA");
 

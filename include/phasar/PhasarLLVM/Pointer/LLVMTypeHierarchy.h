@@ -139,7 +139,7 @@ public:
    * 	@param idx Index in the VTable.
    * 	@return A function identifier.
    */
-  std::string getVTableEntry(std::string TypeName, unsigned idx);
+  std::string getVTableEntry(std::string TypeName, unsigned idx) const;
 
   /**
    * 	@brief Checks if one of the given types is a super-type of the
@@ -188,7 +188,7 @@ public:
    */
   void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
 
-  bool containsType(std::string TypeName);
+  bool containsType(std::string TypeName) const;
 
   std::string getPlainTypename(std::string TypeName);
 

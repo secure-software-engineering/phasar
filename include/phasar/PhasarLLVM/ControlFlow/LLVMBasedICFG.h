@@ -28,8 +28,6 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/PAMM.h>
@@ -57,7 +55,7 @@ extern const std::map<WalkerStrategy, std::string> WalkerStrategyToString;
 std::ostream &operator<<(std::ostream &os, const WalkerStrategy W);
 
 // Describes the strategy that is used for resolving indirect call-sites;
-enum class ResolveStrategy { CHA = 0, RTA, TA, OTF };
+enum class ResolveStrategy { CHA = 0, RTA, DTA, OTF };
 
 extern const std::map<std::string, ResolveStrategy> StringToResolveStrategy;
 
@@ -68,7 +66,7 @@ std::ostream &operator<<(std::ostream &os, const ResolveStrategy R);
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 public:
-  using TypeGraph_t = CachedTypeGraph;
+  // using TypeGraph_t = CachedTypeGraph;
   using Resolver_t = Resolver;
 
 private:
@@ -76,32 +74,36 @@ private:
   ResolveStrategy R;
   const std::map<WalkerStrategy,
             std::function<void(LLVMBasedICFG *, const llvm::Function *)>>
-      Walker{{WalkerStrategy::Simple,
-              &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
-             {WalkerStrategy::VariableType,
-              &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
-             {WalkerStrategy::DeclaredType,
-              &LLVMBasedICFG::resolveIndirectCallWalkerDTA},
-             {WalkerStrategy::Pointer,
-              &LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis}};
+      Walker{
+        // {WalkerStrategy::Simple,
+        //       &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
+        //      {WalkerStrategy::VariableType,
+        //       &LLVMBasedICFG::resolveIndirectCallWalkerSimple},
+        //      {WalkerStrategy::DeclaredType,
+        //       &LLVMBasedICFG::resolveIndirectCallWalkerDTA},
+        //      {WalkerStrategy::Pointer,
+        //       &LLVMBasedICFG::resolveIndirectCallWalkerPointerAnalysis}
+            };
   const std::map<ResolveStrategy,
             std::function<std::set<std::string>(LLVMBasedICFG *, llvm::ImmutableCallSite)>>
-      Resolver{{ResolveStrategy::CHA, &LLVMBasedICFG::resolveIndirectCallCHA},
-               {ResolveStrategy::RTA, &LLVMBasedICFG::resolveIndirectCallRTA},
-               {ResolveStrategy::TA, &LLVMBasedICFG::resolveIndirectCallTA},
-               {ResolveStrategy::OTF, &LLVMBasedICFG::resolveIndirectCallOTF}};
+      Resolver{
+        // {ResolveStrategy::CHA, &LLVMBasedICFG::resolveIndirectCallCHA},
+        //        {ResolveStrategy::RTA, &LLVMBasedICFG::resolveIndirectCallRTA},
+        //        {ResolveStrategy::TA, &LLVMBasedICFG::resolveIndirectCallTA},
+        //        {ResolveStrategy::OTF, &LLVMBasedICFG::resolveIndirectCallOTF}
+             };
   LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
   PointsToGraph WholeModulePTG;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
-  std::vector<const llvm::Instruction *> CallStack;
+  // std::vector<const llvm::Instruction *> CallStack;
 
   // Keeps track of the type graph already constructed
-  TypeGraph_t typegraph;
+  // TypeGraph_t typegraph;
 
   // Any types that could be initialized outside of the module
-  std::set<const llvm::StructType*> unsound_types;
+  // std::set<const llvm::StructType*> unsound_types;
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
@@ -142,7 +144,7 @@ private:
 
   // Fallback solution when the resolution of virtual calls encounter a problem
   // (in particular, encounter a function pointer instead of a virtual call)
-  std::set<std::string> fallbackResolving(llvm::ImmutableCallSite &CS);
+  // std::set<std::string> fallbackResolving(llvm::ImmutableCallSite &CS);
 
   /**
    * Resolved an indirect call using points-to information in order to
@@ -153,7 +155,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  std::set<std::string> resolveIndirectCallOTF(llvm::ImmutableCallSite CS);
+  // std::set<std::string> resolveIndirectCallOTF(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using class hierarchy information.
@@ -164,7 +166,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  std::set<std::string> resolveIndirectCallCHA(llvm::ImmutableCallSite CS);
+  // std::set<std::string> resolveIndirectCallCHA(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using class hierarchy information but taking
@@ -175,7 +177,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  std::set<std::string> resolveIndirectCallRTA(llvm::ImmutableCallSite CS);
+  // std::set<std::string> resolveIndirectCallRTA(llvm::ImmutableCallSite CS);
 
   /**
    * Resolved an indirect call using type information that are obtained by
@@ -185,7 +187,7 @@ private:
    * @param Call-site to be resolved.
    * @return Set of function names that might be called at this call-site.
    */
-  std::set<std::string> resolveIndirectCallTA(llvm::ImmutableCallSite CS);
+  // std::set<std::string> resolveIndirectCallTA(llvm::ImmutableCallSite CS);
 
   /**
    * A simple function walking along the control flow resolving indirect
@@ -195,7 +197,7 @@ private:
    * @brief A simple function walking along the control flow graph.
    * @param F function to start in
    */
-  void resolveIndirectCallWalkerSimple(const llvm::Function *F);
+  // void resolveIndirectCallWalkerSimple(const llvm::Function *F);
 
   /**
    * A simple function walking along the control flow resolving indirect
@@ -205,7 +207,7 @@ private:
    * @brief A function walking along the control flow graph construction a DTA Graph.
    * @param F function to start in
    */
-  void resolveIndirectCallWalkerDTA(const llvm::Function *F);
+  // void resolveIndirectCallWalkerDTA(const llvm::Function *F);
 
   // /**
   //  * Walking along the control flow resolving indirect
@@ -235,20 +237,20 @@ private:
    * @param F function to start in
    * @param R resolving function to use for an indirect call site
    */
-  void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
+  // void resolveIndirectCallWalkerPointerAnalysis(const llvm::Function *F);
 
-  /**
-   * An heuristic that return true if the bitcast instruction is interesting to take into
-   * the DTA relational graph
-   */
-  bool heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast);
-
-  /**
-   * Another heuristic that return true if the bitcast instruction is interesting to take into
-   * the DTA relational graph (use the presence or not of vtable)
-   */
-  bool heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast);
-
+  // /**
+  //  * An heuristic that return true if the bitcast instruction is interesting to take into
+  //  * the DTA relational graph
+  //  */
+  // bool heuristic_anti_contructor_this_type(const llvm::BitCastInst* bitcast);
+  //
+  // /**
+  //  * Another heuristic that return true if the bitcast instruction is interesting to take into
+  //  * the DTA relational graph (use the presence or not of vtable)
+  //  */
+  // bool heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* bitcast);
+  void constructionWalker(const llvm::Function* F, Resolver_t* resolver);
 
   struct dependency_visitor;
 

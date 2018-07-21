@@ -16,6 +16,7 @@
 
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/Constants.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -27,9 +28,9 @@
 using namespace std;
 using namespace psr;
 
-Resolver::Resolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch) : IRDB(irdb), CH(ch) {}
+Resolver::Resolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch) : IRDB(irdb), CH(ch) {}
 
-unsigned int Resolver::getVtableIndex(const llvm::ImmutableCallSite &CS) const {
+int Resolver::getVtableIndex(const llvm::ImmutableCallSite &CS) const {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const llvm::LoadInst *load =
@@ -52,7 +53,7 @@ unsigned int Resolver::getVtableIndex(const llvm::ImmutableCallSite &CS) const {
   return vtable_index;
 }
 
-std::string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) const {
+const llvm::StructType* Resolver::getReceiverType(const llvm::ImmutableCallSite &CS) const {
   const llvm::Value *receiver = CS.getArgOperand(0);
   const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
       receiver->getType()->getPointerElementType());
@@ -60,22 +61,26 @@ std::string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) con
     throw runtime_error("Receiver type is not a struct type!");
   }
 
-  string receiver_type_name = receiver_type->getName().str();
+  return receiver_type;
+}
+
+string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) const {
+  auto receiver_type_name = getReceiverType(CS)->getName().str();
 
   return receiver_type_name;
 }
 
-void Resolver::insertVtableIntoResult(std::set<std::string> &results, std::string &struct_name, unsigned vtable_index) {
+void Resolver::insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name, const unsigned vtable_index) {
   auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
   if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
     results.insert(vtable_entry);
   }
 }
 
-void Resolver::preCall(const llvm::Instruction* inst) {};
-void Resolver::postCall(const llvm::Instruction* inst) {};
-void Resolver::OtherInst(const llvm::Instruction* inst) {};
-
+void Resolver::preCall(const llvm::Instruction* inst) {}
+void Resolver::TreatPossibleTarget(const llvm::ImmutableCallSite &CS, std::set<const llvm::Function *> &possible_targets) {}
+void Resolver::postCall(const llvm::Instruction* inst) {}
+void Resolver::OtherInst(const llvm::Instruction* inst) {}
 void Resolver::firstFunction(const llvm::Function* F) {}
 
 set<string> Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {

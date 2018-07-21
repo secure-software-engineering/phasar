@@ -27,11 +27,13 @@
 #include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+
 
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(ProjectIRDB &irdb, const LLVMTypeHierarchy &ch) : CHAResolver(irdb, ch);
+RTAResolver::RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch) : CHAResolver(irdb, ch) {}
 
 void RTAResolver::firstFunction(const llvm::Function* F) {
   auto func_type = F->getFunctionType();
@@ -71,10 +73,13 @@ set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Virtual function table entry is: " << vtable_index);
 
-  auto receiver_type_name = getReceiverTypeName(CS);
+  auto receiver_type = getReceiverType(CS);
+  auto receiver_type_name = receiver_type->getName().str();
 
-  if (unsound_types.find(receiver_type) != unsound_types.end())
+  if (unsound_types.find(receiver_type) != unsound_types.end()) {
+    PAUSE_TIMER("ICFG resolveCallRTA");
     return CHAResolver::resolveVirtualCall(CS);
+  }
 
   // also insert all possible subtypes vtable entries
   auto reachable_type_names =
@@ -95,6 +100,9 @@ set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   PAUSE_TIMER("ICFG resolveCallRTA");
+
+  if ( possible_call_targets.size() == 0 )
+    return CHAResolver::resolveVirtualCall(CS);
 
   return possible_call_targets;
 }

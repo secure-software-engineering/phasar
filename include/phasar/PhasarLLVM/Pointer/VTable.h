@@ -46,7 +46,7 @@ public:
    * 	@param i Index of the entry.
    * 	@return Function identifier.
    */
-  std::string getFunctionByIdx(unsigned i);
+  std::string getFunctionByIdx(unsigned i) const;
 
   /**
    * 	@brief Returns position index of the given function identifier
@@ -68,7 +68,7 @@ public:
    * 	@brief Checks if the VTable has no entries.
    * 	@return True, if VTable is empty, false otherwise.
    */
-  bool empty();
+  bool empty() const;
   std::vector<std::string>::iterator begin();
   std::vector<std::string>::const_iterator begin() const;
   std::vector<std::string>::iterator end();
