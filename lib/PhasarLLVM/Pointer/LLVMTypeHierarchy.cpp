@@ -261,22 +261,6 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
   TypeName = psr::uniformTypeName(TypeName);
 
-  // set<string> reachable_nodes;
-  // bidigraph_t tc;
-  // boost::transitive_closure(g, tc);
-  //
-  // // get all out edges of queried type
-  // typename boost::graph_traits<bidigraph_t>::out_edge_iterator ei, ei_end;
-  //
-  // reachable_nodes.insert(g[type_vertex_map[TypeName]].name);
-  // for (tie(ei, ei_end) = boost::out_edges(type_vertex_map[TypeName], tc);
-  //      ei != ei_end; ++ei) {
-  //
-  //   auto source = boost::source(*ei, tc);
-  //   auto target = boost::target(*ei, tc);
-  //   reachable_nodes.insert(g[target].name);
-  // }
-  // return reachable_nodes;
   return g[type_vertex_map[TypeName]].reachableTypes;
 }
 
