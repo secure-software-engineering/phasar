@@ -34,6 +34,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/PAMM.h>
 
+
 namespace llvm {
   class Instruction;
   class Function;
@@ -43,6 +44,8 @@ namespace llvm {
 }
 
 namespace psr {
+
+class Resolver;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };
@@ -66,6 +69,7 @@ class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 public:
   using TypeGraph_t = CachedTypeGraph;
+  using Resolver_t = Resolver;
 
 private:
   WalkerStrategy W;
