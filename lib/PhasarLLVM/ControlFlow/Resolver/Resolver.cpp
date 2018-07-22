@@ -70,9 +70,33 @@ string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) const {
   return receiver_type_name;
 }
 
-void Resolver::insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name, const unsigned vtable_index) {
+bool Resolver::matchVirtualSignature(const llvm::FunctionType *type_call,
+                                     const llvm::FunctionType *type_candidate) {
+  if (type_call->getNumParams() == type_candidate->getNumParams() &&
+      type_call->getReturnType() == type_candidate->getReturnType() &&
+      type_call->getNumParams() >= 1) {
+    for (unsigned int i = 1; i < type_call->getNumParams(); ++i) {
+      if (type_call->getParamType(i) != type_candidate->getParamType(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+void Resolver::insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name, const unsigned vtable_index, const llvm::ImmutableCallSite &CS) {
   auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
   if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
+    if (auto call_type = CS.getFunctionType()) {
+      if (auto candidate = IRDB.getFunction(vtable_entry)) {
+        if (auto candidate_type = candidate->getFunctionType()) {
+          if (!matchVirtualSignature(call_type, candidate_type)) {
+            return;
+          }
+        }
+      }
+    }
     results.insert(vtable_entry);
   }
 }
@@ -86,11 +110,9 @@ void Resolver::firstFunction(const llvm::Function* F) {}
 set<string> Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {
   // We may want to optimise the time of this function as it is in fact most of the time
   // spent in the ICFG construction and it grows rapidily
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Call function pointer: " << llvmIRToString(CS.getInstruction()));
-  INC_COUNTER("ICFG function pointer calls");
 
   set<string> possible_call_targets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the origin is still unknown)

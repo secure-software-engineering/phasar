@@ -49,15 +49,12 @@ void RTAResolver::firstFunction(const llvm::Function* F) {
 
 set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   throw runtime_error("RTA is currently unabled to deal with already built library, it has been disable until this is fixed");
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallRTA");
 
   set<string> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-  INC_COUNTER("ICFG virtual calls");
 
   auto vtable_index = getVtableIndex(CS);
   if ( vtable_index < 0 ) {
@@ -65,8 +62,6 @@ set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Error with resolveVirtualCall : impossible to retrieve the vtable index\n"
          << llvmIRToString(CS.getInstruction())
          << "\n");
-
-    PAUSE_TIMER("ICFG resolveCallRTA");
     return {};
   }
 
@@ -77,7 +72,6 @@ set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   auto receiver_type_name = receiver_type->getName().str();
 
   if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    PAUSE_TIMER("ICFG resolveCallRTA");
     return CHAResolver::resolveVirtualCall(CS);
   }
 
@@ -94,12 +88,10 @@ set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       string type_name = possible_type_struct->getName().str();
       if (reachable_type_names.find(type_name) != end_it) {
-        insertVtableIntoResult(possible_call_targets, type_name, vtable_index);
+        insertVtableIntoResult(possible_call_targets, type_name, vtable_index, CS);
       }
     }
   }
-
-  PAUSE_TIMER("ICFG resolveCallRTA");
 
   if ( possible_call_targets.size() == 0 )
     return CHAResolver::resolveVirtualCall(CS);

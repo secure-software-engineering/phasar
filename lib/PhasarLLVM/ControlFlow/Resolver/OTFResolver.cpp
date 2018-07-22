@@ -79,15 +79,11 @@ void OTFResolver::postCall(const llvm::Instruction* Inst) {
 void OTFResolver::OtherInst(const llvm::Instruction* Inst) {}
 
 set<string> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallOTF");
-
   set<string> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-  INC_COUNTER("ICFG virtual calls");
 
   auto vtable_index = this->getVtableIndex(CS);
   if ( vtable_index < 0 ) {
@@ -95,8 +91,6 @@ set<string> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Error with resolveVirtualCall : impossible to retrieve the vtable index\n"
          << llvmIRToString(CS.getInstruction())
          << "\n");
-
-    PAUSE_TIMER("ICFG resolveCallOTF");
     return {};
   }
 
@@ -122,10 +116,9 @@ set<string> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
 
   for (auto possible_type_struct : possible_types) {
     string type_name = possible_type_struct->getName().str();
-    this->insertVtableIntoResult(possible_call_targets, type_name, vtable_index);
+    insertVtableIntoResult(possible_call_targets, type_name, vtable_index, CS);
   }
 
-  PAUSE_TIMER("ICFG resolveCallOTF");
   if ( possible_call_targets.empty() )
     return CHAResolver::resolveVirtualCall(CS);
 

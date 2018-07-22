@@ -39,7 +39,10 @@ namespace psr {
     int getVtableIndex(const llvm::ImmutableCallSite &CS) const;
     const llvm::StructType* getReceiverType(const llvm::ImmutableCallSite &CS) const;
     std::string getReceiverTypeName(const llvm::ImmutableCallSite &CS) const;
-    void insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name, const unsigned vtable_index);
+    void insertVtableIntoResult(std::set<std::string> &results, const std::string &struct_name,
+                                const unsigned vtable_index, const llvm::ImmutableCallSite &CS);
+    bool matchVirtualSignature(const llvm::FunctionType *type_call,
+                                         const llvm::FunctionType *type_candidate);
 
   public:
     Resolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);

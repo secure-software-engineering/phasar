@@ -47,7 +47,6 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
-  REG_COUNTER_WITH_VALUE("vtable_entry", 0);
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
@@ -136,29 +135,10 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
       }
 
       if (base == global.user_end()) {
-        // int number_user = 0;
-        // for ( auto tmp : global.users() )
-        //   ++number_user;
-        // if (number_user > 1) {
-        //   llvm::errs() << "[Warning] this vtable has no viable user, check if the number of user is coherent with a potential remaining global\n";
-        //   global.print(llvm::errs());
-        //   llvm::errs() << "\n";
-        //   llvm::errs() << "Number of users : " << number_user << "\n";
-        // }
         continue;
-        // int number_user = 0;
-        // for ( auto tmp : global.users() )
-        //   ++number_user;
-        // if ( number_user == 1 ) {
-        //   // Probably a remaining global but the constructors have been remove during linking
-        //   continue;
-        // }
-        // global.print(llvm::errs());
-        // llvm::errs() << "\n";
-        // llvm::errs() << "Number of users : " << number_user << "\n";
-        // throw runtime_error("a vtable has no viable user");
       }
 
+      // We found a constructor or a destructor
       auto store_vtable_inst = llvm::dyn_cast<llvm::Instruction>(*(base->user_begin()->user_begin()));
       if (store_vtable_inst == nullptr)
         throw runtime_error("store_vtable_inst == nullptr");
@@ -175,6 +155,8 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
 
       if (recognized_struct_types.find(struct_name) == recognized_struct_types.end())
         throw runtime_error("found a vtable that doesn't have any node in the class hierarchy");
+
+      // We can prune the hierarchy graph with the knowledge of the vtable
 
       // check if the vtable is already initialized, then we can skip
       if (vtable_map.find(struct_name) != vtable_map.end())
@@ -194,7 +176,6 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
                   if (llvm::Function *vfunc =
                           llvm::dyn_cast<llvm::Function>(cast->getOperand(0))) {
                     vtable_map[struct_name].addEntry(vfunc->getName().str());
-                    INC_COUNTER("vtable_entry");
                   }
                 }
               }

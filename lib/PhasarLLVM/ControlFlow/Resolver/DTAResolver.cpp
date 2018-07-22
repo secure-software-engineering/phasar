@@ -140,15 +140,11 @@ void DTAResolver::OtherInst(const llvm::Instruction* Inst) {
 }
 
 set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallDTA");
-
   set<string> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-  INC_COUNTER("ICFG virtual calls");
 
   auto vtable_index = this->getVtableIndex(CS);
   if ( vtable_index < 0 ) {
@@ -156,8 +152,6 @@ set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Error with resolveVirtualCall : impossible to retrieve the vtable index\n"
          << llvmIRToString(CS.getInstruction())
          << "\n");
-
-    PAUSE_TIMER("ICFG resolveCallDTA");
     return {};
   }
 
@@ -167,7 +161,6 @@ set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   auto receiver_type = this->getReceiverType(CS);
 
   if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    PAUSE_TIMER("ICFG resolveCallDTA");
     return CHAResolver::resolveVirtualCall(CS);
   }
 
@@ -182,11 +175,10 @@ set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
           llvm::dyn_cast<llvm::StructType>(possible_type)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
       string type_name = possible_type_struct->getName().str();
-      this->insertVtableIntoResult(possible_call_targets, type_name, vtable_index);
+      insertVtableIntoResult(possible_call_targets, type_name, vtable_index, CS);
     }
   }
 
-  PAUSE_TIMER("ICFG resolveCallDTA");
   if ( possible_call_targets.empty() )
     possible_call_targets = CHAResolver::resolveVirtualCall(CS);
 

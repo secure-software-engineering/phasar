@@ -214,6 +214,9 @@ public:
         else {
           Out =
               IMProblem.callToRetFlow(src, dst, Analysis[src][src_context]);
+          //NB: When dealing with a callToRetFlow, we could add an edge from the
+          // exit statement of the function to the successor of the call, in order to
+          // to have the result of the call propagating inside the function.
         } // isIntraEdge(edge)
 
         // Even in a call-to-ret (like recursion) the context can change
@@ -280,6 +283,8 @@ public:
             // in case we want to handle some side-effects, the context does not
             // assured perfect equality or any reason we would want to restart the
             // computation of the function
+            //WARNING: Allowing recomputation can generate infinite recursion, only activate
+            // it if your sure 
 
             analyse_function(ICFG.getMethodOf(dst), dst_context);
           } // Compute a call

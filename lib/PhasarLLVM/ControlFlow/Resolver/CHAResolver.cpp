@@ -34,15 +34,11 @@ using namespace psr;
 CHAResolver::CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch) : Resolver(irdb, ch) {}
 
 set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  PAMM_FACTORY;
-  START_TIMER("ICFG resolveCallCHA");
-
   set<string> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
       << "Call virtual function: " << llvmIRToString(CS.getInstruction()));
-  INC_COUNTER("ICFG virtual calls");
 
   auto vtable_index = getVtableIndex(CS);
   if ( vtable_index < 0 ) {
@@ -50,8 +46,6 @@ set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Error with resolveVirtualCall : impossible to retrieve the vtable index\n"
          << llvmIRToString(CS.getInstruction())
          << "\n");
-
-    PAUSE_TIMER("ICFG resolveCallCHA");
     return {};
   }
 
@@ -65,10 +59,8 @@ set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
       CH.getTransitivelyReachableTypes(receiver_type_name);
 
   for (auto &fallback_name : fallback_type_names) {
-    insertVtableIntoResult(possible_call_targets, fallback_name, vtable_index);
+    insertVtableIntoResult(possible_call_targets, fallback_name, vtable_index, CS);
   }
-
-  PAUSE_TIMER("ICFG resolveCallCHA");
 
   return possible_call_targets;
 }
