@@ -25,6 +25,7 @@
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/property_map/dynamic_property_map.hpp>
 
+#include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Function.h>
@@ -157,7 +158,7 @@ void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
         throw runtime_error("found a vtable that doesn't have any node in the class hierarchy");
 
       // We can prune the hierarchy graph with the knowledge of the vtable
-
+      pruneTypeHierarchyWithVtable(function);
       // check if the vtable is already initialized, then we can skip
       if (vtable_map.find(struct_name) != vtable_map.end())
         continue;
@@ -237,6 +238,74 @@ void LLVMTypeHierarchy::analyzeModule(const llvm::Module &M) {
 
              recognized_struct_types.insert(struct_type_name);
            });
+}
+
+void LLVMTypeHierarchy::pruneTypeHierarchyWithVtable(const llvm::Function* constructor) {
+  if (constructor == nullptr)
+    throw runtime_error("constructor found for vtable is a nullptr");
+
+  auto arg_it = constructor->arg_begin();
+  if (arg_it == constructor->arg_end())
+    throw runtime_error("constructor using vtable has no argument");
+
+  auto this_arg_ty = stripPointer(arg_it->getType());
+  auto this_ty_name = uniformTypeName(this_arg_ty->getStructName().str());
+
+  if (recognized_struct_types.find(this_ty_name) == recognized_struct_types.end())
+    throw runtime_error("found a vtable that doesn't have any node in the class hierarchy");
+
+  unsigned i = 0, vtable_pos = 0;
+  set<string> pre_vtable, post_vtable;
+  for ( auto I = llvm::inst_begin(constructor), E = llvm::inst_end(constructor); I != E;
+       ++I, ++i ) {
+    const auto& Inst = *I;
+
+    if ( auto store = llvm::dyn_cast<llvm::StoreInst>(&Inst) ) {
+      // We got a store instruction, now we are checking if it is a vtable storage
+      if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
+        if ( bitcast_expr->isCast() ) {
+          if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
+            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
+              if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
+                // We can here assume that we found a vtable
+                vtable_pos = i;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if ( auto call_inst = llvm::dyn_cast<llvm::CallInst>(&Inst) ) {
+      if ( auto called = call_inst->getCalledFunction() ) {
+        if ( isConstructor(called->getName().str()) ) {
+          if ( auto this_type = called->getFunctionType()->getParamType(0) ) {
+            if ( auto struct_ty = llvm::dyn_cast<llvm::StructType>(stripPointer(this_type))) {
+              auto struct_name = uniformTypeName(struct_ty->getName().str());
+              if ( vtable_pos == 0 )
+                pre_vtable.insert(struct_name);
+              else
+                post_vtable.insert(struct_name);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  for ( auto post_cons : post_vtable ) {
+    if ( pre_vtable.find(post_cons) != pre_vtable.end() ) {
+      post_vtable.erase(post_cons);
+    }
+  }
+
+  auto u = type_vertex_map[this_ty_name];
+  for ( auto post_ty_name : post_vtable ) {
+    auto v = type_vertex_map[post_ty_name];
+    if ( boost::edge(v, u, g).second ) {
+      boost::remove_edge(v, u, g);
+    }
+  }
 }
 
 set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {

@@ -56,7 +56,7 @@ public:
 
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;
-    std::set<std::string> reachableTypes; 
+    std::set<std::string> reachableTypes;
     /// always StructType so far - is it used anywhere???
     /// Name of the class/struct the vertex is representing.
     std::string name;
@@ -95,6 +95,9 @@ private:
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
+
+protected:
+  void pruneTypeHierarchyWithVtable(const llvm::Function* constructor);
 
 public:
   /**
