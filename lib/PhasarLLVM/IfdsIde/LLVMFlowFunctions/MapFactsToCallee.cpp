@@ -20,8 +20,8 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
-  
-MapFactsToCallee::MapFactsToCallee(llvm::ImmutableCallSite callSite,
+
+MapFactsToCallee::MapFactsToCallee(const llvm::ImmutableCallSite &callSite,
                  const llvm::Function *destMthd,
                  std::function<bool(const llvm::Value *)> predicate)
     : predicate(predicate) {

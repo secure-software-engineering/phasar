@@ -11,16 +11,16 @@
 
 #include <iosfwd>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <json.hpp>
 
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 
 namespace psr {
 
-using json = nlohmann::json;
+class ProjectIRDB;
 
 enum class ExportType { JSON = 0 };
 
@@ -31,6 +31,9 @@ extern const std::map<ExportType, std::string> ExportTypeToString;
 std::ostream &operator<<(std::ostream &os, const ExportType &e);
 
 class AnalysisController {
+public:
+  using json = nlohmann::json;
+
 private:
   json FinalResultsJson;
 

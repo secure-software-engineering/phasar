@@ -10,7 +10,6 @@
 #include <iostream>
 
 #include <llvm/Support/raw_os_ostream.h>
-
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/IRBuilder.h>
@@ -19,8 +18,8 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Transforms/Scalar.h>
 
-
 #include <phasar/Controller/AnalysisController.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
@@ -39,6 +38,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMMWAIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
 
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 

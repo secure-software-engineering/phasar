@@ -21,7 +21,7 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
-  
+
 MapFactsToCaller::MapFactsToCaller(llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
                  const llvm::Instruction *exitstmt,
                  function<bool(const llvm::Value *)> paramPredicate,

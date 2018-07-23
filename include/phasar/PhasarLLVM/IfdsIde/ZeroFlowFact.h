@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include <ostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
 
 namespace psr {

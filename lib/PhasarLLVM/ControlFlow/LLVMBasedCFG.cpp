@@ -14,8 +14,11 @@
  *      Author: philipp
  */
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/Config/Configuration.h>
 
 using namespace psr;

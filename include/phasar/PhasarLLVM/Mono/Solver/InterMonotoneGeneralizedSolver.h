@@ -24,9 +24,7 @@
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
-#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
@@ -284,7 +282,7 @@ public:
             // assured perfect equality or any reason we would want to restart the
             // computation of the function
             //WARNING: Allowing recomputation can generate infinite recursion, only activate
-            // it if your sure 
+            // it if your sure
 
             analyse_function(ICFG.getMethodOf(dst), dst_context);
           } // Compute a call

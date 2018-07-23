@@ -28,10 +28,6 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/Utils/PAMM.h>
-
 
 namespace llvm {
   class Instruction;
@@ -44,6 +40,8 @@ namespace llvm {
 namespace psr {
 
 class Resolver;
+class ProjectIRDB;
+class LLVMTypeHierarchy;
 
 // Describes the strategy to be used for the instruction walker.
 enum class WalkerStrategy { Simple = 0, VariableType, DeclaredType, Pointer };

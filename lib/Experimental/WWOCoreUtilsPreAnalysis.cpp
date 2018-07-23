@@ -4,6 +4,8 @@
 #include <iostream>
 #include <phasar/Config/Configuration.h>
 
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>

@@ -12,6 +12,12 @@
 #include <algorithm>
 #include <cassert>
 
+#include <clang/Basic/Diagnostic.h>
+#include <clang/CodeGen/CodeGenAction.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/BasicAliasAnalysis.h>
 #include <llvm/Analysis/CFLAndersAliasAnalysis.h>
@@ -26,7 +32,12 @@
 #include <llvm/Linker/Linker.h>
 #include <llvm/Transforms/Scalar.h>
 
+
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>

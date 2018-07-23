@@ -14,7 +14,12 @@
  *      Author: philipp
  */
 
+#include <boost/filesystem.hpp>
+
 #include <phasar/Config/Configuration.h>
+
+namespace bpo = boost::program_options;
+namespace bfs = boost::filesystem;
 
 using namespace std;
 using namespace psr;

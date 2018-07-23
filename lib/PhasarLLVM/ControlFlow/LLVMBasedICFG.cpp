@@ -35,11 +35,12 @@
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
 
-
+#include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 #include <phasar/DB/ProjectIRDB.h>
 

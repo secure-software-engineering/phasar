@@ -9,7 +9,11 @@
 
 #pragma once
 
-#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
+namespace clang {
+  namespace tooling {
+    class CommonOptionsParser;
+  }
+}
 
 namespace psr {
 

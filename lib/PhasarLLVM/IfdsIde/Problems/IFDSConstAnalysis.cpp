@@ -26,6 +26,8 @@
 #include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
 
 using namespace std;
 using namespace psr;

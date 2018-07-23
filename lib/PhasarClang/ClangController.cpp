@@ -7,7 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <clang/Tooling/Tooling.h> // clang::tooling::ClangTool, clang::tooling::newFrontendActionFactory
+
+#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 
 #include <phasar/Utils/Logger.h>
 #include <phasar/PhasarClang/ClangController.h>

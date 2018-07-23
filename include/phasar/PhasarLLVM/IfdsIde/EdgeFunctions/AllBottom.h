@@ -16,9 +16,11 @@
 
 #pragma once
 
+#include <iostream> // std::cerr
 #include <ostream>
 #include <memory>
 #include <string>
+
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>

@@ -20,11 +20,12 @@
 #include <vector>
 #include <string>
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-
 #include "CFG.h"
 
+namespace llvm {
+  class Function;
+  class Instruction;
+}
 
 namespace psr {
 

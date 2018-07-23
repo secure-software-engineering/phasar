@@ -21,10 +21,10 @@
 
 #pragma once
 
-#include <ostream>
 #include <map>
+#include <ostream>
 
-#include <phasar/Config/ContainerConfiguration.h>
+// #include <phasar/Config/ContainerConfiguration.h>
 
 #include "ContextBase.h"
 

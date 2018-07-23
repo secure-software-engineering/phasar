@@ -12,6 +12,7 @@
 #include <memory>
 #include <set>
 #include <sstream>
+#include <string>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>

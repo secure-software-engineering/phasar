@@ -16,19 +16,25 @@
 
 #pragma once
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <string>
 #include <vector>
 
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
+
+namespace llvm {
+  class Function;
+  class Instruction;
+  class Value;
+}
+
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IFDSTabulationProblemPlugin
     : public DefaultIFDSTabulationProblem<

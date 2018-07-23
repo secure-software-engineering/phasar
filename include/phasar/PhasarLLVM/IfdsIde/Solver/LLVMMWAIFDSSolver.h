@@ -18,12 +18,15 @@
 
 #include <algorithm>
 #include <map>
+#include <string>
+#include <iostream> // std::cout
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/MWAIFDSSolver.h>
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <phasar/Utils/Table.h>
-#include <string>
+
 
 namespace psr {
 

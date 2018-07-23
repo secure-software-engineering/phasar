@@ -8,13 +8,17 @@
  *****************************************************************************/
 
 #pragma once
+
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <string>
 #include <vector>
 
+// #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IDETabulationProblemPlugin {};
 

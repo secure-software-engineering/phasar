@@ -11,11 +11,11 @@
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -23,9 +23,11 @@ class Function;
 class Value;
 } // namespace llvm
 
-class LLVMBasedICFG;
+
 
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IDESolverTest
     : public DefaultIDETabulationProblem<

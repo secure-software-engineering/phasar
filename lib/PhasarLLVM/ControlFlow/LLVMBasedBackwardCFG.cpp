@@ -14,6 +14,9 @@
  *      Author: philipp
  */
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
 
 using namespace psr;

@@ -16,21 +16,17 @@
 
 #pragma once
 
-
-#include "RandomChangeASTConsumer.h"
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
 #include <memory>
+
+#include <llvm/ADT/StringRef.h>
+
+#include <clang/Rewrite/Core/Rewriter.h>
+#include <clang/Frontend/FrontendActions.h>
+#include <clang/Frontend/ASTConsumers.h>
+
+namespace clang {
+  class CompilerInstance;
+}
 
 namespace psr {
 

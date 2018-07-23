@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <map>
 #include <iosfwd>
+#include <map>
 #include <string>
 
 namespace psr {

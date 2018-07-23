@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <map>
 #include <memory>
 #include <set>
@@ -50,10 +49,9 @@
 #include <phasar/Utils/Table.h>
 #include <phasar/Utils/PAMM.h>
 
-
-using json = nlohmann::json;
 namespace psr {
 
+using json = nlohmann::json;
 // Forward declare the Transformation
 template <typename N, typename D, typename M, typename I>
 class IFDSToIDETabulationProblem;

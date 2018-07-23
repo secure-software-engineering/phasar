@@ -14,7 +14,11 @@
  *      Author: philipp
  */
 
+#include <iostream>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 
 #include "IFDSSFB901TaintAnalysis.h"
 

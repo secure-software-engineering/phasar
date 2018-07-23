@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 /*
- * DynamicSummaries.h
+ * IFDSSummaryPool.h
  *
  *  Created on: 08.05.2017
  *      Author: philipp
@@ -17,16 +17,11 @@
 #pragma once
 
 #include <algorithm>
-// #include <memory>
-// #include <stdexcept>
-// #include <string>
-#include <vector>
-#include <set>
+#include <iostream> // Suppress the cout as soon as to possible and get rid of this header
 #include <map>
+#include <set>
+#include <vector>
 
-// #include <phasar/Config/ContainerConfiguration.h>
-// #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-// #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSSummary.h>
 
 

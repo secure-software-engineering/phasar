@@ -23,17 +23,11 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
 
-// #include "../../db/ProjectIRDB.h"
-#include "../../lib/LLVMShorthands.h"
-#include "../../utils/utils.h"
-// #include "../control_flow/ICFG.h"
-// #include "../control_flow/LLVMBasedICFG.h"
-// #include "../ifds_ide/FlowFunction.h"
-// #include "../ifds_ide/flow_func/GenAll.h"
-#include "DefaultIFDSTabulationProblem.h".
-#include "IFDSTabulationProblem.h"
-#include "solver/IFDSSummaryGenerator.h"
-#include "solver/LLVMIFDSSolver.h"
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSummaryGenerator.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 
 namespace psr {
 

@@ -16,10 +16,14 @@
 
 #pragma once
 
-#include "RandomChangeVisitor.h"
 #include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/Frontend/CompilerInstance.h>
+
+#include "RandomChangeVisitor.h"
+
+namespace clang {
+  class ASTContext;
+  class Rewriter;
+}
 
 namespace psr {
 

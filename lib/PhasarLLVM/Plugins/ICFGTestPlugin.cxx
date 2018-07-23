@@ -6,9 +6,14 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
-#include <set>
-#include <stdexcept>
+
+#include <iostream>
 #include <utility>
+
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+
+#include <phasar/DB/ProjectIRDB.h>
 
 #include "ICFGTestPlugin.h"
 

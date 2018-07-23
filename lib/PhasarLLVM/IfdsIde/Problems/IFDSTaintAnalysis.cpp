@@ -10,6 +10,7 @@
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -24,6 +25,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 
 using namespace std;

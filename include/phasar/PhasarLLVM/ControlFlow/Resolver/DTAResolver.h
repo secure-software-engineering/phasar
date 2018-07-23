@@ -21,7 +21,8 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
 #include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
+// To switch the TypeGraph
+//#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 
 
 namespace llvm {

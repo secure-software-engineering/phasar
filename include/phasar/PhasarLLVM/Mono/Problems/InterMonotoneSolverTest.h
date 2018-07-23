@@ -19,8 +19,6 @@
 #include <string>
 #include <vector>
 
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 
 namespace llvm {
@@ -31,15 +29,17 @@ namespace llvm {
 
 namespace psr {
 
+class LLVMBasedICFG;
+
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
                                   MonoSet<const llvm::Value *>, const llvm::Function *,
-                                  LLVMBasedICFG> {
+                                  LLVMBasedICFG&> {
 public:
   using Node_t      = const llvm::Instruction*;
   using Domain_t    = MonoSet<const llvm::Value*>;
   using Method_t    = const llvm::Function*;
-  using ICFG_t      = LLVMBasedICFG;
+  using ICFG_t      = LLVMBasedICFG&;
 
 protected:
   std::vector<std::string> EntryPoints;

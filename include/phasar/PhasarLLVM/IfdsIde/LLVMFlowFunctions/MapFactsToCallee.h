@@ -10,14 +10,16 @@
 #pragma once
 
 #include <functional>
-#include <set>
+#include <vector>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace llvm {
   class Value;
   class Function;
+  class ImmutableCallSite;
 }
+
 namespace psr {
 
 /**
@@ -32,7 +34,7 @@ protected:
   std::function<bool(const llvm::Value *)> predicate;
 
 public:
-  MapFactsToCallee(llvm::ImmutableCallSite callSite,
+  MapFactsToCallee(const llvm::ImmutableCallSite &callSite,
                    const llvm::Function *destMthd,
                    std::function<bool(const llvm::Value *)> predicate =
                        [](const llvm::Value *) { return true; });

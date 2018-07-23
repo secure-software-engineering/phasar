@@ -10,18 +10,20 @@
 #ifndef ICFGTESTPLUGIN_H_
 #define ICFGTESTPLUGIN_H_
 
-#include <iostream>
+
 #include <memory>
 #include <set>
 #include <vector>
+#include <string>
 #include <stdexcept>
 
 #include <json.hpp>
+
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
 
-using json = nlohmann::json;
-
 namespace psr {
+
+using json = nlohmann::json;
 
 class ICFGTestPlugin : public ICFGPlugin {
 public:

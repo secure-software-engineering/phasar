@@ -16,16 +16,17 @@
 
 #pragma once
 
-#include <llvm/ADT/SCCIterator.h>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CallGraph.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
+#include <llvm/Analysis/AliasAnalysis.h>
+
+namespace llvm {
+  class Module;
+  class AnalysisUsage;
+}
 
 namespace psr {
 
+//WARNING: Why is llvm::AAResultBase a parent of this pass ?
 class ExampleModulePass : public llvm::ModulePass, llvm::AAResultBase<llvm::BasicAAResult> {
 public:
   static char ID;

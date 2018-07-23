@@ -13,6 +13,10 @@
 #include <iostream>
 #include <map>
 #include <memory>
+#include <set>
+#include <type_traits>
+#include <utility>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -30,9 +34,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>
-#include <set>
-#include <type_traits>
-#include <utility>
 
 namespace psr {
 

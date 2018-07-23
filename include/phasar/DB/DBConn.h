@@ -16,24 +16,25 @@
 
 #pragma once
 
+#include <initializer_list>
+#include <iostream> // Because of SQL_STD_ERROR_HANDLING
 #include <memory>
 #include <set>
 #include <string>
 
 #include <llvm/IR/Module.h>
 
-#include <phasar/DB/Hexastore.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+// If ProjectIRDB is no more returned, forward declare it and remove this
 #include <phasar/DB/ProjectIRDB.h>
 
 #include <mysql_connection.h>
 #include <sqlite3.h>
 
 namespace llvm {
-  class Module;
   class GlobalVariable;
   class LLVMContext;
   class StructType;
@@ -107,6 +108,8 @@ public:
   std::string getDBName();
 
   void storeProjectIRDB(const std::string &ProjectName, const ProjectIRDB &IRDB);
+  // We may want to pass an empty ProjectIRDB and do not return anything in order
+  // to suppress the copy constructor of ProjectIRDB and enforce a no copy rule.
   ProjectIRDB loadProjectIRDB(const std::string &ProjectName);
 
   void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, const std::string &ProjectName,

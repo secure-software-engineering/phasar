@@ -18,15 +18,14 @@
 
 #include <set>
 
-#include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
-#include <llvm/PassSupport.h>
 
 namespace llvm {
   class Type;
   class Value;
   class Instruction;
   class AnalysisUsage;
+  class Module;
 } // namespace llvm
 
 namespace psr {

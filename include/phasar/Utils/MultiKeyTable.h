@@ -25,7 +25,7 @@ namespace psr {
 
 template <typename R, typename C, typename V> class MultiKeyTable {
 private:
-  unordered_multistd::map<R, unordered_multistd::map<C, V>> multi_key_table;
+  std::unordered_multimap<R, std::unordered_multimap<C, V>> multi_key_table;
 
 public:
   struct Cell {
@@ -71,9 +71,9 @@ public:
 
   size_t size() { return multi_key_table.size(); }
 
-  multiset<Cell> cellSet() {
+  std::multiset<Cell> cellSet() {
     // Returns a std::set of all row key / column key / value triplets.
-    multiset<Cell> s;
+    std::multiset<Cell> s;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : m1.second) {
         s.insert(Cell(m1.first, m2.first, m2.second));
@@ -82,9 +82,9 @@ public:
     return s;
   }
 
-  unordered_multistd::map<R, V> column(C columnKey) {
+  std::unordered_multimap<R, V> column(C columnKey) {
     // Returns a view of all std::mappings that have the given column key.
-    unordered_multistd::map<R, V> column;
+    std::unordered_multimap<R, V> column;
     for (auto &row : multi_key_table) {
       if (row.second.count(columnKey))
         column[row.first] = row.second[columnKey];
@@ -92,7 +92,7 @@ public:
     return column;
   }
 
-  multiset<C> columnKeySet() {
+  std::multiset<C> columnKeySet() {
     // Returns a std::set of column keys that have one or more values in the table.
     multiset<C> colkeys;
     for (auto &m1 : multi_key_table)
@@ -101,10 +101,10 @@ public:
     return colkeys;
   }
 
-  unordered_multistd::map<C, unordered_multistd::map<R, V>> columnMap() {
+  std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnMap() {
     // Returns a view that associates each column key with the corresponding std::map
     // from row keys to values.
-    unordered_multistd::map<C, unordered_multistd::map<R, V>> columnmap;
+    std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnmap;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : multi_key_table.second) {
         columnmap[m2.first][m1.first] = m2.second;
@@ -162,12 +162,12 @@ public:
     return v;
   }
 
-  unordered_multistd::map<C, V> &row(R rowKey) {
+  std::unordered_multimap<C, V> &row(R rowKey) {
     // Returns a view of all std::mappings that have the given row key.
     return multi_key_table[rowKey];
   }
 
-  multiset<R> rowKeySet() {
+  std::multiset<R> rowKeySet() {
     // Returns a std::set of row keys that have one or more values in the table.
     multiset<R> s;
     for (auto &m1 : multi_key_table)
@@ -175,15 +175,15 @@ public:
     return s;
   }
 
-  unordered_multistd::map<R, unordered_multistd::map<C, V>> rowMap() {
+  std::unordered_multimap<R, std::unordered_multimap<C, V>> rowMap() {
     // Returns a view that associates each row key with the corresponding std::map
     // from column keys to values.
     return multi_key_table;
   }
 
-  multiset<V> values() {
+  std::multiset<V> values() {
     // Returns a collection of all values, which may contain duplicates.
-    multiset<V> s;
+    std::multiset<V> s;
     for (auto &m1 : multi_key_table)
       for (auto &m2 : m1.second)
         s.insert(m2.second);

@@ -10,10 +10,10 @@
 #pragma once
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 

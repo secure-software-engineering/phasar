@@ -16,29 +16,21 @@
 
 #pragma once
 
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/AST/DeclBase.h>
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Lex/Lexer.h>
-#include <clang/Lex/Preprocessor.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <iostream>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/CommandLine.h>
-#include <random>
-#include <sstream>
-#include <string>
+
+namespace clang {
+  class Rewriter;
+  class VarDecl;
+  class TypeDecl;
+  class Stmt;
+  class FunctionDecl;
+}
 
 namespace psr {
 
+// #include <random>
+// #include <iostream>
+//
 // std::random_device rd;
 // std::mt19937_64 mt(rd());
 // std::uniform_int_distribution<int> dist(0, 2);

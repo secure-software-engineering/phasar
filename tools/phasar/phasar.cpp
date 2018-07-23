@@ -24,12 +24,15 @@
 #include <phasar/PhasarClang/ClangController.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
+#include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMM.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;

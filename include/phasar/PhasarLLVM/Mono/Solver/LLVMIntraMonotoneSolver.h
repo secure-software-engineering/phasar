@@ -16,11 +16,12 @@
 
 #pragma once
 
-#include <iostream>
+#include <iostream> //  std::cout, please remove it
+
 #include <llvm/IR/Instruction.h>
 
-#include "../IntraMonotoneProblem.h"
-#include "IntraMonotoneSolver.h"
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/Solver/IntraMonotoneSolver.h>
 
 namespace psr {
 
@@ -30,6 +31,7 @@ class LLVMIntraMonotoneSolver
                                  const llvm::Function *, C> {
 protected:
   bool DUMP_RESULTS;
+  // Duplicate of the IMProblem of IntraMonotoneSolver ...
   IntraMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, C>
       &IMP;
 

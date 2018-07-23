@@ -9,12 +9,17 @@
 
 #pragma once
 
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
+#include <set>
+
+// #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/MWAIDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
-#include <set>
+// #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+
 namespace psr {
+
+template <typename N, typename D, typename M, typename I>
+class IFDSTabulationProblem;
 
 template <typename N, typename D, typename M, typename I>
 class MWAIFDSSolver : public MWAIDESolver<N, D, M, BinaryDomain, I> {

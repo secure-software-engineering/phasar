@@ -13,6 +13,7 @@
 #include <vector>
 #include <string>
 #include <iosfwd>
+// Should include <iostream> due to the Macros using std::cerr
 
 namespace llvm {
   class Type;

@@ -16,21 +16,12 @@
 
 #pragma once
 
+#include <map>
+#include <set>
+
 #include <boost/container/flat_map.hpp>
 #include <boost/container/flat_set.hpp>
 #include <boost/container/small_vector.hpp>
-// #include <llvm/ADT/IndexedMap.h>
-// #include <llvm/ADT/IntervalMap.h>
-// #include <llvm/ADT/MapVector.h>
-// #include <llvm/ADT/SetVector.h>
-// #include <llvm/ADT/SmallSet.h>
-// #include <llvm/ADT/SmallVector.h>
-// #include <llvm/ADT/StringMap.h>
-#include <map>
-#include <set>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <vector>
 
 namespace psr {
 // check if we forgot some more useful container implementations

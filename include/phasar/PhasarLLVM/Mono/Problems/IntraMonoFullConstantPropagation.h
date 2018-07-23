@@ -16,17 +16,20 @@
 
 #pragma once
 
-#include <algorithm>
-#include <iostream>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <string>
+#include <utility> // std::pair
+
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+
+namespace llvm {
+  class Value;
+  class Instruction;
+  class Function;
+}
 
 namespace psr {
+
+class LLVMBasedCFG;
 
 class IntraMonoFullConstantPropagation
     : public IntraMonotoneProblem<const llvm::Instruction *,

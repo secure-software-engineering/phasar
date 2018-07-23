@@ -16,6 +16,9 @@
 
 #pragma once
 
+#include <memory>
+#include <set>
+
 #include "FlowFunction.h"
 
 namespace psr {

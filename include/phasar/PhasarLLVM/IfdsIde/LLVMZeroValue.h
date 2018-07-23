@@ -23,6 +23,10 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 
+namespace llvm {
+  class Value;
+}
+
 namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working

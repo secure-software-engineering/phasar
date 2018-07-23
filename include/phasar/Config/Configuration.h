@@ -16,12 +16,10 @@
 
 #pragma once
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <string>
 
-namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
+#include <boost/program_options.hpp>
+
 namespace psr {
 
 /// Stores the label/ tag with which we annotate the LLVM IR.
@@ -40,7 +38,7 @@ extern const std::string HeaderSearchPathsFileName;
 /// Name of the compile_commands.json file (in case we wish to rename)
 extern const std::string CompileCommandsJson;
 /// Variables std::map of the parsed command-line parameters
-extern bpo::variables_map VariablesMap;
+extern boost::program_options::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;
 // Variables to be used in JSON export format

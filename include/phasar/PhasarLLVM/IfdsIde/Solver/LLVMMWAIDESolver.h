@@ -9,10 +9,14 @@
 
 #pragma once
 
-#include "../../control_flow/ICFG.h"
-#include "../../misc/SummaryStrategy.h"
-#include "../IDETabulationProblem.h"
-#include "MWAIDESolver.h"
+#pragma message "Will break as definition of llvm::Instruction, llvm::Function, ... are not given"
+
+#include <iostream>
+
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM//Utils/SummaryStrategy.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/MWAIDESolver.h>
 
 namespace psr {
 

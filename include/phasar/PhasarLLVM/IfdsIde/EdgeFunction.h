@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <iostream>
+#include <iostream> // std::cout in dump, better replace it with a ostream
 #include <memory>
 #include <string>
 

@@ -43,12 +43,12 @@ template <typename D, class Context, class Ordering = LLVMOrderingById>
 class LLVMInterMonotoneSolver
   : public InterMonotoneGeneralizedSolver<
                                     InterMonotoneProblem<const llvm::Instruction *, D,
-                                    const llvm::Function *, LLVMBasedICFG>,
+                                    const llvm::Function *, LLVMBasedICFG&>,
                                     Context, Ordering> {
   public:
     using IMSBase_t = InterMonotoneGeneralizedSolver<
                                       InterMonotoneProblem<const llvm::Instruction *, D,
-                                      const llvm::Function *, LLVMBasedICFG>,
+                                      const llvm::Function *, LLVMBasedICFG&>,
                                       Context, Ordering>;
 
   protected:

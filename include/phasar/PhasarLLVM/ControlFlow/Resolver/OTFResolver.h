@@ -25,6 +25,7 @@
 namespace llvm {
   class Instruction;
   class ImmutableCallSite;
+  class Function;
 }
 
 namespace psr {

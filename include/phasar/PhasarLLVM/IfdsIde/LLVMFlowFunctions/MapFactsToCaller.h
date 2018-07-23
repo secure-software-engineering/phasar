@@ -12,9 +12,9 @@
 #include <functional>
 #include <vector>
 
+#include <llvm/IR/CallSite.h> // llvm::ImmutableCallSite
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/Utils/LLVMShorthands.h>
 
 namespace llvm {
   class Function;

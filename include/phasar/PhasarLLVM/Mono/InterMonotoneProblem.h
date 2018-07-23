@@ -29,7 +29,7 @@ public:
   using Node_t      = N;
   using Domain_t    = D;
   using Method_t    = M;
-  using ICFG_t      = I;
+  using ICFG_t      = std::remove_reference_t<I>;
 
 private:
   template <typename T1, typename T2>

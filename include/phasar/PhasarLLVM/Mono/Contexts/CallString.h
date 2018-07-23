@@ -21,7 +21,8 @@
 #include <initializer_list>
 #include <ostream>
 #include <iterator>
-#include <phasar/Config/ContainerConfiguration.h>
+
+// #include <phasar/Config/ContainerConfiguration.h>
 
 #include "ContextBase.h"
 

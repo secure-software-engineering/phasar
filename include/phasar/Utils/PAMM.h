@@ -30,12 +30,11 @@
 
 #include "json.hpp"
 
+namespace psr {
 
 // for convenience
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
-
-namespace psr {
 
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()

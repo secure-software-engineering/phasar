@@ -7,6 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/SOL.h>
+
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 
 using namespace std;

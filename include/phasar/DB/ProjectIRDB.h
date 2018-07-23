@@ -9,29 +9,17 @@
 
 #pragma once
 
-#include <set>
-#include <string>
-#include <utility>
 #include <map>
 #include <memory>
+#include <set>
+#include <string>
 
-#include <clang/Basic/Diagnostic.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/CompilerInvocation.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
 #include <clang/Tooling/CompilationDatabase.h>
-
-#include <boost/filesystem.hpp>
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/Utils/EnumFlags.h>
 
 namespace llvm {
   class Value;
