@@ -14,8 +14,6 @@
 #include <string>
 #include <vector>
 
-// #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-
 namespace psr {
 
 class LLVMBasedICFG;

@@ -25,6 +25,7 @@
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 

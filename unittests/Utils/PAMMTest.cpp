@@ -1,9 +1,10 @@
 #include <gtest/gtest.h>
 
-#define PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration ;)
+#include <thread>
 
 #include <phasar/Utils/PAMM.h>
-#include <thread>
+
+#ifdef PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration ;)
 
 using namespace std;
 using namespace psr;
@@ -289,3 +290,5 @@ int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
+
+#endif
