@@ -252,11 +252,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function* F, Resolver_t* reso
       // check if function call can be resolved statically
       if (cs.getCalledFunction() != nullptr) {
         possible_targets.insert(cs.getCalledFunction());
-        INC_COUNTER("ICFG static calls");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: "
                                  << llvmIRToString(cs.getInstruction()));
       } else { // the function call must be resolved dynamically
-        INC_COUNTER("ICFG dynamic calls");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found dynamic call-site: "
                                  << llvmIRToString(cs.getInstruction()));
         // call the resolve routine

@@ -59,15 +59,15 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
     //   i32 (...)** bitcast (i8** getelementptr inbounds ([3 x i8*], [3 x i8*]*
     //                           @_ZTV5Child, i32 0, i32 2) to i32 (...)**)
     //
+    //WARNING: The VTT could also be stored, which would make this analysis fail
     if (const llvm::ConstantExpr *CE =
             llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
       // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
-      if (llvm::ConstantExpr *CF = llvm::dyn_cast<llvm::ConstantExpr>(
-              const_cast<llvm::ConstantExpr *>(CE)
-                  ->getAsInstruction()
-                  ->getOperand(0))) {
+      auto CE_inst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
+      if (llvm::ConstantExpr *CF = llvm::dyn_cast<llvm::ConstantExpr>(CE_inst->getOperand(0))) {
+        auto CF_inst = CF->getAsInstruction();
         if (auto VTable = llvm::dyn_cast<llvm::GlobalVariable>(
-                CF->getAsInstruction()->getOperand(0))) {
+                CF_inst->getOperand(0))) {
           if (VTable->hasName() &&
               cxx_demangle(VTable->getName().str()).find("vtable") !=
                   string::npos) {
@@ -76,7 +76,9 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
             return Identity<IFDSConstAnalysis::d_t>::getInstance();
           }
         }
+        CF_inst->deleteValue();
       }
+      CE_inst->deleteValue();
     } /* end vtable set-up instruction */
     IFDSConstAnalysis::d_t pointerOp = Store->getPointerOperand();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Pointer operand of store Instruction: "

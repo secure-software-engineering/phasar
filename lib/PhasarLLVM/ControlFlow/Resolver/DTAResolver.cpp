@@ -95,12 +95,14 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst* 
       if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
         if ( bitcast_expr->isCast() ) {
           if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
-            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
+            auto gep_as_inst = const_gep->getAsInstruction();
+            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(gep_as_inst) ) {
               if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
                 // We can here assume that we found a vtable
                 vtable_num = i;
               }
             }
+            gep_as_inst->deleteValue();
           }
         }
       }

@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <algorithm>
+#include <memory>
 
 #include <boost/log/sources/record_ostream.hpp>
 
@@ -52,8 +53,9 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
-  REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
+  // Will cause crash in unittest ...
+  // REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
+  // REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
 
   bidigraph_t tc;
   boost::transitive_closure(g, tc);
@@ -265,12 +267,14 @@ void LLVMTypeHierarchy::pruneTypeHierarchyWithVtable(const llvm::Function* const
       if ( auto bitcast_expr = llvm::dyn_cast<llvm::ConstantExpr>(store->getValueOperand()) ) {
         if ( bitcast_expr->isCast() ) {
           if ( auto const_gep = llvm::dyn_cast<llvm::ConstantExpr>(bitcast_expr->getOperand(0)) ) {
-            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(const_gep->getAsInstruction()) ) {
+            auto gep_as_inst = const_gep->getAsInstruction();
+            if ( auto gep = llvm::dyn_cast<llvm::GetElementPtrInst>(gep_as_inst) ) {
               if ( auto vtable = llvm::dyn_cast<llvm::Constant>(gep->getPointerOperand()) ) {
                 // We can here assume that we found a vtable
                 vtable_pos = i;
               }
             }
+            gep_as_inst->deleteValue();
           }
         }
       }
