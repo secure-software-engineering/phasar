@@ -32,6 +32,8 @@
 #include <llvm/Linker/Linker.h>
 #include <llvm/Transforms/Scalar.h>
 
+#include <boost/filesystem.hpp>
+
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>

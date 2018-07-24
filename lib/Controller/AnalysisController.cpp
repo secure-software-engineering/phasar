@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <fstream>
 
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Analysis/AliasAnalysis.h>
