@@ -223,7 +223,7 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
         IDELinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmlcasolver(
+        LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
             lcaproblem, true);
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();

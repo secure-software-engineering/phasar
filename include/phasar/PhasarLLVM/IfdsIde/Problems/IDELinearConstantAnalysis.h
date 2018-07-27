@@ -29,7 +29,7 @@ class LLVMBasedICFG;
 class IDELinearConstantAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, int, LLVMBasedICFG &> {
+          const llvm::Function *, int64_t, LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -37,11 +37,12 @@ public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  typedef int v_t;
+  // corresponds to llvm's type of constant integer
+  typedef int64_t v_t;
   typedef LLVMBasedICFG &i_t;
 
-  static const int TOP;
-  static const int BOTTOM;
+  static const v_t TOP;
+  static const v_t BOTTOM;
 
   IDELinearConstantAnalysis(i_t icfg,
                             std::vector<std::string> EntryPoints = {"main"});
@@ -105,6 +106,16 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
+  /**
+   *    secondFunction o G o F
+   *
+   * compose with: EFC(F, EFC(G,secondFunction))
+   * compute target: G(F(source))
+   *
+   * java solution:
+   * compose: G -> F -> secondFunction
+   * compute target: F(G(source))
+   */
   class EdgeFunctionComposer
       : public EdgeFunction<v_t>,
         public std::enable_shared_from_this<EdgeFunctionComposer> {
@@ -126,6 +137,8 @@ public:
 
     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
   };
+
+  static v_t executeBinOperation(unsigned op, v_t lop, v_t rop);
 
   std::string DtoString(d_t d) const override;
 
