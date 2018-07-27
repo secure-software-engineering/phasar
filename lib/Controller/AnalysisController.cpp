@@ -226,6 +226,14 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
             lcaproblem, true);
         llvmlcasolver.solve();
+        for (auto exit : ICFG.getExitPointsOf(ICFG.getMethod("main"))) {
+          exit->print(llvm::outs());
+          for (auto res : llvmlcasolver.resultsAt(exit, true)) {
+            cout << "\nValue: " << res.second << " at:" << getMetaDataID(res.first)<< "\n";
+            res.first->print(llvm::outs());
+            // cout << '\n' << endl;
+          }
+        }
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }
