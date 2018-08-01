@@ -17,8 +17,8 @@
 #ifndef PHASAR_UTILS_HEXASTOREGRAPH_H_
 #define PHASAR_UTILS_HEXASTOREGRAPH_H_
 
-#include <ostream>
 #include <iostream> // cerr, to suppress once it is not used anymore
+#include <ostream>
 #include <set>
 
 #include <phasar/DB/DBConn.h>

@@ -26,12 +26,11 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-
 namespace llvm {
-  class Function;
-  class Instruction;
-  class Value;
-}
+class Function;
+class Instruction;
+class Value;
+} // namespace llvm
 
 namespace psr {
 
@@ -78,8 +77,9 @@ public:
   }
 };
 
-extern std::map<std::string, std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
-                       LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
+extern std::map<std::string,
+                std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
+                    LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
 
 } // namespace psr

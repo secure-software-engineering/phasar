@@ -7,9 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
-#include <llvm/IR/CallSite.h>
 
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
@@ -21,9 +21,9 @@ using namespace psr;
 
 namespace psr {
 
-MapFactsToCallee::MapFactsToCallee(const llvm::ImmutableCallSite &callSite,
-                 const llvm::Function *destMthd,
-                 std::function<bool(const llvm::Value *)> predicate)
+MapFactsToCallee::MapFactsToCallee(
+    const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
+    std::function<bool(const llvm::Value *)> predicate)
     : predicate(predicate) {
   // Set up the actual parameters
   for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
@@ -35,7 +35,8 @@ MapFactsToCallee::MapFactsToCallee(const llvm::ImmutableCallSite &callSite,
   }
 }
 
-set<const llvm::Value *> MapFactsToCallee::computeTargets(const llvm::Value *source) {
+set<const llvm::Value *>
+MapFactsToCallee::computeTargets(const llvm::Value *source) {
   if (!isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Map actual parameter into corresponding formal parameter.

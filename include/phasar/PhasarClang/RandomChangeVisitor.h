@@ -20,12 +20,12 @@
 #include <clang/AST/RecursiveASTVisitor.h>
 
 namespace clang {
-  class Rewriter;
-  class VarDecl;
-  class TypeDecl;
-  class Stmt;
-  class FunctionDecl;
-}
+class Rewriter;
+class VarDecl;
+class TypeDecl;
+class Stmt;
+class FunctionDecl;
+} // namespace clang
 
 namespace psr {
 

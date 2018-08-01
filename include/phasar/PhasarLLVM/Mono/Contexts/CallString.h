@@ -20,8 +20,8 @@
 #include <algorithm>
 #include <deque>
 #include <initializer_list>
-#include <ostream>
 #include <iterator>
+#include <ostream>
 
 // #include <phasar/Config/ContainerConfiguration.h>
 
@@ -34,10 +34,10 @@ namespace psr {
  *  K = Maximum depth of CallString
  */
 template <typename N, typename D, unsigned K>
-class CallString : public ContextBase<N, D, CallString<N,D,K>> {
+class CallString : public ContextBase<N, D, CallString<N, D, K>> {
 public:
-  using Node_t    = N;
-  using Domain_t  = D;
+  using Node_t = N;
+  using Domain_t = D;
 
 protected:
   std::deque<Node_t> cs;
@@ -52,8 +52,9 @@ public:
     }
   }
 
-  virtual void enterFunction(Node_t src, Node_t dest, const Domain_t &In) override {
-    if ( k == 0 )
+  virtual void enterFunction(Node_t src, Node_t dest,
+                             const Domain_t &In) override {
+    if (k == 0)
       return;
     if (cs.size() > k - 1) {
       cs.pop_front();
@@ -61,7 +62,8 @@ public:
     cs.push_back(src);
   }
 
-  virtual void exitFunction(Node_t src, Node_t dest, const Domain_t &In) override {
+  virtual void exitFunction(Node_t src, Node_t dest,
+                            const Domain_t &In) override {
     if (cs.size() > 0) {
       cs.pop_back();
     }
@@ -69,7 +71,7 @@ public:
 
   virtual bool isUnsure() override {
     // We may be a bit more precise in the future
-    if ( cs.size() == k )
+    if (cs.size() == k)
       return true;
     else
       return false;

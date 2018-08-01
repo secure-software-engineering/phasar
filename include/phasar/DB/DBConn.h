@@ -36,20 +36,20 @@
 #include <sqlite3.h>
 
 namespace llvm {
-  class GlobalVariable;
-  class LLVMContext;
-  class StructType;
-}
+class GlobalVariable;
+class LLVMContext;
+class StructType;
+} // namespace llvm
 
 namespace psr {
 
 enum class QueryReturnCode { DBTrue, DBFalse, DBError };
 
 #define SQL_STD_ERROR_HANDLING                                                 \
-  std::cout << "# ERR: SQLException in " << __FILE__;                               \
-  std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;             \
-  std::cout << "# ERR: " << e.what();                                               \
-  std::cout << " (MySQL error code: " << e.getErrorCode();                          \
+  std::cout << "# ERR: SQLException in " << __FILE__;                          \
+  std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;   \
+  std::cout << "# ERR: " << e.what();                                          \
+  std::cout << " (MySQL error code: " << e.getErrorCode();                     \
   std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 
 // forward declarations
@@ -89,7 +89,7 @@ private:
   bool insertModule(const std::string &ProjectIdentifier,
                     const llvm::Module *module);
   std::unique_ptr<llvm::Module> getModule(const std::string &mod_name,
-                                     llvm::LLVMContext &Context);
+                                          llvm::LLVMContext &Context);
   bool insertGlobalVariable(const llvm::GlobalVariable &G,
                             const unsigned moduleID);
   bool insertFunction(const llvm::Function &F, const unsigned moduleID);
@@ -107,13 +107,15 @@ public:
   static DBConn &getInstance();
   std::string getDBName();
 
-  void storeProjectIRDB(const std::string &ProjectName, const ProjectIRDB &IRDB);
-  // We may want to pass an empty ProjectIRDB and do not return anything in order
-  // to suppress the copy constructor of ProjectIRDB and enforce a no copy rule.
+  void storeProjectIRDB(const std::string &ProjectName,
+                        const ProjectIRDB &IRDB);
+  // We may want to pass an empty ProjectIRDB and do not return anything in
+  // order to suppress the copy constructor of ProjectIRDB and enforce a no copy
+  // rule.
   ProjectIRDB loadProjectIRDB(const std::string &ProjectName);
 
-  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, const std::string &ProjectName,
-                          bool use_hs = false);
+  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
+                          const std::string &ProjectName, bool use_hs = false);
   LLVMBasedICFG loadLLVMBasedICFGfromModule(const std::string &ModuleName,
                                             bool use_hs = false);
   LLVMBasedICFG
@@ -122,20 +124,22 @@ public:
   LLVMBasedICFG loadLLVMBasedICFGfromProject(const std::string &ProjectName,
                                              bool use_hs = false);
 
-  void storePointsToGraph(const PointsToGraph &PTG, const std::string &ProjectName,
-                          bool use_hs = false);
+  void storePointsToGraph(const PointsToGraph &PTG,
+                          const std::string &ProjectName, bool use_hs = false);
   PointsToGraph loadPointsToGraphFromFunction(const std::string &FunctionName,
                                               bool use_hs = false);
 
-  void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH, const std::string &ProjectName,
+  void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
+                              const std::string &ProjectName,
                               bool use_hs = false);
-  LLVMTypeHierarchy loadLLVMTypeHierarchyFromModule(const std::string &ModuleName,
-                                                    bool use_hs = false);
   LLVMTypeHierarchy
-  loadLLVMTypeHierarchyFromModules(std::initializer_list<std::string> ModuleNames,
+  loadLLVMTypeHierarchyFromModule(const std::string &ModuleName,
+                                  bool use_hs = false);
+  LLVMTypeHierarchy loadLLVMTypeHierarchyFromModules(
+      std::initializer_list<std::string> ModuleNames, bool use_hs = false);
+  LLVMTypeHierarchy
+  loadLLVMTypeHierarchyFromProject(const std::string &ProjectName,
                                    bool use_hs = false);
-  LLVMTypeHierarchy loadLLVMTypeHierarchyFromProject(const std::string &ProjectName,
-                                                     bool use_hs = false);
 
   void storeIDESummary(const IDESummary &S);
   IDESummary loadIDESummary(const std::string &FunctionName,

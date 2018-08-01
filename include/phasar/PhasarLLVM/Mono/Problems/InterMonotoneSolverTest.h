@@ -23,9 +23,9 @@
 #include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
 
 namespace llvm {
-  class Instruction;
-  class Value;
-  class Function;
+class Instruction;
+class Value;
+class Function;
 } // namespace llvm
 
 namespace psr {
@@ -34,13 +34,13 @@ class LLVMBasedICFG;
 
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
-                                  MonoSet<const llvm::Value *>, const llvm::Function *,
-                                  LLVMBasedICFG&> {
+                                  MonoSet<const llvm::Value *>,
+                                  const llvm::Function *, LLVMBasedICFG &> {
 public:
-  using Node_t      = const llvm::Instruction*;
-  using Domain_t    = MonoSet<const llvm::Value*>;
-  using Method_t    = const llvm::Function*;
-  using ICFG_t      = LLVMBasedICFG&;
+  using Node_t = const llvm::Instruction *;
+  using Domain_t = MonoSet<const llvm::Value *>;
+  using Method_t = const llvm::Function *;
+  using ICFG_t = LLVMBasedICFG &;
 
 protected:
   std::vector<std::string> EntryPoints;
@@ -50,33 +50,23 @@ public:
                           std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
-  virtual Domain_t
-  join(const Domain_t &Lhs,
-       const Domain_t &Rhs) override;
+  virtual Domain_t join(const Domain_t &Lhs, const Domain_t &Rhs) override;
 
-  virtual bool sqSubSetEqual(const Domain_t &Lhs,
-                             const Domain_t &Rhs) override;
+  virtual bool sqSubSetEqual(const Domain_t &Lhs, const Domain_t &Rhs) override;
 
-  virtual Domain_t
-  normalFlow(const Node_t Stmt,
-             const Domain_t &In) override;
+  virtual Domain_t normalFlow(const Node_t Stmt, const Domain_t &In) override;
 
-  virtual Domain_t
-  callFlow(const Node_t CallSite, const Method_t Callee,
-           const Domain_t &In) override;
+  virtual Domain_t callFlow(const Node_t CallSite, const Method_t Callee,
+                            const Domain_t &In) override;
 
-  virtual Domain_t
-  returnFlow(const Node_t CallSite, const Method_t Callee,
-             const Node_t RetSite,
-             const Domain_t &In) override;
+  virtual Domain_t returnFlow(const Node_t CallSite, const Method_t Callee,
+                              const Node_t RetSite,
+                              const Domain_t &In) override;
 
-  virtual Domain_t
-  callToRetFlow(const Node_t CallSite,
-                const Node_t RetSite,
-                const Domain_t &In) override;
+  virtual Domain_t callToRetFlow(const Node_t CallSite, const Node_t RetSite,
+                                 const Domain_t &In) override;
 
-  virtual MonoMap<Node_t, Domain_t>
-  initialSeeds() override;
+  virtual MonoMap<Node_t, Domain_t> initialSeeds() override;
 
   virtual std::string DtoString(const Domain_t d) override;
 

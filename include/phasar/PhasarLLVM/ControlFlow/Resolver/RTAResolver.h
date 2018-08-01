@@ -17,29 +17,30 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_RTARESOLVER_H_
 
-#include <string>
 #include <set>
+#include <string>
 
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
 
 namespace llvm {
-  class ImmutableCallSite;
-  class StructType;
-  class Function;
-}
+class ImmutableCallSite;
+class StructType;
+class Function;
+} // namespace llvm
 
 namespace psr {
-  struct RTAResolver : public CHAResolver {
-  protected:
-    std::set<const llvm::StructType*> unsound_types;
+struct RTAResolver : public CHAResolver {
+protected:
+  std::set<const llvm::StructType *> unsound_types;
 
-  public:
-    RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
-    virtual ~RTAResolver() = default;
+public:
+  RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+  virtual ~RTAResolver() = default;
 
-    virtual void firstFunction(const llvm::Function* F) override;
-    virtual std::set<std::string> resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
-  };
+  virtual void firstFunction(const llvm::Function *F) override;
+  virtual std::set<std::string>
+  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+};
 } // namespace psr
 
 #endif

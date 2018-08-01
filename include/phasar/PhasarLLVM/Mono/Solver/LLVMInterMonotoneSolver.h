@@ -21,88 +21,99 @@
 
 #include <llvm/IR/Instruction.h>
 
-#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
-#include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/Solver/InterMonotoneGeneralizedSolver.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
 struct LLVMOrderingById {
-  using edge_t = std::pair<const llvm::Instruction* , const llvm::Instruction*>;
-  bool lessInstruction(const llvm::Instruction* lhs, const llvm::Instruction* rhs) const {
+  using edge_t =
+      std::pair<const llvm::Instruction *, const llvm::Instruction *>;
+  bool lessInstruction(const llvm::Instruction *lhs,
+                       const llvm::Instruction *rhs) const {
     return std::stol(getMetaDataID(lhs)) < std::stol(getMetaDataID(rhs));
   }
 
-  bool operator() (const edge_t& lhs, const edge_t& rhs) const {
-    return lessInstruction(lhs.first, rhs.first) || (!lessInstruction(rhs.first, lhs.first) && lessInstruction(lhs.second, rhs.second));
+  bool operator()(const edge_t &lhs, const edge_t &rhs) const {
+    return lessInstruction(lhs.first, rhs.first) ||
+           (!lessInstruction(rhs.first, lhs.first) &&
+            lessInstruction(lhs.second, rhs.second));
   }
 };
 
 template <typename D, class Context, class Ordering = LLVMOrderingById>
 class LLVMInterMonotoneSolver
-  : public InterMonotoneGeneralizedSolver<
-                                    InterMonotoneProblem<const llvm::Instruction *, D,
-                                    const llvm::Function *, LLVMBasedICFG&>,
-                                    Context, Ordering> {
-  public:
-    using IMSBase_t = InterMonotoneGeneralizedSolver<
-                                      InterMonotoneProblem<const llvm::Instruction *, D,
-                                      const llvm::Function *, LLVMBasedICFG&>,
-                                      Context, Ordering>;
+    : public InterMonotoneGeneralizedSolver<
+          InterMonotoneProblem<const llvm::Instruction *, D,
+                               const llvm::Function *, LLVMBasedICFG &>,
+          Context, Ordering> {
+public:
+  using IMSBase_t = InterMonotoneGeneralizedSolver<
+      InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *,
+                           LLVMBasedICFG &>,
+      Context, Ordering>;
 
-  protected:
-    bool DUMP_RESULTS;
-  public:
-    LLVMInterMonotoneSolver(typename IMSBase_t::IMP_t &IMP,
-                            Context &_Context,
-                            const llvm::Function *Method,
-                            bool dump = false)
-        : IMSBase_t(IMP, _Context, Method),
-          DUMP_RESULTS(dump) {}
-    virtual ~LLVMInterMonotoneSolver() = default;
+protected:
+  bool DUMP_RESULTS;
 
-    LLVMInterMonotoneSolver(const LLVMInterMonotoneSolver& copy) = delete;
-    LLVMInterMonotoneSolver(LLVMInterMonotoneSolver& move) = delete;
-    LLVMInterMonotoneSolver& operator=(const LLVMInterMonotoneSolver& copy) = delete;
-    LLVMInterMonotoneSolver& operator=(LLVMInterMonotoneSolver&& move) = delete;
+public:
+  LLVMInterMonotoneSolver(typename IMSBase_t::IMP_t &IMP, Context &_Context,
+                          const llvm::Function *Method, bool dump = false)
+      : IMSBase_t(IMP, _Context, Method), DUMP_RESULTS(dump) {}
+  virtual ~LLVMInterMonotoneSolver() = default;
 
-    void dump() {};
+  LLVMInterMonotoneSolver(const LLVMInterMonotoneSolver &copy) = delete;
+  LLVMInterMonotoneSolver(LLVMInterMonotoneSolver &move) = delete;
+  LLVMInterMonotoneSolver &
+  operator=(const LLVMInterMonotoneSolver &copy) = delete;
+  LLVMInterMonotoneSolver &operator=(LLVMInterMonotoneSolver &&move) = delete;
+
+  void dump(){};
 };
 
 // template <typename V, unsigned K, class Ordering = LLVMOrderingById>
 // class LLVMInterMonotoneCallStringSolver
-//   : public LLVMInterMonotoneSolver<V, CallString<const llvm::Instruction *, V, K>> {
-//   public:
+//   : public LLVMInterMonotoneSolver<V, CallString<const llvm::Instruction *,
+//   V, K>> { public:
 //     LLVMInterMonotoneCallStringSolver();
 //     virtual ~LLVMInterMonotoneCallStringSolver() = default;
 //
-//     LLVMInterMonotoneCallStringSolver(const LLVMInterMonotoneCallStringSolver& copy) = delete;
-//     LLVMInterMonotoneCallStringSolver(LLVMInterMonotoneCallStringSolver& move) = delete;
-//     LLVMInterMonotoneCallStringSolver& operator=(const LLVMInterMonotoneCallStringSolver& copy) = delete;
-//     LLVMInterMonotoneCallStringSolver& operator=(LLVMInterMonotoneCallStringSolver&& move) = delete;
+//     LLVMInterMonotoneCallStringSolver(const
+//     LLVMInterMonotoneCallStringSolver& copy) = delete;
+//     LLVMInterMonotoneCallStringSolver(LLVMInterMonotoneCallStringSolver&
+//     move) = delete; LLVMInterMonotoneCallStringSolver& operator=(const
+//     LLVMInterMonotoneCallStringSolver& copy) = delete;
+//     LLVMInterMonotoneCallStringSolver&
+//     operator=(LLVMInterMonotoneCallStringSolver&& move) = delete;
 // };
 //
 // template <typename V, class Ordering = LLVMOrderingById>
 // class LLVMInterMonotoneValueBasedContextSolver
-//   : public LLVMInterMonotoneSolver<V, ValueBasedContext<const llvm::Instruction *, V>> {
-//   public:
+//   : public LLVMInterMonotoneSolver<V, ValueBasedContext<const
+//   llvm::Instruction *, V>> { public:
 //     LLVMInterMonotoneValueBasedContextSolver() = default;
 //     virtual ~LLVMInterMonotoneValueBasedContextSolver() = default;
 //
-//     LLVMInterMonotoneValueBasedContextSolver(const LLVMInterMonotoneValueBasedContextSolver& copy) = delete;
-//     LLVMInterMonotoneValueBasedContextSolver(LLVMInterMonotoneValueBasedContextSolver& move) = delete;
-//     LLVMInterMonotoneValueBasedContextSolver& operator=(const LLVMInterMonotoneValueBasedContextSolver& copy) = delete;
-//     LLVMInterMonotoneValueBasedContextSolver& operator=(LLVMInterMonotoneValueBasedContextSolver&& move) = delete;
+//     LLVMInterMonotoneValueBasedContextSolver(const
+//     LLVMInterMonotoneValueBasedContextSolver& copy) = delete;
+//     LLVMInterMonotoneValueBasedContextSolver(LLVMInterMonotoneValueBasedContextSolver&
+//     move) = delete; LLVMInterMonotoneValueBasedContextSolver& operator=(const
+//     LLVMInterMonotoneValueBasedContextSolver& copy) = delete;
+//     LLVMInterMonotoneValueBasedContextSolver&
+//     operator=(LLVMInterMonotoneValueBasedContextSolver&& move) = delete;
 // };
 
 //
 // template <typename D, unsigned K, typename I>
 // class LLVMInterMonotoneSolver
 //     : public InterMonotoneGeneralizedSolver<const llvm::Instruction *, D,
-//                                  const llvm::Function *, const llvm::Value *, I, CallString<const llvm::Instruction *, D, K>> {
+//                                  const llvm::Function *, const llvm::Value *,
+//                                  I, CallString<const llvm::Instruction *, D,
+//                                  K>> {
 // protected:
 //   bool DUMP_RESULTS;
 //
@@ -111,18 +122,23 @@ class LLVMInterMonotoneSolver
 //   virtual ~LLVMInterMonotoneSolver() = default;
 //
 //   LLVMInterMonotoneSolver(
-//       InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *,
+//       InterMonotoneProblem<const llvm::Instruction *, D, const llvm::Function
+//       *,
 //                            const llvm::Value *, I> &problem,
 //       bool dumpResults = false)
 //       : InterMonotoneGeneralizedSolver<const llvm::Instruction *, D,
-//                             const llvm::Function *, const llvm::Value *, I, CallString<const llvm::Instruction *, D, K>>(
-//             problem, CallString<const llvm::Instruction *, D, K>(), problem.ICFG.getMethod("main")),
+//                             const llvm::Function *, const llvm::Value *, I,
+//                             CallString<const llvm::Instruction *, D, K>>(
+//             problem, CallString<const llvm::Instruction *, D, K>(),
+//             problem.ICFG.getMethod("main")),
 //         DUMP_RESULTS(dumpResults) {}
 //
 //   virtual void solve() override {
 //     // do the solving of the analaysis problem
-//     InterMonotoneGeneralizedSolver<const llvm::Instruction *, D, const llvm::Function *,
-//                         const llvm::Value *, I, CallString<const llvm::Instruction *, D, K>>::solve();
+//     InterMonotoneGeneralizedSolver<const llvm::Instruction *, D, const
+//     llvm::Function *,
+//                         const llvm::Value *, I, CallString<const
+//                         llvm::Instruction *, D, K>>::solve();
 //     if (DUMP_RESULTS)
 //       dumpResults();
 //   }
@@ -133,7 +149,8 @@ class LLVMInterMonotoneSolver
 //     for (auto &node :
 //          InterMonotoneGeneralizedSolver<const llvm::Instruction *, D,
 //                              const llvm::Function *, const llvm::Value *,
-//                              I, CallString<const llvm::Instruction *, D, K>>::Analysis) {
+//                              I, CallString<const llvm::Instruction *, D,
+//                              K>>::Analysis) {
 //       std::cout << "Instruction: " << llvmIRToString(node.first) << " in "
 //            << node.first->getFunction()->getName().str() << "\n";
 //       // Iterate call-std::string - flow fact std::set pairs
@@ -143,7 +160,8 @@ class LLVMInterMonotoneSolver
 //         for (auto cstring : flowfacts.first.getInternalCS()) {
 //           std::cout
 //               << ((llvm::isa<llvm::Function>(cstring))
-//                       ? llvm::dyn_cast<llvm::Function>(cstring)->getName().str()
+//                       ?
+//                       llvm::dyn_cast<llvm::Function>(cstring)->getName().str()
 //                       : IMProblem.CtoString(cstring))
 //               << " * ";
 //         }
@@ -158,10 +176,14 @@ class LLVMInterMonotoneSolver
 //   }
 // };
 
-template<typename IMP_t, typename Context_t, typename Ordering_t = LLVMOrderingById>
-auto make_LLVMBasedIMS(IMP_t &IMP, Context_t &Context, typename IMP_t::Method_t Method, bool dump = false)
--> std::unique_ptr<LLVMInterMonotoneSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>> {
-  using ptr_t = LLVMInterMonotoneSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>;
+template <typename IMP_t, typename Context_t,
+          typename Ordering_t = LLVMOrderingById>
+auto make_LLVMBasedIMS(IMP_t &IMP, Context_t &Context,
+                       typename IMP_t::Method_t Method, bool dump = false)
+    -> std::unique_ptr<LLVMInterMonotoneSolver<typename IMP_t::Domain_t,
+                                               Context_t, Ordering_t>> {
+  using ptr_t =
+      LLVMInterMonotoneSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>;
   return std::make_unique<ptr_t>(IMP, Context, Method, dump);
 }
 

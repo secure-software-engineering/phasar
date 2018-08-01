@@ -23,12 +23,12 @@
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 
 namespace llvm {
-  class Value;
-  class Instruction;
-  class Type;
-  class Function;
-  class GlobalVariable;
-}
+class Value;
+class Instruction;
+class Type;
+class Function;
+class GlobalVariable;
+} // namespace llvm
 
 namespace psr {
 
@@ -92,11 +92,10 @@ public:
   ProjectIRDB(const std::vector<std::string> &Files,
               std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
-  ProjectIRDB& operator=(ProjectIRDB &&) = delete;
+  ProjectIRDB &operator=(ProjectIRDB &&) = delete;
 
-  ProjectIRDB(ProjectIRDB&) = delete;
-  ProjectIRDB& operator=(const ProjectIRDB&) = delete;
-
+  ProjectIRDB(ProjectIRDB &) = delete;
+  ProjectIRDB &operator=(const ProjectIRDB &) = delete;
 
   ~ProjectIRDB() = default;
 

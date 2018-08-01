@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Instruction.h>
 #include <llvm/IR/CallSite.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
@@ -22,10 +22,11 @@ using namespace psr;
 
 namespace psr {
 
-MapFactsToCaller::MapFactsToCaller(llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
-                 const llvm::Instruction *exitstmt,
-                 function<bool(const llvm::Value *)> paramPredicate,
-                 function<bool(const llvm::Function *)> returnPredicate)
+MapFactsToCaller::MapFactsToCaller(
+    llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
+    const llvm::Instruction *exitstmt,
+    function<bool(const llvm::Value *)> paramPredicate,
+    function<bool(const llvm::Function *)> returnPredicate)
     : callSite(cs), calleeMthd(calleeMthd),
       exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
       paramPredicate(paramPredicate), returnPredicate(returnPredicate) {
@@ -39,7 +40,8 @@ MapFactsToCaller::MapFactsToCaller(llvm::ImmutableCallSite cs, const llvm::Funct
   }
 }
 
-set<const llvm::Value *> MapFactsToCaller::computeTargets(const llvm::Value *source) {
+set<const llvm::Value *>
+MapFactsToCaller::computeTargets(const llvm::Value *source) {
   if (!isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Map formal parameter into corresponding actual parameter.

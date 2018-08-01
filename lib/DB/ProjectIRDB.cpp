@@ -7,10 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-
-#include <iostream>
 #include <algorithm>
 #include <cassert>
+#include <iostream>
 
 #include <clang/Basic/Diagnostic.h>
 #include <clang/CodeGen/CodeGenAction.h>
@@ -34,18 +33,16 @@
 
 #include <boost/filesystem.hpp>
 
-
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/IO.h>
+#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMM.h>
-
 
 using namespace psr;
 using namespace std;
@@ -88,7 +85,8 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       if (M.get() == nullptr)
         Diag.print(File.c_str(), llvm::errs());
       /* Crash in presence of llvm-3.9.1 module (segfault) */
-      if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+      if (M.get() == nullptr ||
+          llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
         throw std::runtime_error(File + " could not be parsed correctly");
       }
       if (broken_debug_info) {
@@ -141,7 +139,8 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);
       bool broken_debug_info = false;
-      if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+      if (M.get() == nullptr ||
+          llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
         std::cout << "error: module not valid\n";
         DIE_HARD;
       }
@@ -204,7 +203,8 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
     commandstr += s;
     commandstr += ' ';
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "compile with command: " << commandstr);
   std::unique_ptr<clang::CompilerInstance> ClangCompiler(
       new clang::CompilerInstance());
   clang::DiagnosticOptions *DiagOpts(new clang::DiagnosticOptions());
@@ -257,13 +257,14 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
-  //WARNING: Activating passes lead to higher time in llvmIRToString
+  // WARNING: Activating passes lead to higher time in llvmIRToString
   PAMM_FACTORY;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
   // const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
   START_TIMER("LLVM Passes" /* + moduleID*/);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier());
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "Preprocess module: " << M->getModuleIdentifier());
 
   // TODO Have a look at this stuff from the future at some point in time
   /// PassManagerBuilder - This class is used to set up a standard
@@ -328,11 +329,14 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PM.run(*M);
   // just to be sure that none of the passes has messed up the module!
   bool broken_debug_info = false;
-  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL) << "AnalysisController: module is broken!");
+  if (M == nullptr ||
+      llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL)
+                  << "AnalysisController: module is broken!");
   }
   if (broken_debug_info) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
+                  << "AnalysisController: debug info is broken.");
   }
   for (auto RR : GSP->getRetResInstructions()) {
     ret_res_instructions.insert(RR);
@@ -357,7 +361,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
           llvm::createLegacyPMAAResults(*BasicAAWP, F, BAAResult);
       // This line is a major slowdown
       // The problem comes from the generation of PtG is which far too slow
-      // due to the use of llvmIRToString (without it, the generation of PtG is very acceptable)
+      // due to the use of llvmIRToString (without it, the generation of PtG is
+      // very acceptable)
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
@@ -392,7 +397,8 @@ void ProjectIRDB::linkForWPA() {
         std::unique_ptr<llvm::Module> TmpMod =
             llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
         bool broken_debug_info = false;
-        if (TmpMod.get() == nullptr || llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
+        if (TmpMod.get() == nullptr ||
+            llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
           std::cout << "module is broken!\nabort!" << std::endl;
           DIE_HARD;
         }
@@ -704,13 +710,13 @@ std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
 
   static std::set<const llvm::Function *> funs;
 
-  if ( funs.size() == 0 ) {
+  if (funs.size() == 0) {
     for (const auto &entry : functions) {
       const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
       if (f == nullptr) {
-         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << entry.first << " is not contained in the module\n");
-      }
-      else
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
+                      << entry.first << " is not contained in the module\n");
+      } else
         funs.insert(f);
     }
   }

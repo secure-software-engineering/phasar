@@ -28,27 +28,32 @@ namespace psr {
  *  ConcreteContext = The class that implement the context (must be a sub class
  *                    of ContextBase<N,D,ConcreteContext>)
  */
-template <typename N, typename D, typename ConcreteContext>
-class ContextBase {
+template <typename N, typename D, typename ConcreteContext> class ContextBase {
 public:
-  using Node_t    = N;
-  using Domain_t  = D;
+  using Node_t = N;
+  using Domain_t = D;
 
 private:
   void ValueBase_check() {
-    static_assert(std::is_base_of<ContextBase<Node_t, Domain_t, ConcreteContext>, ConcreteContext>::value, "Template class ConcreteContext must be a sub class of ContextBase<N, V, ConcreteContext>\n");
+    static_assert(
+        std::is_base_of<ContextBase<Node_t, Domain_t, ConcreteContext>,
+                        ConcreteContext>::value,
+        "Template class ConcreteContext must be a sub class of ContextBase<N, "
+        "V, ConcreteContext>\n");
   }
 
 public:
   /*
    * Update the context at the exit of a function
    */
-  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) = 0;
+  virtual void exitFunction(const Node_t src, const Node_t dest,
+                            const Domain_t &In) = 0;
 
   /*
    *
    */
-  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) = 0;
+  virtual void enterFunction(const Node_t src, const Node_t dest,
+                             const Domain_t &In) = 0;
 
   /*
    *
@@ -63,13 +68,16 @@ public:
   virtual bool isLessThan(const ConcreteContext &rhs) const = 0;
   virtual void print(std::ostream &os) const = 0;
 
-  friend bool operator==(const ConcreteContext &lhs, const ConcreteContext &rhs) {
+  friend bool operator==(const ConcreteContext &lhs,
+                         const ConcreteContext &rhs) {
     return lhs.isEqual(rhs);
   }
-  friend bool operator!=(const ConcreteContext &lhs, const ConcreteContext &rhs) {
+  friend bool operator!=(const ConcreteContext &lhs,
+                         const ConcreteContext &rhs) {
     return lhs.isDifferent(rhs);
   }
-  friend bool operator<(const ConcreteContext &lhs, const ConcreteContext &rhs) {
+  friend bool operator<(const ConcreteContext &lhs,
+                        const ConcreteContext &rhs) {
     return lhs.isLessThan(rhs);
   }
   friend std::ostream &operator<<(std::ostream &os, const ConcreteContext &c) {
@@ -78,6 +86,6 @@ public:
   }
 };
 
-}
+} // namespace psr
 
 #endif

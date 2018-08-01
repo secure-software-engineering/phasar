@@ -18,10 +18,9 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
 
 #include <iostream> // std::cerr
-#include <ostream>
 #include <memory>
+#include <ostream>
 #include <string>
-
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>
@@ -72,8 +71,8 @@ public:
     return false;
   }
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const override { 
-    OS << "all_bottom";  
+  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+    OS << "all_bottom";
   }
 };
 

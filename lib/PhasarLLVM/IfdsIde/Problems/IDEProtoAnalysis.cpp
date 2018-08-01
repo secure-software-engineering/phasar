@@ -20,9 +20,9 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDEProtoAnalysis.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
 
 using namespace psr;
 using namespace std;

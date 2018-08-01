@@ -9,8 +9,8 @@
 
 #include <iostream>
 
-#include <phasar/Utils/SOL.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/SOL.h>
 
 using namespace std;
 using namespace psr;
@@ -19,7 +19,8 @@ namespace psr {
 
 SOL::SOL(const string &path) : path(path) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Loading shared object library: '" << path << "'");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Loading shared object library: '" << path << "'");
   so_handle = dlopen(path.c_str(), RTLD_LAZY);
   if (!so_handle) {
     cerr << dlerror() << '\n';

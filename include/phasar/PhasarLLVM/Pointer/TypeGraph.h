@@ -38,7 +38,7 @@
 // #include <phasar/PhasarLLVM/Pointer/VTable.h>
 
 namespace psr {
-  
+
 class TypeGraph {
 public:
   struct VertexProperties {

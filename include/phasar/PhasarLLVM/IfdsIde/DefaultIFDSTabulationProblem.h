@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIFDSTABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIFDSTABULATIONPROBLEM_H_
 
-#include<memory>
+#include <memory>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>

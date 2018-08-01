@@ -94,7 +94,8 @@ public:
   }
 
   std::multiset<C> columnKeySet() {
-    // Returns a std::set of column keys that have one or more values in the table.
+    // Returns a std::set of column keys that have one or more values in the
+    // table.
     multiset<C> colkeys;
     for (auto &m1 : multi_key_table)
       for (auto &m2 : m1.second)
@@ -103,8 +104,8 @@ public:
   }
 
   std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnMap() {
-    // Returns a view that associates each column key with the corresponding std::map
-    // from row keys to values.
+    // Returns a view that associates each column key with the corresponding
+    // std::map from row keys to values.
     std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnmap;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : multi_key_table.second) {
@@ -115,15 +116,16 @@ public:
   }
 
   bool contains(R rowKey, C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified row and
-    // column keys.
+    // Returns true if the table contains a std::mapping with the specified row
+    // and column keys.
     if (multi_key_table.count(rowKey))
       return multi_key_table[rowKey].count(columnKey);
     return false;
   }
 
   bool containsColumn(C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified column.
+    // Returns true if the table contains a std::mapping with the specified
+    // column.
     for (auto &m1 : multi_key_table)
       if (m1.second.count(columnKey))
         return true;
@@ -131,12 +133,14 @@ public:
   }
 
   bool containsRow(R rowKey) {
-    // Returns true if the table contains a std::mapping with the specified row key.
+    // Returns true if the table contains a std::mapping with the specified row
+    // key.
     return multi_key_table.count(rowKey);
   }
 
   bool containsValue(V value) {
-    // Returns true if the table contains a std::mapping with the specified value.
+    // Returns true if the table contains a std::mapping with the specified
+    // value.
     for (auto &m1 : multi_key_table)
       for (auto &m2 : m1.second)
         if (value == m2.second)
@@ -177,8 +181,8 @@ public:
   }
 
   std::unordered_multimap<R, std::unordered_multimap<C, V>> rowMap() {
-    // Returns a view that associates each row key with the corresponding std::map
-    // from column keys to values.
+    // Returns a view that associates each row key with the corresponding
+    // std::map from column keys to values.
     return multi_key_table;
   }
 
@@ -201,7 +205,8 @@ public:
     return lhs.multi_key_table < rhs.multi_key_table;
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const MultiKeyTable<R, C, V> &t) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const MultiKeyTable<R, C, V> &t) {
     for (auto &m1 : t.multi_key_table)
       for (auto &m2 : m1.second)
         os << "< " << m1.first << " , " << m2.first << " , " << m2.second

@@ -7,18 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
- #include <llvm/IR/Function.h>
- #include <llvm/IR/Instruction.h>
- #include <llvm/IR/Value.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-
 
 using namespace std;
 using namespace psr;
@@ -35,7 +34,8 @@ shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t curr,
                                       IFDSSolverTest::n_t succ) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getNormalFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IFDSSolverTest::getNormalFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -43,7 +43,8 @@ shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t callStmt,
                                     IFDSSolverTest::m_t destMthd) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IFDSSolverTest::getCallFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -53,7 +54,8 @@ IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t callSite,
                                    IFDSSolverTest::n_t exitStmt,
                                    IFDSSolverTest::n_t retSite) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getRetFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IFDSSolverTest::getRetFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -62,7 +64,8 @@ IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t callSite,
                                          IFDSSolverTest::n_t retSite,
                                          set<IFDSSolverTest::m_t> callees) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::getCallToRetFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IFDSSolverTest::getCallToRetFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 

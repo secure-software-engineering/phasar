@@ -26,7 +26,8 @@ namespace psr {
 
 class ObservedCallingContexts {
 private:
-  // Maps a function to the std::set of contexts that have been recognized so far
+  // Maps a function to the std::set of contexts that have been recognized so
+  // far
   std::map<std::string, std::set<std::vector<bool>>> ObservedCTX;
 
 public:

@@ -22,7 +22,6 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
-
 namespace psr {
 
 template <typename D> class KillAll : public FlowFunction<D> {

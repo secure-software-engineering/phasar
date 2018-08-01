@@ -23,6 +23,8 @@
 
 namespace psr {
 
+/// Current Phasar version
+extern const std::string PhasarVersion;
 /// Stores the label/ tag with which we annotate the LLVM IR.
 extern const std::string MetaDataKind;
 /// Specifies the directory in which important configuration files are located.

@@ -26,7 +26,8 @@ namespace psr {
 class DefaultSeeds {
 public:
   template <typename N, typename D>
-  static std::map<N, std::set<D>> make(std::vector<N> instructions, D zeroNode) {
+  static std::map<N, std::set<D>> make(std::vector<N> instructions,
+                                       D zeroNode) {
     std::map<N, std::set<D>> res;
     for (const N &n : instructions)
       res.insert({n, std::set<D>{zeroNode}});

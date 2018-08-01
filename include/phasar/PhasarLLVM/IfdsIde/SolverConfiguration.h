@@ -40,7 +40,8 @@ struct SolverConfiguration {
   bool computeValues = false;
   bool recordEdges = false;
   bool computePersistedSummaries = false;
-  friend std::ostream &operator<<(std::ostream &os, const SolverConfiguration &sc);
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const SolverConfiguration &sc);
 };
 
 } // namespace psr

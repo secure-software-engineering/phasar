@@ -58,7 +58,7 @@ public:
 
   void dumpResults() {
     std::cout << "Monotone solver results:\n"
-            "------------------------\n";
+                 "------------------------\n";
     for (auto &entry :
          IntraMonotoneSolver<const llvm::Instruction *, D,
                              const llvm::Function *, C>::Analysis) {

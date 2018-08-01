@@ -19,12 +19,11 @@
 
 #include <llvm/Pass.h>
 
-
 namespace llvm {
-  class LLVMContext;
-  class Module;
-  class AnalysisUsage;
-}
+class LLVMContext;
+class Module;
+class AnalysisUsage;
+} // namespace llvm
 
 namespace psr {
 

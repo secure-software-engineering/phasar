@@ -22,10 +22,10 @@
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 
 namespace llvm {
-  class Value;
-  class Instruction;
-  class Function;
-}
+class Value;
+class Instruction;
+class Function;
+} // namespace llvm
 
 namespace psr {
 

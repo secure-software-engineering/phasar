@@ -13,13 +13,13 @@
  *  Created on: 08.02.2017
  *      Author: pdschbrt
  */
-#include <llvm/IR/Instructions.h>
 #include <llvm/ADT/SetVector.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Module.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/Constants.h>
+#include <llvm/IR/InstIterator.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Value.h>
 
 #include <boost/graph/copy.hpp>
 #include <boost/graph/depth_first_search.hpp>
@@ -29,17 +29,16 @@
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 
+#include <phasar/Utils/GraphExtensions.h>
+#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMM.h>
-#include <phasar/Utils/GraphExtensions.h>
-#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
 
 namespace psr {
-
 
 struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
   // collect the allocation sites that are found
@@ -68,7 +67,7 @@ struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
       // If the call stack is empty, we completely ignore the calling context
       if (matches_stack(g) || call_stack.empty()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-            << "Found stack allocation: " << llvmIRToString(Alloc));
+                      << "Found stack allocation: " << llvmIRToString(Alloc));
         allocation_sites.insert(g[u].value);
       }
     }
@@ -82,8 +81,9 @@ struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matches_stack(g) || call_stack.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: "
-                                   << llvmIRToString(CS.getInstruction()));
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Found heap allocation: "
+                        << llvmIRToString(CS.getInstruction()));
           allocation_sites.insert(g[u].value);
         }
       }
@@ -161,8 +161,8 @@ void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
     : value(v) {
-  //WARNING: equivalent to llvmIRToString
-  //WARNING 2 : really really really slow (yes it is)
+  // WARNING: equivalent to llvmIRToString
+  // WARNING 2 : really really really slow (yes it is)
   // // save the ir code
   // llvm::raw_string_ostream rso(ir_code);
   // value->print(rso);
@@ -178,8 +178,8 @@ PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
 
 PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
   // save the ir code
-  //WARNING: equivalent to llvmIRToString
-  //WARNING 2 : really really really slow (yes it is)
+  // WARNING: equivalent to llvmIRToString
+  // WARNING 2 : really really really slow (yes it is)
   // if (v) {
   //   llvm::raw_string_ostream rso(ir_code);
   //   value->print(rso);
@@ -210,7 +210,8 @@ const map<PointerAnalysisType, string> PointerAnalysisTypeToString = {
 PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str());
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Analyzing function: " << F->getName().str());
   ContainedFunctions.insert(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = true;

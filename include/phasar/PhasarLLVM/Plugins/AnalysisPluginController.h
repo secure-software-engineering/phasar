@@ -26,7 +26,8 @@ private:
   json &FinalResultsJson;
 
 public:
-  AnalysisPluginController(std::vector<std::string> AnalysisPlygins, LLVMBasedICFG &ICFG,
+  AnalysisPluginController(std::vector<std::string> AnalysisPlygins,
+                           LLVMBasedICFG &ICFG,
                            std::vector<std::string> EntryPoints, json &Results);
 };
 

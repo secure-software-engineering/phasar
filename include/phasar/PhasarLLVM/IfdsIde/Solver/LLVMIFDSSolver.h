@@ -27,8 +27,8 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/Utils/Table.h>
 #include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/Table.h>
 
 using json = nlohmann::json;
 
@@ -69,7 +69,8 @@ public:
     if (results.empty()) {
       std::cout << "EMPTY\n";
     } else {
-      std::vector<typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
+      std::vector<
+          typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
           cells;
       for (auto cell : results) {
         cells.push_back(cell);
@@ -86,14 +87,15 @@ public:
         if (prev != curr) {
           prev = curr;
           std::cout << "--- IFDS START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "N: " << Problem.NtoString(cells[i].r)
+                    << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
             std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
         std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-             << "\tV:  " << cells[i].v << "\n";
+                  << "\tV:  " << cells[i].v << "\n";
       }
     }
     STOP_TIMER("DFA Result Dumping");
@@ -150,7 +152,8 @@ public:
       instruction_id_map->insert(
           std::pair<const llvm::Instruction *, int>(node, node_number));
     } else {
-      std::cout << "found element in std::map(inter): " << it->second << std::endl;
+      std::cout << "found element in std::map(inter): " << it->second
+                << std::endl;
     }
     return jsonNode;
   }
@@ -158,25 +161,18 @@ public:
       const llvm::Instruction *currentNode,
       const llvm::Function *callerFunction,
       std::map<const llvm::Instruction *, int> *instruction_id_map) {
-    // In the next line we obtain the corresponding row std::map which std::maps (given a
-    // source node)
-    // the target node to the data flow fact std::map<D, std::set<D>. In the data flow
-    // fact std::map D is
-    // a fact F which holds at the source node whereas std::set<D> contains the facts
-    // that are
-    // produced by F and hold at statement TargetNode.
-    // Usually every node has one successor node, that is why the row std::map
-    // obtained by row usually
-    // only contains just a single entry. BUT: in case of branch statements and
-    // other advanced
-    // instructions, one statement sometimes has multiple successor statments.
-    // In these cases
-    // the row std::map contains entries for every single successor statement. After
-    // having obtained
-    // the pairs <SourceNode, TargetNode> the data flow std::map can be obtained
-    // easily.
-    // size_t from = getJsonRepresentationForInstructionNode(document,
-    // currentNode);
+    // In the next line we obtain the corresponding row std::map which std::maps
+    // (given a source node) the target node to the data flow fact std::map<D,
+    // std::set<D>. In the data flow fact std::map D is a fact F which holds at
+    // the source node whereas std::set<D> contains the facts that are produced
+    // by F and hold at statement TargetNode. Usually every node has one
+    // successor node, that is why the row std::map obtained by row usually only
+    // contains just a single entry. BUT: in case of branch statements and other
+    // advanced instructions, one statement sometimes has multiple successor
+    // statments. In these cases the row std::map contains entries for every
+    // single successor statement. After having obtained the pairs <SourceNode,
+    // TargetNode> the data flow std::map can be obtained easily. size_t from =
+    // getJsonRepresentationForInstructionNode(document, currentNode);
 
     json fromNode = getJsonOfNode(currentNode, instruction_id_map);
 
@@ -191,8 +187,8 @@ public:
       std::cout << "node pointer target : " << TargetNode << std::endl;
 
       // getJsonRepresentationForInstructionEdge(from, to, document);
-      std::cout << "NODE (in function " << TargetNode->getFunction()->getName().str()
-           << ")\n";
+      std::cout << "NODE (in function "
+                << TargetNode->getFunction()->getName().str() << ")\n";
       TargetNode->print(llvm::outs());
 
       auto FlowFactMap = entry.second;
@@ -241,7 +237,8 @@ public:
             // getJsonRepresentationForInstructionEdge(from, to);
 
             std::cout << "NODE (in function (inter)"
-                 << interEntry.first->getFunction()->getName().str() << ")\n";
+                      << interEntry.first->getFunction()->getName().str()
+                      << ")\n";
             interEntry.first->print(llvm::outs());
             // add function start node here
             iterateExplodedSupergraph(interEntry.first,
@@ -348,10 +345,12 @@ public:
       auto SourceNode = Seed.first;
 
       std::cout << "START NODE (in function "
-           << SourceNode->getFunction()->getName().str() << ")\n";
+                << SourceNode->getFunction()->getName().str() << ")\n";
       SourceNode->print(llvm::outs());
-      std::cout << " source node name " << SourceNode->getName().str() << std::endl;
-      std::cout << " source node opcode name" << SourceNode->getOpcodeName() << std::endl;
+      std::cout << " source node name " << SourceNode->getName().str()
+                << std::endl;
+      std::cout << " source node opcode name" << SourceNode->getOpcodeName()
+                << std::endl;
 
       iterateExplodedSupergraph(SourceNode, SourceNode->getFunction(),
                                 &instruction_id_map);
@@ -366,10 +365,12 @@ public:
     for (auto &cell : interpe) {
       std::cout << "FROM" << std::endl;
       cell.r->dump();
-      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str()
+                << "\n";
       std::cout << "TO" << std::endl;
       cell.c->dump();
-      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str()
+                << "\n";
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
         std::cout << "fact" << std::endl;
@@ -388,10 +389,12 @@ public:
     for (auto &cell : intrape) {
       std::cout << "FROM" << std::endl;
       cell.r->dump();
-      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str()
+                << "\n";
       std::cout << "TO" << std::endl;
       cell.c->dump();
-      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str() << "\n";
+      std::cout << "IN FUNCTION: " << cell.r->getFunction()->getName().str()
+                << "\n";
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
         std::cout << "fact" << std::endl;

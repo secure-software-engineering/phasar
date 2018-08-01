@@ -17,18 +17,18 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMIFDSSUMMARYGENERATOR_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_LLVMIFDSSUMMARYGENERATOR_H_
 
-#include <vector>
 #include <set>
+#include <vector>
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
 
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSummaryGenerator.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 

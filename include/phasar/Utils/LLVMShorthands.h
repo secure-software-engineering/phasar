@@ -17,19 +17,19 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <vector>
 #include <string>
+#include <vector>
 
 namespace llvm {
-  class Value;
-  class FunctionType;
-  class Function;
-  class Argument;
-  class Instruction;
-  class TerminatorInst;
-  class StoreInst;
-  class Module;
-}
+class Value;
+class FunctionType;
+class Function;
+class Argument;
+class Instruction;
+class TerminatorInst;
+class StoreInst;
+class Module;
+} // namespace llvm
 
 namespace psr {
 
@@ -53,7 +53,8 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 /**
  * @brief Returns a std::string representation of a LLVM Value.
  * @note Expensive function (between 20 to 550 ms per call)
- *       avoid to do it often, it can kill the performances (c.f. warning in the implementation)
+ *       avoid to do it often, it can kill the performances (c.f. warning in the
+ * implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 

@@ -21,11 +21,10 @@
 #include <set>
 #include <vector>
 
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
-
+#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 
 namespace psr {
 
@@ -94,7 +93,7 @@ public:
     }
     for (auto subset : InputCombinations) {
       std::cout << "Generate summary for specific context: "
-           << generateBitPattern(inputs, subset) << "\n";
+                << generateBitPattern(inputs, subset) << "\n";
       CTXFunctionProblem functionProblem(
           *icfg.getStartPointsOf(toSummarize).begin(), subset, icfg);
       ConcreteSolver solver(functionProblem, true);
@@ -106,9 +105,9 @@ public:
       for (auto fact : solver.resultsAt(*LastInsts.begin())) {
         results.insert(fact.first);
       }
-      summary.insert(
-          make_pair(generateBitPattern(inputs, subset),
-                    std::make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
+      summary.insert(make_pair(
+          generateBitPattern(inputs, subset),
+          std::make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
     }
     return summary;
   }

@@ -17,27 +17,27 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
 
+#include <iosfwd>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
-#include <string>
 #include <vector>
-#include <iosfwd>
 
 #include <gtest/gtest_prod.h>
 
-#include <boost/graph/graph_traits.hpp>
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graph_traits.hpp>
 
 #include <json.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 
 namespace llvm {
-  class Module;
-  class Type;
-  class Function;
-}
+class Module;
+class Type;
+class Function;
+} // namespace llvm
 
 namespace psr {
 
@@ -98,7 +98,7 @@ private:
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 protected:
-  void pruneTypeHierarchyWithVtable(const llvm::Function* constructor);
+  void pruneTypeHierarchyWithVtable(const llvm::Function *constructor);
 
 public:
   /**
@@ -135,7 +135,7 @@ public:
   std::set<std::string> getTransitivelyReachableTypes(std::string TypeName);
   // not used?
   std::vector<const llvm::Function *> constructVTable(const llvm::Type *T,
-                                                 const llvm::Module *M);
+                                                      const llvm::Module *M);
 
   /**
    * 	@brief Returns an entry at the given index from the VTable

@@ -14,7 +14,6 @@
  *      Author: philipp
  */
 
-
 #include <algorithm>
 #include <iostream>
 

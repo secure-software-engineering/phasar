@@ -17,13 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIDESOLVER_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIDESOLVER_H_
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 
 namespace psr {
 
@@ -67,10 +67,10 @@ public:
         cells.push_back(cell);
       }
       std::sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, D, V>::Cell a,
-              typename Table<const llvm::Instruction *, D, V>::Cell b) {
-             return a.r < b.r;
-           });
+                [](typename Table<const llvm::Instruction *, D, V>::Cell a,
+                   typename Table<const llvm::Instruction *, D, V>::Cell b) {
+                  return a.r < b.r;
+                });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
@@ -78,14 +78,15 @@ public:
         if (prev != curr) {
           prev = curr;
           std::cout << "--- IDE START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r) << " in function: ";
+          std::cout << "N: " << Problem.NtoString(cells[i].r)
+                    << " in function: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
             std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
         std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-             << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
+                  << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
   }

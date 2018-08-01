@@ -26,8 +26,10 @@ namespace psr {
 template <typename N, typename D> struct CallStringPrefixedDFF {
   D d;
   CallString<N, D, 3> d_callstd::string;
-  CallStringPrefixedDFF(D d, CallString<N, D, 3> cs) : d(d), d_callstd::string(cs) {}
-  friend std::ostream &operator<<(std::ostream &os, const CallStringPrefixedDFF &d) {
+  CallStringPrefixedDFF(D d, CallString<N, D, 3> cs)
+      : d(d), d_callstd::string(cs) {}
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const CallStringPrefixedDFF &d) {
     return os << "[ " << d.d_callstd::string << " ] - " << d.d;
   }
 };

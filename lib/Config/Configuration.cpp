@@ -26,6 +26,7 @@ using namespace psr;
 
 namespace psr {
 
+const std::string PhasarVersion("PhASAR v1.1");
 const std::string MetaDataKind("phasar.instruction.id");
 const std::string ConfigurationDirectory([]() {
   std::string phasar_config =

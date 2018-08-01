@@ -23,10 +23,10 @@
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 
 namespace llvm {
-  class Value;
-  class Instruction;
-  class Function;
-}
+class Value;
+class Instruction;
+class Function;
+} // namespace llvm
 
 namespace psr {
 
@@ -54,7 +54,8 @@ public:
   virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>>
   initialSeeds() override;
 
-  virtual std::string DtoString(std::pair<const llvm::Value *, unsigned> d) override;
+  virtual std::string
+  DtoString(std::pair<const llvm::Value *, unsigned> d) override;
 };
 
 } // namespace psr

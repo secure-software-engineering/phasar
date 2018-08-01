@@ -29,9 +29,8 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Macros.h>
-
+#include <phasar/Utils/PAMM.h>
 
 using namespace std;
 using namespace psr;
@@ -71,7 +70,7 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
   // FType->print(llvm::outs());
-  if (F == nullptr || FType == nullptr )
+  if (F == nullptr || FType == nullptr)
     return false;
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
@@ -88,7 +87,7 @@ bool matchesSignature(const llvm::Function *F,
 }
 
 std::string llvmIRToString(const llvm::Value *V) {
-  //WARNING: Expensive function, cause is the V->print(RSO)
+  // WARNING: Expensive function, cause is the V->print(RSO)
   //         (20ms on a medium size code (phasar without debug)
   //          80ms on a huge size code (clang without debug),
   //          can be multiplied by times 3 to 5 if passes are enabled)
@@ -98,8 +97,7 @@ std::string llvmIRToString(const llvm::Value *V) {
 
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     RSO << ", ID: " << getMetaDataID(Inst);
-  }
-  else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     RSO << ", ID: " << getMetaDataID(GV);
   }
 
@@ -128,16 +126,16 @@ std::string getMetaDataID(const llvm::Value *V) {
   if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
     if (auto metaData = I->getMetadata(MetaDataKind)) {
       return llvm::cast<llvm::MDString>(metaData->getOperand(0))
-                ->getString()
-                  .str();
+          ->getString()
+          .str();
     }
 
   } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
     if (!isLLVMZeroValue(V)) {
       if (auto metaData = GV->getMetadata(MetaDataKind)) {
         return llvm::cast<llvm::MDString>(metaData->getOperand(0))
-                  ->getString()
-                    .str();
+            ->getString()
+            .str();
       }
     }
   }

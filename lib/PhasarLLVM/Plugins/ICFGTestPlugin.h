@@ -10,12 +10,11 @@
 #ifndef ICFGTESTPLUGIN_H_
 #define ICFGTESTPLUGIN_H_
 
-
 #include <memory>
 #include <set>
-#include <vector>
-#include <string>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 #include <json.hpp>
 
@@ -85,7 +84,8 @@ public:
 };
 
 extern "C" std::unique_ptr<ICFGPlugin>
-makeICFGTestPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints);
+makeICFGTestPlugin(ProjectIRDB &IRDB,
+                   const std::vector<std::string> EntryPoints);
 } // namespace psr
 
 #endif

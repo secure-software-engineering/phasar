@@ -26,8 +26,8 @@
 #include <clang/Tooling/Tooling.h>
 #include <llvm/Support/CommandLine.h>
 
-#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 #include <phasar/PhasarClang/RandomChangeASTConsumer.h>
+#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 
 using namespace std;
 using namespace psr;

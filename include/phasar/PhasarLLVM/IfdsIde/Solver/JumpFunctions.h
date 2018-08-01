@@ -17,10 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <unordered_map>
-#include <iostream>
 
 #include <boost/log/sources/record_ostream.hpp>
 
@@ -45,16 +45,14 @@ private:
 protected:
   // std::mapping from target node and value to a list of all source values and
   // associated functions
-  // where the list is implemented as a std::mapping from the source value to the
-  // function
-  // we exclude empty default functions
+  // where the list is implemented as a std::mapping from the source value to
+  // the function we exclude empty default functions
   Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions
-  // where the list is implemented as a std::mapping from the source value to the
-  // function
-  // we exclude empty default functions
+  // where the list is implemented as a std::mapping from the source value to
+  // the function we exclude empty default functions
   Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
@@ -79,10 +77,11 @@ public:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at source: " << problem.DtoString(sourceVal));
+                  << "Fact at source: " << problem.DtoString(sourceVal));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at target: " << problem.DtoString(targetVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target));
+                  << "Fact at target: " << problem.DtoString(targetVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Destination: " << problem.NtoString(target));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << *function);
     // we do not store the default function (all-top)
     if (function->equal_to(allTop))
@@ -191,13 +190,15 @@ public:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:");
     for (auto &entry : nonEmptyLookupByTargetNode) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "Node: " << problem.NtoString(entry.first));
       for (auto cell : entry.second.cellSet()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at src: " << problem.DtoString(cell.r));
+                      << "fact at src: " << problem.DtoString(cell.r));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at dst: " << problem.DtoString(cell.c));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString());
+                      << "fact at dst: " << problem.DtoString(cell.c));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "edge fnct: " << cell.v->toString());
       }
     }
   }

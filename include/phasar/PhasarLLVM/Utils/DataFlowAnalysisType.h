@@ -34,9 +34,11 @@ enum class DataFlowAnalysisType {
   None
 };
 
-extern const std::map<std::string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
+extern const std::map<std::string, DataFlowAnalysisType>
+    StringToDataFlowAnalysisType;
 
-extern const std::map<DataFlowAnalysisType, std::string> DataFlowAnalysisTypeToString;
+extern const std::map<DataFlowAnalysisType, std::string>
+    DataFlowAnalysisTypeToString;
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
 

@@ -10,14 +10,14 @@
 #ifndef PHASAR_UTILS_MACROS_H_
 #define PHASAR_UTILS_MACROS_H_
 
-#include <set>
-#include <vector>
-#include <string>
 #include <iosfwd>
+#include <set>
+#include <string>
+#include <vector>
 // Should include <iostream> due to the Macros using std::cerr
 
 namespace llvm {
-  class Type;
+class Type;
 }
 
 namespace psr {
@@ -25,21 +25,21 @@ namespace psr {
 #define MYDEBUG
 
 #define HEREANDNOW                                                             \
-  std::cerr << "file: " << __FILE__ << " line: " << __LINE__                        \
-       << " function: " << __func__ << std::endl;
+  std::cerr << "file: " << __FILE__ << " line: " << __LINE__                   \
+            << " function: " << __func__ << std::endl;
 
 #define DIE_HARD exit(-1);
 
 #define UNRECOVERABLE_CXX_ERROR_COND(BOOL, STRING)                             \
   if (!BOOL) {                                                                 \
     HEREANDNOW;                                                                \
-    std::cerr << STRING << std::endl;                                                    \
+    std::cerr << STRING << std::endl;                                          \
     exit(-1);                                                                  \
   }
 
 #define UNRECOVERABLE_CXX_ERROR_UNCOND(STRING)                                 \
   HEREANDNOW;                                                                  \
-  std::cerr << STRING << std::endl;                                                      \
+  std::cerr << STRING << std::endl;                                            \
   exit(-1);
 
 std::string cxx_demangle(const std::string &mangled_name);
@@ -50,13 +50,15 @@ std::string debasify(const std::string &name);
 
 std::string uniformTypeName(const std::string &name);
 
-const llvm::Type* stripPointer(const llvm::Type* pointer);
+const llvm::Type *stripPointer(const llvm::Type *pointer);
 
 bool isMangled(const std::string &name);
 
-std::vector<std::string> splitString(const std::string &str, const std::string &delimiter);
+std::vector<std::string> splitString(const std::string &str,
+                                     const std::string &delimiter);
 
-template <typename T> std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
+template <typename T>
+std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
   // compute all subsets of {a, b, c, d}
   //  bit-pattern - {d, c, b, a}
   //  0000  {}

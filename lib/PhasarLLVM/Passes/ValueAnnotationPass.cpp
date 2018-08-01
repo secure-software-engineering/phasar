@@ -27,8 +27,8 @@
 #include <llvm/Support/raw_os_ostream.h>
 
 #include <phasar/Config/Configuration.h>
-#include <phasar/Utils/Logger.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/Utils/Logger.h>
 using namespace std;
 using namespace psr;
 

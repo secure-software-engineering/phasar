@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
-#include <utility> // std::pair
 #include <string>
+#include <utility> // std::pair
 #include <vector>
 
 namespace psr {

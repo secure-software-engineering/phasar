@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_VTABLE_H_
 #define PHASAR_PHASARLLVM_POINTER_VTABLE_H_
 
+#include <iosfwd>
 #include <string>
 #include <vector>
-#include <iosfwd>
 
 #include <json.hpp>
 

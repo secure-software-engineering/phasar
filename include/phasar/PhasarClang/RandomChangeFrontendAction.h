@@ -21,12 +21,12 @@
 
 #include <llvm/ADT/StringRef.h>
 
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Frontend/FrontendActions.h>
 #include <clang/Frontend/ASTConsumers.h>
+#include <clang/Frontend/FrontendActions.h>
+#include <clang/Rewrite/Core/Rewriter.h>
 
 namespace clang {
-  class CompilerInstance;
+class CompilerInstance;
 }
 
 namespace psr {

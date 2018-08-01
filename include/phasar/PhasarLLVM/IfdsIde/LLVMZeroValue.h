@@ -25,7 +25,7 @@
 #include <llvm/IR/Module.h>
 
 namespace llvm {
-  class Value;
+class Value;
 }
 
 namespace psr {

@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_ZEROEDFLOWFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_ZEROEDFLOWFUNCTIONS_H_
 
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
-#include <memory>
 
 namespace psr {
 

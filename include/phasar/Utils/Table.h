@@ -114,7 +114,8 @@ public:
   }
 
   std::multiset<C> columnKeySet() {
-    // Returns a std::set of column keys that have one or more values in the table.
+    // Returns a std::set of column keys that have one or more values in the
+    // table.
     std::multiset<C> colkeys;
     for (auto &m1 : table)
       for (auto &m2 : m1.second)
@@ -123,8 +124,8 @@ public:
   }
 
   std::unordered_map<C, std::unordered_map<R, V>> columnMap() {
-    // Returns a view that associates each column key with the corresponding std::map
-    // from row keys to values.
+    // Returns a view that associates each column key with the corresponding
+    // std::map from row keys to values.
     std::unordered_map<C, std::unordered_map<R, V>> columnmap;
     for (auto &m1 : table) {
       for (auto &m2 : table.second) {
@@ -135,15 +136,16 @@ public:
   }
 
   bool contains(R rowKey, C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified row and
-    // column keys.
+    // Returns true if the table contains a std::mapping with the specified row
+    // and column keys.
     if (table.count(rowKey))
       return table[rowKey].count(columnKey);
     return false;
   }
 
   bool containsColumn(C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified column.
+    // Returns true if the table contains a std::mapping with the specified
+    // column.
     for (auto &m1 : table)
       if (m1.second.count(columnKey))
         return true;
@@ -151,12 +153,14 @@ public:
   }
 
   bool containsRow(R rowKey) {
-    // Returns true if the table contains a std::mapping with the specified row key.
+    // Returns true if the table contains a std::mapping with the specified row
+    // key.
     return table.count(rowKey);
   }
 
   bool containsValue(V value) {
-    // Returns true if the table contains a std::mapping with the specified value.
+    // Returns true if the table contains a std::mapping with the specified
+    // value.
     for (auto &m1 : table)
       for (auto &m2 : m1.second)
         if (value == m2.second)
@@ -193,8 +197,8 @@ public:
   }
 
   std::unordered_map<R, std::unordered_map<C, V>> rowMap() {
-    // Returns a view that associates each row key with the corresponding std::map
-    // from column keys to values.
+    // Returns a view that associates each row key with the corresponding
+    // std::map from column keys to values.
     return table;
   }
 

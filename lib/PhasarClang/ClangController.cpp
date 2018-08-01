@@ -12,8 +12,8 @@
 
 #include <phasar/PhasarClang/RandomChangeFrontendAction.h>
 
-#include <phasar/Utils/Logger.h>
 #include <phasar/PhasarClang/ClangController.h>
+#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;
@@ -23,7 +23,8 @@ namespace psr {
 ClangController::ClangController(
     clang::tooling::CommonOptionsParser &OptionsParser) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ClangController::ClangController()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "ClangController::ClangController()");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Source file(s):");
   // for (auto &src : OptionsParser.getSourcePathList()) {
   for (auto src : OptionsParser.getCompilations().getAllFiles()) {

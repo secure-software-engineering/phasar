@@ -22,11 +22,11 @@
 #include <llvm/Pass.h>
 
 namespace llvm {
-  class Type;
-  class Value;
-  class Instruction;
-  class AnalysisUsage;
-  class Module;
+class Type;
+class Value;
+class Instruction;
+class AnalysisUsage;
+class Module;
 } // namespace llvm
 
 namespace psr {

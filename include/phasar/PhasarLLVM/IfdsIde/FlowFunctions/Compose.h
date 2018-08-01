@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_COMPOSE_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_COMPOSE_H_
 
-#include <set>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>

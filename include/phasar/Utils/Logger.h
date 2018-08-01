@@ -17,13 +17,13 @@
 #ifndef PHASAR_UTILS_LOGGER_H_
 #define PHASAR_UTILS_LOGGER_H_
 
-#include <string>
 #include <iosfwd>
+#include <string>
 
+#include <boost/log/sinks.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/sources/severity_logger.hpp>
 #include <boost/log/support/date_time.hpp>
-#include <boost/log/sources/global_logger_storage.hpp>
-#include <boost/log/sinks.hpp>
 // Not useful here but enable all logging macros in files that include Logger.h
 #include <boost/log/sources/record_ostream.hpp>
 
@@ -49,10 +49,10 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 // that would go straight into logs if logs are deactivated
 // This macro does just that
 
-#define LOG_IF_ENABLE(computation)            \
-if (bl::core::get()->get_logging_enabled()) { \
-  computation;                                \
-}
+#define LOG_IF_ENABLE(computation)                                             \
+  if (bl::core::get()->get_logging_enabled()) {                                \
+    computation;                                                               \
+  }
 
 // Register the logger and use it a singleton then, get the logger with:
 // bl::sources::severity_logger<severity_level>& lg = lg::get();

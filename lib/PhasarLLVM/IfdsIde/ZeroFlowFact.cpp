@@ -16,9 +16,7 @@ using namespace psr;
 
 namespace psr {
 
-void ZeroFlowFact::print(std::ostream &os) const {
-  os << "ZeroFlowFact";
-}
+void ZeroFlowFact::print(std::ostream &os) const { os << "ZeroFlowFact"; }
 
 FlowFact *ZeroFlowFact::getInstance() {
   static ZeroFlowFact ZeroFact;

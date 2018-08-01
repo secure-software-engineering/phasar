@@ -16,10 +16,10 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace llvm {
-  class Value;
-  class Function;
-  class ImmutableCallSite;
-}
+class Value;
+class Function;
+class ImmutableCallSite;
+} // namespace llvm
 
 namespace psr {
 
@@ -41,7 +41,8 @@ public:
                        [](const llvm::Value *) { return true; });
   virtual ~MapFactsToCallee() = default;
 
-  std::set<const llvm::Value *> computeTargets(const llvm::Value *source) override;
+  std::set<const llvm::Value *>
+  computeTargets(const llvm::Value *source) override;
 };
 
 } // namespace psr

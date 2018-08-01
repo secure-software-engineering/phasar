@@ -36,7 +36,7 @@ class Function;
 class Module;
 class Instruction;
 class BitCastInst;
-}
+} // namespace llvm
 
 namespace psr {
 
@@ -46,11 +46,11 @@ class LLVMTypeHierarchy;
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
- public:
+public:
   // using TypeGraph_t = CachedTypeGraph;
   using Resolver_t = Resolver;
 
- private:
+private:
   CallGraphAnalysisType CGType;
   LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
@@ -106,9 +106,9 @@ class LLVMBasedICFG
 
   struct dependency_visitor;
 
- public:
+public:
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
-  
+
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 CallGraphAnalysisType CGType,
                 const std::vector<std::string> &EntryPoints = {"main"});
@@ -123,17 +123,17 @@ class LLVMBasedICFG
 
   const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
 
-  std::vector<const llvm::Instruction *> getPredsOf(
-      const llvm::Instruction *I) override;
+  std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *I) override;
 
-  std::vector<const llvm::Instruction *> getSuccsOf(
-      const llvm::Instruction *I) override;
+  std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *I) override;
 
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  std::vector<const llvm::Instruction *> getAllInstructionsOf(
-      const llvm::Function *fun) override;
+  std::vector<const llvm::Instruction *>
+  getAllInstructionsOf(const llvm::Function *fun) override;
 
   bool isExitStmt(const llvm::Instruction *stmt) override;
 
@@ -150,23 +150,23 @@ class LLVMBasedICFG
 
   const llvm::Function *getMethod(const std::string &fun) override;
 
-  std::set<const llvm::Function *> getCalleesOfCallAt(
-      const llvm::Instruction *n) override;
+  std::set<const llvm::Function *>
+  getCalleesOfCallAt(const llvm::Instruction *n) override;
 
-  std::set<const llvm::Instruction *> getCallersOf(
-      const llvm::Function *m) override;
+  std::set<const llvm::Instruction *>
+  getCallersOf(const llvm::Function *m) override;
 
-  std::set<const llvm::Instruction *> getCallsFromWithin(
-      const llvm::Function *m) override;
+  std::set<const llvm::Instruction *>
+  getCallsFromWithin(const llvm::Function *m) override;
 
-  std::set<const llvm::Instruction *> getStartPointsOf(
-      const llvm::Function *m) override;
+  std::set<const llvm::Instruction *>
+  getStartPointsOf(const llvm::Function *m) override;
 
-  std::set<const llvm::Instruction *> getExitPointsOf(
-      const llvm::Function *fun) override;
+  std::set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *fun) override;
 
-  std::set<const llvm::Instruction *> getReturnSitesOfCallAt(
-      const llvm::Instruction *n) override;
+  std::set<const llvm::Instruction *>
+  getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
   bool isCallStmt(const llvm::Instruction *stmt) override;
 
@@ -174,8 +174,8 @@ class LLVMBasedICFG
 
   const llvm::Instruction *getLastInstructionOf(const std::string &name);
 
-  std::vector<const llvm::Instruction *> getAllInstructionsOfFunction(
-      const std::string &name);
+  std::vector<const llvm::Instruction *>
+  getAllInstructionsOfFunction(const std::string &name);
 
   void mergeWith(const LLVMBasedICFG &other);
 
@@ -200,6 +200,6 @@ class LLVMBasedICFG
   std::vector<std::string> getDependencyOrderedFunctions();
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

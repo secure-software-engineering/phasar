@@ -95,8 +95,8 @@ public:
    * the corresponding call-to-return flow function (see {@link
    * getCallToRetFlowFunction}).
    *
-   * Call or invoke instructions are handled by std::mapping actual parameters into
-   * formal parameters, i.e. propagating relevant data-flow facts from the
+   * Call or invoke instructions are handled by std::mapping actual parameters
+   * into formal parameters, i.e. propagating relevant data-flow facts from the
    * caller into the callee context.
    * @brief Processing call/invoke instructions and llvm memory intrinsic
    * functions.

@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
 using namespace std;

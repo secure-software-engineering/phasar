@@ -28,13 +28,13 @@
 #include <phasar/Config/Configuration.h>
 
 namespace llvm {
-  class Value;
-  class Module;
-  class Instruction;
-  class AAResults;
-  class Function;
-  class Type;
-}
+class Value;
+class Module;
+class Instruction;
+class AAResults;
+class Function;
+class Type;
+} // namespace llvm
 
 namespace psr {
 
@@ -74,9 +74,11 @@ inline void PrintLoadStoreResults(const char *Msg, bool P,
 
 enum class PointerAnalysisType { CFLSteens, CFLAnders };
 
-extern const std::map<std::string, PointerAnalysisType> StringToPointerAnalysisType;
+extern const std::map<std::string, PointerAnalysisType>
+    StringToPointerAnalysisType;
 
-extern const std::map<PointerAnalysisType, std::string> PointerAnalysisTypeToString;
+extern const std::map<PointerAnalysisType, std::string>
+    PointerAnalysisTypeToString;
 
 // TODO: add a more high level description.
 /**
@@ -244,7 +246,8 @@ public:
                               std::vector<const llvm::Instruction *> CallStack);
 
   /**
-   * @brief Computes all possible types from a given std::set of allocation sites.
+   * @brief Computes all possible types from a given std::set of allocation
+   * sites.
    * @note An allocation site can either be an Alloca Instruction or a call to
    * an allocating function.
    * @param AS Set of Allocation site.
@@ -268,16 +271,15 @@ public:
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
-  void
-  mergeWith(const PointsToGraph &Other,
-            const std::vector<std::pair<llvm::ImmutableCallSite, const llvm::Function *>>
-                &Calls);
+  void mergeWith(const PointsToGraph &Other,
+                 const std::vector<std::pair<llvm::ImmutableCallSite,
+                                             const llvm::Function *>> &Calls);
   void mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
                  const llvm::Function *F);
 
   /**
-   * The value-vertex-std::map std::maps each Value of the points-to graph to its
-   * corresponding Vertex in the points-to graph.
+   * The value-vertex-std::map std::maps each Value of the points-to graph to
+   * its corresponding Vertex in the points-to graph.
    *
    * @brief Prints the value-vertex-std::map to the command-line.
    */

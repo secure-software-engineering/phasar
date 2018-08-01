@@ -48,4 +48,4 @@ void writeFile(const string &path, const string &content) {
   }
   throw ios_base::failure("could not write file: " + path);
 }
-}  // namespace psr
+} // namespace psr

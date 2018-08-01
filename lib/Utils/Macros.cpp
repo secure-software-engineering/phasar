@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <ostream>
 #include <iterator>
+#include <ostream>
 
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/find.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/find.hpp>
 
 #include <llvm/IR/DerivedTypes.h>
 
@@ -35,7 +35,7 @@ string cxx_demangle(const string &mangled_name) {
 }
 
 bool isConstructor(const string &mangled_name) {
-  //WARNING: Doesn't work for templated classes, should
+  // WARNING: Doesn't work for templated classes, should
   // the best way to do it I can think of is to use a lexer
   // on the name to detect the constructor point explained
   // in the Itanium C++ ABI:
@@ -44,17 +44,17 @@ bool isConstructor(const string &mangled_name) {
   // This version will not work in some edge cases
   auto constructor = boost::algorithm::find_last(mangled_name, "C2E");
 
-  if ( constructor.begin() != constructor.end() )
+  if (constructor.begin() != constructor.end())
     return true;
 
   constructor = boost::algorithm::find_last(mangled_name, "C1E");
 
-  if ( constructor.begin() != constructor.end() )
+  if (constructor.begin() != constructor.end())
     return true;
 
   constructor = boost::algorithm::find_last(mangled_name, "C2E");
 
-  if ( constructor.begin() != constructor.end() )
+  if (constructor.begin() != constructor.end())
     return true;
 
   return false;
@@ -81,7 +81,7 @@ string uniformTypeName(const string &name) {
   return TypeName;
 }
 
-const llvm::Type* stripPointer(const llvm::Type* pointer) {
+const llvm::Type *stripPointer(const llvm::Type *pointer) {
   auto next = llvm::dyn_cast<llvm::PointerType>(pointer);
   while (next) {
     pointer = next->getElementType();

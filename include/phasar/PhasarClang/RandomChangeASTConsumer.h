@@ -22,9 +22,9 @@
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
 
 namespace clang {
-  class ASTContext;
-  class Rewriter;
-}
+class ASTContext;
+class Rewriter;
+} // namespace clang
 
 namespace psr {
 

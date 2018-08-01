@@ -22,7 +22,8 @@ private:
   Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> summaries;
 
 public:
-  void addSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> Sum) {
+  void
+  addSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> Sum) {
     summaries.insert(Sum);
   }
   Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> getSummaries() {

@@ -17,18 +17,19 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_EXAMPLEMODULEPASS_H_
 #define PHASAR_PHASARLLVM_PASSES_EXAMPLEMODULEPASS_H_
 
-#include <llvm/Pass.h>
 #include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Pass.h>
 
 namespace llvm {
-  class Module;
-  class AnalysisUsage;
-}
+class Module;
+class AnalysisUsage;
+} // namespace llvm
 
 namespace psr {
 
-//WARNING: Why is llvm::AAResultBase a parent of this pass ?
-class ExampleModulePass : public llvm::ModulePass, llvm::AAResultBase<llvm::BasicAAResult> {
+// WARNING: Why is llvm::AAResultBase a parent of this pass ?
+class ExampleModulePass : public llvm::ModulePass,
+                          llvm::AAResultBase<llvm::BasicAAResult> {
 public:
   static char ID;
   ExampleModulePass() : llvm::ModulePass(ID) {}

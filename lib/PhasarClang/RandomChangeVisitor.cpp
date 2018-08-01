@@ -27,7 +27,6 @@
 #include <llvm/IR/Module.h>
 #include <llvm/Support/CommandLine.h>
 
-
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
 
 using namespace std;

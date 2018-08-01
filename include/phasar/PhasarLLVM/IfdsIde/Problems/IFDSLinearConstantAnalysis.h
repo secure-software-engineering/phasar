@@ -11,10 +11,10 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSLINEARCONSTANTANALYSIS_H_
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 

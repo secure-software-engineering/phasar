@@ -8,8 +8,8 @@
  *****************************************************************************/
 
 #include <llvm/IR/Function.h>
-#include <llvm/IR/Value.h>
 #include <llvm/IR/Instruction.h>
+#include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -184,8 +184,9 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::join(
-    IDETypeStateAnalysis::v_t lhs, IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::v_t
+IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
+                           IDETypeStateAnalysis::v_t rhs) {
   return (lhs == BOTTOM || rhs == BOTTOM) ? BOTTOM : TOP;
 }
 

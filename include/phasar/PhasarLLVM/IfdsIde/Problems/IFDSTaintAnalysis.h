@@ -11,10 +11,10 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
-#include <memory>
 // Could be placed inside the .cpp if w put the nested classes inside it as well
 #include <ostream>
 

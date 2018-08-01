@@ -18,10 +18,10 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace llvm {
-  class Function;
-  class Value;
-  class Instruction;
-}
+class Function;
+class Value;
+class Instruction;
+} // namespace llvm
 
 namespace psr {
 

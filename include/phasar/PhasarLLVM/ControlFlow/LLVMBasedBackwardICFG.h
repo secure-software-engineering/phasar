@@ -18,10 +18,10 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 
-#include <phasar/PhasarLLVM/ControFlow/BiDiICFG.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <phasar/PhasarLLVM/ControFlow/BiDiICFG.h>
 #include <set>
 #include <vector>
 
@@ -36,12 +36,12 @@ public:
         virtual ~LLVMBasedBackwardsICFG();
 
         //swapped
-        std::vector<const llvm::Instruction*> getSuccsOf(const llvm::Instruction* n)
-override;
+        std::vector<const llvm::Instruction*> getSuccsOf(const
+llvm::Instruction* n) override;
 
         //swapped
-        std::set<const llvm::Instruction*> getStartPointsOf(const llvm::Function* m)
-override;
+        std::set<const llvm::Instruction*> getStartPointsOf(const
+llvm::Function* m) override;
 
         //swapped
         std::set<const llvm::Instruction*> getReturnSitesOfCallAt(const
@@ -57,12 +57,12 @@ llvm::Instruction* n) override;
         std::set<const llvm::Instruction*> allNonCallStartNodes() override;
 
         //swapped
-        std::vector<const llvm::Instruction*> getPredsOf(const llvm::Instruction* u)
-override;
+        std::vector<const llvm::Instruction*> getPredsOf(const
+llvm::Instruction* u) override;
 
         //swapped
-        std::set<const llvm::Instruction*> getEndPointsOf(const llvm::Function* m)
-override;
+        std::set<const llvm::Instruction*> getEndPointsOf(const llvm::Function*
+m) override;
 
         //swapped
         std::vector<const llvm::Instruction*> getPredsOfCallAt(const
@@ -75,16 +75,16 @@ llvm::Instruction* u) override;
         const llvm::Function* getMethodOf(const llvm::Instruction* n) override;
 
         //same
-        std::set<const llvm::Function*> getCalleesOfCallAt(const llvm::Instruction*
-n) override;
+        std::set<const llvm::Function*> getCalleesOfCallAt(const
+llvm::Instruction* n) override;
 
         //same
         std::set<const llvm::Instruction*> getCallersOf(const llvm::Function* m)
 override;
 
         //same
-        std::set<const llvm::Instruction*> getCallsFromWithin(const llvm::Function*
-m) override;
+        std::set<const llvm::Instruction*> getCallsFromWithin(const
+llvm::Function* m) override;
 
         //same
         bool isCallStmt(const llvm::Instruction* stmt) override;
@@ -94,8 +94,8 @@ m) override;
 llvm::Function* m) override;
 
         //same
-        std::vector<const llvm::Instruction*> getParameterRefs(const llvm::Function*
-m) override;
+        std::vector<const llvm::Instruction*> getParameterRefs(const
+llvm::Function* m) override;
 
         bool isFallThroughSuccessor(const llvm::Instruction* stmt, const
 llvm::Instruction* succ) override;

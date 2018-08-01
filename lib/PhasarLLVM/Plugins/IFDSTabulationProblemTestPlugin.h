@@ -23,7 +23,8 @@ namespace psr {
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
-  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
+  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
+                                  std::vector<std::string> EntryPoints);
   ~IFDSTabulationProblemTestPlugin() = default;
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,

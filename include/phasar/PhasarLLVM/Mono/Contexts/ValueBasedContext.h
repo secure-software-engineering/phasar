@@ -36,8 +36,7 @@ namespace psr {
  */
 template <typename N, typename Domain>
 class ValueBasedContext
-  : public ContextBase<N, Domain,
-      ValueBasedContext<N,Domain>> {
+    : public ContextBase<N, Domain, ValueBasedContext<N, Domain>> {
 public:
   using Node_t = N;
   using Domain_t = Domain;
@@ -49,19 +48,19 @@ protected:
 public:
   ValueBasedContext() = default;
 
-  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+  virtual void enterFunction(const Node_t src, const Node_t dest,
+                             const Domain_t &In) override {
     prev_context.swap(args); // O(1)
-    args = In; // O(|In|)
+    args = In;               // O(|In|)
   }
 
-  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+  virtual void exitFunction(const Node_t src, const Node_t dest,
+                            const Domain_t &In) override {
     args.swap(prev_context); // O(1)
-    prev_context.clear(); // O(|prev_context|)
+    prev_context.clear();    // O(|prev_context|)
   }
 
-  virtual bool isUnsure() override {
-    return false;
-  }
+  virtual bool isUnsure() override { return false; }
 
   virtual bool isEqual(const ValueBasedContext &rhs) const override {
     if (rhs.args.size() != args.size())
@@ -75,7 +74,7 @@ public:
   }
 
   virtual bool isLessThan(const ValueBasedContext &rhs) const override {
-    if ( args.size() < rhs.args.size() )
+    if (args.size() < rhs.args.size())
       return true;
 
     auto lhs_it = args.cbegin();
@@ -84,10 +83,10 @@ public:
     auto rhs_it = rhs.args.cbegin();
     const auto rhs_end = rhs.args.cend();
 
-    while ( lhs_it != lhs_end && rhs_it != rhs_end ) {
-      if ( *lhs_it < *rhs_it )
+    while (lhs_it != lhs_end && rhs_it != rhs_end) {
+      if (*lhs_it < *rhs_it)
         return true;
-      if ( *lhs_it > *rhs_it )
+      if (*lhs_it > *rhs_it)
         return false;
       ++lhs_it;
       ++rhs_it;
@@ -97,23 +96,22 @@ public:
   }
 
   virtual void print(std::ostream &os) const override {
-    //TODO
+    // TODO
   }
 };
 
 /*  N = Node in the CFG
  *  Key = Key type of the map
  *  Value = Value type of the map
- *  IdGenerator = Generator of Id from the source and destination (in that order)
- *  Map = Partial type of Map used. The full type will be Map<Key, Value>
+ *  IdGenerator = Generator of Id from the source and destination (in that
+ * order) Map = Partial type of Map used. The full type will be Map<Key, Value>
  */
-template <typename Node,
-          typename Key, typename Value,
-          typename IdGenerator,
-          template<class, class, class...> class Map = std::map>
+template <typename Node, typename Key, typename Value, typename IdGenerator,
+          template <class, class, class...> class Map = std::map>
 class MappedValueBasedContext
-  : public ContextBase<Node, Map<Key, Value>,
-      MappedValueBasedContext<Node,Key,Value,IdGenerator,Map>> {
+    : public ContextBase<
+          Node, Map<Key, Value>,
+          MappedValueBasedContext<Node, Key, Value, IdGenerator, Map>> {
 public:
   using Node_t = Node;
   using Key_t = Key;
@@ -131,30 +129,33 @@ public:
   MappedValueBasedContext() = default;
   MappedValueBasedContext(IdGen_t &_IdGen) : IdGen(_IdGen) {}
   template <class T>
-  MappedValueBasedContext(T&& _args, T&& _prev_context) : args(std::forward<T>(_args)), prev_context(std::forward<T>(_prev_context)) {}
+  MappedValueBasedContext(T &&_args, T &&_prev_context)
+      : args(std::forward<T>(_args)),
+        prev_context(std::forward<T>(_prev_context)) {}
 
-  virtual void enterFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+  virtual void enterFunction(const Node_t src, const Node_t dest,
+                             const Domain_t &In) override {
     prev_context.swap(args); // O(1)
 
     args.clear(); // O(|args|)
     auto ids = SrcIdGen(src, dest);
 
-    for ( auto id : ids ) {
+    for (auto id : ids) {
       if (In.count(id) == 0) {
-        // An argument is not in the given entry, check if the analysis doesn't become unsound
+        // An argument is not in the given entry, check if the analysis doesn't
+        // become unsound
       }
       args[id] = In[id];
     }
   }
 
-  virtual void exitFunction(const Node_t src, const Node_t dest, const Domain_t &In) override {
+  virtual void exitFunction(const Node_t src, const Node_t dest,
+                            const Domain_t &In) override {
     args.swap(prev_context); // O(1)
-    prev_context.clear(); // O(|prev_context|)
+    prev_context.clear();    // O(|prev_context|)
   }
 
-  virtual bool isUnsure() override {
-    return false;
-  }
+  virtual bool isUnsure() override { return false; }
 
   virtual bool isEqual(const MappedValueBasedContext &rhs) const override {
     if (rhs.args.size() != args.size())
@@ -168,7 +169,7 @@ public:
   }
 
   virtual bool isLessThan(const MappedValueBasedContext &rhs) const override {
-    if ( args.size() < rhs.args.size() )
+    if (args.size() < rhs.args.size())
       return true;
 
     auto lhs_it = args.cbegin();
@@ -177,10 +178,10 @@ public:
     auto rhs_it = rhs.args.cbegin();
     const auto rhs_end = rhs.args.cend();
 
-    while ( lhs_it != lhs_end && rhs_it != rhs_end ) {
-      if ( *lhs_it < *rhs_it )
+    while (lhs_it != lhs_end && rhs_it != rhs_end) {
+      if (*lhs_it < *rhs_it)
         return true;
-      if ( *lhs_it > *rhs_it )
+      if (*lhs_it > *rhs_it)
         return false;
       ++lhs_it;
       ++rhs_it;
@@ -190,7 +191,7 @@ public:
   }
 
   virtual void print(std::ostream &os) const override {
-    //TODO
+    // TODO
   }
 };
 

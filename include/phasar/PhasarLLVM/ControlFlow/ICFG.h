@@ -18,9 +18,9 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 
 #include <iosfwd>
+#include <map>
 #include <set>
 #include <string>
-#include <map>
 
 #include <json.hpp>
 
@@ -30,9 +30,11 @@ namespace psr {
 
 enum class CallGraphAnalysisType { CHA, RTA, DTA, VTA, OTF };
 
-extern const std::map<std::string, CallGraphAnalysisType> StringToCallGraphAnalysisType;
+extern const std::map<std::string, CallGraphAnalysisType>
+    StringToCallGraphAnalysisType;
 
-extern const std::map<CallGraphAnalysisType, std::string> CallGraphAnalysisTypeToString;
+extern const std::map<CallGraphAnalysisType, std::string>
+    CallGraphAnalysisTypeToString;
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 

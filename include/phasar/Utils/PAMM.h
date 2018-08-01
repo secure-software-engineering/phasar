@@ -171,8 +171,8 @@ public:
    * default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
-   * @note When using the macro, the period is std::set to milliseconds and cannot be
-   * customized by the macro.
+   * @note When using the macro, the period is std::set to milliseconds and
+   * cannot be customized by the macro.
    */
   template <typename Period = std::chrono::milliseconds>
   unsigned long elapsedTime(std::string timerId) {
@@ -287,7 +287,8 @@ public:
   void regHistogram(std::string HID);
 
   /**
-   * @brief Adds a new observed std::set size to the corresponding std::set histogram.
+   * @brief Adds a new observed std::set size to the corresponding std::set
+   * histogram.
    * @param HID ID of the std::set.
    * @param OCC the added value.
    */

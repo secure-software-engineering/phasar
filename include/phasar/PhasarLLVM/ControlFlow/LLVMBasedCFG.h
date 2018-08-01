@@ -18,15 +18,15 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
 #include <set>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 
 namespace llvm {
-  class Function;
-  class Instruction;
-}
+class Function;
+class Instruction;
+} // namespace llvm
 
 namespace psr {
 
@@ -46,7 +46,8 @@ public:
   virtual std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *stmt) override;
 
-  virtual std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+  virtual std::vector<
+      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
   virtual std::vector<const llvm::Instruction *>

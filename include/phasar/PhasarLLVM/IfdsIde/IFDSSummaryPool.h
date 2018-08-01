@@ -25,7 +25,6 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSSummary.h>
 
-
 namespace psr {
 
 template <typename D, typename N> class IFDSSummaryPool {

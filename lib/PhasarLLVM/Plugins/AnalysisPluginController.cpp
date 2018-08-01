@@ -34,12 +34,14 @@ AnalysisPluginController::AnalysisPluginController(
     SOL SharedLib(AnalysisPlugin);
     if (!IDETabulationProblemPluginFactory.empty()) {
       for (auto Problem : IDETabulationProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solving plugin: " << Problem.first);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                      << "Solving plugin: " << Problem.first);
       }
     }
     if (!IFDSTabulationProblemPluginFactory.empty()) {
       for (auto &Problem : IFDSTabulationProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solving plugin: " << Problem.first);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                      << "Solving plugin: " << Problem.first);
         unique_ptr<IFDSTabulationProblemPlugin> plugin(
             Problem.second(ICFG, {"main"}));
         cout << "DONE" << endl;
@@ -51,12 +53,14 @@ AnalysisPluginController::AnalysisPluginController(
     }
     if (!InterMonotoneProblemPluginFactory.empty()) {
       for (auto Problem : InterMonotoneProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solving plugin: " << Problem.first);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                      << "Solving plugin: " << Problem.first);
       }
     }
     if (!IntraMonotoneProblemPluginFactory.empty()) {
       for (auto Problem : IntraMonotoneProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solving plugin: " << Problem.first);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                      << "Solving plugin: " << Problem.first);
       }
     }
   }
