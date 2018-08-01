@@ -107,9 +107,11 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
         curr, zeroValue(),
         [this, lop, rop](IDELinearConstantAnalysis::d_t source) {
-          return source != zerovalue &&
-                 ((lop == source && llvm::isa<llvm::ConstantInt>(rop)) ||
-                  (rop == source && llvm::isa<llvm::ConstantInt>(lop)));
+          return (source != zerovalue &&
+                  ((lop == source && llvm::isa<llvm::ConstantInt>(rop)) ||
+                   (rop == source && llvm::isa<llvm::ConstantInt>(lop)))) ||
+                 (source == zerovalue && llvm::isa<llvm::ConstantInt>(lop) &&
+                  llvm::isa<llvm::ConstantInt>(rop));
         });
   }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -417,6 +419,13 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
           auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
           return IDELinearConstantAnalysis::executeBinOperation(
               op, lic->getSExtValue(), source);
+        } else if (isLLVMZeroValue(currNode) &&
+                   llvm::isa<llvm::ConstantInt>(lop) &&
+                   llvm::isa<llvm::ConstantInt>(rop)) {
+          auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+          auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+          return IDELinearConstantAnalysis::executeBinOperation(
+              op, lic->getSExtValue(), ric->getSExtValue());
         }
         throw runtime_error(
             "Only linear constant propagation can be specified!");

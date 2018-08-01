@@ -1,3 +1,4 @@
+// k non-constant
 int main() {
 	int i = 14;
 	int j = 20;

@@ -223,17 +223,18 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
         IDELinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-            lcaproblem, true);
+        LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
+            llvmlcasolver(lcaproblem, true);
         llvmlcasolver.solve();
+        cout << "--RESULTS--" << endl;
         for (auto exit : ICFG.getExitPointsOf(ICFG.getMethod("main"))) {
-          exit->print(llvm::outs());
           for (auto res : llvmlcasolver.resultsAt(exit, true)) {
-            cout << "\nValue: " << res.second << " at:" << getMetaDataID(res.first)<< "\n";
             res.first->print(llvm::outs());
-            // cout << '\n' << endl;
+            cout << " ID: " << getMetaDataID(res.first)
+                 << " VALUE: " << res.second << endl;
           }
         }
+        cout << endl;
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }

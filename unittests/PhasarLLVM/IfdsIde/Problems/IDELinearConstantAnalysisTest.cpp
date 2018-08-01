@@ -1,3 +1,4 @@
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -12,7 +13,7 @@ using namespace psr;
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-    PhasarDirectory + "build/test/llvm_test_code/linear_constant/";
+      PhasarDirectory + "build/test/llvm_test_code/linear_constant/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
@@ -23,9 +24,7 @@ protected:
   IDELinearConstantAnalysisTest() = default;
   virtual ~IDELinearConstantAnalysisTest() = default;
 
-  void SetUp(const std::vector<std::string> &IRFiles) {
-    initializeLogger(false);
-    ValueAnnotationPass::resetValueID();
+  void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
@@ -34,7 +33,12 @@ protected:
     LCAProblem = new IDELinearConstantAnalysis(*ICFG, EntryPoints);
   }
 
-  virtual void TearDown() override {
+  void SetUp() override {
+    initializeLogger(false);
+    ValueAnnotationPass::resetValueID();
+  }
+
+  void TearDown() override {
     PAMM_FACTORY;
     delete IRDB;
     delete TH;
@@ -43,63 +47,89 @@ protected:
     PAMM_RESET;
   }
 
-  void
-  compareResults(const std::set<unsigned long> &groundTruth,
-                 LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> &solver) {
-    // std::set<const llvm::Value *> allMutableAllocas;
-    // for (auto RR : IRDB->getRetResInstructions()) {
-    //   std::set<const llvm::Value *> facts = solver.ifdsResultsAt(RR);
-    //   for (auto fact : facts) {
-    //     if (isAllocaInstOrHeapAllocaFunction(fact) ||
-    //         (llvm::isa<llvm::GlobalValue>(fact) &&
-    //          !constproblem->isZeroValue(fact))) {
-    //       allMutableAllocas.insert(fact);
-    //     }
-    //   }
-      // Empty facts means the return/resume statement is part of not
-      // analyzed function - remove all allocas of that function
-      // if (facts.empty()) {
-      //  const llvm::Function *F = RR->getParent()->getParent();
-      //  for (auto mem_itr = allMemoryLoc.begin();
-      //       mem_itr != allMemoryLoc.end();) {
-      //    if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
-      //      if (Inst->getParent()->getParent() == F) {
-      //        mem_itr = allMemoryLoc.erase(mem_itr);
-      //      } else {
-      //        ++mem_itr;
-      //      }
-      //    } else {
-      //      ++mem_itr;
-      //    }
-      //  }
-      /*} else {
-        for (auto fact : solver.ifdsResultsAt(RR)) {
-          if (isAllocaInstOrHeapAllocaFunction(fact) ||
-              llvm::isa<llvm::GlobalValue>(fact)) {
-            allMemoryLoc.erase(fact);
-          }
-        }
-      }*/
-    // }
-    // std::set<unsigned long> mutableIDs;
-    // for (auto memloc : allMutableAllocas) {
-    //   memloc->print(llvm::outs());
-    //   mutableIDs.insert(std::stoul(getMetaDataID(memloc)));
-    // }
-    // EXPECT_EQ(groundTruth, mutableIDs);
-    std::cout << '\n';
+  void compareResults(
+      const std::map<int, int64_t> &groundTruth,
+      LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> &solver) {
+    std::map<int, int64_t> results;
+    for (auto exit : ICFG->getExitPointsOf(ICFG->getMethod("main"))) {
+      for (auto res : solver.resultsAt(exit, true)) {
+        int id = std::stoi(getMetaDataID(res.first));
+        // std::cout << "\n\nValue: " << res.second << " at: " << id <<
+        // std::endl; res.first->print(llvm::outs());
+        results.insert(std::pair<int, int64_t>(id, res.second));
+      }
+    }
+    // std::cout << std::endl;
+    EXPECT_THAT(results, ::testing::ContainerEq(groundTruth));
   }
 };
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
-  SetUp({pathToLLFiles + "basic_01.ll"});
+  Initialize({pathToLLFiles + "basic_01.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-    *LCAProblem, true);
+      *LCAProblem, false);
   llvmlcasolver.solve();
-  compareResults({}, llvmlcasolver);
+  const std::map<int, int64_t> gt = {{0, 0}, {1, 13}};
+  compareResults(gt, llvmlcasolver);
 }
 
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_02) {
+  Initialize({pathToLLFiles + "basic_02.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{0, 0}, {1, 17}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
+  Initialize({pathToLLFiles + "basic_03.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{0, 0}, {1, 14}, {2, 14}, {6, 14}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
+  Initialize({pathToLLFiles + "basic_04.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {
+      {0, 0}, {1, 14}, {2, 20}, {7, 14}, {8, 20}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
+  Initialize({pathToLLFiles + "basic_05.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{0, 0}, {1, 3},  {2, 14},
+                                     {5, 3}, {6, 12}, {7, 14}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
+  Initialize({pathToLLFiles + "basic_06.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{0, 16}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
+  Initialize({pathToLLFiles + "branch_01.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {
+      {1, 0}, {2, LCAProblem->bottomElement()}, {8, 10}, {9, 12}};
+  compareResults(gt, llvmlcasolver);
+}
 
 // main function for the test case
 int main(int argc, char **argv) {
