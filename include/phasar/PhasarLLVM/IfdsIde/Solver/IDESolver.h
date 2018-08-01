@@ -281,9 +281,12 @@ public:
   std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
     std::unordered_map<D, V> result = valtab.row(stmt);
     if (stripZero) {
-      for (auto &pair : result) {
-        if (ideTabulationProblem.isZeroValue(pair.first))
-          result.erase(pair.first);
+      for (auto it = result.begin(); it != result.end();) {
+        if (ideTabulationProblem.isZeroValue(it->first)) {
+          it = result.erase(it);
+        } else {
+          ++it;
+        }
       }
     }
     return result;
