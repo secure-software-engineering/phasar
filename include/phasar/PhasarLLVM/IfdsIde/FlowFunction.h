@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOWFUNCTION_H_
-#define ANALYSIS_IFDS_IDE_FLOWFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTION_H_
 
 #include <set>
 
@@ -29,4 +29,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOWFUNCTION_HH_ */
+#endif

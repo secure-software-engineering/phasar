@@ -14,20 +14,21 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
 
-#include <iostream>
+#include <iostream> // std::cerr
+#include <ostream>
 #include <memory>
+#include <string>
+
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>
-#include <stdexcept>
-#include <string>
 
 namespace psr {
 
 template <typename V> class EdgeIdentity;
-
 template <typename V> class AllTop;
 
 template <typename V>
@@ -78,4 +79,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_HH_ */
+#endif

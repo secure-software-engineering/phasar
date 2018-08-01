@@ -14,9 +14,12 @@
  *      Author: philipp
  */
 
+#include <ostream>
+
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-using namespace std;
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 const map<string, BinaryDomain> StringToBinaryDomain = {

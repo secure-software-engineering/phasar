@@ -17,15 +17,13 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
-using namespace psr;
+
 namespace psr {
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
 public:
-  IFDSSimpleTaintAnalysis(LLVMBasedICFG &I,
-                          std::vector<std::string> EntryPoints);
+  IFDSSimpleTaintAnalysis(LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
   ~IFDSSimpleTaintAnalysis() = default;
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -55,8 +53,7 @@ public:
 };
 
 extern "C" std::unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSSimpleTaintAnalysis(LLVMBasedICFG &I,
-                            std::vector<std::string> EntryPoints);
+makeIFDSSimpleTaintAnalysis(LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
 } // namespace psr
 
 #endif /* SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_ */

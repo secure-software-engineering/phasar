@@ -14,16 +14,17 @@
  *      Author: philipp
  */
 
-#ifndef INTRAMONOTONESOLVER_H_
-#define INTRAMONOTONESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOTONESOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOTONESOLVER_H_
 
 #include <deque>
-#include <iostream>
+#include <iostream> // std::cout please remove it
 #include <map>
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <utility>
 #include <vector>
+
+#include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 
 namespace psr {
 
@@ -41,7 +42,7 @@ protected:
         CFG.getAllControlFlowEdges(IMProblem.getFunction());
     // add all edges to the worklist
     Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-    // set all analysis information to the empty set
+    // std::set all analysis information to the empty std::set
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }

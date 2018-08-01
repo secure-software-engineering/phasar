@@ -14,23 +14,22 @@
  *      Author: philipp
  */
 
-#ifndef SRC_LIB_LLVMSHORTHANDS_H_
-#define SRC_LIB_LLVMSHORTHANDS_H_
+#ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
+#define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <boost/algorithm/string/trim.hpp>
-#include <functional>
-#include <iostream>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
-#include <phasar/Config/Configuration.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <vector>
+#include <string>
+
+namespace llvm {
+  class Value;
+  class FunctionType;
+  class Function;
+  class Argument;
+  class Instruction;
+  class TerminatorInst;
+  class StoreInst;
+  class Module;
+}
 
 namespace psr {
 
@@ -52,7 +51,9 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
 /**
- * @brief Returns a string representation of a LLVM Value.
+ * @brief Returns a std::string representation of a LLVM Value.
+ * @note Expensive function (between 20 to 550 ms per call)
+ *       avoid to do it often, it can kill the performances (c.f. warning in the implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
 
@@ -66,7 +67,7 @@ globalValuesUsedinFunction(const llvm::Function *F);
 /**
  * Only Instructions and GlobalVariables have ID's.
  * @brief Returns the ID of a given LLVM Value.
- * @return Meta data ID as a string or -1, if it's not
+ * @return Meta data ID as a std::string or -1, if it's not
  * an Instruction or a GlobalVariable.
  */
 std::string getMetaDataID(const llvm::Value *V);
@@ -144,4 +145,4 @@ std::size_t computeModuleHash(const llvm::Module *M);
 
 } // namespace psr
 
-#endif /* SRC_LIB_LLVMSHORTHANDS_HH_ */
+#endif

@@ -14,35 +14,34 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_LLVMTYPEHIERARCHY_H_
-#define ANALYSIS_LLVMTYPEHIERARCHY_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
 
-#include <algorithm>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/transitive_closure.hpp>
-#include <boost/property_map/dynamic_property_map.hpp>
-#include <fstream>
-#include <initializer_list>
-#include <iostream>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
-#include <map>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <set>
+#include <unordered_map>
+#include <unordered_set>
 #include <string>
-#include <tuple>
 #include <vector>
+#include <iosfwd>
+
+#include <gtest/gtest_prod.h>
+
+#include <boost/graph/graph_traits.hpp>
+#include <boost/graph/adjacency_list.hpp>
+
+#include <json.hpp>
+
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+
+namespace llvm {
+  class Module;
+  class Type;
+  class Function;
+}
 
 namespace psr {
 
+class ProjectIRDB;
 /**
  * 	@brief Owns the class hierarchy of the analyzed program.
  *
@@ -54,9 +53,11 @@ class LLVMTypeHierarchy {
 public:
   /// necessary for storing/loading the LLVMTypeHierarchy to/from database
   friend class DBConn;
+  using json = nlohmann::json;
 
   struct VertexProperties {
     llvm::Type *llvmtype = nullptr;
+    std::set<std::string> reachableTypes;
     /// always StructType so far - is it used anywhere???
     /// Name of the class/struct the vertex is representing.
     std::string name;
@@ -83,27 +84,21 @@ public:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
 private:
-  struct reachability_dfs_visitor : boost::default_dfs_visitor {
-    std::set<vertex_t> &subtypes;
-    reachability_dfs_visitor(std::set<vertex_t> &types) : subtypes(types) {}
-    template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
-      subtypes.insert(u);
-    }
-  };
-
   bidigraph_t g;
-  std::map<std::string, vertex_t> type_vertex_map;
-  // maps type names to the corresponding vtable
-  std::map<std::string, VTable> vtable_map;
-  std::set<std::string> recognized_struct_types;
+  std::unordered_map<std::string, vertex_t> type_vertex_map;
+  // std::maps type names to the corresponding vtable
+  std::unordered_map<std::string, VTable> vtable_map;
+  std::unordered_set<std::string> recognized_struct_types;
   // holds all modules that are included in the type hierarchy
-  std::set<const llvm::Module *> contained_modules;
+  std::unordered_set<const llvm::Module *> contained_modules;
 
   void reconstructVTable(const llvm::Module &M);
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
+
+protected:
+  void pruneTypeHierarchyWithVtable(const llvm::Function* constructor);
 
 public:
   /**
@@ -140,7 +135,7 @@ public:
   std::set<std::string> getTransitivelyReachableTypes(std::string TypeName);
   // not used?
   std::vector<const llvm::Function *> constructVTable(const llvm::Type *T,
-                                                      const llvm::Module *M);
+                                                 const llvm::Module *M);
 
   /**
    * 	@brief Returns an entry at the given index from the VTable
@@ -149,7 +144,7 @@ public:
    * 	@param idx Index in the VTable.
    * 	@return A function identifier.
    */
-  std::string getVTableEntry(std::string TypeName, unsigned idx);
+  std::string getVTableEntry(std::string TypeName, unsigned idx) const;
 
   /**
    * 	@brief Checks if one of the given types is a super-type of the
@@ -198,7 +193,7 @@ public:
    */
   void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
 
-  bool containsType(std::string TypeName);
+  bool containsType(std::string TypeName) const;
 
   std::string getPlainTypename(std::string TypeName);
 
@@ -237,4 +232,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_LLVMTYPEHIERARCHY_HH_ */
+#endif

@@ -14,8 +14,9 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_JOINLATTICE_H_
-#define ANALYSIS_IFDS_IDE_JOINLATTICE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_JOINLATTICE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_JOINLATTICE_H_
+
 namespace psr {
 
 template <typename V> class JoinLattice {
@@ -27,4 +28,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_JOINLATTICE_HH_ */
+#endif

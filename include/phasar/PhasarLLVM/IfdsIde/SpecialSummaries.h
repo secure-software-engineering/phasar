@@ -14,23 +14,22 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_H_
-#define SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SPECIALSUMMARIES_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SPECIALSUMMARIES_H_
 
 #include <map>
+#include <vector>
 #include <memory>
-#include <phasar/Config/Configuration.h>
-#include <phasar/Config/ContainerConfiguration.h>
+#include <string>
+#include <ostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/IO.h>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
+#include <phasar/Utils/IO.h> // readFile
+
 
 namespace psr {
 
@@ -44,16 +43,15 @@ private:
   // llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
   // flow functions.
   SpecialSummaries() {
-    std::string glibc =
-        readFile(ConfigurationDirectory + GLIBCFunctionListFileName);
+    std::string glibc = readFile(ConfigurationDirectory +
+                            GLIBCFunctionListFileName);
     std::vector<std::string> glibcfunctions = splitString(glibc, "\n");
     // Insert glibc function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),
                                 glibcfunctions.begin(), glibcfunctions.end());
-    std::string llvmintrinsics =
-        readFile(ConfigurationDirectory + LLVMIntrinsicFunctionListFileName);
-    std::vector<std::string> llvmintrinsicfunctions =
-        splitString(llvmintrinsics, "\n");
+    std::string llvmintrinsics = readFile(ConfigurationDirectory +
+                                     LLVMIntrinsicFunctionListFileName);
+    std::vector<std::string> llvmintrinsicfunctions = splitString(llvmintrinsics, "\n");
     // Insert llvm intrinsic function names
     SpecialFunctionNames.insert(SpecialFunctionNames.end(),
                                 llvmintrinsicfunctions.begin(),
@@ -128,8 +126,7 @@ public:
     return SpecialEdgeFunctions[name];
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const SpecialSummaries<D> &ss) {
+  friend std::ostream &operator<<(std::ostream &os, const SpecialSummaries<D> &ss) {
     os << "SpecialSummaries:\n";
     for (auto &entry : ss.SpecialFunctionNames) {
       os << entry.first << " ";
@@ -139,4 +136,4 @@ public:
 };
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_SPECIALSUMMARIES_HH_ */
+#endif

@@ -14,16 +14,17 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GENALL_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_GENALL_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENALL_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENALL_H_
+
+#include <set>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <set>
 
 namespace psr {
 
 template <typename D> class GenAll : public FlowFunction<D> {
-private:
+protected:
   std::set<D> genValues;
   D zeroValue;
 
@@ -43,4 +44,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GEN_HH_ */
+#endif

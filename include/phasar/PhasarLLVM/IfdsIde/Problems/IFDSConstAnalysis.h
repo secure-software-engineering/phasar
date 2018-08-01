@@ -7,14 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONSTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONSTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H_
 
 #include <map>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -93,7 +95,7 @@ public:
    * the corresponding call-to-return flow function (see {@link
    * getCallToRetFlowFunction}).
    *
-   * Call or invoke instructions are handled by mapping actual parameters into
+   * Call or invoke instructions are handled by std::mapping actual parameters into
    * formal parameters, i.e. propagating relevant data-flow facts from the
    * caller into the callee context.
    * @brief Processing call/invoke instructions and llvm memory intrinsic
@@ -161,7 +163,7 @@ public:
 
   /**
    * @note Global Variables are always intialized in llvm IR, and therefore
-   * not part of the Initialized set.
+   * not part of the Initialized std::set.
    * @brief Checks if the given memory location is initialized
    */
   bool isInitialized(d_t d) const;
@@ -198,14 +200,14 @@ public:
    * Condition (1) is necessary to cover the case, when an initialized
    * memory location is mutated in a function different from where its
    * original allocation site.<br>
-   * Condition (3) is necessary to be able to map mutated parameter
+   * Condition (3) is necessary to be able to std::map mutated parameter
    * back to the caller context if needed. <br>
    * Same goes for (4).
    *
    * Everything else will be ignored since we are not interested in
    * intermediate pointer or values of other functions, i.e. values
    * in virtual registers.
-   * Only points-to information and the Initialized set determine, if
+   * Only points-to information and the Initialized std::set determine, if
    * new data-flow facts will be generated.
    * @brief Refines the given points-to information to only context-relevant
    * points-to information.
@@ -218,5 +220,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_CONST_ANALYSIS_IFDSCONSTANALYSIS_H_  \
-        */
+#endif

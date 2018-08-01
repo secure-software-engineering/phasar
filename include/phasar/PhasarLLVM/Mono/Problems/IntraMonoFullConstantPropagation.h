@@ -14,21 +14,23 @@
  *      Author: philipp
  */
 
-#ifndef INTRAMONOFULLCONSTANTPROPAGATION_H_
-#define INTRAMONOFULLCONSTANTPROPAGATION_H_
+#ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
+#define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 
-#include <algorithm>
-#include <iostream>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <string>
-#include <utility>
+#include <utility> // std::pair
+
+#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+
+namespace llvm {
+  class Value;
+  class Instruction;
+  class Function;
+}
 
 namespace psr {
+
+class LLVMBasedCFG;
 
 class IntraMonoFullConstantPropagation
     : public IntraMonotoneProblem<const llvm::Instruction *,
@@ -52,8 +54,7 @@ public:
   virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>>
   initialSeeds() override;
 
-  virtual std::string
-  DtoString(std::pair<const llvm::Value *, unsigned> d) override;
+  virtual std::string DtoString(std::pair<const llvm::Value *, unsigned> d) override;
 };
 
 } // namespace psr

@@ -14,16 +14,17 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_MULTIINDEXTABLE_H_
-#define UTILS_MULTIINDEXTABLE_H_
+#ifndef PHASAR_UTILS_MULTIINTEXTABLE_H_
+#define PHASAR_UTILS_MULTIINTEXTABLE_H_
+
+#include <ostream>
+#include <string>
 
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/hashed_index.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/multi_index_container.hpp>
-#include <iostream>
-#include <string>
 
 namespace psr {
 
@@ -78,4 +79,4 @@ template <typename R, typename C, typename V> struct MultiIndexTable {
 
 } // namespace psr
 
-#endif /* UTILS_MULTIINDEXTABLE_HH_ */
+#endif

@@ -14,8 +14,16 @@
  *      Author: pdschbrt
  */
 
+#include <string>
+
+#include <llvm/PassSupport.h>
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/IR/CallSite.h>
+#include <llvm/IR/Function.h>
 #include <llvm/IR/IntrinsicInst.h>
+#include <llvm/IR/Module.h>
 #include <llvm/Support/raw_os_ostream.h>
+
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -24,11 +32,12 @@
 
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running GeneralStatisticsPass");
   static const std::set<std::string> mem_allocating_functions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};

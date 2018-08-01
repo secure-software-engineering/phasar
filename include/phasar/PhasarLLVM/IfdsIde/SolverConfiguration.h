@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_H_
-#define ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
 
-#include <iostream>
+#include <iosfwd>
 
 namespace psr {
 
@@ -40,10 +40,9 @@ struct SolverConfiguration {
   bool computeValues = false;
   bool recordEdges = false;
   bool computePersistedSummaries = false;
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const SolverConfiguration &sc);
+  friend std::ostream &operator<<(std::ostream &os, const SolverConfiguration &sc);
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_ */
+#endif

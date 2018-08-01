@@ -14,8 +14,18 @@
  *      Author: pdschbrt
  */
 
+#include <llvm/ADT/SCCIterator.h>
+#include <llvm/Analysis/CallGraph.h>
+#include <llvm/IR/DataLayout.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+
 #include <phasar/PhasarLLVM/Passes/ExampleModulePass.h>
+
+using namespace std;
 using namespace psr;
+using namespace llvm;
+
 namespace psr {
 
 void ExampleModulePass::getAnalysisUsage(AnalysisUsage &AU) const {

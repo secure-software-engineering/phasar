@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef DATAFLOWANALYSISTYPE_H_
-#define DATAFLOWANALYSISTYPE_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
+#define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <string>
 
@@ -34,11 +34,9 @@ enum class DataFlowAnalysisType {
   None
 };
 
-extern const std::map<std::string, DataFlowAnalysisType>
-    StringToDataFlowAnalysisType;
+extern const std::map<std::string, DataFlowAnalysisType> StringToDataFlowAnalysisType;
 
-extern const std::map<DataFlowAnalysisType, std::string>
-    DataFlowAnalysisTypeToString;
+extern const std::map<DataFlowAnalysisType, std::string> DataFlowAnalysisTypeToString;
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
 

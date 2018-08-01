@@ -7,9 +7,48 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+
+#include <iostream>
+#include <algorithm>
+#include <cassert>
+
+#include <clang/Basic/Diagnostic.h>
+#include <clang/CodeGen/CodeGenAction.h>
+#include <clang/Frontend/CompilerInstance.h>
+#include <clang/Frontend/CompilerInvocation.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/BasicAliasAnalysis.h>
+#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/LegacyPassManager.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/Transforms/Scalar.h>
+
+#include <boost/filesystem.hpp>
+
+
 #include <phasar/DB/ProjectIRDB.h>
-using namespace std;
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/Utils/EnumFlags.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/IO.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMM.h>
+
+
 using namespace psr;
+using namespace std;
 
 namespace psr {
 
@@ -38,7 +77,7 @@ ProjectIRDB::ProjectIRDB(enum IRDBOptions Opt) : Options(Opt) {}
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
                          enum IRDBOptions Opt)
     : Options(Opt) {
-  for (auto &File : IRFiles) {
+  for (const auto &File : IRFiles) {
     source_files.insert(File);
     // if we have a file that is already compiled to llvm ir
     if (File.find(".ll") != File.npos && boost::filesystem::exists(File)) {
@@ -46,7 +85,10 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);
       bool broken_debug_info = false;
-      if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+      if (M.get() == nullptr)
+        Diag.print(File.c_str(), llvm::errs());
+      /* Crash in presence of llvm-3.9.1 module (segfault) */
+      if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
         throw std::runtime_error(File + " could not be parsed correctly");
       }
       if (broken_debug_info) {
@@ -61,6 +103,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       throw std::invalid_argument(File + " is not a valid llvm module");
     }
   }
+  cout << "All modules loaded\n";
 }
 
 ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
@@ -82,6 +125,7 @@ ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
       compileAndAddToDB(args);
     }
   }
+  cout << "All modules loaded\n";
 }
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
@@ -97,7 +141,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);
       bool broken_debug_info = false;
-      if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+      if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
         std::cout << "error: module not valid\n";
         DIE_HARD;
       }
@@ -112,6 +156,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
       compileAndAddToDB(CompileArgs);
     }
   }
+  cout << "All modules loaded\n";
 }
 
 void ProjectIRDB::setupHeaderSearchPaths() {
@@ -159,7 +204,7 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
     commandstr += s;
     commandstr += ' ';
   }
-  BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr;
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "compile with command: " << commandstr);
   std::unique_ptr<clang::CompilerInstance> ClangCompiler(
       new clang::CompilerInstance());
   clang::DiagnosticOptions *DiagOpts(new clang::DiagnosticOptions());
@@ -212,12 +257,14 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
+  //WARNING: Activating passes lead to higher time in llvmIRToString
   PAMM_FACTORY;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
   // const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
   START_TIMER("LLVM Passes" /* + moduleID*/);
-  BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Preprocess module: " << M->getModuleIdentifier());
+
   // TODO Have a look at this stuff from the future at some point in time
   /// PassManagerBuilder - This class is used to set up a standard
   /// optimization
@@ -281,11 +328,11 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PM.run(*M);
   // just to be sure that none of the passes has messed up the module!
   bool broken_debug_info = false;
-  if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
-    BOOST_LOG_SEV(lg, CRITICAL) << "AnalysisController: module is broken!";
+  if (M == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL) << "AnalysisController: module is broken!");
   }
   if (broken_debug_info) {
-    BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << "AnalysisController: debug info is broken.");
   }
   for (auto RR : GSP->getRetResInstructions()) {
     ret_res_instructions.insert(RR);
@@ -296,6 +343,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
   STOP_TIMER("LLVM Passes" /* + moduleID*/);
+  cout << "PTG construction ...\n";
   START_TIMER("PTG Construction" /* + moduleID*/);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
@@ -307,10 +355,15 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
           createLegacyPMBasicAAResult(*BasicAAWP, F);
       llvm::AAResults AARes =
           llvm::createLegacyPMAAResults(*BasicAAWP, F, BAAResult);
+      // This line is a major slowdown
+      // The problem comes from the generation of PtG is which far too slow
+      // due to the use of llvmIRToString (without it, the generation of PtG is very acceptable)
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
   STOP_TIMER("PTG Construction" /* + moduleID*/);
+  cout << "PTG construction ended\n";
+
   buildIDModuleMapping(M);
 }
 
@@ -321,6 +374,7 @@ void ProjectIRDB::linkForWPA() {
   // the linkage. This is still very fast compared to compiling and
   // pre-processing
   // all modules.
+  // auto &lg = lg::get();
   if (modules.size() > 1) {
     llvm::Module *MainMod = getModuleDefiningFunction("main");
     assert(MainMod && "could not find main function");
@@ -338,7 +392,7 @@ void ProjectIRDB::linkForWPA() {
         std::unique_ptr<llvm::Module> TmpMod =
             llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
         bool broken_debug_info = false;
-        if (llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
+        if (TmpMod.get() == nullptr || llvm::verifyModule(*TmpMod, &llvm::errs(), &broken_debug_info)) {
           std::cout << "module is broken!\nabort!" << std::endl;
           DIE_HARD;
         }
@@ -348,7 +402,7 @@ void ProjectIRDB::linkForWPA() {
         // now we can safely perform the linking
         if (llvm::Linker::linkModules(*MainMod, std::move(TmpMod),
                                       llvm::Linker::LinkOnlyNeeded)) {
-          std::cout << "ERROR when try to link modules for WPA module!"
+          std::cout << "ERROR when trying to link modules for WPA module!"
                     << std::endl;
           DIE_HARD;
         }
@@ -385,7 +439,7 @@ void ProjectIRDB::linkForWPA() {
     WPAMOD = MainMod;
   } else if (modules.size() == 1) {
     // In this case we only have one module anyway, so we do not have
-    // to link at all. But we have to the the WPAMOD pointer!
+    // to link at all. But we have to update the the WPAMOD pointer!
     WPAMOD = modules.begin()->second.get();
   }
 }
@@ -646,10 +700,19 @@ std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
 }
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
-  std::set<const llvm::Function *> funs;
-  for (auto entry : functions) {
-    const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
-    funs.insert(f);
+  auto &lg = lg::get();
+
+  static std::set<const llvm::Function *> funs;
+
+  if ( funs.size() == 0 ) {
+    for (const auto &entry : functions) {
+      const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
+      if (f == nullptr) {
+         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING) << entry.first << " is not contained in the module\n");
+      }
+      else
+        funs.insert(f);
+    }
   }
   return funs;
 }

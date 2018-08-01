@@ -14,19 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_GENERALSTATISTICSPASS_H_
-#define ANALYSIS_GENERALSTATISTICSPASS_H_
+#ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSPASS_H_
+#define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSPASS_H_
 
-#include <iostream>
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Pass.h>
-#include <llvm/PassSupport.h>
 #include <set>
-#include <string>
-#include <vector>
+
+#include <llvm/Pass.h>
+
+namespace llvm {
+  class Type;
+  class Value;
+  class Instruction;
+  class AnalysisUsage;
+  class Module;
+} // namespace llvm
 
 namespace psr {
 
@@ -41,7 +42,7 @@ namespace psr {
  *  - Instructions
  *  - Pointers
  *
- *  and also a set of all allocated Types in that Module.
+ *  and also a std::set of all allocated Types in that Module.
  *
  *  This pass does not modify the analyzed Module in any way!
  *
@@ -140,4 +141,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_GENERALSTATISTICSPASS_HH_ */
+#endif

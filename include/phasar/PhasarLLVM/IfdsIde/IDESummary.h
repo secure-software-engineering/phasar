@@ -7,8 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef IDESUMMARY_H_
-#define IDESUMMARY_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARY_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARY_H_
+
 namespace psr {
 
 // template <typename N, typename D, typename M, typename V, typename I>

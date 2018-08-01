@@ -7,15 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef SOL_H_
-#define SOL_H_
+#ifndef PHASAR_UTILS_SOL_H_
+#define PHASAR_UTILS_SOL_H_
 
-#include <dlfcn.h>
-#include <iostream>
-#include <memory>
-#include <phasar/Utils/Logger.h>
 #include <stdexcept>
 #include <string>
+
+#include <dlfcn.h>
 
 namespace psr {
 

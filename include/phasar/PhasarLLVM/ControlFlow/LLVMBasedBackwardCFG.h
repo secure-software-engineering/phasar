@@ -14,16 +14,19 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_H_
-#define SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDCFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDCFG_H_
 
-#include <iostream>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <set>
 #include <vector>
+#include <string>
+
+#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+
+namespace llvm {
+  class Function;
+  class Instruction;
+}
 
 namespace psr {
 
@@ -43,8 +46,7 @@ public:
   virtual std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *stmt) override;
 
-  virtual std::vector<
-      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+  virtual std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
   virtual std::vector<const llvm::Instruction *>
@@ -64,4 +66,4 @@ public:
 };
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_HH_ */
+#endif

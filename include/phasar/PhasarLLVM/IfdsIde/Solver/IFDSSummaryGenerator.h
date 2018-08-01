@@ -14,17 +14,18 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYGENERATOR_H_
-#define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYGENERATOR_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSUMMARYGENERATOR_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSUMMARYGENERATOR_H_
 
-#include "../../../utils/utils.h"
-#include "../../misc/SummaryStrategy.h"
-#include "../FlowFunction.h"
-#include "../ZeroValue.h"
-#include "../flow_func/GenAll.h"
-#include <iostream>
+#include <iostream> // std::cout
 #include <set>
 #include <vector>
+
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
+
 
 namespace psr {
 
@@ -92,14 +93,14 @@ public:
       break;
     }
     for (auto subset : InputCombinations) {
-      cout << "Generate summary for specific context: "
+      std::cout << "Generate summary for specific context: "
            << generateBitPattern(inputs, subset) << "\n";
       CTXFunctionProblem functionProblem(
           *icfg.getStartPointsOf(toSummarize).begin(), subset, icfg);
       ConcreteSolver solver(functionProblem, true);
       solver.solve();
       // get the result at the end of this function and
-      // create a flow function from this set using the GenAll class
+      // create a flow function from this std::set using the GenAll class
       std::set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
       std::set<D> results;
       for (auto fact : solver.resultsAt(*LastInsts.begin())) {
@@ -107,7 +108,7 @@ public:
       }
       summary.insert(
           make_pair(generateBitPattern(inputs, subset),
-                    make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
+                    std::make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
     }
     return summary;
   }

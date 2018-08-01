@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_DEFAULTSEEDS_H_
-#define ANALYSIS_IFDS_IDE_DEFAULTSEEDS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTSEEDS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTSEEDS_H_
 
 #include <map>
 #include <set>
@@ -36,4 +36,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_DEFAULTSEEDS_HH_ */
+#endif

@@ -14,13 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGEFUNCTION_H_
-#define ANALYSIS_IFDS_IDE_EDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
 
-#include <iostream>
+#include <iostream> // std::cout in dump, better replace it with a ostream
 #include <memory>
 #include <string>
-#include <sstream>
 
 namespace psr {
 
@@ -42,11 +41,7 @@ public:
     OS << "edge_function";  
   }
 
-  std::string str() {
-    std::ostringstream oss;
-    print(oss);
-    return oss.str();
-  }
+  std::string toString() { return "edge function"; }
 };
 
 template <typename V>
@@ -62,4 +57,4 @@ static inline std::ostream &operator<< (std::ostream &OS, const EdgeFunction<V> 
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTION_HH_ */
+#endif

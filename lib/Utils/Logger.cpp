@@ -14,9 +14,23 @@
  *      Author: philipp
  */
 
+#include <algorithm>
+#include <array>
+#include <ctime>
+#include <exception>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/core/null_deleter.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/shared_ptr.hpp>
+
+#include <boost/log/attributes.hpp>
+#include <boost/log/utility/exception_handler.hpp>
+
 #include <phasar/Utils/Logger.h>
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 const map<string, severity_level> StringToSeverityLevel = {

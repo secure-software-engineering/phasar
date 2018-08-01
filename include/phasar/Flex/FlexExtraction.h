@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef FLEX_EXTRACTION_HH_
-#define FLEX_EXTRACTION_HH_
+#ifndef PHASAR_FLEX_FLEXEXTRACTION_H_
+#define PHASAR_FLEX_FLEXEXTRACTION_H_
 
 namespace psr {
 
@@ -23,4 +23,4 @@ class FlexExtraction {};
 
 } // namespace psr
 
-#endif /* FLEX_CCEXTRACTIONIFACE_HH_ */
+#endif

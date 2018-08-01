@@ -14,16 +14,15 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_H_
-#define ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
 
 #include <map>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <string>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
-#include <set>
-#include <string>
-#include <type_traits>
 
 namespace psr {
 
@@ -46,4 +45,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_IFDSTABULATIONPROBLEM_HH_ */
+#endif

@@ -7,10 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWFACT_H_
-#define FLOWFACT_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACT_H_
 
-#include <iostream>
+#include <iosfwd>
+
 namespace psr {
 
 class FlowFact {

@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef SCOPES_H_
-#define SCOPES_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_SCOPES_H_
+#define PHASAR_PHASARLLVM_UTILS_SCOPES_H_
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <string>
 

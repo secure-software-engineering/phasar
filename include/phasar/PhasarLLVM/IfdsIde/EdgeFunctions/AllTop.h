@@ -14,13 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLTOP_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLTOP_H_
+
+#include <iosfwd>
+#include <memory>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <iostream>
-#include <memory>
-#include <string>
 
 namespace psr {
 
@@ -60,4 +60,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLTOP_HH_ */
+#endif

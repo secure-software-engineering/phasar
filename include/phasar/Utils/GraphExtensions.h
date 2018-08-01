@@ -14,13 +14,15 @@
  *      Author: philipp
  */
 
-#ifndef SRC_LIB_GRAPHEXTENSIONS_H_
-#define SRC_LIB_GRAPHEXTENSIONS_H_
+#ifndef PHASAR_UTILS_GRAPHEXTENSIONS_H_
+#define PHASAR_UTILS_GRAPHEXTENSIONS_H_
+
+#include <vector>
+#include <utility> // std::pair
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graph_utility.hpp>
-#include <vector>
 
 namespace psr {
 
@@ -52,9 +54,8 @@ void merge_graphs(GraphTy &g1, const GraphTy &g2,
 // merges two graph by vertex-contraction
 template <typename GraphTy, typename VertexTy, typename EdgeProperty,
           typename Arg>
-void merge_graphs(
-    GraphTy &g1, const GraphTy &g2,
-    std::vector<std::tuple<VertexTy, VertexTy, Arg>> v_in_g1_u_in_g2_prop) {
+void merge_graphs(GraphTy &g1, const GraphTy &g2,
+                  std::vector<std::tuple<VertexTy, VertexTy, Arg>> v_in_g1_u_in_g2_prop) {
   typedef typename boost::property_map<GraphTy, boost::vertex_index_t>::type
       index_map_t;
   // for simple adjacency_list<> this type would be more efficient:
@@ -93,4 +94,4 @@ void copy_graph(GraphTy &g1, const GraphTy &g2) {
 
 } // namespace psr
 
-#endif /* SRC_LIB_GRAPHEXTENSIONS_HH_ */
+#endif

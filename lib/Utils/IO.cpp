@@ -14,9 +14,13 @@
  *      Author: philipp
  */
 
+#include <fstream>
+
+#include <boost/filesystem.hpp>
+
 #include <phasar/Utils/IO.h>
-using namespace std;
 using namespace psr;
+using namespace std;
 
 namespace psr {
 
@@ -44,4 +48,4 @@ void writeFile(const string &path, const string &content) {
   }
   throw ios_base::failure("could not write file: " + path);
 }
-} // namespace psr
+}  // namespace psr

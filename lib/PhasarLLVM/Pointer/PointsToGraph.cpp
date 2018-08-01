@@ -13,11 +13,109 @@
  *  Created on: 08.02.2017
  *      Author: pdschbrt
  */
+#include <llvm/IR/Instructions.h>
+#include <llvm/ADT/SetVector.h>
+#include <llvm/IR/InstIterator.h>
+#include <llvm/IR/Value.h>
+#include <llvm/IR/Module.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+#include <llvm/IR/Constants.h>
+
+#include <boost/graph/copy.hpp>
+#include <boost/graph/depth_first_search.hpp>
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
+#include <boost/log/sources/record_ostream.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/GraphExtensions.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
 using namespace std;
 using namespace psr;
+
 namespace psr {
+
+
+struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
+  // collect the allocation sites that are found
+  std::set<const llvm::Value *> &allocation_sites;
+  // keeps track of the current path
+  std::vector<vertex_t> visitor_stack;
+  // the call stack that can be matched against the visitor stack
+  const std::vector<const llvm::Instruction *> &call_stack;
+
+  allocation_site_dfs_visitor(
+      std::set<const llvm::Value *> &allocation_sizes,
+      const vector<const llvm::Instruction *> &call_stack)
+      : allocation_sites(allocation_sizes), call_stack(call_stack) {}
+
+  template <typename Vertex, typename Graph>
+  void discover_vertex(Vertex u, const Graph &g) {
+    visitor_stack.push_back(u);
+  }
+
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, const Graph &g) {
+    auto &lg = lg::get();
+    // check for stack allocation
+    if (const llvm::AllocaInst *Alloc =
+            llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
+      // If the call stack is empty, we completely ignore the calling context
+      if (matches_stack(g) || call_stack.empty()) {
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "Found stack allocation: " << llvmIRToString(Alloc));
+        allocation_sites.insert(g[u].value);
+      }
+    }
+    // check for heap allocation
+    if (llvm::isa<llvm::CallInst>(g[u].value) ||
+        llvm::isa<llvm::InvokeInst>(g[u].value)) {
+      llvm::ImmutableCallSite CS(g[u].value);
+      if (CS.getCalledFunction() != nullptr &&
+          HeapAllocationFunctions.count(
+              CS.getCalledFunction()->getName().str())) {
+        // If the call stack is empty, we completely ignore the calling
+        // context
+        if (matches_stack(g) || call_stack.empty()) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: "
+                                   << llvmIRToString(CS.getInstruction()));
+          allocation_sites.insert(g[u].value);
+        }
+      }
+    }
+    visitor_stack.pop_back();
+  }
+
+  template <typename Graph> bool matches_stack(const Graph &g) {
+    size_t call_stack_idx = 0;
+    for (size_t i = 0, j = 1;
+         i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
+      auto e = boost::edge(visitor_stack[i], visitor_stack[j], g);
+      if (g[e.first].value == nullptr)
+        continue;
+      if (g[e.first].value !=
+          call_stack[call_stack.size() - call_stack_idx - 1]) {
+        return false;
+      }
+      call_stack_idx++;
+    }
+    return true;
+  }
+};
+
+struct PointsToGraph::reachability_dfs_visitor : boost::default_dfs_visitor {
+  std::set<vertex_t> &points_to_set;
+  reachability_dfs_visitor(set<vertex_t> &result) : points_to_set(result) {}
+  template <typename Vertex, typename Graph>
+  void finish_vertex(Vertex u, const Graph &g) {
+    points_to_set.insert(u);
+  }
+};
 
 void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
                   const llvm::Value *V2, const llvm::Module *M) {
@@ -63,33 +161,37 @@ void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
     : value(v) {
-  // save the ir code
-  llvm::raw_string_ostream rso(ir_code);
-  value->print(rso);
-  // retrieve the id
-  if (const llvm::Instruction *inst =
-          llvm::dyn_cast<llvm::Instruction>(value)) {
-    id = stoull(llvm::cast<llvm::MDString>(
-                    inst->getMetadata(MetaDataKind)->getOperand(0))
-                    ->getString()
-                    .str());
-  }
+  //WARNING: equivalent to llvmIRToString
+  //WARNING 2 : really really really slow (yes it is)
+  // // save the ir code
+  // llvm::raw_string_ostream rso(ir_code);
+  // value->print(rso);
+  // // retrieve the id
+  // if (const llvm::Instruction *inst =
+  //         llvm::dyn_cast<llvm::Instruction>(value)) {
+  //   id = stoull(llvm::cast<llvm::MDString>(
+  //                   inst->getMetadata(MetaDataKind)->getOperand(0))
+  //                   ->getString()
+  //                   .str());
+  // }
 }
 
 PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
   // save the ir code
-  if (v) {
-    llvm::raw_string_ostream rso(ir_code);
-    value->print(rso);
-    // retrieve the id
-    if (const llvm::Instruction *inst =
-            llvm::dyn_cast<llvm::Instruction>(value)) {
-      id = stoull(llvm::cast<llvm::MDString>(
-                      inst->getMetadata(MetaDataKind)->getOperand(0))
-                      ->getString()
-                      .str());
-    }
-  }
+  //WARNING: equivalent to llvmIRToString
+  //WARNING 2 : really really really slow (yes it is)
+  // if (v) {
+  //   llvm::raw_string_ostream rso(ir_code);
+  //   value->print(rso);
+  //   // retrieve the id
+  //   if (const llvm::Instruction *inst =
+  //           llvm::dyn_cast<llvm::Instruction>(value)) {
+  //     id = stoull(llvm::cast<llvm::MDString>(
+  //                     inst->getMetadata(MetaDataKind)->getOperand(0))
+  //                     ->getString()
+  //                     .str());
+  //   }
+  // }
 }
 
 // points-to graph stuff
@@ -108,7 +210,7 @@ const map<PointerAnalysisType, string> PointerAnalysisTypeToString = {
 PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Analyzing function: " << F->getName().str());
   ContainedFunctions.insert(F->getName().str());
   bool PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias;
   PrintNoAlias = PrintMayAlias = PrintPartialAlias = PrintMustAlias = true;

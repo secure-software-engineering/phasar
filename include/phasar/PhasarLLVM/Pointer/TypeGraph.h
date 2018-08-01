@@ -1,3 +1,15 @@
+/******************************************************************************
+ * Copyright (c) 2017 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert and others
+ *****************************************************************************/
+
+#ifndef PHASAR_PHASARLLVM_POINTER_TYPEGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_TYPEGRAPH_H_
+
 #include <algorithm>
 #include <fstream>
 #include <initializer_list>
@@ -13,6 +25,8 @@
 #include <boost/graph/reverse_graph.hpp>
 #include <boost/property_map/dynamic_property_map.hpp>
 
+#include <gtest/gtest_prod.h>
+
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -24,6 +38,7 @@
 // #include <phasar/PhasarLLVM/Pointer/VTable.h>
 
 namespace psr {
+  
 class TypeGraph {
 public:
   struct VertexProperties {
@@ -106,3 +121,5 @@ public:
   void merge(TypeGraph *tg);
 };
 } // namespace psr
+
+#endif

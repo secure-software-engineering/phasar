@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGEFUNCTIONS_H_
-#define ANALYSIS_IFDS_IDE_EDGEFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
@@ -42,4 +42,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTIONS_HH_ */
+#endif

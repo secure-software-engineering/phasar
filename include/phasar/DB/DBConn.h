@@ -14,60 +14,46 @@
  *      Author: pdschbrt
  */
 
-#ifndef DATABASE_DBCONN_H_
-#define DATABASE_DBCONN_H_
+#ifndef PHASAR_DB_DBCONN_H_
+#define PHASAR_DB_DBCONN_H_
 
-#include <boost/graph/adjacency_list.hpp>
-#include <cppconn/driver.h>
-#include <cppconn/exception.h>
-#include <cppconn/prepared_statement.h>
-#include <cppconn/resultset.h>
-#include <cppconn/statement.h>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <functional>
 #include <initializer_list>
-#include <iostream>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/Support/SourceMgr.h>
-#include <llvm/Support/raw_ostream.h>
+#include <iostream> // Because of SQL_STD_ERROR_HANDLING
 #include <memory>
-#include <mysql_connection.h>
-#include <phasar/DB/Hexastore.h>
+#include <set>
+#include <string>
+
+#include <llvm/IR/Module.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/Utils/IO.h>
-#include <phasar/Utils/Macros.h>
-#include <set>
+#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+// If ProjectIRDB is no more returned, forward declare it and remove this
+#include <phasar/DB/ProjectIRDB.h>
+
+#include <mysql_connection.h>
 #include <sqlite3.h>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <typeinfo>
+
+namespace llvm {
+  class GlobalVariable;
+  class LLVMContext;
+  class StructType;
+}
 
 namespace psr {
 
 enum class QueryReturnCode { DBTrue, DBFalse, DBError };
 
 #define SQL_STD_ERROR_HANDLING                                                 \
-  cout << "# ERR: SQLException in " << __FILE__;                               \
-  cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << endl;             \
-  cout << "# ERR: " << e.what();                                               \
-  cout << " (MySQL error code: " << e.getErrorCode();                          \
-  cout << ", SQLState: " << e.getSQLState() << " )" << endl;
+  std::cout << "# ERR: SQLException in " << __FILE__;                               \
+  std::cout << "(" << __FUNCTION__ << ") on line " << __LINE__ << std::endl;             \
+  std::cout << "# ERR: " << e.what();                                               \
+  std::cout << " (MySQL error code: " << e.getErrorCode();                          \
+  std::cout << ", SQLState: " << e.getSQLState() << " )" << std::endl;
 
 // forward declarations
-class LLVMTypeHierarchy;
-class ProjectIRDB;
-class PointsToGraph;
+class VTable;
 
 class DBConn {
 private:
@@ -79,7 +65,6 @@ private:
   const static std::string db_password;
   const static std::string db_schema_name;
   const static std::string db_server_address;
-
   // Functions for internal use only
   int getNextAvailableID(const std::string &TableName);
   int getProjectID(const std::string &Identifier);
@@ -90,8 +75,8 @@ private:
   std::set<int> getFunctionID(const std::string &Identifier);
   std::set<int> getGlobalVariableID(const std::string &Identifier);
   int getTypeID(const std::string &Identifier);
-  size_t getFunctionHash(const unsigned functionID);
-  size_t getModuleHash(const unsigned moduleID);
+  std::size_t getFunctionHash(const unsigned functionID);
+  std::size_t getModuleHash(const unsigned moduleID);
   QueryReturnCode moduleHasTypeHierarchy(const unsigned moduleID);
   QueryReturnCode globalVariableIsDeclaration(const unsigned globalVariableID);
   std::set<int> getAllTypeHierarchyIDs();
@@ -104,7 +89,7 @@ private:
   bool insertModule(const std::string &ProjectIdentifier,
                     const llvm::Module *module);
   std::unique_ptr<llvm::Module> getModule(const std::string &mod_name,
-                                          llvm::LLVMContext &Context);
+                                     llvm::LLVMContext &Context);
   bool insertGlobalVariable(const llvm::GlobalVariable &G,
                             const unsigned moduleID);
   bool insertFunction(const llvm::Function &F, const unsigned moduleID);
@@ -122,12 +107,13 @@ public:
   static DBConn &getInstance();
   std::string getDBName();
 
-  void storeProjectIRDB(const std::string &ProjectName,
-                        const ProjectIRDB &IRDB);
+  void storeProjectIRDB(const std::string &ProjectName, const ProjectIRDB &IRDB);
+  // We may want to pass an empty ProjectIRDB and do not return anything in order
+  // to suppress the copy constructor of ProjectIRDB and enforce a no copy rule.
   ProjectIRDB loadProjectIRDB(const std::string &ProjectName);
 
-  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
-                          const std::string &ProjectName, bool use_hs = false);
+  void storeLLVMBasedICFG(const LLVMBasedICFG &ICFG, const std::string &ProjectName,
+                          bool use_hs = false);
   LLVMBasedICFG loadLLVMBasedICFGfromModule(const std::string &ModuleName,
                                             bool use_hs = false);
   LLVMBasedICFG
@@ -136,22 +122,20 @@ public:
   LLVMBasedICFG loadLLVMBasedICFGfromProject(const std::string &ProjectName,
                                              bool use_hs = false);
 
-  void storePointsToGraph(const PointsToGraph &PTG,
-                          const std::string &ProjectName, bool use_hs = false);
+  void storePointsToGraph(const PointsToGraph &PTG, const std::string &ProjectName,
+                          bool use_hs = false);
   PointsToGraph loadPointsToGraphFromFunction(const std::string &FunctionName,
                                               bool use_hs = false);
 
-  void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
-                              const std::string &ProjectName,
+  void storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH, const std::string &ProjectName,
                               bool use_hs = false);
+  LLVMTypeHierarchy loadLLVMTypeHierarchyFromModule(const std::string &ModuleName,
+                                                    bool use_hs = false);
   LLVMTypeHierarchy
-  loadLLVMTypeHierarchyFromModule(const std::string &ModuleName,
-                                  bool use_hs = false);
-  LLVMTypeHierarchy loadLLVMTypeHierarchyFromModules(
-      std::initializer_list<std::string> ModuleNames, bool use_hs = false);
-  LLVMTypeHierarchy
-  loadLLVMTypeHierarchyFromProject(const std::string &ProjectName,
+  loadLLVMTypeHierarchyFromModules(std::initializer_list<std::string> ModuleNames,
                                    bool use_hs = false);
+  LLVMTypeHierarchy loadLLVMTypeHierarchyFromProject(const std::string &ProjectName,
+                                                     bool use_hs = false);
 
   void storeIDESummary(const IDESummary &S);
   IDESummary loadIDESummary(const std::string &FunctionName,
@@ -160,4 +144,4 @@ public:
 
 } // namespace psr
 
-#endif /* DATABASE_DBCONN_HH_ */
+#endif

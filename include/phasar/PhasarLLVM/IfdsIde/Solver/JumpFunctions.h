@@ -14,11 +14,16 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
 #include <map>
 #include <memory>
+#include <unordered_map>
+#include <iostream>
+
+#include <boost/log/sources/record_ostream.hpp>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -38,16 +43,16 @@ private:
   const IDETabulationProblem<N, D, M, L, I> &problem;
 
 protected:
-  // mapping from target node and value to a list of all source values and
+  // std::mapping from target node and value to a list of all source values and
   // associated functions
-  // where the list is implemented as a mapping from the source value to the
+  // where the list is implemented as a std::mapping from the source value to the
   // function
   // we exclude empty default functions
   Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions
-  // where the list is implemented as a mapping from the source value to the
+  // where the list is implemented as a std::mapping from the source value to the
   // function
   // we exclude empty default functions
   Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
@@ -72,13 +77,13 @@ public:
   void addFunction(D sourceVal, N target, D targetVal,
                    std::shared_ptr<EdgeFunction<L>> function) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at source: " << problem.DtoString(sourceVal);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at target: " << problem.DtoString(targetVal);
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target);
-    BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->str();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        << "Fact at source: " << problem.DtoString(sourceVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        << "Fact at target: " << problem.DtoString(targetVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << *function);
     // we do not store the default function (all-top)
     if (function->equal_to(allTop))
       return;
@@ -92,13 +97,13 @@ public:
     //	printNonEmptyForwardLookup();
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     //	printNonEmptyLookupByTargetNode();
-    BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
   }
 
   /**
    * Returns, for a given target statement and value all associated
    * source values, and for each the associated edge function.
-   * The return value is a mapping from source value to function.
+   * The return value is a std::mapping from source value to function.
    */
   std::map<D, std::shared_ptr<EdgeFunction<L>>> reverseLookup(N target,
                                                               D targetVal) {
@@ -111,7 +116,7 @@ public:
   /**
    * Returns, for a given source value and target statement all
    * associated target values, and for each the associated edge function.
-   * The return value is a mapping from target value to function.
+   * The return value is a std::mapping from target value to function.
    */
   std::map<D, std::shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal,
                                                               N target) {
@@ -124,7 +129,7 @@ public:
   /**
    * Returns for a given target statement all jump function records with this
    * target.
-   * The return value is a set of records of the form
+   * The return value is a std::set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
   Table<D, D, std::shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
@@ -184,15 +189,15 @@ public:
 
   void printJumpFunctions() {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:");
     for (auto &entry : nonEmptyLookupByTargetNode) {
-      BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Node: " << problem.NtoString(entry.first));
       for (auto cell : entry.second.cellSet()) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at src: " << problem.DtoString(cell.r);
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "fact at dst: " << problem.DtoString(cell.c);
-        BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->str();
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "fact at src: " << problem.DtoString(cell.r));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            << "fact at dst: " << problem.DtoString(cell.c));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "edge fnct: " << cell.v->toString());
       }
     }
   }
@@ -247,4 +252,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_JUMPFUNCTIONS_HH_ */
+#endif

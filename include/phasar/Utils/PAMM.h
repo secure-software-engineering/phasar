@@ -14,31 +14,29 @@
  *      Author: rleer
  */
 
-#ifndef PAMM_H_
-#define PAMM_H_
+#ifndef PHASAR_UTILS_PAMM_H_
+#define PHASAR_UTILS_PAMM_H_
 
-#include "json.hpp"
-#include <boost/filesystem.hpp>
+#ifdef PERFORMANCE_EVA
+
 #include <cassert>
 #include <chrono>
-#include <fstream>
-#include <gtest/gtest_prod.h>
-#include <iomanip>
-#include <iostream>
-#include <map>
+#include <iostream> // Can we avoid it, it cost a lot for each building unit ?
+// Switch from cout to a generic std::ostream that would be passed directly :)
 #include <set>
-#include <sstream>
 #include <string>
-#include <tuple>
 #include <unordered_map>
+
+#include <boost/filesystem.hpp>
+
+#include <json.hpp>
+
+namespace psr {
 
 // for convenience
 using json = nlohmann::json;
 namespace bfs = boost::filesystem;
 
-namespace psr {
-
-#ifdef PERFORMANCE_EVA
 #define PAMM_FACTORY PAMM &pamm = PAMM::getInstance()
 #define PAMM_RESET pamm.reset()
 #define START_TIMER(TIMERID) pamm.startTimer(TIMERID)
@@ -63,29 +61,6 @@ namespace psr {
   pamm.addToHistogram(HID, std::to_string(VAL), OCC)
 #define PRINT_EVA_DATA pamm.printData()
 #define EXPORT_EVA_DATA(CONFIG) pamm.exportDataAsJSON(CONFIG)
-#else
-#define PAMM_FACTORY
-#define PAMM_RESET
-#define START_TIMER(TIMERID)
-#define RESET_TIMER(TIMERID)
-#define PAUSE_TIMER(TIMERID)
-#define STOP_TIMER(TIMERID)
-#define GET_TIMER(TIMERID)
-#define ACC_TIMER(...)
-#define PRINT_TIMER(TIMERID)
-#define REG_COUNTER(COUNTERID)
-#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
-#define INC_COUNTER(COUNTERID)
-#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
-#define DEC_COUNTER(COUNTERID)
-#define GET_COUNTER(COUNTERID)
-#define GET_SUM_COUNT(...)
-#define REG_HISTOGRAM(HID)
-#define ADD_TO_HIST(HID, VAL)
-#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
-#define PRINT_EVA_DATA
-#define EXPORT_EVA_DATA(CONFIG)
-#endif
 
 /**
  * This class offers functionality to measure different performance metrics.
@@ -196,7 +171,7 @@ public:
    * default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
-   * @note When using the macro, the period is set to milliseconds and cannot be
+   * @note When using the macro, the period is std::set to milliseconds and cannot be
    * customized by the macro.
    */
   template <typename Period = std::chrono::milliseconds>
@@ -306,14 +281,14 @@ public:
   int getSumCount(std::set<std::string> counterIds);
 
   /**
-   * @brief Registers a new set as a set histogram.
-   * @param HID identifies the particular set.
+   * @brief Registers a new std::set as a std::set histogram.
+   * @param HID identifies the particular std::set.
    */
   void regHistogram(std::string HID);
 
   /**
-   * @brief Adds a new observed set size to the corresponding set histogram.
-   * @param HID ID of the set.
+   * @brief Adds a new observed std::set size to the corresponding std::set histogram.
+   * @param HID ID of the std::set.
    * @param OCC the added value.
    */
   void addToHistogram(std::string HID, std::string VAL, unsigned long OCC = 1);
@@ -464,4 +439,28 @@ public:
 
 } // namespace psr
 
-#endif /* PAMM_H_ */
+#else
+#define PAMM_FACTORY
+#define PAMM_RESET
+#define START_TIMER(TIMERID)
+#define RESET_TIMER(TIMERID)
+#define PAUSE_TIMER(TIMERID)
+#define STOP_TIMER(TIMERID)
+#define GET_TIMER(TIMERID)
+#define ACC_TIMER(...)
+#define PRINT_TIMER(TIMERID)
+#define REG_COUNTER(COUNTERID)
+#define REG_COUNTER_WITH_VALUE(COUNTERID, VALUE)
+#define INC_COUNTER(COUNTERID)
+#define INC_COUNTER_BY_VAL(COUNTERID, VAL)
+#define DEC_COUNTER(COUNTERID)
+#define GET_COUNTER(COUNTERID)
+#define GET_SUM_COUNT(...)
+#define REG_HISTOGRAM(HID)
+#define ADD_TO_HIST(HID, VAL)
+#define ADD_TO_HIST_WITH_OCC(HID, VAL, OCC)
+#define PRINT_EVA_DATA
+#define EXPORT_EVA_DATA(CONFIG)
+#endif
+
+#endif

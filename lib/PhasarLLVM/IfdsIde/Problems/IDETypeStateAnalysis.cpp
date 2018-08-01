@@ -8,11 +8,9 @@
  *****************************************************************************/
 
 #include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+#include <llvm/IR/Instruction.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -21,8 +19,9 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
+
 using namespace std;
 using namespace psr;
 
@@ -211,4 +210,4 @@ string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
 
-}  // namespace psr
+} // namespace psr

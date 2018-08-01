@@ -7,9 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <ostream>
+
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-using namespace std;
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {

@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_LAMBDAFLOW_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_LAMBDAFLOW_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <functional>

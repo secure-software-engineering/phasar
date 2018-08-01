@@ -14,9 +14,21 @@
  *      Author: philipp
  */
 
+#include <iostream>
+
+#include <llvm/IR/Value.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 #include "IFDSSimpleTaintAnalysis.h"
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin>

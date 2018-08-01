@@ -7,9 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <ostream>
+
 #include <phasar/PhasarLLVM/Utils/Scopes.h>
-using namespace std;
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 const map<string, Scope> StringToScope{{"function", Scope::function},

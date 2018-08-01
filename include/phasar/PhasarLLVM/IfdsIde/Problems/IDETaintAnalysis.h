@@ -7,15 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETAINTANALYSIS_H_
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <set>
 #include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -23,7 +24,11 @@ class Function;
 class Value;
 } // namespace llvm
 
+
+
 namespace psr {
+class LLVMBasedICFG;
+
 class LLVMBasedICFG;
 
 class IDETaintAnalysis
@@ -132,5 +137,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDETAINTANALYSIS_HH_   \
-        */
+#endif

@@ -7,11 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef IDESUMMARIES_H_
-#define IDESUMMARIES_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARIES_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IDESUMMARIES_H_
 
-#include <iostream>
 #include <memory>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Table.h>
 
@@ -22,8 +22,7 @@ private:
   Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> summaries;
 
 public:
-  void
-  addSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> Sum) {
+  void addSummaries(Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> Sum) {
     summaries.insert(Sum);
   }
   Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> getSummaries() {

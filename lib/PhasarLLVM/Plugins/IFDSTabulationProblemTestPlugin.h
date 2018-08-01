@@ -17,15 +17,13 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMTESTPLUGIN_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
-using namespace psr;
+
 namespace psr {
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
-  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
-                                  std::vector<std::string> EntryPoints);
+  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
   ~IFDSTabulationProblemTestPlugin() = default;
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,

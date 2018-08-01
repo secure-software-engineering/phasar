@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_SINGLETON_H_
-#define UTILS_SINGLETON_H_
+#ifndef PHASAR_UTILS_SINGLETON_H_
+#define PHASAR_UTILS_SINGLETON_H_
 
 namespace psr {
 
@@ -37,4 +37,4 @@ protected:
 
 } // namespace psr
 
-#endif /* UTILS_SINGLETON_HH_ */
+#endif

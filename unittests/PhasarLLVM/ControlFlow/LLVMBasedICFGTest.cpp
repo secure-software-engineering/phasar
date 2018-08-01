@@ -3,6 +3,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
+using namespace std;
 using namespace psr;
 
 TEST(LLVMBasedCFGTest, FallThroughSuccTest) {

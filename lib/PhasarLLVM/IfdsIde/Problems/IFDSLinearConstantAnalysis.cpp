@@ -7,19 +7,20 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/Constant.h>
-#include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+
 using namespace std;
 using namespace psr;
 
@@ -52,8 +53,8 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
     IFDSLinearConstantAnalysis::n_t curr,
     IFDSLinearConstantAnalysis::n_t succ) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSLinearConstantAnalysis::getNormalFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getNormalFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -62,8 +63,8 @@ IFDSLinearConstantAnalysis::getCallFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
     IFDSLinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSLinearConstantAnalysis::getCallFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getCallFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -74,8 +75,8 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t exitStmt,
     IFDSLinearConstantAnalysis::n_t retSite) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSLinearConstantAnalysis::getRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getRetFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -85,8 +86,8 @@ IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t retSite,
     set<IFDSLinearConstantAnalysis::m_t> callees) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -95,15 +96,15 @@ IFDSLinearConstantAnalysis::getSummaryFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
     IFDSLinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IFDSLinearConstantAnalysis::getSummaryFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      << "IFDSLinearConstantAnalysis::getSummaryFlowFunction()");
   return nullptr;
 }
 
 map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::initialSeeds() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::initialSeeds()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::initialSeeds()");
   map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
@@ -116,7 +117,7 @@ IFDSLinearConstantAnalysis::initialSeeds() {
 
 IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::createZeroValue()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSLinearConstantAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LCAPair(LLVMZeroValue::getInstance(), 0);
 }
@@ -140,5 +141,4 @@ string
 IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
   return m->getName().str();
 }
-
 } // namespace psr

@@ -14,8 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILL_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILL_H_
+
+#include <set>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
@@ -23,7 +25,7 @@
 namespace psr {
 
 template <typename D> class Kill : public FlowFunction<D> {
-private:
+protected:
   D killValue;
 
 public:
@@ -39,4 +41,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_KILL_HH_ */
+#endif

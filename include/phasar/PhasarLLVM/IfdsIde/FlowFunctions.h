@@ -14,12 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_FLOWFUNCTIONS_H_
-#define ANALYSIS_FLOWFUNCTIONS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_H_
 
 #include <memory>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <vector>
 
 namespace psr {
 
@@ -39,4 +40,4 @@ public:
 };
 } // namespace  psr
 
-#endif /* ANALYSIS_ABSTRACTFLOWFUNCTIONS_HH_ */
+#endif

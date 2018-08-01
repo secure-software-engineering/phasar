@@ -7,16 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVERTEST_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVERTEST_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDESOLVERTEST_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDESOLVERTEST_H_
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -24,7 +24,11 @@ class Function;
 class Value;
 } // namespace llvm
 
+
+
 namespace psr {
+class LLVMBasedICFG;
+
 class LLVMBasedICFG;
 
 class IDESolverTest
@@ -127,4 +131,4 @@ public:
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_PROBLEMS_IDE_SOLVER_TEST_IDESOLVERTEST_HH_ */
+#endif

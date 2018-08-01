@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef INTERMONOTONEPROBLEMPLUGIN_H_
-#define INTERMONOTONEPROBLEMPLUGIN_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOTONEPROBLEMPLUGIN_H_
+#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOTONEPROBLEMPLUGIN_H_
 
 #include <map>
 #include <memory>

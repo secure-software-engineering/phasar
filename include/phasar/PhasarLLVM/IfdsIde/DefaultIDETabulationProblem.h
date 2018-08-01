@@ -14,10 +14,11 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_H_
-#define ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIDETABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIDETABULATIONPROBLEM_H_
 
-#include "IDETabulationProblem.h"
+#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
@@ -45,4 +46,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_DEFAULTIDETABULATIONPROBLEM_HH_ */
+#endif

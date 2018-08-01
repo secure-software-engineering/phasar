@@ -14,20 +14,19 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_OBSERVEDCALLINGCONTEXTS_H_
-#define ANALYSIS_IFDS_IDE_OBSERVEDCALLINGCONTEXTS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_OBSERVEDCALLINGCONTEXTS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_OBSERVEDCALLINGCONTEXTS_H_
 
-#include <algorithm>
-#include <iostream>
 #include <map>
 #include <set>
+#include <string>
 #include <vector>
 
 namespace psr {
 
 class ObservedCallingContexts {
 private:
-  // Maps a function to the set of contexts that have been recognized so far
+  // Maps a function to the std::set of contexts that have been recognized so far
   std::map<std::string, std::set<std::vector<bool>>> ObservedCTX;
 
 public:

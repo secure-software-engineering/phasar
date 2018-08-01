@@ -7,18 +7,20 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWEDGEFUNCTIONCACHE_H_
-#define FLOWEDGEFUNCTIONCACHE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 
 #include <map>
 #include <memory>
+#include <tuple>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMM.h>
-#include <tuple>
+
 
 namespace psr {
 
@@ -122,7 +124,7 @@ struct FlowEdgeFunctionCache {
               ? std::make_shared<ZeroedFlowFunction<D>>(
                     problem.getCallFlowFunction(callStmt, destMthd), zeroValue)
               : problem.getCallFlowFunction(callStmt, destMthd);
-      CallFlowFunctionCache.insert(make_pair(key, ff));
+      CallFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -143,7 +145,7 @@ struct FlowEdgeFunctionCache {
                           zeroValue)
                     : problem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
                                                  retSite);
-      ReturnFlowFunctionCache.insert(make_pair(key, ff));
+      ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -164,7 +166,7 @@ struct FlowEdgeFunctionCache {
                                                      callees),
                     zeroValue)
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
-      CallToRetFlowFunctionCache.insert(make_pair(key, ff));
+      CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       return ff;
     }
   }
@@ -187,7 +189,7 @@ struct FlowEdgeFunctionCache {
     } else {
       INC_COUNTER("Normal-EF Construction");
       auto ef = problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
-      NormalEdgeFunctionCache.insert(make_pair(key, ef));
+      NormalEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -203,7 +205,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Call-EF Construction");
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
                                             destiantionMethod, destNode);
-      CallEdgeFunctionCache.insert(make_pair(key, ef));
+      CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -222,7 +224,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Return-EF Construction");
       auto ef = problem.getReturnEdgeFunction(callSite, calleeMethod, exitStmt,
                                               exitNode, reSite, retNode);
-      ReturnEdgeFunctionCache.insert(make_pair(key, ef));
+      ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -240,7 +242,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("CallToRet-EF Construction");
       auto ef = problem.getCallToReturnEdgeFunction(callSite, callNode, retSite,
                                                     retSiteNode);
-      CallToRetEdgeFunctionCache.insert(make_pair(key, ef));
+      CallToRetEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -256,7 +258,7 @@ struct FlowEdgeFunctionCache {
       INC_COUNTER("Summary-EF Construction");
       auto ef = problem.getSummaryEdgeFunction(callSite, callNode, retSite,
                                                retSiteNode);
-      SummaryEdgeFunctionCache.insert(make_pair(key, ef));
+      SummaryEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }
   }
@@ -265,70 +267,70 @@ struct FlowEdgeFunctionCache {
 #ifdef PERFORMANCE_EVA
     PAMM_FACTORY;
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, INFO) << "Flow-Edge-Function Cache Statistics:";
-    BOOST_LOG_SEV(lg, INFO) << "normal flow function cache hits: "
-                            << GET_COUNTER("Normal-FF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "normal flow function constructions: "
-                            << GET_COUNTER("Normal-FF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "call flow function cache hits: "
-                            << GET_COUNTER("Call-FF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "call flow function constructions: "
-                            << GET_COUNTER("Call-FF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "return flow function cache hits: "
-                            << GET_COUNTER("Return-FF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "return flow function constructions: "
-                            << GET_COUNTER("Return-FF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "call to return flow function cache hits: "
-                            << GET_COUNTER("CallToRet-FF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "call to return flow function constructions: "
-                            << GET_COUNTER("CallToRet-FF Construction");
-    // BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
-    //                        << GET_COUNTER("Summary-FF Cache Hit");
-    // BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
-    //                         << GET_COUNTER("Summary-FF Construction");
-    BOOST_LOG_SEV(lg, INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Flow-Edge-Function Cache Statistics:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "normal flow function cache hits: "
+                            << GET_COUNTER("Normal-FF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "normal flow function constructions: "
+                            << GET_COUNTER("Normal-FF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call flow function cache hits: "
+                            << GET_COUNTER("Call-FF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call flow function constructions: "
+                            << GET_COUNTER("Call-FF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "return flow function cache hits: "
+                            << GET_COUNTER("Return-FF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "return flow function constructions: "
+                            << GET_COUNTER("Return-FF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call to return flow function cache hits: "
+                            << GET_COUNTER("CallToRet-FF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call to return flow function constructions: "
+                            << GET_COUNTER("CallToRet-FF Construction"));
+    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "summary flow function cache hits: "
+    //                        << GET_COUNTER("Summary-FF Cache Hit"));
+    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "summary flow function constructions: "
+    //                         << GET_COUNTER("Summary-FF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
         << "total flow function cache hits: "
         << GET_SUM_COUNT({"Normal-FF Cache Hit", "Call-FF Cache Hit",
-                          "Return-FF Cache Hit", "CallToRet-FF Cache Hit"});
+                          "Return-FF Cache Hit", "CallToRet-FF Cache Hit"}));
     //"Summary-FF Cache Hit"});
-    BOOST_LOG_SEV(lg, INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
         << "total flow function constructions: "
         << GET_SUM_COUNT({"Normal-FF Construction", "Call-FF Construction",
                           "Return-FF Construction",
                           "CallToRet-FF Construction" /*,
-                "Summary-FF Construction"*/});
-    BOOST_LOG_SEV(lg, INFO) << " ";
-    BOOST_LOG_SEV(lg, INFO) << "normal edge function cache hits: "
-                            << GET_COUNTER("Normal-EF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "normal edge function constructions: "
-                            << GET_COUNTER("Normal-EF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "call edge function cache hits: "
-                            << GET_COUNTER("Call-EF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "call edge function constructions: "
-                            << GET_COUNTER("Call-EF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "return edge function cache hits: "
-                            << GET_COUNTER("Return-EF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "return edge function constructions: "
-                            << GET_COUNTER("Return-EF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "call to return edge function cache hits: "
-                            << GET_COUNTER("CallToRet-EF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "call to return edge function constructions: "
-                            << GET_COUNTER("CallToRet-EF Construction");
-    BOOST_LOG_SEV(lg, INFO) << "summary edge function cache hits: "
-                            << GET_COUNTER("Summary-EF Cache Hit");
-    BOOST_LOG_SEV(lg, INFO) << "summary edge function constructions: "
-                            << GET_COUNTER("Summary-EF Construction");
-    BOOST_LOG_SEV(lg, INFO)
+                "Summary-FF Construction"*/}));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << " ");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "normal edge function cache hits: "
+                            << GET_COUNTER("Normal-EF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "normal edge function constructions: "
+                            << GET_COUNTER("Normal-EF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call edge function cache hits: "
+                            << GET_COUNTER("Call-EF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call edge function constructions: "
+                            << GET_COUNTER("Call-EF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "return edge function cache hits: "
+                            << GET_COUNTER("Return-EF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "return edge function constructions: "
+                            << GET_COUNTER("Return-EF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call to return edge function cache hits: "
+                            << GET_COUNTER("CallToRet-EF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "call to return edge function constructions: "
+                            << GET_COUNTER("CallToRet-EF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "summary edge function cache hits: "
+                            << GET_COUNTER("Summary-EF Cache Hit"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "summary edge function constructions: "
+                            << GET_COUNTER("Summary-EF Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
         << "total edge function cache hits: "
         << GET_SUM_COUNT({"Normal-EF Cache Hit", "Call-EF Cache Hit",
                           "Return-EF Cache Hit", "CallToRet-EF Cache Hit",
-                          "Summary-EF Cache Hit"});
-    BOOST_LOG_SEV(lg, INFO)
+                          "Summary-EF Cache Hit"}));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
         << "total edge function constructions: "
         << GET_SUM_COUNT({"Normal-EF Construction", "Call-EF Construction",
                           "Return-EF Construction", "CallToRet-EF Construction",
-                          "Summary-EF Construction"});
-    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
+                          "Summary-EF Construction"}));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------");
 #endif
   }
 };

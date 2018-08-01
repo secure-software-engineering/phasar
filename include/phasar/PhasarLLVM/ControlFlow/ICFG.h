@@ -14,30 +14,29 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_ICFG_H_
-#define ANALYSIS_IFDS_IDE_ICFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 
-#include <iostream>
-#include <json.hpp>
-#include <map>
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+#include <iosfwd>
 #include <set>
 #include <string>
-#include <vector>
-using json = nlohmann::json;
+#include <map>
+
+#include <json.hpp>
+
+#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 
 namespace psr {
 
 enum class CallGraphAnalysisType { CHA, RTA, DTA, VTA, OTF };
 
-extern const std::map<std::string, CallGraphAnalysisType>
-    StringToCallGraphAnalysisType;
+extern const std::map<std::string, CallGraphAnalysisType> StringToCallGraphAnalysisType;
 
-extern const std::map<CallGraphAnalysisType, std::string>
-    CallGraphAnalysisTypeToString;
+extern const std::map<CallGraphAnalysisType, std::string> CallGraphAnalysisTypeToString;
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
+
+using json = nlohmann::json;
 
 template <typename N, typename M> class ICFG : public CFG<N, M> {
 public:
@@ -66,4 +65,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_ICFG_HH_ */
+#endif
