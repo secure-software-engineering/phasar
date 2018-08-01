@@ -43,7 +43,7 @@ endif()
 if(PHASAR_ENABLE_LIBCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 endif(PHASAR_ENABLE_LIBCXX)
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
