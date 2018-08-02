@@ -859,7 +859,6 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
 void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
                                 const string &ProjectName, bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -868,7 +867,6 @@ void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
 LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
                                                   bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -881,7 +879,6 @@ LLVMBasedICFG
 DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
                                      bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -893,7 +890,6 @@ DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
 LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
                                                    bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -905,7 +901,6 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
 void DBConn::storePointsToGraph(const PointsToGraph &PTG,
                                 const string &ProjectName, bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -914,7 +909,6 @@ void DBConn::storePointsToGraph(const PointsToGraph &PTG,
 PointsToGraph DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
                                                     bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1097,7 +1091,6 @@ LLVMTypeHierarchy
 DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
                                          bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1106,7 +1099,6 @@ DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
 
 void DBConn::storeIDESummary(const IDESummary &S) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1115,7 +1107,6 @@ void DBConn::storeIDESummary(const IDESummary &S) {
 IDESummary DBConn::loadIDESummary(const string &FunctionName,
                                   const string &AnalysisName) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }

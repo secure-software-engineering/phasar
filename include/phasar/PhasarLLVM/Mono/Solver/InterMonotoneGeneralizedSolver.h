@@ -262,7 +262,6 @@ public:
       auto dst_range = Analysis[dst].equal_range(dst_context);
       for (auto &analysis_dst_it = dst_range.first;
            analysis_dst_it != dst_range.second; ++analysis_dst_it) {
-
         // flowfactsstabilized = true <-> Same std::set & already visited once
         bool flowfactsstabilized =
             dst_context_already_exist

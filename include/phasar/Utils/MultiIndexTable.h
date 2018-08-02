@@ -32,7 +32,6 @@ struct ORDERED_ROW_COL_KEY_TAG {};
 struct HASHED_ROW_COL_KEY_TAG {};
 
 template <typename R, typename C, typename V> struct MultiIndexTable {
-
   struct TableData {
     R rowkey;
     C columnkey;

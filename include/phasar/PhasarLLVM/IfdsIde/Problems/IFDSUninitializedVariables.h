@@ -33,7 +33,6 @@ class IFDSUnitializedVariables
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, LLVMBasedICFG &> {
-
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;

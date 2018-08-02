@@ -65,7 +65,6 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   for (auto vertex : type_vertex_map) {
     tie(ei, ei_end) = boost::out_edges(vertex.second, tc);
     for (; ei != ei_end; ++ei) {
-
       auto source = boost::source(*ei, tc);
       auto target = boost::target(*ei, tc);
       g[vertex.second].reachableTypes.insert(g[target].name);

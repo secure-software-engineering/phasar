@@ -80,7 +80,6 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
     if (destMthd->getName().str() == "taint") {
       return make_shared<Gen<const llvm::Value *>>(Call, zeroValue());
     } else if (destMthd->getName().str() == "leak") {
-
     } else {
     }
   }
