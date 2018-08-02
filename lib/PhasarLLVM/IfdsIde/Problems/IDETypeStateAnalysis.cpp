@@ -77,8 +77,29 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     // });
   }
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+    //if (Load->getPointerOperand() {
+      /*if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Load->getPointerOperand() {
+        if (StructTy->getName().find("struct._IO_FILE") !=
+            llvm::StringRef::npos) {*/
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load,
+                                                             zeroValue());
+        //}
+      //}
+    //}
   }
+
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+    if (Store->getValueOperand()->getType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Store->getValueOperand()->getType()->getPointerElementType())) {
+        if(StructTy->getName().find("struct._IO_FILE") != 
+            llvm::StringRef::npos){
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Store,
+                                                             zeroValue());
+        }
+      }
+    }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
