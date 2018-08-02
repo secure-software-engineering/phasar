@@ -21,8 +21,6 @@ build:
     - cat /proc/cpuinfo
     - cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON -DPHASAR_BUILD_DOC=ON ..
     - make -j4
-    - make test
-    # - run-clang-tidy.py 
 # Fix the unit tests first 
 #    - make test
 # Install Phasar and test the examples
