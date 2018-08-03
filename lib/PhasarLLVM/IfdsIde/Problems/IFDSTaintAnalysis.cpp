@@ -225,7 +225,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
             : callSite(cs), calledMthd(calledMthd), sink(s), Leaks(leaks),
               taintanalysis(ta) {}
         set<IFDSTaintAnalysis::d_t>
-        computeTargets(IFDSTaintAnalysis::d_t source) {
+        computeTargets(IFDSTaintAnalysis::d_t source) override {
           // check if a tainted value flows into a sink
           // if so, add to Leaks and return id
           if (!taintanalysis->isZeroValue(source)) {

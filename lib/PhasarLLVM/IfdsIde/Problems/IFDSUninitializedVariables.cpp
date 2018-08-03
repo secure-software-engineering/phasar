@@ -55,7 +55,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(
       UVFF(const llvm::Function *f, IFDSUnitializedVariables::d_t zv)
           : func(f), zerovalue(zv) {}
       set<IFDSUnitializedVariables::d_t>
-      computeTargets(IFDSUnitializedVariables::d_t source) {
+      computeTargets(IFDSUnitializedVariables::d_t source) override {
         if (source == zerovalue) {
           set<IFDSUnitializedVariables::d_t> res;
           // first add all local values of primitive types
@@ -111,7 +111,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(
       UVFF(const llvm::Value *vop, const llvm::Value *pop)
           : valueop(vop), pointerop(pop) {}
       set<IFDSUnitializedVariables::d_t>
-      computeTargets(IFDSUnitializedVariables::d_t source) {
+      computeTargets(IFDSUnitializedVariables::d_t source) override {
         // check if an uninitialized value is loaded and stored in a variable,
         // then the variable is uninitialized!
         for (auto &use : valueop->uses()) {
@@ -156,7 +156,7 @@ IFDSUnitializedVariables::getNormalFlowFunction(
     const llvm::Instruction *inst;
     UVFF(const llvm::Instruction *inst) : inst(inst) {}
     set<IFDSUnitializedVariables::d_t>
-    computeTargets(IFDSUnitializedVariables::d_t source) {
+    computeTargets(IFDSUnitializedVariables::d_t source) override {
       for (auto &operand : inst->operands()) {
         if (operand == source) {
           return {source, inst};
@@ -304,7 +304,7 @@ IFDSUnitializedVariables::getRetFlowFunction(
       UVFF(const llvm::CallInst *c, const llvm::ReturnInst *r)
           : call(c), ret(r) {}
       set<IFDSUnitializedVariables::d_t>
-      computeTargets(IFDSUnitializedVariables::d_t source) {
+      computeTargets(IFDSUnitializedVariables::d_t source) override {
         if (ret->getNumOperands() > 0 && ret->getOperand(0) == source) {
           set<const llvm::Value *> results;
           // users of this call instruction get an uninitialized value!
