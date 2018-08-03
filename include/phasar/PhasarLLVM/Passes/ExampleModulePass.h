@@ -14,26 +14,26 @@
  *      Author: pdschbrt
  */
 
-#ifndef EXAMPLEMODULEPASS_H_
-#define EXAMPLEMODULEPASS_H_
+#ifndef PHASAR_PHASARLLVM_PASSES_EXAMPLEMODULEPASS_H_
+#define PHASAR_PHASARLLVM_PASSES_EXAMPLEMODULEPASS_H_
 
-#include <llvm/ADT/SCCIterator.h>
 #include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CallGraph.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
 
-using namespace llvm;
+namespace llvm {
+class Module;
+class AnalysisUsage;
+} // namespace llvm
 
 namespace psr {
 
-class ExampleModulePass : public ModulePass, AAResultBase<BasicAAResult> {
+// WARNING: Why is llvm::AAResultBase a parent of this pass ?
+class ExampleModulePass : public llvm::ModulePass,
+                          llvm::AAResultBase<llvm::BasicAAResult> {
 public:
   static char ID;
-  ExampleModulePass() : ModulePass(ID) {}
-  void getAnalysisUsage(AnalysisUsage &AU) const override;
+  ExampleModulePass() : llvm::ModulePass(ID) {}
+  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
   bool doInitialization(llvm::Module &M) override;
   bool runOnModule(llvm::Module &M) override;
   bool doFinalization(llvm::Module &M) override;
@@ -45,4 +45,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_MYALIASANALYSISPASS_HH_ */
+#endif

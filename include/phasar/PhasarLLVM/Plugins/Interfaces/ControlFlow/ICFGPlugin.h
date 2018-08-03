@@ -7,17 +7,24 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ICFGPlugin_H_
-#define ICFGPlugin_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_CONTROLFLOW_ICFGPLUGIN_H_
+#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_CONTROLFLOW_ICFGPLUGIN_H_
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
 #include <map>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <memory>
 #include <string>
+#include <vector>
+
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+
+namespace llvm {
+class Instruction;
+class Function;
+} // namespace llvm
 
 namespace psr {
+
+class ProjectIRDB;
 
 class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {

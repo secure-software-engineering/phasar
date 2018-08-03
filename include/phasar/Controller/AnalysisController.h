@@ -7,46 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSISCONTROLLER_HH_
-#define ANALYSISCONTROLLER_HH_
+#ifndef PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
+#define PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
 
-#include <iostream>
-#include <json.hpp>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/Support/SMLoc.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
+#include <iosfwd>
 #include <map>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/SOL.h>
+#include <string>
 #include <vector>
 
-using json = nlohmann::json;
+#include <json.hpp>
+
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+
 namespace psr {
+
+class ProjectIRDB;
 
 enum class ExportType { JSON = 0 };
 
@@ -57,6 +32,9 @@ extern const std::map<ExportType, std::string> ExportTypeToString;
 std::ostream &operator<<(std::ostream &os, const ExportType &e);
 
 class AnalysisController {
+public:
+  using json = nlohmann::json;
+
 private:
   json FinalResultsJson;
 
@@ -71,4 +49,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_ANALYSISCONTROLLER_HH_ */
+#endif

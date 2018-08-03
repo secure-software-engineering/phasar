@@ -7,14 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IDE_LINEARCONSTANTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -116,5 +117,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IDE_TAINT_ANALYSIS_IDELINEARCONSTANTANALYSIS_HH_ \
-        */
+#endif

@@ -1,4 +1,9 @@
 #include "MyIFDSProblem.h"
+#include <iostream>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 
 using namespace std;
 using namespace psr;

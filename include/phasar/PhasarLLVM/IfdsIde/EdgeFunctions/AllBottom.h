@@ -14,21 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
 
-#include <iostream>
+#include <iostream> // std::cerr
 #include <memory>
+#include <ostream>
+#include <string>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>
-#include <stdexcept>
-#include <string>
-//#include "EdgeIdentity.h"
-//#include "AllTop.h"
+
 namespace psr {
 
 template <typename V> class EdgeIdentity;
-
 template <typename V> class AllTop;
 
 template <typename V>
@@ -55,7 +54,7 @@ public:
   virtual std::shared_ptr<EdgeFunction<V>>
   joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     if (otherFunction.get() == this ||
-        otherFunction->equalTo(this->shared_from_this()))
+        otherFunction->equal_to(this->shared_from_this()))
       return this->shared_from_this();
     if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(otherFunction.get()))
       return this->shared_from_this();
@@ -65,23 +64,18 @@ public:
     throw std::runtime_error("UNEXPECTED EDGE FUNCTION");
   }
 
-  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) override {
+  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     if (AllBottom<V> *allbottom = dynamic_cast<AllBottom<V> *>(other.get())) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const AllBottom &allBottom) {
-    return os << "allbottom";
+  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+    OS << "all_bottom";
   }
-
-  void dump() override { std::cout << "allbottom\n"; }
-
-  std::string toString() override { return "allbottom"; }
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_ALLBOTTOM_HH_ */
+#endif

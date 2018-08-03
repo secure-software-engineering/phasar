@@ -2,12 +2,21 @@
 #include <llvm/IR/InstIterator.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
+
+using namespace std;
 using namespace psr;
 
-TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
+class LLVMBasedCFGTest : public ::testing::Test {
+protected:
+  const std::string pathToLLFiles =
+      PhasarDirectory + "build/test/llvm_test_code/";
+};
+
+TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -27,9 +36,9 @@ TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
       cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
 }
 
-TEST(LLVMBasedCFGTest, BranchTargetTest) {
+TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/switch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/switch.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SWITCH INSTRUCTION
@@ -62,9 +71,9 @@ TEST(LLVMBasedCFGTest, BranchTargetTest) {
   ASSERT_TRUE(cfg.isBranchTarget(BranchInst, getNthTermInstruction(F, 6)));
 }
 
-TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
+TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
 
   // ret i32 0
@@ -78,9 +87,9 @@ TEST(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   ASSERT_EQ(predsOfTermInst, Predeccessor);
 }
 
-TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
+TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -109,9 +118,9 @@ TEST(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   ASSERT_EQ(predsOfInst, Predeccessor);
 }
 
-TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
+TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -135,10 +144,9 @@ TEST(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   ASSERT_EQ(succsOfBRInst, Successors);
 }
 
-TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
+TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB(
-      {"../../../../test/llvm_test_code/control_flow/function_call.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SINGLE SUCCESSOR
@@ -158,10 +166,9 @@ TEST(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   ASSERT_EQ(succsOfTermInst, Successors);
 }
 
-TEST(LLVMBasedCFGTest, HandlesCallSuccessor) {
+TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB(
-      {"../../../../test/llvm_test_code/control_flow/function_call.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CALL INSTRUCTION SUCCESSOR

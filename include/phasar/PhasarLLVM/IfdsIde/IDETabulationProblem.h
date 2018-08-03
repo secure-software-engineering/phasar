@@ -14,15 +14,16 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_IDETABULATIONPROBLEM_H_
-#define ANALYSIS_IFDS_IDE_IDETABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <string>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
-#include <type_traits>
+
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
@@ -36,4 +37,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_IDETABLUATIONPROBLEM_HH_ */
+#endif

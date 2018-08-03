@@ -7,9 +7,22 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iterator>
+#include <ostream>
+
+#include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/find.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+#include <boost/algorithm/string/split.hpp>
+
+#include <llvm/IR/DerivedTypes.h>
+
+#include <cxxabi.h>
+
 #include <phasar/Utils/Macros.h>
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 string cxx_demangle(const string &mangled_name) {
@@ -21,6 +34,32 @@ string cxx_demangle(const string &mangled_name) {
   return result;
 }
 
+bool isConstructor(const string &mangled_name) {
+  // WARNING: Doesn't work for templated classes, should
+  // the best way to do it I can think of is to use a lexer
+  // on the name to detect the constructor point explained
+  // in the Itanium C++ ABI:
+  // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
+
+  // This version will not work in some edge cases
+  auto constructor = boost::algorithm::find_last(mangled_name, "C2E");
+
+  if (constructor.begin() != constructor.end())
+    return true;
+
+  constructor = boost::algorithm::find_last(mangled_name, "C1E");
+
+  if (constructor.begin() != constructor.end())
+    return true;
+
+  constructor = boost::algorithm::find_last(mangled_name, "C2E");
+
+  if (constructor.begin() != constructor.end())
+    return true;
+
+  return false;
+}
+
 string debasify(const string &name) {
   static const string base = ".base";
   if (boost::algorithm::ends_with(name, base)) {
@@ -28,6 +67,28 @@ string debasify(const string &name) {
   } else {
     return name;
   }
+}
+
+string uniformTypeName(const string &name) {
+  std::string TypeName = debasify(name);
+  if (TypeName.compare(0, sizeof("class.") - 1, "class.") == 0)
+    TypeName.erase(0, sizeof("class.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
+  else if (TypeName.compare(0, sizeof("struct.") - 1, "struct.") == 0)
+    TypeName.erase(0, sizeof("struct.") - 1);
+
+  return TypeName;
+}
+
+const llvm::Type *stripPointer(const llvm::Type *pointer) {
+  auto next = llvm::dyn_cast<llvm::PointerType>(pointer);
+  while (next) {
+    pointer = next->getElementType();
+    next = llvm::dyn_cast<llvm::PointerType>(pointer);
+  }
+
+  return pointer;
 }
 
 bool isMangled(const string &name) { return name != cxx_demangle(name); }

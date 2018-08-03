@@ -14,18 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_COMPOSE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_COMPOSE_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <memory>
 #include <set>
 #include <vector>
 
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 namespace psr {
 
-template <typename D> class Compose : FlowFunction<D> {
-private:
+template <typename D> class Compose : public FlowFunction<D> {
+protected:
   const std::vector<FlowFunction<D>> funcs;
 
 public:
@@ -62,4 +64,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_COMPOSE_HH_ */
+#endif

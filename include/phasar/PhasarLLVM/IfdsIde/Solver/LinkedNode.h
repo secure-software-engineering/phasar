@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LINKEDNODE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LINKEDNODE_H_
 
 namespace psr {
 
@@ -40,4 +40,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_LINKEDNODE_HH_ */
+#endif

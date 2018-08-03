@@ -14,65 +14,63 @@
  *      Author: philipp
  */
 
-#ifndef INTERMONOTONESOLVERTEST_H_
-#define INTERMONOTONESOLVERTEST_H_
+#ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTONESOLVERTEST_H_
+#define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTONESOLVERTEST_H_
 
-#include <algorithm>
-#include <iostream>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <string>
+#include <vector>
+
+#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+
+namespace llvm {
+class Instruction;
+class Value;
+class Function;
+} // namespace llvm
 
 namespace psr {
 
+class LLVMBasedICFG;
+
 class InterMonotoneSolverTest
     : public InterMonotoneProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::Value *, LLVMBasedICFG &> {
-private:
-  LLVMBasedICFG &ICFG;
+                                  MonoSet<const llvm::Value *>,
+                                  const llvm::Function *, LLVMBasedICFG &> {
+public:
+  using Node_t = const llvm::Instruction *;
+  using Domain_t = MonoSet<const llvm::Value *>;
+  using Method_t = const llvm::Function *;
+  using ICFG_t = LLVMBasedICFG &;
+
+protected:
   std::vector<std::string> EntryPoints;
 
 public:
-  InterMonotoneSolverTest(LLVMBasedICFG &Icfg,
+  InterMonotoneSolverTest(ICFG_t &Icfg,
                           std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonotoneSolverTest() = default;
 
-  virtual MonoSet<const llvm::Value *>
-  join(const MonoSet<const llvm::Value *> &Lhs,
-       const MonoSet<const llvm::Value *> &Rhs) override;
+  virtual Domain_t join(const Domain_t &Lhs, const Domain_t &Rhs) override;
 
-  virtual bool sqSubSetEqual(const MonoSet<const llvm::Value *> &Lhs,
-                             const MonoSet<const llvm::Value *> &Rhs) override;
+  virtual bool sqSubSetEqual(const Domain_t &Lhs, const Domain_t &Rhs) override;
 
-  virtual MonoSet<const llvm::Value *>
-  normalFlow(const llvm::Instruction *Stmt,
-             const MonoSet<const llvm::Value *> &In) override;
+  virtual Domain_t normalFlow(const Node_t Stmt, const Domain_t &In) override;
 
-  virtual MonoSet<const llvm::Value *>
-  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-           const MonoSet<const llvm::Value *> &In) override;
+  virtual Domain_t callFlow(const Node_t CallSite, const Method_t Callee,
+                            const Domain_t &In) override;
 
-  virtual MonoSet<const llvm::Value *>
-  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-             const llvm::Instruction *RetStmt, const llvm::Instruction *RetSite,
-             const MonoSet<const llvm::Value *> &In) override;
+  virtual Domain_t returnFlow(const Node_t CallSite, const Method_t Callee,
+                              const Node_t RetSite,
+                              const Domain_t &In) override;
 
-  virtual MonoSet<const llvm::Value *>
-  callToRetFlow(const llvm::Instruction *CallSite,
-                const llvm::Instruction *RetSite,
-                const MonoSet<const llvm::Value *> &In) override;
+  virtual Domain_t callToRetFlow(const Node_t CallSite, const Node_t RetSite,
+                                 const Domain_t &In) override;
 
-  virtual MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
-  initialSeeds() override;
+  virtual MonoMap<Node_t, Domain_t> initialSeeds() override;
 
-  virtual std::string DtoString(const llvm::Value *d) override;
+  virtual std::string DtoString(const Domain_t d) override;
 
-  virtual std::string CtoString(const llvm::Value *c) override;
+  virtual bool recompute(const Method_t Callee) override;
 };
 
 } // namespace psr

@@ -14,11 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_BIDIICFG_H_
-#define ANALYSIS_IFDS_IDE_BIDIICFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_BIDIICFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_BIDIICFG_H_
+
+#include <vector>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <vector>
 
 namespace psr {
 
@@ -57,4 +58,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_BIDIICFG_HH_ */
+#endif

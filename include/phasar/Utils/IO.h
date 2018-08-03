@@ -14,11 +14,9 @@
  *      Author: philipp
  */
 
-#ifndef SRC_UTILS_IO_H_
-#define SRC_UTILS_IO_H_
+#ifndef PHASAR_UTILS_IO_H_
+#define PHASAR_UTILS_IO_H_
 
-#include <boost/filesystem.hpp>
-#include <fstream>
 #include <string>
 
 namespace psr {
@@ -29,4 +27,4 @@ void writeFile(const std::string &path, const std::string &content);
 
 } // namespace psr
 
-#endif /* SRC_UTILS_IO_HH_ */
+#endif

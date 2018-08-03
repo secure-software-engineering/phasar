@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef DATAFLOWANALYSISTYPE_H_
-#define DATAFLOWANALYSISTYPE_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
+#define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 #include <string>
 

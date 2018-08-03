@@ -14,10 +14,17 @@
  *      Author: philipp
  */
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+
+#include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 
 using namespace std;
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) {

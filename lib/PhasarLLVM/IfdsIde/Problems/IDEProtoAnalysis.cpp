@@ -20,8 +20,13 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDEProtoAnalysis.h>
-using namespace std;
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+
 using namespace psr;
+using namespace std;
+
 namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(IDEProtoAnalysis::i_t icfg,
@@ -180,8 +185,8 @@ IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
   return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
 }
 
-bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> other) {
+bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
+    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> other) const {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()\n";
   return false;
 }

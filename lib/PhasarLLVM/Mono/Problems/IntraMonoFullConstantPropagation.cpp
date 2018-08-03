@@ -7,9 +7,20 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <iostream>
+
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
-using namespace psr;
+
 using namespace std;
+using namespace psr;
 namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(

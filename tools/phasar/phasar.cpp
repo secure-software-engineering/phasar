@@ -7,21 +7,32 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/CompilationDatabase.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarClang/ClangController.h>
-#include <phasar/Controller/AnalysisController.h>
-#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+#include <stdexcept>
+
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 #include <boost/throw_exception.hpp>
-#include <stdexcept>
+
+#include <clang/Tooling/CommonOptionsParser.h>
+#include <clang/Tooling/CompilationDatabase.h>
+#include <clang/Tooling/Tooling.h>
+
+#include <llvm/Support/CommandLine.h>
+
+#include <phasar/Config/Configuration.h>
+#include <phasar/Controller/AnalysisController.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarClang/ClangController.h>
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+#include <phasar/Utils/EnumFlags.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMM.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
@@ -35,8 +46,8 @@ static llvm::cl::extrahelp CommonHelp(
 llvm::cl::NumOccurrencesFlag OccurrencesFlag = llvm::cl::Optional;
 
 static const string MORE_PHASAR_LLVM_HELP(
-  #include "../phasar-llvm_more_help.txt"
-);
+#include "../phasar-llvm_more_help.txt"
+    );
 static const string MORE_PHASAR_CLANG_HELP("");
 
 namespace boost {
@@ -156,13 +167,14 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-  PAMM &pamm = PAMM::getInstance();
+  PAMM_FACTORY;
   START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it
   initializeLogger(false);
   auto &lg = lg::get();
   // handling the command line parameters
-  BOOST_LOG_SEV(lg, DEBUG) << "Set-up the command-line parameters";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Set-up the command-line parameters");
   // Here we start creating Phasars top level operation mode:
   // Based on the mode, we delegate to the further subtools and their
   // corresponding argument parsers.
@@ -193,12 +205,14 @@ int main(int argc, const char **argv) {
   // If it has not been set explicitly by the user, then use
   // phasarLLVM as default.
   if (!ModeMap.count("mode")) {
-    ModeMap.insert(make_pair("mode", bpo::variable_value(string("phasarLLVM"), false)));
+    ModeMap.insert(
+        make_pair("mode", bpo::variable_value(string("phasarLLVM"), false)));
   }
   // Next we can check what operation mode was chosen and resume accordingly:
   if (ModeMap["mode"].as<std::string>() == "phasarLLVM") {
     // --- LLVM mode ---
-    BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarLLVM'";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Chosen operation mode: 'phasarLLVM'");
     try {
       std::string ConfigFile;
       // Declare a group of options that will be allowed only on command line
@@ -249,26 +263,30 @@ int main(int argc, const char **argv) {
       bpo::notify(VariablesMap);
       ifstream ifs(ConfigFile.c_str());
       if (!ifs) {
-        BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                      << "No configuration file is used.");
       } else {
-        BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile;
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Using configuration file: "
+                                              << ConfigFile);
         bpo::store(bpo::parse_config_file(ifs, ConfigFileOptions),
                    VariablesMap);
         bpo::notify(VariablesMap);
       }
 
       // Vanity header
-      if(!VariablesMap.count("silent")) {
-        std::cout << "PHASAR v0.9\n"
+      if (!VariablesMap.count("silent")) {
+        std::cout << PhasarVersion
+                  << "\n"
                      "A LLVM-based static analysis framework\n\n";
       }
       // check if we have anything at all or a call for help
-      if ((argc < 3 || VariablesMap.count("help")) && !VariablesMap.count("silent")){
+      if ((argc < 3 || VariablesMap.count("help")) &&
+          !VariablesMap.count("silent")) {
         std::cout << Visible << '\n';
         return 0;
       }
-      BOOST_LOG_SEV(lg, INFO)
-          << "Program options have been successfully parsed.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Program options have been successfully parsed.");
       bl::core::get()->flush();
 
       if (!VariablesMap.count("silent")) {
@@ -290,12 +308,12 @@ int main(int argc, const char **argv) {
                     << VariablesMap["project_id"].as<std::string>() << '\n';
         }
         if (VariablesMap.count("graph_id")) {
-          std::cout << "Graph ID: " << VariablesMap["graph_id"].as<std::string>()
-                    << '\n';
+          std::cout << "Graph ID: "
+                    << VariablesMap["graph_id"].as<std::string>() << '\n';
         }
         if (VariablesMap.count("function")) {
-          std::cout << "Function: " << VariablesMap["function"].as<std::string>()
-                    << '\n';
+          std::cout << "Function: "
+                    << VariablesMap["function"].as<std::string>() << '\n';
         }
         if (VariablesMap.count("module")) {
           std::cout << "Module(s): "
@@ -307,14 +325,15 @@ int main(int argc, const char **argv) {
                     << '\n';
         }
         if (VariablesMap.count("data_flow_analysis")) {
-          std::cout
-              << "Data-flow analysis: "
-              << VariablesMap["data_flow_analysis"].as<std::vector<std::string>>()
-              << '\n';
+          std::cout << "Data-flow analysis: "
+                    << VariablesMap["data_flow_analysis"]
+                           .as<std::vector<std::string>>()
+                    << '\n';
         }
         if (VariablesMap.count("pointer_analysis")) {
           std::cout << "Pointer analysis: "
-                    << VariablesMap["pointer_analysis"].as<std::string>() << '\n';
+                    << VariablesMap["pointer_analysis"].as<std::string>()
+                    << '\n';
         }
         if (VariablesMap.count("callgraph_analysis")) {
           std::cout << "Callgraph analysis: "
@@ -322,13 +341,15 @@ int main(int argc, const char **argv) {
                     << '\n';
         }
         if (VariablesMap.count("entry_points")) {
-          std::cout << "Entry points: "
-                    << VariablesMap["entry_points"].as<std::vector<std::string>>()
-                    << '\n';
+          std::cout
+              << "Entry points: "
+              << VariablesMap["entry_points"].as<std::vector<std::string>>()
+              << '\n';
         }
         if (VariablesMap.count("classhierarchy_analysis")) {
           std::cout << "Classhierarchy analysis: "
-                    << VariablesMap["classhierarchy_analysis"].as<bool>() << '\n';
+                    << VariablesMap["classhierarchy_analysis"].as<bool>()
+                    << '\n';
         }
         if (VariablesMap.count("vtable_analysis")) {
           std::cout << "Vtable analysis: "
@@ -346,7 +367,8 @@ int main(int argc, const char **argv) {
           std::cout << "WPA: " << VariablesMap["wpa"].as<bool>() << '\n';
         }
         if (VariablesMap.count("mem2reg")) {
-          std::cout << "Mem2reg: " << VariablesMap["mem2reg"].as<bool>() << '\n';
+          std::cout << "Mem2reg: " << VariablesMap["mem2reg"].as<bool>()
+                    << '\n';
         }
         if (VariablesMap.count("printedgerec")) {
           std::cout << "Print edge recorder: "
@@ -368,7 +390,8 @@ int main(int argc, const char **argv) {
       }
 
       // Validation
-      BOOST_LOG_SEV(lg, INFO) << "Check program options for logical errors.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Check program options for logical errors.");
       // validate the logic of the command-line arguments
       if (VariablesMap.count("project") == VariablesMap.count("module")) {
         std::cerr << "Either a project OR a module must be specified for an "
@@ -416,22 +439,23 @@ int main(int argc, const char **argv) {
       }
     }
 
-    #ifdef PHASAR_PLUGINS_ENABLED
-      // Check if user has specified an analysis plugin
-      if (!IDETabulationProblemPluginFactory.empty() ||
-          !IFDSTabulationProblemPluginFactory.empty() ||
-          !IntraMonotoneProblemPluginFactory.empty() ||
-          !InterMonotoneProblemPluginFactory.empty()) {
-        ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
-      }
-    #endif
+#ifdef PHASAR_PLUGINS_ENABLED
+    // Check if user has specified an analysis plugin
+    if (!IDETabulationProblemPluginFactory.empty() ||
+        !IFDSTabulationProblemPluginFactory.empty() ||
+        !IntraMonotoneProblemPluginFactory.empty() ||
+        !InterMonotoneProblemPluginFactory.empty()) {
+      ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
+    }
+#endif
 
     // At this point we have set-up all the parameters and can start the actual
     // analyses that have been choosen.
     AnalysisController Controller(
-        [&lg, &pamm](bool usingModules) {
+        [&lg](bool usingModules) {
+          PAMM_FACTORY;
           START_TIMER("IRDB Construction");
-          BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.");
           IRDBOptions Opt = IRDBOptions::NONE;
           if (VariablesMap["wpa"].as<bool>()) {
             Opt |= IRDBOptions::WPA;
@@ -465,11 +489,12 @@ int main(int argc, const char **argv) {
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph_id"].as<std::string>());
-    BOOST_LOG_SEV(lg, INFO) << "Write results to file";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Write results to file");
     Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     // -- Clang mode ---
-    BOOST_LOG_SEV(lg, INFO) << "Chosen operation mode: 'phasarClang'";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Chosen operation mode: 'phasarClang'");
     std::string ConfigFile;
     // Declare a group of options that will be allowed only on command line
     bpo::options_description Generic("Command-line options");
@@ -497,9 +522,11 @@ int main(int argc, const char **argv) {
     bpo::notify(VariablesMap);
     ifstream ifs(ConfigFile.c_str());
     if (!ifs) {
-      BOOST_LOG_SEV(lg, INFO) << "No configuration file is used.";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "No configuration file is used.");
     } else {
-      BOOST_LOG_SEV(lg, INFO) << "Using configuration file: " << ConfigFile;
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Using configuration file: "
+                                            << ConfigFile);
       bpo::store(bpo::parse_config_file(ifs, ConfigFileOptions), VariablesMap);
       bpo::notify(VariablesMap);
     }
@@ -529,14 +556,17 @@ int main(int argc, const char **argv) {
       ClangController CC(OptionsParser);
     }
   }
-  BOOST_LOG_SEV(lg, INFO) << "Shutdown llvm and the analysis framework.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "Shutdown llvm and the analysis framework.");
   // free all resources handled by llvm
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
   STOP_TIMER("FW Runtime");
   // PRINT_EVA_DATA;
-  if(VariablesMap.count("config"))
+  if (VariablesMap.count("config"))
     EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
+  else
+    EXPORT_EVA_DATA("PAMM_results.json");
   return 0;
 }

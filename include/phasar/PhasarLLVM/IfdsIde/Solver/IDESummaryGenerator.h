@@ -14,14 +14,14 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
-#define SRC_ANALYSIS_IFDS_IDE_IDESUMMARYGENERATOR_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESUMMARYGENERATOR_H_
 
-#include <iostream>
 #include <map>
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 #include <set>
 #include <string>
+
+#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 
 namespace psr {
 

@@ -5,16 +5,22 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
+using namespace std;
 using namespace psr;
 
-TEST(SecondTest1, SecondTestName1) {
+class IFDSTaintAnalysisTest : public ::testing::Test {
+protected:
+  const std::string pathToLLFiles =
+      PhasarDirectory + "build/test/llvm_test_code/";
+};
+
+TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
   initializeLogger(true);
-  ProjectIRDB IRDB(
-      {"../../../../../test/llvm_test_code/control_flow/function_call.ll"},
-      IRDBOptions::NONE);
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call.ll"},
+                   IRDBOptions::NONE);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(TH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
+  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF,
                      {"main"});
   IFDSTaintAnalysis TaintProblem(ICFG, {"main"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(TaintProblem,
@@ -23,11 +29,6 @@ TEST(SecondTest1, SecondTestName1) {
   std::cout << "Problem has been solved" << std::endl;
 
   // TaintSolver.ifdsResultsAt()
-}
-
-TEST(SecondTest2, SecondTestName2) {
-  std::vector<int> iv = {1, 2, 3};
-  ASSERT_EQ(3, iv.size());
 }
 
 int main(int argc, char **argv) {

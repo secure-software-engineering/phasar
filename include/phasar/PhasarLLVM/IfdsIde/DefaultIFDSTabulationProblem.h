@@ -14,13 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_H_
-#define ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIFDSTABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIFDSTABULATIONPROBLEM_H_
+
+#include <memory>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-#include <type_traits>
 
 namespace psr {
 
@@ -54,4 +54,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_DEFAULTIFDSTABULATIONPROBLEM_HH_ */
+#endif

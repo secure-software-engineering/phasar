@@ -14,13 +14,15 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSOLVER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSSOLVER_H_
 
 #include <memory>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <set>
+
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
@@ -28,10 +30,10 @@ class IFDSSolver : public IDESolver<N, D, M, BinaryDomain, I> {
 public:
   IFDSSolver(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDESolver<N, D, M, BinaryDomain, I>(ifdsProblem) {
-    // cout << "IFDSSolver::IFDSSolver()" << endl;
-    // cout << ifdsProblem.NtoString(getNthInstruction(
+    // std::cout << "IFDSSolver::IFDSSolver()" << std::endl;
+    // std::cout << ifdsProblem.NtoString(getNthInstruction(
     // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
-    //  << endl;
+    //  << std::endl;
   }
 
   virtual ~IFDSSolver() = default;
@@ -48,4 +50,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_IFDSSOLVER_HH_ */
+#endif

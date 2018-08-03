@@ -7,7 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <iostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/ObservedCallingContexts.h>
+
 using namespace psr;
 using namespace std;
 namespace psr {

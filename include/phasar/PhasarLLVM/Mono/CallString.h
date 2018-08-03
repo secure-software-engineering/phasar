@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_CALLSTRING_H_
-#define SRC_ANALYSIS_MONOTONE_CALLSTRING_H_
+#ifndef PHASAR_PHASARLLVM_MONO_CALLSTRING_H_
+#define PHASAR_PHASARLLVM_MONO_CALLSTRING_H_
 
 #include <algorithm>
 #include <deque>

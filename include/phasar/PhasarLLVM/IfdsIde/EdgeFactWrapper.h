@@ -7,10 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef EDGEFACTWRAPPER_H_
-#define EDGEFACTWRAPPER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFACTWRAPPER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFACTWRAPPER_H_
+
+#include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFact.h>
+
 namespace psr {
 
 template <typename T> class EdgeFactWrapper : public EdgeFact {

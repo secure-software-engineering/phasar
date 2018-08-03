@@ -14,13 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYMATCHER_H_
-#define CLANG_MYMATCHER_H_
+#ifndef PHASAR_PHASARCLANG_MYMATCHER_H_
+#define PHASAR_PHASARCLANG_MYMATCHER_H_
 
 #include <clang/ASTMatchers/ASTMatchFinder.h>
-#include <clang/ASTMatchers/ASTMatchers.h>
-#include <iostream>
-#include <string>
 
 namespace psr {
 
@@ -31,4 +28,4 @@ public:
 
 } // namespace psr
 
-#endif /* CLANG_MYMATCHER_HH_ */
+#endif

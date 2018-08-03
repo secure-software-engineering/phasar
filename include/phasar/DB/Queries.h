@@ -7,8 +7,8 @@
  *     Christian Stritzke and others
  *****************************************************************************/
 
-#ifndef QUERIES_H_
-#define QUERIES_H_
+#ifndef PHASAR_DB_QUERIES_H_
+#define PHASAR_DB_QUERIES_H_
 
 #include <string>
 
@@ -46,4 +46,4 @@ const std::string INIT;
 
 } /* end namespace psr */
 
-#endif /* QUERIES_HH_ */
+#endif

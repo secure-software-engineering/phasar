@@ -19,6 +19,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
 using namespace std;
 using namespace psr;
 namespace psr {
@@ -162,8 +164,8 @@ IDETaintAnalysis::IDETainAnalysisAllTop::joinWith(
   return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
-bool IDETaintAnalysis::IDETainAnalysisAllTop::equalTo(
-    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> other) {
+bool IDETaintAnalysis::IDETainAnalysisAllTop::equal_to(
+    shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>> other) const {
   return false;
 }
 

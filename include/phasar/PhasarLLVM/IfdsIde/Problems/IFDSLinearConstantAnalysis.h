@@ -7,16 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_LINEARCONSTANTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSLINEARCONSTANTANALYSIS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSLINEARCONSTANTANALYSIS_H_
 
-#include <functional>
 #include <map>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <memory>
 #include <set>
 #include <string>
-#include <utility>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -28,7 +28,7 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-// A small pair data type to encode data flow facts for this LCA
+// A small std::pair data type to encode data flow facts for this LCA
 struct LCAPair {
   const llvm::Value *first;
   int second;
@@ -100,5 +100,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINT_ANALYSIS_IFDSTAINTANALYSIS_HH_ \
-        */
+#endif

@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/DB/Hexastore.h>
 
 using namespace psr;

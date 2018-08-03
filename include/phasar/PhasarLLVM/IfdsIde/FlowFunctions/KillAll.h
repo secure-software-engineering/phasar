@@ -14,12 +14,13 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_KILLALL_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_KILLALL_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLALL_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLALL_H_
 
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
+
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace psr {
 
@@ -40,4 +41,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_KILLALL_HH_ */
+#endif

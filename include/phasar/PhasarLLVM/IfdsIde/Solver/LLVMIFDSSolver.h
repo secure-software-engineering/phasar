@@ -14,18 +14,21 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIFDSSOLVER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIFDSSOLVER_H_
 
 #include <algorithm>
+#include <map>
+#include <string>
+
 #include <curl/curl.h>
 #include <json.hpp>
-#include <map>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
+#include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Table.h>
-#include <string>
 
 using json = nlohmann::json;
 
@@ -131,7 +134,7 @@ public:
 
   int node_number = 0;
   /**
-   * gets id for node from map or adds it if it doesn't exist
+   * gets id for node from std::map or adds it if it doesn't exist
    **/
   json
   getJsonOfNode(const llvm::Instruction *node,
@@ -141,7 +144,7 @@ public:
     json jsonNode;
 
     if (it == instruction_id_map->end()) {
-      std::cout << "adding new element to map " << std::endl;
+      std::cout << "adding new element to std::map " << std::endl;
 
       jsonNode = getJsonRepresentationForInstructionNode(node);
 
@@ -149,7 +152,8 @@ public:
       instruction_id_map->insert(
           std::pair<const llvm::Instruction *, int>(node, node_number));
     } else {
-      std::cout << "found element in map(inter): " << it->second << std::endl;
+      std::cout << "found element in std::map(inter): " << it->second
+                << std::endl;
     }
     return jsonNode;
   }
@@ -157,25 +161,18 @@ public:
       const llvm::Instruction *currentNode,
       const llvm::Function *callerFunction,
       std::map<const llvm::Instruction *, int> *instruction_id_map) {
-    // In the next line we obtain the corresponding row map which maps (given a
-    // source node)
-    // the target node to the data flow fact map<D, set<D>. In the data flow
-    // fact map D is
-    // a fact F which holds at the source node whereas set<D> contains the facts
-    // that are
-    // produced by F and hold at statement TargetNode.
-    // Usually every node has one successor node, that is why the row map
-    // obtained by row usually
-    // only contains just a single entry. BUT: in case of branch statements and
-    // other advanced
-    // instructions, one statement sometimes has multiple successor statments.
-    // In these cases
-    // the row map contains entries for every single successor statement. After
-    // having obtained
-    // the pairs <SourceNode, TargetNode> the data flow map can be obtained
-    // easily.
-    // size_t from = getJsonRepresentationForInstructionNode(document,
-    // currentNode);
+    // In the next line we obtain the corresponding row std::map which std::maps
+    // (given a source node) the target node to the data flow fact std::map<D,
+    // std::set<D>. In the data flow fact std::map D is a fact F which holds at
+    // the source node whereas std::set<D> contains the facts that are produced
+    // by F and hold at statement TargetNode. Usually every node has one
+    // successor node, that is why the row std::map obtained by row usually only
+    // contains just a single entry. BUT: in case of branch statements and other
+    // advanced instructions, one statement sometimes has multiple successor
+    // statments. In these cases the row std::map contains entries for every
+    // single successor statement. After having obtained the pairs <SourceNode,
+    // TargetNode> the data flow std::map can be obtained easily. size_t from =
+    // getJsonRepresentationForInstructionNode(document, currentNode);
 
     json fromNode = getJsonOfNode(currentNode, instruction_id_map);
 
@@ -185,7 +182,7 @@ public:
     std::cout << "TARGET NODE(S)\n";
     for (auto entry : TargetNodeMap) {
       auto TargetNode = entry.first;
-      // use map to store key value and match node to json id
+      // use std::map to store key value and match node to json id
       json toNode = getJsonOfNode(TargetNode, instruction_id_map);
       std::cout << "node pointer target : " << TargetNode << std::endl;
 
@@ -414,4 +411,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIFDSSOLVER_HH_ */
+#endif

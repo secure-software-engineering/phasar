@@ -14,16 +14,19 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_H_
-#define SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDCFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDCFG_H_
 
-#include <iostream>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <set>
+#include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+
+namespace llvm {
+class Function;
+class Instruction;
+} // namespace llvm
 
 namespace psr {
 
@@ -64,4 +67,4 @@ public:
 };
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_ICFG_LLVMBASEDBACKWARDCFG_HH_ */
+#endif

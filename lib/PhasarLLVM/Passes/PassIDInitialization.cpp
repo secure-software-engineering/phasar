@@ -11,7 +11,9 @@
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
 // Initialize the module passes ID's that we are using

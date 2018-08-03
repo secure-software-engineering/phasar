@@ -8,25 +8,22 @@
  *****************************************************************************/
 
 /*
- * DynamicSummaries.h
+ * IFDSSummaryPool.h
  *
  *  Created on: 08.05.2017
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_H_
-#define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARYPOOL_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARYPOOL_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARYPOOL_H_
 
 #include <algorithm>
-#include <memory>
-#include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSSummary.h>
+#include <iostream> // Suppress the cout as soon as to possible and get rid of this header
+#include <map>
 #include <set>
-#include <stdexcept>
-#include <string>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/IFDSSummary.h>
 
 namespace psr {
 

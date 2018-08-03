@@ -7,11 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef SUMMARYSTRATEGY_H_
-#define SUMMARYSTRATEGY_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_SUMMARYSTRATEGY_H_
+#define PHASAR_PHASARLLVM_UTILS_SUMMARYSTRATEGY_H_
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
+#include <string>
 
 namespace psr {
 

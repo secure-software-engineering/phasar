@@ -14,23 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYFRONTENDACTION_H_
-#define CLANG_MYFRONTENDACTION_H_
+#ifndef PHASAR_PHASARCLANG_RANDOMCHANGEFRONTENDACTION_H_
+#define PHASAR_PHASARCLANG_RANDOMCHANGEFRONTENDACTION_H_
 
-#include "RandomChangeASTConsumer.h"
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/CodeGen/CodeGenAction.h>
+#include <memory>
+
+#include <llvm/ADT/StringRef.h>
+
 #include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/CompilerInstance.h>
 #include <clang/Frontend/FrontendActions.h>
 #include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
-#include <memory>
+
+namespace clang {
+class CompilerInstance;
+}
 
 namespace psr {
 
@@ -49,4 +46,4 @@ public:
 
 } // namespace psr
 
-#endif /* CLANG_MYFRONTENDACTION_HH_ */
+#endif

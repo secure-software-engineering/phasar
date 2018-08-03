@@ -14,13 +14,15 @@
  *      Author: philipp
  */
 
-#ifndef SRC_LIB_GRAPHEXTENSIONS_H_
-#define SRC_LIB_GRAPHEXTENSIONS_H_
+#ifndef PHASAR_UTILS_GRAPHEXTENSIONS_H_
+#define PHASAR_UTILS_GRAPHEXTENSIONS_H_
+
+#include <utility> // std::pair
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/copy.hpp>
 #include <boost/graph/graph_utility.hpp>
-#include <vector>
 
 namespace psr {
 
@@ -93,4 +95,4 @@ void copy_graph(GraphTy &g1, const GraphTy &g2) {
 
 } // namespace psr
 
-#endif /* SRC_LIB_GRAPHEXTENSIONS_HH_ */
+#endif

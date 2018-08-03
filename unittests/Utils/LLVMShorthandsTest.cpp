@@ -1,11 +1,19 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
+using namespace std;
 using namespace psr;
 
-TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB(
-      {"../../../test/llvm_test_code/control_flow/global_stmt.ll"});
+class LLVMGetterTest : public ::testing::Test {
+protected:
+  const std::string pathToLLFiles =
+      PhasarDirectory + "build/test/llvm_test_code/";
+};
+
+TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/global_stmt.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 4);
@@ -17,8 +25,8 @@ TEST(LLVMGetterTest, HandlesLLVMStoreInstruction) {
   ASSERT_EQ(getNthStoreInstruction(F, 4), nullptr);
 }
 
-TEST(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB({"../../../test/llvm_test_code/control_flow/if_else.ll"});
+TEST_F(LLVMGetterTest, HandlesLLVMTermInstruction) {
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/if_else.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 14);

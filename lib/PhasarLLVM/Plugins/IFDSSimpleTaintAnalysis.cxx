@@ -14,9 +14,21 @@
  *      Author: philipp
  */
 
+#include <iostream>
+
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+
 #include "IFDSSimpleTaintAnalysis.h"
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 unique_ptr<IFDSTabulationProblemPlugin>
@@ -68,7 +80,6 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
     if (destMthd->getName().str() == "taint") {
       return make_shared<Gen<const llvm::Value *>>(Call, zeroValue());
     } else if (destMthd->getName().str() == "leak") {
-
     } else {
     }
   }

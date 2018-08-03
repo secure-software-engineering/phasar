@@ -14,9 +14,33 @@
  *      Author: pdschbrt
  */
 
+#include <thread>
+
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/IR/Function.h>
+#include <llvm/IR/GlobalVariable.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/Support/SourceMgr.h>
+
+#include <cppconn/driver.h>
+#include <cppconn/exception.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+#include <cppconn/statement.h>
+
 #include <phasar/DB/DBConn.h>
-using namespace std;
+#include <phasar/DB/Hexastore.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
+
+#include <phasar/Utils/IO.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Macros.h>
+
 using namespace psr;
+using namespace std;
 
 namespace psr {
 
@@ -27,7 +51,7 @@ const string DBConn::db_server_address = "tcp://127.0.0.1:3306";
 
 DBConn::DBConn() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Connect to database";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Connect to database");
   try {
     driver = get_driver_instance();
     conn = driver->connect(db_server_address, db_user, db_password);
@@ -45,7 +69,7 @@ DBConn::DBConn() {
 
 DBConn::~DBConn() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Close database connection";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Close database connection");
   delete conn;
 }
 
@@ -587,7 +611,8 @@ unique_ptr<llvm::Module> DBConn::getModule(const string &identifier,
       Mod->setModuleIdentifier(identifier);
       // check if everything has worked-out
       bool broken_debug_info = false;
-      if (llvm::verifyModule(*Mod, &llvm::errs(), &broken_debug_info)) {
+      if (Mod.get() == nullptr ||
+          llvm::verifyModule(*Mod, &llvm::errs(), &broken_debug_info)) {
         cout << "verifying module failed!" << endl;
       }
       if (broken_debug_info) {
@@ -834,7 +859,6 @@ void operator>>(DBConn &db, PointsToGraph &PTG) {
 void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
                                 const string &ProjectName, bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -843,7 +867,6 @@ void DBConn::storeLLVMBasedICFG(const LLVMBasedICFG &ICFG,
 LLVMBasedICFG DBConn::loadLLVMBasedICFGfromModule(const string &ModuleName,
                                                   bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -856,7 +879,6 @@ LLVMBasedICFG
 DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
                                      bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -868,7 +890,6 @@ DBConn::loadLLVMBasedICFGfromModules(initializer_list<string> ModuleNames,
 LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
                                                    bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -880,7 +901,6 @@ LLVMBasedICFG DBConn::loadLLVMBasedICFGfromProject(const string &ProjectName,
 void DBConn::storePointsToGraph(const PointsToGraph &PTG,
                                 const string &ProjectName, bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -889,7 +909,6 @@ void DBConn::storePointsToGraph(const PointsToGraph &PTG,
 PointsToGraph DBConn::loadPointsToGraphFromFunction(const string &FunctionName,
                                                     bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1072,7 +1091,6 @@ LLVMTypeHierarchy
 DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
                                          bool use_hs) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1081,7 +1099,6 @@ DBConn::loadLLVMTypeHierarchyFromProject(const string &ProjectName,
 
 void DBConn::storeIDESummary(const IDESummary &S) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1090,7 +1107,6 @@ void DBConn::storeIDESummary(const IDESummary &S) {
 IDESummary DBConn::loadIDESummary(const string &FunctionName,
                                   const string &AnalysisName) {
   try {
-
   } catch (sql::SQLException &e) {
     SQL_STD_ERROR_HANDLING;
   }
@@ -1142,7 +1158,7 @@ bool DBConn::schemeExists() {
 
 void DBConn::buildDBScheme() {
   auto lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "Building database schema";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Building database schema");
 
   unique_ptr<sql::Statement> stmt(conn->createStatement());
   static const string old_unique_checks(
@@ -1523,7 +1539,7 @@ void DBConn::buildDBScheme() {
 
   static const string unique_checks("SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS; ");
   stmt->execute(unique_checks);
-  BOOST_LOG_SEV(lg, DEBUG) << "Database schema done";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Database schema done");
 }
 
 void DBConn::dropDBAndRebuildScheme() {

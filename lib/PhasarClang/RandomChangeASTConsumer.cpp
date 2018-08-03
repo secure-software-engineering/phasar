@@ -14,6 +14,9 @@
  *      Author: pdschbrt
  */
 
+#include <clang/AST/ASTContext.h>
+// #include <clang/Frontend/CompilerInstance.h>
+
 #include <phasar/PhasarClang/RandomChangeASTConsumer.h>
 #include <phasar/PhasarClang/RandomChangeVisitor.h>
 

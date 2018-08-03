@@ -14,39 +14,31 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_RANDOMCHANGEVISITOR_H_
-#define CLANG_RANDOMCHANGEVISITOR_H_
+#ifndef PHASAR_PHASARCLANG_RANDOMCHANGEVISITOR_H_
+#define PHASAR_PHASARCLANG_RANDOMCHANGEVISITOR_H_
 
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/AST/DeclBase.h>
 #include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/ASTConsumers.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/FrontendActions.h>
-#include <clang/Lex/Lexer.h>
-#include <clang/Lex/Preprocessor.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <iostream>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/CommandLine.h>
-#include <random>
-#include <sstream>
-#include <string>
+
+namespace clang {
+class Rewriter;
+class VarDecl;
+class TypeDecl;
+class Stmt;
+class FunctionDecl;
+} // namespace clang
 
 namespace psr {
 
+// #include <random>
+// #include <iostream>
+//
 // std::random_device rd;
 // std::mt19937_64 mt(rd());
 // std::uniform_int_distribution<int> dist(0, 2);
 // for (int i = 0; i < 10; ++i) {
-//   cout << dist(mt) << ' ';
+//   std::cout << dist(mt) << ' ';
 // }
-// cout << '\n';
+// std::cout << '\n';
 
 class RandomChangeVisitor
     : public clang::RecursiveASTVisitor<RandomChangeVisitor> {
@@ -63,4 +55,4 @@ public:
 
 } // namespace psr
 
-#endif /* CLANG_MYVISITOR_HH_ */
+#endif

@@ -9,19 +9,19 @@
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
+
 using namespace std;
 using namespace psr;
 
@@ -69,6 +69,37 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     //   }
     // };
     // return make_shared<UnsereFlowFunction>(Alloca, zeroValue());
+    // return make_shared<Lambda<IDETypeStateAnalysis::d_t>>([Variablen der
+    // "Außenwelt können hier gecaptured werden"](IDETypeStateAnalysis::d_t
+    // source) {
+
+    //   return set<IDETypeStateAnalysis::d_t>{};
+    // });
+  }
+  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+    //if (Load->getPointerOperand() {
+      /*if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Load->getPointerOperand() {
+        if (StructTy->getName().find("struct._IO_FILE") !=
+            llvm::StringRef::npos) {*/
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load,
+                                                             zeroValue());
+        //}
+      //}
+    //}
+  }
+
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+    if (Store->getValueOperand()->getType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Store->getValueOperand()->getType()->getPointerElementType())) {
+        if(StructTy->getName().find("struct._IO_FILE") != 
+            llvm::StringRef::npos){
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Store,
+                                                             zeroValue());
+        }
+      }
+    }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
@@ -76,6 +107,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
+  if (destMthd->getName() == "fopen") {
+    return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -91,6 +125,11 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
+  for (auto Callee : callees) {
+    if (Callee->getName() == "fopen") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 

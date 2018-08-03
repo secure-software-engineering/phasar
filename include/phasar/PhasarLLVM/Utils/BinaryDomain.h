@@ -14,10 +14,10 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MISC_BINARYDOMAIN_H_
-#define SRC_ANALYSIS_MISC_BINARYDOMAIN_H_
+#ifndef PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
+#define PHASAR_PHASARLLVM_UTILS_BINARYDOMAIN_H_
 
-#include <iostream>
+#include <iosfwd>
 #include <map>
 
 namespace psr {
@@ -32,4 +32,4 @@ std::ostream &operator<<(std::ostream &os, const BinaryDomain &b);
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_MISC_BINARYDOMAIN_HH_ */
+#endif

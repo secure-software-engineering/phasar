@@ -14,39 +14,31 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_POINTSTOGRAPH_H_
-#define ANALYSIS_POINTSTOGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
+
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/copy.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <fstream>
-#include <json.hpp>
-#include <llvm/ADT/SetVector.h>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+
 #include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Metadata.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/raw_ostream.h>
+
+#include <json.hpp>
+
 #include <phasar/Config/Configuration.h>
-#include <phasar/Utils/GraphExtensions.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
-#include <vector>
-using json = nlohmann::json;
+
+namespace llvm {
+class Value;
+class Module;
+class Instruction;
+class AAResults;
+class Function;
+class Type;
+} // namespace llvm
 
 namespace psr {
+
+using json = nlohmann::json;
 
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
@@ -92,9 +84,8 @@ extern const std::map<PointerAnalysisType, std::string>
 /**
  * 	This class is a representation of a points-to graph. It is possible to
  * 	construct a points-to graph for a single function using the results of
- *the
- *	llvm alias analysis or merge several points-to graphs into a single
- *	points-to graph, e.g. to onstruct a whole program points-to graph.
+ *  the llvm alias analysis or merge several points-to graphs into a single
+ *	points-to graph, e.g. to construct a whole program points-to graph.
  *
  *	The graph itself is undirectional and can have labeled edges.
  *
@@ -123,7 +114,7 @@ public:
      * instruction.
      *  In all other cases it's zero.
      */
-    size_t id = 0;
+    std::size_t id = 0;
 
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
@@ -144,7 +135,7 @@ public:
      * instruction.
      * In all other cases it's zero.
      */
-    size_t id = 0;
+    std::size_t id = 0;
 
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
@@ -171,82 +162,8 @@ public:
   const static std::set<std::string> HeapAllocationFunctions;
 
 private:
-  struct allocation_site_dfs_visitor : boost::default_dfs_visitor {
-    // collect the allocation sites that are found
-    std::set<const llvm::Value *> &allocation_sites;
-    // keeps track of the current path
-    std::vector<vertex_t> visitor_stack;
-    // the call stack that can be matched against the visitor stack
-    const std::vector<const llvm::Instruction *> &call_stack;
-
-    allocation_site_dfs_visitor(
-        std::set<const llvm::Value *> &allocation_sizes,
-        const std::vector<const llvm::Instruction *> &call_stack)
-        : allocation_sites(allocation_sizes), call_stack(call_stack) {}
-
-    template <typename Vertex, typename Graph>
-    void discover_vertex(Vertex u, const Graph &g) {
-      visitor_stack.push_back(u);
-    }
-
-    template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
-      auto &lg = lg::get();
-      // check for stack allocation
-      if (const llvm::AllocaInst *Alloc =
-              llvm::dyn_cast<llvm::AllocaInst>(g[u].value)) {
-        // If the call stack is empty, we completely ignore the calling context
-        if (matches_stack(g) || call_stack.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG)
-              << "Found stack allocation: " << llvmIRToString(Alloc);
-          allocation_sites.insert(g[u].value);
-        }
-      }
-      // check for heap allocation
-      if (llvm::isa<llvm::CallInst>(g[u].value) ||
-          llvm::isa<llvm::InvokeInst>(g[u].value)) {
-        llvm::ImmutableCallSite CS(g[u].value);
-        if (CS.getCalledFunction() != nullptr &&
-            HeapAllocationFunctions.count(
-                CS.getCalledFunction()->getName().str())) {
-          // If the call stack is empty, we completely ignore the calling
-          // context
-          if (matches_stack(g) || call_stack.empty()) {
-            BOOST_LOG_SEV(lg, DEBUG) << "Found heap allocation: "
-                                     << llvmIRToString(CS.getInstruction());
-            allocation_sites.insert(g[u].value);
-          }
-        }
-      }
-      visitor_stack.pop_back();
-    }
-
-    template <typename Graph> bool matches_stack(const Graph &g) {
-      size_t call_stack_idx = 0;
-      for (size_t i = 0, j = 1;
-           i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
-        auto e = boost::edge(visitor_stack[i], visitor_stack[j], g);
-        if (g[e.first].value == nullptr)
-          continue;
-        if (g[e.first].value !=
-            call_stack[call_stack.size() - call_stack_idx - 1]) {
-          return false;
-        }
-        call_stack_idx++;
-      }
-      return true;
-    }
-  };
-
-  struct reachability_dfs_visitor : boost::default_dfs_visitor {
-    std::set<vertex_t> &points_to_set;
-    reachability_dfs_visitor(std::set<vertex_t> &result)
-        : points_to_set(result) {}
-    template <typename Vertex, typename Graph>
-    void finish_vertex(Vertex u, const Graph &g) {
-      points_to_set.insert(u);
-    }
-  };
+  struct allocation_site_dfs_visitor;
+  struct reachability_dfs_visitor;
 
   /// The points to graph.
   graph_t ptg;
@@ -294,7 +211,7 @@ public:
   inline bool isInterestingPointer(llvm::Value *V);
 
   /**
-   * @brief Returns a vector containing pointers which are escaping through
+   * @brief Returns a std::vector containing pointers which are escaping through
    *        function parameters.
    * @return Vector holding function argument pointers and the function argument
    * number.
@@ -303,11 +220,20 @@ public:
   getPointersEscapingThroughParams();
 
   /**
-   * @brief Returns a vector containing pointers which are escaping through
+   * @brief Returns a std::vector containing pointers which are escaping through
    *        function return statements.
    * @return Vector with pointers.
    */
-  std::vector<const llvm::Value *> getPointersEscapingThroughReturns();
+  std::vector<const llvm::Value *> getPointersEscapingThroughReturns() const;
+
+  /**
+   * @brief Returns a std::vector containing pointers which are escaping through
+   *        function return statements for a specific function.
+   * @param F Function pointer
+   * @return Vector with pointers.
+   */
+  std::vector<const llvm::Value *>
+  getPointersEscapingThroughReturnsForFunction(const llvm::Function *Fd) const;
 
   /**
    * @brief Returns all reachable allocation sites from a given pointer.
@@ -320,7 +246,8 @@ public:
                               std::vector<const llvm::Instruction *> CallStack);
 
   /**
-   * @brief Computes all possible types from a given set of allocation sites.
+   * @brief Computes all possible types from a given std::set of allocation
+   * sites.
    * @note An allocation site can either be an Alloca Instruction or a call to
    * an allocating function.
    * @param AS Set of Allocation site.
@@ -337,7 +264,7 @@ public:
   bool containsValue(llvm::Value *V);
 
   /**
-   * @brief Computes the Points-to set for a given pointer.
+   * @brief Computes the Points-to std::set for a given pointer.
    */
   std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
 
@@ -351,10 +278,10 @@ public:
                  const llvm::Function *F);
 
   /**
-   * The value-vertex-map maps each Value of the points-to graph to its
-   * corresponding Vertex in the points-to graph.
+   * The value-vertex-std::map std::maps each Value of the points-to graph to
+   * its corresponding Vertex in the points-to graph.
    *
-   * @brief Prints the value-vertex-map to the command-line.
+   * @brief Prints the value-vertex-std::map to the command-line.
    */
   void printValueVertexMap();
 
@@ -385,4 +312,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_POINTSTOGRAPH_HH_ */
+#endif

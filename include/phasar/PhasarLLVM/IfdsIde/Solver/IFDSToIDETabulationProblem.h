@@ -7,23 +7,21 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef IFDSTOIDETABULATIONPROBLEM_H_
-#define IFDSTOIDETABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IFDSTOIDETABULATIONPROBLEM_H_
 
-#include <algorithm>
-#include <map>
 #include <memory>
+#include <set>
+#include <sstream>
+#include <string>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <set>
-#include <type_traits>
-#include <utility>
 
 namespace psr {
 
@@ -41,8 +39,8 @@ public:
 
   IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, I> &ifdsProblem)
       : IDETabulationProblem<N, D, M, BinaryDomain, I>(), problem(ifdsProblem) {
-    // cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()" <<
-    // endl;
+    // std::cout << "IFDSToIDETabulationProblem::IFDSToIDETabulationProblem()"
+    // << std::endl;
     this->solver_config = problem.getSolverConfiguration();
   }
 

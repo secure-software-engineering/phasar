@@ -14,7 +14,10 @@
  *      Author: philipp
  */
 
+#include <llvm/IR/Constants.h>
+
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+
 using namespace psr;
 using namespace std;
 namespace psr {

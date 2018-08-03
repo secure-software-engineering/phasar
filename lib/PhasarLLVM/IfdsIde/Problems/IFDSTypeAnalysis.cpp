@@ -7,19 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Type.h>
-#include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultSeeds.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
+
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(IFDSTypeAnalysis::i_t icfg,

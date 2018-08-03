@@ -11,6 +11,10 @@ N: Martin Mory
 E: martin.mory@upb.de
 D: CMake
 
+N: Nicolas Bellec
+E: nicolas.bellec@ens-rennes.fr
+D: Call-graph algorithms and inter-procedural context-based solver
+
 N: Florian Sattler
 E: sattlerf@fim.uni-passau.de
 D: CMake build as llvm drop-in
@@ -21,7 +25,7 @@ D: HexaStore implementation
 
 N: Richard Leer
 E: rleer@mail.upb.de
-D: Serialization and various fixes
+D: Serialization, various fixes and data-flow analyses
 
 N: Jan-Niclas Strüwer
 E: struewer@mail.upb.de

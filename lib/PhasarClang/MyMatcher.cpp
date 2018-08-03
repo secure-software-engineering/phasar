@@ -14,6 +14,11 @@
  *      Author: pdschbrt
  */
 
+#include <iostream>
+#include <string>
+
+#include <clang/ASTMatchers/ASTMatchers.h>
+
 #include <phasar/PhasarClang/MyMatcher.h>
 using namespace std;
 using namespace clang;

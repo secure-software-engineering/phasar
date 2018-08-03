@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_H_
-#define ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVERCONFIGURATION_H_
 
-#include <iostream>
+#include <iosfwd>
 
 namespace psr {
 
@@ -46,4 +46,4 @@ struct SolverConfiguration {
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVERCONFIGURATION_HH_ */
+#endif

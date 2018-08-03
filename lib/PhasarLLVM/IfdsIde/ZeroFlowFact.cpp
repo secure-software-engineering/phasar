@@ -7,13 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/ZeroFlowFact.h>
+
+using namespace std;
 using namespace psr;
+
 namespace psr {
 
-std::ostream &ZeroFlowFact::print(std::ostream &os) const {
-  return os << "ZeroFlowFact";
-}
+void ZeroFlowFact::print(std::ostream &os) const { os << "ZeroFlowFact"; }
 
 FlowFact *ZeroFlowFact::getInstance() {
   static ZeroFlowFact ZeroFact;

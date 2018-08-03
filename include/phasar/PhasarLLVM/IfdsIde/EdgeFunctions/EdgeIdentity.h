@@ -14,22 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
 
-#include "../EdgeFunction.h"
-#include "AllTop.h"
 #include <iostream>
 #include <memory>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
 #include <string>
 
-#include "AllBottom.h" // leads to a circular dependency
-// Must be resolved at some point, but for now just forward declare the
-// AllBottom<V> class
-// template<typename V>
-// class AllBottom;
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 
 namespace psr {
+
+template <typename V> class EdgeFunction;
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,
@@ -54,7 +52,7 @@ public:
   virtual std::shared_ptr<EdgeFunction<V>>
   joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     if ((otherFunction.get() == this) ||
-        otherFunction->equalTo(this->shared_from_this()))
+        otherFunction->equal_to(this->shared_from_this()))
       return this->shared_from_this();
     if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(otherFunction.get()))
       return otherFunction;
@@ -64,7 +62,7 @@ public:
     return otherFunction->joinWith(this->shared_from_this());
   }
 
-  virtual bool equalTo(std::shared_ptr<EdgeFunction<V>> other) override {
+  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     return this == other.get();
   }
 
@@ -74,16 +72,11 @@ public:
     return instance;
   }
 
-  friend std::ostream &operator<<(std::ostream &os,
-                                  const EdgeIdentity &edgeIdentity) {
-    return os << "edge identity";
+  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+    OS << "edge_identity";
   }
-
-  void dump() override { std::cout << "edge identity\n"; }
-
-  std::string toString() override { return "edge identity"; }
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_HH_ */
+#endif

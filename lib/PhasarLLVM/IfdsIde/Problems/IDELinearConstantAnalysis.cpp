@@ -7,13 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <functional>
 #include <limits>
+#include <utility>
+
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -21,7 +25,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
+
 using namespace std;
 using namespace psr;
 
