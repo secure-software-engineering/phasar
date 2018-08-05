@@ -1101,7 +1101,8 @@ protected:
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equal_to(jumpFnE));
     BOOST_LOG_SEV(lg, DEBUG)
-        << "Join: " << jumpFnE->str() << " & " << f.get()->str();
+        << "Join: " << jumpFnE->str() << " & " << f.get()->str()
+        << (jumpFnE->equal_to(f)?" (EF's are equal)":" ");
     BOOST_LOG_SEV(lg, DEBUG) << "    = " << fPrime->str()
                              << (newFunction ? " (new jump func)" : " ");
     BOOST_LOG_SEV(lg, DEBUG) << ' ';
