@@ -1,9 +1,9 @@
-// i non-constant or bad example?
 extern bool cond;
 int main() {
-	int i;
+  int i = 42;
 	if (cond) {
     i = 10;
   }
-	return 0;
+  i = 30;
+  return 0;
 }

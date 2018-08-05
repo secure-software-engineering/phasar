@@ -37,9 +37,15 @@ public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  // corresponds to llvm's type of constant integer
+  // int64_t corresponds to llvm's type of constant integer
   typedef int64_t v_t;
   typedef LLVMBasedICFG &i_t;
+
+  // For debug purpose only
+  static unsigned StoreConstCount;
+  static unsigned LoadStoreValueCount;
+  static unsigned BinaryCount;
+  static unsigned EdgeComposerCount;
 
   static const v_t TOP;
   static const v_t BOTTOM;
@@ -47,7 +53,7 @@ public:
   IDELinearConstantAnalysis(i_t icfg,
                             std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IDELinearConstantAnalysis() = default;
+  ~IDELinearConstantAnalysis() override;
 
   // start formulating our analysis by specifying the parts required for IFDS
 
@@ -120,12 +126,13 @@ public:
       : public EdgeFunction<v_t>,
         public std::enable_shared_from_this<EdgeFunctionComposer> {
   private:
+    const unsigned EdgeFunctionID;
     std::shared_ptr<EdgeFunction<v_t>> F;
     std::shared_ptr<EdgeFunction<v_t>> G;
 
   public:
-    EdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> f,
-                         std::shared_ptr<EdgeFunction<v_t>> g);
+    EdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
+                         std::shared_ptr<EdgeFunction<v_t>> G);
 
     v_t computeTarget(v_t source) override;
 
@@ -136,9 +143,55 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  static v_t executeBinOperation(unsigned op, v_t lop, v_t rop);
+  class StoreConstant : public EdgeFunction<v_t>,
+                        public std::enable_shared_from_this<StoreConstant> {
+  private:
+    const unsigned EdgeFunctionID;
+    const IDELinearConstantAnalysis::v_t IntConst;
+
+  public:
+    explicit StoreConstant(v_t IntConst);
+
+    v_t computeTarget(v_t source) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
+  class LoadStoreValueIdentity
+      : public EdgeFunction<v_t>,
+        public std::enable_shared_from_this<LoadStoreValueIdentity> {
+  private:
+    const unsigned EdgeFunctionID;
+
+  public:
+    explicit LoadStoreValueIdentity();
+
+    v_t computeTarget(v_t source) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
+  static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
 
   std::string DtoString(d_t d) const override;
 

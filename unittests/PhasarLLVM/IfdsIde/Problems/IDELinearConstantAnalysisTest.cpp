@@ -34,7 +34,7 @@ protected:
   }
 
   void SetUp() override {
-    initializeLogger(false);
+    bl::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 
@@ -51,15 +51,14 @@ protected:
       const std::map<int, int64_t> &groundTruth,
       LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> &solver) {
     std::map<int, int64_t> results;
-    for (auto exit : ICFG->getExitPointsOf(ICFG->getMethod("main"))) {
-      for (auto res : solver.resultsAt(exit, true)) {
-        int id = std::stoi(getMetaDataID(res.first));
-        // std::cout << "\n\nValue: " << res.second << " at: " << id <<
-        // std::endl; res.first->print(llvm::outs());
-        results.insert(std::pair<int, int64_t>(id, res.second));
+    for (auto f : IRDB->getAllFunctions()) {
+      for (auto exit : ICFG->getExitPointsOf(f)) {
+        for (auto res : solver.resultsAt(exit, true)) {
+          int id = std::stoi(getMetaDataID(res.first));
+          results.insert(std::pair<int, int64_t>(id, res.second));
+        }
       }
     }
-    // std::cout << std::endl;
     EXPECT_THAT(results, ::testing::ContainerEq(groundTruth));
   }
 };
@@ -121,15 +120,36 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
   compareResults(gt, llvmlcasolver);
 }
 
+/* ============== BRANCH TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
   Initialize({pathToLLFiles + "branch_01.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
-  const std::map<int, int64_t> gt = {
-      {1, 0}, {2, LCAProblem->bottomElement()}, {8, 10}, {9, 12}};
+  const std::map<int, int64_t> gt = {{1, 0}, {2, LCAProblem->bottomElement()}};
   compareResults(gt, llvmlcasolver);
 }
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
+  // Probably a bad example/style, since variable i is possibly unitialized
+  Initialize({pathToLLFiles + "branch_02.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{1, 0}, {2, 10}};
+  compareResults(gt, llvmlcasolver);
+}
+
+TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_03) {
+  Initialize({pathToLLFiles + "branch_03.ll"});
+  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+      *LCAProblem, false);
+  llvmlcasolver.solve();
+  const std::map<int, int64_t> gt = {{1, 0}, {2, 30}};
+  compareResults(gt, llvmlcasolver);
+}
+
+/* ============== CALL TESTS ============== */
 
 // main function for the test case
 int main(int argc, char **argv) {

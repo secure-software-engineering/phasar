@@ -1,8 +1,4 @@
-int* foo() {
-  return new int(42);
-}
-
-int main() {
-  int *i = foo();
+int main(int argc, char *argv[]) {
+  int i = argc;
   return 0;
 }

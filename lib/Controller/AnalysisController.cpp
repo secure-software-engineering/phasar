@@ -226,15 +226,21 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
             llvmlcasolver(lcaproblem, true);
         llvmlcasolver.solve();
-        cout << "--RESULTS--" << endl;
-        for (auto exit : ICFG.getExitPointsOf(ICFG.getMethod("main"))) {
-          for (auto res : llvmlcasolver.resultsAt(exit, true)) {
-            res.first->print(llvm::outs());
-            cout << " ID: " << getMetaDataID(res.first)
-                 << " VALUE: " << res.second << endl;
+        cout << "\n======= LCA RESULTS =======" << endl;
+        for (auto f : IRDB.getAllFunctions()) {
+          cout << "Function : " << f->getName().str() << endl;
+          for (auto exit : ICFG.getExitPointsOf(f)) {
+            cout << "Exit     : " << lcaproblem.NtoString(exit) << endl;
+            for (auto res : llvmlcasolver.resultsAt(exit, true)) {
+              cout << "Value: "
+                   << (res.second == lcaproblem.bottomElement()
+                           ? "BOT"
+                           : lcaproblem.VtoString(res.second))
+                   << "\tat " << lcaproblem.DtoString(res.first) << endl;
+            }
           }
+          cout << endl;
         }
-        cout << endl;
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }

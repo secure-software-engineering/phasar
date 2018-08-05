@@ -1,8 +1,9 @@
 extern bool cond;
 int main() {
-	int i = 10;
+	int j = 10;
+  int i = j + 10;
 	if (cond) {
     i = 2;
   }
-	return 0;
+  return 0;
 }
