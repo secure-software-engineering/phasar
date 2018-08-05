@@ -74,11 +74,12 @@ public:
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function";
     BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at source: " << problem.DtoString(sourceVal);
+        << "Fact at source : " << problem.DtoString(sourceVal);
     BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact at target: " << problem.DtoString(targetVal);
-    BOOST_LOG_SEV(lg, DEBUG) << "Destination: " << problem.NtoString(target);
-    BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << function->str();
+        << "Fact at target : " << problem.DtoString(targetVal);
+    BOOST_LOG_SEV(lg, DEBUG)
+        << "Destination    : " << problem.NtoString(target);
+    BOOST_LOG_SEV(lg, DEBUG) << "Edge Function  : " << function->str();
     // we do not store the default function (all-top)
     if (function->equal_to(allTop))
       return;
@@ -93,6 +94,7 @@ public:
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     //	printNonEmptyLookupByTargetNode();
     BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function";
+    BOOST_LOG_SEV(lg, DEBUG) << ' ';
   }
 
   /**
