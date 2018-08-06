@@ -1,0 +1,7 @@
+node_modules/
+uploads/
+dist/
+.DS_Store
+database/
+src/.DS_Store
+server/

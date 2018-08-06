@@ -1,0 +1,22 @@
+version: "3"
+services:
+  mongodb:
+    image: library/mongo
+
+  phasar:
+    build: sse_dfa_llvm
+    image: phasar
+    command: echo "it works (maybe)"
+
+  jnthesis:
+    build:
+      context: .
+      dockerfile: ./Dockerfile_Phasar
+    image: jnthesis
+    depends_on: 
+      - phasar
+      
+    environment:
+      MONGO_HOST: mongodb
+    ports:
+      - 80:3000

@@ -1,0 +1,21 @@
+{
+    "files.associations": {
+        "*.ipp": "cpp",
+        "string": "cpp",
+        "__locale": "cpp",
+        "locale": "cpp",
+        "thread": "cpp",
+        "__functional_03": "cpp",
+        "functional": "cpp",
+        "iosfwd": "cpp",
+        "__hash_table": "cpp",
+        "unordered_map": "cpp",
+        "memory": "cpp",
+        "regex": "cpp",
+        "utility": "cpp",
+        "sstream": "cpp",
+        "strstream": "cpp",
+        "iterator": "cpp"
+    },
+    "typescript.tsdk": "node_modules/typescript/lib"
+}
