@@ -76,34 +76,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     //   return set<IDETypeStateAnalysis::d_t>{};
     // });
   }
-  /*if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    if (Load->getPointerOperand()->getName().find("struct._IO_FILE") != llvm::StringRef::npos) {
-      /*if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Load->getPointerOperand())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {*/
-          /*return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load,
-                                                             zeroValue());*/
-       // }
-     // }
-    /*}
-  }*/
-
-  /*if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    if (Load->getPointerOperand()->getType()->isPointerTy()) {
-      /*if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Load->getPointerOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {*/
-          /*return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load,
-                                                             zeroValue());
-       /* }
-      }*/
-    //}
-  //}
 
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    if (Load->getPointerOperand()->getType()->isPointerTy()) {
+    //if (Load->getPointerOperand()->getType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Load->getPointerOperand()->getType()->getPointerElementType()->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
@@ -112,7 +87,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                              zeroValue());
         }
       }
-    }
+    //}
   }
 
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
