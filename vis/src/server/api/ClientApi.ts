@@ -28,8 +28,8 @@ export async function startProcess(req: express.Request, res: express.Response) 
         await explodedSupergraph.save();
         const graph_id: string = "" + explodedSupergraph._id;
         //TODO: support multiple llvm files 
-        const exec = execFile('bin/main',
-            ["-" + req.body.moduleProject, uploadPath, "--data_flow_analysis", "ifds_uninit", "--wpa", Number(req.body.wpa), "--mode", "phasarLLVM", "-M", Number(req.body.mem2reg), "--printedgerec", 1, "-G", graph_id]
+        const exec = execFile('build/phasar',
+            ["-" + req.body.moduleProject, uploadPath, "--data_flow_analysis", "ifds_uninit", "--wpa", Number(req.body.wpa), "--mode", "phasarLLVM", "-M", Number(req.body.mem2reg), "--printedgerec", 1, "--graph_id", graph_id]
             , { cwd: FRAMEWORK_CWD, maxBuffer: 1000000 * 1024, });
 
         exec.stdout.on('data', (data: string) => {
