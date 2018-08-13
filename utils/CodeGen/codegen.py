@@ -114,10 +114,14 @@ def genfunctions(typ, classname=None):
     else:
         d["func"] = ""
         d["classname"] = classname
-
+    print(functions2)
     for i in functions2:
         # delete leading whitespace to correct input errors
-        i = i.lstrip()
+        if(type(i)==list):
+            for x in i:
+                x = x.lstrip()
+        else:
+            i = i.lstrip()
         d["param"] = ""
         d["pref"] = ""
         d["post"] = ""
