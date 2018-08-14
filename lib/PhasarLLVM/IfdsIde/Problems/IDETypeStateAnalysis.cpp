@@ -17,6 +17,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 
@@ -108,9 +110,23 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
-  if (destMthd->getName() == "fopen") {
+  /*auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getCallFlowFunction()");*/
+
+  if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" || destMthd->getName() == "fgetc" || destMthd->getName() == "fputc" || destMthd->getName() == "putchar" ||
+      /*destMthd->getName() == "_IO_getc" || destMthd->getName() == "_I0_putc" ||*/destMthd->getName() == "fprintf" || destMthd->getName() == "__isoc99_fscanf" || destMthd->getName() == "feof" ||
+      destMthd->getName() == "ferror" || destMthd->getName() == "fflush" || destMthd->getName() == "fseek" || destMthd->getName() == "ftell" || destMthd->getName() == "rewind" || 
+      destMthd->getName() == "fgetpos" || destMthd->getName() == "fsetpos") {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
+
+  if (llvm::isa<llvm::CallInst>(callStmt) ||
+      llvm::isa<llvm::InvokeInst>(callStmt)) {
+    return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
+                                         destMthd);
+  }
+
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -119,6 +135,11 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
+  return make_shared<MapFactsToCaller>(
+      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+      [](IDETypeStateAnalysis::d_t formal) {
+        return formal->getType()->isPointerTy();
+      });
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -127,9 +148,71 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
   for (auto Callee : callees) {
+
     if (Callee->getName() == "fopen") {
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
+
+    if (Callee->getName() == "freopen") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "fgetc") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+    
+    if(Callee->getName() == "fputc") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "putchar") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "_IO_getc") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if (Callee->getName() == "fprintf") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "__isoc99_fscanf") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "feof") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "ferror") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "fflush") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "fseek") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "ftell") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }  
+
+    if(Callee->getName() == "rewind") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "fgetpos") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
+    if(Callee->getName() == "fsetpos") {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
+    }
+
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
