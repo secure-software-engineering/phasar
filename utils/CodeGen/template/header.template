@@ -1,0 +1,27 @@
+#ifndef {define}
+#define {define}
+
+{include}
+{namespacestart}
+{template}
+class {classname} {baseclass}
+{{
+
+public:
+{pbattributes}
+{stdf}
+{pbfunc}
+{basefunc}
+
+private:
+{pvattributes}
+{pvfunc}
+
+protected:
+{ptattributes}
+{ptfunc}
+
+}};
+{namespacestop}
+
+#endif

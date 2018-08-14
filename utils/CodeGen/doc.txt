@@ -1,0 +1,30 @@
+command line options:
+-n [--name] {input} has to be provided. classname of generated class, use namespacename::classname to put the class in the described namespace
+-? [--help] displayes help message
+-d [--debug] turns on debug messages
+-e [--empty] turns off generation of standard functions (ctors, dtors)
+-h [--header] turns off generation of the header file
+-c [--cpp] turns off generation of the implementation file
+-t [--template] {input} list of template paramters seperated by comma
+-o [--clang-format] {input} turns on clang-format pass on linux systems; None = standard definition provided by code generator, Google, Mozilla, Chromium, LLVM, WebKit = options provided by clang-format for other options leave option to None and edit .clang-format file in code generator directory
+-a [--attributes] {input} list of attributes seperated by ,; form example: public:name:int
+-f [--functions] {input} list of functions seperated by ,; form example: public:name:void:[name=0:int,name2:string]:[static,const]:[override,noexecpt][Template1,Template2,T3]
+[] can be omitted if no [] follows. If [] follows [] an empty pair of squarebrackets act as a placeholder
+Example:
+private:func:vector<int>:[]:[const]:[override]
+
+-b [--baseclass] {input} list of baseclassfiles seperated by ,
+!!!there is no recursive baseclass search: can
+be dealt with defining multiple inheritance 
+and deleting the reference afterwards in the 
+header file!!!
+
+-i [--include] {input} list of include files for the header file, seperated by comma; "" and <> will be decided automatically 
+-k [--config] {input} input file for easier use of long baseclass,attribute and function lists. Example file: example.cfg
+
+Example call:
+python3 codegen.py -n test -b abc.h -d -t A,B,C -a public:a:int,private:b:string,protected:c:char,public:w:*int -f public:func1:void:[a=0:int]:[static,const]:[override,static]:[A,B,C],protected:func2:int -o None
+
+./codegen.py -n test -b  ../../include/phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h -d -t A,B,C -a public:a:int,private:b:string,protected:c:char,public:w:*int -f public:func1:void:[a=0:int]:[static,const]:[override,static]:[A,B,C],protected:func2:int -o None
+
+python3 codegen.py -n MyIFDSAnalysis -a public:a:std::pair, public:d:LLVMBasedICFG& 
