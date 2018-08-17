@@ -41,6 +41,11 @@ struct hs_result {
               << " | predicate: " << hsr.predicate
               << " | object: " << hsr.object << " ]";
   }
+
+  friend bool operator==(const hs_result LHS, const hs_result RHS) {
+    return LHS.subject == RHS.subject && LHS.predicate == RHS.predicate &&
+           LHS.object == RHS.object;
+  }
 };
 /**
  * A Hexastore is an efficient approach to store large graphs.
@@ -114,6 +119,6 @@ public:
                              size_t result_size_hint = 0);
 };
 
-} /* end namespace psr */
+} // namespace psr
 
 #endif
