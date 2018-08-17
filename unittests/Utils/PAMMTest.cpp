@@ -2,8 +2,9 @@
 
 #include <thread>
 
-#ifndef PERFORMANCE_EVA // We need it to enable PAMM whatever the build configuration ;)
-  #define PERFORMANCE_EVA
+#ifndef PERFORMANCE_EVA // We need it to enable PAMM whatever the build
+                        // configuration ;)
+#define PERFORMANCE_EVA
 #include <phasar/Utils/PAMM.h>
 #endif
 

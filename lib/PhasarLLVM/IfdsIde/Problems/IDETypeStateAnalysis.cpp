@@ -119,8 +119,9 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
   if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" ||
       destMthd->getName() == "fgetc" || destMthd->getName() == "fputc" ||
       destMthd->getName() == "putchar" ||
-      /*destMthd->getName() == "_IO_getc" || destMthd->getName() == "_I0_putc" ||*/
-          destMthd->getName() == "fprintf" ||
+      /*destMthd->getName() == "_IO_getc" || destMthd->getName() == "_I0_putc"
+         ||*/
+      destMthd->getName() == "fprintf" ||
       destMthd->getName() == "__isoc99_fscanf" ||
       destMthd->getName() == "feof" || destMthd->getName() == "ferror" ||
       destMthd->getName() == "fflush" || destMthd->getName() == "fseek" ||

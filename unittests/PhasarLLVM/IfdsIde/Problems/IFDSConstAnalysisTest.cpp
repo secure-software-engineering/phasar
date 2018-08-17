@@ -3,8 +3,8 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 using namespace std;
 using namespace psr;
@@ -37,7 +37,8 @@ protected:
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
-    ICFG = new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    ICFG =
+        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     constproblem = new IFDSConstAnalysis(*ICFG, EntryPoints);
   }
 
@@ -205,12 +206,12 @@ TEST_F(IFDSConstAnalysisTest, HandlePointerTest_02) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandlePointerTest_03) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "pointer/pointer_03.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({2, 3}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "pointer/pointer_03.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({2, 3}, llvmconstsolver);
 // }
 
 TEST_F(IFDSConstAnalysisTest, HandlePointerTest_04) {
@@ -247,12 +248,12 @@ TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_03) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleGlobalTest_04) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "global/global_04.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({0, 4}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "global/global_04.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({0, 4}, llvmconstsolver);
 // }
 
 /* ============== CALL TESTS ============== */
@@ -281,21 +282,21 @@ TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_03) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_04) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "call/param/call_param_04.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "call/param/call_param_04.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({}, llvmconstsolver);
 // }
 
 // TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_05) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "call/param/call_param_05.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({2}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "call/param/call_param_05.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({2}, llvmconstsolver);
 // }
 
 TEST_F(IFDSConstAnalysisTest, HandleCallParamTest_06) {
@@ -372,12 +373,12 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_03) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleArrayTest_04) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "array/array_04.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "array/array_04.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({}, llvmconstsolver);
 // }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_05) {
@@ -397,12 +398,12 @@ TEST_F(IFDSConstAnalysisTest, HandleArrayTest_06) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleArrayTest_07) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "array/array_07.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "array/array_07.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({}, llvmconstsolver);
 // }
 
 TEST_F(IFDSConstAnalysisTest, HandleArrayTest_08) {
@@ -447,12 +448,12 @@ TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_03) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_04) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "array/stl_array/stl_array_04.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "array/stl_array/stl_array_04.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({}, llvmconstsolver);
 // }
 
 TEST_F(IFDSConstAnalysisTest, HandleSTLArrayTest_05) {
@@ -481,12 +482,12 @@ TEST_F(IFDSConstAnalysisTest, HandleCStringTest_01) {
 }
 
 // TEST_F(IFDSConstAnalysisTest, HandleCStringTest_02) {
-  // TODO needs fix, once we have more precise points-to information
-  // SetUp({pathToLLFiles + "array/cstring/cstring_02.ll"});
-  // LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-  //     *constproblem, false);
-  // llvmconstsolver.solve();
-  // compareResults({2}, llvmconstsolver);
+// TODO needs fix, once we have more precise points-to information
+// SetUp({pathToLLFiles + "array/cstring/cstring_02.ll"});
+// LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+//     *constproblem, false);
+// llvmconstsolver.solve();
+// compareResults({2}, llvmconstsolver);
 // }
 
 /* ============== STRUCTURE TESTS ============== */
