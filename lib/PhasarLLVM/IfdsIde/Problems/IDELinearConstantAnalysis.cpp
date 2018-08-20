@@ -83,15 +83,15 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   //         string cmdarg_str;
   //         llvm::raw_string_ostream rso(cmdarg_str);
   //         Arg.print(rso);
-  //         BOOST_LOG_SEV(lg, DEBUG) << "CmdArg: " << rso.str();
+  //         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "CmdArg: " << rso.str());
   //       }
   //     }
   //   }
-  //   BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   //   return make_shared<GenAll<IDELinearConstantAnalysis::d_t>>(CmdArgs,
   //                                                              zeroValue());
   // }
-  // BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
 
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).

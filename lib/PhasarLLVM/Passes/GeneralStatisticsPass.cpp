@@ -147,20 +147,21 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   pamm.regCounter("GS Memory Intrinsics" /* + moduleID*/, memIntrinsic);
   pamm.regCounter("GS Allocated Types" /* + moduleID*/, allocatedTypes.size());
 #endif
-  auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "GeneralStatisticsPass summary for module: '"
-                          << M.getName().str() << "'\n";
-  BOOST_LOG_SEV(lg, INFO) << "Functions          : " << functions;
-  BOOST_LOG_SEV(lg, INFO) << "Globals            : " << globals;
-  BOOST_LOG_SEV(lg, INFO) << "Basic Blocks       : " << basicblocks;
-  BOOST_LOG_SEV(lg, INFO) << "Allocation Sites   : " << allocationsites;
-  BOOST_LOG_SEV(lg, INFO) << "Calls Sites        : " << callsites;
-  BOOST_LOG_SEV(lg, INFO) << "Pointer Variables  : " << pointers;
-  BOOST_LOG_SEV(lg, INFO) << "Instructions       : " << instructions;
-  BOOST_LOG_SEV(lg, INFO) << "Store Instructions : " << storeInstructions;
-  BOOST_LOG_SEV(lg, INFO) << "Memory Intrinsics  : " << memIntrinsic;
-  BOOST_LOG_SEV(lg, INFO) << "Allocated Types    : " << allocatedTypes.size();
   if (bl::core::get()->get_logging_enabled()) {
+    auto &lg = lg::get();
+    BOOST_LOG_SEV(lg, INFO) << "GeneralStatisticsPass summary for module: '"
+                            << M.getName().str() << "'\n";
+    BOOST_LOG_SEV(lg, INFO) << "Functions          : " << functions;
+    BOOST_LOG_SEV(lg, INFO) << "Globals            : " << globals;
+    BOOST_LOG_SEV(lg, INFO) << "Basic Blocks       : " << basicblocks;
+    BOOST_LOG_SEV(lg, INFO) << "Allocation Sites   : " << allocationsites;
+    BOOST_LOG_SEV(lg, INFO) << "Calls Sites        : " << callsites;
+    BOOST_LOG_SEV(lg, INFO) << "Pointer Variables  : " << pointers;
+    BOOST_LOG_SEV(lg, INFO) << "Instructions       : " << instructions;
+    BOOST_LOG_SEV(lg, INFO) << "Store Instructions : " << storeInstructions;
+    BOOST_LOG_SEV(lg, INFO) << "Memory Intrinsics  : " << memIntrinsic;
+    BOOST_LOG_SEV(lg, INFO) << "Allocated Types    : " << allocatedTypes.size();
+    BOOST_LOG_SEV(lg, INFO) << ' ';
     for (auto type : allocatedTypes) {
       std::string type_str;
       llvm::raw_string_ostream rso(type_str);
@@ -168,7 +169,6 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
       BOOST_LOG_SEV(lg, INFO) << "  " << rso.str();
     }
   }
-  BOOST_LOG_SEV(lg, INFO) << ' ';
   return false;
 }
 
