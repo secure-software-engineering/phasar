@@ -45,10 +45,10 @@ unsigned IDELinearConstantAnalysis::BinaryCount = 0;
 unsigned IDELinearConstantAnalysis::EdgeComposerCount = 0;
 
 const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::TOP =
-    std::numeric_limits<IDELinearConstantAnalysis::v_t>::min();
+    numeric_limits<IDELinearConstantAnalysis::v_t>::min();
 
 const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
-    std::numeric_limits<IDELinearConstantAnalysis::v_t>::max();
+    numeric_limits<IDELinearConstantAnalysis::v_t>::max();
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     IDELinearConstantAnalysis::i_t &icfg, vector<string> EntryPoints)
@@ -80,7 +80,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   //     if (Arg.getType()->isIntegerTy()) {
   //       CmdArgs.insert(&Arg);
   //       if (bl::core::get()->get_logging_enabled()) {
-  //         std::string cmdarg_str;
+  //         string cmdarg_str;
   //         llvm::raw_string_ostream rso(cmdarg_str);
   //         Arg.print(rso);
   //         BOOST_LOG_SEV(lg, DEBUG) << "CmdArg: " << rso.str();
@@ -259,7 +259,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
-    IDELinearConstantAnalysis::n_t retSite, std::set<m_t> callees) {
+    IDELinearConstantAnalysis::n_t retSite, set<m_t> callees) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDELinearConstantAnalysis::getCallToRetFlowFunction()");
@@ -461,7 +461,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
         return this == other.get();
       }
 
-      void print(std::ostream &OS, bool isForDebug = false) const override {
+      void print(ostream &OS, bool isForDebug = false) const override {
         OS << "Binary_" << EdgeFunctionID;
       }
     };
@@ -587,7 +587,7 @@ bool IDELinearConstantAnalysis::EdgeFunctionComposer::equal_to(
 }
 
 void IDELinearConstantAnalysis::EdgeFunctionComposer::print(
-    std::ostream &OS, bool isForDebug) const {
+    ostream &OS, bool isForDebug) const {
   OS << "EC_" << IDELinearConstantAnalysis::EdgeFunctionComposer::EdgeFunctionID
      << "[ " << F.get()->str() << " , " << G.get()->str() << " ]";
 }
@@ -638,7 +638,7 @@ bool IDELinearConstantAnalysis::StoreConstant::equal_to(
   return this == other.get();
 }
 
-void IDELinearConstantAnalysis::StoreConstant::print(std::ostream &OS,
+void IDELinearConstantAnalysis::StoreConstant::print(ostream &OS,
                                                      bool isForDebug) const {
   OS << "StoreConst_" << EdgeFunctionID;
 }
@@ -679,7 +679,7 @@ bool IDELinearConstantAnalysis::LoadStoreValueIdentity::equal_to(
 }
 
 void IDELinearConstantAnalysis::LoadStoreValueIdentity::print(
-    std::ostream &OS, bool isForDebug) const {
+    ostream &OS, bool isForDebug) const {
   OS << "Load/StoreValue_" << EdgeFunctionID;
 }
 

@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -204,9 +203,11 @@ public:
   }
 
   void printNonEmptyReverseLookup() {
-    std::cout << "DUMP nonEmptyReverseLookup" << std::endl;
-    std::cout << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyReverseLookup");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, DEBUG)
+        << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyReverseLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -219,9 +220,11 @@ public:
   }
 
   void printNonEmptyForwardLookup() {
-    std::cout << "DUMP nonEmptyForwardLookup" << std::endl;
-    std::cout << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyForwardLookup");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, DEBUG)
+        << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyForwardLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -234,10 +237,12 @@ public:
   }
 
   void printNonEmptyLookupByTargetNode() {
-    std::cout << "DUMP nonEmptyLookupByTargetNode" << std::endl;
-    std::cout << "std::unordered_map<N, Table<D, D, "
-                 "std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "DUMP nonEmptyLookupByTargetNode");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "std::unordered_map<N, Table<D, D, "
+                     "std::shared_ptr<EdgeFunction<L>>>>");
     for (auto node : nonEmptyLookupByTargetNode) {
       node.first->dump();
       auto table = nonEmptyLookupByTargetNode[node.first];

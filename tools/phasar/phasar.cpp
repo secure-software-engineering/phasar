@@ -170,7 +170,7 @@ int main(int argc, const char **argv) {
   PAMM_FACTORY;
   START_TIMER("FW Runtime");
   // set-up the logger and get a reference to it
-  initializeLogger(true);
+  initializeLogger(false);
   auto &lg = lg::get();
   // handling the command line parameters
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

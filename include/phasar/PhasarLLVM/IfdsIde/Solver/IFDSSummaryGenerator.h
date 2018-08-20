@@ -23,7 +23,7 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenAll.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 
 namespace psr {
@@ -65,9 +65,11 @@ public:
   IFDSSummaryGenerator(M Function, I icfg, SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(icfg), CTXStrategy(Strategy) {}
   virtual ~IFDSSummaryGenerator() = default;
-  virtual std::set<pair<std::vector<bool>, shared_ptr<FlowFunction<D>>>>
+  virtual std::set<
+      std::pair<std::vector<bool>, std::shared_ptr<FlowFunction<D>>>>
   generateSummaryFlowFunction() {
-    std::set<pair<std::vector<bool>, shared_ptr<FlowFunction<D>>>> summary;
+    std::set<std::pair<std::vector<bool>, std::shared_ptr<FlowFunction<D>>>>
+        summary;
     std::vector<D> inputs = getInputs();
     std::set<D> inputset;
     inputset.insert(inputs.begin(), inputs.end());
@@ -99,7 +101,7 @@ public:
       ConcreteSolver solver(functionProblem, true);
       solver.solve();
       // get the result at the end of this function and
-      // create a flow function from this std::set using the GenAll class
+      // create a flow function from this set using the GenAll class
       std::set<N> LastInsts = icfg.getExitPointsOf(toSummarize);
       std::set<D> results;
       for (auto fact : solver.resultsAt(*LastInsts.begin())) {
@@ -107,7 +109,7 @@ public:
       }
       summary.insert(make_pair(
           generateBitPattern(inputs, subset),
-          std::make_shared<GenAll<D>>(results, ZeroValue::getInstance())));
+          std::make_shared<GenAll<D>>(results, LLVMZeroValue::getInstance())));
     }
     return summary;
   }

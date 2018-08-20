@@ -40,7 +40,7 @@ extern const std::string LLVMIntrinsicFunctionListFileName;
 extern const std::string HeaderSearchPathsFileName;
 /// Name of the compile_commands.json file (in case we wish to rename)
 extern const std::string CompileCommandsJson;
-/// Variables std::map of the parsed command-line parameters
+/// Variables map of the parsed command-line parameters
 extern boost::program_options::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;

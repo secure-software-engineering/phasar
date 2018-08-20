@@ -171,7 +171,7 @@ public:
    * default.
    * @param timerId Unique timer id.
    * @return Duration with respect to the Period.
-   * @note When using the macro, the period is std::set to milliseconds and
+   * @note When using the macro, the period is set to milliseconds and
    * cannot be customized by the macro.
    */
   template <typename Period = std::chrono::milliseconds>
@@ -281,15 +281,15 @@ public:
   int getSumCount(std::set<std::string> counterIds);
 
   /**
-   * @brief Registers a new std::set as a std::set histogram.
-   * @param HID identifies the particular std::set.
+   * @brief Registers a new set as a set histogram.
+   * @param HID identifies the particular set.
    */
   void regHistogram(std::string HID);
 
   /**
-   * @brief Adds a new observed std::set size to the corresponding std::set
+   * @brief Adds a new observed set size to the corresponding set
    * histogram.
-   * @param HID ID of the std::set.
+   * @param HID ID of the set.
    * @param OCC the added value.
    */
   void addToHistogram(std::string HID, std::string VAL, unsigned long OCC = 1);

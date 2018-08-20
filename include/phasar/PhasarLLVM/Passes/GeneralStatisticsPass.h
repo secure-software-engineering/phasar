@@ -42,7 +42,7 @@ namespace psr {
  *  - Instructions
  *  - Pointers
  *
- *  and also a std::set of all allocated Types in that Module.
+ *  and also a set of all allocated Types in that Module.
  *
  *  This pass does not modify the analyzed Module in any way!
  *
