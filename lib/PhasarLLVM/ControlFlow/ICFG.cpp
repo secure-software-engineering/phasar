@@ -14,9 +14,11 @@
  *      Author: pdschbrt
  */
 
+#include <iostream>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-using namespace std;
+
 using namespace psr;
+using namespace std;
 
 namespace psr {
 

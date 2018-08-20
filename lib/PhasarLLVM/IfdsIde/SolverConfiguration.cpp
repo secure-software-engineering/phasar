@@ -7,9 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <ostream>
+
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
+
 using namespace std;
 using namespace psr;
+
 namespace psr {
 
 ostream &operator<<(ostream &os, const SolverConfiguration &sc) {

@@ -14,15 +14,19 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_LLVMZEROVALUE_H_
-#define SRC_ANALYSIS_IFDS_IDE_LLVMZEROVALUE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMZEROVALUE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_LLVMZEROVALUE_H_
 
-#include <llvm/IR/Constants.h>
+#include <memory>
+#include <string>
+
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
-#include <memory>
-#include <string>
+
+namespace llvm {
+class Value;
+}
 
 namespace psr {
 
@@ -85,4 +89,4 @@ public:
 };
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_ZEROVALUE_HH_ */
+#endif

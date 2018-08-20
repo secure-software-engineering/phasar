@@ -14,12 +14,13 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTRAMONOTONESOLVER_H_
-#define SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTRAMONOTONESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTRAMONOTONESOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTRAMONOTONESOLVER_H_
 
-#include <iostream>
-#include <llvm/IR/Function.h>
+#include <iostream> //  std::cout, please remove it
+
 #include <llvm/IR/Instruction.h>
+
 #include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
 #include <phasar/PhasarLLVM/Mono/Solver/IntraMonotoneSolver.h>
 
@@ -31,6 +32,7 @@ class LLVMIntraMonotoneSolver
                                  const llvm::Function *, C> {
 protected:
   bool DUMP_RESULTS;
+  // Duplicate of the IMProblem of IntraMonotoneSolver ...
   IntraMonotoneProblem<const llvm::Instruction *, D, const llvm::Function *, C>
       &IMP;
 
@@ -77,4 +79,4 @@ public:
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_MONOTONE_SOLVER_LLVMINTRAMONOTONESOLVER_HH_ */
+#endif

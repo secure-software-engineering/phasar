@@ -14,20 +14,21 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_DEFAULTSEEDS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_DEFAULTSEEDS_H_
 
-#include <llvm/IR/Instruction.h>
 #include <map>
 #include <set>
+#include <vector>
 
 namespace psr {
 
 class DefaultSeeds {
 public:
   template <typename N, typename D>
-  static map<N, std::set<D>> make(std::vector<N> instructions, D zeroNode) {
-    map<N, std::set<D>> res;
+  static std::map<N, std::set<D>> make(std::vector<N> instructions,
+                                       D zeroNode) {
+    std::map<N, std::set<D>> res;
     for (const N &n : instructions)
       res.insert({n, std::set<D>{zeroNode}});
     return res;
@@ -35,4 +36,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_DEFAULTSEEDS_HH_ */
+#endif

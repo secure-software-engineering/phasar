@@ -1,6 +1,9 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
 
+using namespace std;
 using namespace psr;
 
 class LLVMGetterTest : public ::testing::Test {

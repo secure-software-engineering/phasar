@@ -7,10 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ENUMFLAGS_H_
-#define ENUMFLAGS_H_
+#ifndef PHASAR_UTILS_ENUMFLAGS_H_
+#define PHASAR_UTILS_ENUMFLAGS_H_
 
 #include <type_traits>
+
 namespace psr {
 
 template <typename T,

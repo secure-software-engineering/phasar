@@ -5,6 +5,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
+using namespace std;
 using namespace psr;
 
 class IFDSTaintAnalysisTest : public ::testing::Test {
@@ -19,8 +20,7 @@ TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
                    IRDBOptions::NONE);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(TH, IRDB, WalkerStrategy::Pointer, ResolveStrategy::OTF,
-                     {"main"});
+  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, {"main"});
   IFDSTaintAnalysis TaintProblem(ICFG, {"main"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(TaintProblem,
                                                                    true);

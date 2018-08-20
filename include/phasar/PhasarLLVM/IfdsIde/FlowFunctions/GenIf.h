@@ -7,10 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENIF_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENIF_H_
 
 #include <functional>
+#include <set>
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace psr {
@@ -20,7 +22,7 @@ namespace psr {
  * @tparam D The type of data-flow facts to be generated.
  */
 template <typename D> class GenIf : public FlowFunction<D> {
-private:
+protected:
   D genValue;
   D zeroValue;
   std::function<bool(D)> Predicate;
@@ -39,4 +41,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_GENIF_H_ */
+#endif

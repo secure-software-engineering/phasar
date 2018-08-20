@@ -1,9 +1,17 @@
+#include <boost/graph/graph_utility.hpp>
+#include <boost/graph/graphviz.hpp>
 #include <boost/graph/isomorphism.hpp>
+
 #include <gtest/gtest.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Macros.h>
 
+using namespace std;
 using namespace psr;
+
 namespace psr {
 class LTHTest : public ::testing::Test {
 protected:
@@ -95,12 +103,15 @@ TEST_F(LTHTest, GraphConstruction) {
   ASSERT_TRUE(boost::isomorphism(graph5, TH5.g));
 }
 
+#include <iostream>
+
 TEST_F(LTHTest, VTableConstruction) {
   ProjectIRDB IRDB1({pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
   ProjectIRDB IRDB2({pathToLLFiles + "type_hierarchies/type_hierarchy_7.ll"});
   ProjectIRDB IRDB3({pathToLLFiles + "type_hierarchies/type_hierarchy_8.ll"});
   ProjectIRDB IRDB4({pathToLLFiles + "type_hierarchies/type_hierarchy_9.ll"});
   ProjectIRDB IRDB5({pathToLLFiles + "type_hierarchies/type_hierarchy_10.ll"});
+
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -334,5 +345,7 @@ TEST_F(LTHTest, SameTypeDifferentVTables) {
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  auto res = RUN_ALL_TESTS();
+  llvm::llvm_shutdown();
+  return res;
 }

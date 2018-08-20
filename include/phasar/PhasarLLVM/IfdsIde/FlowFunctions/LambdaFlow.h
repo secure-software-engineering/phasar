@@ -7,26 +7,25 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_LAMBDAFLOW_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_LAMBDAFLOW_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <functional>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
 namespace psr {
 
-template <typename D>
-class LambdaFlow : public FlowFunction<D> {
- private:
+template <typename D> class LambdaFlow : public FlowFunction<D> {
+private:
   std::function<std::set<D>(D)> flow;
 
- public:
+public:
   LambdaFlow(std::function<std::set<D>(D)> f) : flow(f) {}
   virtual ~LambdaFlow() = default;
   std::set<D> computeTargets(D source) override { return flow(source); }
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

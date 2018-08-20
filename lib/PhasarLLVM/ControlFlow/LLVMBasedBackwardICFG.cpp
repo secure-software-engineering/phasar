@@ -15,8 +15,10 @@
  *  Created on: 15.09.2016
  *      Author: pdschbrt
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
 
-#include "LLVMBasedBackwardsICFG.hh"
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardsICFG.h>
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG() {
         // TODO Auto-generated constructor stub

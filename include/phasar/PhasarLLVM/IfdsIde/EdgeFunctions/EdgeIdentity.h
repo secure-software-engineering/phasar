@@ -14,18 +14,20 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_H_
-#define ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
 #include <iostream>
 #include <memory>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
 #include <string>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 
 namespace psr {
+
+template <typename V> class EdgeFunction;
 
 template <typename V>
 class EdgeIdentity : public EdgeFunction<V>,
@@ -70,11 +72,11 @@ public:
     return instance;
   }
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const override { 
+  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
     OS << "edge_identity";
   }
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGE_FUNC_EDGEIDENTITY_HH_ */
+#endif

@@ -7,13 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+// #include <functional>
 #include <limits>
+#include <utility>
+
+#include "llvm/IR/Constants.h"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -26,6 +31,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
 #include <utility>
 
 using namespace std;
@@ -63,8 +69,8 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t curr, IDELinearConstantAnalysis::n_t succ) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IDELinearConstantAnalysis::getNormalFlowFunction()";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDELinearConstantAnalysis::getNormalFlowFunction()");
   // Check commandline arguments, e.g. argc, and generate all integer
   // typed arguments.
   // if (curr->getFunction()->getName().str() == "main" &&
@@ -86,6 +92,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   //                                                              zeroValue());
   // }
   // BOOST_LOG_SEV(lg, DEBUG) << ' ';
+
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
@@ -164,9 +171,9 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IDELinearConstantAnalysis::getCallFlowFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "IDELinearConstantAnalysis::getCallFlowFunction()";)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
@@ -215,8 +222,9 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t exitStmt,
     IDELinearConstantAnalysis::n_t retSite) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG) << "IDELinearConstantAnalysis::getRetFlowFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDELinearConstantAnalysis::getRetFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Handle the case: %x = call i32 ...
   if (callSite->getType()->isIntegerTy()) {
     auto Return = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
@@ -253,9 +261,9 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::n_t retSite, std::set<m_t> callees) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IDELinearConstantAnalysis::getCallToRetFlowFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDELinearConstantAnalysis::getCallToRetFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -264,9 +272,9 @@ IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IDELinearConstantAnalysis::getSummaryFlowFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDELinearConstantAnalysis::getSummaryFlowFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return nullptr;
 }
 
@@ -315,20 +323,24 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t succ,
     IDELinearConstantAnalysis::d_t succNode) {
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, DEBUG)
-      << "IDELinearConstantAnalysis::getNormalEdgeFunction()";
-  BOOST_LOG_SEV(lg, DEBUG) << "(N) Curr Inst : "
-                           << IDELinearConstantAnalysis::NtoString(curr);
-  BOOST_LOG_SEV(lg, DEBUG) << "(D) Curr Node :   "
-                           << IDELinearConstantAnalysis::DtoString(currNode);
-  BOOST_LOG_SEV(lg, DEBUG) << "(N) Succ Inst : "
-                           << IDELinearConstantAnalysis::NtoString(succ);
-  BOOST_LOG_SEV(lg, DEBUG) << "(D) Succ Node :   "
-                           << IDELinearConstantAnalysis::DtoString(succNode);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDELinearConstantAnalysis::getNormalEdgeFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Curr Inst : "
+                << IDELinearConstantAnalysis::NtoString(curr));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Curr Node :   "
+                << IDELinearConstantAnalysis::DtoString(currNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Succ Inst : "
+                << IDELinearConstantAnalysis::NtoString(succ));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Succ Node :   "
+                << IDELinearConstantAnalysis::DtoString(succNode));
   // All_Bottom for zero value
   if (isZeroValue(currNode) && isZeroValue(succNode)) {
-    BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
         bottomElement());
   }
@@ -339,16 +351,18 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     if (pointerOperand == succNode) {
       // Case I: Storing a constant integer.
       if (isZeroValue(currNode) && llvm::isa<llvm::ConstantInt>(valueOperand)) {
-        BOOST_LOG_SEV(lg, DEBUG) << "Case: Storing constant integer.";
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Case: Storing constant integer.");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         auto CI = llvm::dyn_cast<llvm::ConstantInt>(valueOperand);
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::StoreConstant>(IntConst);
       }
       // Case II: Storing an integer typed value.
       if (currNode != succNode && valueOperand->getType()->isIntegerTy()) {
-        BOOST_LOG_SEV(lg, DEBUG) << "Case: Storing an integer typed value.";
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Case: Storing an integer typed value.");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         return make_shared<IDELinearConstantAnalysis::LoadStoreValueIdentity>();
       }
     }
@@ -357,15 +371,16 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   // Check load instruction
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     if (Load == succNode) {
-      BOOST_LOG_SEV(lg, DEBUG) << "Case: Loading an integer typed value.";
-      BOOST_LOG_SEV(lg, DEBUG) << ' ';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "Case: Loading an integer typed value.");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       return make_shared<IDELinearConstantAnalysis::LoadStoreValueIdentity>();
     }
   }
   // Check for binary operations add, sub, mul, udiv/sdiv and urem/srem
   if (curr == succNode && llvm::isa<llvm::BinaryOperator>(curr)) {
-    BOOST_LOG_SEV(lg, DEBUG) << "Case: Binary operation.";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Binary operation.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     unsigned OP = curr->getOpcode();
     auto lop = curr->getOperand(0);
     auto rop = curr->getOperand(1);
@@ -382,10 +397,13 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       IDELinearConstantAnalysis::v_t
       computeTarget(IDELinearConstantAnalysis::v_t source) override {
         auto &lg = lg::get();
-        BOOST_LOG_SEV(lg, DEBUG) << "Left Op   : " << llvmIRToString(lop);
-        BOOST_LOG_SEV(lg, DEBUG) << "Right Op  : " << llvmIRToString(rop);
-        BOOST_LOG_SEV(lg, DEBUG) << "Curr Node : " << llvmIRToString(currNode);
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Left Op   : " << llvmIRToString(lop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Right Op  : " << llvmIRToString(rop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Curr Node : " << llvmIRToString(currNode));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
           auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
           return IDELinearConstantAnalysis::executeBinOperation(
@@ -443,15 +461,14 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
         return this == other.get();
       }
 
-      virtual void print(std::ostream &OS,
-                         bool isForDebug = false) const override {
+      void print(std::ostream &OS, bool isForDebug = false) const override {
         OS << "Binary_" << EdgeFunctionID;
       }
     };
     return make_shared<LCAEF>(OP, lop, rop, currNode);
   }
-  BOOST_LOG_SEV(lg, DEBUG) << "Case: Edge identity.";
-  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Edge identity.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 

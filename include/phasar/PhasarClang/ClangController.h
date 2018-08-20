@@ -7,12 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef CLANGCONTROLLER_H_
-#define CLANGCONTROLLER_H_
+#ifndef PHASAR_PHASARCLANG_CLANGCONTROLLER_H_
+#define PHASAR_PHASARCLANG_CLANGCONTROLLER_H_
 
-#include <iostream>
-#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
-#include <phasar/Utils/Logger.h>
+namespace clang {
+namespace tooling {
+class CommonOptionsParser;
+}
+} // namespace clang
+
 namespace psr {
 
 class ClangController {

@@ -14,11 +14,12 @@
  *      Author: philipp
  */
 
-#ifndef INTRAMONOTONEPROBLEM_H_
-#define INTRAMONOTONEPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_MONO_INTRAMONOTONEPROBLEM_H_
+#define PHASAR_PHASARLLVM_MONO_INTRAMONOTONEPROBLEM_H_
+
+#include <string>
 
 #include <phasar/Config/ContainerConfiguration.h>
-#include <string>
 
 namespace psr {
 

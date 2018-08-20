@@ -14,22 +14,27 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
-#define SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_IFDSIDE_IFDSTABULATIONPROBLEMPLUGIN_H_
+#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_IFDSIDE_IFDSTABULATIONPROBLEMPLUGIN_H_
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <string>
 #include <vector>
 
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
+namespace llvm {
+class Function;
+class Instruction;
+class Value;
+} // namespace llvm
+
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IFDSTabulationProblemPlugin
     : public DefaultIFDSTabulationProblem<
@@ -79,4 +84,4 @@ extern std::map<std::string,
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_PLUGINS_IFDSTABULATIONPROBLEMPLUGIN_HH_ */
+#endif

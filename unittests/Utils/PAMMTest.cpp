@@ -1,7 +1,14 @@
 #include <gtest/gtest.h>
-#include <phasar/Utils/PAMM.h>
+
 #include <thread>
 
+#ifndef PERFORMANCE_EVA // We need it to enable PAMM whatever the build
+                        // configuration ;)
+#define PERFORMANCE_EVA
+#include <phasar/Utils/PAMM.h>
+#endif
+
+using namespace std;
 using namespace psr;
 
 /* Test fixture */
@@ -137,7 +144,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   pamm.exportDataAsJSON("HandleJSONOutputTest");
 }
 
-TEST_F(PAMMTest, PerformanceTimerBasic) {
+TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
   time_point start_1 = std::chrono::high_resolution_clock::now();
   std::this_thread::sleep_for(std::chrono::milliseconds(10));
   time_point end_1 = std::chrono::high_resolution_clock::now();

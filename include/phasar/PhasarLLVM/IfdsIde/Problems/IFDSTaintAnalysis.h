@@ -7,14 +7,18 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
-#define ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
 #include <map>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
+// Could be placed inside the .cpp if w put the nested classes inside it as well
+#include <ostream>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -129,4 +133,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_PROBLEMS_IFDS_TAINTANALYSIS_H_ */
+#endif

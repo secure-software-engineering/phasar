@@ -7,12 +7,22 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_MAPFACTSTOCALLER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_MAPFACTSTOCALLER_H_
 
 #include <functional>
+#include <vector>
+
+#include <llvm/IR/CallSite.h> // llvm::ImmutableCallSite
+
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/Utils/LLVMShorthands.h>
+
+namespace llvm {
+class Function;
+class Value;
+class Instruction;
+} // namespace llvm
+
 namespace psr {
 
 /**
@@ -39,40 +49,12 @@ public:
                    std::function<bool(const llvm::Value *)> paramPredicate =
                        [](const llvm::Value *) { return true; },
                    std::function<bool(const llvm::Function *)> returnPredicate =
-                       [](const llvm::Function *) { return true; })
-      : callSite(cs), calleeMthd(calleeMthd),
-        exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
-        paramPredicate(paramPredicate), returnPredicate(returnPredicate) {
-    // Set up the actual parameters
-    for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-      actuals.push_back(callSite.getArgOperand(idx));
-    }
-    // Set up the formal parameters
-    for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-      formals.push_back(getNthFunctionArgument(calleeMthd, idx));
-    }
-  }
+                       [](const llvm::Function *) { return true; });
   virtual ~MapFactsToCaller() = default;
-  std::set<const llvm::Value *> computeTargets(const llvm::Value *source) {
-    if (!isLLVMZeroValue(source)) {
-      std::set<const llvm::Value *> res;
-      // Map formal parameter into corresponding actual parameter.
-      for (unsigned idx = 0; idx < formals.size(); ++idx) {
-        if (source == formals[idx] && paramPredicate(formals[idx])) {
-          res.insert(actuals[idx]); // corresponding actual
-        }
-      }
-      // Collect return value facts
-      if (source == exitStmt->getReturnValue() && returnPredicate(calleeMthd)) {
-        res.insert(callSite.getInstruction());
-      }
-      return res;
-    } else {
-      return {source};
-    }
-  }
+
+  std::set<const llvm::Value *> computeTargets(const llvm::Value *source);
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_MAPFACTSTOCALLER_H_ */
+#endif

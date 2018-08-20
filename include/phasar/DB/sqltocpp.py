@@ -10,8 +10,8 @@ import sys, getopt, re
 
 # The generated file has the following format:
 #   HEADER + <body> + FOOTER
-HEADER = "auto lg = lg::get();\nBOOST_LOG_SEV(lg, DEBUG) << \"Building database schema\";\n\nunique_ptr<sql::Statement> stmt(conn->createStatement());"
-FOOTER = "BOOST_LOG_SEV(lg, DEBUG) << \"Database schema done\";"
+HEADER = "auto lg = lg::get();\nLOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << \"Building database schema\");\n\nunique_ptr<sql::Statement> stmt(conn->createStatement());"
+FOOTER = "LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << \"Database schema done\");"
 
 # A query has the following format:
 #   QUERY_HEAD_START + <query_name> + QUERY_HEAD_END +

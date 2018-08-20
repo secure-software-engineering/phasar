@@ -4,12 +4,12 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
@@ -28,8 +28,8 @@ protected:
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
-    ICFG = new LLVMBasedICFG(*TH, *IRDB, WalkerStrategy::Pointer,
-                             ResolveStrategy::OTF, EntryPoints);
+    ICFG =
+        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     LCAProblem = new IDELinearConstantAnalysis(*ICFG, EntryPoints);
   }
 
@@ -51,17 +51,21 @@ protected:
       const std::map<int, int64_t> &groundTruth,
       LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> &solver) {
     std::map<int, int64_t> results;
-    for (auto f : IRDB->getAllFunctions()) {
-      for (auto exit : ICFG->getExitPointsOf(f)) {
-        for (auto res : solver.resultsAt(exit, true)) {
-          int id = std::stoi(getMetaDataID(res.first));
-          results.insert(std::pair<int, int64_t>(id, res.second));
+    for (auto M : IRDB->getAllModules()) {
+      for (auto &F : *M) {
+        for (auto exit : ICFG->getExitPointsOf(&F)) {
+          for (auto res : solver.resultsAt(exit, true)) {
+            // std::cout << "resultsAt  N: " << llvmIRToString(res.first)
+            //           << " V: " << res.second << std::endl;
+            int id = std::stoi(getMetaDataID(res.first));
+            results.insert(std::pair<int, int64_t>(id, res.second));
+          }
         }
       }
     }
     EXPECT_THAT(results, ::testing::ContainerEq(groundTruth));
   }
-};
+}; // Test Fixture
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {

@@ -14,14 +14,23 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
 
-#include <boost/algorithm/string/trim.hpp>
-#include <chrono>
-#include <json.hpp>
 #include <map>
 #include <memory>
+#include <set>
+#include <string>
+#include <type_traits>
+#include <unordered_set>
+#include <utility>
+
+#include <json.hpp>
+
+#include <boost/algorithm/string/trim.hpp>
+
+#include <llvm/Support/raw_ostream.h>
+
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -35,18 +44,15 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LinkedNode.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
+
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/PAMM.h>
 #include <phasar/Utils/Table.h>
-#include <set>
-#include <string>
-#include <type_traits>
-#include <utility>
-
-using json = nlohmann::json;
 
 namespace psr {
 
+using json = nlohmann::json;
 // Forward declare the Transformation
 template <typename N, typename D, typename M, typename I>
 class IFDSToIDETabulationProblem;
@@ -226,43 +232,51 @@ public:
     REG_HISTOGRAM("IDESolver");
     REG_HISTOGRAM("Points-to");
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, INFO) << "IDE solver is solving the specified problem";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "IDE solver is solving the specified problem");
     // computations starting here
     START_TIMER("DFA Phase I");
     // We start our analysis and construct exploded supergraph
-    BOOST_LOG_SEV(lg, INFO)
-        << "Submit initial seeds, construct exploded super graph";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Submit initial seeds, construct exploded super graph");
     submitInitalSeeds();
     STOP_TIMER("DFA Phase I");
     if (computevalues) {
       START_TIMER("DFA Phase II");
       // Computing the final values for the edge functions
-      BOOST_LOG_SEV(lg, INFO)
-          << "Compute the final values according to the edge functions";
+      LOG_IF_ENABLE(
+          BOOST_LOG_SEV(lg, INFO)
+          << "Compute the final values according to the edge functions");
       computeValues();
       STOP_TIMER("DFA Phase II");
     }
-    BOOST_LOG_SEV(lg, INFO) << "Problem solved\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Problem solved\n");
 #ifdef PERFORMANCE_EVA
-    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
-    BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:";
-    BOOST_LOG_SEV(lg, INFO)
-        << "flow function query count: " << GET_COUNTER("FF Queries");
-    BOOST_LOG_SEV(lg, INFO)
-        << "edge function query count: " << GET_COUNTER("EF Queries");
-    BOOST_LOG_SEV(lg, INFO) << "data-flow value propagation count: "
-                            << GET_COUNTER("Value Propagation");
-    BOOST_LOG_SEV(lg, INFO) << "data-flow value computation count: "
-                            << GET_COUNTER("Value Computation");
-    BOOST_LOG_SEV(lg, INFO) << "special flow function usage count: "
-                            << GET_COUNTER("SpecialSummary-FF Application");
-    BOOST_LOG_SEV(lg, INFO)
-        << "jump fn construciton count: " << GET_COUNTER("JumpFn Construction");
-    BOOST_LOG_SEV(lg, INFO)
-        << "Phase I duration: " << PRINT_TIMER("DFA Phase I");
-    BOOST_LOG_SEV(lg, INFO)
-        << "Phase II duration: " << PRINT_TIMER("DFA Phase II");
-    BOOST_LOG_SEV(lg, INFO) << "----------------------------------------------";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "----------------------------------------------");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "flow function query count: "
+                                          << GET_COUNTER("FF Queries"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "edge function query count: "
+                                          << GET_COUNTER("EF Queries"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "data-flow value propagation count: "
+                  << GET_COUNTER("Value Propagation"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "data-flow value computation count: "
+                  << GET_COUNTER("Value Computation"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "special flow function usage count: "
+                  << GET_COUNTER("SpecialSummary-FF Application"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "jump fn construciton count: "
+                  << GET_COUNTER("JumpFn Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "----------------------------------------------");
     cachedFlowEdgeFunctions.print();
 #endif
   }
@@ -331,9 +345,9 @@ private:
     PAMM_FACTORY;
     INC_COUNTER("Process Call");
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Process call at target: "
-        << ideTabulationProblem.NtoString(edge.getTarget());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process call at target: "
+                  << ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
@@ -342,13 +356,15 @@ private:
     ADD_TO_HIST("IDESolver", returnSiteNs.size());
     std::set<M> callees = icfg.getCalleesOfCallAt(n);
     ADD_TO_HIST("IDESolver", callees.size());
-    BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
     for (auto callee : callees) {
-      BOOST_LOG_SEV(lg, DEBUG) << "  " << callee->getName().str();
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "  " << callee->getName().str());
     }
-    BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
     for (auto ret : returnSiteNs) {
-      BOOST_LOG_SEV(lg, DEBUG) << "  " << ideTabulationProblem.NtoString(ret);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "  " << ideTabulationProblem.NtoString(ret));
     }
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
@@ -358,7 +374,8 @@ private:
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (specialSum) {
-        BOOST_LOG_SEV(lg, DEBUG) << "Found and process special summary";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
           INC_COUNTER("SpecialSummaryFFApplicationCount");
           std::set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
@@ -370,9 +387,10 @@ private:
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries");
-            BOOST_LOG_SEV(lg, DEBUG)
-                << "Compose: " << sumEdgFnE->str() << " * " << f->str();
-            BOOST_LOG_SEV(lg, DEBUG) << ' ';
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Compose: " << sumEdgFnE->str() << " * "
+                          << f->str());
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
             propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
@@ -387,9 +405,10 @@ private:
         std::set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
         ADD_TO_HIST("IDESolver", startPointsOf.size());
         if (startPointsOf.empty()) {
-          BOOST_LOG_SEV(lg, DEBUG) << "Start points of '" +
-                                          icfg.getMethodName(sCalledProcN) +
-                                          "' currently not available!";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Start points of '" +
+                               icfg.getMethodName(sCalledProcN) +
+                               "' currently not available!");
         }
         // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
@@ -449,21 +468,22 @@ private:
                           n, sCalledProcN, eP, d4, retSiteN, d5);
                   INC_COUNTER_BY_VAL("EF Queries", 2);
                   // compose call * calleeSummary * return edge functions
-                  BOOST_LOG_SEV(lg, DEBUG)
-                      << "Compose: " << f5->str() << " * "
-                      << fCalleeSummary->str() << " * " << f4->str();
-                  BOOST_LOG_SEV(lg, DEBUG)
-                      << "         (return * calleeSummary * call)";
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "Compose: " << f5->str() << " * "
+                                << fCalleeSummary->str() << " * " << f4->str());
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "         (return * calleeSummary * call)");
                   std::shared_ptr<EdgeFunction<V>> fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
-                  BOOST_LOG_SEV(lg, DEBUG)
-                      << "       = " << fPrime->str();
-                  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "       = " << fPrime->str());
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
                   D d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
-                  BOOST_LOG_SEV(lg, DEBUG) << "Compose: " << fPrime->str()
-                                           << " * " << f->str();
-                  BOOST_LOG_SEV(lg, DEBUG) << ' ';
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "Compose: " << fPrime->str() << " * "
+                                << f->str());
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
                   propagate(d1, retSiteN, d5_restoredCtx,
                             f->composeWith(fPrime), n, false);
                 }
@@ -488,9 +508,9 @@ private:
               cachedFlowEdgeFunctions.getCallToReturnEdgeFunction(
                   n, d2, returnSiteN, d3);
           INC_COUNTER("EF Queries");
-          BOOST_LOG_SEV(lg, DEBUG)
-              << "Compose: " << edgeFnE->str() << " * " << f->str();
-          BOOST_LOG_SEV(lg, DEBUG) << ' ';
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Compose: " << edgeFnE->str() << " * " << f->str());
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
           propagate(d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
         }
       }
@@ -506,9 +526,9 @@ private:
     PAMM_FACTORY;
     INC_COUNTER("Process Normal");
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Process normal at target: "
-        << ideTabulationProblem.NtoString(edge.getTarget());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process normal at target: "
+                  << ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
@@ -525,9 +545,9 @@ private:
         std::shared_ptr<EdgeFunction<V>> g =
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
         std::shared_ptr<EdgeFunction<V>> fprime = f->composeWith(g);
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "Compose: " << g->str() << " * " << f->str();
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Compose: " << g->str() << " * " << f->str());
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         INC_COUNTER("EF Queries");
         propagate(d1, m, d3, fprime, nullptr, false);
       }
@@ -596,15 +616,16 @@ private:
     } else {
       valtab.insert(nHashN, nHashD, l);
     }
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Function : " << icfg.getMethodOf(nHashN)->getName().str();
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Inst.    : " << ideTabulationProblem.NtoString(nHashN);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Fact     : " << ideTabulationProblem.DtoString(nHashD);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Value    : " << ideTabulationProblem.VtoString(l);
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Function : "
+                  << icfg.getMethodOf(nHashN)->getName().str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Inst.    : " << ideTabulationProblem.NtoString(nHashN));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Fact     : " << ideTabulationProblem.DtoString(nHashD));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Value    : " << ideTabulationProblem.VtoString(l));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
   std::shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge) {
@@ -630,21 +651,25 @@ private:
     PAMM_FACTORY;
     auto &lg = lg::get();
     INC_COUNTER("JumpFn Construction");
-    BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, DEBUG)
         << "-------------------------------------------- " << PathEdgeCount
-        << ". Path Edge --------------------------------------------";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
-    BOOST_LOG_SEV(lg, DEBUG) << "Process " << PathEdgeCount << ". path edge:";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "< D source: " << ideTabulationProblem.DtoString(edge.factAtSource())
-        << " ;";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "  N target: " << ideTabulationProblem.NtoString(edge.getTarget())
-        << " ;";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "  D target: " << ideTabulationProblem.DtoString(edge.factAtTarget())
-        << " >";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        << ". Path Edge --------------------------------------------");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process " << PathEdgeCount << ". path edge:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "< D source: "
+                  << ideTabulationProblem.DtoString(edge.factAtSource())
+                  << " ;");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "  N target: "
+                  << ideTabulationProblem.NtoString(edge.getTarget()) << " ;");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "  D target: "
+                  << ideTabulationProblem.DtoString(edge.factAtTarget())
+                  << " >");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     bool isCall = icfg.isCallStmt(edge.getTarget());
 
     if (!isCall) {
@@ -765,7 +790,7 @@ protected:
   void computeValues() {
     PAMM_FACTORY;
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Start computing values";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start computing values");
     // Phase II(i)
     std::map<N, std::set<D>> allSeeds(initialSeeds);
     for (N unbalancedRetSite : unbalancedRetSites) {
@@ -806,12 +831,14 @@ protected:
     auto &lg = lg::get();
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
-      BOOST_LOG_SEV(lg, DEBUG)
-          << "Start point: " << ideTabulationProblem.NtoString(startPoint);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "Start point: "
+                    << ideTabulationProblem.NtoString(startPoint));
       for (const D &value : seed.second) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "      Value: " << ideTabulationProblem.DtoString(value);
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "      Value: "
+                      << ideTabulationProblem.DtoString(value));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::getInstance(),
                   nullptr, false);
       }
@@ -833,9 +860,9 @@ protected:
     PAMM_FACTORY;
     INC_COUNTER("Process Exit");
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Process exit at target: "
-        << ideTabulationProblem.NtoString(edge.getTarget());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process exit at target: "
+                  << ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
     std::shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     M methodThatNeedsSummary = icfg.getMethodOf(n);
@@ -888,13 +915,16 @@ protected:
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
             INC_COUNTER_BY_VAL("EF Queries", 2);
             // compose call function * function * return function
-            BOOST_LOG_SEV(lg, DEBUG) << "Compose: " << f5->str() << " * "
-                                     << f->str() << " * " << f4->str();
-            BOOST_LOG_SEV(lg, DEBUG) << "         (return * function * call)";
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Compose: " << f5->str() << " * " << f->str()
+                          << " * " << f4->str());
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "         (return * function * call)");
             std::shared_ptr<EdgeFunction<V>> fPrime =
                 f4->composeWith(f)->composeWith(f5);
-            BOOST_LOG_SEV(lg, DEBUG) << "       = " << fPrime->str();
-            BOOST_LOG_SEV(lg, DEBUG) << ' ';
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "       = " << fPrime->str());
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
             // for each jump function coming into the call, propagate to return
             // site using the composed function
             for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
@@ -902,9 +932,10 @@ protected:
               if (!f3->equal_to(allTop)) {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
-                BOOST_LOG_SEV(lg, DEBUG) << "Compose: " << fPrime->str()
-                                         << " * " << f3->str();
-                BOOST_LOG_SEV(lg, DEBUG) << ' ';
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                              << "Compose: " << fPrime->str() << " * "
+                              << f3->str());
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
                 propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
                           c, false);
               }
@@ -937,9 +968,9 @@ protected:
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
             INC_COUNTER("EF Queries");
-            BOOST_LOG_SEV(lg, DEBUG)
-                << "Compose: " << f5->str() << " * " << f->str();
-            BOOST_LOG_SEV(lg, DEBUG) << ' ';
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Compose: " << f5->str() << " * " << f->str());
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
             propagteUnbalancedReturnFlow(retSiteC, d5, f->composeWith(f5), c);
             // register for value processing (2nd IDE phase)
             unbalancedRetSites.insert(retSiteC);
@@ -1080,16 +1111,20 @@ protected:
             /* deliberately exposed to clients */ N relatedCallSite,
             /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Propagate flow";
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Source value  : " << ideTabulationProblem.DtoString(sourceVal);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Target        : " << ideTabulationProblem.NtoString(target);
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Target value  : " << ideTabulationProblem.DtoString(targetVal);
-    BOOST_LOG_SEV(lg, DEBUG) << "Edge function : " << f.get()->str()
-                             << " (result of previous compose)";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Propagate flow");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Source value  : "
+                  << ideTabulationProblem.DtoString(sourceVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Target        : "
+                  << ideTabulationProblem.NtoString(target));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Target value  : "
+                  << ideTabulationProblem.DtoString(targetVal));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Edge function : " << f.get()->str()
+                  << " (result of previous compose)");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     std::shared_ptr<EdgeFunction<V>> jumpFnE = nullptr;
     std::shared_ptr<EdgeFunction<V>> fPrime;
     if (!jumpFn->reverseLookup(target, targetVal).empty()) {
@@ -1100,27 +1135,30 @@ protected:
     }
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equal_to(jumpFnE));
-    BOOST_LOG_SEV(lg, DEBUG)
-        << "Join: " << jumpFnE->str() << " & " << f.get()->str()
-        << (jumpFnE->equal_to(f)?" (EF's are equal)":" ");
-    BOOST_LOG_SEV(lg, DEBUG) << "    = " << fPrime->str()
-                             << (newFunction ? " (new jump func)" : " ");
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Join: " << jumpFnE->str() << " & " << f.get()->str()
+                  << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " "));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "    = " << fPrime->str()
+                  << (newFunction ? " (new jump func)" : " "));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     if (newFunction) {
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(edge);
       if (!ideTabulationProblem.isZeroValue(targetVal)) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "EDGE: <F: " << target->getFunction()->getName().str()
-            << ", D: " << ideTabulationProblem.DtoString(sourceVal) << ">";
-        BOOST_LOG_SEV(lg, DEBUG)
-            << " ---> <N: " << ideTabulationProblem.NtoString(target) << ",";
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "       D: " << ideTabulationProblem.DtoString(targetVal)
-            << ">";
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "EDGE: <F: " << target->getFunction()->getName().str()
+                      << ", D: " << ideTabulationProblem.DtoString(sourceVal)
+                      << ">");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << " ---> <N: " << ideTabulationProblem.NtoString(target)
+                      << ",");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "       D: "
+                      << ideTabulationProblem.DtoString(targetVal) << ">");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       }
     }
   }
@@ -1144,50 +1182,54 @@ protected:
 
   void printIncomingTab() {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Start of incomingtab entry";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of incomingtab entry");
     for (auto cell : incomingtab.cellSet()) {
-      BOOST_LOG_SEV(lg, DEBUG)
-          << "sP: " << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG)
-          << "d3: " << ideTabulationProblem.DtoString(cell.c);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "sP: " << ideTabulationProblem.NtoString(cell.r));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "d3: " << ideTabulationProblem.DtoString(cell.c));
       for (auto entry : cell.v) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "  n: " << ideTabulationProblem.NtoString(entry.first);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "  n: "
+                      << ideTabulationProblem.NtoString(entry.first));
         for (auto fact : entry.second) {
-          BOOST_LOG_SEV(lg, DEBUG)
-              << "  d2: " << ideTabulationProblem.DtoString(fact);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "  d2: " << ideTabulationProblem.DtoString(fact));
         }
       }
-      BOOST_LOG_SEV(lg, DEBUG) << "---------------";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
     }
-    BOOST_LOG_SEV(lg, DEBUG) << "End of incomingtab entry";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End of incomingtab entry");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
   void printEndSummaryTab() {
     auto &lg = lg::get();
-    BOOST_LOG_SEV(lg, DEBUG) << "Start of endsummarytab entry";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of endsummarytab entry");
     for (auto cell : endsummarytab.cellVec()) {
-      BOOST_LOG_SEV(lg, DEBUG)
-          << "sP: " << ideTabulationProblem.NtoString(cell.r);
-      BOOST_LOG_SEV(lg, DEBUG)
-          << "d1: " << ideTabulationProblem.DtoString(cell.c);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "sP: " << ideTabulationProblem.NtoString(cell.r));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "d1: " << ideTabulationProblem.DtoString(cell.c));
       for (auto inner_cell : cell.v.cellVec()) {
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "  eP: " << ideTabulationProblem.NtoString(inner_cell.r);
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "  d2: " << ideTabulationProblem.DtoString(inner_cell.c);
-        BOOST_LOG_SEV(lg, DEBUG) << "  EF: " << inner_cell.v->str();
-        BOOST_LOG_SEV(lg, DEBUG) << ' ';
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "  eP: "
+                      << ideTabulationProblem.NtoString(inner_cell.r));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "  d2: "
+                      << ideTabulationProblem.DtoString(inner_cell.c));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "  EF: " << inner_cell.v->str());
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       }
-      BOOST_LOG_SEV(lg, DEBUG) << "---------------";
-      BOOST_LOG_SEV(lg, DEBUG) << ' ';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     }
-    BOOST_LOG_SEV(lg, DEBUG) << "End of endsummarytab entry";
-    BOOST_LOG_SEV(lg, DEBUG) << ' ';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End of endsummarytab entry");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 };
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_IDESOLVER_HH_ */
+#endif

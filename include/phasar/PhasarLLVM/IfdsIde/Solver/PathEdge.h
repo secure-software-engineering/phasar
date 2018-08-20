@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHEDGE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_PATHEDGE_H_
 
-#include <iostream>
+#include <ostream>
 
 namespace psr {
 
@@ -55,4 +55,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_PATHEDGE_HH_ */
+#endif

@@ -14,16 +14,17 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_TRANSFER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_TRANSFER_H_
+
+#include <set>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <set>
 
 namespace psr {
 
 template <typename D> class Transfer : public FlowFunction<D> {
-private:
+protected:
   D toValue;
   D fromValue;
 
@@ -41,4 +42,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_TRANSFER_HH_ */
+#endif

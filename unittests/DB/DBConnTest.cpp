@@ -2,6 +2,7 @@
 #include <phasar/DB/DBConn.h>
 #include <phasar/DB/ProjectIRDB.h>
 
+using namespace std;
 using namespace psr;
 
 class DBConnTest : public ::testing::Test {

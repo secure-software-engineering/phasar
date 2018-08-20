@@ -7,43 +7,28 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ANALYSIS_ProjectIRDB_H_
-#define ANALYSIS_ProjectIRDB_H_
+#ifndef PHASAR_DB_PROJECTIRDB_H_
+#define PHASAR_DB_PROJECTIRDB_H_
 
-#include <algorithm>
-#include <boost/filesystem.hpp>
-#include <cassert>
-#include <clang/Basic/Diagnostic.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/CompilerInvocation.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-#include <clang/Tooling/CompilationDatabase.h>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/BasicAliasAnalysis.h>
-#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/IRReader/IRReader.h>
-#include <llvm/Linker/Linker.h>
-#include <llvm/Transforms/Scalar.h>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
-#include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/PAMM.h>
 #include <set>
 #include <string>
-#include <utility>
+
+#include <clang/Tooling/CompilationDatabase.h>
+
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+
+#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+
+namespace llvm {
+class Value;
+class Instruction;
+class Type;
+class Function;
+class GlobalVariable;
+} // namespace llvm
 
 namespace psr {
 
@@ -102,11 +87,16 @@ public:
   /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm
+  /// Constructs a ProjectIRDB from files which may have to be compiled to llvm
   /// IR
   ProjectIRDB(const std::vector<std::string> &Files,
               std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
   ProjectIRDB(ProjectIRDB &&) = default;
+  ProjectIRDB &operator=(ProjectIRDB &&) = delete;
+
+  ProjectIRDB(ProjectIRDB &) = delete;
+  ProjectIRDB &operator=(const ProjectIRDB &) = delete;
+
   ~ProjectIRDB() = default;
 
   void preprocessIR();
@@ -145,4 +135,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_ProjectIRDB_HH_ */
+#endif

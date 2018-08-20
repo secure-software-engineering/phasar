@@ -14,10 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef UTILS_TABLE_H_
-#define UTILS_TABLE_H_
+#ifndef PHASAR_UTILS_TABLE_H_
+#define PHASAR_UTILS_TABLE_H_
 
-#include <iostream>
+#include <ostream>
 #include <set>
 #include <tuple>
 #include <unordered_map>
@@ -226,4 +226,4 @@ public:
 
 } // namespace psr
 
-#endif /* UTILS_TABLE_HH_ */
+#endif

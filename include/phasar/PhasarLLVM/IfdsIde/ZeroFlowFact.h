@@ -7,11 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef ZEROFLOWFACT_H_
-#define ZEROFLOWFACT_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_ZEROFLOWFACT_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_ZEROFLOWFACT_H_
+
+#include <ostream>
 
 #include <iostream>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+
 namespace psr {
 
 class ZeroFlowFact : public FlowFact {

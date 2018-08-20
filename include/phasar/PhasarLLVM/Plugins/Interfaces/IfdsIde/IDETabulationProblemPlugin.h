@@ -7,16 +7,17 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef IDETABULATIONPROBLEMPLUGIN_H_
-#define IDETABULATIONPROBLEMPLUGIN_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_IFDSIDE_IDETABULATIONPROBLEMPLUGIN_H_
+#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_IFDSIDE_IDETABULATIONPROBLEMPLUGIN_H_
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <string>
 #include <vector>
 
 namespace psr {
+
+class LLVMBasedICFG;
 
 class IDETabulationProblemPlugin {};
 

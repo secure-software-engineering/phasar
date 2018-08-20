@@ -9,9 +9,12 @@
 
 #include <phasar/DB/Queries.h>
 
+using namespace std;
 using namespace psr;
 
-const std::string SPO_INSERT =
+namespace psr {
+
+const string SPO_INSERT =
     "insert or ignore into spo_subject (name) "
     "values (\"%1%\");"
 
@@ -23,7 +26,7 @@ const std::string SPO_INSERT =
     "(select id from spo_predicate where name=\"%2%\" and sid=(select id from "
     "spo_subject where name=\"%1%\")));";
 
-const std::string SOP_INSERT =
+const string SOP_INSERT =
     "insert or ignore into sop_subject (name) "
     "values (\"%1%\");"
 
@@ -35,7 +38,7 @@ const std::string SOP_INSERT =
     "(select id from sop_object where name=\"%3%\" and sid=(select id from "
     "sop_subject where name=\"%1%\")));";
 
-const std::string PSO_INSERT =
+const string PSO_INSERT =
     "insert or ignore into pso_predicate (name) "
     "values (\"%2%\");"
 
@@ -47,7 +50,7 @@ const std::string PSO_INSERT =
     "(select id from pso_subject where name=\"%1%\" and pid=(select id from "
     "pso_predicate where name=\"%2%\")));";
 
-const std::string POS_INSERT =
+const string POS_INSERT =
     "insert or ignore into pos_predicate (name) "
     "values (\"%2%\");"
 
@@ -61,7 +64,7 @@ const std::string POS_INSERT =
     "(select pid from pos_object where name=\"%3%\" and pid=(select id from "
     "pos_predicate where name=\"%2%\")));";
 
-const std::string OSP_INSERT =
+const string OSP_INSERT =
     "insert or ignore into osp_object (name) "
     "values (\"%3%\");"
 
@@ -74,7 +77,7 @@ const std::string OSP_INSERT =
     "(select id from osp_object where name=\"%3%\" and oid=(select id from "
     "osp_object where name=\"%3%\")));";
 
-const std::string OPS_INSERT =
+const string OPS_INSERT =
     "insert or ignore into ops_object (name) "
     "values (\"%3%\");"
 
@@ -86,7 +89,7 @@ const std::string OPS_INSERT =
     "(select id from pos_object where name=\"%3%\" and oid=(select id from "
     "osp_object where name=\"%3%\")));";
 
-const std::string SEARCH_SPO =
+const string SEARCH_SPO =
     "select spo_subject.name, spo_predicate.name, spo_object.name from "
     "spo_subject inner join spo_predicate on spo_subject.id=spo_predicate.sid "
     "inner join spo_object on spo_predicate.id=spo_object.pid and "
@@ -94,7 +97,7 @@ const std::string SEARCH_SPO =
     "where spo_subject.name=\"%1%\" and spo_predicate.name=\"%2%\" and "
     "spo_object.name=\"%3%\";";
 
-const std::string SEARCH_SPX =
+const string SEARCH_SPX =
     "-- %3%\n"
     "select spo_subject.name, spo_predicate.name, spo_object.name from "
     "spo_subject inner join spo_predicate on spo_subject.id=spo_predicate.sid "
@@ -102,7 +105,7 @@ const std::string SEARCH_SPX =
     "spo_subject.id=spo_object.sid "
     "where spo_subject.name=\"%1%\" and spo_predicate.name=\"%2%\";";
 
-const std::string SEARCH_SXO =
+const string SEARCH_SXO =
     "-- %2%\n"
     "select sop_subject.name, sop_predicate.name, sop_object.name from "
     "sop_subject "
@@ -111,7 +114,7 @@ const std::string SEARCH_SXO =
     "sop_subject.id=sop_predicate.sid "
     "where sop_subject.name=\"%1%\" and sop_object.name=\"%3%\";";
 
-const std::string SEARCH_XPO =
+const string SEARCH_XPO =
     "-- %1%\n"
     "select pos_subject.name, pos_predicate.name, pos_object.name from "
     "pos_predicate "
@@ -120,7 +123,7 @@ const std::string SEARCH_XPO =
     "pos_subject.oid=pos_object.id "
     "where pos_predicate.name=\"%2%\" and pos_object.name=\"%3%\";";
 
-const std::string SEARCH_SXX =
+const string SEARCH_SXX =
     "-- %2%%3%\n"
     "select spo_subject.name, spo_predicate.name, spo_object.name from "
     "spo_subject inner join spo_predicate on spo_subject.id=spo_predicate.sid "
@@ -128,7 +131,7 @@ const std::string SEARCH_SXX =
     "spo_subject.id=spo_object.sid "
     "where spo_subject.name=\"%1%\";";
 
-const std::string SEARCH_XPX =
+const string SEARCH_XPX =
     "-- %1%%3%\n"
     "select pso_subject.name, pso_predicate.name, pso_object.name from "
     "pso_predicate inner join pso_subject on pso_predicate.id=pso_subject.pid "
@@ -136,7 +139,7 @@ const std::string SEARCH_XPX =
     "pso_subject.id=pso_object.sid "
     "where pso_predicate.name=\"%2%\";";
 
-const std::string SEARCH_XXO =
+const string SEARCH_XXO =
     "-- %1%%2%\n"
     "select osp_subject.name, osp_predicate.name, osp_object.name from "
     "osp_object inner join osp_subject on osp_object.id=osp_subject.oid "
@@ -144,14 +147,14 @@ const std::string SEARCH_XXO =
     "osp_object.id=osp_predicate.oid "
     "where osp_object.name=\"%3%\";";
 
-const std::string SEARCH_XXX =
+const string SEARCH_XXX =
     "-- %1%%2%%3%\n"
     "select spo_subject.name, spo_predicate.name, spo_object.name from "
     "spo_subject inner join spo_predicate on spo_subject.id=spo_predicate.sid "
     "inner join spo_object on spo_predicate.id=spo_object.pid and "
     "spo_subject.id=spo_object.sid;";
 
-const std::string INIT = R"(
+const string INIT = R"(
 -- SPO Tables
 create table if not exists spo_subject (
     id integer not null primary key AUTOINCREMENT,
@@ -174,7 +177,7 @@ create table if not exists spo_object(
     unique(name, pid, sid)
 );
 
- 
+
 
 -- SOP Tables
 create table if not exists sop_subject (
@@ -198,7 +201,7 @@ create table if not exists sop_predicate(
     unique(name, oid, sid)
 );
 
- 
+
 
 -- PSO Tables
 create table if not exists pso_predicate (
@@ -222,7 +225,7 @@ create table if not exists pso_object(
     unique(name, sid, pid)
 );
 
- 
+
 
 -- POS Tables
 create table if not exists pos_predicate (
@@ -246,7 +249,7 @@ create table if not exists pos_subject(
     unique(name, oid, pid)
 );
 
- 
+
 
 -- OSP Tables
 create table if not exists osp_object (
@@ -270,7 +273,7 @@ create table if not exists osp_predicate(
     unique(name, sid, oid)
 );
 
- 
+
 
 -- OPS Tables
 create table if not exists ops_object (
@@ -295,3 +298,5 @@ create table if not exists ops_subject(
 );
 
   )";
+
+} // namespace psr

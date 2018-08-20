@@ -7,10 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef FLOWFACTWRAPPER_H_
-#define FLOWFACTWRAPPER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFACTWRAPPER_H_
+
+#include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
+
 namespace psr {
 
 template <typename T> class FlowFactWrapper : public FlowFact {

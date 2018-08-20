@@ -14,17 +14,17 @@
  *      Author: philipp
  */
 
-#ifndef SRC_CONFIG_CONFIGURATION_H_
-#define SRC_CONFIG_CONFIGURATION_H_
+#ifndef PHASAR_CONFIG_CONFIGURATION_H_
+#define PHASAR_CONFIG_CONFIGURATION_H_
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
-#include <cstdlib>
 #include <string>
-namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
+
+#include <boost/program_options.hpp>
+
 namespace psr {
 
+/// Current Phasar version
+extern const std::string PhasarVersion;
 /// Stores the label/ tag with which we annotate the LLVM IR.
 extern const std::string MetaDataKind;
 /// Specifies the directory in which important configuration files are located.
@@ -40,8 +40,8 @@ extern const std::string LLVMIntrinsicFunctionListFileName;
 extern const std::string HeaderSearchPathsFileName;
 /// Name of the compile_commands.json file (in case we wish to rename)
 extern const std::string CompileCommandsJson;
-/// Variables map of the parsed command-line parameters
-extern bpo::variables_map VariablesMap;
+/// Variables std::map of the parsed command-line parameters
+extern boost::program_options::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;
 // Variables to be used in JSON export format
@@ -56,4 +56,4 @@ extern const std::string JsonDataFlowID;
 
 } // namespace psr
 
-#endif /* SRC_CONFIG_CONFIGURATION_H_ */
+#endif

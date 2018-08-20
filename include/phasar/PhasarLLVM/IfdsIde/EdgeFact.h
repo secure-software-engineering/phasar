@@ -7,10 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef EDGEFACT_H_
-#define EDGEFACT_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFACT_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFACT_H_
 
-#include <iostream>
+#include <iosfwd>
+
 namespace psr {
 
 class EdgeFact {
@@ -19,7 +20,7 @@ public:
   virtual void print(std::ostream &os) const = 0;
 };
 
-static inline std::ostream &operator<< (std::ostream &OS, const EdgeFact &E) {
+static inline std::ostream &operator<<(std::ostream &OS, const EdgeFact &E) {
   E.print(OS);
   return OS;
 }

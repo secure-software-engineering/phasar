@@ -14,9 +14,10 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_H_
-#define ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_ZEROEDFLOWFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_ZEROEDFLOWFUNCTIONS_H_
 
+#include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 
@@ -42,4 +43,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_ZEROEDFLOWFUNCTION_HH_ */
+#endif

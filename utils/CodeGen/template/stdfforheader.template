@@ -1,0 +1,6 @@
+	{classname}();
+	{classname}({classname}&& other);
+	virtual ~{classname}();
+	{classname}(const {classname}& other);
+	{classname}& operator=(const {classname}& other);
+	{classname}& operator=(const {classname}&& other);

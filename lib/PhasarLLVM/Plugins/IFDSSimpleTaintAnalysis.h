@@ -17,9 +17,8 @@
 #ifndef SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 #define SRC_ANALYSIS_PLUGINS_IFDSSIMPLETAINTANALYSIS_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
-using namespace psr;
+
 namespace psr {
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {

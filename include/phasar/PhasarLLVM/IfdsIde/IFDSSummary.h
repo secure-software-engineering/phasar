@@ -14,14 +14,13 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
-#define SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARY_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_IFDSSUMMARY_H_
 
-#include <llvm/IR/Instruction.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <string>
+#include <set>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 
 namespace psr {
 
@@ -54,4 +53,4 @@ public:
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_IFDSSUMMARY_HH_ */
+#endif

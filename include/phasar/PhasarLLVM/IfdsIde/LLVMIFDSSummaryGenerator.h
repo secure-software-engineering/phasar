@@ -14,26 +14,21 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_H_
-#define SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMIFDSSUMMARYGENERATOR_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_LLVMIFDSSUMMARYGENERATOR_H_
 
-#include "../../db/ProjectIRDB.h"
-#include "../../lib/LLVMShorthands.h"
-#include "../../utils/utils.h"
-#include "../control_flow/ICFG.h"
-#include "../control_flow/LLVMBasedICFG.h"
-#include "../ifds_ide/FlowFunction.h"
-#include "../ifds_ide/flow_func/GenAll.h"
-#include "DefaultIFDSTabulationProblem.h"
-#include "IFDSTabulationProblem.h"
-#include "solver/IFDSSummaryGenerator.h"
-#include "solver/LLVMIFDSSolver.h"
+#include <set>
+#include <vector>
+
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
-#include <memory>
-#include <string>
-#include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSummaryGenerator.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
@@ -87,4 +82,4 @@ public:
 };
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_IFDS_IDE_LLVMIFDSSUMMARYGENERATOR_HH_ */
+#endif

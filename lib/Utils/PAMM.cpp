@@ -14,7 +14,18 @@
  *      Author: rleer
  */
 
+#include <iomanip>
+#include <sstream>
+
+#ifndef PERFORMANCE_EVA
+#define PERFORMANCE_EVA // We need it to enable PAMM whatever the build
+                        // configuration is ;)
+#endif
+
+#include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMM.h>
+
+using namespace std;
 using namespace psr;
 
 namespace psr {
@@ -25,6 +36,9 @@ PAMM &PAMM::getInstance() {
 }
 
 void PAMM::startTimer(std::string timerId) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "\nStarting " << timerId << " timer\n");
   bool validTimerId =
       !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
   assert(validTimerId && "startTimer failed due to an invalid timer id");
@@ -46,10 +60,14 @@ void PAMM::resetTimer(std::string timerId) {
 }
 
 void PAMM::stopTimer(std::string timerId, bool pauseTimer) {
-  bool validTimerId =
-      RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "\nStarting " << timerId << " timer\n");
+  bool runningTimer = RunningTimer.count(timerId);
+  bool validTimerId = runningTimer || StoppedTimer.count(timerId);
   assert(validTimerId && "stopTimer failed due to an invalid timer id or timer "
                          "was already stopped");
+  assert(runningTimer && "stopTimer failed because timer was already stopped");
   if (validTimerId) {
     auto timer = RunningTimer.find(timerId);
     time_point end = std::chrono::high_resolution_clock::now();

@@ -14,13 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_EDGEFUNCTION_H_
-#define ANALYSIS_IFDS_IDE_EDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
 
-#include <iostream>
+#include <iostream> // std::cout in dump, better replace it with a ostream
 #include <memory>
 #include <string>
-#include <sstream>
 
 namespace psr {
 
@@ -38,8 +37,8 @@ public:
 
   virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const = 0;
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const { 
-    OS << "edge_function";  
+  virtual void print(std::ostream &OS, bool isForDebug = false) const {
+    OS << "edge_function";
   }
 
   std::string str() {
@@ -50,16 +49,18 @@ public:
 };
 
 template <typename V>
-static inline bool operator== (const EdgeFunction<V>& F, const EdgeFunction<V>& G) {
+static inline bool operator==(const EdgeFunction<V> &F,
+                              const EdgeFunction<V> &G) {
   return F.equal_to(G);
 }
 
 template <typename V>
-static inline std::ostream &operator<< (std::ostream &OS, const EdgeFunction<V> &F) {
+static inline std::ostream &operator<<(std::ostream &OS,
+                                       const EdgeFunction<V> &F) {
   F.print(OS);
   return OS;
 }
 
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_EDGEFUNCTION_HH_ */
+#endif

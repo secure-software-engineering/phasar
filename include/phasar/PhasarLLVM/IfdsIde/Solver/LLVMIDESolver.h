@@ -14,12 +14,16 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_H_
-#define ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIDESOLVER_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIDESOLVER_H_
 
-#include "IDESolver.h"
+#include <algorithm>
+#include <iostream>
+#include <vector>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 
 namespace psr {
 
@@ -62,11 +66,11 @@ public:
       for (auto cell : results) {
         cells.push_back(cell);
       }
-      sort(cells.begin(), cells.end(),
-           [](typename Table<const llvm::Instruction *, D, V>::Cell a,
-              typename Table<const llvm::Instruction *, D, V>::Cell b) {
-             return a.r < b.r;
-           });
+      std::sort(cells.begin(), cells.end(),
+                [](typename Table<const llvm::Instruction *, D, V>::Cell a,
+                   typename Table<const llvm::Instruction *, D, V>::Cell b) {
+                  return a.r < b.r;
+                });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
@@ -131,4 +135,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_SOLVER_LLVMIDESOLVER_HH_ */
+#endif

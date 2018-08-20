@@ -7,7 +7,46 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <fstream>
+#include <iostream>
+
+#include <llvm/Analysis/AliasAnalysis.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/Support/SMLoc.h>
+#include <llvm/Support/raw_os_ostream.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Transforms/Scalar.h>
+
 #include <phasar/Controller/AnalysisController.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDESummaries.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
+#include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/VTable.h>
 
 using namespace std;
 using namespace psr;
@@ -30,13 +69,15 @@ AnalysisController::AnalysisController(
     : FinalResultsJson() {
   PAMM_FACTORY;
   auto &lg = lg::get();
-  BOOST_LOG_SEV(lg, INFO) << "Constructed the analysis controller.";
-  BOOST_LOG_SEV(lg, INFO) << "Found the following IR files for this project: ";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "Constructed the analysis controller.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "Found the following IR files for this project: ");
   for (auto file : IRDB.getAllSourceFiles()) {
-    BOOST_LOG_SEV(lg, INFO) << "\t" << file;
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "\t" << file);
   }
   // Check if the chosen entry points are valid
-  BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
   if (VariablesMap.count("entry_points")) {
     std::vector<std::string> invalidEntryPoints;
@@ -47,8 +88,9 @@ AnalysisController::AnalysisController(
     }
     if (invalidEntryPoints.size()) {
       for (auto &invalidEntryPoint : invalidEntryPoints) {
-        BOOST_LOG_SEV(lg, ERROR)
-            << "Entry point '" << invalidEntryPoint << "' is not valid.";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, ERROR)
+                      << "Entry point '" << invalidEntryPoint
+                      << "' is not valid.");
       }
       throw logic_error("invalid entry points");
     }
@@ -59,13 +101,18 @@ AnalysisController::AnalysisController(
   if (WPA_MODE) {
     // here we link every llvm module into a single module containing the entire
     // IR
-    BOOST_LOG_SEV(lg, INFO)
-        << "link all llvm modules into a single module for WPA ...\n";
-    // START_TIMER("Link to WPA Module");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, INFO)
+        << "link all llvm modules into a single module for WPA ...\n");
+    START_TIMER("Link to WPA Module");
     IRDB.linkForWPA();
-    // STOP_TIMER("Link to WPA Module");
+    STOP_TIMER("Link to WPA Module");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, INFO)
+        << "link all llvm modules into a single module for WPA ended\n");
   }
   IRDB.preprocessIR();
+
   // START_TIMER("DB Start Up");
   // DBConn &db = DBConn::getInstance();
   // STOP_TIMER("DB Start Up");
@@ -73,80 +120,78 @@ AnalysisController::AnalysisController(
   // db.storeProjectIRDB("myphasarproject", IRDB);
   // STOP_TIMER("DB Store IRDB");
   // Reconstruct the inter-modular class hierarchy and virtual function tables
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
   START_TIMER("LTH Construction");
   LLVMTypeHierarchy CH(IRDB);
   STOP_TIMER("LTH Construction");
-  BOOST_LOG_SEV(lg, INFO) << "Reconstruction of class hierarchy completed.";
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                << "Reconstruction of class hierarchy completed.");
+
+  // llvm::errs() << "Allocated types\n";
+  // for (auto alloc : IRDB.getAllocatedTypes()) {
+  //   llvm::errs() << "\n";
+  //   alloc->print(llvm::errs());
+  //   llvm::errs() << "\n";
+  // }
+  // llvm::errs() << "End Allocated types\n";
+
   // START_TIMER("DB Store LTH");
   // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
   // STOP_TIMER("DB Store LTH");
   // CH.printAsDot();
-  FinalResultsJson += CH.getAsJson();
-  if (VariablesMap.count("classhierarchy_analysis")) {
-    CH.print();
-    CH.printAsDot("ch.dot");
-  }
+  // FinalResultsJson += CH.getAsJson();
+  // START_TIMER("print all-module");
+  // ofstream ofs_module("module.log");
+  // llvm::raw_os_ostream stream_module(ofs_module);
+  // IRDB.getWPAModule()->print(stream_module, nullptr);
+  // STOP_TIMER("print all-module");
+  //
+  // auto CHJson = CH.getAsJson();
+  // ofstream ofs_ch("class_hierarchy.json");
+  //
+  // ofs_ch << CHJson.dump();
+  // WARNING
+  // if (VariablesMap.count("classhierarchy_analysis")) {
+  //   CH.print();
+  //   CH.printAsDot("ch.dot");
+  // }
+
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
       (VariablesMap.count("callgraph_analysis"))
           ? StringToCallGraphAnalysisType.at(
                 VariablesMap["callgraph_analysis"].as<string>())
           : CallGraphAnalysisType::OTF);
-  WalkerStrategy CGWalker;
-  ResolveStrategy CGResolve;
-  switch (CGType) {
-  case CallGraphAnalysisType::CHA:
-    CGWalker = WalkerStrategy::Simple;
-    CGResolve = ResolveStrategy::CHA;
-    break;
-  case CallGraphAnalysisType::RTA:
-    CGWalker = WalkerStrategy::Simple;
-    CGResolve = ResolveStrategy::RTA;
-    break;
-  case CallGraphAnalysisType::DTA:
-    CGWalker = WalkerStrategy::DeclaredType;
-    CGResolve = ResolveStrategy::TA;
-    break;
-  case CallGraphAnalysisType::VTA:
-    CGWalker = WalkerStrategy::VariableType;
-    CGResolve = ResolveStrategy::TA;
-    break;
-  case CallGraphAnalysisType::OTF:
-    CGWalker = WalkerStrategy::Pointer;
-    CGResolve = ResolveStrategy::OTF;
-    break;
-  }
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("ICFG Construction");
-    LLVMBasedICFG ICFG(CH, IRDB, CGWalker, CGResolve, EntryPoints);
+    LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
 
     if (VariablesMap.count("callgraph_plugin")) {
-      // TODO write a lambda to replace the built-in callgraph with the
-      // callgraph provided by the plugin
-      SOL so(VariablesMap["callgraph_plugin"].as<string>());
+      throw runtime_error("callgraph plugin not found");
     }
     STOP_TIMER("ICFG Construction");
     ICFG.printAsDot("call_graph.dot");
     // Add the ICFG to final results
-    FinalResultsJson += ICFG.getAsJson();
-    if (VariablesMap.count("callgraph_analysis")) {
-      ICFG.print();
-      ICFG.printAsDot("icfg.dot");
-    }
-    FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    if (VariablesMap.count("pointer_analysis")) {
-      ICFG.getWholeModulePTG().print();
-      ICFG.getWholeModulePTG().printAsDot("wptg.dot");
-    }
+
+    // FinalResultsJson += ICFG.getAsJson();
+    // if (VariablesMap.count("callgraph_analysis")) {
+    //   ICFG.print();
+    //   ICFG.printAsDot("icfg.dot");
+    // }
+    // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
+    // if (VariablesMap.count("pointer_analysis")) {
+    //   ICFG.getWholeModulePTG().print();
+    //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
+    // }
     // CFG is only needed for intra-procedural monotone framework
     LLVMBasedCFG CFG;
     /*
      * Perform all the analysis that the user has chosen.
      */
     for (DataFlowAnalysisType analysis : Analyses) {
-      BOOST_LOG_SEV(lg, INFO) << "Performing analysis: " << analysis;
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Performing analysis: " << analysis);
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
@@ -158,18 +203,19 @@ AnalysisController::AnalysisController(
         // Here we can get the leaks
         map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
             taintanalysisproblem.Leaks;
-        BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
         if (Leaks.empty()) {
-          BOOST_LOG_SEV(lg, INFO) << "No leaks found!";
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
         } else {
           for (auto Leak : Leaks) {
             string ModuleName =
                 getModuleFromVal(Leak.first)->getModuleIdentifier();
-            BOOST_LOG_SEV(lg, INFO)
-                << "At instruction: '" << llvmIRToString(Leak.first)
-                << "' in file: '" << ModuleName << "'";
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                          << "At instruction: '" << llvmIRToString(Leak.first)
+                          << "' in file: '" << ModuleName << "'");
             for (auto LeakValue : Leak.second) {
-              BOOST_LOG_SEV(lg, INFO) << llvmIRToString(LeakValue);
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                            << llvmIRToString(LeakValue));
             }
           }
         }
@@ -255,7 +301,8 @@ AnalysisController::AnalysisController(
                                constproblem.initMemoryLocationCount());
         constproblem.printInitMemoryLocations();
         START_TIMER("DFA Result Computation");
-        // TODO need to consider object fields, i.e. getelementptr instructions
+        // TODO need to consider object fields, i.e. getelementptr
+        // instructions
         // get all stack and heap alloca instructions
         std::set<const llvm::Value *> allMemoryLoc =
             IRDB.getAllocaInstructions();
@@ -278,14 +325,15 @@ AnalysisController::AnalysisController(
             }
           }
         }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:");
         for (auto memloc : allMemoryLoc) {
-          BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc));
         }
-        BOOST_LOG_SEV(lg, DEBUG) << "-------------";
-        BOOST_LOG_SEV(lg, DEBUG)
-            << "Printing return/resume instruction + dataflow facts:";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg, DEBUG)
+            << "Printing return/resume instruction + dataflow facts:");
         for (auto RR : IRDB.getRetResInstructions()) {
           std::set<const llvm::Value *> facts =
               llvmconstsolver.ifdsResultsAt(RR);
@@ -306,12 +354,13 @@ AnalysisController::AnalysisController(
               }
             }
           } else {
-            BOOST_LOG_SEV(lg, DEBUG) << "Instruction: " << llvmIRToString(RR);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Instruction: " << llvmIRToString(RR));
             for (auto fact : facts) {
               if (isAllocaInstOrHeapAllocaFunction(fact) ||
                   llvm::isa<llvm::GlobalValue>(fact)) {
-                BOOST_LOG_SEV(lg, DEBUG)
-                    << "   Fact: " << constproblem.DtoString(fact);
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                              << "   Fact: " << constproblem.DtoString(fact));
                 // remove allocas that are mutable, i.e. are valid facts
                 allMemoryLoc.erase(fact);
               }
@@ -327,8 +376,9 @@ AnalysisController::AnalysisController(
         config.replace(extensionPos, cfp.extension().size(), "");
         ofstream ResultFile;
         ResultFile.open(config + "_memlocs.txt");
-        // BOOST_LOG_SEV(lg, INFO) << "-------------";
-        // BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap Memory";
+        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
+        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap
+        // Memory");
         for (auto memloc : allMemoryLoc) {
           if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
             ResultFile << llvmIRToString(memlocInst) << " in function "
@@ -340,7 +390,7 @@ AnalysisController::AnalysisController(
         }
         ResultFile.close();
         STOP_TIMER("DFA Result Computation");
-        BOOST_LOG_SEV(lg, INFO) << "-------------";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -377,10 +427,13 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonotoneSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonotoneSolver<const llvm::Value *, 3, LLVMBasedICFG &> solver(
-            inter, true);
-        solver.solve();
+        CallString<typename InterMonotoneSolverTest::Node_t,
+                   typename InterMonotoneSolverTest::Domain_t, 3>
+            Context;
+        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+        solver->solve();
         break;
       }
       case DataFlowAnalysisType::Plugin: {
@@ -396,7 +449,8 @@ AnalysisController::AnalysisController(
         break;
       }
       default:
-        BOOST_LOG_SEV(lg, CRITICAL) << "The analysis it not valid";
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL)
+                      << "The analysis it not valid");
         break;
       }
       STOP_TIMER("DFA Runtime");

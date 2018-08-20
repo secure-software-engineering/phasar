@@ -14,23 +14,16 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_VALUEANNOTATIONPASS_H_
-#define ANALYSIS_VALUEANNOTATIONPASS_H_
+#ifndef PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
+#define PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
 
-#include <iostream>
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Metadata.h>
-#include <llvm/IR/Module.h>
 #include <llvm/Pass.h>
-#include <llvm/PassSupport.h>
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/raw_os_ostream.h>
-#include <phasar/Config/Configuration.h>
-#include <phasar/Utils/Logger.h>
-#include <string>
-#include <vector>
+
+namespace llvm {
+class LLVMContext;
+class Module;
+class AnalysisUsage;
+} // namespace llvm
 
 namespace psr {
 
@@ -49,9 +42,7 @@ private:
   llvm::LLVMContext &context;
 
 public:
-  // TODO What's the ID good for?
   static char ID;
-  // TODO What exactly does the constructor do?
   ValueAnnotationPass(llvm::LLVMContext &context)
       : llvm::ModulePass(ID), context(context) {}
 
@@ -96,4 +87,4 @@ public:
 
 } // namespace psr
 
-#endif /* ANALYSIS_VALUEANNOTATIONPASS_HH_ */
+#endif

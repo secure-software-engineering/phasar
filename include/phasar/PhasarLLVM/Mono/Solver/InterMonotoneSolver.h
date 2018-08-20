@@ -14,8 +14,8 @@
  *      Author: philipp
  */
 
-#ifndef INTERMONOTONESOLVER_H_
-#define INTERMONOTONESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONESOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONESOLVER_H_
 
 #include <deque>
 #include <iostream>

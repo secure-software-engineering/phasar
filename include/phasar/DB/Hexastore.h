@@ -7,16 +7,19 @@
  *     Christian Stritzke, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef HEXASTORE_H_
-#define HEXASTORE_H_
+#ifndef PHASAR_DB_HEXASTORE_H_
+#define PHASAR_DB_HEXASTORE_H_
 
-#include "Queries.h"
 #include <array>
-#include <boost/format.hpp>
-#include <iostream>
-#include <sqlite3.h>
+#include <iosfwd>
 #include <string>
 #include <vector>
+
+#include <boost/format.hpp>
+
+#include <sqlite3.h>
+
+#include <phasar/DB/Queries.h>
 
 namespace psr {
 /**
@@ -37,6 +40,11 @@ struct hs_result {
     return os << "[ subject: " << hsr.subject
               << " | predicate: " << hsr.predicate
               << " | object: " << hsr.object << " ]";
+  }
+
+  friend bool operator==(const hs_result LHS, const hs_result RHS) {
+    return LHS.subject == RHS.subject && LHS.predicate == RHS.predicate &&
+           LHS.object == RHS.object;
   }
 };
 /**
@@ -111,6 +119,6 @@ public:
                              size_t result_size_hint = 0);
 };
 
-} /* end namespace psr */
+} // namespace psr
 
-#endif /* HEXASTORE_HH_ */
+#endif

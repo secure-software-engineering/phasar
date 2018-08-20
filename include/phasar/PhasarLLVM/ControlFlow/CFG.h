@@ -14,12 +14,13 @@
  *      Author: philipp
  */
 
-#ifndef SRC_ANALYSIS_ICFG_CFG_H_
-#define SRC_ANALYSIS_ICFG_CFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_CFG_H_
 
 #include <string>
-#include <utility>
+#include <utility> // std::pair
 #include <vector>
+
 namespace psr {
 
 template <typename N, typename M> class CFG {
@@ -51,4 +52,4 @@ public:
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_ICFG_CFG_HH_ */
+#endif

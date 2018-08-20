@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   std::unique_ptr<llvm::Module> M = llvm::parseIRFile(argv[1], Diag, *C);
   // check if the module is alright
   bool broken_debug_info = false;
-  if (llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+  if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
     llvm::errs() << "error: module not valid\n";
     return 1;
   }

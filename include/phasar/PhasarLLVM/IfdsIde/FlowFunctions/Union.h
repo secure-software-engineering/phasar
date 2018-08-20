@@ -14,17 +14,19 @@
  *      Author: pdschbrt
  */
 
-#ifndef ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_H_
-#define ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_UNION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_UNION_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <set>
 #include <vector>
+
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 
 namespace psr {
 
 template <typename D> class Union : public FlowFunction<D> {
-private:
+protected:
   const std::vector<FlowFunction<D>> funcs;
 
 public:
@@ -52,4 +54,4 @@ public:
 };
 } // namespace psr
 
-#endif /* ANALYSIS_IFDS_IDE_FLOW_FUNC_UNION_HH_ */
+#endif

@@ -14,13 +14,18 @@
  *      Author: pdschbrt
  */
 
-#ifndef CLANG_MYASTCONSUMER_H_
-#define CLANG_MYASTCONSUMER_H_
+#ifndef PHASAR_PHASARCLANG_RANDOMCHANGEASTCONSUMER_H_
+#define PHASAR_PHASARCLANG_RANDOMCHANGEASTCONSUMER_H_
 
-#include "RandomChangeVisitor.h"
 #include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/Frontend/CompilerInstance.h>
+
+#include <phasar/PhasarClang/RandomChangeVisitor.h>
+
+namespace clang {
+class ASTContext;
+class Rewriter;
+} // namespace clang
+
 namespace psr {
 
 class RandomChangeASTConsumer : public clang::ASTConsumer {
@@ -37,4 +42,4 @@ public:
 
 } // namespace psr
 
-#endif /* CLANG_MYASTCONSUMER_HH_ */
+#endif
