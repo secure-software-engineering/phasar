@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
-#include <iostream>
 #include <map>
 #include <memory>
 #include <unordered_map>
@@ -43,16 +42,14 @@ private:
   const IDETabulationProblem<N, D, M, L, I> &problem;
 
 protected:
-  // std::mapping from target node and value to a list of all source values and
-  // associated functions
-  // where the list is implemented as a std::mapping from the source value to
-  // the function we exclude empty default functions
+  // mapping from target node and value to a list of all source values and
+  // associated functions where the list is implemented as a mapping from
+  // the source value to the function we exclude empty default functions
   Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
-  // and associated functions
-  // where the list is implemented as a std::mapping from the source value to
-  // the function we exclude empty default functions
+  // and associated functions where the list is implemented as a mapping from
+  // the source value to the function we exclude empty default functions
   Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
@@ -77,12 +74,13 @@ public:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at source: " << problem.DtoString(sourceVal));
+                  << "Fact at source : " << problem.DtoString(sourceVal));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at target: " << problem.DtoString(targetVal));
+                  << "Fact at target : " << problem.DtoString(targetVal));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Destination: " << problem.NtoString(target));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EdgeFunction: " << *function);
+                  << "Destination    : " << problem.NtoString(target));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Edge Function  : " << function->str());
     // we do not store the default function (all-top)
     if (function->equal_to(allTop))
       return;
@@ -97,12 +95,13 @@ public:
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
     //	printNonEmptyLookupByTargetNode();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
   /**
    * Returns, for a given target statement and value all associated
    * source values, and for each the associated edge function.
-   * The return value is a std::mapping from source value to function.
+   * The return value is a mapping from source value to function.
    */
   std::map<D, std::shared_ptr<EdgeFunction<L>>> reverseLookup(N target,
                                                               D targetVal) {
@@ -115,7 +114,7 @@ public:
   /**
    * Returns, for a given source value and target statement all
    * associated target values, and for each the associated edge function.
-   * The return value is a std::mapping from target value to function.
+   * The return value is a mapping from target value to function.
    */
   std::map<D, std::shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal,
                                                               N target) {
@@ -128,7 +127,7 @@ public:
   /**
    * Returns for a given target statement all jump function records with this
    * target.
-   * The return value is a std::set of records of the form
+   * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
   Table<D, D, std::shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
@@ -198,15 +197,17 @@ public:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "fact at dst: " << problem.DtoString(cell.c));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "edge fnct: " << cell.v->toString());
+                      << "edge fnct: " << cell.v->str());
       }
     }
   }
 
   void printNonEmptyReverseLookup() {
-    std::cout << "DUMP nonEmptyReverseLookup" << std::endl;
-    std::cout << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyReverseLookup");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, DEBUG)
+        << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyReverseLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -219,9 +220,11 @@ public:
   }
 
   void printNonEmptyForwardLookup() {
-    std::cout << "DUMP nonEmptyForwardLookup" << std::endl;
-    std::cout << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyForwardLookup");
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg, DEBUG)
+        << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyForwardLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -234,10 +237,12 @@ public:
   }
 
   void printNonEmptyLookupByTargetNode() {
-    std::cout << "DUMP nonEmptyLookupByTargetNode" << std::endl;
-    std::cout << "std::unordered_map<N, Table<D, D, "
-                 "std::shared_ptr<EdgeFunction<L>>>>"
-              << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "DUMP nonEmptyLookupByTargetNode");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "std::unordered_map<N, Table<D, D, "
+                     "std::shared_ptr<EdgeFunction<L>>>>");
     for (auto node : nonEmptyLookupByTargetNode) {
       node.first->dump();
       auto table = nonEmptyLookupByTargetNode[node.first];

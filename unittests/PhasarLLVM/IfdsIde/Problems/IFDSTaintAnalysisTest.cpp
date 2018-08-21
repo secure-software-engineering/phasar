@@ -20,8 +20,7 @@ TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
                    IRDBOptions::NONE);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF,
-                     {"main"});
+  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, {"main"});
   IFDSTaintAnalysis TaintProblem(ICFG, {"main"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(TaintProblem,
                                                                    true);

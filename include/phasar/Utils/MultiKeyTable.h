@@ -56,7 +56,7 @@ public:
 
   MultiKeyTable(MultiKeyTable &&t) = default;
 
-  MultiKeyTable &operator=(const Table &t) = default;
+  MultiKeyTable &operator=(const MultiKeyTable &t) = default;
 
   MultiKeyTable &operator=(MultiKeyTable &&t) = default;
 
@@ -73,7 +73,7 @@ public:
   size_t size() { return multi_key_table.size(); }
 
   std::multiset<Cell> cellSet() {
-    // Returns a std::set of all row key / column key / value triplets.
+    // Returns a set of all row key / column key / value triplets.
     std::multiset<Cell> s;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : m1.second) {
@@ -84,7 +84,7 @@ public:
   }
 
   std::unordered_multimap<R, V> column(C columnKey) {
-    // Returns a view of all std::mappings that have the given column key.
+    // Returns a view of all mappings that have the given column key.
     std::unordered_multimap<R, V> column;
     for (auto &row : multi_key_table) {
       if (row.second.count(columnKey))
@@ -94,19 +94,19 @@ public:
   }
 
   std::multiset<C> columnKeySet() {
-    // Returns a std::set of column keys that have one or more values in the
+    // Returns a set of column keys that have one or more values in the
     // table.
-    multiset<C> colkeys;
+    std::multiset<C> colkeys;
     for (auto &m1 : multi_key_table)
       for (auto &m2 : m1.second)
         colkeys.insert(m2.first);
     return colkeys;
   }
 
-  std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnMap() {
+  std::unordered_multimap<C, std::unordered_multimap<R, V>> columnMap() {
     // Returns a view that associates each column key with the corresponding
-    // std::map from row keys to values.
-    std::unordered_multistd::map<C, std::unordered_multimap<R, V>> columnmap;
+    // map from row keys to values.
+    std::unordered_multimap<C, std::unordered_multimap<R, V>> columnmap;
     for (auto &m1 : multi_key_table) {
       for (auto &m2 : multi_key_table.second) {
         columnmap[m2.first][m1.first] = m2.second;
@@ -116,7 +116,7 @@ public:
   }
 
   bool contains(R rowKey, C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified row
+    // Returns true if the table contains a mapping with the specified row
     // and column keys.
     if (multi_key_table.count(rowKey))
       return multi_key_table[rowKey].count(columnKey);
@@ -124,7 +124,7 @@ public:
   }
 
   bool containsColumn(C columnKey) {
-    // Returns true if the table contains a std::mapping with the specified
+    // Returns true if the table contains a mapping with the specified
     // column.
     for (auto &m1 : multi_key_table)
       if (m1.second.count(columnKey))
@@ -133,13 +133,13 @@ public:
   }
 
   bool containsRow(R rowKey) {
-    // Returns true if the table contains a std::mapping with the specified row
+    // Returns true if the table contains a mapping with the specified row
     // key.
     return multi_key_table.count(rowKey);
   }
 
   bool containsValue(V value) {
-    // Returns true if the table contains a std::mapping with the specified
+    // Returns true if the table contains a mapping with the specified
     // value.
     for (auto &m1 : multi_key_table)
       for (auto &m2 : m1.second)
@@ -148,9 +148,9 @@ public:
     return false;
   }
 
-  std::vector<V> get(R rowKey, C columnKey) {
+  V get(R rowKey, C columnKey) {
     // Returns the value corresponding to the given row and column keys, or null
-    // if no such std::mapping exists.
+    // if no such mapping exists.
     // if (table.count(rowKey))
     //	if (table[rowKey].count(columnKey))
     return multi_key_table[rowKey][columnKey];
@@ -158,7 +158,7 @@ public:
   }
 
   V remove(R rowKey, C columnKey) {
-    // Removes the std::mapping, if any, associated with the given keys.
+    // Removes the mapping, if any, associated with the given keys.
     V v;
     if (contains(rowKey, columnKey)) {
       v = multi_key_table[rowKey][columnKey];
@@ -168,13 +168,13 @@ public:
   }
 
   std::unordered_multimap<C, V> &row(R rowKey) {
-    // Returns a view of all std::mappings that have the given row key.
+    // Returns a view of all mappings that have the given row key.
     return multi_key_table[rowKey];
   }
 
   std::multiset<R> rowKeySet() {
-    // Returns a std::set of row keys that have one or more values in the table.
-    multiset<R> s;
+    // Returns a set of row keys that have one or more values in the table.
+    std::multiset<R> s;
     for (auto &m1 : multi_key_table)
       s.insert(m1.first);
     return s;
@@ -182,7 +182,7 @@ public:
 
   std::unordered_multimap<R, std::unordered_multimap<C, V>> rowMap() {
     // Returns a view that associates each row key with the corresponding
-    // std::map from column keys to values.
+    // map from column keys to values.
     return multi_key_table;
   }
 

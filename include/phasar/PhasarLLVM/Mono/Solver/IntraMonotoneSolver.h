@@ -42,7 +42,7 @@ protected:
         CFG.getAllControlFlowEdges(IMProblem.getFunction());
     // add all edges to the worklist
     Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-    // std::set all analysis information to the empty std::set
+    // set all analysis information to the empty set
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }

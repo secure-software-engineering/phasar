@@ -41,7 +41,11 @@ public:
     OS << "edge_function";
   }
 
-  std::string toString() { return "edge function"; }
+  std::string str() {
+    std::ostringstream oss;
+    print(oss);
+    return oss.str();
+  }
 };
 
 template <typename V>

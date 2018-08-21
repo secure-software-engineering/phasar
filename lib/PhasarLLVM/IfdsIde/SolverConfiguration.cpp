@@ -10,8 +10,9 @@
 #include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
-using namespace psr;
+
 using namespace std;
+using namespace psr;
 
 namespace psr {
 

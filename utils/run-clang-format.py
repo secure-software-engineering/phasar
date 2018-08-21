@@ -12,7 +12,8 @@ import sys
 SCRIPT_PATH = os.path.dirname(os.path.realpath(sys.path[0]))
 
 SRC_DIRS = (SCRIPT_PATH + "/include/phasar",
-            SCRIPT_PATH + "/lib/"
+            SCRIPT_PATH + "/lib/",
+            SCRIPT_PATH + "/unittests/"
             )
 
 cpp_extensions = (".cpp",
