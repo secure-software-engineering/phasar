@@ -200,6 +200,9 @@ AnalysisController::AnalysisController(
             taintanalysisproblem, true);
         llvmtaintsolver.solve();
         FinalResultsJson += llvmtaintsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtaintsolver.exportJson(graph_id);
+        }
         // Here we can get the leaks
         map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
             taintanalysisproblem.Leaks;
@@ -227,6 +230,9 @@ AnalysisController::AnalysisController(
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
         FinalResultsJson += llvmtaintsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtaintsolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
@@ -235,6 +241,9 @@ AnalysisController::AnalysisController(
             llvmtypestatesolver(typestateproblem, true);
         llvmtypestatesolver.solve();
         FinalResultsJson += llvmtypestatesolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtypestatesolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
@@ -243,6 +252,9 @@ AnalysisController::AnalysisController(
             typeanalysisproblem, true);
         llvmtypesolver.solve();
         FinalResultsJson += llvmtypesolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtypesolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
@@ -252,7 +264,7 @@ AnalysisController::AnalysisController(
         llvmunivsolver.solve();
         FinalResultsJson += llvmunivsolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJSONDataModel(graph_id);
+          llvmunivsolver.exportJson(graph_id);
         }
         break;
       }
@@ -263,7 +275,7 @@ AnalysisController::AnalysisController(
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmlcasolver.exportJSONDataModel(graph_id);
+          llvmlcasolver.exportJson(graph_id);
         }
         break;
       }
@@ -288,6 +300,9 @@ AnalysisController::AnalysisController(
           cout << endl;
         }
         FinalResultsJson += llvmlcasolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmlcasolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
@@ -296,6 +311,9 @@ AnalysisController::AnalysisController(
             constproblem, true);
         llvmconstsolver.solve();
         FinalResultsJson += llvmconstsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmconstsolver.exportJson(graph_id);
+        }
         constproblem.printInitMemoryLocations();
         REG_COUNTER_WITH_VALUE("Const Init Set Size",
                                constproblem.initMemoryLocationCount());
@@ -399,6 +417,9 @@ AnalysisController::AnalysisController(
             ifdstest, true);
         llvmifdstestsolver.solve();
         FinalResultsJson += llvmifdstestsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmifdstestsolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -406,7 +427,10 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest, true);
         llvmidetestsolver.solve();
-        llvmidetestsolver.getAsJson();
+        FinalResultsJson += llvmidetestsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmidetestsolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {

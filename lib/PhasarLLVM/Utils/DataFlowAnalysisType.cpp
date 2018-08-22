@@ -16,16 +16,16 @@ using namespace std;
 namespace psr {
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
-    {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
     {"ifds_const", DataFlowAnalysisType::IFDS_ConstAnalysis},
+    {"ifds_lca", DataFlowAnalysisType::IFDS_LinearConstantAnalysis},
+    {"ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest},
     {"ifds_taint", DataFlowAnalysisType::IFDS_TaintAnalysis},
     {"ifds_type", DataFlowAnalysisType::IFDS_TypeAnalysis},
-    {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
-    {"ide_typestate", DataFlowAnalysisType::IDE_TypeStateAnalysis},
-    {"ifds_solvertest", DataFlowAnalysisType::IFDS_SolverTest},
-    {"ifds_lca", DataFlowAnalysisType::IFDS_LinearConstantAnalysis},
+    {"ifds_uninit", DataFlowAnalysisType::IFDS_UninitializedVariables},
     {"ide_lca", DataFlowAnalysisType::IDE_LinearConstantAnalysis},
     {"ide_solvertest", DataFlowAnalysisType::IDE_SolverTest},
+    {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
+    {"ide_typestate", DataFlowAnalysisType::IDE_TypeStateAnalysis},
     {"mono_intra_fullconstpropagation",
      DataFlowAnalysisType::MONO_Intra_FullConstantPropagation},
     {"mono_intra_solvertest", DataFlowAnalysisType::MONO_Intra_SolverTest},
@@ -34,16 +34,16 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"none", DataFlowAnalysisType::None}};
 
 const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
-    {DataFlowAnalysisType::IFDS_UninitializedVariables, "ifds_uninit"},
     {DataFlowAnalysisType::IFDS_ConstAnalysis, "ifds_const"},
+    {DataFlowAnalysisType::IFDS_LinearConstantAnalysis, "ifds_lca"},
+    {DataFlowAnalysisType::IFDS_SolverTest, "ifds_solvertest"},
     {DataFlowAnalysisType::IFDS_TaintAnalysis, "ifds_taint"},
     {DataFlowAnalysisType::IFDS_TypeAnalysis, "ifds_type"},
-    {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
-    {DataFlowAnalysisType::IDE_TypeStateAnalysis, "ide_typestate"},
-    {DataFlowAnalysisType::IFDS_SolverTest, "ifds_solvertest"},
-    {DataFlowAnalysisType::IFDS_LinearConstantAnalysis, "ifds_lca"},
+    {DataFlowAnalysisType::IFDS_UninitializedVariables, "ifds_uninit"},
     {DataFlowAnalysisType::IDE_LinearConstantAnalysis, "ide_lca"},
     {DataFlowAnalysisType::IDE_SolverTest, "ide_solvertest"},
+    {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
+    {DataFlowAnalysisType::IDE_TypeStateAnalysis, "ide_typestate"},
     {DataFlowAnalysisType::MONO_Intra_FullConstantPropagation,
      "mono_intra_fullconstpropagation"},
     {DataFlowAnalysisType::MONO_Intra_SolverTest, "mono_intra_solvertest"},
