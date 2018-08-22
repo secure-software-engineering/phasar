@@ -29,16 +29,25 @@ export default class StartForm extends React.Component<any, State> {
         this.state = {
             redirectToReferrer: false,
             file: undefined,
-            analysis: 'uninitialized_analysis',
+            analysis: 'ifds_const',
             name: '',
             framework: 'p',
-            wpa: false,
+            wpa: true,
             mem2reg: false,
-            moduleProject: 'p',
+            moduleProject: 'm',
             resultId: -1,
             frameworkMap: { 'p': 'PHASAR' },
-            moduleProjectMap: { 'p': 'project', 'm': 'module' },
-            analysisMap: { 'single': 'uninitialized variable' },
+            moduleProjectMap: { 'm': 'module', 'p': 'project' },
+            analysisMap: {  "ifds_const": "IFDS ConstAnalysis",
+                            "ifds_lca": "IFDS LinearConstantAnalysis",
+                            "ifds_solvertest": "IFDS SolverTest",
+                            "ifds_taint": "IFDS TaintAnalysis",
+                            "ifds_type": "IFDS TypeAnalysis",
+                            "ifds_uninit": "IFDS UninitializedVariables",
+                            "ide_lca": "IDE LinearConstantAnalysis",
+                            "ide_solvertest": "IDE SolverTest",
+                            "ide_taint": "IDE TaintAnalysis",
+                            "ide_typestate": "IDE TypeStateAnalysis" },
         };
         this.redirectCallback = this.redirectCallback.bind(this);
     }
@@ -108,8 +117,8 @@ export default class StartForm extends React.Component<any, State> {
                         <label style={{ paddingTop: '8px' }}> WPA   </label><ToggleButton isToggleOn={this.state.wpa} handleClick={this.handleWpaClick.bind(this)}></ToggleButton>
                         <label style={{ paddingTop: '8px' }}> mem2reg</label><ToggleButton isToggleOn={this.state.mem2reg} handleClick={this.handleMemRegClick.bind(this)}></ToggleButton>
                         <label> Program Type</label>  <Select keyValueMap={this.state.moduleProjectMap} itemSelected={this.moduleProjectSelected.bind(this)}></Select>
-                        <label>Analysis</label>  <Select keyValueMap={this.state.analysisMap} itemSelected={this.analysisSelected.bind(this)}></Select>
-                        <label>Program to analyze</label>  <div style={{ gridColumnStart: 2, gridColumnEnd: 3 }}><SingleFileDrop handleDrop={this.handleDrop.bind(this)}></SingleFileDrop></div>
+                        <label> Analysis</label>  <Select keyValueMap={this.state.analysisMap} itemSelected={this.analysisSelected.bind(this)}></Select>
+                        <label> Program to analyze</label>  <div style={{ gridColumnStart: 2, gridColumnEnd: 3 }}><SingleFileDrop handleDrop={this.handleDrop.bind(this)}></SingleFileDrop></div>
                         <input style={{ gridColumnStart: 2, gridColumnEnd: 3 }} type="submit" value="Start Analysis" />
                     </div>
                 </form>
