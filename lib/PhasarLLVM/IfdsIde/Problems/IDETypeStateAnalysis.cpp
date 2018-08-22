@@ -115,10 +115,15 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getCallFlowFunction()");*/
 
-  if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" || destMthd->getName() == "fgetc" || destMthd->getName() == "fputc" || destMthd->getName() == "putchar" ||
-      destMthd->getName() == "_IO_getc" || destMthd->getName() == "_I0_putc" || destMthd->getName() == "fprintf" || destMthd->getName() == "__isoc99_fscanf" || destMthd->getName() == "feof" ||
-      destMthd->getName() == "ferror" || destMthd->getName() == "ungetc" || destMthd->getName() == "fflush" || destMthd->getName() == "fseek" || destMthd->getName() == "ftell" || 
-      destMthd->getName() == "rewind" || destMthd->getName() == "fgetpos" || destMthd->getName() == "fsetpos") {
+  if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" || 
+      destMthd->getName() == "fgetc" || destMthd->getName() == "fputc" ||
+      destMthd->getName() == "putchar" || destMthd->getName() == "_IO_getc" || 
+      destMthd->getName() == "_I0_putc" || destMthd->getName() == "fprintf" || 
+      destMthd->getName() == "__isoc99_fscanf" || destMthd->getName() == "feof" ||
+      destMthd->getName() == "ferror" || destMthd->getName() == "ungetc" || 
+      destMthd->getName() == "fflush" || destMthd->getName() == "fseek" || 
+      destMthd->getName() == "ftell" || destMthd->getName() == "rewind" || 
+      destMthd->getName() == "fgetpos" || destMthd->getName() == "fsetpos") {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
 
