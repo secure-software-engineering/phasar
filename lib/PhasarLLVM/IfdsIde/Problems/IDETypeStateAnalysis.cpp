@@ -23,6 +23,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
+//#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;
@@ -80,7 +81,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   }
 
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    //if (Load->getPointerOperand()->getType()->isPointerTy()) {
+    /**/if (Load->getPointerOperand()->getType()->getPointerElementType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Load->getPointerOperand()->getType()->getPointerElementType()->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
@@ -89,7 +90,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                              zeroValue());
         }
       }
-    //}
+    /**/}
   }
 
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
