@@ -26,7 +26,7 @@ class Instruction;
 namespace psr {
 
 /**
- * Predicates can be used to specifiy additonal requirements for std::mapping
+ * Predicates can be used to specifiy additonal requirements for mapping
  * actual parameters into formal parameters and the return value.
  * @note Currently, the return value predicate only allows checks regarding
  * the callee method.

@@ -6,10 +6,11 @@
 using namespace std;
 using namespace psr;
 
-TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
+TEST(LLVMBasedCFGTest, DISABLED_FallThroughSuccTest) {
   // LLVMBasedCFG cfg;
-  // ProjectIRDB IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"});
-  // auto F = IRDB.getFunction("main");
+  // ProjectIRDB
+  // IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"}); auto F =
+  // IRDB.getFunction("main");
   //
   // // HANDLING CONDITIONAL BRANCH
   // // br i1 %5, label %6, label %9
@@ -18,7 +19,8 @@ TEST(LLVMBasedCFGTest, FallThroughSuccTest) {
   // ASSERT_FALSE(
   //     cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F, 10)));
   // // %10 = load i32, i32* %3, align 4
-  // ASSERT_TRUE(cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F, 14)));
+  // ASSERT_TRUE(cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F,
+  // 14)));
   //
   // // HANDLING UNCONDITIONAL BRANCH
   // // br label %12

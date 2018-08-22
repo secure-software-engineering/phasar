@@ -360,7 +360,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
       llvm::AAResults AARes =
           llvm::createLegacyPMAAResults(*BasicAAWP, F, BAAResult);
       // This line is a major slowdown
-      // The problem comes from the generation of PtG is which far too slow
+      // The problem comes from the generation of PtG which is far too slow
       // due to the use of llvmIRToString (without it, the generation of PtG is
       // very acceptable)
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
@@ -445,7 +445,7 @@ void ProjectIRDB::linkForWPA() {
     WPAMOD = MainMod;
   } else if (modules.size() == 1) {
     // In this case we only have one module anyway, so we do not have
-    // to link at all. But we have to update the the WPAMOD pointer!
+    // to link at all. But we have to update the WPAMOD pointer!
     WPAMOD = modules.begin()->second.get();
   }
 }
@@ -707,9 +707,7 @@ std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
   auto &lg = lg::get();
-
   static std::set<const llvm::Function *> funs;
-
   if (funs.size() == 0) {
     for (const auto &entry : functions) {
       const llvm::Function *f = modules[entry.second]->getFunction(entry.first);

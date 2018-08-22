@@ -269,9 +269,24 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
         IDELinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmlcasolver(
-            lcaproblem, true);
+        LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
+            llvmlcasolver(lcaproblem, true);
         llvmlcasolver.solve();
+        cout << "\n======= LCA RESULTS =======" << endl;
+        for (auto f : IRDB.getAllFunctions()) {
+          cout << "Function : " << f->getName().str() << endl;
+          for (auto exit : ICFG.getExitPointsOf(f)) {
+            cout << "Exit     : " << lcaproblem.NtoString(exit) << endl;
+            for (auto res : llvmlcasolver.resultsAt(exit, true)) {
+              cout << "Value: "
+                   << (res.second == lcaproblem.bottomElement()
+                           ? "BOT"
+                           : lcaproblem.VtoString(res.second))
+                   << "\tat " << lcaproblem.DtoString(res.first) << endl;
+            }
+          }
+          cout << endl;
+        }
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }

@@ -50,7 +50,7 @@ int main(int argc, const char **argv) {
     S.solve();
 		// IDE template parametrization test
 		IDELinearConstantAnalysis M(I, {"main"});
-		LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> T(M, true);
+		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M, true);
 		T.solve();
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";

@@ -24,7 +24,7 @@ class ImmutableCallSite;
 namespace psr {
 
 /**
- * A predicate can be used to specifiy additonal requirements for std::mapping
+ * A predicate can be used to specifiy additonal requirements for mapping
  * actual parameter into formal parameter.
  * @brief Generates all valid formal parameter in the callee context.
  */

@@ -41,14 +41,19 @@ struct hs_result {
               << " | predicate: " << hsr.predicate
               << " | object: " << hsr.object << " ]";
   }
+
+  friend bool operator==(const hs_result LHS, const hs_result RHS) {
+    return LHS.subject == RHS.subject && LHS.predicate == RHS.predicate &&
+           LHS.object == RHS.object;
+  }
 };
 /**
  * A Hexastore is an efficient approach to store large graphs.
  * This approach is based on the paper "Database-Backed Program Analysis
  * for Scalable Error Propagation" by Weiss, Rubio-González and Libit.
  *
- * To store a graph into a database, we represent the graph by a std::set of
- * std::string 3-tuples by the form:
+ * To store a graph into a database, we represent the graph by a set of
+ * string 3-tuples by the form:
  *
  *          (source node, edge, destination node)
  *
@@ -114,6 +119,6 @@ public:
                              size_t result_size_hint = 0);
 };
 
-} /* end namespace psr */
+} // namespace psr
 
 #endif

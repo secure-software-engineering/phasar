@@ -1,6 +1,6 @@
-#include <boost/graph/isomorphism.hpp>
 #include <boost/graph/graph_utility.hpp>
 #include <boost/graph/graphviz.hpp>
+#include <boost/graph/isomorphism.hpp>
 
 #include <gtest/gtest.h>
 
@@ -8,7 +8,6 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
-
 
 using namespace std;
 using namespace psr;

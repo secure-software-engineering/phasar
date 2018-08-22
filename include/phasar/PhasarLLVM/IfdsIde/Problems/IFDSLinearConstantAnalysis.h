@@ -28,7 +28,7 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-// A small std::pair data type to encode data flow facts for this LCA
+// A small pair data type to encode data flow facts for this LCA
 struct LCAPair {
   const llvm::Value *first;
   int second;
@@ -40,7 +40,7 @@ struct LCAPair {
 
 } // namespace psr
 
-// Specialize std::hash to be used in containers like std::unordered_map
+// Specialize hash to be used in containers like std::unordered_map
 namespace std {
 template <> struct hash<psr::LCAPair> {
   std::size_t operator()(const psr::LCAPair &k) const;

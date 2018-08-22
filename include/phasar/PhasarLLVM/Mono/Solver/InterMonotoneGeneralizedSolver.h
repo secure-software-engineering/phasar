@@ -85,7 +85,7 @@ protected:
   WL_second_const_it_t current_it_on_edge;
   std::set<edge_t> call_edges;
 
-  // TODO: initialize the Analysis std::map with different contexts
+  // TODO: initialize the Analysis map with different contexts
   // void initialize_with_context() {
   //   for ( const auto& seed : IMProblem.initialSeeds() ) {
   //     for ( const auto& context : seed.second ) {
@@ -230,7 +230,7 @@ public:
         } // isIntraEdge(edge)
 
         // Even in a call-to-ret (like recursion) the context can change
-        // (e.g. called with a different std::set of parameters)
+        // (e.g. called with a different set of parameters)
         dst_context.enterFunction(src, dst, Analysis[src][src_context]);
       } // isCallEdge(edge)
 
@@ -262,7 +262,7 @@ public:
       auto dst_range = Analysis[dst].equal_range(dst_context);
       for (auto &analysis_dst_it = dst_range.first;
            analysis_dst_it != dst_range.second; ++analysis_dst_it) {
-        // flowfactsstabilized = true <-> Same std::set & already visited once
+        // flowfactsstabilized = true <-> Same set & already visited once
         bool flowfactsstabilized =
             dst_context_already_exist
                 ? IMProblem.sqSubSetEqual(Out, analysis_dst_it->second)

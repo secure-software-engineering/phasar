@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 /*
- * LLVMBasedInterproceduralICFG.h
+ * LLVMBasedICFG.h
  *
  *  Created on: 09.09.2016
  *      Author: pdschbrt

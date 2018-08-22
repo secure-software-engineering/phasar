@@ -23,7 +23,6 @@
 
 using namespace std;
 using namespace psr;
-using namespace std;
 
 namespace psr {
 

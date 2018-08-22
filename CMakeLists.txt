@@ -91,6 +91,7 @@ include_directories(external/json/src)
 # Googletest
 add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 include_directories(external/googletest/googletest/include)
+include_directories(external/googletest/googlemock/include)
 
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)

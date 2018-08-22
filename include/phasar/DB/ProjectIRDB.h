@@ -87,7 +87,7 @@ public:
   /// projects)
   ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
               enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from files wich may have to be compiled to llvm
+  /// Constructs a ProjectIRDB from files which may have to be compiled to llvm
   /// IR
   ProjectIRDB(const std::vector<std::string> &Files,
               std::vector<const char *> CompileArgs, enum IRDBOptions Opt);

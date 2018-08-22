@@ -153,10 +153,10 @@ public:
 //                              K>>::Analysis) {
 //       std::cout << "Instruction: " << llvmIRToString(node.first) << " in "
 //            << node.first->getFunction()->getName().str() << "\n";
-//       // Iterate call-std::string - flow fact std::set pairs
+//       // Iterate call-string - flow fact set pairs
 //       for (auto &flowfacts : node.second) {
 //         std::cout << "Context: ";
-//         // Print the elements of the call std::string
+//         // Print the elements of the call string
 //         for (auto cstring : flowfacts.first.getInternalCS()) {
 //           std::cout
 //               << ((llvm::isa<llvm::Function>(cstring))
@@ -166,7 +166,7 @@ public:
 //               << " * ";
 //         }
 //         std::cout << "\nFacts:\n";
-//         // Print the elements of the corresponding std::set of flow facts
+//         // Print the elements of the corresponding set of flow facts
 //         for (auto &flowfact : flowfacts.second) {
 //           std::cout << IMProblem.DtoString(flowfact) << '\n';
 //         }
