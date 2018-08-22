@@ -460,6 +460,16 @@ AnalysisController::AnalysisController(
         solver->solve();
         break;
       }
+      case DataFlowAnalysisType::MONO_Inter_TaintAnalysis: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        InterMonotoneSolverTest inter(ICFG, EntryPoints);
+        CallString<typename InterMonotoneSolverTest::Node_t,
+                   typename InterMonotoneSolverTest::Domain_t, 3>
+            Context;
+        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+        solver->solve();
+        break;
+      }
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
             VariablesMap["analysis_plugin"].as<vector<string>>();

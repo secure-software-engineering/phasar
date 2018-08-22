@@ -1,5 +1,6 @@
 set(MonoSources
 	InterMonotoneGeneralizedSolverTest.cpp
+	InterMonoTaintAnalysisTest.cpp
 )
 
 foreach(TEST_SRC ${MonoSources})

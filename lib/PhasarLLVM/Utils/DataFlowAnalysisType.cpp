@@ -30,6 +30,7 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
      DataFlowAnalysisType::MONO_Intra_FullConstantPropagation},
     {"mono_intra_solvertest", DataFlowAnalysisType::MONO_Intra_SolverTest},
     {"mono_inter_solvertest", DataFlowAnalysisType::MONO_Inter_SolverTest},
+    {"mono_inter_taint", DataFlowAnalysisType::MONO_Inter_TaintAnalysis},
     {"plugin", DataFlowAnalysisType::Plugin},
     {"none", DataFlowAnalysisType::None}};
 
@@ -48,6 +49,7 @@ const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
      "mono_intra_fullconstpropagation"},
     {DataFlowAnalysisType::MONO_Intra_SolverTest, "mono_intra_solvertest"},
     {DataFlowAnalysisType::MONO_Inter_SolverTest, "mono_inter_solvertest"},
+    {DataFlowAnalysisType::MONO_Inter_TaintAnalysis, "mono_inter_taint"},
     {DataFlowAnalysisType::Plugin, "plugin"},
     {DataFlowAnalysisType::None, "none"}};
 
