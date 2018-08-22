@@ -81,13 +81,18 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   }
 
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    /**/if (Load->getPointerOperand()->getType()->getPointerElementType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Load->getPointerOperand()->getType()->getPointerElementType()->getPointerElementType())) {
+    /**/ if (Load->getPointerOperand()
+                 ->getType()
+                 ->getPointerElementType()
+                 ->isPointerTy()) {
+      if (auto StructTy =
+              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
+                                                   ->getType()
+                                                   ->getPointerElementType()
+                                                   ->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
-          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load,
-                                                             zeroValue());
+          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load, zeroValue());
         }
       }
     /**/}
@@ -115,15 +120,16 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getCallFlowFunction()");*/
 
-  if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" || 
+  if (destMthd->getName() == "fopen" || destMthd->getName() == "freopen" ||
       destMthd->getName() == "fgetc" || destMthd->getName() == "fputc" ||
-      destMthd->getName() == "putchar" || destMthd->getName() == "_IO_getc" || 
-      destMthd->getName() == "_I0_putc" || destMthd->getName() == "fprintf" || 
-      destMthd->getName() == "__isoc99_fscanf" || destMthd->getName() == "feof" ||
-      destMthd->getName() == "ferror" || destMthd->getName() == "ungetc" || 
-      destMthd->getName() == "fflush" || destMthd->getName() == "fseek" || 
-      destMthd->getName() == "ftell" || destMthd->getName() == "rewind" || 
-      destMthd->getName() == "fgetpos" || destMthd->getName() == "fsetpos") {
+      destMthd->getName() == "putchar" || destMthd->getName() == "_IO_getc" ||
+      destMthd->getName() == "_I0_putc" || destMthd->getName() == "fprintf" ||
+      destMthd->getName() == "__isoc99_fscanf" ||
+      destMthd->getName() == "feof" || destMthd->getName() == "ferror" ||
+      destMthd->getName() == "ungetc" || destMthd->getName() == "fflush" ||
+      destMthd->getName() == "fseek" || destMthd->getName() == "ftell" ||
+      destMthd->getName() == "rewind" || destMthd->getName() == "fgetpos" ||
+      destMthd->getName() == "fsetpos") {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
 
@@ -179,7 +185,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
 
-    if(Callee->getName() == "_I0_putc") {
+    if (Callee->getName() == "_I0_putc") {
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
 
@@ -199,11 +205,11 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
 
-    if(Callee->getName() == "ungetc") {
+    if (Callee->getName() == "ungetc") {
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
 
-    if(Callee->getName() == "fflush") {
+    if (Callee->getName() == "fflush") {
       return make_shared<Gen<IDETypeStateAnalysis::d_t>>(callSite, zeroValue());
     }
 
