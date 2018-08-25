@@ -31,13 +31,14 @@ namespace psr {
 
 /**
  *
- * @tparam IMP_t InterMonoProblem type
+ * @tparam IMP_temp InterMonoProblem type
  * @tparam Context type (must be a derived class of ContextBase<N, V, Context>)
  * @tparam EdgeOrdering class function that state the order of edge evaluation
  */
-template <typename IMP_t, typename Context, typename EdgeOrdering>
+template <typename IMP_temp, typename Context, typename EdgeOrdering>
 class InterMonoGeneralizedSolver {
 public:
+  using IMP_t = IMP_temp;
   using Context_t = Context;
   using Ordering_t = EdgeOrdering;
 
