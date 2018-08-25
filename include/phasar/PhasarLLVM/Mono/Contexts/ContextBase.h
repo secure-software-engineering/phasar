@@ -19,14 +19,15 @@
 
 #include <ostream>
 
-// #include <phasar/Config/ContainerConfiguration.h>
-
 namespace psr {
 
-/*  N = Node in the CFG
- *  D = Domain of the analysis
- *  ConcreteContext = The class that implement the context (must be a sub class
- *                    of ContextBase<N,D,ConcreteContext>)
+/**
+ * Base class for function contexts used in the monotone framework. A function
+ * context describes the state of the analyzed function.
+ * @tparam N in the ICFG
+ * @tparam D domain of the analysis
+ * @tparam ConcreteContext class that implements the context (must be a sub
+ * class of ContextBase<N,D,ConcreteContext>)
  */
 template <typename N, typename D, typename ConcreteContext> class ContextBase {
 public:

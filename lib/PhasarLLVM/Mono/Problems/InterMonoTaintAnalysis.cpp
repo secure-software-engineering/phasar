@@ -30,7 +30,7 @@ using ICFG_t = InterMonoTaintAnalysis::ICFG_t;
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(ICFG_t &Icfg,
                                                vector<string> EntryPoints)
-    : InterMonotoneProblem<Node_t, Domain_t, Method_t, ICFG_t>(Icfg),
+    : InterMonoProblem<Node_t, Domain_t, Method_t, ICFG_t>(Icfg),
       EntryPoints(EntryPoints) {}
 
 Domain_t InterMonoTaintAnalysis::join(const Domain_t &Lhs,
@@ -39,14 +39,15 @@ Domain_t InterMonoTaintAnalysis::join(const Domain_t &Lhs,
   Domain_t Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
+  cout << "Result size: " << Result.size() << endl;
   return Result;
 }
 
 bool InterMonoTaintAnalysis::sqSubSetEqual(const Domain_t &Lhs,
                                            const Domain_t &Rhs) {
-  cout << "InterMonotoneSolverTest::sqSubSetEqual()\n";
+  cout << "InterMonoTaintAnalysis::sqSubSetEqual()\n";
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
-  return true;
+  // return true;
 }
 
 Domain_t InterMonoTaintAnalysis::normalFlow(const Node_t Stmt,
@@ -57,6 +58,7 @@ Domain_t InterMonoTaintAnalysis::normalFlow(const Node_t Stmt,
   if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
   }
+  cout << "Result size: " << Result.size() << endl;
   return Result;
 }
 
@@ -69,6 +71,7 @@ Domain_t InterMonoTaintAnalysis::callFlow(const Node_t CallSite,
   if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
+  cout << "Result size: " << Result.size() << endl;
   return Result;
 }
 
@@ -96,8 +99,19 @@ MonoMap<Node_t, Domain_t> InterMonoTaintAnalysis::initialSeeds() {
 }
 
 string InterMonoTaintAnalysis::DtoString(const Domain_t d) {
-  return "";
-  // return llvmIRToString(d);
+  string str;
+  for (auto fact : d) {
+    str += llvmIRToString(fact) + '\n';
+  }
+  return str;
+}
+
+string InterMonoTaintAnalysis::MtoString(const Method_t m) {
+  return m->getName().str();
+}
+
+string InterMonoTaintAnalysis::NtoString(const Node_t n) {
+  return llvmIRToString(n);
 }
 
 bool InterMonoTaintAnalysis::recompute(const Method_t Callee) { return false; }

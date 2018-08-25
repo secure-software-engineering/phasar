@@ -12,8 +12,8 @@ Analyses
 	none - / - /
 	ifds_solvertest - IFDS solver test - IFDS
 	ide_solvertest - IDE solver test - IDE
-	mono_intra_solvertest - MONOTONE intra solver test - MONO
-	mono_inter_solvertest - MONOTONE inter solver test (context-based) - MONO
+	intra_mono_solvertest - MONOTONE intra solver test - MONO
+	inter_mono_solvertest - MONOTONE inter solver test (context-based) - MONO
 
 	=== The actual analyses ===
 	ifds_uninit - a simple uninitialized variables analysis - IFDS 
@@ -24,8 +24,9 @@ Analyses
 	ide_taint - an IDE version of the taint analysis - IDE
 	ide_typestate - a simple type analysis - IDE
 	ide_lca - an IDE version of the linear constant propagation - IDE
-	mono_intra_fullconstpropagation - full constant propagation analysis - MONO
-	
+	intra_mono_fullconstpropagation - full constant propagation analysis - MONO
+	inter_mono_taintanalysis - taint analysis - MONO
+
 	=== The analysis plugin mechanism ===
 	-D plugin --analysis_plugin <?>
 
@@ -33,8 +34,8 @@ Currently the following analysis plugins are available:
 	
 	* IFDSTabulationProblemPlugin
 	* IDETabulationProblemPlugin
-	* IntraMonotoneProblemPlugin
-	* InterMonotoneProblemPlugin
+	* IntraMonoProblemPlugin
+	* InterMonoProblemPlugin
 	* ICFGPlugin
 
 Of course the user can choose more than one analysis to be run on the code.

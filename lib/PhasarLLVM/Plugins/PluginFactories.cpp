@@ -22,11 +22,11 @@ map<string,
     unique_ptr<IDETabulationProblemPlugin> (*)(LLVMBasedICFG &, vector<string>)>
     IDETabulationProblemPluginFactory;
 
-map<string, unique_ptr<IntraMonotoneProblemPlugin> (*)()>
-    IntraMonotoneProblemPluginFactory;
+map<string, unique_ptr<IntraMonoProblemPlugin> (*)()>
+    IntraMonoProblemPluginFactory;
 
-map<string, unique_ptr<InterMonotoneProblemPlugin> (*)()>
-    InterMonotoneProblemPluginFactory;
+map<string, unique_ptr<InterMonoProblemPlugin> (*)()>
+    InterMonoProblemPluginFactory;
 
 map<string,
     unique_ptr<ICFGPlugin> (*)(ProjectIRDB &, const vector<string> EntryPoints)>

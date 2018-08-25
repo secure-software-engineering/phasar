@@ -1,28 +1,16 @@
-// #include <iostream>
-// #include <memory>
-
-// #include <boost/filesystem/operations.hpp>
-// #include <llvm/IR/LLVMContext.h>
-// #include <llvm/IR/Module.h>
-// #include <llvm/IR/Verifier.h>
-// #include <llvm/IRReader/IRReader.h>
-// #include <llvm/Support/SourceMgr.h>
-
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-
-// namespace bfs = boost::filesystem;
 
 using namespace std;
 using namespace psr;
 
-TEST(InterMonotoneGeneralizedSolverTest, Running) {
+TEST(InterMonoGeneralizedSolverTest, Running) {
   ProjectIRDB IRDB(
       {PhasarDirectory +
        "build/test/llvm_test_code/control_flow/function_call_2.ll"},
@@ -38,10 +26,10 @@ TEST(InterMonotoneGeneralizedSolverTest, Running) {
     cout << "=== Call graph ===\n";
     I.print();
     I.printAsDot("call_graph.dot");
-    InterMonotoneSolverTest T(I, {"main"});
+    InterMonoSolverTest T(I, {"main"});
 
-    CallString<typename InterMonotoneSolverTest::Node_t,
-               typename InterMonotoneSolverTest::Domain_t, 2>
+    CallString<typename InterMonoSolverTest::Node_t,
+               typename InterMonoSolverTest::Domain_t, 2>
         CS;
     auto S1 = make_LLVMBasedIMS(T, CS, I.getMethod("main"));
     S1->solve();
@@ -50,8 +38,8 @@ TEST(InterMonotoneGeneralizedSolverTest, Running) {
         {I.getMethod("main"), I.getMethod("function")});
     cout << CS_os << endl;
 
-    ValueBasedContext<typename InterMonotoneSolverTest::Node_t,
-                      typename InterMonotoneSolverTest::Domain_t>
+    ValueBasedContext<typename InterMonoSolverTest::Node_t,
+                      typename InterMonoSolverTest::Domain_t>
         VBC;
     auto S2 = make_LLVMBasedIMS(T, VBC, I.getMethod("main"));
     S2->solve();

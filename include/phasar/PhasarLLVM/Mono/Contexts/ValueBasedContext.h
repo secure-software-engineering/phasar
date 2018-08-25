@@ -14,7 +14,7 @@
  *      Author: nicolas
  */
 
-// Generic implementation, could be far more precise if the analysis
+// NB: Generic implementation, could be far more precise if the analysis
 // takes into account the variables as we can reduce the number of
 // args copied to match exactly the function arguments + the global variables
 // used by the function (+ static variables ?)
@@ -25,21 +25,24 @@
 #include <map>
 #include <ostream>
 
-// #include <phasar/Config/ContainerConfiguration.h>
-
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 
 namespace psr {
 
-/*  N = Node in the CFG
- *  Domain = Domain of the results
+/**
+ * The value based context represents the context of a function by the
+ * values that are used as parameters of the function. Beside the current
+ * arguments, the context state also stores the arguments of the previous
+ * function on the call stack.
+ *
+ * @tparam N node in the ICFG
+ * @tparam D domain of the analysis (and the function arguments)
  */
-template <typename N, typename Domain>
-class ValueBasedContext
-    : public ContextBase<N, Domain, ValueBasedContext<N, Domain>> {
+template <typename N, typename D>
+class ValueBasedContext : public ContextBase<N, D, ValueBasedContext<N, D>> {
 public:
   using Node_t = N;
-  using Domain_t = Domain;
+  using Domain_t = D;
 
 protected:
   Domain_t args;
@@ -48,32 +51,32 @@ protected:
 public:
   ValueBasedContext() = default;
 
-  virtual void enterFunction(const Node_t src, const Node_t dest,
-                             const Domain_t &In) override {
+  void enterFunction(const Node_t src, const Node_t dest,
+                     const Domain_t &In) override {
     prev_context.swap(args); // O(1)
     args = In;               // O(|In|)
   }
 
-  virtual void exitFunction(const Node_t src, const Node_t dest,
-                            const Domain_t &In) override {
+  void exitFunction(const Node_t src, const Node_t dest,
+                    const Domain_t &In) override {
     args.swap(prev_context); // O(1)
     prev_context.clear();    // O(|prev_context|)
   }
 
-  virtual bool isUnsure() override { return false; }
+  bool isUnsure() override { return false; }
 
-  virtual bool isEqual(const ValueBasedContext &rhs) const override {
+  bool isEqual(const ValueBasedContext &rhs) const override {
     if (rhs.args.size() != args.size())
       return false;
 
     return std::equal(args.cbegin(), args.cend(), rhs.args.cbegin());
   }
 
-  virtual bool isDifferent(const ValueBasedContext &rhs) const override {
+  bool isDifferent(const ValueBasedContext &rhs) const override {
     return !isEqual(rhs);
   }
 
-  virtual bool isLessThan(const ValueBasedContext &rhs) const override {
+  bool isLessThan(const ValueBasedContext &rhs) const override {
     if (args.size() < rhs.args.size())
       return true;
 
@@ -95,16 +98,23 @@ public:
     return false;
   }
 
-  virtual void print(std::ostream &os) const override {
-    // TODO
+  Domain_t getArgs() { return args; }
+
+  Domain_t getPrevContext() { return prev_context; }
+
+  void print(std::ostream &os) const override {
+    // TODO Implement print for ValueBasedContext
+    os << "print not yet implemented, sorry!";
   }
 };
 
-/*  N = Node in the CFG
- *  Key = Key type of the map
- *  Value = Value type of the map
- *  IdGenerator = Generator of Id from the source and destination (in that
- * order) Map = Partial type of Map used. The full type will be Map<Key, Value>
+/**
+ * @tparam Node node in the ICFG
+ * @tparam Key key type of the map
+ * @tparam Value value type of the map
+ * @tparam IdGenerator generator of Id from the source and destination (in that
+ * particular order)
+ * @tparam Map partial type of Map used. The full type will be Map<Key, Value>
  */
 template <typename Node, typename Key, typename Value, typename IdGenerator,
           template <class, class, class...> class Map = std::map>
@@ -127,14 +137,16 @@ protected:
 
 public:
   MappedValueBasedContext() = default;
+
   MappedValueBasedContext(IdGen_t &_IdGen) : IdGen(_IdGen) {}
+
   template <class T>
   MappedValueBasedContext(T &&_args, T &&_prev_context)
       : args(std::forward<T>(_args)),
         prev_context(std::forward<T>(_prev_context)) {}
 
-  virtual void enterFunction(const Node_t src, const Node_t dest,
-                             const Domain_t &In) override {
+  void enterFunction(const Node_t src, const Node_t dest,
+                     const Domain_t &In) override {
     prev_context.swap(args); // O(1)
 
     args.clear(); // O(|args|)
@@ -149,26 +161,26 @@ public:
     }
   }
 
-  virtual void exitFunction(const Node_t src, const Node_t dest,
-                            const Domain_t &In) override {
+  void exitFunction(const Node_t src, const Node_t dest,
+                    const Domain_t &In) override {
     args.swap(prev_context); // O(1)
     prev_context.clear();    // O(|prev_context|)
   }
 
-  virtual bool isUnsure() override { return false; }
+  bool isUnsure() override { return false; }
 
-  virtual bool isEqual(const MappedValueBasedContext &rhs) const override {
+  bool isEqual(const MappedValueBasedContext &rhs) const override {
     if (rhs.args.size() != args.size())
       return false;
 
     return std::equal(args.cbegin(), args.cend(), rhs.args.cbegin());
   }
 
-  virtual bool isDifferent(const MappedValueBasedContext &rhs) const override {
+  bool isDifferent(const MappedValueBasedContext &rhs) const override {
     return !isEqual(rhs);
   }
 
-  virtual bool isLessThan(const MappedValueBasedContext &rhs) const override {
+  bool isLessThan(const MappedValueBasedContext &rhs) const override {
     if (args.size() < rhs.args.size())
       return true;
 
@@ -190,8 +202,9 @@ public:
     return false;
   }
 
-  virtual void print(std::ostream &os) const override {
-    // TODO
+  void print(std::ostream &os) const override {
+    // TODO Implement print for MappedValueBasedContext
+    os << "print not yet implemented, sorry!";
   }
 };
 

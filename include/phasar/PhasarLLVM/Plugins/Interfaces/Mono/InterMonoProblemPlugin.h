@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOTONEPROBLEMPLUGIN_H_
-#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOTONEPROBLEMPLUGIN_H_
+#ifndef PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOPROBLEMPLUGIN_H_
+#define PHASAR_PHASARLLVM_PLUGINS_INTERFACES_MONO_INTERMONOPROBLEMPLUGIN_H_
 
 #include <map>
 #include <memory>
@@ -16,13 +16,12 @@
 
 namespace psr {
 
-class InterMonotoneProblemPlugin {};
+class InterMonoProblemPlugin {};
 
-extern "C" std::unique_ptr<InterMonotoneProblemPlugin>
-makeInterMonotoneProblemPlugin();
+extern "C" std::unique_ptr<InterMonoProblemPlugin> makeInterMonoProblemPlugin();
 
-extern std::map<std::string, std::unique_ptr<InterMonotoneProblemPlugin> (*)()>
-    InterMonotoneProblemPluginFactory;
+extern std::map<std::string, std::unique_ptr<InterMonoProblemPlugin> (*)()>
+    InterMonoProblemPluginFactory;
 
 } // namespace psr
 

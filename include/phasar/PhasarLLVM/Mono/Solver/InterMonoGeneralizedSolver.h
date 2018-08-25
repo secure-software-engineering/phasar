@@ -8,14 +8,14 @@
  *****************************************************************************/
 
 /*
- * InterMonotoneSolver.h
+ * InterMonoGeneralizedSolver.h
  *
  *  Created on: 15.06.2018
  *      Author: nicolas
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONEGENERALIZEDSOLVER_H_
-#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONEGENERALIZEDSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOGENERALIZEDSOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOGENERALIZEDSOLVER_H_
 
 #include <functional> // std::greater
 #include <map>
@@ -25,21 +25,19 @@
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
-#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 
 namespace psr {
 
-/*
- *  IMP_temp = InterMonotoneProblem type
- *  Context = Context type (must be a inherited class of ContextBase<N, V,
- * Context>) EdgeOrdering = class function that state the order of edge
- * evaluation
+/**
+ *
+ * @tparam IMP_t InterMonoProblem type
+ * @tparam Context type (must be a derived class of ContextBase<N, V, Context>)
+ * @tparam EdgeOrdering class function that state the order of edge evaluation
  */
-
-template <typename IMP_temp, typename Context, typename EdgeOrdering>
-class InterMonotoneGeneralizedSolver {
+template <typename IMP_t, typename Context, typename EdgeOrdering>
+class InterMonoGeneralizedSolver {
 public:
-  using IMP_t = IMP_temp;
   using Context_t = Context;
   using Ordering_t = EdgeOrdering;
 
@@ -51,15 +49,15 @@ public:
   using analysis_t = MonoMap<Node_t, MonoMap<Context_t, Value_t>>;
 
 private:
-  void InterMonotoneGeneralizedSolver_check() {
+  void InterMonoGeneralizedSolver_check() {
     static_assert(std::is_base_of<ContextBase<Node_t, Value_t, Context_t>,
                                   Context_t>::value,
                   "Context_t must be a sub class of ContextBase<Node_t, "
                   "Value_t, Context_t>\n");
     static_assert(
-        std::is_base_of<InterMonotoneProblem<Node_t, Value_t, Method_t, ICFG_t>,
+        std::is_base_of<InterMonoProblem<Node_t, Value_t, Method_t, ICFG_t>,
                         IMP_t>::value,
-        "IMP_t type must be a sub class of InterMonotoneProblem<Node_t, "
+        "IMP_t type must be a sub class of InterMonoProblem<Node_t, "
         "Value_t, Method_t, ICFG_t>\n");
   }
 
@@ -182,22 +180,19 @@ protected:
   }
 
 public:
-  InterMonotoneGeneralizedSolver(IMP_t &IMP, Context_t &context,
-                                 Method_t method)
+  InterMonoGeneralizedSolver(IMP_t &IMP, Context_t &context, Method_t method)
       : IMProblem(IMP), ICFG(IMP.getICFG()), current_context(context) {
     initialize();
     analyse_function(method);
   }
 
-  ~InterMonotoneGeneralizedSolver() noexcept = default;
-  InterMonotoneGeneralizedSolver(const InterMonotoneGeneralizedSolver &copy) =
-      delete;
-  InterMonotoneGeneralizedSolver(InterMonotoneGeneralizedSolver &&move) =
-      delete;
-  InterMonotoneGeneralizedSolver &
-  operator=(const InterMonotoneGeneralizedSolver &copy) = delete;
-  InterMonotoneGeneralizedSolver &
-  operator=(InterMonotoneGeneralizedSolver &&move) = delete;
+  ~InterMonoGeneralizedSolver() noexcept = default;
+  InterMonoGeneralizedSolver(const InterMonoGeneralizedSolver &copy) = delete;
+  InterMonoGeneralizedSolver(InterMonoGeneralizedSolver &&move) = delete;
+  InterMonoGeneralizedSolver &
+  operator=(const InterMonoGeneralizedSolver &copy) = delete;
+  InterMonoGeneralizedSolver &
+  operator=(InterMonoGeneralizedSolver &&move) = delete;
 
   analysis_t &getAnalysisResults() { return Analysis; }
 
@@ -223,8 +218,7 @@ public:
         else {
           Out = IMProblem.callToRetFlow(src, dst, Analysis[src][src_context]);
           // NB: When dealing with a callToRetFlow, we could add an edge from
-          // the
-          // exit statement of the function to the successor of the call, in
+          // the exit statement of the function to the successor of the call, in
           // order to to have the result of the call propagating inside the
           // function.
         } // isIntraEdge(edge)
@@ -255,10 +249,10 @@ public:
       // We can have multiple context that are similar to dst_context
       // if the Comparison (in general std::less) is not strick weak order.
       // In that case, equal_range works to get every key with a similar context
+      //
       // WARNING: std::set::equal_range works here but it may be a bug from this
-      // version
-      // of the lib. If it breaks, we should try to use a multiset to keep the
-      // analysis results.
+      // version of the lib. If it breaks, we should try to use a multiset to
+      // keep the analysis results.
       auto dst_range = Analysis[dst].equal_range(dst_context);
       for (auto &analysis_dst_it = dst_range.first;
            analysis_dst_it != dst_range.second; ++analysis_dst_it) {
@@ -293,8 +287,7 @@ public:
             // assured perfect equality or any reason we would want to restart
             // the computation of the function
             // WARNING: Allowing recomputation can generate infinite recursion,
-            // only activate
-            // it if your sure
+            // only activate it if your sure
 
             analyse_function(ICFG.getMethodOf(dst), dst_context);
           } // Compute a call

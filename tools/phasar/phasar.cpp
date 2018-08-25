@@ -27,8 +27,8 @@
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
-#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
-#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonoProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonoProblemPlugin.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/Logger.h>
@@ -443,8 +443,8 @@ int main(int argc, const char **argv) {
     // Check if user has specified an analysis plugin
     if (!IDETabulationProblemPluginFactory.empty() ||
         !IFDSTabulationProblemPluginFactory.empty() ||
-        !IntraMonotoneProblemPluginFactory.empty() ||
-        !InterMonotoneProblemPluginFactory.empty()) {
+        !IntraMonoProblemPluginFactory.empty() ||
+        !InterMonoProblemPluginFactory.empty()) {
       ChosenDataFlowAnalyses.push_back(DataFlowAnalysisType::Plugin);
     }
 #endif

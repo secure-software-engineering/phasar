@@ -8,14 +8,14 @@
  *****************************************************************************/
 
 /*
- * InterMonoTaintAnalysis.h
+ * InterMonoSolverTest.h
  *
- *  Created on: 22.08.2018
- *      Author: richard leer
+ *  Created on: 23.06.2017
+ *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
-#define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
+#ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
+#define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 
 #include <string>
 #include <vector>
@@ -32,7 +32,7 @@ namespace psr {
 
 class LLVMBasedICFG;
 
-class InterMonoTaintAnalysis
+class InterMonoSolverTest
     : public InterMonoProblem<const llvm::Instruction *,
                               MonoSet<const llvm::Value *>,
                               const llvm::Function *, LLVMBasedICFG &> {
@@ -46,9 +46,9 @@ protected:
   std::vector<std::string> EntryPoints;
 
 public:
-  InterMonoTaintAnalysis(ICFG_t &Icfg,
-                         std::vector<std::string> EntryPoints = {"main"});
-  virtual ~InterMonoTaintAnalysis() = default;
+  InterMonoSolverTest(ICFG_t &Icfg,
+                      std::vector<std::string> EntryPoints = {"main"});
+  virtual ~InterMonoSolverTest() = default;
 
   Domain_t join(const Domain_t &Lhs, const Domain_t &Rhs) override;
 

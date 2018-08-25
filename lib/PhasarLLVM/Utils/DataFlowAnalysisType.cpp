@@ -26,11 +26,11 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"ide_solvertest", DataFlowAnalysisType::IDE_SolverTest},
     {"ide_taint", DataFlowAnalysisType::IDE_TaintAnalysis},
     {"ide_typestate", DataFlowAnalysisType::IDE_TypeStateAnalysis},
-    {"mono_intra_fullconstpropagation",
-     DataFlowAnalysisType::MONO_Intra_FullConstantPropagation},
-    {"mono_intra_solvertest", DataFlowAnalysisType::MONO_Intra_SolverTest},
-    {"mono_inter_solvertest", DataFlowAnalysisType::MONO_Inter_SolverTest},
-    {"mono_inter_taint", DataFlowAnalysisType::MONO_Inter_TaintAnalysis},
+    {"intra_mono_fullconstpropagation",
+     DataFlowAnalysisType::Intra_Mono_FullConstantPropagation},
+    {"intra_mono_solvertest", DataFlowAnalysisType::Intra_Mono_SolverTest},
+    {"inter_mono_solvertest", DataFlowAnalysisType::Inter_Mono_SolverTest},
+    {"inter_mono_taint", DataFlowAnalysisType::Inter_Mono_TaintAnalysis},
     {"plugin", DataFlowAnalysisType::Plugin},
     {"none", DataFlowAnalysisType::None}};
 
@@ -45,11 +45,11 @@ const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
     {DataFlowAnalysisType::IDE_SolverTest, "ide_solvertest"},
     {DataFlowAnalysisType::IDE_TaintAnalysis, "ide_taint"},
     {DataFlowAnalysisType::IDE_TypeStateAnalysis, "ide_typestate"},
-    {DataFlowAnalysisType::MONO_Intra_FullConstantPropagation,
-     "mono_intra_fullconstpropagation"},
-    {DataFlowAnalysisType::MONO_Intra_SolverTest, "mono_intra_solvertest"},
-    {DataFlowAnalysisType::MONO_Inter_SolverTest, "mono_inter_solvertest"},
-    {DataFlowAnalysisType::MONO_Inter_TaintAnalysis, "mono_inter_taint"},
+    {DataFlowAnalysisType::Intra_Mono_FullConstantPropagation,
+     "intra_mono_fullconstpropagation"},
+    {DataFlowAnalysisType::Intra_Mono_SolverTest, "intra_mono_solvertest"},
+    {DataFlowAnalysisType::Inter_Mono_SolverTest, "inter_mono_solvertest"},
+    {DataFlowAnalysisType::Inter_Mono_TaintAnalysis, "inter_mono_taint"},
     {DataFlowAnalysisType::Plugin, "plugin"},
     {DataFlowAnalysisType::None, "none"}};
 

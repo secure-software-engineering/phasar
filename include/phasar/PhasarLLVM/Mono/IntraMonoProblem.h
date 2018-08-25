@@ -8,14 +8,14 @@
  *****************************************************************************/
 
 /*
- * IntraMonotoneProblem.h
+ * IntraMonoProblem.h
  *
  *  Created on: 06.06.2017
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_INTRAMONOTONEPROBLEM_H_
-#define PHASAR_PHASARLLVM_MONO_INTRAMONOTONEPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_MONO_INTRAMONOPROBLEM_H_
+#define PHASAR_PHASARLLVM_MONO_INTRAMONOPROBLEM_H_
 
 #include <string>
 
@@ -24,14 +24,14 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename C>
-class IntraMonotoneProblem {
+class IntraMonoProblem {
 protected:
   C CFG;
   M Function;
 
 public:
-  IntraMonotoneProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
-  virtual ~IntraMonotoneProblem() = default;
+  IntraMonoProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
+  virtual ~IntraMonoProblem() = default;
   C getCFG() { return CFG; }
   M getFunction() { return Function; }
   virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;

@@ -28,6 +28,7 @@ class Value;
 } // namespace llvm
 
 namespace psr {
+
 class LLVMBasedICFG;
 
 // Functions that are considered as taint sensitve functions:

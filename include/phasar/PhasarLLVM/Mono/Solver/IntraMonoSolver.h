@@ -8,14 +8,14 @@
  *****************************************************************************/
 
 /*
- * MonotoneSolver.h
+ * IntraMonoSolver.h
  *
  *  Created on: 06.06.2017
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOTONESOLVER_H_
-#define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOTONESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
 #include <iostream> // std::cout please remove it
@@ -24,14 +24,14 @@
 #include <vector>
 
 #include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename C>
-class IntraMonotoneSolver {
+class IntraMonoSolver {
 protected:
-  IntraMonotoneProblem<N, D, M, C> &IMProblem;
+  IntraMonoProblem<N, D, M, C> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
   C CFG;
@@ -54,10 +54,9 @@ protected:
   }
 
 public:
-  IntraMonotoneSolver(IntraMonotoneProblem<N, D, M, C> &IMP,
-                      size_t prealloc_hint = 0)
+  IntraMonoSolver(IntraMonoProblem<N, D, M, C> &IMP, size_t prealloc_hint = 0)
       : IMProblem(IMP), CFG(IMP.getCFG()), prealloc_hint(prealloc_hint) {}
-  virtual ~IntraMonotoneSolver() = default;
+  virtual ~IntraMonoSolver() = default;
   virtual void solve() {
     // step 1: Initalization (of Worklist and Analysis)
     initialize();

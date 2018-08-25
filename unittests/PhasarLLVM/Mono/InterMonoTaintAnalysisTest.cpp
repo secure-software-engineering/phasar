@@ -14,7 +14,7 @@
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ValueBasedContext.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 using namespace std;
