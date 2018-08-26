@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream> // needed for printLeaks()
+
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Value.h>
@@ -29,53 +31,48 @@
 
 using namespace std;
 using namespace psr;
-namespace psr {
 
-// Source functions - critical argument(s) - signature:
-//  -fread - 0 - size_t fread(void *ptr, size_t size, size_t nmemb, FILE
-//  *stream);
-//  -read - 1 - ssize_t read(int fd, void *buf, size_t count);
-//  -fgetc - ret - int fgetc(FILE *stream);
-//  -fgets - ret - char *fgets(char *s, int size, FILE *stream);
-//  -getc - ret - int getc(FILE *stream);
-//  -getchar - ret - int getchar(void);
-//  -ungetc - ret - int ungetc(int c, FILE *stream);
-//
-// Sink functions - critical argument(s) - signature:
-//  -fwrite - 0 - size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE
-//  *stream);
-//  -write - 1 - ssize_t write(int fd, const void *buf, size_t count);
-//  -printf - everything - int printf(const char *format, ...);
-//  -fputc - 0 - int fputc(int c, FILE *stream);
-//  -fputs - 0 - int fputs(const char *s, FILE *stream);
-//  -putc - 0 - int putc(int c, FILE *stream);
-//  -putchar - 0 - int putchar(int c);
-//  -puts - 0 - int puts(const char *s);
+namespace psr {
 
 // Define what the source functions are
 const map<string, IFDSTaintAnalysis::SourceFunction> IFDSTaintAnalysis::Sources{
-    {"fread", IFDSTaintAnalysis::SourceFunction("fread", {0}, false)},
-    {"read", IFDSTaintAnalysis::SourceFunction("read", {1}, false)},
     {"fgetc", IFDSTaintAnalysis::SourceFunction("fgetc", true)},
     {"fgets", IFDSTaintAnalysis::SourceFunction("fgets", {0}, true)},
+    {"fread", IFDSTaintAnalysis::SourceFunction("fread", {0}, false)},
     {"getc", IFDSTaintAnalysis::SourceFunction("getc", true)},
     {"getchar", IFDSTaintAnalysis::SourceFunction("getchar", true)},
+    {"read", IFDSTaintAnalysis::SourceFunction("read", {1}, false)},
+    {"source()", IFDSTaintAnalysis::SourceFunction("source()", true)},
     {"ungetc", IFDSTaintAnalysis::SourceFunction("ungetc", true)}};
 
 // Define what the sink functions are
 const map<string, IFDSTaintAnalysis::SinkFunction> IFDSTaintAnalysis::Sinks{
-    {"fwrite", IFDSTaintAnalysis::SinkFunction("fwrite", {0})},
-    {"write", IFDSTaintAnalysis::SinkFunction("write", {1})},
-    {"printf",
-     IFDSTaintAnalysis::SinkFunction("printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
     {"fputc", IFDSTaintAnalysis::SinkFunction("fputc", {0})},
     {"fputs", IFDSTaintAnalysis::SinkFunction("fputs", {0})},
+    {"fwrite", IFDSTaintAnalysis::SinkFunction("fwrite", {0})},
+    {"printf",
+     IFDSTaintAnalysis::SinkFunction("printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
     {"putc", IFDSTaintAnalysis::SinkFunction("putc", {0})},
     {"putchar", IFDSTaintAnalysis::SinkFunction("putchar", {0})},
-    {"puts", IFDSTaintAnalysis::SinkFunction("puts", {0})}};
+    {"puts", IFDSTaintAnalysis::SinkFunction("puts", {0})},
+    {"sink(int)", IFDSTaintAnalysis::SinkFunction("sink(int)", {0})},
+    {"write", IFDSTaintAnalysis::SinkFunction("write", {1})}};
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(IFDSTaintAnalysis::i_t icfg,
-                                     vector<string> EntryPoints)
+ostream &operator<<(ostream &os, const IFDSTaintAnalysis::SourceFunction &sf) {
+  os << sf.name << ": ";
+  for (auto arg : sf.genargs)
+    os << arg << ",";
+  return os << ", " << sf.genreturn << endl;
+}
+
+ostream &operator<<(ostream &os, const IFDSTaintAnalysis::SinkFunction &sf) {
+  os << sf.name << ": ";
+  for (auto arg : sf.sinkargs)
+    os << arg << ",";
+  return os << endl;
+}
+
+IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
   IFDSTaintAnalysis::zerovalue = createZeroValue();
 }
@@ -86,16 +83,6 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSTaintAnalysis::getNormalFlowFunction()");
-  // Taint the commandline arguments
-  if (curr->getFunction()->getName().str() == "main" &&
-      icfg.isStartPoint(curr)) {
-    set<IFDSTaintAnalysis::d_t> CmdArgs;
-    for (auto &Arg : curr->getFunction()->args()) {
-      CmdArgs.insert(&Arg);
-      Arg.print(llvm::outs());
-    }
-    return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(CmdArgs, zeroValue());
-  }
   // If a tainted value is stored, the store location must be tainted too
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
@@ -123,7 +110,8 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
           return source == Load->getPointerOperand();
         });
   }
-  // Check is a value is read from a pointer or struct
+  // Check if an address is computed from a tainted base pointer of an
+  // aggregated object
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
         GEP, zeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
@@ -187,6 +175,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
   // Process the effects of source or sink functions that are called
   for (auto *Callee : icfg.getCalleesOfCallAt(callSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "F:" << Callee->getName().str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "demangled F:" << FunctionName);
     if (Sources.count(FunctionName)) {
       // process generated taints
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects");
@@ -272,11 +262,22 @@ IFDSTaintAnalysis::initialSeeds() {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSTaintAnalysis::initialSeeds()");
-  // just start in main()
+  // If main function is the entry point, commandline arguments have to be
+  // tainted. Otherwise we just use the zero value to initialize the analysis.
   map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<IFDSTaintAnalysis::d_t>({zeroValue()})));
+    if (EntryPoint == "main") {
+      set<IFDSTaintAnalysis::d_t> CmdArgs;
+      for (auto &Arg : icfg.getMethod(EntryPoint)->args()) {
+        CmdArgs.insert(&Arg);
+      }
+      CmdArgs.insert(zeroValue());
+      SeedMap.insert(
+          make_pair(&icfg.getMethod(EntryPoint)->front().front(), CmdArgs));
+    } else {
+      SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                               set<IFDSTaintAnalysis::d_t>({zeroValue()})));
+    }
   }
   return SeedMap;
 }
@@ -304,4 +305,22 @@ string IFDSTaintAnalysis::NtoString(IFDSTaintAnalysis::n_t n) const {
 string IFDSTaintAnalysis::MtoString(IFDSTaintAnalysis::m_t m) const {
   return m->getName().str();
 }
+
+void IFDSTaintAnalysis::printLeaks() const {
+  cout << "\n----- Found the following leaks -----\n";
+  if (Leaks.empty()) {
+    cout << "No leaks found!\n";
+  } else {
+    for (auto Leak : Leaks) {
+      string ModuleName = getModuleFromVal(Leak.first)->getModuleIdentifier();
+      cout << "At instruction:  '" << llvmIRToString(Leak.first) << "'\n";
+      cout << "In file:         '" << ModuleName << "'\n";
+      for (auto LeakValue : Leak.second) {
+        cout << "Leak:            '" << llvmIRToString(LeakValue) << "'\n";
+      }
+      cout << "-------------------\n";
+    }
+  }
+}
+
 } // namespace psr

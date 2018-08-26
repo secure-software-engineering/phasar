@@ -66,12 +66,23 @@ std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
- * Only Instructions and GlobalVariables have ID's.
+ * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
+ * data. Formal arguments will not be annotated with an ID during
+ * ValueAnnotationPass. Instead, a formal arguments ID will look like this:
+ *    <function_name>.<#argument>
+ *
  * @brief Returns the ID of a given LLVM Value.
  * @return Meta data ID as a string or -1, if it's not
- * an Instruction or a GlobalVariable.
+ * an Instruction, GlobalVariable or Argument.
  */
 std::string getMetaDataID(const llvm::Value *V);
+
+/**
+ * @brief Returns position of a formal function argument.
+ * @param Arg LLVM Argument.
+ * @return Position or -1 if argument does not belong to any function.
+ */
+int getFunctionArgumentNr(const llvm::Argument *Arg);
 
 /**
  * The Argument count starts with 0.
@@ -121,11 +132,19 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned stoNo);
 
 /**
- * @brief Returns the LLVM Module the given LLVM Value belongs to.
+ * @brief Returns the LLVM Module to which the given LLVM Value belongs to.
  * @param V LLVM Value.
  * @return LLVM Module or nullptr.
  */
 const llvm::Module *getModuleFromVal(const llvm::Value *V);
+
+/**
+ * @brief Returns the name of the LLVM Module to which the given LLVM Value
+ * belongs to.
+ * @param V LLVM Value.
+ * @return Module name or empty string.
+ */
+const std::string getModuleNameFromVal(const llvm::Value *V);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.

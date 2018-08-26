@@ -196,33 +196,16 @@ AnalysisController::AnalysisController(
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-            taintanalysisproblem, true);
-        llvmtaintsolver.solve();
-        FinalResultsJson += llvmtaintsolver.getAsJson();
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
+            TaintAnalysisProblem, true);
+        LLVMTaintSolver.solve();
+        FinalResultsJson += LLVMTaintSolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmtaintsolver.exportJson(graph_id);
+          LLVMTaintSolver.exportJson(graph_id);
         }
-        // Here we can get the leaks
-        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-            taintanalysisproblem.Leaks;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
-        if (Leaks.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
-        } else {
-          for (auto Leak : Leaks) {
-            string ModuleName =
-                getModuleFromVal(Leak.first)->getModuleIdentifier();
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                          << "At instruction: '" << llvmIRToString(Leak.first)
-                          << "' in file: '" << ModuleName << "'");
-            for (auto LeakValue : Leak.second) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                            << llvmIRToString(LeakValue));
-            }
-          }
-        }
+        // Print found leaks
+        TaintAnalysisProblem.printLeaks();
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {

@@ -20,6 +20,7 @@
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
 
@@ -43,11 +44,8 @@ const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
 
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
-    if (V->getType()->isPointerTy() &&
-        V->getType()->getPointerElementType()->isFunctionTy()) {
-      return true;
-    }
-    return false;
+    return V->getType()->isPointerTy() &&
+           V->getType()->getPointerElementType()->isFunctionTy();
   }
   return false;
 }
@@ -94,13 +92,7 @@ std::string llvmIRToString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
-
-  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    RSO << ", ID: " << getMetaDataID(Inst);
-  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    RSO << ", ID: " << getMetaDataID(GV);
-  }
-
+  RSO << ", ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
   return IRBuffer;
@@ -123,8 +115,8 @@ globalValuesUsedinFunction(const llvm::Function *F) {
 }
 
 std::string getMetaDataID(const llvm::Value *V) {
-  if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto metaData = I->getMetadata(MetaDataKind)) {
+  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (auto metaData = Inst->getMetadata(MetaDataKind)) {
       return llvm::cast<llvm::MDString>(metaData->getOperand(0))
           ->getString()
           .str();
@@ -138,8 +130,23 @@ std::string getMetaDataID(const llvm::Value *V) {
             .str();
       }
     }
+  } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    string FName = Arg->getParent()->getName().str();
+    string ArgNr = to_string(getFunctionArgumentNr(Arg));
+    return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+int getFunctionArgumentNr(const llvm::Argument *Arg) {
+  int ArgNr = 0;
+  for (auto &A : Arg->getParent()->args()) {
+    if (&A == Arg) {
+      return ArgNr;
+    }
+    ++ArgNr;
+  }
+  return -1;
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
@@ -193,6 +200,11 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V) {
     return nullptr;
   }
   return nullptr;
+}
+
+const std::string getModuleNameFromVal(const llvm::Value *V) {
+  const llvm::Module *M = getModuleFromVal(V);
+  return M ? M->getModuleIdentifier() : " ";
 }
 
 std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
