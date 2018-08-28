@@ -44,6 +44,8 @@ extern const std::string CompileCommandsJson;
 extern boost::program_options::variables_map VariablesMap;
 /// Log file directory
 extern const std::string LogFileDirectory;
+/// Default Source- and Sink-Functions path
+extern const std::string DefaultSourceSinkFunctionsPath;
 // Variables to be used in JSON export format
 /// Identifier for call graph export
 extern const std::string JsonCallGraphID;

@@ -34,46 +34,10 @@ using namespace psr;
 
 namespace psr {
 
-// Define what the source functions are
-const map<string, IFDSTaintAnalysis::SourceFunction> IFDSTaintAnalysis::Sources{
-    {"fgetc", IFDSTaintAnalysis::SourceFunction("fgetc", true)},
-    {"fgets", IFDSTaintAnalysis::SourceFunction("fgets", {0}, true)},
-    {"fread", IFDSTaintAnalysis::SourceFunction("fread", {0}, false)},
-    {"getc", IFDSTaintAnalysis::SourceFunction("getc", true)},
-    {"getchar", IFDSTaintAnalysis::SourceFunction("getchar", true)},
-    {"read", IFDSTaintAnalysis::SourceFunction("read", {1}, false)},
-    {"source()", IFDSTaintAnalysis::SourceFunction("source()", true)},
-    {"ungetc", IFDSTaintAnalysis::SourceFunction("ungetc", true)}};
-
-// Define what the sink functions are
-const map<string, IFDSTaintAnalysis::SinkFunction> IFDSTaintAnalysis::Sinks{
-    {"fputc", IFDSTaintAnalysis::SinkFunction("fputc", {0})},
-    {"fputs", IFDSTaintAnalysis::SinkFunction("fputs", {0})},
-    {"fwrite", IFDSTaintAnalysis::SinkFunction("fwrite", {0})},
-    {"printf",
-     IFDSTaintAnalysis::SinkFunction("printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
-    {"putc", IFDSTaintAnalysis::SinkFunction("putc", {0})},
-    {"putchar", IFDSTaintAnalysis::SinkFunction("putchar", {0})},
-    {"puts", IFDSTaintAnalysis::SinkFunction("puts", {0})},
-    {"sink(int)", IFDSTaintAnalysis::SinkFunction("sink(int)", {0})},
-    {"write", IFDSTaintAnalysis::SinkFunction("write", {1})}};
-
-ostream &operator<<(ostream &os, const IFDSTaintAnalysis::SourceFunction &sf) {
-  os << sf.name << ": ";
-  for (auto arg : sf.genargs)
-    os << arg << ",";
-  return os << ", " << sf.genreturn << endl;
-}
-
-ostream &operator<<(ostream &os, const IFDSTaintAnalysis::SinkFunction &sf) {
-  os << sf.name << ": ";
-  for (auto arg : sf.sinkargs)
-    os << arg << ",";
-  return os << endl;
-}
-
-IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, TaintSensitiveFunctions TSF,
+                                     vector<string> EntryPoints)
+    : DefaultIFDSTabulationProblem(icfg), SourceSinkFunctions(TSF),
+      EntryPoints(EntryPoints) {
   IFDSTaintAnalysis::zerovalue = createZeroValue();
 }
 
@@ -132,8 +96,8 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   // We then can kill all data-flow facts not following the called function.
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
-  if (Sources.count(destMthd->getName().str()) ||
-      Sinks.count(destMthd->getName().str())) {
+  if (SourceSinkFunctions.isSource(destMthd->getName().str()) ||
+      (SourceSinkFunctions.isSink(destMthd->getName().str()))) {
     return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
@@ -177,13 +141,13 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     string FunctionName = cxx_demangle(Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "F:" << Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "demangled F:" << FunctionName);
-    if (Sources.count(FunctionName)) {
+    if (SourceSinkFunctions.isSource(FunctionName)) {
       // process generated taints
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects");
-      auto Source = Sources.at(FunctionName);
+      auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
-      for (auto FormalIndex : Source.genargs) {
+      for (auto FormalIndex : Source.TaintedArgs) {
         IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
         // Insert the value V that gets tainted
         ToGenerate.insert(V);
@@ -193,36 +157,35 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           ToGenerate.insert(Alias);
         }
       }
-      if (Source.genreturn) {
+      if (Source.TaintsReturn) {
         ToGenerate.insert(callSite);
       }
       return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(ToGenerate,
                                                          zeroValue());
     }
-    if (Sinks.count(FunctionName)) {
+    if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::m_t calledMthd;
-        SinkFunction sink;
+        TaintSensitiveFunctions::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
         TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
-             SinkFunction s,
+             TaintSensitiveFunctions::SinkFunction s,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
-            : callSite(cs), calledMthd(calledMthd), sink(s), Leaks(leaks),
+            : callSite(cs), calledMthd(calledMthd), Sink(s), Leaks(leaks),
               taintanalysis(ta) {}
         set<IFDSTaintAnalysis::d_t>
         computeTargets(IFDSTaintAnalysis::d_t source) override {
           // check if a tainted value flows into a sink
           // if so, add to Leaks and return id
           if (!taintanalysis->isZeroValue(source)) {
-            for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-              if (source == callSite.getArgOperand(idx) &&
-                  (find(sink.sinkargs.begin(), sink.sinkargs.end(), idx) !=
-                   sink.sinkargs.end())) {
+            for (unsigned Idx = 0; Idx < callSite.getNumArgOperands(); ++Idx) {
+              if (source == callSite.getArgOperand(Idx) &&
+                  Sink.isLeakedArg(Idx)) {
                 cout << "FOUND LEAK" << endl;
                 Leaks[callSite.getInstruction()].insert(source);
               }
@@ -232,7 +195,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         }
       };
       return make_shared<TAFF>(llvm::ImmutableCallSite(callSite), Callee,
-                               Sinks.at(FunctionName), Leaks, this);
+                               SourceSinkFunctions.getSink(FunctionName), Leaks,
+                               this);
     }
   }
   // Otherwise pass everything as it is
@@ -248,7 +212,8 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
   if (specialSummaries.containsSpecialSummary(FunctionName) &&
-      !Sources.count(FunctionName) && !Sinks.count(FunctionName)) {
+      !SourceSinkFunctions.isSource(FunctionName) &&
+      !SourceSinkFunctions.isSink(FunctionName)) {
     return specialSummaries.getSpecialFlowFunctionSummary(FunctionName);
   } else {
     // Otherwise we indicate, that not special summary exists

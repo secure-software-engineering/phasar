@@ -21,7 +21,6 @@
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
@@ -48,6 +47,8 @@ const std::string HeaderSearchPathsFileName("standard_header_paths.conf");
 const std::string CompileCommandsJson("compile_commands.json");
 bpo::variables_map VariablesMap;
 const std::string LogFileDirectory("log/");
+const std::string DefaultSourceSinkFunctionsPath(
+    PhasarDirectory + "config/phasar-source-sink-function.json");
 const std::string JsonCallGraphID("CallGraph");
 const std::string JsonTypeHierarchyID("TypeHierarchy");
 const std::string JsonPointToGraphID("PointsToGraph");

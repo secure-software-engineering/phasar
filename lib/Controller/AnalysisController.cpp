@@ -196,7 +196,8 @@ AnalysisController::AnalysisController(
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, EntryPoints);
+        TaintSensitiveFunctions TSF;
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
             TaintAnalysisProblem, true);
         LLVMTaintSolver.solve();
