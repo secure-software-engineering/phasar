@@ -168,7 +168,7 @@ protected:
         auto new_edge = std::make_pair(dst, entry_point);
         Worklist[key].insert(new_edge);
         call_edges.insert(std::move(new_edge));
-      } // entry_points of callee (~ 1 entry_point)
+      } // entry-points of callee (~ 1 entry_point)
     }   // callee of method
   }
 

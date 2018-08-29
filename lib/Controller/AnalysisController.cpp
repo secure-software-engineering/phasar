@@ -80,9 +80,9 @@ AnalysisController::AnalysisController(
   // Check if the chosen entry points are valid
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
-  if (VariablesMap.count("entry_points")) {
+  if (VariablesMap.count("entry-points")) {
     std::vector<std::string> invalidEntryPoints;
-    for (auto &entryPoint : VariablesMap["entry_points"].as<vector<string>>()) {
+    for (auto &entryPoint : VariablesMap["entry-points"].as<vector<string>>()) {
       if (IRDB.getFunction(entryPoint) == nullptr) {
         invalidEntryPoints.push_back(entryPoint);
       }
@@ -95,8 +95,8 @@ AnalysisController::AnalysisController(
       }
       throw logic_error("invalid entry points");
     }
-    if (VariablesMap["entry_points"].as<vector<string>>().size()) {
-      EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
+    if (VariablesMap["entry-points"].as<vector<string>>().size()) {
+      EntryPoints = VariablesMap["entry-points"].as<vector<string>>();
     }
   }
   if (WPA_MODE) {
@@ -159,16 +159,16 @@ AnalysisController::AnalysisController(
 
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
-      (VariablesMap.count("callgraph_analysis"))
+      (VariablesMap.count("callgraph-analysis"))
           ? StringToCallGraphAnalysisType.at(
-                VariablesMap["callgraph_analysis"].as<string>())
+                VariablesMap["callgraph-analysis"].as<string>())
           : CallGraphAnalysisType::OTF);
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("ICFG Construction");
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
 
-    if (VariablesMap.count("callgraph_plugin")) {
+    if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
     STOP_TIMER("ICFG Construction");
@@ -176,12 +176,12 @@ AnalysisController::AnalysisController(
     // Add the ICFG to final results
 
     // FinalResultsJson += ICFG.getAsJson();
-    // if (VariablesMap.count("callgraph_analysis")) {
+    // if (VariablesMap.count("callgraph-analysis")) {
     //   ICFG.print();
     //   ICFG.printAsDot("icfg.dot");
     // }
     // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    // if (VariablesMap.count("pointer_analysis")) {
+    // if (VariablesMap.count("pointer-analysis")) {
     //   ICFG.getWholeModulePTG().print();
     //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
     // }
@@ -457,7 +457,7 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
-            VariablesMap["analysis_plugin"].as<vector<string>>();
+            VariablesMap["analysis-plugin"].as<vector<string>>();
 #ifdef PHASAR_PLUGINS_ENABLED
         AnalysisPluginController PluginController(
             AnalysisPlugins, ICFG, EntryPoints, FinalResultsJson);
