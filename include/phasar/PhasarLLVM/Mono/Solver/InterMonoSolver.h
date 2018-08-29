@@ -8,20 +8,20 @@
  *****************************************************************************/
 
 /*
- * InterMonotoneSolver.h
+ * InterMonoSolver.h
  *
  *  Created on: 19.06.2017
  *      Author: philipp
  */
 
-#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONESOLVER_H_
-#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOTONESOLVER_H_
+#ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
+#define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
 #include <deque>
 #include <iostream>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/CallString.h>
-#include <phasar/PhasarLLVM/Mono/InterMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <utility>
 #include <vector>
 
@@ -29,9 +29,9 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename C, unsigned K,
           typename I>
-class InterMonotoneSolver {
+class InterMonoSolver {
 protected:
-  InterMonotoneProblem<N, D, M, C, I> &IMProblem;
+  InterMonoProblem<N, D, M, C, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoMap<CallString<C, K>, MonoSet<D>>> Analysis;
   I ICFG;
@@ -60,13 +60,13 @@ protected:
   }
 
 public:
-  InterMonotoneSolver(InterMonotoneProblem<N, D, M, C, I> &IMP,
-                      size_t prealloc_hint = 0)
+  InterMonoSolver(InterMonoProblem<N, D, M, C, I> &IMP,
+                  size_t prealloc_hint = 0)
       : IMProblem(IMP), ICFG(IMP.getICFG()), prealloc_hint(prealloc_hint) {}
-  ~InterMonotoneSolver() = default;
+  ~InterMonoSolver() = default;
 
   virtual void solve() {
-    std::cout << "starting the InterMonotoneSolver::solve() procedure!\n";
+    std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
       std::cout << "worklist size: " << Worklist.size() << "\n";

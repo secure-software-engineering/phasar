@@ -75,4 +75,4 @@ public:
 
 } // namespace psr
 
-#endif /* SRC_ANALYSIS_MONOTONE_CALLSTRING_HH_ */
+#endif

@@ -38,11 +38,12 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -195,33 +196,17 @@ AnalysisController::AnalysisController(
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-            taintanalysisproblem, true);
-        llvmtaintsolver.solve();
-        FinalResultsJson += llvmtaintsolver.getAsJson();
+        TaintSensitiveFunctions TSF;
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
+            TaintAnalysisProblem, true);
+        LLVMTaintSolver.solve();
+        FinalResultsJson += LLVMTaintSolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmtaintsolver.exportJson(graph_id);
+          LLVMTaintSolver.exportJson(graph_id);
         }
-        // Here we can get the leaks
-        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-            taintanalysisproblem.Leaks;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
-        if (Leaks.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
-        } else {
-          for (auto Leak : Leaks) {
-            string ModuleName =
-                getModuleFromVal(Leak.first)->getModuleIdentifier();
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                          << "At instruction: '" << llvmIRToString(Leak.first)
-                          << "' in file: '" << ModuleName << "'");
-            for (auto LeakValue : Leak.second) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                            << llvmIRToString(LeakValue));
-            }
-          }
-        }
+        // Print found leaks
+        TaintAnalysisProblem.printLeaks();
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -433,31 +418,41 @@ AnalysisController::AnalysisController(
         }
         break;
       }
-      case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+      case DataFlowAnalysisType::Intra_Mono_FullConstantPropagation: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         IntraMonoFullConstantPropagation intra(CFG, F);
-        LLVMIntraMonotoneSolver<pair<const llvm::Value *, unsigned>,
-                                LLVMBasedCFG &>
+        LLVMIntraMonoSolver<pair<const llvm::Value *, unsigned>, LLVMBasedCFG &>
             solver(intra, true);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+      case DataFlowAnalysisType::Intra_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        IntraMonotoneSolverTest intra(CFG, F);
-        LLVMIntraMonotoneSolver<const llvm::Value *, LLVMBasedCFG &> solver(
-            intra, true);
+        IntraMonoSolverTest intra(CFG, F);
+        LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra,
+                                                                        true);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+      case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        InterMonotoneSolverTest inter(ICFG, EntryPoints);
-        CallString<typename InterMonotoneSolverTest::Node_t,
-                   typename InterMonotoneSolverTest::Domain_t, 3>
+        InterMonoSolverTest inter(ICFG, EntryPoints);
+        CallString<typename InterMonoSolverTest::Node_t,
+                   typename InterMonoSolverTest::Domain_t, 3>
             Context;
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
+        break;
+      }
+      case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        InterMonoTaintAnalysis inter(ICFG, EntryPoints);
+        CallString<typename InterMonoTaintAnalysis::Node_t,
+                   typename InterMonoTaintAnalysis::Domain_t, 10>
+            Context;
+        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+        solver->solve();
+        solver->dumpResults();
         break;
       }
       case DataFlowAnalysisType::Plugin: {
