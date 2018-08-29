@@ -377,7 +377,7 @@ $ brew install python3
 ##### Running a test solver
 To test if everything works as expected please run the following command:
 
-`$ phasar --module test/build_systems_tests/installation_tests/module.ll -D ifds_solvertest`
+`$ phasar --module test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
 
@@ -391,8 +391,8 @@ Phasar's built-in analyses can be selected using the -D or --analysis command-li
 Note: more than one analysis can be selected to be executed on the code under analsis. Example:
 
 ```
-$ phasar -m module.ll -D ifds_solvertest
-$ phasar -m module.ll -D ifds_uninit
+$ phasar -m module.ll -D ifds-solvertest
+$ phasar -m module.ll -D ifds-uninit
 ```
 
 If no analysis is selected only the call-graph and other support data structures are created. 
@@ -404,19 +404,20 @@ Currently the following built-in analyses are available in Phasar:
 
 | DataFlowAnalysisType | Parameter |
 |----------------------|-----------|
-|DataFlowAnalysisType::IFDS_UninitializedVariables | "ifds_uninit"|
-|DataFlowAnalysisType::IFDS_ConstAnalysis | "ifds_const"|
-|DataFlowAnalysisType::IFDS_TaintAnalysis | "ifds_taint"|
-|DataFlowAnalysisType::IFDS_TypeAnalysis | "ifds_type"|
-|DataFlowAnalysisType::IDE_TaintAnalysis | "ide_taint"|
-|DataFlowAnalysisType::IDE_TypeStateAnalysis | "ide_typestate"|
-|DataFlowAnalysisType::IFDS_LinearConstantAnalysis | "ifds_lca"|
-|DataFlowAnalysisType::IDE_LinearConstantAnalysis | "ide_lca"|
-|DataFlowAnalysisType::IFDS_SolverTest | "ifds_solvertest"|
-|DataFlowAnalysisType::IDE_SolverTest | "ide_solvertest"|
-|DataFlowAnalysisType::MONO_Intra_FullConstantPropagation | "mono_intra_fullconstpropagation"|
-|DataFlowAnalysisType::MONO_Intra_SolverTest | "mono_intra_solvertest"|
-|DataFlowAnalysisType::MONO_Inter_SolverTest | "mono_inter_solvertest"|
+|DataFlowAnalysisType::IFDS_ConstAnalysis | "ifds-const"|
+|DataFlowAnalysisType::IFDS_LinearConstantAnalysis | "ifds-lca"|
+|DataFlowAnalysisType::IFDS_SolverTest | "ifds-solvertest"|
+|DataFlowAnalysisType::IFDS_TaintAnalysis | "ifds-taint"|
+|DataFlowAnalysisType::IFDS_TypeAnalysis | "ifds-type"|
+|DataFlowAnalysisType::IFDS_UninitializedVariables | "ifds-uninit"|
+|DataFlowAnalysisType::IDE_LinearConstantAnalysis | "ide-lca"|
+|DataFlowAnalysisType::IDE_SolverTest | "ide-solvertest"|
+|DataFlowAnalysisType::IDE_TaintAnalysis | "ide-taint"|
+|DataFlowAnalysisType::IDE_TypeStateAnalysis | "ide-typestate"|
+|DataFlowAnalysisType::Inter_Mono_SolverTest | "inter-mono-solvertest"|
+|DataFlowAnalysisType::Inter_Mono_TaintAnalysis | "inter-mono-taint"|
+|DataFlowAnalysisType::Intra_Mono_FullConstantPropagation | "intra-mono-fullconstpropagation"|
+|DataFlowAnalysisType::Intra_Mono_SolverTest | "intra-mono-solvertest"|
 |DataFlowAnalysisType::Plugin | "plugin"|
 |DataFlowAnalysisType::None | "none"|
 
@@ -437,26 +438,26 @@ Configuration file options:
                                        function name)
   -m [ --module ] arg                  Path to the module(s) under analysis
   -p [ --project ] arg                 Path to the project under analysis
-  -E [ --entry_points ] arg            Set the entry point(s) to be used
+  -E [ --entry-points ] arg            Set the entry point(s) to be used
   -O [ --output ] arg (=results.json)  Filename for the results
-  -D [ --data_flow_analysis ] arg      Set the analysis to be run
-  -P [ --pointer_analysis ] arg        Set the points-to analysis to be used
+  -D [ --data-flow-analysis ] arg      Set the analysis to be run
+  -P [ --pointer-analysis ] arg        Set the points-to analysis to be used
                                        (CFLSteens, CFLAnders)
-  -C [ --callgraph_analysis ] arg      Set the call-graph algorithm to be used
+  -C [ --callgraph-analysis ] arg      Set the call-graph algorithm to be used
                                        (CHA, RTA, DTA, VTA, OTF)
-  -H [ --classhierachy_analysis ] arg  Class-hierarchy analysis
-  -V [ --vtable_analysis ] arg         Virtual function table analysis
-  -S [ --statistical_analysis ] arg    Statistics
+  -H [ --classhierachy-analysis ] arg  Class-hierarchy analysis
+  -V [ --vtable-analysis ] arg         Virtual function table analysis
+  -S [ --statistical-analysis ] arg    Statistics
   -W [ --wpa ] arg (=1)                Whole-program analysis mode (1 or 0)
   -M [ --mem2reg ] arg (=1)            Promote memory to register pass (1 or 0)
   -R [ --printedgerec ] arg (=0)       Print exploded-super-graph edge recorder
                                        (1 or 0)
-  --analysis_plugin arg                Analysis plugin(s) (absolute path to the
+  --analysis-plugin arg                Analysis plugin(s) (absolute path to the
                                        shared object file(s))
-  --callgraph_plugin arg               ICFG plugin (absolute path to the shared
+  --callgraph-plugin arg               ICFG plugin (absolute path to the shared
                                        object file)
-  --project_id arg (=myphasarproject)  Project Id used for the database
-  --graph_id arg (=123456)             Graph Id used by the visualization
+  --project-id arg (=myphasarproject)  Project Id used for the database
+  --graph-id arg (=123456)             Graph Id used by the visualization
                                        framework
 ```
 
@@ -514,7 +515,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-`$ main -m path/to/your/main.ll -D ifds_solvertest`
+`$ main -m path/to/your/main.ll -D ifds-solvertest`
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
@@ -604,7 +605,7 @@ attributes #1 = { noinline norecurse nounwind optnone uwtable "correctly-rounded
 !1 = !{!"clang version 5.0.1 (tags/RELEASE_501/final 332326)"}
 ```
 
-Running the [IFDS_SolverTest](#ifds_solvertest) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
+Running the [IFDS-SolverTest](#ifds-solvertest) analysis on the non-mem2reg transformed code produces the following IFDS/IDE results (which are quite different from the intra/inter monotone framework results that are completely self-explaining. For that reason, we omit their explanation here.):
 
 ```C++
 ### DUMP LLVMIFDSSolver results

@@ -118,7 +118,7 @@ void validateParamICFGPlugin(const std::string &plugin) {
     throw bpo::error_with_option_name("'" + plugin +
                                       "' is not a valid shared object library");
   }
-  if (VariablesMap.count("callgraph_analysis")) {
+  if (VariablesMap.count("callgraph-analysis")) {
     throw bpo::error_with_option_name(
         "Cannot choose a built-in callgraph AND "
         "a plug-in for callgraph construction.");
@@ -232,24 +232,24 @@ int main(int argc, const char **argv) {
 			("function,f", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
 			("project,p", bpo::value<std::string>()->notifier(validateParamProject), "Path to the project under analysis")
-      ("entry_points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
+      ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
-			("data_flow_analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
-			("pointer_analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
-      ("callgraph_analysis,C", bpo::value<std::string>()->notifier(validateParamCallGraphAnalysis), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF)")
-			("classhierachy_analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
-			("vtable_analysis,V", bpo::value<bool>(), "Virtual function table analysis")
-			("statistical_analysis,S", bpo::value<bool>(), "Statistics")
+			("data-flow-analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
+			("pointer-analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
+      ("callgraph-analysis,C", bpo::value<std::string>()->notifier(validateParamCallGraphAnalysis), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF)")
+			("classhierachy-analysis,H", bpo::value<bool>(), "Class-hierarchy analysis")
+			("vtable-analysis,V", bpo::value<bool>(), "Virtual function table analysis")
+			("statistical-analysis,S", bpo::value<bool>(), "Statistics")
 			//("export,E", bpo::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
 			("wpa,W", bpo::value<bool>()->default_value(1), "Whole-program analysis mode (1 or 0)")
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
       #ifdef PHASAR_PLUGINS_ENABLED
-			("analysis_plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
-      ("callgraph_plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
+			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
+      ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
-      ("project_id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
-      ("graph_id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework");
+      ("project-id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
+      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework");
       // clang-format on
       bpo::options_description CmdlineOptions;
       CmdlineOptions.add(PhasarMode).add(Generic).add(Config);
@@ -303,13 +303,13 @@ int main(int argc, const char **argv) {
           std::cout << "Configuration file: "
                     << VariablesMap["config"].as<std::string>() << '\n';
         }
-        if (VariablesMap.count("project_id")) {
+        if (VariablesMap.count("project-id")) {
           std::cout << "Project ID: "
-                    << VariablesMap["project_id"].as<std::string>() << '\n';
+                    << VariablesMap["project-id"].as<std::string>() << '\n';
         }
-        if (VariablesMap.count("graph_id")) {
+        if (VariablesMap.count("graph-id")) {
           std::cout << "Graph ID: "
-                    << VariablesMap["graph_id"].as<std::string>() << '\n';
+                    << VariablesMap["graph-id"].as<std::string>() << '\n';
         }
         if (VariablesMap.count("function")) {
           std::cout << "Function: "
@@ -324,26 +324,26 @@ int main(int argc, const char **argv) {
           std::cout << "Project: " << VariablesMap["project"].as<std::string>()
                     << '\n';
         }
-        if (VariablesMap.count("data_flow_analysis")) {
+        if (VariablesMap.count("data-flow-analysis")) {
           std::cout << "Data-flow analysis: "
-                    << VariablesMap["data_flow_analysis"]
+                    << VariablesMap["data-flow-analysis"]
                            .as<std::vector<std::string>>()
                     << '\n';
         }
-        if (VariablesMap.count("pointer_analysis")) {
+        if (VariablesMap.count("pointer-analysis")) {
           std::cout << "Pointer analysis: "
-                    << VariablesMap["pointer_analysis"].as<std::string>()
+                    << VariablesMap["pointer-analysis"].as<std::string>()
                     << '\n';
         }
-        if (VariablesMap.count("callgraph_analysis")) {
+        if (VariablesMap.count("callgraph-analysis")) {
           std::cout << "Callgraph analysis: "
-                    << VariablesMap["callgraph_analysis"].as<std::string>()
+                    << VariablesMap["callgraph-analysis"].as<std::string>()
                     << '\n';
         }
-        if (VariablesMap.count("entry_points")) {
+        if (VariablesMap.count("entry-points")) {
           std::cout
               << "Entry points: "
-              << VariablesMap["entry_points"].as<std::vector<std::string>>()
+              << VariablesMap["entry-points"].as<std::vector<std::string>>()
               << '\n';
         }
         if (VariablesMap.count("classhierarchy_analysis")) {
@@ -351,13 +351,13 @@ int main(int argc, const char **argv) {
                     << VariablesMap["classhierarchy_analysis"].as<bool>()
                     << '\n';
         }
-        if (VariablesMap.count("vtable_analysis")) {
+        if (VariablesMap.count("vtable-analysis")) {
           std::cout << "Vtable analysis: "
-                    << VariablesMap["vtable_analysis"].as<bool>() << '\n';
+                    << VariablesMap["vtable-analysis"].as<bool>() << '\n';
         }
-        if (VariablesMap.count("statistical_analysis")) {
+        if (VariablesMap.count("statistical-analysis")) {
           std::cout << "Statistical analysis: "
-                    << VariablesMap["statistical_analysis"].as<bool>() << '\n';
+                    << VariablesMap["statistical-analysis"].as<bool>() << '\n';
         }
         if (VariablesMap.count("export")) {
           std::cout << "Export: " << VariablesMap["export"].as<std::string>()
@@ -374,10 +374,10 @@ int main(int argc, const char **argv) {
           std::cout << "Print edge recorder: "
                     << VariablesMap["printedgerec"].as<bool>() << '\n';
         }
-        if (VariablesMap.count("analysis_plugin")) {
+        if (VariablesMap.count("analysis-plugin")) {
           std::cout << "Analysis plugin(s): \n";
           for (const auto &analysis_plugin :
-               VariablesMap["analysis_plugin"].as<std::vector<std::string>>()) {
+               VariablesMap["analysis-plugin"].as<std::vector<std::string>>()) {
             std::cout << analysis_plugin << '\n';
           }
         }
@@ -400,18 +400,18 @@ int main(int argc, const char **argv) {
       }
 
       // Plugin Validation
-      if (VariablesMap.count("data_flow_analysis")) {
-        if (find(VariablesMap["data_flow_analysis"]
+      if (VariablesMap.count("data-flow-analysis")) {
+        if (find(VariablesMap["data-flow-analysis"]
                      .as<std::vector<std::string>>()
                      .begin(),
-                 VariablesMap["data_flow_analysis"]
+                 VariablesMap["data-flow-analysis"]
                      .as<std::vector<std::string>>()
                      .end(),
                  "plugin") !=
-                VariablesMap["data_flow_analysis"]
+                VariablesMap["data-flow-analysis"]
                     .as<std::vector<std::string>>()
                     .end() &&
-            (!VariablesMap.count("analysis_plugin"))) {
+            (!VariablesMap.count("analysis-plugin"))) {
           std::cerr
               << "If an analysis plugin is chosen, the plugin itself must also "
                  "be specified.\n";
@@ -428,10 +428,10 @@ int main(int argc, const char **argv) {
     // Set chosen dfa
     std::vector<DataFlowAnalysisType> ChosenDataFlowAnalyses = {
         DataFlowAnalysisType::None};
-    if (VariablesMap.count("data_flow_analysis")) {
+    if (VariablesMap.count("data-flow-analysis")) {
       ChosenDataFlowAnalyses.clear();
       for (auto &DataFlowAnalysis :
-           VariablesMap["data_flow_analysis"].as<std::vector<std::string>>()) {
+           VariablesMap["data-flow-analysis"].as<std::vector<std::string>>()) {
         if (StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
           ChosenDataFlowAnalyses.push_back(
               StringToDataFlowAnalysisType.at(DataFlowAnalysis));
@@ -488,7 +488,7 @@ int main(int argc, const char **argv) {
         }(VariablesMap.count("module")),
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
-        VariablesMap["graph_id"].as<std::string>());
+        VariablesMap["graph-id"].as<std::string>());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Write results to file");
     Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
