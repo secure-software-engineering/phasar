@@ -86,7 +86,7 @@ public:
 private:
   bidigraph_t g;
   std::unordered_map<std::string, vertex_t> type_vertex_map;
-  // std::maps type names to the corresponding vtable
+  // maps type names to the corresponding vtable
   std::unordered_map<std::string, VTable> vtable_map;
   std::unordered_set<std::string> recognized_struct_types;
   // holds all modules that are included in the type hierarchy

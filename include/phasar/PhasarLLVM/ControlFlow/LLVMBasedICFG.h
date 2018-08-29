@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 /*
- * LLVMBasedInterproceduralICFG.h
+ * LLVMBasedICFG.h
  *
  *  Created on: 09.09.2016
  *      Author: pdschbrt
@@ -146,6 +146,7 @@ public:
                       const llvm::Instruction *succ) override;
 
   std::string getMethodName(const llvm::Function *fun) override;
+
   std::string getStatementId(const llvm::Instruction *stmt) override;
 
   const llvm::Function *getMethod(const std::string &fun) override;

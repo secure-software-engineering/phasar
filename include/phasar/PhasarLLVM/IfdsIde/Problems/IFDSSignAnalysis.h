@@ -27,8 +27,6 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-class LLVMBasedICFG;
-
 class IFDSSignAnalysis : public DefaultIFDSTabulationProblem<
                              const llvm::Instruction *, const llvm::Value *,
                              const llvm::Function *, LLVMBasedICFG &> {

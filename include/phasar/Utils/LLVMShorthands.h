@@ -51,7 +51,7 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
 /**
- * @brief Returns a std::string representation of a LLVM Value.
+ * @brief Returns a string representation of a LLVM Value.
  * @note Expensive function (between 20 to 550 ms per call)
  *       avoid to do it often, it can kill the performances (c.f. warning in the
  * implementation)
@@ -68,7 +68,7 @@ globalValuesUsedinFunction(const llvm::Function *F);
 /**
  * Only Instructions and GlobalVariables have ID's.
  * @brief Returns the ID of a given LLVM Value.
- * @return Meta data ID as a std::string or -1, if it's not
+ * @return Meta data ID as a string or -1, if it's not
  * an Instruction or a GlobalVariable.
  */
 std::string getMetaDataID(const llvm::Value *V);

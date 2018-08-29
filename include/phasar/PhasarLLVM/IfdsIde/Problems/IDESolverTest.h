@@ -27,8 +27,6 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-class LLVMBasedICFG;
-
 class IDESolverTest
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,

@@ -264,7 +264,7 @@ public:
   bool containsValue(llvm::Value *V);
 
   /**
-   * @brief Computes the Points-to std::set for a given pointer.
+   * @brief Computes the Points-to set for a given pointer.
    */
   std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
 
@@ -278,10 +278,10 @@ public:
                  const llvm::Function *F);
 
   /**
-   * The value-vertex-std::map std::maps each Value of the points-to graph to
+   * The value-vertex-map maps each Value of the points-to graph to
    * its corresponding Vertex in the points-to graph.
    *
-   * @brief Prints the value-vertex-std::map to the command-line.
+   * @brief Prints the value-vertex-map to the command-line.
    */
   void printValueVertexMap();
 

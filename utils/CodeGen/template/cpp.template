@@ -1,0 +1,31 @@
+{binclude}
+{namespacestart}
+
+{classname}::{classname}()
+{{
+}}
+
+{classname}::{classname}({classname}&& other)
+{{
+}}
+
+virtual {classname}::~{classname}()
+{{
+}}
+
+{classname}::{classname}(const {classname}& other)
+{{
+}}
+
+{classname}& {classname}::operator=(const {classname}& other)
+{{
+	return *this;
+}}
+
+{classname}& {classname}::operator=(const {classname}&& other)
+{{
+	return *this;
+}}
+
+{func}
+{namespacestop}

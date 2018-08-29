@@ -58,6 +58,7 @@ Table of Contents
 * [Errors](#errors)
     * [Observations](#observations)
 * [Installation](#installation)
+    * [Visualization Installation](#visualization-installation)
     * [Brief example using an Ubuntu system](#brief-example-using-an-ubuntu-system)
         * [Installing SQLITE3](#installing-sqlite3)
         * [Installing MySQL](#installing-mysql)
@@ -65,6 +66,10 @@ Table of Contents
         * [Installing PYTHON3](#installing-python3)
         * [Installing BOOST](#installing-boost)
         * [Installing LLVM](#installing-llvm)
+        * [Installing cURL](#installing-curl)
+        * [Installing Node.js](#installing-node.js)
+        * [Installing Yarn](#installing-yarn)
+        * [Installing MongoDB](#installing-mongodb)
     * [Compile Phasar](#compile-phasar)
     * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
     * [A remark on compile time](#a-remark-on-compile-time)
@@ -75,7 +80,8 @@ Table of Contents
     * [Choosing an existing analysis](#choosing-an-existing-analysis)
     * [Command line interface](#command-line-interface)
     * [Running an analysis](#running-an-analysis)
-    * [A concrete example and how to interpret the results](#a-concrete-example-and-how-to-interpret-the-results)
+        * [A concrete example and how to interpret the results](#a-concrete-example-and-how-to-interpret-the-results)
+    * [Running Phasar via web interface](#running-phasar-via-web-interface)
     * [Analyzing a complex project](#analyzing-a-complex-project)
     * [Writing a static analysis](#writing-a-static-analysis)
         * [Choosing a control-flow graph](#choosing-a-control-flow-graph)
@@ -146,6 +152,24 @@ Installation guides for the libraries can be found here:
 
 [Graphviz](www.graphviz.org)
 
+### Visualization Installation
+To run Phasar from the web interface additional libraries are required and need to be installed **manually**.
+Installation guides for the libraries can be found here:
+
+[cURL](https://curl.haxx.se/download.html)
+
+[Node.js](https://nodejs.org/en/download/package-manager/)
+
+[Yarn](https://yarnpkg.com/en/docs/getting-started)
+
+[MongoDB Community Edition](https://docs.mongodb.com/manual/administration/install-community/)
+
+All remaining dependencies are managed by the Yarn dependency manager. Resolved dependencies are stored
+in the `yarn.lock` file. To install the dependencies run
+
+`$ yarn install` 
+
+from within the vis/ directory.
 
 ### Brief example using an Ubuntu system
 In the following we would like to give an complete example of how to install 
@@ -251,6 +275,49 @@ be downloaded and build. E.g. use
 
 to build llvm-5.0.1 using 4 cores in your home directory.
 
+#### Installing cURL
+cURL can be installed from the Ubuntu sources using:
+
+`$ sudo apt-get install curl`
+
+Done!
+
+#### Installing Node.js
+To install Node.js 10 on Debian and Ubunut based Linux distributions, use the following commands:
+```
+$ curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+$ sudo apt-get install -y nodejs
+```
+
+Done!
+
+#### Installing Yarn
+Yarn can be installed using their Debian package repository. First, configure the repository:
+```
+$ curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+$ echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+```
+
+Then you can simply:
+
+`$ sudo apt-get update && sudo apt-get install yarn`
+
+Done!
+
+#### Installing MongoDB
+To install MongoDB using .deb packages, you have to import the public key used by the package management system:
+
+`$ sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 9DA31620334BD75D9DCB49F368818C72E52529D4`
+
+Create a list file for MongoDB (on Ubuntu 16.04):
+
+`$ echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.0.list`
+
+Then you can simply:
+
+`$ sudo apt-get update && sudo apt-get install mongodb-org`
+
+Done!
 
 ### Compile Phasar
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
@@ -592,6 +659,26 @@ Additionally to the results, Phasar is able to record all edges from the explode
 Here is a visualization of an exploded super-graph of a different analysis to give you an impression of what it looks like.
 
 ![alt text](img/ifds_uninit_exploded_supergraph/example_exploded_supergraph.png "Visualization of the recorded edges")
+
+
+### Running Phasar via web interface
+
+Before starting the web server, Phasar has to be compiled (see [Compile Phasar](#compile-phasar)) and the mongoDB database has to be started on the default port 27017. To start
+an instance of mongoDB, run 
+
+`$ mongod -dbpath=path/to/db/location`
+
+You can use the vis/database/ directory as the data location for the database.
+
+The 'package.json' contains a list of execution commands to start the web server. The most relevant are
+
+`$ yarn start` and `$ yarn start-prod`.
+
+The first command starts the server in debug mode, which provides additional log output and source mapping.
+The second command starts the web server in production mode. This disables all logs and uses the minified and
+uglified version of the source code to enhance performance.
+
+Finally, visit [http://localhost:3000](http://localhost:3000) to use Phasar via the web interface. 
 
 
 ### Analyzing a complex project

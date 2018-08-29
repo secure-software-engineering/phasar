@@ -27,8 +27,6 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-class LLVMBasedICFG;
-
 class IFDSUnitializedVariables
     : public DefaultIFDSTabulationProblem<
           const llvm::Instruction *, const llvm::Value *,

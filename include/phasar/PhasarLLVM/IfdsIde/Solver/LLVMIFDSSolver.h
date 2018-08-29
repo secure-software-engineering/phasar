@@ -134,7 +134,7 @@ public:
 
   int node_number = 0;
   /**
-   * gets id for node from std::map or adds it if it doesn't exist
+   * gets id for node from map or adds it if it doesn't exist
    **/
   json
   getJsonOfNode(const llvm::Instruction *node,
@@ -161,19 +161,18 @@ public:
       const llvm::Instruction *currentNode,
       const llvm::Function *callerFunction,
       std::map<const llvm::Instruction *, int> *instruction_id_map) {
-    // In the next line we obtain the corresponding row std::map which std::maps
-    // (given a source node) the target node to the data flow fact std::map<D,
-    // std::set<D>. In the data flow fact std::map D is a fact F which holds at
-    // the source node whereas std::set<D> contains the facts that are produced
-    // by F and hold at statement TargetNode. Usually every node has one
-    // successor node, that is why the row std::map obtained by row usually only
-    // contains just a single entry. BUT: in case of branch statements and other
-    // advanced instructions, one statement sometimes has multiple successor
-    // statments. In these cases the row std::map contains entries for every
-    // single successor statement. After having obtained the pairs <SourceNode,
-    // TargetNode> the data flow std::map can be obtained easily. size_t from =
+    // In the next line we obtain the corresponding row map which maps (given a
+    // source node) the target node to the data flow fact map<D, set<D>. In the
+    // data flow fact map D is a fact F which holds at the source node whereas
+    // set<D> contains the facts that are produced by F and hold at statement
+    // TargetNode. Usually every node has one successor node, that is why the
+    // row map obtained by row usually only contains just a single entry. BUT:
+    // in case of branch statements and other advanced instructions, one
+    // statement sometimes has multiple successor statments. In these cases the
+    // row map contains entries for every single successor statement. After
+    // having obtained the pairs <SourceNode, TargetNode> the data flow map can
+    // be obtained easily. size_t from =
     // getJsonRepresentationForInstructionNode(document, currentNode);
-
     json fromNode = getJsonOfNode(currentNode, instruction_id_map);
 
     auto TargetNodeMap = this->computedIntraPathEdges.row(currentNode);

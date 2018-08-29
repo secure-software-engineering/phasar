@@ -4,7 +4,6 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-
 using namespace std;
 using namespace psr;
 

@@ -1,6 +1,7 @@
 set(IfdsIdeProblemSources
 	IFDSConstAnalysisTest.cpp
 	IFDSTaintAnalysisTest.cpp
+	IDELinearConstantAnalysisTest.cpp
 )
 
 foreach(TEST_SRC ${IfdsIdeProblemSources})

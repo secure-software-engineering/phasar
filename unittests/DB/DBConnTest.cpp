@@ -7,8 +7,7 @@ using namespace psr;
 
 class DBConnTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+  const string pathToLLFiles = PhasarDirectory + "build/test/llvm_test_code/";
 };
 
 TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
@@ -23,9 +22,9 @@ TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
   DBConn &db = DBConn::getInstance();
   LLVMTypeHierarchy TH1(firstIRDB);
   LLVMTypeHierarchy TH2(secondIRDB);
-  std::cout << "\n\n";
+  cout << "\n\n";
   TH1.print();
-  std::cout << "\n\n";
+  cout << "\n\n";
   TH2.print();
   db.storeProjectIRDB("first_project", firstIRDB);
   db.storeProjectIRDB("second_project", secondIRDB);
@@ -38,9 +37,9 @@ TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
 //   DBConn &db = DBConn::getInstance();
 //   db.storeProjectIRDB("phasardbtest", IRDB);
 //   LLVMTypeHierarchy TH(IRDB);
-//   std::cout << "\n\n";
+//   cout << "\n\n";
 //   TH.print();
-//   std::cout << '\n';
+//   cout << '\n';
 //   db.storeLLVMTypeHierarchy(TH, "phasardbtest", true);
 // }
 
@@ -51,9 +50,9 @@ TEST_F(DBConnTest, HandleLTHWriteToDot) {
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
   LLVMTypeHierarchy TH(IRDB);
-  std::cout << '\n';
+  cout << '\n';
   TH.print();
-  std::cout << '\n';
+  cout << '\n';
   db.storeLLVMTypeHierarchy(TH, "phasardbtest", false);
 }
 
