@@ -275,10 +275,7 @@ AnalysisController::AnalysisController(
           for (auto exit : ICFG.getExitPointsOf(f)) {
             cout << "Exit     : " << lcaproblem.NtoString(exit) << endl;
             for (auto res : llvmlcasolver.resultsAt(exit, true)) {
-              cout << "Value: "
-                   << (res.second == lcaproblem.bottomElement()
-                           ? "BOT"
-                           : lcaproblem.VtoString(res.second))
+              cout << "Value: " << lcaproblem.VtoString(res.second)
                    << "\tat " << lcaproblem.DtoString(res.first) << endl;
             }
           }
