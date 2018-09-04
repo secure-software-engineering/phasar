@@ -1,4 +1,3 @@
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -63,7 +62,7 @@ protected:
         }
       }
     }
-    EXPECT_THAT(results, ::testing::ContainerEq(groundTruth));
+    EXPECT_EQ(results, groundTruth);
   }
 }; // Test Fixture
 

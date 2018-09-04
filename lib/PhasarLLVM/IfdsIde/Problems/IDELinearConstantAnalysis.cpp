@@ -39,10 +39,9 @@ using namespace psr;
 
 namespace psr {
 // Initialize debug counter for edge functions
-unsigned IDELinearConstantAnalysis::StoreConstCount = 0;
-unsigned IDELinearConstantAnalysis::LoadStoreValueCount = 0;
-unsigned IDELinearConstantAnalysis::BinaryCount = 0;
-unsigned IDELinearConstantAnalysis::EdgeComposerCount = 0;
+unsigned IDELinearConstantAnalysis::CurrStoreConst_Id = 0;
+unsigned IDELinearConstantAnalysis::CurrLoadStoreV_Id = 0;
+unsigned IDELinearConstantAnalysis::CurrBinary_Id = 0;
 
 const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::TOP =
     numeric_limits<IDELinearConstantAnalysis::v_t>::min();
@@ -57,10 +56,9 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
-  IDELinearConstantAnalysis::StoreConstCount = 0;
-  IDELinearConstantAnalysis::LoadStoreValueCount = 0;
-  IDELinearConstantAnalysis::BinaryCount = 0;
-  IDELinearConstantAnalysis::EdgeComposerCount = 0;
+  IDELinearConstantAnalysis::CurrStoreConst_Id = 0;
+  IDELinearConstantAnalysis::CurrLoadStoreV_Id = 0;
+  IDELinearConstantAnalysis::CurrBinary_Id = 0;
 }
 
 // Start formulating our analysis by specifying the parts required for IFDS
@@ -391,7 +389,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       LCAEF(const unsigned Op, IDELinearConstantAnalysis::d_t lop,
             IDELinearConstantAnalysis::d_t rop,
             IDELinearConstantAnalysis::d_t currNode)
-          : EdgeFunctionID(++IDELinearConstantAnalysis::BinaryCount), Op(Op),
+          : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id), Op(Op),
             lop(lop), rop(rop), currNode(currNode) {}
 
       IDELinearConstantAnalysis::v_t
@@ -436,7 +434,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
                 dynamic_cast<LoadStoreValueIdentity *>(secondFunction.get())) {
           return this->shared_from_this();
         }
-        return make_shared<IDELinearConstantAnalysis::EdgeFunctionComposer>(
+        return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
             this->shared_from_this(), secondFunction);
       }
 
@@ -537,20 +535,8 @@ IDELinearConstantAnalysis::allTopFunction() {
   return make_shared<AllTop<IDELinearConstantAnalysis::v_t>>(TOP);
 }
 
-IDELinearConstantAnalysis::EdgeFunctionComposer::EdgeFunctionComposer(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> F,
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> G)
-    : EdgeFunctionID(++IDELinearConstantAnalysis::EdgeComposerCount), F(F),
-      G(G) {}
-
-IDELinearConstantAnalysis::v_t
-IDELinearConstantAnalysis::EdgeFunctionComposer::computeTarget(
-    IDELinearConstantAnalysis::v_t source) {
-  return G->computeTarget(F->computeTarget(source));
-}
-
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-IDELinearConstantAnalysis::EdgeFunctionComposer::composeWith(
+IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
           secondFunction.get())) {
@@ -564,7 +550,7 @@ IDELinearConstantAnalysis::EdgeFunctionComposer::composeWith(
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-IDELinearConstantAnalysis::EdgeFunctionComposer::joinWith(
+IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
@@ -578,23 +564,9 @@ IDELinearConstantAnalysis::EdgeFunctionComposer::joinWith(
       IDELinearConstantAnalysis::BOTTOM);
 }
 
-bool IDELinearConstantAnalysis::EdgeFunctionComposer::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
-  if (auto EC = dynamic_cast<EdgeFunctionComposer *>(other.get())) {
-    return F->equal_to(EC->F) && G->equal_to(EC->G);
-  }
-  return false;
-}
-
-void IDELinearConstantAnalysis::EdgeFunctionComposer::print(
-    ostream &OS, bool isForDebug) const {
-  OS << "EC_" << IDELinearConstantAnalysis::EdgeFunctionComposer::EdgeFunctionID
-     << "[ " << F.get()->str() << " , " << G.get()->str() << " ]";
-}
-
 IDELinearConstantAnalysis::StoreConstant::StoreConstant(
     IDELinearConstantAnalysis::v_t IntConst)
-    : EdgeFunctionID(++IDELinearConstantAnalysis::StoreConstCount),
+    : StoreConst_Id(++IDELinearConstantAnalysis::CurrStoreConst_Id),
       IntConst(IntConst) {}
 
 IDELinearConstantAnalysis::v_t
@@ -614,7 +586,7 @@ IDELinearConstantAnalysis::StoreConstant::composeWith(
           dynamic_cast<LoadStoreValueIdentity *>(secondFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<IDELinearConstantAnalysis::EdgeFunctionComposer>(
+  return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
       this->shared_from_this(), secondFunction);
 }
 
@@ -640,11 +612,11 @@ bool IDELinearConstantAnalysis::StoreConstant::equal_to(
 
 void IDELinearConstantAnalysis::StoreConstant::print(ostream &OS,
                                                      bool isForDebug) const {
-  OS << "StoreConst_" << EdgeFunctionID;
+  OS << "StoreConst_" << StoreConst_Id;
 }
 
 IDELinearConstantAnalysis::LoadStoreValueIdentity::LoadStoreValueIdentity()
-    : EdgeFunctionID(++IDELinearConstantAnalysis::LoadStoreValueCount) {}
+    : LoadStoreV_Id(++IDELinearConstantAnalysis::CurrLoadStoreV_Id) {}
 
 IDELinearConstantAnalysis::v_t
 IDELinearConstantAnalysis::LoadStoreValueIdentity::computeTarget(
@@ -680,10 +652,9 @@ bool IDELinearConstantAnalysis::LoadStoreValueIdentity::equal_to(
 
 void IDELinearConstantAnalysis::LoadStoreValueIdentity::print(
     ostream &OS, bool isForDebug) const {
-  OS << "Load/StoreValue_" << EdgeFunctionID;
+  OS << "LoadStoreV_" << LoadStoreV_Id;
 }
 
-// add, sub, mul, udiv/sdiv, urem/srem
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned op, IDELinearConstantAnalysis::v_t lop,
     IDELinearConstantAnalysis::v_t rop) {
@@ -725,6 +696,9 @@ IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
 
 string
 IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
+  if (v == BOTTOM) {
+    return "Bottom";
+  }
   return to_string(v);
 }
 

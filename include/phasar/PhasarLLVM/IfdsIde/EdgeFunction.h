@@ -17,8 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTION_H_
 
-#include <iostream> // std::cout in dump, better replace it with a ostream
 #include <memory>
+#include <ostream>
+#include <sstream>
 #include <string>
 
 namespace psr {
@@ -38,7 +39,7 @@ public:
   virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const = 0;
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const {
-    OS << "edge_function";
+    OS << "EdgeFunction";
   }
 
   std::string str() {

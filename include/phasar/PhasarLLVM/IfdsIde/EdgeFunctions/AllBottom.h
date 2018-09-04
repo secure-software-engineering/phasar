@@ -72,7 +72,7 @@ public:
   }
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const override {
-    OS << "all_bottom";
+    OS << "AllBottom";
   }
 };
 
