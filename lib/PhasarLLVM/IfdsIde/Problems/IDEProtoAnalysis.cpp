@@ -127,10 +127,12 @@ IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t callSite,
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
-IDEProtoAnalysis::getCallToReturnEdgeFunction(
-    IDEProtoAnalysis::n_t callSite, IDEProtoAnalysis::d_t callNode,
-    IDEProtoAnalysis::n_t retSite, IDEProtoAnalysis::d_t retSiteNode) {
-  cout << "IDEProtoAnalysis::getCallToReturnEdgeFunction()\n";
+IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t callSite,
+                                           IDEProtoAnalysis::d_t callNode,
+                                           IDEProtoAnalysis::n_t retSite,
+                                           IDEProtoAnalysis::d_t retSiteNode,
+                                           set<IDEProtoAnalysis::m_t> callees) {
+  cout << "IDEProtoAnalysis::getCallToRetEdgeFunction()\n";
   return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
 }
 

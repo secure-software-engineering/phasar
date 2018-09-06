@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -98,8 +99,8 @@ public:
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<v_t>>
-  getCallToReturnEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                              d_t retSiteNode) override;
+  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
+                           d_t retSiteNode, std::set<m_t> callees) override;
 
   std::shared_ptr<EdgeFunction<v_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,

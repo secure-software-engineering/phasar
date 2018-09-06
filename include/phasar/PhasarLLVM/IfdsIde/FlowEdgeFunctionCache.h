@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <tuple>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
@@ -228,10 +229,9 @@ struct FlowEdgeFunctionCache {
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>> getCallToReturnEdgeFunction(N callSite,
-                                                               D callNode,
-                                                               N retSite,
-                                                               D retSiteNode) {
+  std::shared_ptr<EdgeFunction<V>>
+  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
+                           std::set<M> callees) {
     PAMM_FACTORY;
     auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (CallToRetEdgeFunctionCache.count(key)) {
@@ -239,8 +239,8 @@ struct FlowEdgeFunctionCache {
       return CallToRetEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("CallToRet-EF Construction");
-      auto ef = problem.getCallToReturnEdgeFunction(callSite, callNode, retSite,
-                                                    retSiteNode);
+      auto ef = problem.getCallToRetEdgeFunction(callSite, callNode, retSite,
+                                                 retSiteNode, callees);
       CallToRetEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }

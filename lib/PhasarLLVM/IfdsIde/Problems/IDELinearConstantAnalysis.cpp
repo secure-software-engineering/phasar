@@ -11,7 +11,7 @@
 #include <limits>
 #include <utility>
 
-#include "llvm/IR/Constants.h"
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -491,11 +491,12 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
 }
 
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-IDELinearConstantAnalysis::getCallToReturnEdgeFunction(
+IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
-    IDELinearConstantAnalysis::d_t retSiteNode) {
+    IDELinearConstantAnalysis::d_t retSiteNode,
+    set<IDELinearConstantAnalysis::m_t> callees) {
   return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 

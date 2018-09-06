@@ -121,11 +121,12 @@ IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t callSite,
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::v_t>>
-IDESolverTest::getCallToReturnEdgeFunction(IDESolverTest::n_t callSite,
-                                           IDESolverTest::d_t callNode,
-                                           IDESolverTest::n_t retSite,
-                                           IDESolverTest::d_t retSiteNode) {
-  cout << "IDESolverTest::getCallToReturnEdgeFunction()\n";
+IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t callSite,
+                                        IDESolverTest::d_t callNode,
+                                        IDESolverTest::n_t retSite,
+                                        IDESolverTest::d_t retSiteNode,
+                                        set<IDESolverTest::m_t> callees) {
+  cout << "IDESolverTest::getCallToRetEdgeFunction()\n";
   return EdgeIdentity<IDESolverTest::v_t>::getInstance();
 }
 

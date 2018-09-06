@@ -123,8 +123,8 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallToReturnEdgeFunction(N callStmt, D callNode, N returnSite,
-                              D returnSideNode) override {
+  getCallToRetEdgeFunction(N callStmt, D callNode, N returnSite,
+                           D returnSideNode, std::set<M> callees) override {
     if (problem.isZeroValue(callNode))
       return ALL_BOTTOM;
     else

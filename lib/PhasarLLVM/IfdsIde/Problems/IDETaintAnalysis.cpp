@@ -119,9 +119,11 @@ IDETaintAnalysis::getReturnEdgeFunction(IDETaintAnalysis::n_t callSite,
 }
 
 shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
-IDETaintAnalysis::getCallToReturnEdgeFunction(
-    IDETaintAnalysis::n_t callSite, IDETaintAnalysis::d_t callNode,
-    IDETaintAnalysis::n_t retSite, IDETaintAnalysis::d_t retSiteNode) {
+IDETaintAnalysis::getCallToRetEdgeFunction(IDETaintAnalysis::n_t callSite,
+                                           IDETaintAnalysis::d_t callNode,
+                                           IDETaintAnalysis::n_t retSite,
+                                           IDETaintAnalysis::d_t retSiteNode,
+                                           set<IDETaintAnalysis::m_t> callees) {
   return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }
 
