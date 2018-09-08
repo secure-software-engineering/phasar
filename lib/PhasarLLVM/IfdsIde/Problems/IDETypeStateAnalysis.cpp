@@ -247,9 +247,8 @@ IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
   map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                       set<IDETypeStateAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IDETypeStateAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -320,20 +319,24 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
 }
 
-string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IDETypeStateAnalysis::printNode(ostream &os,
+                                     IDETypeStateAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
-  return to_string(static_cast<int>(v));
+void IDETypeStateAnalysis::printDataFlowFact(
+    ostream &os, IDETypeStateAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IDETypeStateAnalysis::printMethod(ostream &os,
+                                       IDETypeStateAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
-string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
-  return m->getName().str();
+void IDETypeStateAnalysis::printValue(ostream &os,
+                                      IDETypeStateAnalysis::v_t v) const {
+  os << to_string(static_cast<int>(v));
 }
 
 } // namespace psr

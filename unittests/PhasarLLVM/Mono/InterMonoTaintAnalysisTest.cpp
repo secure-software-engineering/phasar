@@ -36,22 +36,32 @@ TEST(InterMonoTaintAnalysisTest, Running) {
     cout << "=== Call graph ===\n";
     I.print();
     I.printAsDot("call_graph.dot");
-    InterMonoTaintAnalysis T(I, {"main"});
+    InterMonoTaintAnalysis IMTaintAnalysis(I, {"main"});
 
     CallString<typename InterMonoTaintAnalysis::Node_t,
                typename InterMonoTaintAnalysis::Domain_t, 2>
-        CS;
-    auto S1 = make_LLVMBasedIMS(T, CS, I.getMethod("main"));
+        CS(&IMTaintAnalysis, &IMTaintAnalysis);
+    cout << "Print call string\n" << CS << endl;
+    auto S1 = make_LLVMBasedIMS(IMTaintAnalysis, CS, I.getMethod("main"));
     S1->solve();
 
-    CallString<const llvm::Value *, const llvm::Value *, 2> CS_os(
-        {I.getMethod("main"), I.getMethod("function")});
+    struct IMSTestDPrinter : DataFlowFactPrinter<string> {
+      void printDataFlowFact(std::ostream &os, string d) const override {
+        os << d;
+      }
+    };
+    struct IMSTestNPrinter : NodePrinter<string> {
+      void printNode(std::ostream &os, string n) const { os << n; }
+    };
+    IMSTestDPrinter IMSTestDP;
+    IMSTestNPrinter IMSTestNP;
+    CallString<string, string, 2> CS_os(&IMSTestNP, &IMSTestDP, {"foo", "bar"});
     cout << CS_os << endl;
 
     ValueBasedContext<typename InterMonoTaintAnalysis::Node_t,
                       typename InterMonoTaintAnalysis::Domain_t>
-        VBC;
-    auto S2 = make_LLVMBasedIMS(T, VBC, I.getMethod("main"));
+        VBC(&IMTaintAnalysis, &IMTaintAnalysis);
+    auto S2 = make_LLVMBasedIMS(IMTaintAnalysis, VBC, I.getMethod("main"));
     S2->solve();
   } else {
     cout << "Module does not contain a 'main' function, abort!\n";

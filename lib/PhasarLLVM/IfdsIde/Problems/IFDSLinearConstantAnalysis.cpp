@@ -23,8 +23,8 @@
 using namespace std;
 using namespace psr;
 
-std::size_t std::hash<LCAPair>::operator()(const LCAPair &k) const {
-  return std::hash<const llvm::Value *>()(k.first) ^ std::hash<int>()(k.second);
+size_t hash<LCAPair>::operator()(const LCAPair &k) const {
+  return hash<const llvm::Value *>()(k.first) ^ hash<int>()(k.second);
 }
 
 namespace psr {
@@ -34,11 +34,11 @@ LCAPair::LCAPair() : first(nullptr), second(0) {}
 LCAPair::LCAPair(const llvm::Value *V, int i) : first(V), second(i) {}
 
 bool operator==(const LCAPair &lhs, const LCAPair &rhs) {
-  return std::tie(lhs.first, lhs.second) == std::tie(rhs.first, rhs.second);
+  return tie(lhs.first, lhs.second) == tie(rhs.first, rhs.second);
 }
 
 bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
-  return std::tie(lhs.first, lhs.second) < std::tie(rhs.first, rhs.second);
+  return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
@@ -109,8 +109,8 @@ IFDSLinearConstantAnalysis::initialSeeds() {
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
-        std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                       set<IFDSLinearConstantAnalysis::d_t>({zeroValue()})));
+        make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                  set<IFDSLinearConstantAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -128,18 +128,19 @@ bool IFDSLinearConstantAnalysis::isZeroValue(
   return d == zerovalue;
 }
 
-string
-IFDSLinearConstantAnalysis::DtoString(IFDSLinearConstantAnalysis::d_t d) const {
-  return '<' + llvmIRToString(d.first) + ", " + to_string(d.second) + '>';
+void IFDSLinearConstantAnalysis::printNode(
+    ostream &os, IFDSLinearConstantAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string
-IFDSLinearConstantAnalysis::NtoString(IFDSLinearConstantAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IFDSLinearConstantAnalysis::printDataFlowFact(
+    ostream &os, IFDSLinearConstantAnalysis::d_t d) const {
+  os << '<' + llvmIRToString(d.first) + ", " + to_string(d.second) + '>';
 }
 
-string
-IFDSLinearConstantAnalysis::MtoString(IFDSLinearConstantAnalysis::m_t m) const {
-  return m->getName().str();
+void IFDSLinearConstantAnalysis::printMethod(
+    ostream &os, IFDSLinearConstantAnalysis::m_t m) const {
+  os << m->getName().str();
 }
+
 } // namespace psr

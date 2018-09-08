@@ -260,16 +260,18 @@ bool IFDSConstAnalysis::isZeroValue(IFDSConstAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSConstAnalysis::DtoString(IFDSConstAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IFDSConstAnalysis::printNode(ostream &os, IFDSConstAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IFDSConstAnalysis::NtoString(IFDSConstAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IFDSConstAnalysis::printDataFlowFact(ostream &os,
+                                          IFDSConstAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IFDSConstAnalysis::MtoString(IFDSConstAnalysis::m_t m) const {
-  return m->getName().str();
+void IFDSConstAnalysis::printMethod(ostream &os,
+                                    IFDSConstAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
 void IFDSConstAnalysis::printInitMemoryLocations() {

@@ -23,17 +23,18 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
                              public EdgeFunctions<N, D, M, V>,
-                             public JoinLattice<V> {
+                             public JoinLattice<V>,
+                             public ValuePrinter<V> {
 public:
   virtual ~IDETabulationProblem() = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
-  virtual std::string VtoString(V v) const = 0;
 };
 } // namespace psr
 
