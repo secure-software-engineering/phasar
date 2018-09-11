@@ -37,21 +37,29 @@ class IntraMonoFullConstantPropagation
                               std::pair<const llvm::Value *, unsigned>,
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
-  typedef std::pair<const llvm::Value *, unsigned> DFF;
+  using Node_t = const llvm::Instruction *;
+  using Domain_t = std::pair<const llvm::Value *, unsigned>;
+  using Method_t = const llvm::Function *;
+  using CFG_t = LLVMBasedCFG &;
 
-  IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
+  IntraMonoFullConstantPropagation(CFG_t Cfg, Method_t F);
   virtual ~IntraMonoFullConstantPropagation() = default;
 
-  MonoSet<DFF> join(const MonoSet<DFF> &Lhs, const MonoSet<DFF> &Rhs) override;
+  MonoSet<Domain_t> join(const MonoSet<Domain_t> &Lhs,
+                         const MonoSet<Domain_t> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<DFF> &Lhs, const MonoSet<DFF> &Rhs) override;
+  bool sqSubSetEqual(const MonoSet<Domain_t> &Lhs,
+                     const MonoSet<Domain_t> &Rhs) override;
 
-  MonoSet<DFF> flow(const llvm::Instruction *S,
-                    const MonoSet<DFF> &In) override;
+  MonoSet<Domain_t> flow(Node_t S, const MonoSet<Domain_t> &In) override;
 
-  MonoMap<const llvm::Instruction *, MonoSet<DFF>> initialSeeds() override;
+  MonoMap<Node_t, MonoSet<Domain_t>> initialSeeds() override;
 
-  std::string DtoString(std::pair<const llvm::Value *, unsigned> d) override;
+  void printNode(std::ostream &os, Node_t n) const override;
+
+  void printDataFlowFact(std::ostream &os, Domain_t d) const override;
+
+  void printMethod(std::ostream &os, Method_t m) const override;
 };
 
 } // namespace psr

@@ -368,8 +368,8 @@ IFDSUnitializedVariables::initialSeeds() {
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
-        std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                       set<IFDSUnitializedVariables::d_t>({zeroValue()})));
+        make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                  set<IFDSUnitializedVariables::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -387,18 +387,19 @@ bool IFDSUnitializedVariables::isZeroValue(
   return isLLVMZeroValue(d);
 }
 
-string
-IFDSUnitializedVariables::DtoString(IFDSUnitializedVariables::d_t d) const {
-  return llvmIRToString(d);
+void IFDSUnitializedVariables::printNode(
+    ostream &os, IFDSUnitializedVariables::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string
-IFDSUnitializedVariables::NtoString(IFDSUnitializedVariables::n_t n) const {
-  return llvmIRToString(n);
+void IFDSUnitializedVariables::printDataFlowFact(
+    ostream &os, IFDSUnitializedVariables::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string
-IFDSUnitializedVariables::MtoString(IFDSUnitializedVariables::m_t m) const {
-  return m->getName().str();
+void IFDSUnitializedVariables::printMethod(
+    ostream &os, IFDSUnitializedVariables::m_t m) const {
+  os << m->getName().str();
 }
+
 } // namespace psr

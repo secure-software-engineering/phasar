@@ -436,7 +436,7 @@ AnalysisController::AnalysisController(
         InterMonoSolverTest inter(ICFG, EntryPoints);
         CallString<typename InterMonoSolverTest::Node_t,
                    typename InterMonoSolverTest::Domain_t, 3>
-            Context;
+            Context(&inter, &inter);
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
         break;
@@ -446,7 +446,7 @@ AnalysisController::AnalysisController(
         InterMonoTaintAnalysis inter(ICFG, EntryPoints);
         CallString<typename InterMonoTaintAnalysis::Node_t,
                    typename InterMonoTaintAnalysis::Domain_t, 10>
-            Context;
+            Context(&inter, &inter);
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
         solver->dumpResults();

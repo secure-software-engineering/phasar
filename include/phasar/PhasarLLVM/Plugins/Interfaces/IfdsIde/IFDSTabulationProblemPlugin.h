@@ -64,16 +64,17 @@ public:
     return isLLVMZeroValue(d);
   }
 
-  std::string DtoString(const llvm::Value *d) const override {
-    return llvmIRToString(d);
+  void printNode(std::ostream &os, const llvm::Instruction *n) const override {
+    os << llvmIRToString(n);
   }
 
-  std::string NtoString(const llvm::Instruction *n) const override {
-    return llvmIRToString(n);
+  void printDataFlowFact(std::ostream &os,
+                         const llvm::Value *d) const override {
+    os << llvmIRToString(d);
   }
 
-  std::string MtoString(const llvm::Function *m) const override {
-    return llvmIRToString(m);
+  void printMethod(std::ostream &os, const llvm::Function *m) const override {
+    os << m->getName().str();
   }
 };
 

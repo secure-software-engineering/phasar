@@ -259,16 +259,18 @@ bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSTaintAnalysis::DtoString(IFDSTaintAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IFDSTaintAnalysis::printNode(ostream &os, IFDSTaintAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IFDSTaintAnalysis::NtoString(IFDSTaintAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IFDSTaintAnalysis::printDataFlowFact(ostream &os,
+                                          IFDSTaintAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IFDSTaintAnalysis::MtoString(IFDSTaintAnalysis::m_t m) const {
-  return m->getName().str();
+void IFDSTaintAnalysis::printMethod(ostream &os,
+                                    IFDSTaintAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
 void IFDSTaintAnalysis::printLeaks() const {

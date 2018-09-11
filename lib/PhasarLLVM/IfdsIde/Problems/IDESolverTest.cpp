@@ -75,8 +75,8 @@ map<IDESolverTest::n_t, set<IDESolverTest::d_t>> IDESolverTest::initialSeeds() {
   cout << "IDESolverTest::initialSeeds()\n";
   map<IDESolverTest::n_t, set<IDESolverTest::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<IDESolverTest::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IDESolverTest::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -186,21 +186,20 @@ bool IDESolverTest::IDESolverTestAllTop::equal_to(
   return false;
 }
 
-string IDESolverTest::DtoString(IDESolverTest::d_t d) const {
-  return llvmIRToString(d);
+void IDESolverTest::printNode(ostream &os, IDESolverTest::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IDESolverTest::VtoString(IDESolverTest::v_t v) const {
-  // return llvmIRToString(v);
-  return "empty V test";
+void IDESolverTest::printDataFlowFact(ostream &os, IDESolverTest::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IDESolverTest::NtoString(IDESolverTest::n_t n) const {
-  return llvmIRToString(n);
+void IDESolverTest::printMethod(ostream &os, IDESolverTest::m_t m) const {
+  os << m->getName().str();
 }
 
-string IDESolverTest::MtoString(IDESolverTest::m_t m) const {
-  return m->getName().str();
+void IDESolverTest::printValue(ostream &os, IDESolverTest::v_t v) const {
+  os << "empty V test";
 }
 
 } // namespace psr

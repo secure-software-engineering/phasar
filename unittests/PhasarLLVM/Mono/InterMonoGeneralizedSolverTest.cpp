@@ -6,6 +6,7 @@
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 using namespace std;
 using namespace psr;
@@ -26,22 +27,34 @@ TEST(InterMonoGeneralizedSolverTest, Running) {
     cout << "=== Call graph ===\n";
     I.print();
     I.printAsDot("call_graph.dot");
-    InterMonoSolverTest T(I, {"main"});
+    InterMonoSolverTest IMSTest(I, {"main"});
 
+    struct IMSTestDPrinter
+        : DataFlowFactPrinter<InterMonoSolverTest::Domain_t> {
+      void printDataFlowFact(std::ostream &os,
+                             InterMonoSolverTest::Domain_t d) const override {
+        for (auto fact : d) {
+          os << llvmIRToString(fact) << '\n';
+        }
+      }
+    };
+    struct IMSTestNPrinter : NodePrinter<InterMonoSolverTest::Node_t> {
+      void printNode(std::ostream &os, InterMonoSolverTest::Node_t n) const {
+        os << llvmIRToString(n);
+      }
+    };
+    auto IMSTestDP = new unique_ptr<IMSTestDPrinter>();
+    auto IMSTestNP = new unique_ptr<IMSTestNPrinter>();
     CallString<typename InterMonoSolverTest::Node_t,
                typename InterMonoSolverTest::Domain_t, 2>
-        CS;
-    auto S1 = make_LLVMBasedIMS(T, CS, I.getMethod("main"));
+        CS(IMSTestNP->get(), IMSTestDP->get());
+    auto S1 = make_LLVMBasedIMS(IMSTest, CS, I.getMethod("main"));
     S1->solve();
-
-    CallString<const llvm::Value *, const llvm::Value *, 2> CS_os(
-        {I.getMethod("main"), I.getMethod("function")});
-    cout << CS_os << endl;
 
     ValueBasedContext<typename InterMonoSolverTest::Node_t,
                       typename InterMonoSolverTest::Domain_t>
-        VBC;
-    auto S2 = make_LLVMBasedIMS(T, VBC, I.getMethod("main"));
+        VBC(IMSTestNP->get(), IMSTestDP->get());
+    auto S2 = make_LLVMBasedIMS(IMSTest, VBC, I.getMethod("main"));
     S2->solve();
   } else {
     cout << "Module does not contain a 'main' function, abort!\n";

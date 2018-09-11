@@ -108,13 +108,13 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  std::string DtoString(d_t d) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  std::string VtoString(v_t v) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  std::string NtoString(n_t n) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
 
-  std::string MtoString(m_t m) const override;
+  void printValue(std::ostream &os, v_t v) const override;
 };
 
 } // namespace psr

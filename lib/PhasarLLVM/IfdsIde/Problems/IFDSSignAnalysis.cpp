@@ -73,8 +73,8 @@ IFDSSignAnalysis::initialSeeds() {
   cout << "IFDSSignAnalysis::initialSeeds()\n";
   map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<IFDSSignAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IFDSSignAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -88,15 +88,17 @@ bool IFDSSignAnalysis::isZeroValue(IFDSSignAnalysis::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSSignAnalysis::DtoString(IFDSSignAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IFDSSignAnalysis::printNode(ostream &os, IFDSSignAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IFDSSignAnalysis::NtoString(IFDSSignAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IFDSSignAnalysis::printDataFlowFact(ostream &os,
+                                         IFDSSignAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IFDSSignAnalysis::MtoString(IFDSSignAnalysis::m_t m) const {
-  return m->getName().str();
+void IFDSSignAnalysis::printMethod(ostream &os, IFDSSignAnalysis::m_t m) const {
+  os << m->getName().str();
 }
+
 } // namespace psr

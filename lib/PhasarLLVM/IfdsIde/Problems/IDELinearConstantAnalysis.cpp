@@ -690,27 +690,24 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
   return res;
 }
 
-string
-IDELinearConstantAnalysis::DtoString(IDELinearConstantAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IDELinearConstantAnalysis::printNode(
+    ostream &os, IDELinearConstantAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string
-IDELinearConstantAnalysis::VtoString(IDELinearConstantAnalysis::v_t v) const {
-  if (v == BOTTOM) {
-    return "Bottom";
-  }
-  return to_string(v);
+void IDELinearConstantAnalysis::printDataFlowFact(
+    ostream &os, IDELinearConstantAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string
-IDELinearConstantAnalysis::NtoString(IDELinearConstantAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IDELinearConstantAnalysis::printMethod(
+    ostream &os, IDELinearConstantAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
-string
-IDELinearConstantAnalysis::MtoString(IDELinearConstantAnalysis::m_t m) const {
-  return m->getName().str();
+void IDELinearConstantAnalysis::printValue(
+    ostream &os, IDELinearConstantAnalysis::v_t v) const {
+  os << ((v == BOTTOM) ? "Bottom" : to_string(v));
 }
 
 } // namespace psr
