@@ -58,12 +58,14 @@ private:
   std::set<const llvm::Value *> alloca_instructions;
   // Stores all return/resume instructions
   std::set<const llvm::Instruction *> ret_res_instructions;
+  // Stores all functions
+  std::set<const llvm::Function *> functions;
   // Contains all contexts for all modules and owns them
   std::map<std::string, std::unique_ptr<llvm::LLVMContext>> contexts;
   // Contains all modules that correspond to a project and owns them
   std::map<std::string, std::unique_ptr<llvm::Module>> modules;
   // Maps function names to the module they are !defined! in
-  std::map<std::string, std::string> functions;
+  std::map<std::string, std::string> functionToModuleMap;
   // Maps globals to the module they are !defined! in
   std::map<std::string, std::string> globals;
   // Maps an id to its corresponding instruction
@@ -128,7 +130,40 @@ public:
   void insertPointsToGraph(const std::string &FunctionName, PointsToGraph *ptg);
   void print();
   void exportPATBCJSON();
+  /**
+   * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
+   * Operands into unique Hexastore string representation.
+   *
+   * What values can be serialized and what scheme is used?
+   *
+   * 	1. Instructions
+   *
+   * 		<function name>.<id>
+   *
+   * 	2. Formal parameters
+   *
+   *		<function name>.f<arg-no>
+   *
+   *	3. Global variables
+   *
+   *		<global variable name>
+   *
+   *	4. ZeroValue
+   *
+   *		<ZeroValueInternalName>
+   *
+   *	5. Operand of an instruction
+   *
+   *		<function name>.<id>.o.<operand no>
+   *
+   * @brief Creates a unique string representation for any given
+   * llvm::Value.
+   */
   std::string valueToPersistedString(const llvm::Value *V);
+  /**
+   * @brief Convertes the given string back into the llvm::Value it represents.
+   * @return Pointer to the converted llvm::Value.
+   */
   const llvm::Value *persistedStringToValue(const std::string &StringRep);
   std::set<const llvm::Type *> getAllocatedTypes();
 };

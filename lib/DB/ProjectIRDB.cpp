@@ -465,7 +465,8 @@ llvm::Module *ProjectIRDB::getWPAModule() {
 void ProjectIRDB::buildFunctionModuleMapping(llvm::Module *M) {
   for (auto &function : M->functions()) {
     if (!function.isDeclaration()) {
-      functions[function.getName().str()] = M->getModuleIdentifier();
+      functionToModuleMap[function.getName().str()] = M->getModuleIdentifier();
+      functions.insert(&function);
     }
   }
 }
@@ -513,15 +514,15 @@ std::set<llvm::Module *> ProjectIRDB::getAllModules() const {
 std::size_t ProjectIRDB::getNumberOfModules() { return modules.size(); }
 
 llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &name) {
-  if (functions.count(name)) {
-    return modules[functions[name]].get();
+  if (functionToModuleMap.count(name)) {
+    return modules[functionToModuleMap[name]].get();
   }
   return nullptr;
 }
 
 llvm::Function *ProjectIRDB::getFunction(const std::string &name) {
-  if (functions.count(name))
-    return modules[functions[name]]->getFunction(name);
+  if (functionToModuleMap.count(name))
+    return modules[functionToModuleMap[name]]->getFunction(name);
   return nullptr;
 }
 
@@ -561,7 +562,7 @@ void ProjectIRDB::print() {
     llvm::outs() << *entry.second;
   }
   std::cout << "functions:" << std::endl;
-  for (auto entry : functions) {
+  for (auto entry : functionToModuleMap) {
     std::cout << entry.first << " defined in module " << entry.second
               << std::endl;
   }
@@ -572,36 +573,6 @@ void ProjectIRDB::exportPATBCJSON() {
 }
 
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
-  /**
-   * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
-   * Operands into unique Hexastore string representation.
-   *
-   * What values can be serialized and what scheme is used?
-   *
-   * 	1. Instructions
-   *
-   * 		<function name>.<id>
-   *
-   * 	2. Formal parameters
-   *
-   *		<function name>.f<arg-no>
-   *
-   *	3. Global variables
-   *
-   *		<global variable name>
-   *
-   *	4. ZeroValue
-   *
-   *		<ZeroValueInternalName>
-   *
-   *	5. Operand of an instruction
-   *
-   *		<function name>.<id>.o.<operand no>
-   */
-  /**
-   * @brief Creates a unique string representation for any given
-   * llvm::Value.
-   */
   if (isLLVMZeroValue(V)) {
     return LLVMZeroValueInternalName;
   } else if (const llvm::Instruction *I =
@@ -645,10 +616,6 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
 }
 
 const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
-  /**
-   * @brief Convertes the given string back into the llvm::Value it represents.
-   * @return Pointer to the converted llvm::Value.
-   */
   if (S == LLVMZeroValueInternalName ||
       S.find(LLVMZeroValueInternalName) != std::string::npos) {
     return LLVMZeroValue::getInstance();
@@ -706,19 +673,18 @@ std::set<const llvm::Instruction *> ProjectIRDB::getRetResInstructions() {
 }
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
-  auto &lg = lg::get();
-  static std::set<const llvm::Function *> funs;
-  if (funs.size() == 0) {
-    for (const auto &entry : functions) {
+  if (functions.size() == 0) {
+    auto &lg = lg::get();
+    for (const auto &entry : functionToModuleMap) {
       const llvm::Function *f = modules[entry.second]->getFunction(entry.first);
       if (f == nullptr) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
                       << entry.first << " is not contained in the module\n");
       } else
-        funs.insert(f);
+        functions.insert(f);
     }
   }
-  return funs;
+  return functions;
 }
 
 bool ProjectIRDB::empty() { return modules.empty(); }
@@ -726,7 +692,7 @@ bool ProjectIRDB::empty() { return modules.empty(); }
 void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
   source_files.insert(M->getModuleIdentifier());
   for (auto &F : *M) {
-    functions.insert(
+    functionToModuleMap.insert(
         std::make_pair(F.getName().str(), M->getModuleIdentifier()));
   }
   for (auto &G : M->globals()) {
