@@ -68,7 +68,7 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
-  Initialize({pathToLLFiles + "basic_01.ll"});
+  Initialize({pathToLLFiles + "basic_01_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -77,7 +77,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_02) {
-  Initialize({pathToLLFiles + "basic_02.ll"});
+  Initialize({pathToLLFiles + "basic_02_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -86,7 +86,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
-  Initialize({pathToLLFiles + "basic_03.ll"});
+  Initialize({pathToLLFiles + "basic_03_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -95,7 +95,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
-  Initialize({pathToLLFiles + "basic_04.ll"});
+  Initialize({pathToLLFiles + "basic_04_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -105,7 +105,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
-  Initialize({pathToLLFiles + "basic_05.ll"});
+  Initialize({pathToLLFiles + "basic_05_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -115,7 +115,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
-  Initialize({pathToLLFiles + "basic_06.ll"});
+  Initialize({pathToLLFiles + "basic_06_cpp_m2r.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -125,7 +125,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
 
 /* ============== BRANCH TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
-  Initialize({pathToLLFiles + "branch_01.ll"});
+  Initialize({pathToLLFiles + "branch_01_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -135,7 +135,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
   // Probably a bad example/style, since variable i is possibly unitialized
-  Initialize({pathToLLFiles + "branch_02.ll"});
+  Initialize({pathToLLFiles + "branch_02_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();
@@ -144,7 +144,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
 }
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_03) {
-  Initialize({pathToLLFiles + "branch_03.ll"});
+  Initialize({pathToLLFiles + "branch_03_cpp.ll"});
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem, false);
   llvmlcasolver.solve();

@@ -67,7 +67,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
-  Initialize({pathToLLFiles + "../control_flow/function_call.ll"});
+  Initialize({pathToLLFiles + "../control_flow/function_call_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -75,7 +75,7 @@ TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_01.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -86,7 +86,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_m2r.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_m2r.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -97,7 +97,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_02.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_02_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -108,7 +108,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_03.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_03_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -118,19 +118,8 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   compareResults(GroundTruth);
 }
 
-TEST_F(IFDSTaintAnalysisTest, TaintTest_03_m2r) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_03_m2r.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
-  TaintSolver.solve();
-  TaintProblem->printLeaks();
-  map<int, set<string>> GroundTruth;
-  GroundTruth[2] = set<string>{"main.0"};
-  compareResults(GroundTruth);
-}
-
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_04.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_04_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
@@ -141,13 +130,24 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_05.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_05_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
       *TaintProblem, false);
   TaintSolver.solve();
   TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
   GroundTruth[17] = set<string>{"16"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_06_cpp_m2r.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+      *TaintProblem, false);
+  TaintSolver.solve();
+  TaintProblem->printLeaks();
+  map<int, set<string>> GroundTruth;
+  GroundTruth[2] = set<string>{"main.0"};
   compareResults(GroundTruth);
 }
 

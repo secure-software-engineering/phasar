@@ -20,13 +20,14 @@ protected:
 };
 
 TEST_F(LTHTest, GraphConstruction) {
-  ProjectIRDB IRDB({pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll",
-                    pathToLLFiles + "type_hierarchies/type_hierarchy_7.ll",
-                    pathToLLFiles + "type_hierarchies/type_hierarchy_8.ll",
-                    pathToLLFiles + "type_hierarchies/type_hierarchy_9.ll",
-                    pathToLLFiles + "type_hierarchies/type_hierarchy_10.ll"});
-  llvm::Module *M =
-      IRDB.getModule(pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll");
+  ProjectIRDB IRDB(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll",
+       pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll",
+       pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll",
+       pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll",
+       pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(pathToLLFiles +
+                                   "type_hierarchies/type_hierarchy_1_cpp.ll");
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1;
   TH1.analyzeModule(*M);
@@ -38,7 +39,8 @@ TEST_F(LTHTest, GraphConstruction) {
 
   ASSERT_TRUE(boost::isomorphism(graph1, TH1.g));
 
-  M = IRDB.getModule(pathToLLFiles + "type_hierarchies/type_hierarchy_7.ll");
+  M = IRDB.getModule(pathToLLFiles +
+                     "type_hierarchies/type_hierarchy_7_cpp.ll");
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH2;
   TH2.analyzeModule(*M);
@@ -61,7 +63,8 @@ TEST_F(LTHTest, GraphConstruction) {
 
   ASSERT_TRUE(boost::isomorphism(graph2, TH2.g));
 
-  M = IRDB.getModule(pathToLLFiles + "type_hierarchies/type_hierarchy_8.ll");
+  M = IRDB.getModule(pathToLLFiles +
+                     "type_hierarchies/type_hierarchy_8_cpp.ll");
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH3;
   TH3.analyzeModule(*M);
@@ -76,7 +79,8 @@ TEST_F(LTHTest, GraphConstruction) {
 
   ASSERT_TRUE(boost::isomorphism(graph3, TH3.g));
 
-  M = IRDB.getModule(pathToLLFiles + "type_hierarchies/type_hierarchy_9.ll");
+  M = IRDB.getModule(pathToLLFiles +
+                     "type_hierarchies/type_hierarchy_9_cpp.ll");
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH4;
   TH4.analyzeModule(*M);
@@ -89,7 +93,8 @@ TEST_F(LTHTest, GraphConstruction) {
 
   ASSERT_TRUE(boost::isomorphism(graph4, TH4.g));
 
-  M = IRDB.getModule(pathToLLFiles + "type_hierarchies/type_hierarchy_10.ll");
+  M = IRDB.getModule(pathToLLFiles +
+                     "type_hierarchies/type_hierarchy_10_cpp.ll");
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH5;
   TH5.analyzeModule(*M);
@@ -106,11 +111,16 @@ TEST_F(LTHTest, GraphConstruction) {
 #include <iostream>
 
 TEST_F(LTHTest, VTableConstruction) {
-  ProjectIRDB IRDB1({pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
-  ProjectIRDB IRDB2({pathToLLFiles + "type_hierarchies/type_hierarchy_7.ll"});
-  ProjectIRDB IRDB3({pathToLLFiles + "type_hierarchies/type_hierarchy_8.ll"});
-  ProjectIRDB IRDB4({pathToLLFiles + "type_hierarchies/type_hierarchy_9.ll"});
-  ProjectIRDB IRDB5({pathToLLFiles + "type_hierarchies/type_hierarchy_10.ll"});
+  ProjectIRDB IRDB1(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  ProjectIRDB IRDB2(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
+  ProjectIRDB IRDB3(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
+  ProjectIRDB IRDB4(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
+  ProjectIRDB IRDB5(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -196,11 +206,16 @@ TEST_F(LTHTest, VTableConstruction) {
 }
 
 TEST_F(LTHTest, TransitivelyReachableTypes) {
-  ProjectIRDB IRDB1({pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
-  ProjectIRDB IRDB2({pathToLLFiles + "type_hierarchies/type_hierarchy_7.ll"});
-  ProjectIRDB IRDB3({pathToLLFiles + "type_hierarchies/type_hierarchy_8.ll"});
-  ProjectIRDB IRDB4({pathToLLFiles + "type_hierarchies/type_hierarchy_9.ll"});
-  ProjectIRDB IRDB5({pathToLLFiles + "type_hierarchies/type_hierarchy_10.ll"});
+  ProjectIRDB IRDB1(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+  ProjectIRDB IRDB2(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
+  ProjectIRDB IRDB3(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
+  ProjectIRDB IRDB4(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
+  ProjectIRDB IRDB5(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -293,7 +308,8 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 }
 
 TEST_F(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
-  ProjectIRDB IRDB({pathToLLFiles + "type_hierarchies/type_hierarchy_1.ll"});
+  ProjectIRDB IRDB(
+      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
   TH.print();
   std::ostringstream oss;
@@ -315,7 +331,7 @@ TEST_F(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
 }
 
 TEST_F(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_analysis/growing_example.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "taint_analysis/growing_example_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
   std::ostringstream oss;
   // Write empty LTH graph as dot to string
@@ -334,10 +350,10 @@ TEST_F(LTHTest, HandleLoadAndPrintOfEmptyGraph) {
 }
 
 TEST_F(LTHTest, SameTypeDifferentVTables) {
-  ProjectIRDB IRDB1({pathToLLFiles + "module_wise/module_wise_9/src1.ll"});
+  ProjectIRDB IRDB1({pathToLLFiles + "module_wise/module_wise_9/src1_cpp.ll"});
   LLVMTypeHierarchy TH1(IRDB1);
   TH1.print();
-  ProjectIRDB IRDB2({pathToLLFiles + "module_wise/module_wise_9/src2.ll"});
+  ProjectIRDB IRDB2({pathToLLFiles + "module_wise/module_wise_9/src2_cpp.ll"});
   LLVMTypeHierarchy TH2(IRDB2);
   TH2.print();
 }

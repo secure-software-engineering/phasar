@@ -4,5 +4,5 @@ set(basics
 )
 
 foreach(TEST_SRC ${basics})
-  generate_ll_file(${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC})
 endforeach(TEST_SRC)
