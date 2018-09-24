@@ -10,12 +10,12 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
-#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonotoneProblemPlugin.h>
-#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonotoneProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonoProblemPlugin.h>
+#include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonoProblemPlugin.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/SOL.h>
 
@@ -51,14 +51,14 @@ AnalysisPluginController::AnalysisPluginController(
         FinalResultsJson += llvmifdstestsolver.getAsJson();
       }
     }
-    if (!InterMonotoneProblemPluginFactory.empty()) {
-      for (auto Problem : InterMonotoneProblemPluginFactory) {
+    if (!InterMonoProblemPluginFactory.empty()) {
+      for (auto Problem : InterMonoProblemPluginFactory) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                       << "Solving plugin: " << Problem.first);
       }
     }
-    if (!IntraMonotoneProblemPluginFactory.empty()) {
-      for (auto Problem : IntraMonotoneProblemPluginFactory) {
+    if (!IntraMonoProblemPluginFactory.empty()) {
+      for (auto Problem : IntraMonoProblemPluginFactory) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                       << "Solving plugin: " << Problem.first);
       }

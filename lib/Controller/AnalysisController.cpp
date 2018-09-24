@@ -38,11 +38,12 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonotoneSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonotoneSolver.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -79,9 +80,9 @@ AnalysisController::AnalysisController(
   // Check if the chosen entry points are valid
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
-  if (VariablesMap.count("entry_points")) {
+  if (VariablesMap.count("entry-points")) {
     std::vector<std::string> invalidEntryPoints;
-    for (auto &entryPoint : VariablesMap["entry_points"].as<vector<string>>()) {
+    for (auto &entryPoint : VariablesMap["entry-points"].as<vector<string>>()) {
       if (IRDB.getFunction(entryPoint) == nullptr) {
         invalidEntryPoints.push_back(entryPoint);
       }
@@ -94,8 +95,8 @@ AnalysisController::AnalysisController(
       }
       throw logic_error("invalid entry points");
     }
-    if (VariablesMap["entry_points"].as<vector<string>>().size()) {
-      EntryPoints = VariablesMap["entry_points"].as<vector<string>>();
+    if (VariablesMap["entry-points"].as<vector<string>>().size()) {
+      EntryPoints = VariablesMap["entry-points"].as<vector<string>>();
     }
   }
   if (WPA_MODE) {
@@ -158,16 +159,16 @@ AnalysisController::AnalysisController(
 
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
-      (VariablesMap.count("callgraph_analysis"))
+      (VariablesMap.count("callgraph-analysis"))
           ? StringToCallGraphAnalysisType.at(
-                VariablesMap["callgraph_analysis"].as<string>())
+                VariablesMap["callgraph-analysis"].as<string>())
           : CallGraphAnalysisType::OTF);
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("ICFG Construction");
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
 
-    if (VariablesMap.count("callgraph_plugin")) {
+    if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
     STOP_TIMER("ICFG Construction");
@@ -175,12 +176,12 @@ AnalysisController::AnalysisController(
     // Add the ICFG to final results
 
     // FinalResultsJson += ICFG.getAsJson();
-    // if (VariablesMap.count("callgraph_analysis")) {
+    // if (VariablesMap.count("callgraph-analysis")) {
     //   ICFG.print();
     //   ICFG.printAsDot("icfg.dot");
     // }
     // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    // if (VariablesMap.count("pointer_analysis")) {
+    // if (VariablesMap.count("pointer-analysis")) {
     //   ICFG.getWholeModulePTG().print();
     //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
     // }
@@ -195,30 +196,17 @@ AnalysisController::AnalysisController(
       START_TIMER("DFA Runtime");
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        IFDSTaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtaintsolver(
-            taintanalysisproblem, true);
-        llvmtaintsolver.solve();
-        FinalResultsJson += llvmtaintsolver.getAsJson();
-        // Here we can get the leaks
-        map<const llvm::Instruction *, set<const llvm::Value *>> Leaks =
-            taintanalysisproblem.Leaks;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Found the following leaks:");
-        if (Leaks.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "No leaks found!");
-        } else {
-          for (auto Leak : Leaks) {
-            string ModuleName =
-                getModuleFromVal(Leak.first)->getModuleIdentifier();
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                          << "At instruction: '" << llvmIRToString(Leak.first)
-                          << "' in file: '" << ModuleName << "'");
-            for (auto LeakValue : Leak.second) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                            << llvmIRToString(LeakValue));
-            }
-          }
+        TaintSensitiveFunctions TSF;
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
+        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
+            TaintAnalysisProblem, true);
+        LLVMTaintSolver.solve();
+        FinalResultsJson += LLVMTaintSolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          LLVMTaintSolver.exportJson(graph_id);
         }
+        // Print found leaks
+        TaintAnalysisProblem.printLeaks();
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -227,6 +215,9 @@ AnalysisController::AnalysisController(
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
         FinalResultsJson += llvmtaintsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtaintsolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
@@ -235,6 +226,9 @@ AnalysisController::AnalysisController(
             llvmtypestatesolver(typestateproblem, true);
         llvmtypestatesolver.solve();
         FinalResultsJson += llvmtypestatesolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtypestatesolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
@@ -243,6 +237,9 @@ AnalysisController::AnalysisController(
             typeanalysisproblem, true);
         llvmtypesolver.solve();
         FinalResultsJson += llvmtypesolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmtypesolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
@@ -252,7 +249,7 @@ AnalysisController::AnalysisController(
         llvmunivsolver.solve();
         FinalResultsJson += llvmunivsolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJSONDataModel(graph_id);
+          llvmunivsolver.exportJson(graph_id);
         }
         break;
       }
@@ -263,7 +260,7 @@ AnalysisController::AnalysisController(
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();
         if (PrintEdgeRecorder) {
-          llvmlcasolver.exportJSONDataModel(graph_id);
+          llvmlcasolver.exportJson(graph_id);
         }
         break;
       }
@@ -278,16 +275,16 @@ AnalysisController::AnalysisController(
           for (auto exit : ICFG.getExitPointsOf(f)) {
             cout << "Exit     : " << lcaproblem.NtoString(exit) << endl;
             for (auto res : llvmlcasolver.resultsAt(exit, true)) {
-              cout << "Value: "
-                   << (res.second == lcaproblem.bottomElement()
-                           ? "BOT"
-                           : lcaproblem.VtoString(res.second))
+              cout << "Value: " << lcaproblem.VtoString(res.second)
                    << "\tat " << lcaproblem.DtoString(res.first) << endl;
             }
           }
           cout << endl;
         }
         FinalResultsJson += llvmlcasolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmlcasolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
@@ -296,6 +293,9 @@ AnalysisController::AnalysisController(
             constproblem, true);
         llvmconstsolver.solve();
         FinalResultsJson += llvmconstsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmconstsolver.exportJson(graph_id);
+        }
         constproblem.printInitMemoryLocations();
         REG_COUNTER_WITH_VALUE("Const Init Set Size",
                                constproblem.initMemoryLocationCount());
@@ -399,6 +399,9 @@ AnalysisController::AnalysisController(
             ifdstest, true);
         llvmifdstestsolver.solve();
         FinalResultsJson += llvmifdstestsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmifdstestsolver.exportJson(graph_id);
+        }
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -406,39 +409,52 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest, true);
         llvmidetestsolver.solve();
-        llvmidetestsolver.getAsJson();
+        FinalResultsJson += llvmidetestsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmidetestsolver.exportJson(graph_id);
+        }
         break;
       }
-      case DataFlowAnalysisType::MONO_Intra_FullConstantPropagation: {
+      case DataFlowAnalysisType::Intra_Mono_FullConstantPropagation: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         IntraMonoFullConstantPropagation intra(CFG, F);
-        LLVMIntraMonotoneSolver<pair<const llvm::Value *, unsigned>,
-                                LLVMBasedCFG &>
+        LLVMIntraMonoSolver<pair<const llvm::Value *, unsigned>, LLVMBasedCFG &>
             solver(intra, true);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::MONO_Intra_SolverTest: {
+      case DataFlowAnalysisType::Intra_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        IntraMonotoneSolverTest intra(CFG, F);
-        LLVMIntraMonotoneSolver<const llvm::Value *, LLVMBasedCFG &> solver(
-            intra, true);
+        IntraMonoSolverTest intra(CFG, F);
+        LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra,
+                                                                        true);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::MONO_Inter_SolverTest: {
+      case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        InterMonotoneSolverTest inter(ICFG, EntryPoints);
-        CallString<typename InterMonotoneSolverTest::Node_t,
-                   typename InterMonotoneSolverTest::Domain_t, 3>
+        InterMonoSolverTest inter(ICFG, EntryPoints);
+        CallString<typename InterMonoSolverTest::Node_t,
+                   typename InterMonoSolverTest::Domain_t, 3>
             Context;
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
         break;
       }
+      case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
+        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
+        InterMonoTaintAnalysis inter(ICFG, EntryPoints);
+        CallString<typename InterMonoTaintAnalysis::Node_t,
+                   typename InterMonoTaintAnalysis::Domain_t, 10>
+            Context;
+        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+        solver->solve();
+        solver->dumpResults();
+        break;
+      }
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
-            VariablesMap["analysis_plugin"].as<vector<string>>();
+            VariablesMap["analysis-plugin"].as<vector<string>>();
 #ifdef PHASAR_PLUGINS_ENABLED
         AnalysisPluginController PluginController(
             AnalysisPlugins, ICFG, EntryPoints, FinalResultsJson);

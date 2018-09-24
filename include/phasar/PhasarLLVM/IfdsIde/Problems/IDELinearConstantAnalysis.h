@@ -16,6 +16,7 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
 
 namespace llvm {
 class Instruction;
@@ -34,6 +35,11 @@ class IDELinearConstantAnalysis
 private:
   std::vector<std::string> EntryPoints;
 
+  // For debug purpose only
+  static unsigned CurrStoreConst_Id;
+  static unsigned CurrLoadStoreV_Id;
+  static unsigned CurrBinary_Id;
+
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -41,12 +47,6 @@ public:
   // int64_t corresponds to llvm's type of constant integer
   typedef int64_t v_t;
   typedef LLVMBasedICFG &i_t;
-
-  // For debug purpose only
-  static unsigned StoreConstCount;
-  static unsigned LoadStoreValueCount;
-  static unsigned BinaryCount;
-  static unsigned EdgeComposerCount;
 
   static const v_t TOP;
   static const v_t BOTTOM;
@@ -113,46 +113,26 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  /**
-   *    secondFunction o G o F
-   *
-   * compose with: EFC(F, EFC(G,secondFunction))
-   * compute target: G(F(source))
-   *
-   * java solution:
-   * compose: G -> F -> secondFunction
-   * compute target: F(G(source))
-   */
-  class EdgeFunctionComposer
-      : public EdgeFunction<v_t>,
-        public std::enable_shared_from_this<EdgeFunctionComposer> {
-  private:
-    const unsigned EdgeFunctionID;
-    std::shared_ptr<EdgeFunction<v_t>> F;
-    std::shared_ptr<EdgeFunction<v_t>> G;
+  // Custom EdgeFunction declarations
 
+  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
   public:
-    EdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
-                         std::shared_ptr<EdgeFunction<v_t>> G);
-
-    v_t computeTarget(v_t source) override;
+    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
+                            std::shared_ptr<EdgeFunction<v_t>> G)
+        : EdgeFunctionComposer<v_t>(F, G){};
 
     std::shared_ptr<EdgeFunction<v_t>>
     composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
     std::shared_ptr<EdgeFunction<v_t>>
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
-
-    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
-
-    void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
   class StoreConstant : public EdgeFunction<v_t>,
                         public std::enable_shared_from_this<StoreConstant> {
   private:
-    const unsigned EdgeFunctionID;
-    const IDELinearConstantAnalysis::v_t IntConst;
+    const unsigned StoreConst_Id;
+    const v_t IntConst;
 
   public:
     explicit StoreConstant(v_t IntConst);
@@ -174,7 +154,7 @@ public:
       : public EdgeFunction<v_t>,
         public std::enable_shared_from_this<LoadStoreValueIdentity> {
   private:
-    const unsigned EdgeFunctionID;
+    const unsigned LoadStoreV_Id;
 
   public:
     explicit LoadStoreValueIdentity();
@@ -192,6 +172,22 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
+  // Helper functions
+
+  /**
+   * The following binary operations are computed:
+   *  - addition
+   *  - subtraction
+   *  - multiplication
+   *  - division (signed/unsinged)
+   *  - remainder (signed/unsinged)
+   *
+   * @brief Computes the result of a binary operation.
+   * @param op operator
+   * @param lop left operand
+   * @param rop right operand
+   * @return Result of binary operation
+   */
   static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
 
   std::string DtoString(d_t d) const override;

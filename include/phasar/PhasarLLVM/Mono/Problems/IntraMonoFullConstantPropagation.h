@@ -20,7 +20,7 @@
 #include <string>
 #include <utility> // std::pair
 
-#include <phasar/PhasarLLVM/Mono/IntraMonotoneProblem.h>
+#include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
 
 namespace llvm {
 class Value;
@@ -33,29 +33,25 @@ namespace psr {
 class LLVMBasedCFG;
 
 class IntraMonoFullConstantPropagation
-    : public IntraMonotoneProblem<const llvm::Instruction *,
-                                  std::pair<const llvm::Value *, unsigned>,
-                                  const llvm::Function *, LLVMBasedCFG &> {
+    : public IntraMonoProblem<const llvm::Instruction *,
+                              std::pair<const llvm::Value *, unsigned>,
+                              const llvm::Function *, LLVMBasedCFG &> {
 public:
   typedef std::pair<const llvm::Value *, unsigned> DFF;
 
   IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
   virtual ~IntraMonoFullConstantPropagation() = default;
 
-  virtual MonoSet<DFF> join(const MonoSet<DFF> &Lhs,
-                            const MonoSet<DFF> &Rhs) override;
+  MonoSet<DFF> join(const MonoSet<DFF> &Lhs, const MonoSet<DFF> &Rhs) override;
 
-  virtual bool sqSubSetEqual(const MonoSet<DFF> &Lhs,
-                             const MonoSet<DFF> &Rhs) override;
+  bool sqSubSetEqual(const MonoSet<DFF> &Lhs, const MonoSet<DFF> &Rhs) override;
 
-  virtual MonoSet<DFF> flow(const llvm::Instruction *S,
-                            const MonoSet<DFF> &In) override;
+  MonoSet<DFF> flow(const llvm::Instruction *S,
+                    const MonoSet<DFF> &In) override;
 
-  virtual MonoMap<const llvm::Instruction *, MonoSet<DFF>>
-  initialSeeds() override;
+  MonoMap<const llvm::Instruction *, MonoSet<DFF>> initialSeeds() override;
 
-  virtual std::string
-  DtoString(std::pair<const llvm::Value *, unsigned> d) override;
+  std::string DtoString(std::pair<const llvm::Value *, unsigned> d) override;
 };
 
 } // namespace psr

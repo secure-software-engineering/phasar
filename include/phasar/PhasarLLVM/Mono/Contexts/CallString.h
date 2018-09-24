@@ -23,15 +23,16 @@
 #include <iterator>
 #include <ostream>
 
-// #include <phasar/Config/ContainerConfiguration.h>
-
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 
 namespace psr {
 
-/*  N = Node in the CFG
- *  D = Domain of possible value (often a map or set but can not be)
- *  K = Maximum depth of CallString
+/**
+ * A call string stores a finite length chain of calls that lead to the
+ * function call.
+ * @tparam N node in the ICFG
+ * @tparam D domain of the analysis
+ * @tparam K maximum depth of the call string
  */
 template <typename N, typename D, unsigned K>
 class CallString : public ContextBase<N, D, CallString<N, D, K>> {
@@ -52,8 +53,7 @@ public:
     }
   }
 
-  virtual void enterFunction(Node_t src, Node_t dest,
-                             const Domain_t &In) override {
+  void enterFunction(Node_t src, Node_t dest, const Domain_t &In) override {
     if (k == 0)
       return;
     if (cs.size() > k - 1) {
@@ -62,14 +62,13 @@ public:
     cs.push_back(src);
   }
 
-  virtual void exitFunction(Node_t src, Node_t dest,
-                            const Domain_t &In) override {
+  void exitFunction(Node_t src, Node_t dest, const Domain_t &In) override {
     if (cs.size() > 0) {
       cs.pop_back();
     }
   }
 
-  virtual bool isUnsure() override {
+  bool isUnsure() override {
     // We may be a bit more precise in the future
     if (cs.size() == k)
       return true;
@@ -77,15 +76,15 @@ public:
       return false;
   }
 
-  virtual bool isEqual(const CallString &rhs) const override {
+  bool isEqual(const CallString &rhs) const override {
     return cs == rhs.cs || (cs.size() == 0) || (rhs.cs.size() == 0);
   }
 
-  virtual bool isDifferent(const CallString &rhs) const override {
+  bool isDifferent(const CallString &rhs) const override {
     return !isEqual(rhs);
   }
 
-  virtual bool isLessThan(const CallString &rhs) const override {
+  bool isLessThan(const CallString &rhs) const override {
     // Base : lhs.cs < rhs.cs
     // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
     // Enable that every empty call-string context match every context
@@ -94,7 +93,7 @@ public:
     return cs < rhs.cs && (cs.size() != 0) && (rhs.cs.size() != 0);
   }
 
-  virtual void print(std::ostream &os) const override {
+  void print(std::ostream &os) const override {
     std::copy(cs.begin(), --cs.end(), std::ostream_iterator<Node_t>(os, " * "));
     os << cs.back();
   }

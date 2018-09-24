@@ -25,8 +25,8 @@ namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     LLVMBasedCFG &Cfg, const llvm::Function *F)
-    : IntraMonotoneProblem<const llvm::Instruction *, DFF,
-                           const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
+    : IntraMonoProblem<const llvm::Instruction *, DFF, const llvm::Function *,
+                       LLVMBasedCFG &>(Cfg, F) {}
 
 MonoSet<IntraMonoFullConstantPropagation::DFF>
 IntraMonoFullConstantPropagation::join(const MonoSet<DFF> &Lhs,

@@ -10,15 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
+#include <iosfwd>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
-// Could be placed inside the .cpp if w put the nested classes inside it as well
-#include <ostream>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -28,76 +28,43 @@ class Value;
 } // namespace llvm
 
 namespace psr {
+
 class LLVMBasedICFG;
 
-// Functions that are considered as taint sensitve functions:
-//
-// Source functions - critical argument(s):
-//  -fread - 0
-//  -read - 1
-//  -fgetc - ret
-//  -fgets - 0, ret
-//  -getc - ret
-//  -getchar - ret
-//  -ungetc - ret
-//
-// Sink functions:
-//  -fwrite - 0
-//  -write - 1
-//  -printf - everything
-//  -fputc - 0
-//  -fputs - 0
-//  -putc - 0
-//  -putchar - 0
-//  -puts - 0
+/**
+ * This analysis tracks data-flows through a program. Data flows from
+ * dedicated source functions, which generate tainted values, into
+ * dedicated sink functions. A leak is reported once a tainted value
+ * reached a sink function.
+ *
+ * @see TaintSensitiveFunctions on how to specify your own
+ * taint-sensitive source and sink functions.
+ */
 class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
                               const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
   typedef LLVMBasedICFG &i_t;
 
-  struct SourceFunction {
-    std::string name;
-    std::vector<unsigned> genargs;
-    bool genreturn;
-    SourceFunction(std::string n, std::vector<unsigned> gen, bool genret)
-        : name(n), genargs(gen), genreturn(genret) {}
-    SourceFunction(std::string n, bool genret) : name(n), genreturn(genret) {}
-    friend std::ostream &operator<<(std::ostream &os,
-                                    const SourceFunction &sf) {
-      os << sf.name << ": ";
-      for (auto arg : sf.genargs)
-        os << arg << ",";
-      return os << ", " << sf.genreturn << std::endl;
-    }
-  };
+private:
+  TaintSensitiveFunctions SourceSinkFunctions;
+  std::vector<std::string> EntryPoints;
 
-  struct SinkFunction {
-    std::string name;
-    std::vector<unsigned> sinkargs;
-    SinkFunction(std::string n, std::vector<unsigned> sink)
-        : name(n), sinkargs(sink) {}
-    friend std::ostream &operator<<(std::ostream &os, const SinkFunction &sf) {
-      os << sf.name << ": ";
-      for (auto arg : sf.sinkargs)
-        os << arg << ",";
-      return os << std::endl;
-    }
-  };
-
+public:
+  /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
 
-  static const std::map<std::string, SourceFunction> Sources;
-
-  static const std::map<std::string, SinkFunction> Sinks;
-
-  IFDSTaintAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
+  /**
+   *
+   * @param icfg
+   * @param TSF
+   * @param EntryPoints
+   */
+  IFDSTaintAnalysis(i_t icfg, TaintSensitiveFunctions TSF,
+                    std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSTaintAnalysis() = default;
 
@@ -130,6 +97,8 @@ public:
   std::string NtoString(n_t n) const override;
 
   std::string MtoString(m_t m) const override;
+
+  void printLeaks() const;
 };
 } // namespace psr
 

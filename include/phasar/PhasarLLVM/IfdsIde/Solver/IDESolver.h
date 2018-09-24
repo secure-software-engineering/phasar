@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_IDESOLVER_H_
 
+#include <fstream>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -25,6 +27,7 @@
 #include <unordered_set>
 #include <utility>
 
+#include <curl/curl.h>
 #include <json.hpp>
 
 #include <boost/algorithm/string/trim.hpp>
@@ -94,15 +97,6 @@ public:
 
   virtual ~IDESolver() = default;
 
-  std::unordered_set<std::string> methodSet;
-
-  void exportJson() {
-    std::cout << "new export" << std::endl;
-    for (auto seed : initialSeeds) {
-      iterateMethod(icfg.getSuccsOf(seed.first));
-    }
-  }
-
   json getAsJson() {
     const static std::string DataFlowID = "DataFlow";
     json J;
@@ -135,83 +129,183 @@ public:
     return J;
   }
 
+  std::unordered_set<std::string> methodSet;
+  std::unordered_set<std::string> stmtSet;
+  json graph;
+
+  void sendGraphToServer() {
+    std::ofstream o("myJsonGraph.json");
+    o << graph << std::endl;
+    o.close();
+
+    CURL *curl;
+    CURLcode res;
+
+    struct curl_httppost *formpost = NULL;
+    struct curl_httppost *lastptr = NULL;
+    struct curl_slist *headerlist = NULL;
+    static const char buf[] = "Expect:";
+
+    curl_global_init(CURL_GLOBAL_ALL);
+
+    /* Fill in the file upload field */
+    curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "sendfile",
+                 CURLFORM_FILE, "myJsonGraph.json", CURLFORM_END);
+
+    /* Fill in the filename field */
+    curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "filename",
+                 CURLFORM_COPYCONTENTS, "myJsonGraph.json", CURLFORM_END);
+
+    /* Fill in the submit field too, even if this is rarely needed */
+    curl_formadd(&formpost, &lastptr, CURLFORM_COPYNAME, "submit",
+                 CURLFORM_COPYCONTENTS, "send", CURLFORM_END);
+
+    curl = curl_easy_init();
+    /* initalize custom header list (stating that Expect: 100-continue is not
+     wanted */
+    headerlist = curl_slist_append(headerlist, buf);
+    if (curl) {
+      /* what URL that receives this POST */
+      curl_easy_setopt(curl, CURLOPT_URL,
+                       "http://localhost:3000/api/framework/addGraph");
+      // if ( (argc == 2) && (!strcmp(argv[1], "noexpectheader")) )
+      //   /* only disable 100-continue header if explicitly requested */
+      //   curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headerlist);
+      curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+
+      /* Perform the request, res will get the return code */
+      res = curl_easy_perform(curl);
+      /* Check for errors */
+      if (res != CURLE_OK)
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+
+      /* always cleanup */
+      curl_easy_cleanup(curl);
+
+      /* then cleanup the formpost chain */
+      curl_formfree(formpost);
+      /* free slist */
+      curl_slist_free_all(headerlist);
+    }
+
+    if (remove("myJsonGraph.json") != 0)
+      std::cout << "Error deleting file" << std::endl;
+    else
+      std::cout << "File successfully deleted" << std::endl;
+  }
+
+  void exportJson(std::string graphId) {
+    std::cout << "new export for graph " << graphId << std::endl;
+    std::vector<json> methods;
+    std::vector<json> statements;
+    std::vector<json> dataflowfacts;
+
+    graph = {{"id", graphId},
+             {"methods", methods},
+             {"statements", statements},
+             {"dataflowFacts", dataflowfacts}};
+
+    for (auto seed : initialSeeds) {
+      graph["methods"].push_back(
+          {{"methodName",
+            ideTabulationProblem.MtoString(icfg.getMethodOf(seed.first))}});
+      iterateMethod(icfg.getSuccsOf(seed.first));
+    }
+
+    sendGraphToServer();
+  }
+
+  json getStatementJson(N succ) {
+    auto currentId = icfg.getStatementId(succ);
+    auto currentMethodName =
+        ideTabulationProblem.MtoString(icfg.getMethodOf(succ));
+    auto content = ideTabulationProblem.NtoString(succ);
+
+    auto dVMap = resultsAt(succ);
+    std::vector<std::string> dffIds;
+    int i = 0;
+    for (auto it : dVMap) {
+      std::string dfId = currentId + "_dff_" + std::to_string(i);
+      i++;
+      json dfFact = {{"id", dfId},
+                     {"content", ideTabulationProblem.DtoString(it.first)},
+                     {"value", ideTabulationProblem.VtoString(it.second)},
+                     {"statementId", currentId},
+                     {"type", 5}};
+      dffIds.push_back(dfId);
+      graph["dataflowFacts"].push_back(dfFact);
+    }
+
+    auto next = icfg.getSuccsOf(succ);
+    std::vector<std::string> succIds;
+
+    for (auto stmt : next) {
+      succIds.push_back(icfg.getStatementId(stmt));
+    }
+
+    json statement = {{"id", currentId},         {"method", currentMethodName},
+                      {"content", content},      {"successors", succIds},
+                      {"dataflowFacts", dffIds}, {"type", 0}};
+    return statement;
+  }
+
   void iterateMethod(std::vector<N> succs) {
     for (auto succ : succs) {
-      // create statement node
-      std::cout << "ID: " << icfg.getStatementId(succ) << std::endl
-                << std::endl;
-      auto currentMethodName =
-          ideTabulationProblem.MtoString(icfg.getMethodOf(succ));
-      auto content = ideTabulationProblem.NtoString(succ);
-      std::cout << "n to string: " << content << std::endl;
-      // statement
-      // {
-      // methodName:
-      // currentMethodName,
-      // content : content,
-      // successors: [ideTabulationProblem.getSuccs(succ).id],
-      // dataflowFacts: [dvMap.id]
-      // }
-      if (icfg.isCallStmt(succ)) {
-        // if statement is call statement create call and returnsite
-        // connect statement with callsite, callsite with returnsite, returnsite
-        // with return statement annotate callsite and returnsite with method
-        // name (name is unique)
-        std::cout << "found call stmt" << std::endl;
+      auto currentId = icfg.getStatementId(succ);
+      if (stmtSet.find(currentId) == stmtSet.end()) {
+        stmtSet.insert(currentId);
+        json statement = getStatementJson(succ);
 
-        // called methods
-        auto calledMethods = icfg.getCalleesOfCallAt(succ);
-        for (auto method : calledMethods) {
-          auto methodName = ideTabulationProblem.MtoString(method);
-          std::cout << "method Name: " << methodName << std::endl;
-          if (methodSet.find(methodName) == methodSet.end()) {
-            // start points of called method
-            auto nodeSet = icfg.getStartPointsOf(method);
-            for (auto tmp : nodeSet) {
-              std::cout << "called nodes: "
-                        << ideTabulationProblem.NtoString(tmp) << std::endl;
+        if (icfg.isCallStmt(succ)) {
+          // if statement is call statement create call and returnsite
+          // connect statement with callsite, callsite with returnsite,
+          // returnsite with return statement annotate callsite and returnsite
+          // with method name (name is unique)
 
-              methodSet.insert(methodName);
-              iterateMethod(icfg.getSuccsOf(tmp));
+          // called methods
+          auto calledMethods = icfg.getCalleesOfCallAt(succ);
+          std::vector<std::string> targetMethods;
+          statement["type"] = 1;
+          for (auto method : calledMethods) {
+            auto methodName = ideTabulationProblem.MtoString(method);
+            statement["successors"].push_back(methodName);
+
+            targetMethods.push_back(methodName);
+            if (methodSet.find(methodName) == methodSet.end()) {
+              graph["methods"].push_back({{"methodName", methodName}});
+              // start points of called method
+              auto nodeSet = icfg.getStartPointsOf(method);
+              for (auto tmp : nodeSet) {
+                methodSet.insert(methodName);
+                iterateMethod(icfg.getSuccsOf(tmp));
+              }
             }
-          } else {
-            std::cout << "I know this method" << std::endl;
+          }
+          statement["targetMethods"] = targetMethods;
+          auto returnsites = icfg.getReturnSitesOfCallAt(succ);
+
+          for (auto returnsite : returnsites) {
+            auto returnsiteId = icfg.getStatementId(returnsite);
+
+            json returnsiteStmt = getStatementJson(returnsite);
+            returnsiteStmt["type"] = 2;
+            for (auto m : targetMethods) {
+              returnsiteStmt["successors"].push_back(m);
+            }
+
+            graph["statements"].push_back(returnsiteStmt);
+            stmtSet.insert(returnsiteId);
+            iterateMethod(icfg.getSuccsOf(returnsite));
           }
         }
 
-        // callsite{
-        // sourceMethod: currentMethodName,
-        // targetMethods: [calledMethods.id],
-        // returnsites: [returnsites.id],
-        // statementId: succ.id
-        // }
-
-        // returnsite{
-        // sourceMethod: currentMethodName,
-        // targetMethods: [calledMethods.id]
-        // statementIds: [returnsites.id]
-        // }
-        auto returnsites = icfg.getReturnSitesOfCallAt(succ);
-        for (auto returnsite : returnsites) {
-          std::cout << "retrurnsite: "
-                    << ideTabulationProblem.NtoString(returnsite) << std::endl;
-        }
+        graph["statements"].push_back(statement);
+        iterateMethod(icfg.getSuccsOf(succ));
       }
-
-      auto dVMap = resultsAt(succ);
-      // dataflowfact{
-      //   fact: ideTabulationProblem.DtoString(it.first),
-      //   value: ideTabulationProblem.VtoString(it.second),
-      //   statementId: succ.id
-      // }
-      for (auto it : dVMap) {
-        std::cout << "map entry: " << ideTabulationProblem.DtoString(it.first)
-                  << ":" << ideTabulationProblem.VtoString(it.second)
-                  << std::endl;
-      }
-      iterateMethod(icfg.getSuccsOf(succ));
     }
   }
+
   /**
    * @brief Runs the solver on the configured problem. This can take some time.
    */
