@@ -32,6 +32,9 @@ namespace psr {
 
 const State IDETypeStateAnalysis::TOP = uninit;
 
+const State open = opened;
+const State close = closed;
+
 const State IDETypeStateAnalysis::BOTTOM = error;
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
@@ -45,6 +48,8 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
+
+  // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
@@ -80,6 +85,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     // });
   }
 
+  // check load instructions for file handler
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     /**/if (Load->getPointerOperand()->getType()->getPointerElementType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
@@ -93,6 +99,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     /**/}
   }
 
+  // check store instructions for file handler
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
@@ -263,6 +270,32 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
+      //Hier gehts weiter
+      if (isZeroValue(currNode) && isZeroValue(succNode)) {
+        return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(
+        bottomElement());
+      }
+
+      /*if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+        if (Alloca->getAllocatedType()->isPointerTy()) {
+          if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+                Alloca->getAllocatedType()->getPointerElementType())) {
+            if (StructTy->getName().find("struct._IO_FILE") !=
+                llvm::StringRef::npos) {
+              if(Alloca == succNode) {
+                return make_shared<IDETypeStateAnalysis::TOP>();
+              }
+              //return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+              //                                               zeroValue());
+            }
+          }
+        }
+      }*/
+      /*IDETypeStateAnalysis::v_t
+      computeTarget(IDETypeStateAnalysis::v_t source) override {
+      
+      }*/
+
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -286,6 +319,8 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getCallToReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
+      // hier Effekte von open() / close()
+    //cout << "callSite: " << callSite->getName().find("open") << " callNode: " << callNode << " retSite: " << retSite->getNumOperands() << " retSiteNode: " << retSiteNode << endl;
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -318,6 +353,22 @@ string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
 }
 
 string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
+
+  // als erstes implementieren states in strings konvertieren
+  switch(v)
+  {
+        case uninit: 
+            return "uninit";
+        case opened:
+            return "opened";
+        case closed:
+            return "closed";
+        case error:
+            return "error";
+        default:
+            return "no state";
+    }
+
   return to_string(static_cast<int>(v));
 }
 
