@@ -28,7 +28,6 @@ private:
 public:
   WPDSProblem(I ICFG) : ICFG(ICFG) {}
   virtual ~WPDSProblem() = default;
-  virtual void solve() {}
 };
 
 } // namespace psr

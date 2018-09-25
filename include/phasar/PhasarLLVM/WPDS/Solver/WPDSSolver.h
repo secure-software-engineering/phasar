@@ -21,6 +21,8 @@ private:
 
 public:
   WPDSSolver(WPDSProblem &P) : P(P) {}
+  ~WPDSSolver() = default;
+  virtual void solve() {}
 };
 
 } // namespace psr
