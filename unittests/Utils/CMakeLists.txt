@@ -1,5 +1,6 @@
 set(UtilsSources
 	LLVMShorthandsTest.cpp
+	LLVMIRToSrcTest.cpp
 	PAMMTest.cpp
 )
 
