@@ -66,88 +66,74 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IFDSTaintAnalysisTest, HandleControlFlow) {
-  Initialize({pathToLLFiles + "../control_flow/function_call_cpp.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
-  TaintSolver.solve();
-  TaintProblem->printLeaks();
-}
-
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[10] = set<string>{"9"};
+  GroundTruth[13] = set<string>{"12"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_m2r.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[1] = set<string>{"0"};
+  GroundTruth[4] = set<string>{"2"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_02_cpp.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[7] = set<string>{"6"};
+  GroundTruth[9] = set<string>{"8"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_03_cpp.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
+  GroundTruth[18] = set<string>{"17"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_04_cpp.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[14] = set<string>{"13"};
+  GroundTruth[19] = set<string>{"18"};
+  GroundTruth[24] = set<string>{"23"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_05_cpp.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[17] = set<string>{"16"};
+  GroundTruth[22] = set<string>{"21"};
   compareResults(GroundTruth);
 }
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
-  Initialize({pathToLLFiles + "dummy_source_sink/taint_06_cpp_m2r.ll"});
+  Initialize({pathToLLFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
-      *TaintProblem, false);
+      *TaintProblem, false, true);
   TaintSolver.solve();
-  TaintProblem->printLeaks();
   map<int, set<string>> GroundTruth;
-  GroundTruth[2] = set<string>{"main.0"};
+  GroundTruth[5] = set<string>{"main.0"};
   compareResults(GroundTruth);
 }
 
