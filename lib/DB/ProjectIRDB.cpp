@@ -433,7 +433,7 @@ void ProjectIRDB::linkForWPA() {
       }
     }
     // update functions
-    for (auto &entry : functions) {
+    for (auto &entry : functionToModuleMap) {
       entry.second = MainMod->getModuleIdentifier();
     }
     // update globals
@@ -711,11 +711,35 @@ set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() {
   return allocated_types;
 }
 
-std::string ProjectIRDB::getGlobalVariableModuleName(
-    const std::string &GlobalVariableName) {
+string
+ProjectIRDB::getGlobalVariableModuleName(const string &GlobalVariableName) {
   if (globals.count(GlobalVariableName)) {
     return globals[GlobalVariableName];
   }
   return "";
+}
+
+set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() {
+  // get all stack and heap alloca instructions
+  set<const llvm::Value *> allMemoryLoc = getAllocaInstructions();
+  set<string> IgnoredGlobalNames = {"llvm.used",
+                                    "llvm.compiler.used",
+                                    "llvm.global_ctors",
+                                    "llvm.global_dtors",
+                                    "vtable",
+                                    "typeinfo"};
+  // add global varibales to the memory location set, except the llvm
+  // intrinsic global variables
+  for (auto M : getAllModules()) {
+    for (auto &GV : M->globals()) {
+      if (GV.hasName()) {
+        string GVName = cxx_demangle(GV.getName().str());
+        if (!IgnoredGlobalNames.count(GVName.substr(0, GVName.find(' ')))) {
+          allMemoryLoc.insert(&GV);
+        }
+      }
+    }
+  }
+  return allMemoryLoc;
 }
 } // namespace psr

@@ -116,6 +116,13 @@ public:
   std::set<const llvm::Function *> getAllFunctions();
   std::set<const llvm::Instruction *> getRetResInstructions();
   std::set<const llvm::Value *> getAllocaInstructions();
+
+  /**
+   * LLVM's intrinsic global variables are excluded.
+   *
+   * @brief Returns all stack and heap allocations, including global variables.
+   */
+  std::set<const llvm::Value *> getAllMemoryLocations();
   std::set<std::string> getAllSourceFiles();
   std::size_t getNumberOfModules();
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
