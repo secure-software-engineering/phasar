@@ -37,8 +37,8 @@ private:
   std::vector<std::string> EntryPoints;
 
   // For debug purpose only
-  static unsigned CurrStoreConst_Id;
-  static unsigned CurrLoadStoreV_Id;
+  static unsigned CurrGenConstant_Id;
+  static unsigned CurrLCAID_Id;
   static unsigned CurrBinary_Id;
 
 public:
@@ -129,14 +129,14 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
   };
 
-  class StoreConstant : public EdgeFunction<v_t>,
-                        public std::enable_shared_from_this<StoreConstant> {
+  class GenConstant : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<GenConstant> {
   private:
-    const unsigned StoreConst_Id;
+    const unsigned GenConstant_Id;
     const v_t IntConst;
 
   public:
-    explicit StoreConstant(v_t IntConst);
+    explicit GenConstant(v_t IntConst);
 
     v_t computeTarget(v_t source) override;
 
@@ -151,14 +151,13 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class LoadStoreValueIdentity
-      : public EdgeFunction<v_t>,
-        public std::enable_shared_from_this<LoadStoreValueIdentity> {
+  class LCAIdentity : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<LCAIdentity> {
   private:
-    const unsigned LoadStoreV_Id;
+    const unsigned LCAID_Id;
 
   public:
-    explicit LoadStoreValueIdentity();
+    explicit LCAIdentity();
 
     v_t computeTarget(v_t source) override;
 
@@ -198,6 +197,9 @@ public:
   void printMethod(std::ostream &os, m_t m) const override;
 
   void printValue(std::ostream &os, v_t v) const override;
+
+  void printIDEReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> &SR) override;
 };
 
 } // namespace psr
