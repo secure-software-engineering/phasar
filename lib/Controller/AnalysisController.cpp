@@ -205,8 +205,6 @@ AnalysisController::AnalysisController(
         if (PrintEdgeRecorder) {
           LLVMTaintSolver.exportJson(graph_id);
         }
-        // Print found leaks
-        TaintAnalysisProblem.printLeaks();
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -269,18 +267,6 @@ AnalysisController::AnalysisController(
         LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
             llvmlcasolver(lcaproblem, true);
         llvmlcasolver.solve();
-        cout << "\n======= LCA RESULTS =======" << endl;
-        for (auto f : IRDB.getAllFunctions()) {
-          cout << "Function : " << f->getName().str() << endl;
-          for (auto exit : ICFG.getExitPointsOf(f)) {
-            cout << "Exit     : " << lcaproblem.NtoString(exit) << endl;
-            for (auto res : llvmlcasolver.resultsAt(exit, true)) {
-              cout << "Value: " << lcaproblem.VtoString(res.second) << "\tat "
-                   << lcaproblem.DtoString(res.first) << endl;
-            }
-          }
-          cout << endl;
-        }
         FinalResultsJson += llvmlcasolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmlcasolver.exportJson(graph_id);
@@ -288,7 +274,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
-        IFDSConstAnalysis constproblem(ICFG, EntryPoints);
+        IFDSConstAnalysis constproblem(ICFG, IRDB.getAllMemoryLocations(),
+                                       EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
             constproblem, true);
         llvmconstsolver.solve();
@@ -296,101 +283,6 @@ AnalysisController::AnalysisController(
         if (PrintEdgeRecorder) {
           llvmconstsolver.exportJson(graph_id);
         }
-        constproblem.printInitMemoryLocations();
-        REG_COUNTER_WITH_VALUE("Const Init Set Size",
-                               constproblem.initMemoryLocationCount());
-        constproblem.printInitMemoryLocations();
-        START_TIMER("DFA Result Computation");
-        // TODO need to consider object fields, i.e. getelementptr
-        // instructions
-        // get all stack and heap alloca instructions
-        std::set<const llvm::Value *> allMemoryLoc =
-            IRDB.getAllocaInstructions();
-        std::set<std::string> IgnoredGlobalNames = {"llvm.used",
-                                                    "llvm.compiler.used",
-                                                    "llvm.global_ctors",
-                                                    "llvm.global_dtors",
-                                                    "vtable",
-                                                    "typeinfo"};
-        // add global varibales to the memory location set, except the llvm
-        // intrinsic global variables
-        for (auto M : IRDB.getAllModules()) {
-          for (auto &GV : M->globals()) {
-            if (GV.hasName()) {
-              string GVName = cxx_demangle(GV.getName().str());
-              if (!IgnoredGlobalNames.count(
-                      GVName.substr(0, GVName.find(' ')))) {
-                allMemoryLoc.insert(&GV);
-              }
-            }
-          }
-        }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Allocation Instructions:");
-        for (auto memloc : allMemoryLoc) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << llvmIRToString(memloc));
-        }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "-------------");
-        LOG_IF_ENABLE(
-            BOOST_LOG_SEV(lg, DEBUG)
-            << "Printing return/resume instruction + dataflow facts:");
-        for (auto RR : IRDB.getRetResInstructions()) {
-          std::set<const llvm::Value *> facts =
-              llvmconstsolver.ifdsResultsAt(RR);
-          // Empty facts means the return/resume statement is part of not
-          // analyzed function - remove all allocas of that function
-          if (facts.empty()) {
-            const llvm::Function *F = RR->getParent()->getParent();
-            for (auto mem_itr = allMemoryLoc.begin();
-                 mem_itr != allMemoryLoc.end();) {
-              if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
-                if (Inst->getParent()->getParent() == F) {
-                  mem_itr = allMemoryLoc.erase(mem_itr);
-                } else {
-                  ++mem_itr;
-                }
-              } else {
-                ++mem_itr;
-              }
-            }
-          } else {
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "Instruction: " << llvmIRToString(RR));
-            for (auto fact : facts) {
-              if (isAllocaInstOrHeapAllocaFunction(fact) ||
-                  llvm::isa<llvm::GlobalValue>(fact)) {
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                              << "   Fact: " << constproblem.DtoString(fact));
-                // remove allocas that are mutable, i.e. are valid facts
-                allMemoryLoc.erase(fact);
-              }
-            }
-          }
-        }
-        // write immutable locations to file
-        bfs::path cfp(VariablesMap["config"].as<string>());
-        // reduce the config path to just the filename - no path and no
-        // extension
-        std::string config = cfp.filename().string();
-        std::size_t extensionPos = config.find(cfp.extension().string());
-        config.replace(extensionPos, cfp.extension().size(), "");
-        ofstream ResultFile;
-        ResultFile.open(config + "_memlocs.txt");
-        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
-        // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Immutable Stack/Heap
-        // Memory");
-        for (auto memloc : allMemoryLoc) {
-          if (auto memlocInst = llvm::dyn_cast<llvm::Instruction>(memloc)) {
-            ResultFile << llvmIRToString(memlocInst) << " in function "
-                       << memlocInst->getParent()->getParent()->getName().str()
-                       << "\n";
-          } else {
-            ResultFile << llvmIRToString(memloc) << '\n';
-          }
-        }
-        ResultFile.close();
-        STOP_TIMER("DFA Result Computation");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "-------------");
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {

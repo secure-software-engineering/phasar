@@ -22,6 +22,7 @@
 #include <string>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
 
@@ -43,6 +44,10 @@ public:
     solver_config = conf;
   }
   SolverConfiguration getSolverConfiguration() { return solver_config; }
+  virtual void printIFDSReport(std::ostream &os,
+                               SolverResults<N, D, BinaryDomain> &SR) {
+    os << "No IFDS report available!";
+  }
 };
 } // namespace psr
 

@@ -11,13 +11,14 @@ protected:
 };
 
 TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
-  ProjectIRDB firstIRDB({pathToLLFiles + "module_wise/module_wise_13/src1.ll",
-                         pathToLLFiles + "module_wise/module_wise_13/src2.ll",
-                         pathToLLFiles + "module_wise/module_wise_13/main.ll"});
+  ProjectIRDB firstIRDB(
+      {pathToLLFiles + "module_wise/module_wise_13/src1_cpp.ll",
+       pathToLLFiles + "module_wise/module_wise_13/src2_cpp.ll",
+       pathToLLFiles + "module_wise/module_wise_13/main_cpp.ll"});
   ProjectIRDB secondIRDB(
-      {pathToLLFiles + "module_wise/module_wise_14/src1.ll",
-       pathToLLFiles + "module_wise/module_wise_14/src2.ll",
-       pathToLLFiles + "module_wise/module_wise_14/main.ll"});
+      {pathToLLFiles + "module_wise/module_wise_14/src1_cpp.ll",
+       pathToLLFiles + "module_wise/module_wise_14/src2_cpp.ll",
+       pathToLLFiles + "module_wise/module_wise_14/main_cpp.ll"});
 
   DBConn &db = DBConn::getInstance();
   LLVMTypeHierarchy TH1(firstIRDB);
@@ -31,9 +32,10 @@ TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
 }
 
 // TEST_F(DBConnTest, HandleLTHWriteToHex) {
-//   ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
-//                     pathToLLFiles + "module_wise/module_wise_9/src2.ll",
-//                     pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
+//   ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1_cpp.ll",
+//                     pathToLLFiles + "module_wise/module_wise_9/src2_cpp.ll",
+//                     pathToLLFiles +
+//                     "module_wise/module_wise_9/src3_cpp.ll"});
 //   DBConn &db = DBConn::getInstance();
 //   db.storeProjectIRDB("phasardbtest", IRDB);
 //   LLVMTypeHierarchy TH(IRDB);
@@ -44,9 +46,9 @@ TEST_F(DBConnTest, HandleLTHStoreWithMultipleProjects) {
 // }
 
 TEST_F(DBConnTest, HandleLTHWriteToDot) {
-  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
-                    pathToLLFiles + "module_wise/module_wise_9/src2.ll",
-                    pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1_cpp.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src2_cpp.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src3_cpp.ll"});
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
   LLVMTypeHierarchy TH(IRDB);
@@ -57,9 +59,9 @@ TEST_F(DBConnTest, HandleLTHWriteToDot) {
 }
 
 TEST_F(DBConnTest, StoreProjectIRDBTest) {
-  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1.ll",
-                    pathToLLFiles + "module_wise/module_wise_9/src2.ll",
-                    pathToLLFiles + "module_wise/module_wise_9/src3.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "module_wise/module_wise_9/src1_cpp.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src2_cpp.ll",
+                    pathToLLFiles + "module_wise/module_wise_9/src3_cpp.ll"});
   DBConn &db = DBConn::getInstance();
   db.storeProjectIRDB("phasardbtest", IRDB);
 }

@@ -19,8 +19,8 @@ protected:
 };
 
 TEST_F(TypeGraphTest, AddType) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs.ll");
+  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs_cpp.ll");
 
   unsigned int nb_struct = 0;
 
@@ -49,8 +49,9 @@ TEST_F(TypeGraphTest, AddType) {
 }
 
 TEST_F(TypeGraphTest, ReverseTypePropagation) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/seven_structs.ll");
+  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(pathToLLFiles + "basic/seven_structs_cpp.ll");
 
   unsigned int nb_struct = 0;
   llvm::StructType *structA = nullptr, *structB = nullptr, *structC = nullptr,
@@ -185,8 +186,8 @@ TEST_F(TypeGraphTest, ReverseTypePropagation) {
 }
 
 TEST_F(TypeGraphTest, AddLinkSimple) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs.ll");
+  ProjectIRDB IRDB({pathToLLFiles + "basic/two_structs_cpp.ll"});
+  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/two_structs_cpp.ll");
 
   unsigned int nb_struct = 0;
   llvm::StructType *structA = nullptr, *structB = nullptr;
@@ -251,8 +252,9 @@ TEST_F(TypeGraphTest, AddLinkSimple) {
 }
 
 TEST_F(TypeGraphTest, TypeAggregation) {
-  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs.ll"});
-  llvm::Module *M = IRDB.getModule(pathToLLFiles + "basic/seven_structs.ll");
+  ProjectIRDB IRDB({pathToLLFiles + "basic/seven_structs_cpp.ll"});
+  llvm::Module *M =
+      IRDB.getModule(pathToLLFiles + "basic/seven_structs_cpp.ll");
 
   unsigned int nb_struct = 0;
   llvm::StructType *structA = nullptr, *structB = nullptr, *structC = nullptr,

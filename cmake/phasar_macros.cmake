@@ -54,63 +54,75 @@ function(add_phasar_unittest test_name)
   set(CTEST_OUTPUT_ON_FAILURE ON)
 endfunction()
 
-function(generate_ll_file test_code_file)
+function(generate_ll_file)
+  set(options MEM2REG DEBUG)
+  set(testfile FILE)
+  cmake_parse_arguments(GEN_LL "${options}" "${testfile}" "" ${ARGN} )
   # get file extension
-  get_filename_component(test_code_file_ext ${test_code_file} EXT)
-  # ll file name
-  string(REGEX REPLACE ${test_code_file_ext} 
-    ".ll" test_code_ll_file
-    ${test_code_file}
-  )
-  # target name = parentdir + test code file name
-  get_filename_component(parent_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-  get_filename_component(test_code_file_name ${test_code_file} NAME_WE)
-  set(test_code_file_target "${parent_dir}_${test_code_file_name}_${test_code_file_ext}")
-  # get file path
-  set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${test_code_file}")
-  # optional parameter indicates that mem2reg pass is requiered
-  if(ARGC EQUAL 2)
-    # message("${test_code_file} added to .ll file generation with mem2reg optimization")
-    if(${test_code_file_ext} STREQUAL ".cpp")
-      add_custom_command(
-        OUTPUT ${test_code_ll_file}
-        COMMAND ${CMAKE_CXX_COMPILER} -std=c++14 -emit-llvm -S -Xclang -disable-O0-optnone ${test_code_file_path} -o ${test_code_ll_file}
-        COMMAND opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
-        COMMENT "compile ${test_code_file} to llvm IR with mem2reg optimization"
-        DEPENDS ${test_code_file}
-        VERBATIM
-      )
-    else()
-      add_custom_command(
-        OUTPUT ${test_code_ll_file}
-        COMMAND ${CMAKE_C_COMPILER} -emit-llvm -S -Xclang -disable-O0-optnone ${test_code_file_path} -o ${test_code_ll_file}
-        COMMAND opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
-        COMMENT "compile ${test_code_file} to llvm IR with mem2reg optimization"
-        DEPENDS ${test_code_file}
-        VERBATIM
-      )
-    endif()
+  get_filename_component(test_code_file_ext ${GEN_LL_FILE} EXT)
+  string(REPLACE "." "_" ll_file_suffix ${test_code_file_ext})
+  # define .ll file name
+#  set(ll_file_suffix "_${test_code_file_ext}")
+  if(GEN_LL_MEM2REG)
+    set(ll_file_suffix "${ll_file_suffix}_m2r")
   endif()
-  # no mem2reg pass
-  if(ARGC EQUAL 1)
-    # message("${test_code_file} added to .ll file generation")
-    if(${test_code_file_ext} STREQUAL ".cpp")
-      add_custom_command(
-        OUTPUT ${test_code_ll_file}
-        COMMAND ${CMAKE_CXX_COMPILER} -std=c++14 -emit-llvm -S ${test_code_file_path} -o ${test_code_ll_file}
-        COMMENT "compile ${test_code_file} to llvm IR"
-        DEPENDS ${test_code_file}
-        VERBATIM
-      )
-    else()
-      add_custom_command(
-        OUTPUT ${test_code_ll_file}
-        COMMAND ${CMAKE_C_COMPILER} -emit-llvm -S ${test_code_file_path} -o ${test_code_ll_file}
-        COMMENT "compile ${test_code_file} to llvm IR"
-        DEPENDS ${test_code_file}
-        VERBATIM
-      )
-    endif()  
+  if(GEN_LL_DEBUG)
+    set(ll_file_suffix "${ll_file_suffix}_dbg")
+  endif()
+#  set(ll_file_suffix "${ll_file_suffix}.ll")
+  string(REPLACE ${test_code_file_ext}
+    "${ll_file_suffix}.ll" test_code_ll_file
+    ${GEN_LL_FILE}
+  )
+  # get file path
+  set(test_code_file_path "${CMAKE_CURRENT_SOURCE_DIR}/${GEN_LL_FILE}")
+
+  # define custom target name
+  # target name = parentdir + test code file name + mem2reg + debug
+  get_filename_component(parent_dir ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+  get_filename_component(test_code_file_name ${GEN_LL_FILE} NAME_WE)
+  set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
+
+  # define compilation flags
+  set(GEN_CXX_FLAGS -std=c++14 -emit-llvm -S)
+  set(GEN_C_FLAGS -emit-llvm -S)
+  set(GEN_CMD_COMMENT "compile ${GEN_LL_FILE} to LLVM IR")
+  if(GEN_LL_MEM2REG)
+    list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
+    list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with mem2reg optimization")
+  endif()
+  if(GEN_LL_DEBUG)
+    list(APPEND GEN_CXX_FLAGS -g)
+    list(APPEND GEN_C_FLAGS -g)
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with/and debug information")
+  endif()
+
+  # define .ll file generation command
+  if(${test_code_file_ext} STREQUAL ".cpp")
+    set(GEN_CMD ${CMAKE_CXX_COMPILER})
+    list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
+  else()
+    set(GEN_CMD ${CMAKE_C_COMPILER})
+    list(APPEND GEN_CMD ${GEN_C_FLAGS})
+  endif()
+  if(GEN_LL_MEM2REG)
+    add_custom_command(
+      OUTPUT ${test_code_ll_file}
+      COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
+      COMMAND opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMENT ${GEN_CMD_COMMENT}
+      DEPENDS ${GEN_LL_FILE}
+      VERBATIM
+    )
+  else()
+    add_custom_command(
+    OUTPUT ${test_code_ll_file}
+    COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
+    COMMENT ${GEN_CMD_COMMENT}
+    DEPENDS ${GEN_LL_FILE}
+    VERBATIM
+    )
   endif()
   add_custom_target(${test_code_file_target}
     DEPENDS ${test_code_ll_file}
