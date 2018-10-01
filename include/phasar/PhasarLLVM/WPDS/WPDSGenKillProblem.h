@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
-#define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_WPDS_WPDSGENKILLPROBLEM_H_
+#define PHASAR_PHASARLLVM_WPDS_WPDSGENKILLPROBLEM_H_
 
 #include <vector>
 
@@ -21,9 +21,7 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class WPDSProblem : public FlowFunctions<N, D, M>,
-                    public EdgeFunctions<N, D, M, V>,
-                    public JoinLattice<V> {
+class WPDSGenKillProblem {
 private:
   I ICFG;
   WPDSType WPDSTy;
@@ -32,14 +30,11 @@ private:
   bool Witnesses;
 
 public:
-  WPDSProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
-              std::vector<N> Stack = {}, bool Witnesses = false)
+  WPDSGenKillProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
+                     std::vector<N> Stack = {}, bool Witnesses = false)
       : ICFG(ICFG), WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
         Witnesses(Witnesses) {}
-  virtual ~WPDSProblem() = default;
-  I interproceduralCFG() { return ICFG; }
-  virtual D zeroValue() = 0;
-  SearchDirection getSearchDirection() { return Direction; }
+  virtual ~WPDSGenKillProblem() = default;
 };
 
 } // namespace psr
