@@ -3,7 +3,7 @@ int compute(int i) {
 }
 
 int main() {
-	int i;
-	int j = compute(i);
+	int a;
+	int j = compute(a);
 	return 0;
 }

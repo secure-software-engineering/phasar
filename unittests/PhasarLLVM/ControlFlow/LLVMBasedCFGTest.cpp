@@ -15,7 +15,7 @@ protected:
 
 TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -37,7 +37,7 @@ TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
 
 TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/switch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/switch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SWITCH INSTRUCTION
@@ -72,7 +72,7 @@ TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
 
 TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // ret i32 0
@@ -88,7 +88,7 @@ TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
 
 TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SINGLE PREDECCESSOR
@@ -119,7 +119,7 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
 
 TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CONDITIONAL BRANCH
@@ -145,7 +145,7 @@ TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
 
 TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING SINGLE SUCCESSOR
@@ -167,7 +167,7 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
 
 TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
   // HANDLING CALL INSTRUCTION SUCCESSOR

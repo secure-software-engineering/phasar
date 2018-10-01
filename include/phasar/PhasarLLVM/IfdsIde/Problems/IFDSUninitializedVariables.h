@@ -39,6 +39,7 @@ public:
 
 private:
   IFDSSummaryPool<d_t, n_t> dynSum;
+  std::map<n_t, std::set<d_t>> UndefValueUses;
   std::vector<std::string> EntryPoints;
 
 public:
@@ -76,6 +77,9 @@ public:
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
   void printMethod(std::ostream &os, m_t m) const override;
+
+  void printIFDSReport(std::ostream &os,
+                       SolverResults<n_t, d_t, BinaryDomain> &SR) override;
 };
 
 } // namespace psr

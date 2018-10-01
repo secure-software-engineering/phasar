@@ -14,11 +14,11 @@ using namespace psr;
 TEST(InterMonoGeneralizedSolverTest, Running) {
   ProjectIRDB IRDB(
       {PhasarDirectory +
-       "build/test/llvm_test_code/control_flow/function_call_2.ll"},
+       "build/test/llvm_test_code/control_flow/function_call_2_cpp.ll"},
       IRDBOptions::WPA);
   llvm::Module *M = IRDB.getModule(
       PhasarDirectory +
-      "build/test/llvm_test_code/control_flow/function_call_2.ll");
+      "build/test/llvm_test_code/control_flow/function_call_2_cpp.ll");
 
   if (M->getFunction("main")) {
     IRDB.preprocessIR();
