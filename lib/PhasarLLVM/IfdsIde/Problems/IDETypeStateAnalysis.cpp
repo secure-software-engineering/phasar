@@ -47,8 +47,8 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
-                                            IDETypeStateAnalysis::n_t succ) {
-
+                                            IDETypeStateAnalysis::n_t succ) { 
+	cout << "Once: " << curr << endl;
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -87,15 +87,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 
   // check load instructions for file handler
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    /**/ if (Load->getPointerOperand()
-                 ->getType()
-                 ->getPointerElementType()
-                 ->isPointerTy()) {
-      if (auto StructTy =
-              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
-                                                   ->getType()
-                                                   ->getPointerElementType()
-                                                   ->getPointerElementType())) {
+    /**/ if (Load->getPointerOperand()->getType()->getPointerElementType()->isPointerTy()) {
+      if (auto StructTy =llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()->getType()->getPointerElementType()->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
           return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load, zeroValue());
@@ -310,6 +303,7 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destiantionMethod,
     IDETypeStateAnalysis::d_t destNode) {
+      //cout << "Testing this: " << callStmt << " "<< srcNode << " " << endl;
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -327,6 +321,18 @@ IDETypeStateAnalysis::getCallToReturnEdgeFunction(
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
       // hier Effekte von open() / close()
     //cout << "callSite: " << callSite->getName().find("open") << " callNode: " << callNode << " retSite: " << retSite->getNumOperands() << " retSiteNode: " << retSiteNode << endl;
+
+    constexpr State delta[4][4] = {
+            {State::opened, State::error, State::opened, State::error},
+            {State::uninit, State::closed, State::error, State::error},
+            {State::error, State::opened, State::error, State::error},
+            {State::opened, State::opened, State::opened, State::error},
+};
+  //cout << delta[1][2 << endl];
+  cout << "callSite: " << callSite << " callNode: " << callNode << " retSite: " << retSite << " retSiteNode: " << retSiteNode << endl;
+  cout << "Just a test: " << EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance() << endl;
+  //return delta[static_cast<underlying_type_t<CurrentState>>(curr)][static_cast<underlying_type_t<State>>(state)];
+
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -385,5 +391,33 @@ string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
 string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
   return m->getName().str();
 }
+//NEUES
+
+/*IDETypeStateAnalysis::v_t
+IDETypeStateAnalysis::LoadStoreValueIdentity::computeTarget(
+    IDETypeStateAnalysis::v_t source) {
+  return source;
+}
+
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::LoadStoreValueIdentity::composeWith(
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction) {
+  return secondFunction;
+}
+
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::LoadStoreValueIdentity::joinWith(
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
+  if (otherFunction.get() == this ||
+      otherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
+          otherFunction.get())) {
+    return this->shared_from_this();
+  }
+  return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(
+      IDETypeStateAnalysis::BOTTOM);
+}*/
 
 } // namespace psr
