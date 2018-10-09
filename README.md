@@ -2,7 +2,7 @@
 
 Phasar a LLVM-based Static Analysis Framework
 =============================================
-Version 1.1
+Version 1018
 
 Secure Software Engineering Group
 ---------------------------------
