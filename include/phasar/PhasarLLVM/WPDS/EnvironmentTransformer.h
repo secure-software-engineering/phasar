@@ -16,35 +16,58 @@
 #include <wali/SemElem.hpp>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
 
 namespace psr {
 
-template <typename V> class EnvTrafoToSemElem : public wali::SemElem {
-private:
+template <typename V>
+class EnvTrafoToSemElem : public wali::SemElem {
+ private:
   std::shared_ptr<EdgeFunction<V>> F;
   const JoinLattice<V> &L;
 
-public:
+ public:
   EnvTrafoToSemElem(std::shared_ptr<EdgeFunction<V>> F, const JoinLattice<V> &L)
       : wali::SemElem(), F(F), L(L) {}
   virtual ~EnvTrafoToSemElem() = default;
 
-  virtual std::ostream &print(std::ostream &os) const override {
-    return os << *F;
+  std::ostream &print(std::ostream &os) const override { return os << *F; }
+
+  wali::sem_elem_t one() const override {
+    std::cout << "EnvTrafoToSemElem::one()\n";
+    return wali::ref_ptr<EnvTrafoToSemElem<V>>(
+        new EnvTrafoToSemElem(EdgeIdentity<V>::getInstance(), L));
   }
 
-  virtual wali::sem_elem_t one() const override { return 0; }
+  wali::sem_elem_t zero() const override {
+    std::cout << "EnvTrafoToSemElem::zero()\n";
+    return wali::ref_ptr<EnvTrafoToSemElem<V>>(
+        new EnvTrafoToSemElem(std::make_shared<AllBottom<V>>(false), L));
+  }
 
-  virtual wali::sem_elem_t zero() const override { return 0; }
+  wali::sem_elem_t extend(SemElem *se) override {
+    std::cout << "EnvTrafoToSemElem::extend()\n";
+    return this;
+  }
 
-  virtual wali::sem_elem_t extend(SemElem *se) override { return 0; }
+  wali::sem_elem_t combine(SemElem *se) override {
+    std::cout << "EnvTrafoToSemElem::combine()\n";
+    return this;
+  }
 
-  virtual wali::sem_elem_t combine(SemElem *se) override { return 0; }
-
-  virtual bool equal(SemElem *se) const override { return false; }
+  bool equal(SemElem *se) const override {
+    std::cout << "EnvTrafoToSemElem::equal()\n";
+    return this == se;
+  }
 };
 
-} // namespace psr
+template <typename V>
+std::ostream &operator<< (std::ostream &os, const EnvTrafoToSemElem<V> &ETS) {
+  ETS.print(os);
+  return os;
+}
+
+}  // namespace psr
 
 #endif

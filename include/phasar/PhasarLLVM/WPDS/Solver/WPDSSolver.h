@@ -33,7 +33,7 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class WPDSSolver {
-private:
+ private:
   WPDSProblem<N, D, M, V, I> &P;
   I ICFG;
   std::unique_ptr<wali::wpds::WPDS> PDS;
@@ -45,12 +45,14 @@ private:
   wali::wfa::WFA Answer;
   wali::sem_elem_t se;
 
-public:
+ public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
-      : P(P), ICFG(P.interproceduralCFG()),
+      : P(P),
+        ICFG(P.interproceduralCFG()),
         // FIXME: use a FWPDS without witnesses for proof-of-concept
         // implementation
-        PDS(new wali::wpds::fwpds::FWPDS(false)), ZeroValue(P.zeroValue()) {}
+        PDS(new wali::wpds::fwpds::FWPDS(false)),
+        ZeroValue(P.zeroValue()) {}
   ~WPDSSolver() = default;
 
   virtual wali::sem_elem_t solve(N n) {
@@ -58,7 +60,7 @@ public:
     submitInitalSeeds();
     // Solve the PDS
     wali::Key node = NKey.at(n);
-    wali::sem_elem_t ret;
+    wali::sem_elem_t ret = nullptr;
     if (SearchDirection::FORWARD == P.getSearchDirection()) {
       std::cout << "FORWARD\n";
       doForwardSearch(Answer);
@@ -89,8 +91,7 @@ public:
       tset = Answer.match(pds_state, node);
       for (titer = tset.begin(); titer != tset.end(); titer++) {
         wali::wfa::ITrans *t = *titer;
-        if (!Answer.isFinalState(t->to()))
-          continue;
+        if (!Answer.isFinalState(t->to())) continue;
 
         wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
         ret = ret->combine(tmp);
@@ -149,9 +150,9 @@ public:
     // Create an automaton to accept the configuration <pds_state, node_stack>
     wali::wfa::WFA query;
     wali::Key temp_from = pds_state;
-    wali::Key temp_to = wali::WALI_EPSILON; // add initialization to skip g++
-                                            // warning. safe b/c of above
-                                            // assertion.
+    wali::Key temp_to = wali::WALI_EPSILON;  // add initialization to skip g++
+                                             // warning. safe b/c of above
+                                             // assertion.
 
     for (size_t i = 0; i < node_stack.size(); i++) {
       std::stringstream ss;
@@ -179,11 +180,10 @@ public:
     }
   }
 
-  void
-  propagate(D sourceVal, N target, D targetVal,
-            std::shared_ptr<EdgeFunction<V>> f,
-            /* deliberately exposed to clients */ N relatedCallSite,
-            /* deliberately exposed to clients */ bool isUnbalancedReturn) {
+  void propagate(
+      D sourceVal, N target, D targetVal, std::shared_ptr<EdgeFunction<V>> f,
+      /* deliberately exposed to clients */ N relatedCallSite,
+      /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     PathEdge<N, D> Edge(sourceVal, target, targetVal);
     pathEdgeProcessingTask(Edge, f);
   }
@@ -222,10 +222,13 @@ public:
         DKey[d3] = wali::getKey(reinterpret_cast<size_t>(d3));
         NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
         NKey[m] = wali::getKey(reinterpret_cast<size_t>(m));
-        PDS->add_rule(
-            DKey[d1], NKey[n], DKey[d3], NKey[m],
-            wali::ref_ptr<EnvTrafoToSemElem<V>>(
-                new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P))));
+        wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
+            new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
+        std::cout << "PDS->add_rule(" << DKey[d1] << ", " << NKey[n] << ", "
+                  << DKey[d3] << ", " << NKey[m] << ", " << *wptr
+                  << ")\n";
+        se = wptr;
+        PDS->add_rule(DKey[d1], NKey[n], DKey[d3], NKey[m], wptr);
         propagate(d1, m, d3, g, nullptr, false);
       }
     }
@@ -407,6 +410,6 @@ public:
   }
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif

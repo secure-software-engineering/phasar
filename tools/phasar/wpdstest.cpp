@@ -48,6 +48,9 @@ int main(int argc, char **argv) {
     auto Return = &F->back().back();
     Return->print(llvm::outs()); llvm::outs() << '\n';
     auto Solution = S.solve(Return);
+    if (auto EnvTrafo = dynamic_cast<EnvTrafoToSemElem<bool> *>(&(*Solution))) {
+      std::cout << "Solution is: " << *EnvTrafo << '\n';
+    }
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
   }
