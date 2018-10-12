@@ -108,19 +108,14 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-enum class State {
-    uninit = 0, 
-    opened, 
-    closed, 
-    error
-};
+  enum class State { uninit = 0, opened, closed, error };
 
-enum class CurrentState {
+  enum class CurrentState {
     state_fopen = 0,
     state_fclose,
     state_star,
     state_freopen
-};
+  };
 
   std::string DtoString(d_t d) const override;
 
