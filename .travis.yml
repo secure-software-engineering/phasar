@@ -1,5 +1,9 @@
 language: c++
 
+# compiler:
+#   - clang
+#   - gcc
+
 cache:
   directories:
     - $TRAVIS_BUILD_DIR/boost_1_67_0/
@@ -45,6 +49,7 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
   - eval "${MATRIX_EVAL}"
 
 # install all dependencies
@@ -52,7 +57,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - echo "checking C++ compiler"; clang++ --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew upgrade ; brew bundle ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew bundle ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
   # Initialize all submodules
