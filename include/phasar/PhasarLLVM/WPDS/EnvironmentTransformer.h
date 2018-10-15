@@ -20,50 +20,64 @@
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
 
 namespace psr {
-
+/**
+ * An ideompotent semi-ring is one whose addition is ideompotent
+ *
+ *    a + a = a
+ *
+ * that is (R, +, 0) - is a join-semilattice with zero.
+ */
 template <typename V>
 class EnvTrafoToSemElem : public wali::SemElem {
- private:
+public:
   std::shared_ptr<EdgeFunction<V>> F;
-  const JoinLattice<V> &L;
+  JoinLattice<V> &L;
+  V v;
 
- public:
-  EnvTrafoToSemElem(std::shared_ptr<EdgeFunction<V>> F, const JoinLattice<V> &L)
+  EnvTrafoToSemElem(std::shared_ptr<EdgeFunction<V>> F, JoinLattice<V> &L)
       : wali::SemElem(), F(F), L(L) {}
   virtual ~EnvTrafoToSemElem() = default;
 
   std::ostream &print(std::ostream &os) const override { return os << *F; }
 
   wali::sem_elem_t one() const override {
-    std::cout << "EnvTrafoToSemElem::one()\n";
+    // std::cout << "EnvTrafoToSemElem::one()\n";
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
         new EnvTrafoToSemElem(EdgeIdentity<V>::getInstance(), L));
   }
 
   wali::sem_elem_t zero() const override {
-    std::cout << "EnvTrafoToSemElem::zero()\n";
+    // std::cout << "EnvTrafoToSemElem::zero()\n";
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
-        new EnvTrafoToSemElem(std::make_shared<AllBottom<V>>(false), L));
+        new EnvTrafoToSemElem(std::make_shared<AllBottom<V>>(L.bottomElement()), L));
   }
 
   wali::sem_elem_t extend(SemElem *se) override {
-    std::cout << "EnvTrafoToSemElem::extend()\n";
-    return this;
+    // std::cout << "EnvTrafoToSemElem::extend()\n";
+    auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
+    auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
+    return wali::ref_ptr<EnvTrafoToSemElem<V>>(
+        new EnvTrafoToSemElem(ThisF->F->composeWith(ThatF->F), L));
   }
 
   wali::sem_elem_t combine(SemElem *se) override {
-    std::cout << "EnvTrafoToSemElem::combine()\n";
-    return this;
+    // std::cout << "EnvTrafoToSemElem::combine()\n";
+    auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
+    auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
+    return wali::ref_ptr<EnvTrafoToSemElem<V>>(
+        new EnvTrafoToSemElem(ThisF->F->joinWith(ThatF->F), L));
   }
 
   bool equal(SemElem *se) const override {
-    std::cout << "EnvTrafoToSemElem::equal()\n";
-    return this == se;
+    // std::cout << "EnvTrafoToSemElem::equal()\n";
+    auto ThisF = dynamic_cast<const EnvTrafoToSemElem *>(this);
+    auto ThatF = dynamic_cast<const EnvTrafoToSemElem *>(se);
+    return ThisF->F->equal_to(ThatF->F);
   }
 };
 
 template <typename V>
-std::ostream &operator<< (std::ostream &os, const EnvTrafoToSemElem<V> &ETS) {
+std::ostream &operator<<(std::ostream &os, const EnvTrafoToSemElem<V> &ETS) {
   ETS.print(os);
   return os;
 }

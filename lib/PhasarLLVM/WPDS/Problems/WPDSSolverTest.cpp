@@ -10,7 +10,9 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
@@ -52,7 +54,7 @@ WPDSSolverTest::getCallToRetFlowFunction(WPDSSolverTest::n_t callSite,
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getSummaryFlowFunction(WPDSSolverTest::n_t curr,
                                        WPDSSolverTest::m_t destMthd) {
-  return Identity<WPDSSolverTest::d_t>::getInstance();
+  return nullptr;
 }
 
 shared_ptr<EdgeFunction<WPDSSolverTest::v_t>>
@@ -95,18 +97,44 @@ WPDSSolverTest::getSummaryEdgeFunction(WPDSSolverTest::n_t curr,
                                        WPDSSolverTest::d_t currNode,
                                        WPDSSolverTest::n_t succ,
                                        WPDSSolverTest::d_t succNode) {
-  return EdgeIdentity<WPDSSolverTest::v_t>::getInstance();
+  return nullptr;
 }
 
-WPDSSolverTest::v_t WPDSSolverTest::topElement() { return 1; }
-WPDSSolverTest::v_t WPDSSolverTest::bottomElement() { return 0; }
+WPDSSolverTest::v_t WPDSSolverTest::topElement() { return BinaryDomain::TOP; }
+WPDSSolverTest::v_t WPDSSolverTest::bottomElement() {
+  return BinaryDomain::BOTTOM;
+}
 WPDSSolverTest::v_t WPDSSolverTest::join(WPDSSolverTest::v_t lhs,
                                          WPDSSolverTest::v_t rhs) {
-  return (lhs == true || rhs == true) ? true : 0;
+  return (lhs == BinaryDomain::BOTTOM || rhs == BinaryDomain::BOTTOM)
+             ? BinaryDomain::BOTTOM
+             : BinaryDomain::TOP;
 }
 
 WPDSSolverTest::d_t WPDSSolverTest::zeroValue() {
   return LLVMZeroValue::getInstance();
 }
 
-} // namespace psr
+void WPDSSolverTest::printNode(std::ostream &os, WPDSSolverTest::n_t n) const {
+  os << llvmIRToString(n);
+}
+
+void WPDSSolverTest::printDataFlowFact(std::ostream &os,
+                                       WPDSSolverTest::d_t d) const {
+  os << llvmIRToString(d);
+}
+
+void WPDSSolverTest::printMethod(std::ostream &os,
+                                 WPDSSolverTest::m_t m) const {
+  os << m->getName().str();
+}
+
+void WPDSSolverTest::printValue(std::ostream &os, WPDSSolverTest::v_t v) const {
+  if (v == BinaryDomain::TOP) {
+    os << "TOP";
+  } else {
+    os << "BOTTOM";
+  }
+}
+
+}  // namespace psr

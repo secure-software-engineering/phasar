@@ -17,13 +17,18 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class WPDSProblem : public FlowFunctions<N, D, M>,
                     public EdgeFunctions<N, D, M, V>,
-                    public JoinLattice<V> {
+                    public JoinLattice<V>,
+                    public NodePrinter<N>,
+                    public DataFlowFactPrinter<D>,
+                    public MethodPrinter<M>,
+                    public ValuePrinter<V> {
 private:
   I ICFG;
   WPDSType WPDSTy;

@@ -15,6 +15,8 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 
@@ -22,14 +24,20 @@ namespace llvm {
 class Value;
 class Instruction;
 class Function;
-} // namespace llvm
+}  // namespace llvm
 
 namespace psr {
 
 class WPDSLinearConstantAnalysis
     : public WPDSProblem<const llvm::Instruction *, const llvm::Value *,
                          const llvm::Function *, int64_t, LLVMBasedICFG &> {
-public:
+ private:
+  static unsigned CurrGenConstant_Id;
+  static unsigned CurrLCAID_Id;
+  static unsigned CurrBinary_Id;
+  LLVMZeroValue *zerovalue;
+
+ public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
@@ -44,6 +52,8 @@ public:
                              std::vector<n_t> Stack = {},
                              bool Witnesses = false);
 
+  ~WPDSLinearConstantAnalysis();
+
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
   std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
@@ -52,28 +62,25 @@ public:
                                                         m_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
-  std::shared_ptr<FlowFunction<d_t>>
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
-  std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t curr, m_t destMthd) override;
+  std::shared_ptr<FlowFunction<d_t>> getCallToRetFlowFunction(
+      n_t callSite, n_t retSite, std::set<m_t> callees) override;
+  std::shared_ptr<FlowFunction<d_t>> getSummaryFlowFunction(
+      n_t curr, m_t destMthd) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  std::shared_ptr<EdgeFunction<v_t>> getNormalEdgeFunction(
+      n_t curr, d_t currNode, n_t succ, d_t succNode) override;
   std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
                                                          m_t destiantionMethod,
                                                          d_t destNode) override;
-  std::shared_ptr<EdgeFunction<v_t>>
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
-  std::shared_ptr<EdgeFunction<v_t>>
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override;
-  std::shared_ptr<EdgeFunction<v_t>>
-  getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                         d_t succNode) override;
+  std::shared_ptr<EdgeFunction<v_t>> getReturnEdgeFunction(
+      n_t callSite, m_t calleeMethod, n_t exitStmt, d_t exitNode, n_t reSite,
+      d_t retNode) override;
+  std::shared_ptr<EdgeFunction<v_t>> getCallToRetEdgeFunction(
+      n_t callSite, d_t callNode, n_t retSite, d_t retSiteNode,
+      std::set<m_t> callees) override;
+  std::shared_ptr<EdgeFunction<v_t>> getSummaryEdgeFunction(
+      n_t curr, d_t currNode, n_t succ, d_t succNode) override;
 
   v_t topElement() override;
   v_t bottomElement() override;
@@ -81,85 +88,98 @@ public:
 
   d_t zeroValue() override;
 
-  //   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  bool isZeroValue(WPDSLinearConstantAnalysis::d_t d) const;
 
-  //   class LCAEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
-  //    public:
-  //     LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
-  //                             std::shared_ptr<EdgeFunction<v_t>> G)
-  //         : EdgeFunctionComposer<v_t>(F, G){};
+  // std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  //     std::shared_ptr<EdgeFunction<v_t>> composeWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+  // Custom EdgeFunction declarations
 
-  //     std::shared_ptr<EdgeFunction<v_t>> joinWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
-  //   };
+  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
+   public:
+    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
+                            std::shared_ptr<EdgeFunction<v_t>> G)
+        : EdgeFunctionComposer<v_t>(F, G){};
 
-  //   class StoreConstant : public EdgeFunction<v_t>,
-  //                         public std::enable_shared_from_this<StoreConstant>
-  //                         {
-  //    private:
-  //     const unsigned StoreConst_Id;
-  //     const v_t IntConst;
+    std::shared_ptr<EdgeFunction<v_t>> composeWith(
+        std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
-  //    public:
-  //     explicit StoreConstant(v_t IntConst);
+    std::shared_ptr<EdgeFunction<v_t>> joinWith(
+        std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+  };
 
-  //     v_t computeTarget(v_t source) override;
+  class GenConstant : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<GenConstant> {
+   private:
+    const unsigned GenConstant_Id;
+    const v_t IntConst;
 
-  //     std::shared_ptr<EdgeFunction<v_t>> composeWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+   public:
+    explicit GenConstant(v_t IntConst);
 
-  //     std::shared_ptr<EdgeFunction<v_t>> joinWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    v_t computeTarget(v_t source) override;
 
-  //     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    std::shared_ptr<EdgeFunction<v_t>> composeWith(
+        std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
-  //     void print(std::ostream &OS, bool isForDebug = false) const override;
-  //   };
+    std::shared_ptr<EdgeFunction<v_t>> joinWith(
+        std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
-  //   class LoadStoreValueIdentity
-  //       : public EdgeFunction<v_t>,
-  //         public std::enable_shared_from_this<LoadStoreValueIdentity> {
-  //    private:
-  //     const unsigned LoadStoreV_Id;
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
 
-  //    public:
-  //     explicit LoadStoreValueIdentity();
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
 
-  //     v_t computeTarget(v_t source) override;
+  class LCAIdentity : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<LCAIdentity> {
+   private:
+    const unsigned LCAID_Id;
 
-  //     std::shared_ptr<EdgeFunction<v_t>> composeWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+   public:
+    explicit LCAIdentity();
 
-  //     std::shared_ptr<EdgeFunction<v_t>> joinWith(
-  //         std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    v_t computeTarget(v_t source) override;
 
-  //     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    std::shared_ptr<EdgeFunction<v_t>> composeWith(
+        std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
-  //     void print(std::ostream &OS, bool isForDebug = false) const override;
-  //   };
+    std::shared_ptr<EdgeFunction<v_t>> joinWith(
+        std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
-  //   // Helper functions
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
 
-  //   /**
-  //    * The following binary operations are computed:
-  //    *  - addition
-  //    *  - subtraction
-  //    *  - multiplication
-  //    *  - division (signed/unsinged)
-  //    *  - remainder (signed/unsinged)
-  //    *
-  //    * @brief Computes the result of a binary operation.
-  //    * @param op operator
-  //    * @param lop left operand
-  //    * @param rop right operand
-  //    * @return Result of binary operation
-  //    */
-  //   static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
+  // Helper functions
+
+  /**
+   * The following binary operations are computed:
+   *  - addition
+   *  - subtraction
+   *  - multiplication
+   *  - division (signed/unsinged)
+   *  - remainder (signed/unsinged)
+   *
+   * @brief Computes the result of a binary operation.
+   * @param op operator
+   * @param lop left operand
+   * @param rop right operand
+   * @return Result of binary operation
+   */
+  static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
+
+  void printNode(std::ostream &os, n_t n) const override;
+
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
+
+  void printMethod(std::ostream &os, m_t m) const override;
+
+  void printValue(std::ostream &os, v_t v) const override;
+
+  // void printIDEReport(std::ostream &os,
+  // SolverResults<n_t, d_t, v_t> &SR);
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif
