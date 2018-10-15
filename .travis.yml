@@ -57,7 +57,8 @@ branches:
     - master
 
 # commands that need to be run before installing the dependencies
-# before_install:
+before_install:
+  - eval "${MATRIX_EVAL}"
 
 # install all dependencies
 install:
