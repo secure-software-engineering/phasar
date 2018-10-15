@@ -30,7 +30,7 @@ addons:
 matrix:
   include:
   - os: linux
-    dist: precise
+    dist: xenial
     sudo: enabled
     addons:
       apt:
