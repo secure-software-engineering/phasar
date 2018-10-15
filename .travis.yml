@@ -30,15 +30,27 @@ addons:
 matrix:
   include:
   - os: linux
-    dist: xenial
+    dist: precise
     sudo: enabled
+    addons:
+      apt:
+        sources:
+          - ubuntu-toolchain-r-test
+        packages:
+          - g++-7
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     compiler:
        - clang++
+       - g++
   # FIXME
   - os: osx
     osx_image: xcode8
+    env:
+      - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
     compiler:
       - clang++
+      - g++
 
 branches:
     - development
