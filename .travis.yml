@@ -59,9 +59,10 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - echo "checking C++ compiler"; clang++ --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew bundle ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; brew upgrade ; brew bundle ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
+  # Initialize all submodules
   - git submodule update --init --recursive
   # Install boost 1.67
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz; tar xf boost_1_67_0.tar.gz; cd boost_1_67_0/ ; ./bootstrap.sh 1> /dev/null ; fi
