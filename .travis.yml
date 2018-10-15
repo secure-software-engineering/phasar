@@ -4,29 +4,6 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/boost_1_67_0/
 
-addons:
-  apt:
-    sources:
-      # - ubuntu-toolchain-r-test
-    packages:
-      - build-essential
-      - clang-5.0
-      - libclang-5.0-dev
-      - llvm-5.0
-      - llvm-5.0-dev
-      - sqlite3
-      - libsqlite3-dev
-      - bear
-      - python3
-      - git
-      - cmake
-      - zlib1g-dev
-      - libncurses5-dev
-      - graphviz
-      - doxygen
-      - libcurl4-gnutls-dev
-      - libmysqlcppconn-dev
-
 matrix:
   include:
   - os: linux
@@ -38,8 +15,25 @@ matrix:
           - ubuntu-toolchain-r-test
         packages:
           - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+          - build-essential
+          - clang-5.0
+          - libclang-5.0-dev
+          - llvm-5.0
+          - llvm-5.0-dev
+          - sqlite3
+          - libsqlite3-dev
+          - bear
+          - python3
+          - git
+          - cmake
+          - zlib1g-dev
+          - libncurses5-dev
+          - graphviz
+          - doxygen
+          - libcurl4-gnutls-dev
+          - libmysqlcppconn-dev
+    env:
+      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
     compiler:
        - clang++
        - g++
