@@ -33,9 +33,9 @@ namespace psr {
 class LLVMBasedBackwardCFG
     : public CFG<const llvm::Instruction *, const llvm::Function *> {
 public:
-  LLVMBasedBackwardCFG();
+  LLVMBasedBackwardCFG()=default;
 
-  virtual ~LLVMBasedBackwardCFG();
+  virtual ~LLVMBasedBackwardCFG()=default;
 
   virtual const llvm::Function *
   getMethodOf(const llvm::Instruction *stmt) override;
@@ -64,6 +64,7 @@ public:
                               const llvm::Instruction *succ) override;
 
   virtual std::string getMethodName(const llvm::Function *fun) override;
+  virtual std::string getStatementId(const llvm::Instruction *stmt) override;
 };
 } // namespace psr
 
