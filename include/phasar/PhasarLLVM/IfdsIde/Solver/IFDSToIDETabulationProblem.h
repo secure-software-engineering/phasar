@@ -123,8 +123,8 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallToReturnEdgeFunction(N callStmt, D callNode, N returnSite,
-                              D returnSideNode) override {
+  getCallToRetEdgeFunction(N callStmt, D callNode, N returnSite,
+                           D returnSideNode, std::set<M> callees) override {
     if (problem.isZeroValue(callNode))
       return ALL_BOTTOM;
     else
@@ -137,17 +137,19 @@ public:
     return EdgeIdentity<BinaryDomain>::getInstance();
   }
 
-  std::string DtoString(D d) const override { return problem.DtoString(d); }
-
-  std::string VtoString(BinaryDomain v) const override {
-    std::ostringstream osst;
-    osst << v;
-    return osst.str();
+  void printNode(std::ostream &os, N n) const override {
+    problem.printNode(os, n);
   }
 
-  std::string MtoString(M m) const override { return problem.MtoString(m); }
+  void printDataFlowFact(std::ostream &os, D d) const override {
+    problem.printDataFlowFact(os, d);
+  }
 
-  std::string NtoString(N n) const override { return problem.NtoString(n); }
+  void printMethod(std::ostream &os, M m) const override {
+    problem.printMethod(os, m);
+  }
+
+  void printValue(std::ostream &os, BinaryDomain v) const override { os << v; }
 };
 
 } // namespace psr

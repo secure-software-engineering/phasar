@@ -4,5 +4,5 @@ set(Mem2regSources
 )
 
 foreach(TEST_SRC ${Mem2regSources})
-  generate_ll_file(${TEST_SRC} mem2reg)
+  generate_ll_file(FILE ${TEST_SRC} MEM2REG DEBUG)
 endforeach(TEST_SRC)

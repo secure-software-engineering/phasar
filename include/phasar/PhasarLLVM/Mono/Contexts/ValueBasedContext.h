@@ -49,7 +49,8 @@ protected:
   Domain_t prev_context;
 
 public:
-  ValueBasedContext() = default;
+  ValueBasedContext(const NodePrinter<N> *np, const DataFlowFactPrinter<D> *dp)
+      : ContextBase<N, D, ValueBasedContext<N, D>>(np, dp) {}
 
   void enterFunction(const Node_t src, const Node_t dest,
                      const Domain_t &In) override {
@@ -136,9 +137,21 @@ protected:
   IdGen_t IdGen;
 
 public:
-  MappedValueBasedContext() = default;
+  MappedValueBasedContext(const NodePrinter<Node> *np,
+                          const DataFlowFactPrinter<Domain_t> *dp)
+      : ContextBase<
+            Node, Map<Key, Value>,
+            MappedValueBasedContext<Node, Key, Value, IdGenerator, Map>>(np,
+                                                                         dp) {}
 
-  MappedValueBasedContext(IdGen_t &_IdGen) : IdGen(_IdGen) {}
+  MappedValueBasedContext(const NodePrinter<Node> *np,
+                          const DataFlowFactPrinter<Domain_t> *dp,
+                          IdGen_t &_IdGen)
+      : ContextBase<
+            Node, Map<Key, Value>,
+            MappedValueBasedContext<Node, Key, Value, IdGenerator, Map>>(np,
+                                                                         dp),
+        IdGen(_IdGen) {}
 
   template <class T>
   MappedValueBasedContext(T &&_args, T &&_prev_context)

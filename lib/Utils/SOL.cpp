@@ -29,14 +29,14 @@ SOL::SOL(const string &path) : path(path) {
   dlerror(); // clear existing errors
 }
 
-SOL::SOL(SOL &&so) {
+SOL::SOL(SOL &&so) noexcept {
   error = so.error;
   so_handle = so.so_handle;
   so.error = nullptr;
   so.so_handle = nullptr;
 }
 
-SOL &SOL::operator=(SOL &&so) {
+SOL &SOL::operator=(SOL &&so) noexcept {
   error = so.error;
   so_handle = so.so_handle;
   so.error = nullptr;

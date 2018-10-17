@@ -81,8 +81,8 @@ IFDSSolverTest::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::initialSeeds()");
   map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<IFDSSolverTest::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IFDSSolverTest::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -96,15 +96,17 @@ bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t d) const {
   return isLLVMZeroValue(d);
 }
 
-string IFDSSolverTest::DtoString(IFDSSolverTest::d_t d) const {
-  return llvmIRToString(d);
+void IFDSSolverTest::printNode(ostream &os, IFDSSolverTest::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IFDSSolverTest::NtoString(IFDSSolverTest::n_t n) const {
-  return llvmIRToString(n);
+void IFDSSolverTest::printDataFlowFact(ostream &os,
+                                       IFDSSolverTest::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IFDSSolverTest::MtoString(IFDSSolverTest::m_t m) const {
-  return m->getName().str();
+void IFDSSolverTest::printMethod(ostream &os, IFDSSolverTest::m_t m) const {
+  os << m->getName().str();
 }
+
 } // namespace psr

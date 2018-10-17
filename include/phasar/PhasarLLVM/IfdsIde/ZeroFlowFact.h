@@ -10,9 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_ZEROFLOWFACT_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_ZEROFLOWFACT_H_
 
-#include <ostream>
+#include <iosfwd>
 
-#include <iostream>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFact.h>
 
 namespace psr {

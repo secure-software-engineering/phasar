@@ -8,7 +8,7 @@ project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT CMAKE_BUILD_TYPE)
@@ -93,6 +93,10 @@ add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
 include_directories(external/googletest/googletest/include)
 include_directories(external/googletest/googlemock/include)
 
+# WALi-OpenNWA
+add_subdirectory(external/WALi-OpenNWA)
+include_directories(external/WALi-OpenNWA/Source/wali/include)
+
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
@@ -164,10 +168,6 @@ set(CLANG_LIBRARIES
 # Add the Phasar subdirectories
 add_subdirectory(include)
 add_subdirectory(lib)
-
-# add_phasar_executable(phasar
-#  tools/phasar/phasar.cpp
-# )
 
 # Build a stand-alone executable
 add_executable(phasar

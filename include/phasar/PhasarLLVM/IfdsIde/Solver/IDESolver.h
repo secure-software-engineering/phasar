@@ -599,8 +599,8 @@ private:
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts) {
           std::shared_ptr<EdgeFunction<V>> edgeFnE =
-              cachedFlowEdgeFunctions.getCallToReturnEdgeFunction(
-                  n, d2, returnSiteN, d3);
+              cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
+                  n, d2, returnSiteN, d3, callees);
           INC_COUNTER("EF Queries");
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Compose: " << edgeFnE->str() << " * " << f->str());

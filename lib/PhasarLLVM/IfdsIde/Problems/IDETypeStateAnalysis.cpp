@@ -253,9 +253,8 @@ IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
   map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(
-        std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                       set<IDETypeStateAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IDETypeStateAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -350,9 +349,10 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-IDETypeStateAnalysis::getCallToReturnEdgeFunction(
+IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
-    IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
+    IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
+    std::set<IDETypeStateAnalysis::m_t> callees) {
   // hier Effekte von open() / close()
   // cout << "callSite: " << callSite->getName().find("open") << " callNode: "
   // << callNode << " retSite: " << retSite->getNumOperands() << "
@@ -400,6 +400,7 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
 }
 
+<<<<<<< HEAD
 //NEW
 
 
@@ -415,32 +416,41 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::composeWith(
 
 string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
   return llvmIRToString(d);
+=======
+// string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
+//   // als erstes implementieren states in strings konvertieren
+//   switch (v) {
+//     case uninit:
+//       return "uninit";
+//     case opened:
+//       return "opened";
+//     case closed:
+//       return "closed";
+//     case error:
+//       return "error";
+//     default:
+//       return "no state";
+//   }
+//   return to_string(static_cast<int>(v));
+// }
+
+void IDETypeStateAnalysis::printNode(std::ostream &os, n_t n) const {
+  os << llvmIRToString(n);
+>>>>>>> a09beaa306ecc9b138ac6a0ade404132e8f8b5a9
 }
 
-string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
-  // als erstes implementieren states in strings konvertieren
-  switch (v) {
-  case uninit:
-    return "uninit";
-  case opened:
-    return "opened";
-  case closed:
-    return "closed";
-  case error:
-    return "error";
-  default:
-    return "no state";
-  }
-
-  return to_string(static_cast<int>(v));
+void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IDETypeStateAnalysis::NtoString(IDETypeStateAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IDETypeStateAnalysis::printMethod(ostream &os,
+                                       IDETypeStateAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
-string IDETypeStateAnalysis::MtoString(IDETypeStateAnalysis::m_t m) const {
-  return m->getName().str();
+void IDETypeStateAnalysis::printValue(ostream &os,
+                                      IDETypeStateAnalysis::v_t v) const {
+  os << to_string(static_cast<int>(v));
 }
 // NEUES
 

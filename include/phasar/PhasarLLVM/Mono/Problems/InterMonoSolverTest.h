@@ -67,11 +67,11 @@ public:
 
   MonoMap<Node_t, Domain_t> initialSeeds() override;
 
-  std::string DtoString(const Domain_t d) override;
+  void printNode(std::ostream &os, Node_t n) const override;
 
-  std::string MtoString(Method_t m) override;
+  void printDataFlowFact(std::ostream &os, Domain_t d) const override;
 
-  std::string NtoString(Node_t n) override;
+  void printMethod(std::ostream &os, Method_t m) const override;
 
   bool recompute(Method_t Callee) override;
 };
