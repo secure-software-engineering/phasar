@@ -32,8 +32,7 @@ TEST_F(TypeGraphTest, AddType) {
 
     auto node = tg.addType(struct_type);
 
-    ASSERT_TRUE(tg.g[node].name ==
-                uniformTypeName(struct_type->getName().str()));
+    ASSERT_TRUE(tg.g[node].name == struct_type->getName().str());
     ASSERT_TRUE(tg.g[node].base_type == struct_type);
     ASSERT_TRUE(tg.g[node].types.size() == 1);
     ASSERT_TRUE(tg.g[node].types.count(struct_type));

@@ -946,90 +946,93 @@ void DBConn::storeLTHGraphToHex(const LLVMTypeHierarchy::bidigraph_t &G,
 
 void DBConn::storeLLVMTypeHierarchy(LLVMTypeHierarchy &TH,
                                     const string &ProjectName, bool use_hs) {
-  try {
-    // TH contains new information if one of the following is true:
-    // (1) one or more modules are not stored in the database
-    // (2) one or more modules are not listed in the
-    //     module - type_hierarchy relation
-    // If one of the above is true, the TH will be stored and all missing
-    // or new information (e.g. modules, VTables) will be stored as well.
-    bool THContainsNewInformation = false;
-    // Initialize the transaction
-    unique_ptr<sql::Statement> stmt(conn->createStatement());
-    stmt->execute("START TRANSACTION");
-    for (auto M : TH.contained_modules) {
-      // Check if all modules contained in the TH are already stored in the
-      // database. At the same time, all types contained in the modules will
-      // be stored (if not already stored).
-      int moduleID = getModuleID(M->getModuleIdentifier());
-      if (moduleID == -1 || getModuleHash(moduleID) != computeModuleHash(M)) {
-        insertModule(ProjectName, M);
-        THContainsNewInformation = true;
-      } else if (!THContainsNewInformation &&
-                 moduleHasTypeHierarchy(moduleID) == QueryReturnCode::DBFalse) {
-        THContainsNewInformation = true;
-      }
-    }
-    if (THContainsNewInformation) {
-      // Write type hierarchy
-      unique_ptr<sql::PreparedStatement> thpstmt(
-          conn->prepareStatement("INSERT INTO type_hierarchy "
-                                 "(type_hierarchy_id,representation,"
-                                 "representation_ref) VALUES(?,?,?)"));
-      int THID = getNextAvailableID("type_hierarchy");
-      thpstmt->setInt(1, THID);
-      if (use_hs) {
-        // Write type hierarchy graph to hexastore
-        string hex_id("LTH_" + to_string(THID) + "_hex.db");
-        storeLTHGraphToHex(TH.g, hex_id);
-        thpstmt->setNull(2, 0);
-        thpstmt->setString(3, hex_id);
-      } else {
-        // Write type hierarchy graph as dot
-        stringstream sst;
-        TH.printGraphAsDot(sst);
-        sst.flush();
-        cout << sst.str() << endl;
-        thpstmt->setBlob(2, &sst);
-        thpstmt->setNull(3, 0);
-        // Write type hiearchy graph as dot file
-        // ofstream myfile("LTHGraph.dot");
-        // TH.printGraphAsDot(myfile);
-      }
-      thpstmt->executeUpdate();
+  // try {
+  //   // TH contains new information if one of the following is true:
+  //   // (1) one or more modules are not stored in the database
+  //   // (2) one or more modules are not listed in the
+  //   //     module - type_hierarchy relation
+  //   // If one of the above is true, the TH will be stored and all missing
+  //   // or new information (e.g. modules, VTables) will be stored as well.
+  //   bool THContainsNewInformation = false;
+  //   // Initialize the transaction
+  //   unique_ptr<sql::Statement> stmt(conn->createStatement());
+  //   stmt->execute("START TRANSACTION");
+  //   for (auto M : TH.contained_modules) {
+  //     // Check if all modules contained in the TH are already stored in the
+  //     // database. At the same time, all types contained in the modules will
+  //     // be stored (if not already stored).
+  //     int moduleID = getModuleID(M->getModuleIdentifier());
+  //     if (moduleID == -1 || getModuleHash(moduleID) != computeModuleHash(M))
+  //     {
+  //       insertModule(ProjectName, M);
+  //       THContainsNewInformation = true;
+  //     } else if (!THContainsNewInformation &&
+  //                moduleHasTypeHierarchy(moduleID) ==
+  //                QueryReturnCode::DBFalse) {
+  //       THContainsNewInformation = true;
+  //     }
+  //   }
+  //   if (THContainsNewInformation) {
+  //     // Write type hierarchy
+  //     unique_ptr<sql::PreparedStatement> thpstmt(
+  //         conn->prepareStatement("INSERT INTO type_hierarchy "
+  //                                "(type_hierarchy_id,representation,"
+  //                                "representation_ref) VALUES(?,?,?)"));
+  //     int THID = getNextAvailableID("type_hierarchy");
+  //     thpstmt->setInt(1, THID);
+  //     if (use_hs) {
+  //       // Write type hierarchy graph to hexastore
+  //       string hex_id("LTH_" + to_string(THID) + "_hex.db");
+  //       storeLTHGraphToHex(TH.g, hex_id);
+  //       thpstmt->setNull(2, 0);
+  //       thpstmt->setString(3, hex_id);
+  //     } else {
+  //       // Write type hierarchy graph as dot
+  //       stringstream sst;
+  //       TH.printGraphAsDot(sst);
+  //       sst.flush();
+  //       cout << sst.str() << endl;
+  //       thpstmt->setBlob(2, &sst);
+  //       thpstmt->setNull(3, 0);
+  //       // Write type hiearchy graph as dot file
+  //       // ofstream myfile("LTHGraph.dot");
+  //       // TH.printGraphAsDot(myfile);
+  //     }
+  //     thpstmt->executeUpdate();
 
-      // Fill type hierarchy - type relation
-      for (auto type_identifier : TH.recognized_struct_types) {
-        unique_ptr<sql::PreparedStatement> ttpstmt(
-            conn->prepareStatement("INSERT INTO type_hierarchy_has_type "
-                                   "(type_hierarchy_id,type_id) VALUES(?,?)"));
-        int typeID = getTypeID(type_identifier);
-        ttpstmt->setInt(1, THID);
-        ttpstmt->setInt(2, typeID);
-        ttpstmt->executeUpdate();
-      }
+  //     // Fill type hierarchy - type relation
+  //     for (auto type_identifier : TH.recognized_struct_types) {
+  //       unique_ptr<sql::PreparedStatement> ttpstmt(
+  //           conn->prepareStatement("INSERT INTO type_hierarchy_has_type "
+  //                                  "(type_hierarchy_id,type_id)
+  //                                  VALUES(?,?)"));
+  //       int typeID = getTypeID(type_identifier);
+  //       ttpstmt->setInt(1, THID);
+  //       ttpstmt->setInt(2, typeID);
+  //       ttpstmt->executeUpdate();
+  //     }
 
-      // Fill module - type hierarchy relation
-      for (auto M : TH.contained_modules) {
-        unique_ptr<sql::PreparedStatement> mtpstmt(conn->prepareStatement(
-            "INSERT INTO module_has_type_hierarchy "
-            "(module_id,type_hierarchy_id) VALUES(?,?)"));
-        int moduleID = getModuleID(M->getModuleIdentifier());
-        mtpstmt->setInt(1, moduleID);
-        mtpstmt->setInt(2, THID);
-        mtpstmt->executeUpdate();
-      }
+  //     // Fill module - type hierarchy relation
+  //     for (auto M : TH.contained_modules) {
+  //       unique_ptr<sql::PreparedStatement> mtpstmt(conn->prepareStatement(
+  //           "INSERT INTO module_has_type_hierarchy "
+  //           "(module_id,type_hierarchy_id) VALUES(?,?)"));
+  //       int moduleID = getModuleID(M->getModuleIdentifier());
+  //       mtpstmt->setInt(1, moduleID);
+  //       mtpstmt->setInt(2, THID);
+  //       mtpstmt->executeUpdate();
+  //     }
 
-      // Store VTables
-      for (auto entry : TH.vtable_map) {
-        insertVTable(entry.second, entry.first, ProjectName);
-      }
-    }
-    // Perform the commit
-    conn->commit();
-  } catch (sql::SQLException &e) {
-    SQL_STD_ERROR_HANDLING;
-  }
+  //     // Store VTables
+  //     for (auto entry : TH.vtable_map) {
+  //       insertVTable(entry.second, entry.first, ProjectName);
+  //     }
+  //   }
+  //   // Perform the commit
+  //   conn->commit();
+  // } catch (sql::SQLException &e) {
+  //   SQL_STD_ERROR_HANDLING;
+  // }
 }
 
 LLVMTypeHierarchy

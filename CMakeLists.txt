@@ -179,6 +179,10 @@ add_executable(myphasartool
   tools/phasar/myphasartool.cpp
 )
 
+# add_executable(mwatest
+#   tools/phasar/mwatest.cpp
+# )
+
 # Fix boost_thread dependency for MacOS
 if(APPLE)
   set(BOOST_THREAD boost_thread-mt)
@@ -255,6 +259,36 @@ target_link_libraries(myphasartool
   curl
   gtest
 )
+
+# target_link_libraries(mwatest
+#   phasar_config
+#   phasar_controller
+#   phasar_db
+#   phasar_experimental
+#   phasar_clang
+#   phasar_controlflow
+#   phasar_ifdside
+#   phasar_mono
+#   phasar_passes
+#   ${PHASAR_PLUGINS_LIB}
+#   phasar_pointer
+#   phasar_phasarllvm_utils
+#   phasar_utils
+#   boost_program_options
+#   boost_filesystem
+#   boost_graph
+#   boost_system
+#   boost_log
+#   ${BOOST_THREAD}
+#   ${SQLITE3_LIBRARY}
+#   ${Boost_LIBRARIES}
+#   ${CMAKE_DL_LIBS}
+#   ${CMAKE_THREAD_LIBS_INIT}
+#   ${CLANG_LIBRARIES}
+#   ${llvm_libs}
+#   curl
+#   gtest
+# )
 
 # Add Phasar unittests and .ll file generation
 if (PHASAR_BUILD_UNITTESTS)

@@ -57,6 +57,11 @@ IntraMonoSolverTest::flow(const llvm::Instruction *S,
                           const MonoSet<const llvm::Value *> &In) {
   cout << "IntraMonoSolverTest::flow()\n";
   MonoSet<const llvm::Value *> Result;
+
+  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
+    Result.insert(Alloc);
+  }
+
   Result.insert(In.begin(), In.end());
   if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
