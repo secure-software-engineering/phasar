@@ -113,21 +113,6 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  // Custom EdgeFunction declarations NEW
-
-  /*class TSEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
-  public:
-    TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
-                            std::shared_ptr<EdgeFunction<v_t>> G)
-        : EdgeFunctionComposer<v_t>(F, G){};
-
-    std::shared_ptr<EdgeFunction<v_t>>
-    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
-
-    std::shared_ptr<EdgeFunction<v_t>>
-    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
-  };*/ //END NEW
-
   enum class State { uninit = 0, opened, closed, error };
 
   enum class CurrentState {

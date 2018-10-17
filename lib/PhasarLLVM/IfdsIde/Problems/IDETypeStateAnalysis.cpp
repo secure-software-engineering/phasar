@@ -7,9 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
@@ -17,6 +20,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
@@ -59,10 +63,6 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
-<<<<<<< HEAD
-=======
-  //cout << "Once: " << curr << endl;
->>>>>>> 70fe711b7e1a75f8785af4911b45e59a19d94e0b
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -140,6 +140,29 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
+  set<std::string> CalleeNames;
+  for (auto Callee : callees) {
+    CalleeNames.insert(Callee->getName().str());
+  }
+  // Pass all data-flow facts to STDIOFunctions as identity.
+  // Kill actual parameters of type '%struct._IO_FILE*' as these
+  // data-flow facts are (inter-procedurally) propagated via getCallFlowFunction()
+  // and the corresponding getReturnFlowFunction().
+  if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
+                CalleeNames.begin(), CalleeNames.end())) {
+    llvm::ImmutableCallSite CS(callSite);
+    for (auto &Arg : CS.args()) {
+      if (Arg->getType()->isPointerTy()) {
+        if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+                Arg->getType()->getPointerElementType())) {
+          if (StructTy->getName().find("struct._IO_FILE") !=
+              llvm::StringRef::npos) {
+            return make_shared<Kill<IDETypeStateAnalysis::d_t>>(Arg);
+          }
+        }
+      }
+    }
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -208,8 +231,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                 return this == other.get();
               }
             };
-            // return an instance of the above edge function implementation
-            return make_shared<TSEdgeFunction>(uninit,/*source,*/currNode,succNode);
+            return make_shared<TSEdgeFunction>();
           }
         }
       }
@@ -272,46 +294,8 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
 }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-//NEW
-
-
-/*shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-IDETypeStateAnalysis::TSEdgeFunctionComposer::composeWith(
-    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction){
-  if(auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
-          secondFunction.get())) {
-            return this->shared_from_this();
-  }
-
-}*/
-
-string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
-  return llvmIRToString(d);
-=======
-// string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
-//   // als erstes implementieren states in strings konvertieren
-//   switch (v) {
-//     case uninit:
-//       return "uninit";
-//     case opened:
-//       return "opened";
-//     case closed:
-//       return "closed";
-//     case error:
-//       return "error";
-//     default:
-//       return "no state";
-//   }
-//   return to_string(static_cast<int>(v));
-// }
-
->>>>>>> 70fe711b7e1a75f8785af4911b45e59a19d94e0b
 void IDETypeStateAnalysis::printNode(std::ostream &os, n_t n) const {
   os << llvmIRToString(n);
->>>>>>> a09beaa306ecc9b138ac6a0ade404132e8f8b5a9
 }
 
 void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
