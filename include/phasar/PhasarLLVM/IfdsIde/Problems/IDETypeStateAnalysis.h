@@ -33,15 +33,19 @@ class IDETypeStateAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, State, LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
   typedef State v_t;
   typedef LLVMBasedICFG &i_t;
+  
+private:
+  std::vector<std::string> EntryPoints;
+  static const std::set<std::string> STDIOFunctions;
+  static const std::shared_ptr<EdgeFunction<v_t>> AllBot;
+
+public:
 
   static const State TOP;
   static const State BOTTOM;
