@@ -7,7 +7,7 @@ stages:
 before_script:
   - uname -a
   - apt update
-  - apt-get install -y software-properties-common wget sudo
+  - apt-get install -y software-properties-common wget sudo gnupg
   - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
   - add-apt-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main"
   - apt update
