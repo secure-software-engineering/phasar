@@ -21,11 +21,14 @@
 #include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
-class InterMonoProblem {
+class InterMonoProblem : public NodePrinter<N>,
+                         public DataFlowFactPrinter<D>,
+                         public MethodPrinter<M> {
 public:
   using Node_t = N;
   using Domain_t = D;
@@ -61,9 +64,6 @@ public:
   virtual Domain_t callToRetFlow(const Node_t CallSite, const Node_t RetSite,
                                  const Domain_t &In) = 0;
   virtual MonoMap<Node_t, Domain_t> initialSeeds() = 0;
-  virtual std::string DtoString(const Domain_t d) = 0;
-  virtual std::string MtoString(const Method_t m) = 0;
-  virtual std::string NtoString(const Node_t n) = 0;
   virtual bool recompute(const Method_t Callee) = 0;
 };
 

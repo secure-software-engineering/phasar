@@ -22,12 +22,17 @@
 #include <string>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
 #include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
-class IFDSTabulationProblem : public FlowFunctions<N, D, M> {
+class IFDSTabulationProblem : public FlowFunctions<N, D, M>,
+                              public NodePrinter<N>,
+                              public DataFlowFactPrinter<D>,
+                              public MethodPrinter<M> {
 public:
   SolverConfiguration solver_config;
   virtual ~IFDSTabulationProblem() = default;
@@ -35,13 +40,14 @@ public:
   virtual std::map<N, std::set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
   virtual bool isZeroValue(D d) const = 0;
-  virtual std::string DtoString(D d) const = 0;
-  virtual std::string NtoString(N n) const = 0;
-  virtual std::string MtoString(M m) const = 0;
   void setSolverConfiguration(SolverConfiguration conf) {
     solver_config = conf;
   }
   SolverConfiguration getSolverConfiguration() { return solver_config; }
+  virtual void printIFDSReport(std::ostream &os,
+                               SolverResults<N, D, BinaryDomain> &SR) {
+    os << "No IFDS report available!";
+  }
 };
 } // namespace psr
 

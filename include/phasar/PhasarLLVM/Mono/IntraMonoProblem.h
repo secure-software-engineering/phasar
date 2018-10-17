@@ -20,11 +20,14 @@
 #include <string>
 
 #include <phasar/Config/ContainerConfiguration.h>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename C>
-class IntraMonoProblem {
+class IntraMonoProblem : public NodePrinter<N>,
+                         public DataFlowFactPrinter<D>,
+                         public MethodPrinter<M> {
 protected:
   C CFG;
   M Function;
@@ -38,7 +41,6 @@ public:
   virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
   virtual MonoSet<D> flow(N S, const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
-  virtual std::string DtoString(D d) = 0;
 };
 
 } // namespace psr

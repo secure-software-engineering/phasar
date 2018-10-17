@@ -13,7 +13,7 @@ protected:
 };
 
 TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/global_stmt.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/global_stmt_cpp.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 4);
@@ -26,7 +26,7 @@ TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
 }
 
 TEST_F(LLVMGetterTest, HandlesLLVMTermInstruction) {
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/if_else.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/if_else_cpp.ll"});
   auto F = IRDB.getFunction("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 14);

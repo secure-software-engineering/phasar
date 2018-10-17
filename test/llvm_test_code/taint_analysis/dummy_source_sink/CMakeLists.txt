@@ -7,16 +7,16 @@ set(taint_tests
 )
 
 set(taint_tests_mem2reg
-  taint_01_m2r.cpp
-  taint_03_m2r.cpp
+  taint_01.cpp
+  taint_06.cpp
 )
 
 
 foreach(TEST_SRC ${taint_tests})
-  generate_ll_file(${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 
 
 foreach(TEST_SRC ${taint_tests_mem2reg})
-  generate_ll_file(${TEST_SRC} mem2reg)
+  generate_ll_file(FILE ${TEST_SRC} MEM2REG DEBUG)
 endforeach(TEST_SRC)

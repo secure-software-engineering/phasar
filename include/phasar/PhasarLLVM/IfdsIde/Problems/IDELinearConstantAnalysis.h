@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -36,8 +37,8 @@ private:
   std::vector<std::string> EntryPoints;
 
   // For debug purpose only
-  static unsigned CurrStoreConst_Id;
-  static unsigned CurrLoadStoreV_Id;
+  static unsigned CurrGenConstant_Id;
+  static unsigned CurrLCAID_Id;
   static unsigned CurrBinary_Id;
 
 public:
@@ -98,8 +99,8 @@ public:
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<v_t>>
-  getCallToReturnEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                              d_t retSiteNode) override;
+  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
+                           d_t retSiteNode, std::set<m_t> callees) override;
 
   std::shared_ptr<EdgeFunction<v_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
@@ -128,14 +129,14 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
   };
 
-  class StoreConstant : public EdgeFunction<v_t>,
-                        public std::enable_shared_from_this<StoreConstant> {
+  class GenConstant : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<GenConstant> {
   private:
-    const unsigned StoreConst_Id;
+    const unsigned GenConstant_Id;
     const v_t IntConst;
 
   public:
-    explicit StoreConstant(v_t IntConst);
+    explicit GenConstant(v_t IntConst);
 
     v_t computeTarget(v_t source) override;
 
@@ -150,14 +151,13 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class LoadStoreValueIdentity
-      : public EdgeFunction<v_t>,
-        public std::enable_shared_from_this<LoadStoreValueIdentity> {
+  class LCAIdentity : public EdgeFunction<v_t>,
+                      public std::enable_shared_from_this<LCAIdentity> {
   private:
-    const unsigned LoadStoreV_Id;
+    const unsigned LCAID_Id;
 
   public:
-    explicit LoadStoreValueIdentity();
+    explicit LCAIdentity();
 
     v_t computeTarget(v_t source) override;
 
@@ -190,13 +190,16 @@ public:
    */
   static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
 
-  std::string DtoString(d_t d) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  std::string VtoString(v_t v) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  std::string NtoString(n_t n) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
 
-  std::string MtoString(m_t m) const override;
+  void printValue(std::ostream &os, v_t v) const override;
+
+  void printIDEReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> &SR) override;
 };
 
 } // namespace psr

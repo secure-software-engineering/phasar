@@ -56,12 +56,11 @@ public:
 
   void dumpResults() {
     std::cout << "LLVM-Intra-Monotone solver results:\n"
-                 "------------------------\n";
+                 "-----------------------------------\n";
     for (auto &entry : IntraMonoSolver<const llvm::Instruction *, D,
                                        const llvm::Function *, C>::Analysis) {
-      std::cout << "Instruction:\n";
-      entry.first->print(llvm::outs());
-      std::cout << "Facts:\n";
+      std::cout << "Instruction:\n" << IMP.NtoString(entry.first);
+      std::cout << "\nFacts:\n";
       if (entry.second.empty()) {
         std::cout << "\tEMPTY\n";
       } else {

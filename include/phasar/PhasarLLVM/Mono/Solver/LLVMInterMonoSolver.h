@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTERMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTERMONOSOLVER_H_
 
+#include <iostream>
 #include <memory>
 
 #include <llvm/IR/Instruction.h>
@@ -73,9 +74,6 @@ public:
 
   /**
    * Dumps monotone solver results to the commandline.
-   * WARNING: Currently, this will only work with CallStrings! It is only a
-   * temporarily since the Context's print functionality is broken at the moment
-   * :(
    */
   void dumpResults() {
     std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
@@ -83,32 +81,13 @@ public:
     for (auto &Node : IMSBase_t::Analysis) {
       std::cout << "------- Mono Start Result Record -------\n";
       std::cout << "F: " << Node.first->getFunction()->getName().str()
-                << "   N: " << llvmIRToString(Node.first) << '\n';
+                << "   N: " << this->IMProblem.NtoString(Node.first) << '\n';
       // Iterate call-string - flow fact set pairs
       for (auto &ContextFactPair : Node.second) {
-        // Print the context
-        // std::cout << "Context:\n";
-        // if (typeid(ContextFactPair.first) ==
-        //     typeid(ValueBasedContext<const llvm::Instruction *, D>)) {
-        //   std::cout << "Args:\n"
-        //             << IMSBase_t::IMProblem.DtoString(
-        //                    ContextFactPair.first.getArgs());
-        //   std::cout << "Prev Args:\n"
-        //             << IMSBase_t::IMProblem.DtoString(
-        //                    ContextFactPair.first.getPrevContext());
-        // } else {
-        std::cout << "Call string [" << ContextFactPair.first.size() << "]: ";
-        for (auto context : ContextFactPair.first.getInternalCS()) {
-          std::cout << llvmIRToString(context) << " * ";
-        }
-        // }
+        std::cout << ContextFactPair.first;
         std::cout << "\nDomain:\n";
         // Print the elements of the corresponding set of flow facts
-        // for (auto Fact : ContextFactPair.second) {
-        std::cout << IMSBase_t::IMProblem.DtoString(ContextFactPair.second)
-                  << '\n';
-        // }
-        // std::cout << "\n\n";
+        std::cout << this->IMProblem.DtoString(ContextFactPair.second) << '\n';
       }
     }
   };

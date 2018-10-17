@@ -79,8 +79,8 @@ IDEProtoAnalysis::initialSeeds() {
   cout << "IDEProtoAnalysis::initialSeeds()\n";
   map<IDEProtoAnalysis::n_t, set<IDEProtoAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<IDEProtoAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+                             set<IDEProtoAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
@@ -127,10 +127,12 @@ IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t callSite,
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
-IDEProtoAnalysis::getCallToReturnEdgeFunction(
-    IDEProtoAnalysis::n_t callSite, IDEProtoAnalysis::d_t callNode,
-    IDEProtoAnalysis::n_t retSite, IDEProtoAnalysis::d_t retSiteNode) {
-  cout << "IDEProtoAnalysis::getCallToReturnEdgeFunction()\n";
+IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t callSite,
+                                           IDEProtoAnalysis::d_t callNode,
+                                           IDEProtoAnalysis::n_t retSite,
+                                           IDEProtoAnalysis::d_t retSiteNode,
+                                           set<IDEProtoAnalysis::m_t> callees) {
+  cout << "IDEProtoAnalysis::getCallToRetEdgeFunction()\n";
   return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
 }
 
@@ -191,20 +193,21 @@ bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
   return false;
 }
 
-string IDEProtoAnalysis::DtoString(IDEProtoAnalysis::d_t d) const {
-  return llvmIRToString(d);
+void IDEProtoAnalysis::printNode(ostream &os, IDEProtoAnalysis::n_t n) const {
+  os << llvmIRToString(n);
 }
 
-string IDEProtoAnalysis::VtoString(IDEProtoAnalysis::v_t v) const {
-  return llvmIRToString(v);
+void IDEProtoAnalysis::printDataFlowFact(ostream &os,
+                                         IDEProtoAnalysis::d_t d) const {
+  os << llvmIRToString(d);
 }
 
-string IDEProtoAnalysis::NtoString(IDEProtoAnalysis::n_t n) const {
-  return llvmIRToString(n);
+void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
+  os << m->getName().str();
 }
 
-string IDEProtoAnalysis::MtoString(IDEProtoAnalysis::m_t m) const {
-  return m->getName().str();
+void IDEProtoAnalysis::printValue(ostream &os, IDEProtoAnalysis::v_t v) const {
+  os << llvmIRToString(v);
 }
 
 } // namespace psr

@@ -26,8 +26,8 @@ private:
 public:
   SOL(const std::string &path);
   ~SOL();
-  SOL(SOL &&);
-  SOL &operator=(SOL &&);
+  SOL(SOL &&) noexcept;
+  SOL &operator=(SOL &&) noexcept;
   SOL(const SOL &) = delete;
   SOL &operator=(const SOL &) = delete;
   template <typename Signature> auto loadSymbol(const std::string &name) {

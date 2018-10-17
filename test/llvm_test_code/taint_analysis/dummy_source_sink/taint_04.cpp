@@ -1,9 +1,10 @@
-int source() { return 0; }      // dummy source
-void sink(int p) {}  // dummy sink
+int source() { return 0; } // dummy source
+void sink(int p) {}        // dummy sink
 
 int main(int argc, char **argv) {
 	int a = source();
 	sink(a);
-	a += 1;
+	int b = a;
+	sink(b);
 	return 0;
 }

@@ -90,24 +90,22 @@ MonoMap<Node_t, Domain_t> InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
   const Method_t main = ICFG.getMethod("main");
   MonoMap<Node_t, Domain_t> Seeds;
-  Seeds.insert(std::make_pair(&main->front().front(), Domain_t()));
+  Seeds.insert(make_pair(&main->front().front(), Domain_t()));
   return Seeds;
 }
 
-string InterMonoSolverTest::DtoString(const Domain_t d) {
-  string str;
+void InterMonoSolverTest::printNode(ostream &os, Node_t n) const {
+  os << llvmIRToString(n);
+}
+
+void InterMonoSolverTest::printDataFlowFact(ostream &os, Domain_t d) const {
   for (auto fact : d) {
-    str += llvmIRToString(fact) + '\n';
+    os << llvmIRToString(fact) << '\n';
   }
-  return str;
 }
 
-string InterMonoSolverTest::MtoString(const Method_t m) {
-  return m->getName().str();
-}
-
-string InterMonoSolverTest::NtoString(const Node_t n) {
-  return llvmIRToString(n);
+void InterMonoSolverTest::printMethod(ostream &os, Method_t m) const {
+  os << m->getName().str();
 }
 
 bool InterMonoSolverTest::recompute(const Method_t Callee) { return false; }

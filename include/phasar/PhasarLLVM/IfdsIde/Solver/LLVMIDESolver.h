@@ -33,17 +33,19 @@ template <typename D, typename V, typename I>
 class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
                                        const llvm::Function *, V, I> {
 private:
-  const bool DUMP_RESULTS;
   IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *, V,
                        I> &Problem;
+  const bool DUMP_RESULTS;
+  const bool PRINT_REPORT;
 
 public:
   LLVMIDESolver(IDETabulationProblem<const llvm::Instruction *, D,
                                      const llvm::Function *, V, I> &problem,
-                bool dumpResults = false)
+                bool dumpResults = false, bool printReport = true)
       : IDESolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
             problem),
-        DUMP_RESULTS(dumpResults), Problem(problem) {}
+        Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
+  }
 
   virtual ~LLVMIDESolver() = default;
 
@@ -51,8 +53,18 @@ public:
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS)
+    if (DUMP_RESULTS) {
       dumpResults();
+    }
+    if (PRINT_REPORT) {
+      printReport();
+    }
+  }
+
+  void printReport() {
+    SolverResults<const llvm::Instruction *, D, V> SR(this->valtab,
+                                                      Problem.zeroValue());
+    Problem.printIDEReport(std::cout, SR);
   }
 
   void dumpResults() {
@@ -91,6 +103,7 @@ public:
                   << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
+    std::cout << '\n';
   }
 
   json getJsonRepresentationForInstructionNode(const llvm::Instruction *node) {

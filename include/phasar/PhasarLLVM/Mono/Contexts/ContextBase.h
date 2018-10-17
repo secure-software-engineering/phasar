@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_CONTEXTS_CONTEXTBASE_H_
 
 #include <ostream>
+#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
@@ -33,6 +34,8 @@ template <typename N, typename D, typename ConcreteContext> class ContextBase {
 public:
   using Node_t = N;
   using Domain_t = D;
+  const NodePrinter<N> *NP;
+  const DataFlowFactPrinter<D> *DP;
 
 private:
   void ValueBase_check() {
@@ -44,6 +47,9 @@ private:
   }
 
 public:
+  ContextBase(const NodePrinter<N> *np, const DataFlowFactPrinter<D> *dp)
+      : NP(np), DP(dp) {}
+
   /*
    * Update the context at the exit of a function
    */

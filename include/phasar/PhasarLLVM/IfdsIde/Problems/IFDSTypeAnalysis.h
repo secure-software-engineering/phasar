@@ -63,11 +63,11 @@ public:
 
   bool isZeroValue(d_t d) const override;
 
-  std::string DtoString(d_t d) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  std::string NtoString(n_t n) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  std::string MtoString(m_t m) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
 };
 } // namespace psr
 

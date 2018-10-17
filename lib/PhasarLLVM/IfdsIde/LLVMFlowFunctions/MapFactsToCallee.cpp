@@ -23,7 +23,7 @@ namespace psr {
 
 MapFactsToCallee::MapFactsToCallee(
     const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
-    std::function<bool(const llvm::Value *)> predicate)
+    function<bool(const llvm::Value *)> predicate)
     : predicate(predicate) {
   // Set up the actual parameters
   for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {

@@ -49,12 +49,15 @@ public:
 
 private:
   PointsToGraph &ptg;
+  // Holds all allocated memory locations, including global variables
+  std::set<d_t> AllMemLocs;
   std::vector<std::string> EntryPoints;
-  /// Holds all initialized variables and objects.
+  // Holds all initialized variables and objects.
   std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
+  IFDSConstAnalysis(i_t icfg, std::set<d_t> AllMemLocs,
+                    std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSConstAnalysis() = default;
 
@@ -155,11 +158,14 @@ public:
 
   bool isZeroValue(d_t d) const override;
 
-  std::string DtoString(d_t d) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  std::string NtoString(n_t n) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  std::string MtoString(m_t m) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
+
+  void printIFDSReport(std::ostream &os,
+                       SolverResults<n_t, d_t, BinaryDomain> &SR) override;
 
   /**
    * @note Global Variables are always intialized in llvm IR, and therefore

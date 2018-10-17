@@ -1,9 +1,9 @@
 int foo(int a) {
-  return a + 42;
+  return a + 40;
 }
 
 int main() {
   int i;
-  i = foo(0);
+  i = foo(2);
   return 0;
 }
