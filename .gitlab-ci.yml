@@ -8,6 +8,7 @@ before_script:
   - uname -a
   - apt update
   - apt-get install -y software-properties-common
+  - wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key| apt-key add -
   - add-apt-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main"
   - apt update
   - apt-get install -y build-essential clang-5.0 libclang-5.0-dev llvm-5.0 libboost1.62-all-dev sqlite3 libsqlite3-dev bear python3 git cmake zlib1g-dev libncurses5-dev graphviz doxygen libcurl4-gnutls-dev libboost1.62-dev libboost-dev libmysqlcppconn-dev
