@@ -59,6 +59,10 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
+<<<<<<< HEAD
+=======
+  //cout << "Once: " << curr << endl;
+>>>>>>> 70fe711b7e1a75f8785af4911b45e59a19d94e0b
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -205,7 +209,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
               }
             };
             // return an instance of the above edge function implementation
-            return make_shared<TSEdgeFunction>();
+            return make_shared<TSEdgeFunction>(uninit,/*source,*/currNode,succNode);
           }
         }
       }
@@ -268,8 +272,46 @@ IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
 }
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+//NEW
+
+
+/*shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::TSEdgeFunctionComposer::composeWith(
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction){
+  if(auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+          secondFunction.get())) {
+            return this->shared_from_this();
+  }
+
+}*/
+
+string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
+  return llvmIRToString(d);
+=======
+// string IDETypeStateAnalysis::VtoString(IDETypeStateAnalysis::v_t v) const {
+//   // als erstes implementieren states in strings konvertieren
+//   switch (v) {
+//     case uninit:
+//       return "uninit";
+//     case opened:
+//       return "opened";
+//     case closed:
+//       return "closed";
+//     case error:
+//       return "error";
+//     default:
+//       return "no state";
+//   }
+//   return to_string(static_cast<int>(v));
+// }
+
+>>>>>>> 70fe711b7e1a75f8785af4911b45e59a19d94e0b
 void IDETypeStateAnalysis::printNode(std::ostream &os, n_t n) const {
   os << llvmIRToString(n);
+>>>>>>> a09beaa306ecc9b138ac6a0ade404132e8f8b5a9
 }
 
 void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
