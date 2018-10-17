@@ -5,6 +5,7 @@ stages:
 
 # install the necessary build tools 
 before_script:
+  - apt update
   - apt-get install software-properties-common python-software-properties
   - add-apt-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main"
   - apt update
