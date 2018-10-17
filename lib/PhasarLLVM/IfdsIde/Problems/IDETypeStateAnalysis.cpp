@@ -48,7 +48,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
-  cout << "Once: " << curr << endl;
+  //cout << "Once: " << curr << endl;
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -284,15 +284,30 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
           if (currNode == zeroValue() && succNode == Alloca) {
             struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
                                     enable_shared_from_this<TSEdgeFunction> {
+                  IDETypeStateAnalysis::d_t currNode, succNode;
+                  IDETypeStateAnalysis::v_t source2;
+                  TSEdgeFunction(v_t source,/*v_t source, */d_t currNode, d_t succNode):/**/source2(source),/**/currNode(currNode), succNode(succNode){}
+
               IDETypeStateAnalysis::v_t
               computeTarget(IDETypeStateAnalysis::v_t source) override {
                 // TODO adjust the default implementation
+                source = uninit;
+                cout << "Source = " << source << endl;
+                //return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(topElement());
+                //return IDETypeStateAnalysis::VtoString();
+                
                 return source;
               }
               shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
               composeWith(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
                               secondFunction) override {
                 // TODO adjust the default implementation
+                /*if(auto *EI = 
+                      dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+                          secondFunction.get())) {
+                              return this->shared_from_this();
+                }*/
+
                 return secondFunction;
               }
               shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -308,7 +323,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
               }
             };
             // return an instance of the above edge function implementation
-            return make_shared<TSEdgeFunction>();
+            return make_shared<TSEdgeFunction>(uninit,/*source,*/currNode,succNode);
           }
         }
       }
@@ -351,10 +366,10 @@ IDETypeStateAnalysis::getCallToReturnEdgeFunction(
       {State::opened, State::opened, State::opened, State::error},
   };
   // cout << delta[1][2 << endl];
-  cout << "callSite: " << callSite << " callNode: " << callNode
+  /*cout << "callSite: " << callSite << " callNode: " << callNode
        << " retSite: " << retSite << " retSiteNode: " << retSiteNode << endl;
   cout << "Just a test: "
-       << EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance() << endl;
+       << EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance() << endl;*/
   // return
   // delta[static_cast<underlying_type_t<CurrentState>>(curr)][static_cast<underlying_type_t<State>>(state)];
 
@@ -384,6 +399,19 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::allTopFunction() {
   return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
 }
+
+//NEW
+
+
+/*shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::TSEdgeFunctionComposer::composeWith(
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction){
+  if(auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+          secondFunction.get())) {
+            return this->shared_from_this();
+  }
+
+}*/
 
 string IDETypeStateAnalysis::DtoString(IDETypeStateAnalysis::d_t d) const {
   return llvmIRToString(d);
