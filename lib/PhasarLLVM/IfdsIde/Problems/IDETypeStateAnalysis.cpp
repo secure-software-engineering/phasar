@@ -35,22 +35,24 @@ using namespace psr;
 
 namespace psr {
 
-const State IDETypeStateAnalysis::TOP = uninit;
+State getNextState(Token tok, State state) {
+  return delta[static_cast<std::underlying_type_t<Token>>(tok)]
+              [static_cast<std::underlying_type_t<State>>(state)];
+}
 
-const State open = opened;
-const State close = closed;
+const State IDETypeStateAnalysis::TOP = State::TOP;
+const State IDETypeStateAnalysis::BOTTOM = State::BOT;
 
-const State IDETypeStateAnalysis::BOTTOM = error;
+const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
+    IDETypeStateAnalysis::AllBotFunction(
+        make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(
+            IDETypeStateAnalysis::BOTTOM));
 
 const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
     "fopen",   "fclose",   "freopen",  "fgetc",   "fputc",
     "putchar", "_IO_getc", "_I0_putc", "fprintf", "__isoc99_fscanf",
     "feof",    "ferror",   "ungetc",   "fflush",  "fseek",
     "ftell",   "rewind",   "fgetpos",  "fsetpos"};
-
-const std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-    IDETypeStateAnalysis::AllBot(
-        make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(BOTTOM));
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            vector<string> EntryPoints)
@@ -63,6 +65,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
+  cout << "NormalFF" << endl;
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -89,7 +92,20 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                    ->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
-          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Load, zeroValue());
+          // we have to generate from value that is loaded!
+          struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+            const llvm::LoadInst *Load;
+            TSFlowFunction(const llvm::LoadInst *L) : Load(L) {}
+            ~TSFlowFunction() override = default;
+            set<IDETypeStateAnalysis::d_t>
+            computeTargets(IDETypeStateAnalysis::d_t source) override {
+              if (source == Load->getPointerOperand()) {
+                return {source, Load};
+              }
+              return {source};
+            }
+          };
+          return make_shared<TSFlowFunction>(Load);
         }
       }
     }
@@ -101,8 +117,23 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
               Store->getValueOperand()->getType()->getPointerElementType())) {
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
-          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(
-              Store->getPointerOperand(), zeroValue());
+          // perform a strong update!
+          struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+            const llvm::StoreInst *Store;
+            TSFlowFunction(const llvm::StoreInst *S) : Store(S) {}
+            ~TSFlowFunction() override = default;
+            set<IDETypeStateAnalysis::d_t>
+            computeTargets(IDETypeStateAnalysis::d_t source) override {
+              if (source == Store->getPointerOperand()) {
+                return {};
+              }
+              if (source == Store->getValueOperand()) {
+                return {source, Store->getPointerOperand()};
+              }
+              return {source};
+            }
+          };
+          return make_shared<TSFlowFunction>(Store);
         }
       }
     }
@@ -113,9 +144,14 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
+  cout << "CallFF" << endl;
+  // Kill all data-flow facts if we hit a function that we want to model
+  // ourselfs within getCallToRetFlowFunction()
   if (STDIOFunctions.count(destMthd->getName().str())) {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
+  // Otherwise, if we have an ordinary function call, we can just use the
+  // standard mapping
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
@@ -129,6 +165,8 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
+  cout << "ReturnFF" << endl;
+  // Just use the standard mapping
   return make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](IDETypeStateAnalysis::d_t formal) {
@@ -140,17 +178,25 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
+  cout << "CallToRetFF" << endl;
   set<std::string> CalleeNames;
   for (auto Callee : callees) {
     CalleeNames.insert(Callee->getName().str());
   }
-  // Pass all data-flow facts to STDIOFunctions as identity.
-  // Kill actual parameters of type '%struct._IO_FILE*' as these
-  // data-flow facts are (inter-procedurally) propagated via getCallFlowFunction()
-  // and the corresponding getReturnFlowFunction().
+  llvm::ImmutableCallSite CS(callSite);
+  // Generate the return value of fopen()
+  if (CS.getCalledFunction()->getName() == "fopen") {
+    return make_shared<Gen<IDETypeStateAnalysis::d_t>>(CS.getInstruction(),
+                                                       zeroValue());
+  }
+  // Handle all functions that are not modeld with special semantics
   if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
                 CalleeNames.begin(), CalleeNames.end())) {
-    llvm::ImmutableCallSite CS(callSite);
+    // Pass all data-flow facts to STDIOFunctions as identity.
+    // Kill actual parameters of type '%struct._IO_FILE*' as these
+    // data-flow facts are (inter-procedurally) propagated via
+    // getCallFlowFunction()
+    // and the corresponding getReturnFlowFunction().
     for (auto &Arg : CS.args()) {
       if (Arg->getType()->isPointerTy()) {
         if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
@@ -198,9 +244,8 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
-  // if (currNode == zeroValue() && succNode == zeroValue()) {
-  //   return AllBot;
-  // }
+  // Set struct._IO_FILE variables to uninitialized once they have been
+  // allocated
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
@@ -208,22 +253,26 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
           if (currNode == zeroValue() && succNode == Alloca) {
-            cout << "FOUND CASE!" << endl;
             struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
                                     enable_shared_from_this<TSEdgeFunction> {
-              IDETypeStateAnalysis::v_t computeTarget(
-                  IDETypeStateAnalysis::v_t source) override {
-                cout << "computeTarget(" << source << ") -> " << uninit << endl;
-                return uninit;
+              TSEdgeFunction() {}
+              ~TSEdgeFunction() override = default;
+              IDETypeStateAnalysis::v_t
+              computeTarget(IDETypeStateAnalysis::v_t source) override {
+                return State::UNINIT;
               }
-              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> composeWith(
-                  shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-                      secondFunction) override {
-                return this->shared_from_this();
+              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+              composeWith(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+                              secondFunction) override {
+                return make_shared<
+                    IDETypeStateAnalysis::TSEdgeFunctionComposer>(
+                    this->shared_from_this(), secondFunction);
               }
-              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> joinWith(
-                  shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-                      otherFunction) override {
+              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+              joinWith(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+                           otherFunction) override {
+                cout << "joinWith(): " << __LINE__ << endl;
+                // TODO after discussion
                 return this->shared_from_this();
               }
               bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
@@ -245,7 +294,6 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destiantionMethod,
     IDETypeStateAnalysis::d_t destNode) {
-  // cout << "Testing this: " << callStmt << " "<< srcNode << " " << endl;
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -262,6 +310,78 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
     std::set<IDETypeStateAnalysis::m_t> callees) {
+  // Set return value from fopen to opened
+  llvm::ImmutableCallSite CS(callSite);
+  if (CS.getCalledFunction()->getName() == "fopen") {
+    if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
+      struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
+                              enable_shared_from_this<TSEdgeFunction> {
+        TSEdgeFunction() {}
+        ~TSEdgeFunction() override = default;
+        IDETypeStateAnalysis::v_t
+        computeTarget(IDETypeStateAnalysis::v_t source) override {
+          return State::OPENED;
+        }
+        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> composeWith(
+            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction)
+            override {
+          return make_shared<IDETypeStateAnalysis::TSEdgeFunctionComposer>(
+              this->shared_from_this(), secondFunction);
+        }
+        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> joinWith(
+            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction)
+            override {
+          cout << "joinWith(): " << __LINE__ << endl;
+          // TODO after discussion
+          return this->shared_from_this();
+        }
+        bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other)
+            const override {
+          return this == other.get();
+        }
+      };
+      return make_shared<TSEdgeFunction>();
+    }
+  }
+  // For all other STDIO functions, that do not generate file handles but only
+  // operate on them, model their behavior using a finite state machine.
+  if (CS.getCalledFunction()->getName() == "fclose") {
+    if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
+      cout << "fclose processing for: ";
+      printDataFlowFact(cout, callNode);
+      cout << endl;
+      struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
+                              enable_shared_from_this<TSEdgeFunction> {
+        TSEdgeFunction() { cout << "make edge function for fclose()" << endl; }
+        ~TSEdgeFunction() override = default;
+        IDETypeStateAnalysis::v_t
+        computeTarget(IDETypeStateAnalysis::v_t source) override {
+          cout << "computeTarget()" << endl;
+          return State::CLOSED;
+        }
+        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> composeWith(
+            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction)
+            override {
+          cout << "composeWith(): " << __LINE__ << endl;
+          return make_shared<IDETypeStateAnalysis::TSEdgeFunctionComposer>(
+              this->shared_from_this(), secondFunction);
+        }
+        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> joinWith(
+            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction)
+            override {
+          cout << "joinWith(): " << __LINE__ << endl;
+          // TODO after discussion
+          return this->shared_from_this();
+        }
+        bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other)
+            const override {
+          return this == other.get();
+        }
+      };
+      return make_shared<TSEdgeFunction>();
+    }
+  }
+  // Otherwise
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -278,8 +398,15 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::join(
-    IDETypeStateAnalysis::v_t lhs, IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::v_t
+IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
+                           IDETypeStateAnalysis::v_t rhs) {
+  // we use the following lattice
+  //                BOT = all information
+  //
+  // UNINIT   OPENED   CLOSED   ERROR
+  //
+  //                TOP = no information
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -310,32 +437,39 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
 void IDETypeStateAnalysis::printValue(ostream &os,
                                       IDETypeStateAnalysis::v_t v) const {
   switch (v) {
-    case uninit:
-      os << "uninit";
-      break;
-    case opened:
-      os << "opened";
-      break;
-    case closed:
-      os << "closed";
-      break;
-    case error:
-      os << "error";
-      break;
-    default:
-      assert(false && "received unknown state!");
-      break;
+  case State::TOP:
+    os << "TOP";
+    break;
+  case State::UNINIT:
+    os << "UNINIT";
+    break;
+  case State::OPENED:
+    os << "OPENED";
+    break;
+  case State::CLOSED:
+    os << "CLOSED";
+    break;
+  case State::ERROR:
+    os << "ERROR";
+    break;
+  case State::BOT:
+    os << "BOT";
+    break;
+  default:
+    assert(false && "received unknown state!");
+    break;
   }
 }
 
-}  // namespace psr
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
+  cout << "IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith()" << endl;
+  // TODO after discussion
+  return otherFunction;
+}
 
-// // hier Effekte von open() / close()
-// // cout << "callSite: " << callSite->getName().find("open") << " callNode:
-// "
-// // << callNode << " retSite: " << retSite->getNumOperands() << "
-// // retSiteNode:
-// // " << retSiteNode << endl;
+} // namespace psr
 
 // constexpr State delta[4][4] = {
 //     {State::opened, State::error, State::opened, State::error},
@@ -343,11 +477,5 @@ void IDETypeStateAnalysis::printValue(ostream &os,
 //     {State::error, State::opened, State::error, State::error},
 //     {State::opened, State::opened, State::opened, State::error},
 // };
-// // cout << delta[1][2 << endl];
-// cout << "callSite: " << callSite << " callNode: " << callNode
-//      << " retSite: " << retSite << " retSiteNode: " << retSiteNode << endl;
-// cout << "Just a test: "
-//      << EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance() << endl;
-// // return
-// //
+
 // delta[static_cast<underlying_type_t<CurrentState>>(curr)][static_cast<underlying_type_t<State>>(state)];
