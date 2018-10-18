@@ -25,7 +25,7 @@ using namespace psr;
 using namespace std;
 
 namespace psr {
-//getStatementId?
+//TODO: isFallTroughtSuccessor, isBranchTarget
 
 //same as LLVMBasedCFG
 const llvm::Function *
@@ -35,17 +35,54 @@ LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
-  return {};
+  vector<const llvm::Instruction *> preds;
+  if (stmt->getNextNode())
+    preds.push_back(stmt->getNextNode());
+  if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
+    for (auto successor : T->successors()) {
+      preds.push_back(&*successor->begin());
+    }
+  }
+  return preds;
 }
 
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
-  return {};
+  vector<const llvm::Instruction *> Preds;
+  if (stmt->getPrevNode()) {
+    Preds.push_back(stmt->getPrevNode());
+  }
+  /*
+   * If we do not have a successor yet, look for basic blocks which
+   * lead to our instruction in question!
+   */
+  if (Preds.empty()) {
+    for (auto &BB : *stmt->getFunction()) {
+      if (const llvm::TerminatorInst *T =
+              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+        for (auto successor : T->successors()) {
+          if (&*successor->begin() == stmt) {
+            Preds.push_back(T);
+          }
+        }
+      }
+    }
+  }
+  return Preds;
 }
 
 std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *fun) {
-  return {};
+  vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
+  for (auto &BB : *fun) {
+    for (auto &I : BB) {
+      auto Successors = getSuccsOf(&I);
+      for (auto Successor : Successors) {
+        Edges.insert(Edges.begin(),make_pair(Successor,&I));
+      }
+    }
+  }
+  return Edges;
 }
 
 std::vector<const llvm::Instruction *>
