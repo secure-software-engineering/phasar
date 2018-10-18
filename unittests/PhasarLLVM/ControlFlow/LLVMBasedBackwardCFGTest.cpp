@@ -43,8 +43,8 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   Predeccessors.push_back(getNthInstruction(F, 10));
   // %10 = load i32, i32* %3, align 4
   Predeccessors.push_back(getNthInstruction(F, 14));
-  auto succsOfBRInst = cfg.getPredsOf(BRInst);
-  ASSERT_EQ(succsOfBRInst, Predeccessors);
+  auto predsOfBRInst = cfg.getPredsOf(BRInst);
+  ASSERT_EQ(predsOfBRInst, Predeccessors);
 
   // HANDLING UNCONDITIONAL BRANCH
   // br label %12
@@ -52,8 +52,8 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   Predeccessors.clear();
   // ret i32 0
   Predeccessors.push_back(getNthTermInstruction(F, 4));
-  succsOfBRInst = cfg.getPredsOf(BRInst);
-  ASSERT_EQ(succsOfBRInst, Predeccessors);
+  predsOfBRInst = cfg.getPredsOf(BRInst);
+  ASSERT_EQ(predsOfBRInst, Predeccessors);
 
 }
 
@@ -68,15 +68,15 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
   auto Pred = getNthInstruction(F, 5);
   std::vector<const llvm::Instruction *> Predeccessor{Pred};
-  auto succsOfInst = cfg.getPredsOf(Inst);
-  ASSERT_EQ(succsOfInst, Predeccessor);
+  auto predsOfInst = cfg.getPredsOf(Inst);
+  ASSERT_EQ(predsOfInst, Predeccessor);
 
   // HANDLING EMPTY SUCCESSOR
   // ret i32 0
   auto termInst = getNthTermInstruction(F, 1);
-  auto succsOfTermInst = cfg.getPredsOf(termInst);
+  auto predsOfTermInst = cfg.getPredsOf(termInst);
   Predeccessor.clear();
-  ASSERT_EQ(succsOfTermInst, Predeccessor);
+  ASSERT_EQ(predsOfTermInst, Predeccessor);
 
   
 }
@@ -93,8 +93,8 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   Successor.push_back(getNthTermInstruction(F, 2));
   // br label %12
   Successor.push_back(getNthTermInstruction(F, 3));
-  auto predsOfTermInst = cfg.getSuccsOf(TermInst);
-  ASSERT_EQ(predsOfTermInst, Successor);
+  auto succsOfTermInst = cfg.getSuccsOf(TermInst);
+  ASSERT_EQ(succsOfTermInst, Successor);
 
 }
 
@@ -109,8 +109,8 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   // %3 = alloca i32, align 4)
   auto Succ = getNthInstruction(F, 3);
   std::vector<const llvm::Instruction *> Successor{Succ};
-  auto predsOfInst = cfg.getSuccsOf(Inst);
-  ASSERT_EQ(predsOfInst, Successor);
+  auto succsOfInst = cfg.getSuccsOf(Inst);
+  ASSERT_EQ(succsOfInst, Successor);
 
   // br i1 %11, label %12, label %16
   Inst = getNthTermInstruction(F, 1);
@@ -118,15 +118,15 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   Succ = getNthInstruction(F, 8);
   Successor.clear();
   Successor.push_back(Succ);
-  predsOfInst = cfg.getSuccsOf(Inst);
-  ASSERT_EQ(predsOfInst, Successor);
+  succsOfInst = cfg.getSuccsOf(Inst);
+  ASSERT_EQ(succsOfInst, Successor);
 
   // HANDLING EMPTY SUCCESSOR
   // %1 = alloca i32, align 4
   Inst = getNthInstruction(F, 1);
-  predsOfInst = cfg.getSuccsOf(Inst);
+  succsOfInst = cfg.getSuccsOf(Inst);
   Successor.clear();
-  ASSERT_EQ(predsOfInst, Successor);
+  ASSERT_EQ(succsOfInst, Successor);
 
 }
 
