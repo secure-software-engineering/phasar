@@ -38,10 +38,11 @@ matrix:
           - libmysqlcppconn-dev
     env:
       - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-  - os: osx
-    osx_image: xcode8
-    env:
-      - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+  # TODO decomment, when C++17 can be used on OSX (LLVM has been updated)
+  # - os: osx
+  #   osx_image: xcode8
+  #   env:
+  #     - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
 
 branches:
     - development
