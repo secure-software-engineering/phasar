@@ -350,7 +350,7 @@ public:
       STOP_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Problem solved");
-    if (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
+    if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
   }
@@ -1513,34 +1513,31 @@ protected:
                   << "#Intra Path Edges: " << GET_COUNTER("Intra Path Edges"));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                   << "#Inter Path Edges: " << GET_COUNTER("Inter Path Edges"));
-
-// TODO Replace preprocessor directives with 'if constexpr' once PhASAR upgrades
-// to C++17
-#if defined(PAMM_FULL)
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Flow function query count: "
-                                          << GET_COUNTER("FF Queries"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Edge function query count: "
-                                          << GET_COUNTER("EF Queries"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Data-flow value propagation count: "
-                  << GET_COUNTER("Value Propagation"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Data-flow value computation count: "
-                  << GET_COUNTER("Value Computation"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Special flow function usage count: "
-                  << GET_COUNTER("SpecialSummary-FF Application"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Jump function construciton count: "
-                  << GET_COUNTER("JumpFn Construction"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "----------------------------------------------");
-    cachedFlowEdgeFunctions.print();
-#endif
+    if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Flow function query count: "
+                                            << GET_COUNTER("FF Queries"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Edge function query count: "
+                                            << GET_COUNTER("EF Queries"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Data-flow value propagation count: "
+                    << GET_COUNTER("Value Propagation"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Data-flow value computation count: "
+                    << GET_COUNTER("Value Computation"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Special flow function usage count: "
+                    << GET_COUNTER("SpecialSummary-FF Application"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Jump function construciton count: "
+                    << GET_COUNTER("JumpFn Construction"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                    << "----------------------------------------------");
+      cachedFlowEdgeFunctions.print();
+    }
   }
 };
 
