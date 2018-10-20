@@ -50,7 +50,7 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 
 namespace psr {
@@ -310,69 +310,49 @@ public:
    * @brief Runs the solver on the configured problem. This can take some time.
    */
   virtual void solve() {
-    PAMM_FACTORY;
-    REG_COUNTER("FF Queries");
-    REG_COUNTER("EF Queries");
-    REG_COUNTER("Value Propagation");
-    REG_COUNTER("Value Computation");
-    REG_COUNTER("SpecialSummary-FF Application");
-    REG_COUNTER("SpecialSummary-EF Queries");
-    REG_COUNTER("JumpFn Construction");
-    REG_COUNTER("Process Call");
-    REG_COUNTER("Process Normal");
-    REG_COUNTER("Process Exit");
-    REG_COUNTER("Calls to getPointsToSet");
-    REG_HISTOGRAM("Data-flow facts");
-    REG_HISTOGRAM("IDESolver");
-    REG_HISTOGRAM("Points-to");
+    PAMM_GET_INSTANCE;
+    REG_COUNTER("Gen facts", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Kill facts", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Summary-reuse", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Intra Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("Inter Path Edges", 0, PAMM_SEVERITY_LEVEL::Core);
+    REG_COUNTER("FF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Value Propagation", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Value Computation", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("SpecialSummary-FF Application", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("SpecialSummary-EF Queries", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("JumpFn Construction", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Call", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Normal", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("Process Exit", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_COUNTER("[Calls] getPointsToSet", 0, PAMM_SEVERITY_LEVEL::Full);
+    REG_HISTOGRAM("Data-flow facts", PAMM_SEVERITY_LEVEL::Full);
+    REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
+
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                   << "IDE solver is solving the specified problem");
     // computations starting here
-    START_TIMER("DFA Phase I");
+    START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     // We start our analysis and construct exploded supergraph
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                   << "Submit initial seeds, construct exploded super graph");
     submitInitalSeeds();
-    STOP_TIMER("DFA Phase I");
+    STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     if (computevalues) {
-      START_TIMER("DFA Phase II");
+      START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
       // Computing the final values for the edge functions
       LOG_IF_ENABLE(
           BOOST_LOG_SEV(lg, INFO)
           << "Compute the final values according to the edge functions");
       computeValues();
-      STOP_TIMER("DFA Phase II");
+      STOP_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Problem solved\n");
-#ifdef PERFORMANCE_EVA
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "----------------------------------------------");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Solver Statistics:");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "flow function query count: "
-                                          << GET_COUNTER("FF Queries"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "edge function query count: "
-                                          << GET_COUNTER("EF Queries"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "data-flow value propagation count: "
-                  << GET_COUNTER("Value Propagation"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "data-flow value computation count: "
-                  << GET_COUNTER("Value Computation"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "special flow function usage count: "
-                  << GET_COUNTER("SpecialSummary-FF Application"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "jump fn construciton count: "
-                  << GET_COUNTER("JumpFn Construction"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "----------------------------------------------");
-    cachedFlowEdgeFunctions.print();
-#endif
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Problem solved");
+    if (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
+      computeAndPrintStatistics();
+    }
   }
 
   /**
@@ -408,7 +388,6 @@ private:
 
   void saveEdges(N sourceNode, N sinkStmt, D sourceVal, std::set<D> destVals,
                  bool interP) {
-    PAMM_FACTORY;
     if (!recordEdges)
       return;
     Table<N, N, std::map<D, std::set<D>>> &tgtMap =
@@ -436,8 +415,8 @@ private:
    * @param edge an edge whose target node resembles a method call
    */
   void processCall(PathEdge<N, D> edge) {
-    PAMM_FACTORY;
-    INC_COUNTER("Process Call");
+    PAMM_GET_INSTANCE;
+    INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process call at target: "
@@ -447,9 +426,7 @@ private:
     D d2 = edge.factAtTarget();
     std::shared_ptr<EdgeFunction<V>> f = jumpFunction(edge);
     std::set<N> returnSiteNs = icfg.getReturnSitesOfCallAt(n);
-    ADD_TO_HIST("IDESolver", returnSiteNs.size());
     std::set<M> callees = icfg.getCalleesOfCallAt(n);
-    ADD_TO_HIST("IDESolver", callees.size());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -471,16 +448,20 @@ private:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
-          INC_COUNTER("SpecialSummaryFFApplicationCount");
+          INC_COUNTER("SpecialSummaryFFApplicationCount", 1,
+                      PAMM_SEVERITY_LEVEL::Full);
           std::set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
-          INC_COUNTER("SpecialSummary-FF Application");
-          ADD_TO_HIST("Data-flow facts", res.size());
+          INC_COUNTER("SpecialSummary-FF Application", 1,
+                      PAMM_SEVERITY_LEVEL::Full);
+          ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
+                           PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
             std::shared_ptr<EdgeFunction<V>> sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
-            INC_COUNTER("SpecialSummary-EF Queries");
+            INC_COUNTER("SpecialSummary-EF Queries", 1,
+                        PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << sumEdgFnE->str() << " * "
                           << f->str());
@@ -492,12 +473,12 @@ private:
         // compute the call-flow function
         std::shared_ptr<FlowFunction<D>> function =
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
-        INC_COUNTER("FF Queries");
+        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         std::set<D> res = computeCallFlowFunction(function, d1, d2);
-        ADD_TO_HIST("Data-flow facts", res.size());
+        ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
+                         PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
         std::set<N> startPointsOf = icfg.getStartPointsOf(sCalledProcN);
-        ADD_TO_HIST("IDESolver", startPointsOf.size());
         if (startPointsOf.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Start points of '" +
@@ -522,10 +503,11 @@ private:
                 endSumm = std::set<typename Table<
                     N, D, std::shared_ptr<EdgeFunction<V>>>::Cell>(
                     endSummary(sP, d3));
-            ADD_TO_HIST("IDESolver", endSumm.size());
             // std::cout << "ENDSUMM" << std::endl;
-            // sP->dump();
-            // d3->dump();
+            // std::cout << "Size: " << endSumm.size() << std::endl;
+            // std::cout << "sP: " << ideTabulationProblem.NtoString(sP)
+            //           << "\nd3: " << ideTabulationProblem.DtoString(d3)
+            //           << std::endl;
             // printEndSummaryTab();
             // still line 15.2 of Naeem/Lhotak/Rodriguez
             // for each already-queried exit value <eP,d4> reachable from
@@ -544,10 +526,11 @@ private:
                 std::shared_ptr<FlowFunction<D>> retFunction =
                     cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
                                                                eP, retSiteN);
-                INC_COUNTER("FF Queries");
+                INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
                 std::set<D> returnedFacts = computeReturnFlowFunction(
                     retFunction, d3, d4, n, std::set<D>{d2});
-                ADD_TO_HIST("Data-flow facts", returnedFacts.size());
+                ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
+                                 PAMM_SEVERITY_LEVEL::Full);
                 saveEdges(eP, retSiteN, d4, returnedFacts, true);
                 // for each target value of the function
                 for (D d5 : returnedFacts) {
@@ -560,7 +543,7 @@ private:
                   std::shared_ptr<EdgeFunction<V>> f5 =
                       cachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, sCalledProcN, eP, d4, retSiteN, d5);
-                  INC_COUNTER_BY_VAL("EF Queries", 2);
+                  INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "Compose: " << f5->str() << " * "
@@ -592,16 +575,17 @@ private:
         std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
             cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
                                                              callees);
-        INC_COUNTER("FF Queries");
+        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         std::set<D> returnFacts =
             computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
-        ADD_TO_HIST("Data-flow facts", returnFacts.size());
+        ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
+                         PAMM_SEVERITY_LEVEL::Full);
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts) {
           std::shared_ptr<EdgeFunction<V>> edgeFnE =
               cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
                   n, d2, returnSiteN, d3, callees);
-          INC_COUNTER("EF Queries");
+          INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Compose: " << edgeFnE->str() << " * " << f->str());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -617,8 +601,8 @@ private:
    * @param edge
    */
   void processNormalFlow(PathEdge<N, D> edge) {
-    PAMM_FACTORY;
-    INC_COUNTER("Process Normal");
+    PAMM_GET_INSTANCE;
+    INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process normal at target: "
@@ -631,9 +615,10 @@ private:
     for (auto m : successorInst) {
       std::shared_ptr<FlowFunction<D>> flowFunction =
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
-      INC_COUNTER("FF Queries");
+      INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       std::set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
-      ADD_TO_HIST("Data-flow facts", res.size());
+      ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
+                       PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<V>> g =
@@ -642,14 +627,14 @@ private:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Compose: " << g->str() << " * " << f->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-        INC_COUNTER("EF Queries");
+        INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         propagate(d1, m, d3, fprime, nullptr, false);
       }
     }
   }
 
   void propagateValueAtStart(std::pair<N, D> nAndD, N n) {
-    PAMM_FACTORY;
+    PAMM_GET_INSTANCE;
     D d = nAndD.second;
     M p = icfg.getMethodOf(n);
     for (N c : icfg.getCallsFromWithin(p)) {
@@ -658,26 +643,26 @@ private:
         std::shared_ptr<EdgeFunction<V>> fPrime = entry.second;
         N sP = n;
         V value = val(sP, d);
+        INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
         propagateValue(c, dPrime, fPrime->computeTarget(value));
-        INC_COUNTER("Value Propagation");
       }
     }
   }
 
   void propagateValueAtCall(std::pair<N, D> nAndD, N n) {
-    PAMM_FACTORY;
+    PAMM_GET_INSTANCE;
     D d = nAndD.second;
     for (M q : icfg.getCalleesOfCallAt(n)) {
       std::shared_ptr<FlowFunction<D>> callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
-      INC_COUNTER("FF Queries");
+      INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       for (D dPrime : callFlowFunction->computeTargets(d)) {
         std::shared_ptr<EdgeFunction<V>> edgeFn =
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
-        INC_COUNTER("EF Queries");
+        INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         for (N startPoint : icfg.getStartPointsOf(q)) {
+          INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
           propagateValue(startPoint, dPrime, edgeFn->computeTarget(val(n, d)));
-          INC_COUNTER("Value Propagation");
         }
       }
     }
@@ -742,9 +727,9 @@ private:
 
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<N, D> edge) {
-    PAMM_FACTORY;
+    PAMM_GET_INSTANCE;
     auto &lg = lg::get();
-    INC_COUNTER("JumpFn Construction");
+    INC_COUNTER("JumpFn Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg, DEBUG)
         << "-------------------------------------------- " << PathEdgeCount
@@ -795,7 +780,7 @@ private:
 
   // should be made a callable at some point
   void valueComputationTask(std::vector<N> values) {
-    PAMM_FACTORY;
+    PAMM_GET_INSTANCE;
     for (N n : values) {
       for (N sP : icfg.getStartPointsOf(icfg.getMethodOf(n))) {
         Table<D, D, std::shared_ptr<EdgeFunction<V>>> lookupByTarget;
@@ -810,7 +795,7 @@ private:
           setVal(n, d,
                  ideTabulationProblem.join(val(n, d),
                                            fPrime->computeTarget(targetVal)));
-          INC_COUNTER("Value Computation");
+          INC_COUNTER("Value Computation", 1, PAMM_SEVERITY_LEVEL::Full);
         }
       }
     }
@@ -849,6 +834,8 @@ protected:
 
   Table<N, D, V> valtab;
 
+  std::map<std::pair<N, D>, size_t> fSummaryReuse;
+
   // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
   // we need to allocate dynamically, otherwise the objects lifetime runs out -
   // as a modifiable r-value reference created here that should be stored in a
@@ -882,7 +869,6 @@ protected:
    * Computes the final values for edge functions.
    */
   void computeValues() {
-    PAMM_FACTORY;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start computing values");
     // Phase II(i)
@@ -890,7 +876,6 @@ protected:
     for (N unbalancedRetSite : unbalancedRetSites) {
       if (allSeeds[unbalancedRetSite].empty()) {
         allSeeds.insert(make_pair(unbalancedRetSite, std::set<D>({zeroValue})));
-        // ADD_TO_HIST("Data-flow facts", 1);
       }
     }
     // do processing
@@ -906,7 +891,6 @@ protected:
     // we create an array of all nodes and then dispatch fractions of this array
     // to multiple threads
     std::set<N> allNonCallStartNodes = icfg.allNonCallStartNodes();
-    ADD_TO_HIST("IDESolver", allNonCallStartNodes.size());
     std::vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
     size_t i = 0;
     for (N n : allNonCallStartNodes) {
@@ -923,6 +907,7 @@ protected:
    */
   void submitInitalSeeds() {
     auto &lg = lg::get();
+    PAMM_GET_INSTANCE;
     for (const auto &seed : initialSeeds) {
       N startPoint = seed.first;
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -933,6 +918,9 @@ protected:
                       << "      Value: "
                       << ideTabulationProblem.DtoString(value));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        if (!ideTabulationProblem.isZeroValue(value)) {
+          INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
+        }
         propagate(zeroValue, startPoint, value, EdgeIdentity<V>::getInstance(),
                   nullptr, false);
       }
@@ -951,8 +939,8 @@ protected:
    * @param edge an edge whose target node resembles a method exit
    */
   void processExit(PathEdge<N, D> edge) {
-    PAMM_FACTORY;
-    INC_COUNTER("Process Exit");
+    PAMM_GET_INSTANCE;
+    INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process exit at target: "
@@ -964,7 +952,6 @@ protected:
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
     std::set<N> startPointsOf = icfg.getStartPointsOf(methodThatNeedsSummary);
-    ADD_TO_HIST("IDESolver", startPointsOf.size());
     std::map<N, std::set<D>> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
@@ -972,7 +959,6 @@ protected:
       addEndSummary(sP, d1, n, d2, f);
       for (auto entry : incoming(d1, sP)) {
         inc[entry.first] = std::set<D>{entry.second};
-        // ADD_TO_HIST("Data-flow facts", inc[entry.first].size());
       }
     }
     printEndSummaryTab();
@@ -988,12 +974,13 @@ protected:
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 c, methodThatNeedsSummary, n, retSiteC);
-        INC_COUNTER("FF Queries");
+        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
         for (D d4 : entry.second) {
           std::set<D> targets =
               computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
-          ADD_TO_HIST("Data-flow facts", targets.size());
+          ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
+                           PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, retSiteC, d2, targets, true);
           // for each target value at the return site
           // line 23
@@ -1007,7 +994,7 @@ protected:
             std::shared_ptr<EdgeFunction<V>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
-            INC_COUNTER_BY_VAL("EF Queries", 2);
+            INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str()
@@ -1046,22 +1033,22 @@ protected:
     if (followReturnPastSeeds && inc.empty() &&
         ideTabulationProblem.isZeroValue(d1)) {
       std::set<N> callers = icfg.getCallersOf(methodThatNeedsSummary);
-      ADD_TO_HIST("IDESolver", callers.size());
       for (N c : callers) {
         for (N retSiteC : icfg.getReturnSitesOfCallAt(c)) {
           std::shared_ptr<FlowFunction<D>> retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
                   c, methodThatNeedsSummary, n, retSiteC);
-          INC_COUNTER("FF Queries");
+          INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           std::set<D> targets = computeReturnFlowFunction(
               retFunction, d1, d2, c, std::set<D>{zeroValue});
-          ADD_TO_HIST("Data-flow facts", targets.size());
+          ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
+                           PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets) {
             std::shared_ptr<EdgeFunction<V>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
-            INC_COUNTER("EF Queries");
+            INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -1079,7 +1066,7 @@ protected:
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 nullptr, methodThatNeedsSummary, n, nullptr);
-        INC_COUNTER("FF Queries");
+        INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         retFunction->computeTargets(d2);
       }
     }
@@ -1254,6 +1241,8 @@ protected:
                       << ideTabulationProblem.DtoString(targetVal) << ">");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       }
+    } else {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "PROPAGATE: No new function!");
     }
   }
 
@@ -1263,6 +1252,15 @@ protected:
 
   std::set<typename Table<N, D, std::shared_ptr<EdgeFunction<V>>>::Cell>
   endSummary(N sP, D d3) {
+    if (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
+      auto key = std::make_pair(sP, d3);
+      auto findND = fSummaryReuse.find(key);
+      if (findND == fSummaryReuse.end()) {
+        fSummaryReuse.insert(std::make_pair(key, 0));
+      } else {
+        fSummaryReuse[key] += 1;
+      }
+    }
     return endsummarytab.get(sP, d3).cellSet();
   }
 
@@ -1321,6 +1319,230 @@ protected:
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End of endsummarytab entry");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+  }
+
+  /**
+   * The invariant for computing the number of generated (#gen) and killed
+   * (#kill) facts:
+   *   (1) #Valid facts at the last statement <= #gen - #kill
+   *   (2) #gen >= #kill
+   *
+   * The total number of valid facts can be smaller than the difference of
+   * generated and killed facts, due to set semantics, i.e. a fact can be
+   * generated multiple times but appears only once.
+   *
+   * Zero value is not counted!
+   *
+   * @brief Computes and prints statistics of the analysis run, e.g. number of
+   * generated/killed facts, number of summary-reuses etc.
+   */
+  void computeAndPrintStatistics() {
+    auto &lg = lg::get();
+    PAMM_GET_INSTANCE;
+    // Stores all valid facts at return site in caller context; return-site is
+    // key
+    std::unordered_map<N, std::set<D>> ValidInCallerContext;
+    std::size_t genFacts = 0, killFacts = 0, intraPathEdges = 0,
+                interPathEdges = 0;
+    /* --- Intra-procedural Path Edges ---
+     * d1 --> d2-Set
+     * Case 1: d1 in d2-Set
+     * Case 2: d1 not in d2-Set, i.e. d1 was killed. d2-Set could be empty.
+     */
+    for (auto cell : computedIntraPathEdges.cellSet()) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "N1: " << ideTabulationProblem.NtoString(Edge.first));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "N2: " << ideTabulationProblem.NtoString(Edge.second));
+      for (auto D1ToD2Set : cell.v) {
+        auto D1 = D1ToD2Set.first;
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "d1: " << ideTabulationProblem.DtoString(D1));
+        auto D2Set = D1ToD2Set.second;
+        intraPathEdges += D2Set.size();
+        // Case 1
+        if (D2Set.find(D1) != D2Set.end()) {
+          genFacts += D2Set.size() - 1;
+        }
+        // Case 2
+        else {
+          genFacts += D2Set.size();
+          // We ignore the zero value
+          if (!ideTabulationProblem.isZeroValue(D1)) {
+            killFacts++;
+          }
+        }
+        // Store all valid facts after call-to-return flow
+        if (icfg.isCallStmt(Edge.first)) {
+          ValidInCallerContext[Edge.second].insert(D2Set.begin(), D2Set.end());
+        }
+        for (auto D2 : D2Set) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "d2: " << ideTabulationProblem.DtoString(D2));
+        }
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+      }
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    }
+
+    // Stores all pairs of (Startpoint, Fact) for which a summary was applied
+    std::set<std::pair<N, D>> ProcessSummaryFacts;
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "==============================================");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "INTER PATH EDGES");
+    for (auto cell : computedInterPathEdges.cellSet()) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "N1: " << ideTabulationProblem.NtoString(Edge.first));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "N2: " << ideTabulationProblem.NtoString(Edge.second));
+      /* --- Call-flow Path Edges ---
+       * Case 1: d1 --> empty set
+       *   Can be ignored, since killing a fact in the caller context will
+       *   actually happen during  call-to-return.
+       *
+       * Case 2: d1 --> d2-Set
+       *   Every fact d_i != zeroValue in d2-set will be generated in the callee
+       * context, thus counts as a new fact. Even if d1 is passed as it is, it
+       * will count as a new fact. The reason for this is, that d1 can be
+       * killed in the callee context, but still be valid in the caller
+       * context.
+       *
+       * Special Case: Summary was applied for a particular call
+       *   Process the summary's #gen and #kill.
+       */
+      if (icfg.isCallStmt(Edge.first)) {
+        for (auto D1ToD2Set : cell.v) {
+          auto D1 = D1ToD2Set.first;
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "d1: " << ideTabulationProblem.DtoString(D1));
+          auto DSet = D1ToD2Set.second;
+          interPathEdges += DSet.size();
+          for (auto D2 : DSet) {
+            if (!ideTabulationProblem.isZeroValue(D2)) {
+              genFacts++;
+            }
+            // Special case
+            if (ProcessSummaryFacts.find(std::make_pair(Edge.second, D2)) !=
+                ProcessSummaryFacts.end()) {
+              std::multiset<D> SummaryDMultiSet =
+                  endsummarytab.get(Edge.second, D2).columnKeySet();
+              // remove duplicates from multiset
+              std::set<D> SummaryDSet(SummaryDMultiSet.begin(),
+                                      SummaryDMultiSet.end());
+              // Process summary just as an intra-procedural edge
+              if (SummaryDSet.find(D2) != SummaryDSet.end()) {
+                genFacts += SummaryDSet.size() - 1;
+              } else {
+                genFacts += SummaryDSet.size();
+                // We ignore the zero value
+                if (!ideTabulationProblem.isZeroValue(D1)) {
+                  killFacts++;
+                }
+              }
+            } else {
+              ProcessSummaryFacts.insert(std::make_pair(Edge.second, D2));
+            }
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "d2: " << ideTabulationProblem.DtoString(D2));
+          }
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+        }
+      }
+      /* --- Return-flow Path Edges ---
+       * Since every fact passed to the callee was counted as a new fact, we
+       * have to count every fact propagated to the caller as a kill to satisfy
+       * our invariant. Obviously, every fact not propagated to the caller will
+       * count as a kill. If an actual new fact is propagated to the caller, we
+       * have to increase the number of generated facts by one. Zero value does
+       * not count towards generated/killed facts.
+       */
+      if (icfg.isExitStmt(cell.r)) {
+        for (auto D1ToD2Set : cell.v) {
+          auto D1 = D1ToD2Set.first;
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "d1: " << ideTabulationProblem.DtoString(D1));
+          auto DSet = D1ToD2Set.second;
+          interPathEdges += DSet.size();
+          auto CallerFacts = ValidInCallerContext[Edge.second];
+          for (auto D2 : DSet) {
+            // d2 not valid in caller context
+            if (CallerFacts.find(D2) == CallerFacts.end()) {
+              genFacts++;
+            }
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "d2: " << ideTabulationProblem.DtoString(D2));
+          }
+          if (!ideTabulationProblem.isZeroValue(D1)) {
+            killFacts++;
+          }
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+        }
+      }
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    }
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "SUMMARY REUSE");
+    std::size_t TotalSummaryReuse = 0;
+    for (auto entry : fSummaryReuse) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "N1: "
+                    << ideTabulationProblem.NtoString(entry.first.first));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "D1: "
+                    << ideTabulationProblem.DtoString(entry.first.second));
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "#Reuse: " << entry.second);
+      TotalSummaryReuse += entry.second;
+    }
+
+    INC_COUNTER("Gen facts", genFacts, PAMM_SEVERITY_LEVEL::Core);
+    INC_COUNTER("Kill facts", killFacts, PAMM_SEVERITY_LEVEL::Core);
+    INC_COUNTER("Summary-reuse", TotalSummaryReuse, PAMM_SEVERITY_LEVEL::Core);
+    INC_COUNTER("Intra Path Edges", intraPathEdges, PAMM_SEVERITY_LEVEL::Core);
+    INC_COUNTER("Inter Path Edges", interPathEdges, PAMM_SEVERITY_LEVEL::Core);
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "----------------------------------------------");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "=== Solver Statistics ===");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "#Facts generated : " << GET_COUNTER("Gen facts"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "#Facts killed    : " << GET_COUNTER("Kill facts"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "#Summary-reuse   : " << GET_COUNTER("Summary-reuse"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "#Intra Path Edges: " << GET_COUNTER("Intra Path Edges"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "#Inter Path Edges: " << GET_COUNTER("Inter Path Edges"));
+
+// TODO Replace preprocessor directives with 'if constexpr' once PhASAR upgrades
+// to C++17
+#if defined(PAMM_FULL)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Flow function query count: "
+                                          << GET_COUNTER("FF Queries"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Edge function query count: "
+                                          << GET_COUNTER("EF Queries"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Data-flow value propagation count: "
+                  << GET_COUNTER("Value Propagation"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Data-flow value computation count: "
+                  << GET_COUNTER("Value Computation"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Special flow function usage count: "
+                  << GET_COUNTER("SpecialSummary-FF Application"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Jump function construciton count: "
+                  << GET_COUNTER("JumpFn Construction"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "----------------------------------------------");
+    cachedFlowEdgeFunctions.print();
+#endif
   }
 };
 

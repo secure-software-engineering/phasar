@@ -35,6 +35,7 @@ struct LCAPair {
   LCAPair();
   LCAPair(const llvm::Value *V, int i);
   friend bool operator==(const LCAPair &lhs, const LCAPair &rhs);
+  friend bool operator!=(const LCAPair &lhs, const LCAPair &rhs);
   friend bool operator<(const LCAPair &lhs, const LCAPair &rhs);
 };
 

@@ -37,6 +37,10 @@ bool operator==(const LCAPair &lhs, const LCAPair &rhs) {
   return tie(lhs.first, lhs.second) == tie(rhs.first, rhs.second);
 }
 
+bool operator!=(const LCAPair &lhs, const LCAPair &rhs) {
+  return !(lhs == rhs);
+}
+
 bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
   return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
 }

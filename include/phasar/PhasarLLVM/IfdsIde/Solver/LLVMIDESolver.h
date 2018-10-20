@@ -56,6 +56,8 @@ public:
   }
 
   void dumpResults() {
+    PAMM_GET_INSTANCE;
+    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     std::cout << "### DUMP LLVMIDESolver results\n";
     // for the following line have a look at:
     // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
@@ -91,6 +93,7 @@ public:
                   << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
       }
     }
+    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
   }
 
   json getJsonRepresentationForInstructionNode(const llvm::Instruction *node) {

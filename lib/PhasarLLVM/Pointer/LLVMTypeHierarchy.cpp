@@ -36,7 +36,7 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace psr;
 using namespace std;
@@ -46,16 +46,15 @@ namespace psr {
 using json = LLVMTypeHierarchy::json;
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
   for (auto M : IRDB.getAllModules()) {
     analyzeModule(*M);
     reconstructVTable(*M);
   }
-  // Will cause crash in unittest ...
-  // REG_COUNTER_WITH_VALUE("LTH Vertices", getNumOfVertices());
-  // REG_COUNTER_WITH_VALUE("LTH Edges", getNumOfEdges());
+  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 
   bidigraph_t tc;
   boost::transitive_closure(g, tc);
@@ -87,14 +86,13 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   //   total += dist;
   // }
   //
-  // REG_COUNTER_WITH_VALUE("LTH Max Sub-graph", max);
-  // REG_COUNTER_WITH_VALUE("LTH Total Sub-graph", total);
-  // REG_COUNTER_WITH_VALUE("LTH Mean Sub-graph",
-  // double(total)/double(getNumOfVertices()));
+  // REG_COUNTER("LTH Max Sub-graph", max, PAMM_SEVERITY_LEVEL::Full);
+  // REG_COUNTER("LTH Total Sub-graph", total, PAMM_SEVERITY_LEVEL::Full);
+  // REG_COUNTER("LTH Mean Sub-graph", double(total)/double(getNumOfVertices(),
+  // PAMM_SEVERITY_LEVEL::Full), PAMM_SEVERITY_LEVEL::Full);
 }
 
 void LLVMTypeHierarchy::reconstructVTable(const llvm::Module &M) {
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Reconstruct virtual function table for module: "

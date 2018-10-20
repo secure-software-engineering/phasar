@@ -27,7 +27,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 
 using json = nlohmann::json;
@@ -62,8 +62,8 @@ public:
   }
 
   void dumpResults() {
-    PAMM_FACTORY;
-    START_TIMER("DFA Result Dumping");
+    PAMM_GET_INSTANCE;
+    START_TIMER("DFA IFDS Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     std::cout << "### DUMP LLVMIFDSSolver results\n";
     auto results = this->valtab.cellSet();
     if (results.empty()) {
@@ -98,7 +98,7 @@ public:
                   << "\tV:  " << cells[i].v << "\n";
       }
     }
-    STOP_TIMER("DFA Result Dumping");
+    STOP_TIMER("DFA IFDS Result Dumping", PAMM_SEVERITY_LEVEL::Full);
   }
 
   json getJsonRepresentationForInstructionNode(const llvm::Instruction *node) {

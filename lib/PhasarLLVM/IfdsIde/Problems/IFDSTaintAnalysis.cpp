@@ -92,12 +92,13 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSTaintAnalysis::getCallFlowFunction()");
+  string FunctionName = cxx_demangle(destMthd->getName().str());
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
   // The respective taints or leaks are then generated in the corresponding
   // call to return flow function.
-  if (SourceSinkFunctions.isSource(destMthd->getName().str()) ||
-      (SourceSinkFunctions.isSink(destMthd->getName().str()))) {
+  if (SourceSinkFunctions.isSource(FunctionName) ||
+      (SourceSinkFunctions.isSink(FunctionName))) {
     return KillAll<IFDSTaintAnalysis::d_t>::getInstance();
   }
   // Map the actual into the formal parameters
@@ -208,7 +209,7 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                           IFDSTaintAnalysis::m_t destMthd) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &specialSummaries =
       SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();
-  string FunctionName = destMthd->getName().str();
+  string FunctionName = cxx_demangle(destMthd->getName().str());
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
   if (specialSummaries.containsSpecialSummary(FunctionName) &&

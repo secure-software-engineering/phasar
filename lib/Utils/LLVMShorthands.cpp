@@ -31,7 +31,6 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
 
 using namespace std;
 using namespace psr;
