@@ -23,7 +23,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {
 
@@ -35,6 +34,9 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
 public:
   virtual ~IDETabulationProblem() = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
+  virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
+    os << "No IDE report available!";
+  }
 };
 } // namespace psr
 

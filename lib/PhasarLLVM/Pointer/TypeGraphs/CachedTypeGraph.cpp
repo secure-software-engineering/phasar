@@ -63,7 +63,7 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
 
 CachedTypeGraph::vertex_t
 CachedTypeGraph::addType(const llvm::StructType *new_type) {
-  auto name = psr::uniformTypeName(new_type->getName().str());
+  auto name = new_type->getName().str();
 
   if (type_vertex_map.find(name) == type_vertex_map.end()) {
     auto vertex = boost::add_vertex(g);
@@ -125,7 +125,7 @@ void CachedTypeGraph::aggregateTypes() {
 
 void CachedTypeGraph::reverseTypePropagation(
     const llvm::StructType *base_struct) {
-  auto name = psr::uniformTypeName(base_struct->getName().str());
+  auto name = base_struct->getName().str();
 
   std::vector<boost::default_color_type> color_map(boost::num_vertices(g));
 

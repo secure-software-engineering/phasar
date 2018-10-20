@@ -5,7 +5,7 @@ set(NoMem2regSources
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
-  generate_ll_file(${TEST_SRC})
+  generate_ll_file(FILE ${TEST_SRC} DEBUG)
 endforeach(TEST_SRC)
 
-generate_ll_file(pointer_04.cpp mem2reg)
+generate_ll_file(FILE pointer_04.cpp MEM2REG DEBUG)

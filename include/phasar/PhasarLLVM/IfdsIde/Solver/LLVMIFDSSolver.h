@@ -27,6 +27,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
 #include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 
@@ -38,27 +39,39 @@ template <typename D, typename I>
 class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
                                          const llvm::Function *, I> {
 private:
-  const bool DUMP_RESULTS;
   IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I>
       &Problem;
+  const bool DUMP_RESULTS;
+  const bool PRINT_REPORT;
 
 public:
   virtual ~LLVMIFDSSolver() = default;
 
   LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, I> &problem,
-                 bool dumpResults = false)
+                 bool dumpResults = false, bool printReport = true)
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
-        DUMP_RESULTS(dumpResults), Problem(problem) {}
+        Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
+  }
 
   virtual void solve() override {
     // Solve the analaysis problem
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS)
+    if (DUMP_RESULTS) {
       dumpResults();
+    }
+    if (PRINT_REPORT) {
+      printReport();
+    }
+  }
+
+  void printReport() {
+    SolverResults<const llvm::Instruction *, D, BinaryDomain> SR(
+        this->valtab, Problem.zeroValue());
+    Problem.printIFDSReport(std::cout, SR);
   }
 
   void dumpResults() {
@@ -98,6 +111,7 @@ public:
                   << "\tV:  " << cells[i].v << "\n";
       }
     }
+    std::cout << '\n';
     STOP_TIMER("DFA IFDS Result Dumping", PAMM_SEVERITY_LEVEL::Full);
   }
 

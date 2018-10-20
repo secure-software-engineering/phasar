@@ -132,6 +132,8 @@ public:
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
+  std::set<const llvm::Function *> getAllMethods();
+
   std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *fun) override;
 

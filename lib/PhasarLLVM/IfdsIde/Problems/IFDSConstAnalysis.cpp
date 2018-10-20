@@ -23,6 +23,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 
+#include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -33,11 +34,12 @@ using namespace psr;
 namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(IFDSConstAnalysis::i_t icfg,
+                                     set<IFDSConstAnalysis::d_t> AllMemLocs,
                                      vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
-      EntryPoints(EntryPoints) {
+      AllMemLocs(AllMemLocs), EntryPoints(EntryPoints) {
   PAMM_GET_INSTANCE;
-  REG_HISTOGRAM("Context-relevant-Pointer", PAMM_SEVERITY_LEVEL::Full);
+  REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
               PAMM_SEVERITY_LEVEL::Full);
   IFDSConstAnalysis::zerovalue = createZeroValue();
@@ -326,7 +328,7 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
   }
   PAUSE_TIMER("Context-Relevant-PointsTo-Set Computation",
               PAMM_SEVERITY_LEVEL::Full);
-  ADD_TO_HISTOGRAM("Context-Relevant-Pointer", ToGenerate.size(), 1,
+  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1,
                    PAMM_SEVERITY_LEVEL::Full);
   return ToGenerate;
 }
@@ -341,6 +343,53 @@ void IFDSConstAnalysis::markAsInitialized(IFDSConstAnalysis::d_t d) {
 
 size_t IFDSConstAnalysis::initMemoryLocationCount() {
   return Initialized.size();
+}
+
+void IFDSConstAnalysis::printIFDSReport(
+    ostream &os,
+    SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t, BinaryDomain>
+        &SR) {
+  // 1) Remove all mutable memory locations
+  for (auto f : icfg.getAllMethods()) {
+    for (auto exit : icfg.getExitPointsOf(f)) {
+      std::set<const llvm::Value *> facts = SR.ifdsResultsAt(exit);
+      // Empty facts means the exit statement is part of a not
+      // analyzed function, thus remove all memory locations of that function
+      if (facts.empty()) {
+        for (auto mem_itr = AllMemLocs.begin(); mem_itr != AllMemLocs.end();) {
+          if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*mem_itr)) {
+            if (Inst->getParent()->getParent() == f) {
+              mem_itr = AllMemLocs.erase(mem_itr);
+            } else {
+              ++mem_itr;
+            }
+          } else {
+            ++mem_itr;
+          }
+        }
+      } else {
+        for (auto fact : facts) {
+          if (isAllocaInstOrHeapAllocaFunction(fact) ||
+              llvm::isa<llvm::GlobalValue>(fact)) {
+            // remove memory locations that are mutable, i.e. are valid facts
+            AllMemLocs.erase(fact);
+          }
+        }
+      }
+    }
+  }
+  // 2) Print all immutbale/const memory locations
+  os << "=========== IFDS Const Analysis Results ===========\n";
+  if (AllMemLocs.empty()) {
+    os << "No immutable memory locations found!\n";
+  } else {
+    os << "Immutable/const stack and/or heap memory locations:\n";
+    for (auto memloc : AllMemLocs) {
+      os << "\nIR  : " << llvmIRToString(memloc) << '\n'
+         << llvmValueToSrc(memloc) << "\n";
+    }
+  }
+  os << "\n===================================================\n";
 }
 
 } // namespace psr

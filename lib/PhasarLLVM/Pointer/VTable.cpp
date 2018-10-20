@@ -50,7 +50,9 @@ vector<string> VTable::getVTable() const { return vtbl; }
 
 bool VTable::empty() const { return vtbl.empty(); }
 
-json VTable::exportPATBCJSON() {
+size_t VTable::size() const { return vtbl.size(); }
+
+json VTable::getAsJson() {
   json j = "{}"_json;
   for (unsigned idx = 0; idx < vtbl.size(); ++idx) {
     j.push_back({to_string(idx), vtbl[idx]});

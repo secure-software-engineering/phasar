@@ -448,8 +448,6 @@ private:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
-          INC_COUNTER("SpecialSummaryFFApplicationCount", 1,
-                      PAMM_SEVERITY_LEVEL::Full);
           std::set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1,
                       PAMM_SEVERITY_LEVEL::Full);

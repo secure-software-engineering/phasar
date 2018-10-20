@@ -357,6 +357,10 @@ LLVMBasedICFG::getAllControlFlowEdges(const llvm::Function *fun) {
   return Edges;
 }
 
+set<const llvm::Function *> LLVMBasedICFG::getAllMethods() {
+  return IRDB.getAllFunctions();
+}
+
 vector<const llvm::Instruction *>
 LLVMBasedICFG::getAllInstructionsOf(const llvm::Function *fun) {
   vector<const llvm::Instruction *> Instructions;

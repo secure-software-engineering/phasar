@@ -27,7 +27,7 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-enum State { uninit = 0, error };
+enum State { uninit = 0, opened, closed, error };
 
 class IDETypeStateAnalysis
     : public DefaultIDETabulationProblem<
@@ -108,7 +108,16 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  enum class State { uninit = 0, opened, closed, error };
+
+  enum class CurrentState {
+    state_fopen = 0,
+    state_fclose,
+    state_star,
+    state_freopen
+  };
+
+  void printNode(std::ostream &os, n_t d) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
