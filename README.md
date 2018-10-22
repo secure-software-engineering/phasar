@@ -353,7 +353,7 @@ When using CMake to compile Phasar the following optional parameters can be used
 | <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where Phasar will be installed if <br> “make install” is invoked or the “install” <br> target is built (default is /usr/local) |
 | <b>PHASAR_BUILD_DOC</b> : BOOL | Build Phasar documentation (default is OFF) |
 | <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build Phasar unittests (default is OFF) |
-| <b>PHASAR_ENABLE_PAMM</b> : BOOL | Enable the performance measurement <br> mechanism (default is OFF) |
+| <b>PHASAR_ENABLE_PAMM</b> : STRING | Enable the performance measurement mechanism <br> ('Off', 'Core' or 'Full', default is Off) |
 | <b>PHASAR_ENABLE_PIC</b> : BOOL | Build Position-Independed Code (default is ON) |
 | <b>PHASAR_ENABLE_WARNINGS</b> : BOOL | Enable compiler warnings (default is ON) |
 
@@ -459,6 +459,7 @@ Configuration file options:
   --project-id arg (=myphasarproject)  Project Id used for the database
   --graph-id arg (=123456)             Graph Id used by the visualization
                                        framework
+  --pamm-out arg (=PAMM_data.json)     Filename for PAMM's gathered data
 ```
 
 ### Running an analysis

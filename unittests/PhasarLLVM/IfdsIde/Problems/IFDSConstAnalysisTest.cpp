@@ -41,12 +41,10 @@ protected:
   }
 
   void TearDown() override {
-    PAMM_FACTORY;
     delete IRDB;
     delete TH;
     delete ICFG;
     delete constproblem;
-    PAMM_RESET;
   }
 
   void

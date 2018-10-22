@@ -38,7 +38,7 @@
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace psr;
 using namespace std;
@@ -54,19 +54,23 @@ LLVMTypeHierarchy::VertexProperties::VertexProperties(llvm::StructType *Type,
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
   for (auto M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
+  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
+  REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
 }
 
 void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
@@ -87,7 +91,6 @@ void LLVMTypeHierarchy::buildLLVMTypeHierarchy(const llvm::Module &M) {
 }
 
 void LLVMTypeHierarchy::reconstructVTables(const llvm::Module &M) {
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Reconstruct virtual function table for module: "

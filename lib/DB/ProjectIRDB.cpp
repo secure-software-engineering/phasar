@@ -42,7 +42,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace psr;
 using namespace std;
@@ -258,11 +258,10 @@ void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
   // WARNING: Activating passes lead to higher time in llvmIRToString
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
-  // const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
-  START_TIMER("LLVM Passes" /* + moduleID*/);
+  START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
 
@@ -346,11 +345,12 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   }
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
-  STOP_TIMER("LLVM Passes" /* + moduleID*/);
+  STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   cout << "PTG construction ...\n";
-  START_TIMER("PTG Construction" /* + moduleID*/);
+  START_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
+  REG_COUNTER("GS Pointer", 0, PAMM_SEVERITY_LEVEL::Core)
   for (auto &F : *M) {
     // When module-wise analysis is performed, declarations might occure
     // causing meaningless points-to graphs to be produced.
@@ -366,7 +366,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
-  STOP_TIMER("PTG Construction" /* + moduleID*/);
+  STOP_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   cout << "PTG construction ended\n";
 
   buildIDModuleMapping(M);

@@ -39,7 +39,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -76,7 +76,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              const vector<string> &EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -111,10 +111,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     WholeModulePTG.mergeWith(ptg, F);
     constructionWalker(F, resolver.get());
   }
-  REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
-  REG_COUNTER_WITH_VALUE("Call Graph Vertices", getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("Call Graph Edges", getNumOfEdges());
+  REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("WM-PTG Edges", WholeModulePTG.getNumOfEdges(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
 }
 
@@ -123,7 +125,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              vector<string> EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -166,7 +167,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
 
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                                        Resolver_t *resolver) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   static bool first_function = true;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
