@@ -253,34 +253,15 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
         if (StructTy->getName().find("struct._IO_FILE") !=
             llvm::StringRef::npos) {
           if (currNode == zeroValue() && succNode == Alloca) {
-            struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
-                                    enable_shared_from_this<TSEdgeFunction> {
-              TSEdgeFunction() {}
-              ~TSEdgeFunction() override = default;
+            struct TSEdgeFunctionImpl : public TSEdgeFunction {
+              TSEdgeFunctionImpl() {}
               IDETypeStateAnalysis::v_t
               computeTarget(IDETypeStateAnalysis::v_t source) override {
+                cout << "computeTarget()" << endl;
                 return State::UNINIT;
               }
-              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-              composeWith(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-                              secondFunction) override {
-                return make_shared<
-                    IDETypeStateAnalysis::TSEdgeFunctionComposer>(
-                    this->shared_from_this(), secondFunction);
-              }
-              shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-              joinWith(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-                           otherFunction) override {
-                cout << "joinWith(): " << __LINE__ << endl;
-                // TODO after discussion
-                return this->shared_from_this();
-              }
-              bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
-                                other) const override {
-                return this == other.get();
-              }
             };
-            return make_shared<TSEdgeFunction>();
+            return make_shared<TSEdgeFunctionImpl>();
           }
         }
       }
@@ -314,72 +295,41 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   llvm::ImmutableCallSite CS(callSite);
   if (CS.getCalledFunction()->getName() == "fopen") {
     if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
-      struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
-                              enable_shared_from_this<TSEdgeFunction> {
-        TSEdgeFunction() {}
-        ~TSEdgeFunction() override = default;
+      struct TSEdgeFunctionImpl : public TSEdgeFunction {
+        TSEdgeFunctionImpl() {}
         IDETypeStateAnalysis::v_t
         computeTarget(IDETypeStateAnalysis::v_t source) override {
+          cout << "computeTarget()" << endl;
           return State::OPENED;
         }
-        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> composeWith(
-            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction)
-            override {
-          return make_shared<IDETypeStateAnalysis::TSEdgeFunctionComposer>(
-              this->shared_from_this(), secondFunction);
-        }
-        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> joinWith(
-            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction)
-            override {
-          cout << "joinWith(): " << __LINE__ << endl;
-          // TODO after discussion
-          return this->shared_from_this();
-        }
-        bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other)
-            const override {
-          return this == other.get();
-        }
       };
-      return make_shared<TSEdgeFunction>();
+      return make_shared<TSEdgeFunctionImpl>();
     }
   }
   // For all other STDIO functions, that do not generate file handles but only
   // operate on them, model their behavior using a finite state machine.
   if (CS.getCalledFunction()->getName() == "fclose") {
+    // Handle parameter itself
     if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
       cout << "fclose processing for: ";
       printDataFlowFact(cout, callNode);
       cout << endl;
-      struct TSEdgeFunction : EdgeFunction<IDETypeStateAnalysis::v_t>,
-                              enable_shared_from_this<TSEdgeFunction> {
-        TSEdgeFunction() { cout << "make edge function for fclose()" << endl; }
-        ~TSEdgeFunction() override = default;
+      struct TSEdgeFunctionImpl : public TSEdgeFunction {
+        TSEdgeFunctionImpl() {
+          cout << "make edge function for fclose()" << endl;
+        }
         IDETypeStateAnalysis::v_t
         computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
+          // TODO insert automaton as fclose() is a consuming function
           return State::CLOSED;
         }
-        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> composeWith(
-            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction)
-            override {
-          cout << "composeWith(): " << __LINE__ << endl;
-          return make_shared<IDETypeStateAnalysis::TSEdgeFunctionComposer>(
-              this->shared_from_this(), secondFunction);
-        }
-        shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> joinWith(
-            shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction)
-            override {
-          cout << "joinWith(): " << __LINE__ << endl;
-          // TODO after discussion
-          return this->shared_from_this();
-        }
-        bool equal_to(shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other)
-            const override {
-          return this == other.get();
-        }
       };
-      return make_shared<TSEdgeFunction>();
+      return make_shared<TSEdgeFunctionImpl>();
     }
+    // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
+    // the
+    // same state as the parameter of the consuming function
   }
   // Otherwise
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
@@ -410,6 +360,8 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
+    return lhs;
+  } else if (lhs == rhs) {
     return lhs;
   } else {
     return BOTTOM;
@@ -465,17 +417,54 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
     shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
   cout << "IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith()" << endl;
-  // TODO after discussion
+  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(this) &&
+      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(
+          otherFunction.get())) {
+    return otherFunction;
+  }
+  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(otherFunction.get()) &&
+      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(this)) {
+    return this->shared_from_this();
+  } else if (this->equal_to(otherFunction)) {
+    return this->shared_from_this();
+  } else {
+    return AllBotFunction;
+  }
   return otherFunction;
 }
 
+std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::TSEdgeFunction::composeWith(
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction) {
+  return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
+                                             secondFunction);
+}
+
+// this implementation must of course be consistent with the implementation
+// of the JoinLattice
+std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+IDETypeStateAnalysis::TSEdgeFunction::joinWith(
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
+  // compare with the (one-level) lattice used by this analysis
+  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(this) &&
+      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(
+          otherFunction.get())) {
+    return otherFunction;
+  }
+  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(otherFunction.get()) &&
+      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(this)) {
+    return this->shared_from_this();
+  } else if (this->equal_to(otherFunction)) {
+    return this->shared_from_this();
+  } else {
+    return AllBotFunction;
+  }
+}
+
+bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other) const {
+  // TODO needs improvement
+  return this == other.get();
+}
+
 } // namespace psr
-
-// constexpr State delta[4][4] = {
-//     {State::opened, State::error, State::opened, State::error},
-//     {State::uninit, State::closed, State::error, State::error},
-//     {State::error, State::opened, State::error, State::error},
-//     {State::opened, State::opened, State::opened, State::error},
-// };
-
-// delta[static_cast<underlying_type_t<CurrentState>>(curr)][static_cast<underlying_type_t<State>>(state)];

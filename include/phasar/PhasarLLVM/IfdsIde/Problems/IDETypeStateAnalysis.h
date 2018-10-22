@@ -154,42 +154,26 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
   };
 
-  // // The following code is to be discussed in our meeting tomorrow!
-  // // simplify the art of encoding edge functions
-  // class TSEdgeFunction : public EdgeFunction<v_t>,
-  //                        public std::enable_shared_from_this<TSEdgeFunction>
-  //                        {
-  //  private:
-  //   v_t value;
+  // simplify the art of encoding edge functions
+  // the composeWith(), joinWith() and equal_to() implementation
+  // can stay the same for each instance
+  class TSEdgeFunction : public EdgeFunction<v_t>,
+                         public std::enable_shared_from_this<TSEdgeFunction> {
+  private:
+    v_t value;
 
-  //  public:
-  //   // to be implemented by a concrete type
-  //   // virtual V computeTarget(V source) = 0;
+  public:
+    // to be implemented by a concrete edge function type
+    // virtual V computeTarget(V source) = 0;
 
-  //   std::shared_ptr<EdgeFunction<v_t>> composeWith(
-  //       std::shared_ptr<EdgeFunction<v_t>> secondFunction) override {
-  //     return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
-  //                                                secondFunction);
-  //   }
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
 
-  //   std::shared_ptr<EdgeFunction<v_t>> joinWith(
-  //       std::shared_ptr<EdgeFunction<v_t>> otherFunction) override {
-  //     // compare with the (one-level) lattice used by this analysis
-  //     if (dynamic_cast<AllTop<v_t> *>(this) &&
-  //         !dynamic_cast<AllBottom<v_t> *>(otherFunction.get())) {
-  //       return otherFunction;
-  //     }
-  //     if (dynamic_cast<AllTop<v_t> *>(otherFunction.get()) &&
-  //         !dynamic_cast<AllBottom<v_t> *>(this)) {
-  //       return this->shared_from_this();
-  //     }
-  //     return AllBotFunction;
-  //   }
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
-  //   bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override {
-  //     // check types (AllTop and AllBottom) and compare value
-  //   }
-  // };
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+  };
 };
 
 } // namespace psr
