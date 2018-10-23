@@ -108,11 +108,23 @@ bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *stmt) {
 
 bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
     const llvm::Instruction *stmt, const llvm::Instruction *succ) {
+  assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }
 
 bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
                                           const llvm::Instruction *succ) {
+  if(const llvm::BranchInst *B =
+              llvm::dyn_cast<llvm::BranchInst>(succ))
+  {
+    for (auto BB : B->successors())
+    {
+      if(stmt == &(BB->front()))
+      {
+        return true;
+      }
+    }
+  }
   return false;
 }
 

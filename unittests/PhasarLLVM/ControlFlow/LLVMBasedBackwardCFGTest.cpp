@@ -24,10 +24,16 @@ TEST_F(LLVMBasedBackwardCFGTest, FallThroughSuccTest) {
 
 TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/switch_cpp.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
+  auto Term = getNthTermInstruction(F, 1);
+  auto a = getNthInstruction(F,10);
+  auto b = getNthInstruction(F,14);
+  auto c = getNthInstruction(F,12);
 
-  ASSERT_EQ(true,false);
+  ASSERT_TRUE(cfg.isBranchTarget(a,Term));
+  ASSERT_TRUE(cfg.isBranchTarget(b,Term));
+  ASSERT_FALSE(cfg.isBranchTarget(c,Term));
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
@@ -127,15 +133,6 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   succsOfInst = cfg.getSuccsOf(Inst);
   Successor.clear();
   ASSERT_EQ(succsOfInst, Successor);
-
-}
-
-TEST_F(LLVMBasedBackwardCFGTest, HandlesCallSuccessor) {
-  LLVMBasedBackwardCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
-  auto F = IRDB.getFunction("main");
-
-  ASSERT_EQ(true,false);
 
 }
 

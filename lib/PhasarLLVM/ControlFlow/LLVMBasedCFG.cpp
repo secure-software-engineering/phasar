@@ -103,6 +103,8 @@ bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *stmt) {
 
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
                                           const llvm::Instruction *succ) {
+  assert(false && "FallThrough not valid in LLVM IR");
+  /*
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == succ;
@@ -110,6 +112,7 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
       return &B->getSuccessor(0)->front() == succ;
     }
   }
+  */
   return false;
 }
 
