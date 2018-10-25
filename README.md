@@ -516,7 +516,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-`$ main -m path/to/your/main.ll -D ifds-solvertest`
+`$ phasar -m path/to/your/main.ll -D ifds-solvertest`
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
@@ -559,7 +559,7 @@ int function(int x) {
 	return x + 1;
 }
 
-int main(int argc, char** argv) {
+int main() {
 	int i = 42;
 	int j = function(i);
 	return 0;
