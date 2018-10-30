@@ -27,13 +27,14 @@ namespace psr {
 
 const std::string PhasarVersion("PhASAR v1.1");
 const std::string MetaDataKind("phasar.instruction.id");
-const std::string ConfigurationDirectory([]() {
+/*const std::string ConfigurationDirectory([]() {
   std::string phasar_config =
       std::string(std::getenv("HOME")) + "/.config/phasar/";
   return (bfs::exists(phasar_config) && bfs::is_directory(phasar_config))
              ? phasar_config
              : "config/";
-}());
+}());*/
+const std::string ConfigurationDirectory("../config/");
 const std::string PhasarDirectory([]() {
   std::string curr_path = bfs::current_path().string();
   size_t i = curr_path.rfind("build", curr_path.length());

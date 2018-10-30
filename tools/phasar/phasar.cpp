@@ -495,7 +495,7 @@ int main(int argc, const char **argv) {
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph-id"].as<std::string>());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Write results to file");
-    Controller.writeResults(VariablesMap["output"].as<std::string>());
+    //Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     // -- Clang mode ---
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)

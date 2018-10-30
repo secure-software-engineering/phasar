@@ -29,7 +29,7 @@ const unique_ptr<llvm::Module> LLVMZeroValueMod(
     new llvm::Module(LLVMZeroValueInternalModuleName, *LLVMZeroValueCTX));
 
 bool isLLVMZeroValue(const llvm::Value *V) {
-  if (V->hasName()) {
+  if (V && V->hasName()) {
     // checks if V's name start with "zero_value"
     return V->getName().str().find(LLVMZeroValueInternalName) == 0;
   }

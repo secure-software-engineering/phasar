@@ -123,7 +123,9 @@ AnalysisController::AnalysisController(
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
   START_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
+  cout << "CH ...\n";
   LLVMTypeHierarchy CH(IRDB);
+  cout << "CH done\n";
   STOP_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Reconstruction of class hierarchy completed.");
@@ -166,8 +168,9 @@ AnalysisController::AnalysisController(
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
+    cout << "CG ...\n";
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-
+    cout << "CG done\n";
     if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
@@ -199,10 +202,10 @@ AnalysisController::AnalysisController(
         TaintSensitiveFunctions TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
-            TaintAnalysisProblem, false);
+            TaintAnalysisProblem, false, false);
         cout << "IFDS Taint Analysis ..." << endl;
         LLVMTaintSolver.solve();
-        cout << "IFDS Taint Analysis ended" << endl;
+        cout << "IFDS Taint Analysis done" << endl;
         // FinalResultsJson += LLVMTaintSolver.getAsJson();
         if (PrintEdgeRecorder) {
           LLVMTaintSolver.exportJson(graph_id);
@@ -290,10 +293,10 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_SolverTest: {
         IFDSSolverTest ifdstest(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            ifdstest, false);
+            ifdstest, false, false);
         cout << "IFDS Solvertest ..." << endl;
         llvmifdstestsolver.solve();
-        cout << "IFDS Solvertest ended" << endl;
+        cout << "IFDS Solvertest done" << endl;
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmifdstestsolver.exportJson(graph_id);
