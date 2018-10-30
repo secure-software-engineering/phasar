@@ -123,9 +123,9 @@ AnalysisController::AnalysisController(
   // Reconstruct the inter-modular class hierarchy and virtual function tables
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
   START_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
-  cout << "CH ...\n";
+  cout << "CH ..." << endl;
   LLVMTypeHierarchy CH(IRDB);
-  cout << "CH done\n";
+  cout << "CH done" << endl;
   STOP_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Reconstruction of class hierarchy completed.");
@@ -168,9 +168,9 @@ AnalysisController::AnalysisController(
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
-    cout << "CG ...\n";
+    cout << "CG ..." << endl;
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-    cout << "CG done\n";
+    cout << "CG done" << endl;
     if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }

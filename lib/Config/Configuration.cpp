@@ -34,7 +34,7 @@ const std::string MetaDataKind("phasar.instruction.id");
              ? phasar_config
              : "config/";
 }());*/
-const std::string ConfigurationDirectory("../config/");
+const std::string ConfigurationDirectory("/data/phasar/config/");
 const std::string PhasarDirectory([]() {
   std::string curr_path = bfs::current_path().string();
   size_t i = curr_path.rfind("build", curr_path.length());

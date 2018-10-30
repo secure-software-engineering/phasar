@@ -346,7 +346,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
   STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
-  cout << "PTG construction ...\n";
+  cout << "PTG ..." << endl;
   START_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
@@ -367,7 +367,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
     }
   }
   STOP_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
-  cout << "PTG construction done\n";
+  cout << "PTG done" << endl;
 
   buildIDModuleMapping(M);
 }
