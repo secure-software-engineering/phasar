@@ -506,7 +506,7 @@ bool DBConn::insertVTable(const VTable &VTBL, const string &TypeName,
   try {
     int typeID = getTypeID(TypeName);
     // module ID of the module that contains the current type
-    for (auto fname : VTBL.getVTable()) {
+    for (auto fname : VTBL) {
       // Identify the corresponding function id
       unique_ptr<sql::PreparedStatement> pstmt(conn->prepareStatement(
           "SELECT DISTINCT function_id, declaration FROM function "

@@ -172,7 +172,6 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Walking in function: " << F->getName().str());
-
   if (VisitedFunctions.count(F) || F->isDeclaration()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Function already visited or only declaration: "
@@ -191,11 +190,10 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
     first_function = false;
     resolver->firstFunction(F);
   }
-
+  // iterate all instructions of the current function
   for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
        I != E; ++I) {
     const llvm::Instruction &Inst = *I;
-
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
       resolver->preCall(&Inst);
 
@@ -213,7 +211,6 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                       << llvmIRToString(cs.getInstruction()));
         // call the resolve routine
         set<string> possible_target_names;
-
         if (isVirtualFunctionCall(cs)) {
           possible_target_names = resolver->resolveVirtualCall(cs);
         } else {
@@ -262,31 +259,26 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
 bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *V = CS.getArgOperand(0);
-    if (V->getType()->isPointerTy()) {
-      if (V->getType()->getPointerElementType()->isStructTy()) {
-        string type_name =
-            V->getType()->getPointerElementType()->getStructName();
-
-        // get the type name and check if it has a virtual member function
-        if (CH.containsType(type_name) && CH.containsVTable(type_name)) {
-          VTable vtbl = CH.getVTable(type_name);
-          for (const string &Fname : vtbl) {
-            const llvm::Function *F = IRDB.getFunction(Fname);
-
-            if (!F) {
-              // Is a pure virtual function
-              // or there is an error with the function in the module (that can
-              // happen)
+    if (V->getType()->isPointerTy() &&
+        V->getType()->getPointerElementType()->isStructTy()) {
+      string TypeName = V->getType()->getPointerElementType()->getStructName();
+      // get the type name and check if it has a virtual member function
+      if (CH.containsType(TypeName) && CH.containsVTable(TypeName)) {
+        VTable VTBL = CH.getVTable(TypeName);
+        for (const string &Fname : VTBL) {
+          const llvm::Function *F = IRDB.getFunction(Fname);
+          if (!F) {
+            // Is a pure virtual function
+            // or there is an error with the function in the module (that can
+            // happen)
+            return true;
+          }
+          if (CS.getCalledValue()->getType()->isPointerTy()) {
+            if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
+                                        CS.getCalledValue()
+                                            ->getType()
+                                            ->getPointerElementType()))) {
               return true;
-            }
-
-            if (CS.getCalledValue()->getType()->isPointerTy()) {
-              if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
-                                          CS.getCalledValue()
-                                              ->getType()
-                                              ->getPointerElementType()))) {
-                return true;
-              }
             }
           }
         }

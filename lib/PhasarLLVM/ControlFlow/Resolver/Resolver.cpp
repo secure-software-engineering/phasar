@@ -27,29 +27,23 @@
 using namespace std;
 using namespace psr;
 
-Resolver::Resolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : IRDB(irdb), CH(ch) {}
+Resolver::Resolver(ProjectIRDB &DB, LLVMTypeHierarchy &H) : IRDB(DB), CH(H) {}
 
 int Resolver::getVtableIndex(const llvm::ImmutableCallSite &CS) const {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
   const llvm::LoadInst *load =
       llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-
   if (load == nullptr) {
     return -1;
   }
-
   const llvm::GetElementPtrInst *gep =
       llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-
   if (gep == nullptr) {
     return -2;
   }
-
   unsigned vtable_index =
       llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-
   return vtable_index;
 }
 
@@ -61,13 +55,11 @@ Resolver::getReceiverType(const llvm::ImmutableCallSite &CS) const {
   if (!receiver_type) {
     throw runtime_error("Receiver type is not a struct type!");
   }
-
   return receiver_type;
 }
 
 string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) const {
   auto receiver_type_name = getReceiverType(CS)->getName().str();
-
   return receiver_type_name;
 }
 
@@ -90,18 +82,20 @@ void Resolver::insertVtableIntoResult(std::set<std::string> &results,
                                       const std::string &struct_name,
                                       const unsigned vtable_index,
                                       const llvm::ImmutableCallSite &CS) {
-  auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
-  if (vtable_entry != "" && vtable_entry != "__cxa_pure_virtual") {
-    if (auto call_type = CS.getFunctionType()) {
-      if (auto candidate = IRDB.getFunction(vtable_entry)) {
-        if (auto candidate_type = candidate->getFunctionType()) {
-          if (!matchVirtualSignature(call_type, candidate_type)) {
-            return;
+  if (CH.containsVTable(struct_name)) {
+    auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
+    if (vtable_entry != "__cxa_pure_virtual") {
+      if (auto call_type = CS.getFunctionType()) {
+        if (auto candidate = IRDB.getFunction(vtable_entry)) {
+          if (auto candidate_type = candidate->getFunctionType()) {
+            if (!matchVirtualSignature(call_type, candidate_type)) {
+              return;
+            }
           }
         }
       }
+      results.insert(vtable_entry);
     }
-    results.insert(vtable_entry);
   }
 }
 

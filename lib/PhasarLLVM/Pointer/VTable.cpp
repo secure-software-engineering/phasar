@@ -46,8 +46,6 @@ int VTable::getEntryByFunctionName(string fname) const {
   }
 }
 
-vector<string> VTable::getVTable() const { return vtbl; }
-
 bool VTable::empty() const { return vtbl.empty(); }
 
 size_t VTable::size() const { return vtbl.size(); }

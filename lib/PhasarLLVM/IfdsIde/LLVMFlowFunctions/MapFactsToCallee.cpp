@@ -24,7 +24,7 @@ namespace psr {
 MapFactsToCallee::MapFactsToCallee(
     const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
     function<bool(const llvm::Value *)> predicate)
-    : predicate(predicate) {
+    : destMthd(destMthd), predicate(predicate) {
   // Set up the actual parameters
   for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
     actuals.push_back(callSite.getArgOperand(idx));
@@ -39,13 +39,48 @@ set<const llvm::Value *>
 MapFactsToCallee::computeTargets(const llvm::Value *source) {
   if (!isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
-    // Map actual parameter into corresponding formal parameter.
-    for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-      if (source == actuals[idx] && predicate(actuals[idx])) {
-        res.insert(formals[idx]); // corresponding formal
+    // Handle C-style varargs functions
+    if (destMthd->isVarArg()) {
+      // Map actual parameter into corresponding formal parameter.
+      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+        if (source == actuals[idx] && predicate(actuals[idx])) {
+          if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
+            // Over-approximate by trying to add the
+            //   alloca [1 x %struct.__va_list_tag], align 16
+            // to the results
+            // find the allocated %struct.__va_list_tag and generate it
+            for (auto &BB : *destMthd) {
+              for (auto &I : BB) {
+                if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                  if (Alloc->getAllocatedType()->isArrayTy() &&
+                      Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                      Alloc->getAllocatedType()
+                          ->getArrayElementType()
+                          ->isStructTy() &&
+                      Alloc->getAllocatedType()
+                              ->getArrayElementType()
+                              ->getStructName() == "struct.__va_list_tag") {
+                    res.insert(Alloc);
+                  }
+                }
+              }
+            }
+          } else {
+            res.insert(formals[idx]); // corresponding formal
+          }
+        }
       }
+      return res;
+    } else {
+      // Handle ordinary case
+      // Map actual parameter into corresponding formal parameter.
+      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
+        if (source == actuals[idx] && predicate(actuals[idx])) {
+          res.insert(formals[idx]); // corresponding formal
+        }
+      }
+      return res;
     }
-    return res;
   } else {
     return {source};
   }
