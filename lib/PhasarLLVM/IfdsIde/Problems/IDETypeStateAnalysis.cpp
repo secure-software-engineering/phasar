@@ -48,11 +48,23 @@ const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
         make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(
             IDETypeStateAnalysis::BOTTOM));
 
+/*const std::map<std::string,unsigned> IDETypeStateAnalysis::STDIOFunctions = {
+    ("fopen",0),   ("fclose",1),   ("freopen",2),  ("fgetc",3),   ("fputc",4),
+   ("putchar",5), ("_IO_getc",6), ("_I0_putc",7), ("fprintf",8), ("__isoc99_fscanf",9),
+    ("feof",10),    ("ferror",11),   ("ungetc",12),   ("fflush",13),  ("fseek",14),
+    ("ftell",15),   ("rewind",16),   ("fgetpos",17),  ("fsetpos",18)};*/
+
 const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
     "fopen",   "fclose",   "freopen",  "fgetc",   "fputc",
     "putchar", "_IO_getc", "_I0_putc", "fprintf", "__isoc99_fscanf",
     "feof",    "ferror",   "ungetc",   "fflush",  "fseek",
     "ftell",   "rewind",   "fgetpos",  "fsetpos"};
+
+  /*const std::map<std::string, unsigned> IDETypeStateAnalysis::STDIOFunctions = {
+    {"fopen", 0},   {"fclose", 1},   {"freopen", 2},  {"fgetc", 3},   {"fputc", 4},
+   {"putchar", 5}, {"_IO_getc", 6}, {"_I0_putc", 7}, {"fprintf", 8}, {"__isoc99_fscanf", 9},
+    {"feof", 10},    {"ferror", 11},   {"ungetc", 12},   {"fflush", 13},  {"fseek", 14},
+    {"ftell", 15},   {"rewind", 16},   {"fgetpos", 17},  {"fsetpos", 18}};*/
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            vector<string> EntryPoints)
@@ -185,7 +197,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
   }
   llvm::ImmutableCallSite CS(callSite);
   // Generate the return value of fopen()
-  if (CS.getCalledFunction()->getName() == "fopen") {
+  if (CS.getCalledFunction()->getName() == "fopen" /*|| CS.getCalledFunction()->getName() == "freopen"*/) {
     return make_shared<Gen<IDETypeStateAnalysis::d_t>>(CS.getInstruction(),
                                                        zeroValue());
   }
@@ -258,6 +270,8 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
               IDETypeStateAnalysis::v_t
               computeTarget(IDETypeStateAnalysis::v_t source) override {
                 cout << "computeTarget()" << endl;
+                //TSEdgeFunctionImpl->value = State::UNINIT;
+                //printValue(cout, source);
                 return State::UNINIT;
               }
             };
@@ -293,14 +307,17 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     std::set<IDETypeStateAnalysis::m_t> callees) {
   // Set return value from fopen to opened
   llvm::ImmutableCallSite CS(callSite);
-  if (CS.getCalledFunction()->getName() == "fopen") {
+  if (CS.getCalledFunction()->getName() == "fopen" /*|| CS.getCalledFunction()->getName() == "freopen"*/) {
     if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
       struct TSEdgeFunctionImpl : public TSEdgeFunction {
         TSEdgeFunctionImpl() {}
         IDETypeStateAnalysis::v_t
         computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
-          return State::OPENED;
+          //          cout << "Test: " << source << endl;
+          //printValue(cout, source);
+          ////cout << "Status: " << *retSiteNode->getNextState() << endl;//MY NEW Test
+          return State::OPENED; //return delta[0][1]; //return getNextState(Token::FOPEN, State::OPENED);
         }
       };
       return make_shared<TSEdgeFunctionImpl>();
@@ -308,10 +325,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   }
   // For all other STDIO functions, that do not generate file handles but only
   // operate on them, model their behavior using a finite state machine.
+  //if (CS.getCalledFunction()->getName() == "fclose") {
   if (CS.getCalledFunction()->getName() == "fclose") {
     // Handle parameter itself
     if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
-      cout << "fclose processing for: ";
+      cout << " fclose processing for: ";
       printDataFlowFact(cout, callNode);
       cout << endl;
       struct TSEdgeFunctionImpl : public TSEdgeFunction {
@@ -322,7 +340,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
           // TODO insert automaton as fclose() is a consuming function
-          return State::CLOSED;
+          return getNextState(Token::FCLOSE, source);//return State::CLOSED;
         }
       };
       return make_shared<TSEdgeFunctionImpl>();
