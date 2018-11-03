@@ -248,9 +248,11 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem, true);
+            uninitializedvarproblem, false);
+        cout << "IFDS UninitVar Analysis ..." << endl;
         llvmunivsolver.solve();
-        FinalResultsJson += llvmunivsolver.getAsJson();
+        cout << "IFDS UninitVar Analysis ended" << endl;
+        // FinalResultsJson += llvmunivsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmunivsolver.exportJson(graph_id);
         }
