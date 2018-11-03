@@ -48,8 +48,6 @@ bool isConstructor(const std::string &mangled_name);
 
 std::string debasify(const std::string &name);
 
-std::string uniformTypeName(const std::string &name);
-
 const llvm::Type *stripPointer(const llvm::Type *pointer);
 
 bool isMangled(const std::string &name);

@@ -31,7 +31,7 @@ const unique_ptr<llvm::Module> LLVMZeroValueMod(
 bool isLLVMZeroValue(const llvm::Value *V) {
   if (V && V->hasName()) {
     // checks if V's name start with "zero_value"
-    return V->getName().str().find(LLVMZeroValueInternalName) == 0;
+    return V->getName().str().find(LLVMZeroValueInternalName) != string::npos;
   }
   return false;
 }

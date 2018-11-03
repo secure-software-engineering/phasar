@@ -14,9 +14,11 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
 
 namespace llvm {
 class Instruction;
@@ -27,15 +29,35 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-enum State { uninit = 0, opened, closed, error };
+// caution the underlying intergers do matter!
+enum class State {
+  TOP = 42,
+  UNINIT = 0,
+  OPENED = 1,
+  CLOSED = 2,
+  ERROR = 3,
+  BOT = 13
+};
+
+// the tokens of interest that may change state (the underlying intergers do
+// matter!)
+enum class Token { FOPEN = 0, FCLOSE = 1, STAR = 2, FREOPEN = 3 };
+
+// delta matrix to implement the state machine's delta function
+constexpr State delta[4][4] = {
+    {State::OPENED, State::ERROR, State::OPENED, State::ERROR},
+    {State::UNINIT, State::CLOSED, State::ERROR, State::ERROR},
+    {State::ERROR, State::OPENED, State::ERROR, State::ERROR},
+    {State::OPENED, State::OPENED, State::OPENED, State::ERROR},
+};
+
+// delta function that computes the next state
+static State getNextState(Token tok, State state);
 
 class IDETypeStateAnalysis
     : public DefaultIDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
           const llvm::Function *, State, LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -43,8 +65,14 @@ public:
   typedef State v_t;
   typedef LLVMBasedICFG &i_t;
 
+private:
+  std::vector<std::string> EntryPoints;
+  static const std::set<std::string> STDIOFunctions;
+
+public:
   static const State TOP;
   static const State BOTTOM;
+  static const std::shared_ptr<AllBottom<v_t>> AllBotFunction;
 
   IDETypeStateAnalysis(i_t icfg,
                        std::vector<std::string> EntryPoints = {"main"});
@@ -108,15 +136,6 @@ public:
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
-  enum class State { uninit = 0, opened, closed, error };
-
-  enum class CurrentState {
-    state_fopen = 0,
-    state_fclose,
-    state_star,
-    state_freopen
-  };
-
   void printNode(std::ostream &os, n_t d) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
@@ -124,6 +143,37 @@ public:
   void printMethod(std::ostream &os, m_t m) const override;
 
   void printValue(std::ostream &os, v_t v) const override;
+
+  // customize the edge function composer
+  class TSEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
+  public:
+    TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
+                           std::shared_ptr<EdgeFunction<v_t>> G)
+        : EdgeFunctionComposer<v_t>(F, G){};
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+  };
+
+  // simplify the art of encoding edge functions
+  // the composeWith(), joinWith() and equal_to() implementation
+  // can stay the same for each instance
+  class TSEdgeFunction : public EdgeFunction<v_t>,
+                         public std::enable_shared_from_this<TSEdgeFunction> {
+  private:
+    v_t value;
+
+  public:
+    // to be implemented by a concrete edge function type
+    // virtual V computeTarget(V source) = 0;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+  };
 };
 
 } // namespace psr
