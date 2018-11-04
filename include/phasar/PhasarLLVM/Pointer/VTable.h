@@ -44,7 +44,11 @@ private:
 
 public:
   VTable() = default;
-  virtual ~VTable() = default;
+  VTable(const VTable &) = default;
+  VTable &operator=(const VTable &) = default;
+  VTable(VTable &&) = default;
+  VTable &operator=(VTable &&) = default;
+  ~VTable() = default;
 
   /**
    * 	@brief Returns a function identifier by it's index in the VTable.
@@ -81,11 +85,6 @@ public:
   std::vector<std::string>::const_iterator begin() const;
   std::vector<std::string>::iterator end();
   std::vector<std::string>::const_iterator end() const;
-  /**
-   * 	@brief Returns the VTable as a std::vector.
-   * 	@return std::vector holding all information of the VTable.
-   */
-  std::vector<std::string> getVTable() const;
 
   /**
    * 	@brief VTable's print operator.

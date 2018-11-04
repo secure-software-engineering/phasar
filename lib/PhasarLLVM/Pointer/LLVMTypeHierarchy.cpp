@@ -209,6 +209,10 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
     // Avoid to have the struct.MyType.base in the database, as it is not used
     // by the code anywhere else than in type declaration for alignement reasons
     string DebTypeName = psr::debasify(TypeName);
+    // handle special cases where .base actually makes sense
+    if (!M.getTypeByName(DebTypeName)) {
+      DebTypeName = TypeName;
+    }
     // only add a new vertex to the graph if the type is currently unknown!
     if (!type_vertex_map.count(DebTypeName)) {
       auto Vertex = boost::add_vertex(g);
