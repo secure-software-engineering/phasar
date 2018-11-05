@@ -7,8 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-
-
 #include <memory>
 
 #include <llvm/IR/CallSite.h>
@@ -44,220 +42,104 @@
 
 using namespace psr;
 using namespace std;
-namespace psr{
+namespace psr {
 
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
+    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    const vector<string> &EntryPoints)
+    : CGType(CGType), CH(STH), IRDB(IRDB),
+      ForwardICFG(STH, IRDB, CGType, EntryPoints) {}
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,CallGraphAnalysisType CGType,const vector<string> &EntryPoints)
- : CGType(CGType), CH(STH), IRDB(IRDB) {
-
-		for (auto &EntryPoint : EntryPoints) {
-    llvm::Function *F = IRDB.getFunction(EntryPoint);
-    if (F == nullptr) {
-      throw ios_base::failure(
-          "Could not retrieve llvm::Function for entry point");
-    }
-    PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
-    WholeModulePTG.mergeWith(ptg, F);
-  }
+bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
+  return false;
 }
 
-bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS)
-{
-	return false;
+std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllMethods() {
+  return std::set<const llvm::Function *>();
 }
 
 const llvm::Function *
-LLVMBasedBackwardsICFG::getMethodOf(const llvm::Instruction *stmt) 
-{
-	return stmt->getFunction();
-}
-
-std::vector<const llvm::Instruction *> 
-LLVMBasedBackwardsICFG::getPredsOf(const llvm::Instruction *I) 
-{
-	return std::vector<const llvm::Instruction *>();
-}
-
-std::vector<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getSuccsOf(const llvm::Instruction *I) 
-{
-	return std::vector<const llvm::Instruction *>();
-}
-
-std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-LLVMBasedBackwardsICFG::getAllControlFlowEdges(const llvm::Function *fun) 
-{
-	return std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>();
-}
-
-std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllMethods()
-{
-	return std::set<const llvm::Function *>();
-}
-
-std::vector<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getAllInstructionsOf(const llvm::Function *fun) 
-{
-	vector<const llvm::Instruction *> Instructions;
-    for (auto &BB : *fun) {
-      for (auto &I : BB) {
-        Instructions.insert(Instructions.begin(),&I);
-      }
-    }
-    return Instructions;
-}
-
-bool LLVMBasedBackwardsICFG::isExitStmt(const llvm::Instruction *stmt) 
-{
-	return (stmt == &stmt->getFunction()->front().front());
-}
-
-bool LLVMBasedBackwardsICFG::isStartPoint(const llvm::Instruction *stmt) 
-{
-	return llvm::isa<llvm::ReturnInst>(stmt);
-}
-
-bool LLVMBasedBackwardsICFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) 
-{
-	return false;
-}
-
-bool LLVMBasedBackwardsICFG::isBranchTarget(const llvm::Instruction *stmt,
-                      const llvm::Instruction *succ) 
-{
-	return false;
-}
-
-std::string LLVMBasedBackwardsICFG::getMethodName(const llvm::Function *fun) 
-{
-	return fun->getName().str();
-}
-
-std::string LLVMBasedBackwardsICFG::getStatementId(const llvm::Instruction *stmt) 
-{
-	return llvm::cast<llvm::MDString>(
-             stmt->getMetadata(MetaDataKind)->getOperand(0))
-      ->getString()
-      .str();
-}
-
-const llvm::Function *LLVMBasedBackwardsICFG::getMethod(const std::string &fun) 
-{
-	return nullptr;
+LLVMBasedBackwardsICFG::getMethod(const std::string &fun) {
+  return nullptr;
 }
 
 std::set<const llvm::Function *>
-LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *n) 
-{
-	return std::set<const llvm::Function *>();
+LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
+  return std::set<const llvm::Function *>();
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *m) 
-{
-	return std::set<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *m) {
+  return std::set<const llvm::Instruction *>();
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) 
-{
-	return std::set<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) {
+  return std::set<const llvm::Instruction *>();
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) 
-{
-	return std::set<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) {
+  return std::set<const llvm::Instruction *>();
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) 
-{
-	return std::set<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) {
+  return std::set<const llvm::Instruction *>();
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) 
-{
-	return std::set<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
+  return std::set<const llvm::Instruction *>();
 }
 
-bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) 
-{
-	return false;
+bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) {
+  return false;
 }
 
-
-std::set<const llvm::Instruction *> LLVMBasedBackwardsICFG::allNonCallStartNodes() 
-{
-	return std::set<const llvm::Instruction *>();
+std::set<const llvm::Instruction *>
+LLVMBasedBackwardsICFG::allNonCallStartNodes() {
+  return std::set<const llvm::Instruction *>();
 }
 
-const llvm::Instruction *LLVMBasedBackwardsICFG::getLastInstructionOf(const std::string &name)
-{
-	return nullptr;
+const llvm::Instruction *
+LLVMBasedBackwardsICFG::getLastInstructionOf(const std::string &name) {
+  return nullptr;
 }
 
 std::vector<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getAllInstructionsOfFunction(const std::string &name)
-{
-	return std::vector<const llvm::Instruction *>();
+LLVMBasedBackwardsICFG::getAllInstructionsOfFunction(const std::string &name) {
+  return std::vector<const llvm::Instruction *>();
 }
 
-void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &other)
-{
+void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &other) {}
 
+bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &name) {
+  return false;
 }
 
-bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &name)
-{
-	return false;
+void LLVMBasedBackwardsICFG::print() {}
+
+void LLVMBasedBackwardsICFG::printAsDot(const std::string &filename) {}
+
+void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
+    const std::string &filename) {}
+
+json LLVMBasedBackwardsICFG::getAsJson() { return json(); }
+
+unsigned LLVMBasedBackwardsICFG::getNumOfVertices() { return 0; }
+
+unsigned LLVMBasedBackwardsICFG::getNumOfEdges() { return 0; }
+
+void LLVMBasedBackwardsICFG::exportPATBCJSON() {}
+
+PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() {
+  return WholeModulePTG;
 }
 
-void LLVMBasedBackwardsICFG::print()
-{
-
+std::vector<std::string>
+LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
+  return std::vector<std::string>();
 }
 
-void LLVMBasedBackwardsICFG::printAsDot(const std::string &filename)
-{
-
-}
-
-void LLVMBasedBackwardsICFG::printInternalPTGAsDot(const std::string &filename)
-{
-
-}
-
-json LLVMBasedBackwardsICFG::getAsJson() 
-{
-	return json();
-}
-
-unsigned LLVMBasedBackwardsICFG::getNumOfVertices()
-{
-	return 0;
-}
-
-unsigned LLVMBasedBackwardsICFG::getNumOfEdges()
-{
-	return 0;
-}
-
-void LLVMBasedBackwardsICFG::exportPATBCJSON()
-{
-
-}
-
-PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG()
-{
-	return WholeModulePTG;
-}
-
-std::vector<std::string> LLVMBasedBackwardsICFG::getDependencyOrderedFunctions()
-{
-	return std::vector<std::string>();
-}
-
-}//namespace psr
+} // namespace psr

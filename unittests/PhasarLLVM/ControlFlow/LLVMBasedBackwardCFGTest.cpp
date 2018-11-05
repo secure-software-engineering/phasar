@@ -18,8 +18,7 @@ TEST_F(LLVMBasedBackwardCFGTest, FallThroughSuccTest) {
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
 
-  ASSERT_EQ(true,false);
-
+  ASSERT_EQ(true, false);
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
@@ -27,13 +26,13 @@ TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
   auto F = IRDB.getFunction("main");
   auto Term = getNthTermInstruction(F, 1);
-  auto a = getNthInstruction(F,10);
-  auto b = getNthInstruction(F,14);
-  auto c = getNthInstruction(F,12);
+  auto a = getNthInstruction(F, 10);
+  auto b = getNthInstruction(F, 14);
+  auto c = getNthInstruction(F, 12);
 
-  ASSERT_TRUE(cfg.isBranchTarget(a,Term));
-  ASSERT_TRUE(cfg.isBranchTarget(b,Term));
-  ASSERT_FALSE(cfg.isBranchTarget(c,Term));
+  ASSERT_TRUE(cfg.isBranchTarget(a, Term));
+  ASSERT_TRUE(cfg.isBranchTarget(b, Term));
+  ASSERT_FALSE(cfg.isBranchTarget(c, Term));
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
@@ -60,7 +59,6 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   Predeccessors.push_back(getNthTermInstruction(F, 4));
   predsOfBRInst = cfg.getPredsOf(BRInst);
   ASSERT_EQ(predsOfBRInst, Predeccessors);
-
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
@@ -83,8 +81,6 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   auto predsOfTermInst = cfg.getPredsOf(termInst);
   Predeccessor.clear();
   ASSERT_EQ(predsOfTermInst, Predeccessor);
-
-  
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
@@ -101,7 +97,6 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   Successor.push_back(getNthTermInstruction(F, 3));
   auto succsOfTermInst = cfg.getSuccsOf(TermInst);
   ASSERT_EQ(succsOfTermInst, Successor);
-
 }
 
 TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
@@ -133,7 +128,6 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   succsOfInst = cfg.getSuccsOf(Inst);
   Successor.clear();
   ASSERT_EQ(succsOfInst, Successor);
-
 }
 
 int main(int argc, char **argv) {

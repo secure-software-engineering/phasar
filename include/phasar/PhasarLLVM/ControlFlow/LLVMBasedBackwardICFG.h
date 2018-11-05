@@ -7,8 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-
-
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDBACKWARDICFG_H_
 
@@ -23,6 +21,8 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 
 namespace llvm {
@@ -39,52 +39,27 @@ class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
-class LLVMBasedBackwardsICFG : public ICFG<const llvm::Instruction *, const llvm::Function *> {
+class LLVMBasedBackwardsICFG
+    : public ICFG<const llvm::Instruction *, const llvm::Function *>,
+      public virtual LLVMBasedBackwardCFG {
 private:
   CallGraphAnalysisType CGType;
   LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
   PointsToGraph WholeModulePTG;
-
+  LLVMBasedICFG ForwardICFG;
 
 public:
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                CallGraphAnalysisType CGType,
-                const std::vector<std::string> &EntryPoints = {"main"});
+                         CallGraphAnalysisType CGType,
+                         const std::vector<std::string> &EntryPoints = {
+                             "main"});
 
   virtual ~LLVMBasedBackwardsICFG() = default;
 
-  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
-
-  const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
-
-  std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *I) override;
-
-  std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *I) override;
-
-  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-  getAllControlFlowEdges(const llvm::Function *fun) override;
-
   std::set<const llvm::Function *> getAllMethods();
 
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOf(const llvm::Function *fun) override;
-
-  bool isExitStmt(const llvm::Instruction *stmt) override;
-
-  bool isStartPoint(const llvm::Instruction *stmt) override;
-
-  bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) override;
-
-  bool isBranchTarget(const llvm::Instruction *stmt,
-                      const llvm::Instruction *succ) override;
-
-  std::string getMethodName(const llvm::Function *fun) override;
-
-  std::string getStatementId(const llvm::Instruction *stmt) override;
+  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 
   const llvm::Function *getMethod(const std::string &fun) override;
 
@@ -138,9 +113,6 @@ public:
   std::vector<std::string> getDependencyOrderedFunctions();
 };
 
-}//namespace psr
-
+} // namespace psr
 
 #endif
-
-

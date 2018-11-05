@@ -295,124 +295,12 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return false;
 }
 
-const llvm::Function *
-LLVMBasedICFG::getMethodOf(const llvm::Instruction *stmt) {
-  return stmt->getFunction();
-}
-
 const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) {
   return IRDB.getFunction(fun);
 }
 
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getPredsOf(const llvm::Instruction *I) {
-  vector<const llvm::Instruction *> Preds;
-  if (I->getPrevNode()) {
-    Preds.push_back(I->getPrevNode());
-  }
-  /*
-   * If we do not have a predecessor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
-  if (Preds.empty()) {
-    for (auto &BB : *I->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == I) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
-  }
-  return Preds;
-}
-
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getSuccsOf(const llvm::Instruction *I) {
-  vector<const llvm::Instruction *> Successors;
-  if (I->getNextNode())
-    Successors.push_back(I->getNextNode());
-  if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
-    for (auto successor : T->successors()) {
-      Successors.push_back(&*successor->begin());
-    }
-  }
-  return Successors;
-}
-
-vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
-LLVMBasedICFG::getAllControlFlowEdges(const llvm::Function *fun) {
-  vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
-  for (auto &BB : *fun) {
-    for (auto &I : BB) {
-      auto Successors = getSuccsOf(&I);
-      for (auto Successor : Successors) {
-        Edges.push_back(make_pair(&I, Successor));
-      }
-    }
-  }
-  return Edges;
-}
-
 set<const llvm::Function *> LLVMBasedICFG::getAllMethods() {
   return IRDB.getAllFunctions();
-}
-
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getAllInstructionsOf(const llvm::Function *fun) {
-  vector<const llvm::Instruction *> Instructions;
-  for (auto &BB : *fun) {
-    for (auto &I : BB) {
-      Instructions.push_back(&I);
-    }
-  }
-  return Instructions;
-}
-
-bool LLVMBasedICFG::isExitStmt(const llvm::Instruction *stmt) {
-  return llvm::isa<llvm::ReturnInst>(stmt);
-}
-
-bool LLVMBasedICFG::isStartPoint(const llvm::Instruction *stmt) {
-  return (stmt == &stmt->getFunction()->front().front());
-}
-
-bool LLVMBasedICFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                           const llvm::Instruction *succ) {
-  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
-    if (B->isConditional()) {
-      return &B->getSuccessor(1)->front() == succ;
-    } else {
-      return &B->getSuccessor(0)->front() == succ;
-    }
-  }
-  return false;
-}
-
-bool LLVMBasedICFG::isBranchTarget(const llvm::Instruction *stmt,
-                                   const llvm::Instruction *succ) {
-  if (const llvm::TerminatorInst *T =
-          llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-    for (auto successor : T->successors()) {
-      if (&*successor->begin() == succ) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-string LLVMBasedICFG::getStatementId(const llvm::Instruction *stmt) {
-  return llvm::cast<llvm::MDString>(
-             stmt->getMetadata(MetaDataKind)->getOperand(0))
-      ->getString()
-      .str();
-}
-
-string LLVMBasedICFG::getMethodName(const llvm::Function *fun) {
-  return fun->getName().str();
 }
 
 /**

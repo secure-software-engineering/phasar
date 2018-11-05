@@ -2,8 +2,8 @@
 #include <llvm/IR/InstIterator.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
@@ -14,10 +14,7 @@ protected:
       PhasarDirectory + "build/test/llvm_test_code/";
 };
 
-TEST_F(OTFTest, test1)
-{
-    ASSERT_FALSE(true);
-}
+TEST_F(OTFTest, test1) { ASSERT_FALSE(true); }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
