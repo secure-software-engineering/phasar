@@ -1,14 +1,8 @@
 #include <gtest/gtest.h>
-
+#include <iostream>
+#include <phasar/Utils/PAMM.h>
 #include <thread>
 
-#ifndef PERFORMANCE_EVA // We need it to enable PAMM whatever the build
-                        // configuration ;)
-#define PERFORMANCE_EVA
-#include <phasar/Utils/PAMM.h>
-#endif
-
-using namespace std;
 using namespace psr;
 
 /* Test fixture */
@@ -22,7 +16,7 @@ protected:
 
   virtual void TearDown() {
     PAMM &pamm = PAMM::getInstance();
-    pamm.printData();
+    pamm.printMeasuredData(std::cout);
     pamm.reset();
   }
 };
@@ -32,10 +26,7 @@ TEST_F(PAMMTest, HandleTimer) {
   pamm.startTimer("timer1");
   std::this_thread::sleep_for(std::chrono::milliseconds(1200));
   pamm.stopTimer("timer1");
-  EXPECT_GE(pamm.elapsedTime<std::chrono::milliseconds>("timer1"), 1200);
-  EXPECT_GE(pamm.getPrintableDuration(
-                pamm.elapsedTime<std::chrono::milliseconds>("timer1")),
-            "1sec 200ms");
+  EXPECT_GE(pamm.elapsedTime("timer1"), 1200);
 }
 
 TEST_F(PAMMTest, HandleCounter) {
@@ -52,39 +43,6 @@ TEST_F(PAMMTest, HandleCounter) {
   EXPECT_EQ(pamm.getCounter("second"), 2);
   EXPECT_EQ(pamm.getCounter("third"), 0);
 }
-
-// TEST_F(PAMMTest, HandleSetHisto) {
-//   PAMM &pamm = PAMM::getInstance();
-//   pamm.regHistogram("Test-Set");
-//   pamm.addToHistogram("Test-Set", "13");
-//   pamm.addToHistogram("Test-Set", "13");
-//   pamm.addToHistogram("Test-Set", "13");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "42");
-//   pamm.addToHistogram("Test-Set", "1");
-//   pamm.addToHistogram("Test-Set", "1");
-//   pamm.addToHistogram("Test-Set", "1");
-//   pamm.addToHistogram("Test-Set", "1");
-//   pamm.addToHistogram("Test-Set", "1");
-//   pamm.addToHistogram("Test-Set", "2");
-//   pamm.addToHistogram("Test-Set", "2");
-//   pamm.addToHistogram("Test-Set", "2");
-//   EXPECT_EQ(pamm.getHistoData("Test-Set", "13"), 3);
-//   EXPECT_EQ(pamm.getHistoData("Test-Set", "42"), 13);
-//   EXPECT_EQ(pamm.getHistoData("Test-Set", "1"), 5);
-//   EXPECT_EQ(pamm.getHistoData("Test-Set", "2"), 3);
-// }
 
 TEST_F(PAMMTest, HandleJSONOutput) {
   PAMM &pamm = PAMM::getInstance();
@@ -141,7 +99,7 @@ TEST_F(PAMMTest, HandleJSONOutput) {
   pamm.addToHistogram("Test-Set", "2");
   pamm.incCounter("setOpCount", 9);
   pamm.stopTimer("timer3");
-  pamm.exportDataAsJSON("HandleJSONOutputTest");
+  pamm.exportMeasuredData("HandleJSONOutputTest");
 }
 
 TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
@@ -236,56 +194,6 @@ TEST_F(PAMMTest, DISABLED_PerformanceTimerBasic) {
       std::chrono::duration_cast<std::chrono::milliseconds>(end_15 - start_15);
   std::cout << "timer_15 : " << duration.count() << std::endl;
 }
-
-// TEST_F(PAMMTest, PerformanceTimerPAMM) {
-//   PAMM &pamm = PAMM::getInstance();
-//   pamm.startTimer("timer_1");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(10));
-//   pamm.stopTimer("timer_1");
-//   pamm.startTimer("timer_2");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(20));
-//   pamm.stopTimer("timer_2");
-//   pamm.startTimer("timer_3");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(30));
-//   pamm.stopTimer("timer_3");
-//   pamm.startTimer("timer_4");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(40));
-//   pamm.stopTimer("timer_4");
-//   pamm.startTimer("timer_5");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(50));
-//   pamm.stopTimer("timer_5");
-//   pamm.startTimer("timer_6");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(100));
-//   pamm.stopTimer("timer_6");
-//   pamm.startTimer("timer_7");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(150));
-//   pamm.stopTimer("timer_7");
-//   pamm.startTimer("timer_8");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(200));
-//   pamm.stopTimer("timer_8");
-//   pamm.startTimer("timer_9");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(300));
-//   pamm.stopTimer("timer_9");
-//   pamm.startTimer("timer_10");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(500));
-//   pamm.stopTimer("timer_10");
-//   pamm.startTimer("timer_11");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-//   pamm.stopTimer("timer_11");
-//   pamm.startTimer("timer_12");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-//   pamm.stopTimer("timer_12");
-//   pamm.startTimer("timer_13");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(5000));
-//   pamm.stopTimer("timer_13");
-//   pamm.startTimer("timer_14");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(10000));
-//   pamm.stopTimer("timer_14");
-//   pamm.startTimer("timer_15");
-//   std::this_thread::sleep_for(std::chrono::milliseconds(20000));
-//   pamm.stopTimer("timer_15");
-//   pamm.printStoppedTimer<std::chrono::milliseconds>();
-// }
 
 // main function for the test case
 int main(int argc, char **argv) {

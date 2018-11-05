@@ -14,6 +14,11 @@ set(NoMem2RegSources
   binop_uninit.cpp
   some_locals.cpp
   uninit.c
+  main_args.cpp
+  main_args_init.cpp
+  simple_store.cpp
+  callsite.cpp
+  return_uninit.cpp
 )
 
 set(Mem2RegSources

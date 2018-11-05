@@ -46,7 +46,7 @@ struct LazyTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
 
 LazyTypeGraph::vertex_t
 LazyTypeGraph::addType(const llvm::StructType *new_type) {
-  auto name = psr::uniformTypeName(new_type->getName().str());
+  auto name = new_type->getName().str();
 
   if (type_vertex_map.find(name) == type_vertex_map.end()) {
     auto vertex = boost::add_vertex(g);

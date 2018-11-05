@@ -49,17 +49,17 @@ protected:
                              const llvm::FunctionType *type_candidate);
 
 public:
-  Resolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+  Resolver(ProjectIRDB &DB, LLVMTypeHierarchy &H);
 
   virtual ~Resolver() = default;
 
   virtual void firstFunction(const llvm::Function *F);
-  virtual void preCall(const llvm::Instruction *inst);
+  virtual void preCall(const llvm::Instruction *Inst);
   virtual void
   TreatPossibleTarget(const llvm::ImmutableCallSite &CS,
-                      std::set<const llvm::Function *> &possible_targets);
-  virtual void postCall(const llvm::Instruction *inst);
-  virtual void OtherInst(const llvm::Instruction *inst);
+                      std::set<const llvm::Function *> &PossibleTargets);
+  virtual void postCall(const llvm::Instruction *Inst);
+  virtual void OtherInst(const llvm::Instruction *Inst);
   virtual std::set<std::string>
   resolveVirtualCall(const llvm::ImmutableCallSite &CS) = 0;
   virtual std::set<std::string>

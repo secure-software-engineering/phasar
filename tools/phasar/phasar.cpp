@@ -32,7 +32,7 @@
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
@@ -167,8 +167,8 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-  PAMM_FACTORY;
-  START_TIMER("FW Runtime");
+  PAMM_GET_INSTANCE;
+  START_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // set-up the logger and get a reference to it
   initializeLogger(false);
   auto &lg = lg::get();
@@ -249,7 +249,8 @@ int main(int argc, const char **argv) {
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
       ("project-id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
-      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework");
+      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
+      ("pamm-out", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
       // clang-format on
       bpo::options_description CmdlineOptions;
       CmdlineOptions.add(PhasarMode).add(Generic).add(Config);
@@ -385,6 +386,10 @@ int main(int argc, const char **argv) {
           std::cout << "Output: " << VariablesMap["output"].as<std::string>()
                     << '\n';
         }
+        if (VariablesMap.count("output-pamm")) {
+          std::cout << "Output PAMM: " << VariablesMap["output-pamm"].as<std::string>()
+                    << '\n';
+        }
       } else {
         setLoggerFilterLevel(INFO);
       }
@@ -453,8 +458,8 @@ int main(int argc, const char **argv) {
     // analyses that have been choosen.
     AnalysisController Controller(
         [&lg](bool usingModules) {
-          PAMM_FACTORY;
-          START_TIMER("IRDB Construction");
+          PAMM_GET_INSTANCE;
+          START_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.");
           IRDBOptions Opt = IRDBOptions::NONE;
           if (VariablesMap["wpa"].as<bool>()) {
@@ -466,7 +471,7 @@ int main(int argc, const char **argv) {
           if (usingModules) {
             ProjectIRDB IRDB(
                 VariablesMap["module"].as<std::vector<std::string>>(), Opt);
-            STOP_TIMER("IRDB Construction");
+            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
             return IRDB;
           } else {
             // perform a little trick to make OptionsParser only responsible for
@@ -482,7 +487,7 @@ int main(int argc, const char **argv) {
             clang::tooling::CompilationDatabase &CompileDB =
                 OptionsParser.getCompilations();
             ProjectIRDB IRDB(CompileDB, Opt);
-            STOP_TIMER("IRDB Construction");
+            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
             return IRDB;
           }
         }(VariablesMap.count("module")),
@@ -562,11 +567,8 @@ int main(int argc, const char **argv) {
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
-  STOP_TIMER("FW Runtime");
-  // PRINT_EVA_DATA;
-  if (VariablesMap.count("config"))
-    EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
-  else
-    EXPORT_EVA_DATA("PAMM_results.json");
+  STOP_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
+  // PRINT_MEASURED_DATA(std::cout);
+  EXPORT_MEASURED_DATA(VariablesMap["pamm-out"].as<std::string>());
   return 0;
 }

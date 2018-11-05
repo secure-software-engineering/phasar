@@ -27,7 +27,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace std;
 using namespace psr;
@@ -38,9 +38,10 @@ IFDSConstAnalysis::IFDSConstAnalysis(IFDSConstAnalysis::i_t icfg,
                                      vector<string> EntryPoints)
     : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
       AllMemLocs(AllMemLocs), EntryPoints(EntryPoints) {
-  PAMM_FACTORY;
-  REG_HISTOGRAM("Context-relevant-PT");
-  REG_COUNTER("Calls to getContextRelevantPointsToSet");
+  PAMM_GET_INSTANCE;
+  REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
+              PAMM_SEVERITY_LEVEL::Full);
   IFDSConstAnalysis::zerovalue = createZeroValue();
 }
 
@@ -289,9 +290,11 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
     set<IFDSConstAnalysis::d_t> &PointsToSet,
     IFDSConstAnalysis::m_t CurrentContext) {
-  PAMM_FACTORY;
-  INC_COUNTER("Calls to getContextRelevantPointsToSet");
-  START_TIMER("Compute ContextRelevantPointsToSet");
+  PAMM_GET_INSTANCE;
+  INC_COUNTER("[Calls] getContextRelevantPointsToSet", 1,
+              PAMM_SEVERITY_LEVEL::Full);
+  START_TIMER("Context-Relevant-PointsTo-Set Computation",
+              PAMM_SEVERITY_LEVEL::Full);
   auto &lg = lg::get();
   set<IFDSConstAnalysis::d_t> ToGenerate;
   for (auto alias : PointsToSet) {
@@ -323,8 +326,10 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
       }
     } // ignore everything else
   }
-  PAUSE_TIMER("Compute ContextRelevantPointsToSet");
-  ADD_TO_HIST("Context-relevant-PT", ToGenerate.size());
+  PAUSE_TIMER("Context-Relevant-PointsTo-Set Computation",
+              PAMM_SEVERITY_LEVEL::Full);
+  ADD_TO_HISTOGRAM("Context-relevant Pointer", ToGenerate.size(), 1,
+                   PAMM_SEVERITY_LEVEL::Full);
   return ToGenerate;
 }
 

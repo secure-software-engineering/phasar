@@ -44,6 +44,35 @@ set<const llvm::Value *>
 MapFactsToCaller::computeTargets(const llvm::Value *source) {
   if (!isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
+    // Handle C-style varargs functions
+    if (calleeMthd->isVarArg() && !calleeMthd->isDeclaration()) {
+      const llvm::Instruction *AllocVarArg;
+      // Find the allocation of %struct.__va_list_tag
+      for (auto &BB : *calleeMthd) {
+        for (auto &I : BB) {
+          if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            if (Alloc->getAllocatedType()->isArrayTy() &&
+                Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                Alloc->getAllocatedType()
+                    ->getArrayElementType()
+                    ->isStructTy() &&
+                Alloc->getAllocatedType()
+                        ->getArrayElementType()
+                        ->getStructName() == "struct.__va_list_tag") {
+              AllocVarArg = Alloc;
+              // TODO break out this nested loop earlier (without goto ;-)
+            }
+          }
+        }
+      }
+      // Generate the varargs things by using an over-approximation
+      if (source == AllocVarArg) {
+        for (unsigned idx = formals.size(); idx < actuals.size(); ++idx) {
+          res.insert(actuals[idx]);
+        }
+      }
+    }
+    // Handle ordinary case
     // Map formal parameter into corresponding actual parameter.
     for (unsigned idx = 0; idx < formals.size(); ++idx) {
       if (source == formals[idx] && paramPredicate(formals[idx])) {
