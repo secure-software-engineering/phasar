@@ -14,19 +14,16 @@
  *      Author: rleer
  */
 
+#include <boost/filesystem.hpp>
+#include <cassert>
 #include <iomanip>
+#include <json.hpp>
+#include <phasar/Config/Configuration.h>
+#include <phasar/Utils/PAMM.h>
 #include <sstream>
 
-#ifndef PERFORMANCE_EVA
-#define PERFORMANCE_EVA // We need it to enable PAMM whatever the build
-                        // configuration is ;)
-#endif
-
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMM.h>
-
-using namespace std;
 using namespace psr;
+using json = nlohmann::json;
 
 namespace psr {
 
@@ -35,60 +32,85 @@ PAMM &PAMM::getInstance() {
   return instance;
 }
 
-void PAMM::startTimer(std::string timerId) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "\nStarting " << timerId << " timer\n");
+void PAMM::startTimer(const std::string &TimerId) {
   bool validTimerId =
-      !RunningTimer.count(timerId) && !StoppedTimer.count(timerId);
+      !RunningTimer.count(TimerId) && !StoppedTimer.count(TimerId);
   assert(validTimerId && "startTimer failed due to an invalid timer id");
   if (validTimerId) {
-    time_point start = std::chrono::high_resolution_clock::now();
-    RunningTimer[timerId] = start;
+    PAMM::TimePoint_t start = std::chrono::high_resolution_clock::now();
+    RunningTimer[TimerId] = start;
   }
 }
 
-void PAMM::resetTimer(std::string timerId) {
-  assert((RunningTimer.count(timerId) && !StoppedTimer.count(timerId)) ||
-         (!RunningTimer.count(timerId) && StoppedTimer.count(timerId)) &&
+void PAMM::resetTimer(const std::string &TimerId) {
+  assert((RunningTimer.count(TimerId) && !StoppedTimer.count(TimerId)) ||
+         (!RunningTimer.count(TimerId) && StoppedTimer.count(TimerId)) &&
              "resetTimer failed due to an invalid timer id");
-  if (RunningTimer.count(timerId)) {
-    RunningTimer.erase(RunningTimer.find(timerId));
-  } else if (StoppedTimer.count(timerId)) {
-    StoppedTimer.erase(StoppedTimer.find(timerId));
+  if (RunningTimer.count(TimerId)) {
+    RunningTimer.erase(RunningTimer.find(TimerId));
+  } else if (StoppedTimer.count(TimerId)) {
+    StoppedTimer.erase(StoppedTimer.find(TimerId));
   }
 }
 
-void PAMM::stopTimer(std::string timerId, bool pauseTimer) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "\nStarting " << timerId << " timer\n");
-  bool runningTimer = RunningTimer.count(timerId);
-  bool validTimerId = runningTimer || StoppedTimer.count(timerId);
+void PAMM::stopTimer(const std::string &TimerId, bool PauseTimer) {
+  bool runningTimer = RunningTimer.count(TimerId);
+  bool validTimerId = runningTimer || StoppedTimer.count(TimerId);
   assert(validTimerId && "stopTimer failed due to an invalid timer id or timer "
                          "was already stopped");
   assert(runningTimer && "stopTimer failed because timer was already stopped");
   if (validTimerId) {
-    auto timer = RunningTimer.find(timerId);
-    time_point end = std::chrono::high_resolution_clock::now();
-    time_point start = timer->second;
+    auto timer = RunningTimer.find(TimerId);
+    PAMM::TimePoint_t end = std::chrono::high_resolution_clock::now();
+    PAMM::TimePoint_t start = timer->second;
     RunningTimer.erase(timer);
     auto p = make_pair(start, end);
-    if (pauseTimer) {
-      AccumulatedTimer[timerId].push_back(p);
+    if (PauseTimer) {
+      RepeatingTimer[TimerId].push_back(p);
     } else {
-      StoppedTimer[timerId] = p;
+      StoppedTimer[TimerId] = p;
     }
   }
 }
 
-std::string PAMM::getPrintableDuration(unsigned long duration) {
-  unsigned long milliseconds = duration % 1000;
-  unsigned long seconds = ((duration - milliseconds) / 1000) % 60;
+unsigned long PAMM::elapsedTime(const std::string &TimerId) {
+  assert((RunningTimer.count(TimerId) || StoppedTimer.count(TimerId)) &&
+         "elapsedTime failed due to an invalid timer id");
+  if (RunningTimer.count(TimerId)) {
+    PAMM::TimePoint_t end = std::chrono::high_resolution_clock::now();
+    PAMM::TimePoint_t start = RunningTimer[TimerId];
+    auto duration = std::chrono::duration_cast<Duration_t>(end - start);
+    return duration.count();
+  } else if (StoppedTimer.count(TimerId)) {
+    auto duration = std::chrono::duration_cast<Duration_t>(
+        StoppedTimer[TimerId].second - StoppedTimer[TimerId].first);
+    return duration.count();
+  }
+  return 0;
+}
+
+std::unordered_map<std::string, std::vector<unsigned long>>
+PAMM::elapsedTimeOfRepeatingTimer() {
+  std::unordered_map<std::string, std::vector<unsigned long>> accTimes;
+  for (auto timer : RepeatingTimer) {
+    std::vector<unsigned long> accTimeVec;
+    for (auto timepair : timer.second) {
+      auto duration = std::chrono::duration_cast<PAMM::Duration_t>(
+          timepair.second - timepair.first);
+      accTimeVec.push_back(duration.count());
+    }
+    accTimes[timer.first] = accTimeVec;
+  }
+  return accTimes;
+}
+
+std::string PAMM::getPrintableDuration(unsigned long Duration) {
+  unsigned long milliseconds = Duration % 1000;
+  unsigned long seconds = ((Duration - milliseconds) / 1000) % 60;
   unsigned long minutes =
-      ((((duration - milliseconds) / 1000) - seconds) / 60) % 60;
+      ((((Duration - milliseconds) / 1000) - seconds) / 60) % 60;
   unsigned long hours =
-      (((((duration - milliseconds) / 1000) - seconds) / 60) - minutes) / 60;
+      (((((Duration - milliseconds) / 1000) - seconds) / 60) - minutes) / 60;
   std::ostringstream oss;
   if (hours)
     oss << hours << "h ";
@@ -103,42 +125,42 @@ std::string PAMM::getPrintableDuration(unsigned long duration) {
   return oss.str();
 }
 
-void PAMM::regCounter(std::string counterId, unsigned intialValue) {
-  bool validCounterId = !Counter.count(counterId);
+void PAMM::regCounter(const std::string &CounterId, unsigned IntialValue) {
+  bool validCounterId = !Counter.count(CounterId);
   assert(validCounterId && "regCounter failed due to an invalid counter id");
   if (validCounterId) {
-    Counter[counterId] = intialValue;
+    Counter[CounterId] = IntialValue;
   }
 }
 
-void PAMM::incCounter(std::string counterId, unsigned value) {
-  bool validCounterId = Counter.count(counterId);
+void PAMM::incCounter(const std::string &CounterId, unsigned CValue) {
+  bool validCounterId = Counter.count(CounterId);
   assert(validCounterId && "incCounter failed due to an invalid counter id");
   if (validCounterId) {
-    Counter[counterId] += value;
+    Counter[CounterId] += CValue;
   }
 }
 
-void PAMM::decCounter(std::string counterId, unsigned value) {
-  bool validCounterId = Counter.count(counterId);
+void PAMM::decCounter(const std::string &CounterId, unsigned CValue) {
+  bool validCounterId = Counter.count(CounterId);
   assert(validCounterId && "decCounter failed due to an invalid counter id");
   if (validCounterId) {
-    Counter[counterId] -= value;
+    Counter[CounterId] -= CValue;
   }
 }
 
-int PAMM::getCounter(std::string counterId) {
-  bool validCounterId = Counter.count(counterId);
+int PAMM::getCounter(const std::string &CounterId) {
+  bool validCounterId = Counter.count(CounterId);
   assert(validCounterId && "getCounter failed due to an invalid counter id");
   if (validCounterId) {
-    return Counter[counterId];
+    return Counter[CounterId];
   }
   return -1;
 }
 
-int PAMM::getSumCount(std::set<std::string> counterIds) {
+int PAMM::getSumCount(const std::set<std::string> &CounterIds) {
   int sum = 0;
-  for (std::string id : counterIds) {
+  for (std::string id : CounterIds) {
     int count = getCounter(id);
     assert(count != -1 && "getSumCount failed due to an invalid counter id");
     if (count != -1) {
@@ -150,115 +172,171 @@ int PAMM::getSumCount(std::set<std::string> counterIds) {
   return sum;
 }
 
-void PAMM::regHistogram(std::string HID) {
-  bool validHID = !Histogram.count(HID);
+void PAMM::regHistogram(const std::string &HistogramId) {
+  bool validHID = !Histogram.count(HistogramId);
   assert(validHID && "failed to register new histogram due to an invalid id");
   if (validHID) {
     std::unordered_map<std::string, unsigned long> H;
-    Histogram[HID] = H;
+    Histogram[HistogramId] = H;
   }
 }
 
-void PAMM::addToHistogram(std::string HID, std::string VAL, unsigned long OCC) {
-  bool validHistoID = Histogram.count(HID);
+void PAMM::addToHistogram(const std::string &HistogramId,
+                          const std::string &DataPointId,
+                          unsigned long DataPointValue) {
+  bool validHistoID = Histogram.count(HistogramId);
   assert(validHistoID &&
          "adding data point to histogram failed due to invalid id");
-  if (Histogram[HID].count(VAL)) {
-    Histogram[HID][VAL] += OCC;
+  if (Histogram[HistogramId].count(DataPointId)) {
+    Histogram[HistogramId][DataPointId] += DataPointValue;
   } else {
-    Histogram[HID][VAL] = OCC;
+    Histogram[HistogramId][DataPointId] = DataPointValue;
   }
 }
 
-unsigned long PAMM::getHistoData(std::string HID, std::string VAL) {
-  return Histogram[HID][VAL];
+void PAMM::printTimers(std::ostream &os) {
+  // stop all running timer
+  while (!RunningTimer.empty()) {
+    stopTimer(RunningTimer.begin()->first);
+  }
+  os << "Single Timer\n";
+  os << "------------\n";
+  for (auto timer : StoppedTimer) {
+    unsigned long time = elapsedTime(timer.first);
+    os << timer.first << " : " << getPrintableDuration(time) << '\n';
+  }
+  if (StoppedTimer.empty()) {
+    os << "No single Timer started!\n\n";
+  } else {
+    os << "\n";
+  }
+  os << "Repeating Timer\n";
+  os << "---------------\n";
+  for (auto timer : elapsedTimeOfRepeatingTimer()) {
+    unsigned long sum = 0;
+    os << timer.first << " Timer:\n";
+    for (auto duration : timer.second) {
+      sum += duration;
+      os << duration << '\n';
+    }
+    os << "===\n" << sum << "\n\n";
+  }
+  if (RepeatingTimer.empty()) {
+    os << "No repeating Timer found!\n";
+  } else {
+    os << '\n';
+  }
 }
 
-void PAMM::printCounters() {
-  std::cout << "\nCounter\n";
-  std::cout << "-------\n";
+void PAMM::printCounters(std::ostream &os) {
+  os << "\nCounter\n";
+  os << "-------\n";
   for (auto counter : Counter) {
-    std::cout << counter.first << " : " << counter.second << '\n';
+    os << counter.first << " : " << counter.second << '\n';
   }
   if (Counter.empty()) {
-    std::cout << "No Counter registered!\n";
+    os << "No Counter registered!\n";
   } else {
-    std::cout << "\n";
+    os << "\n";
   }
 }
 
-void PAMM::printHistograms() {
-  std::cout << "\nHistograms\n";
-  std::cout << "--------------\n";
+void PAMM::printHistograms(std::ostream &os) {
+  os << "\nHistograms\n";
+  os << "--------------\n";
   for (auto H : Histogram) {
-    std::cout << H.first << " Histogram\n";
-    std::cout << "Value : #Occurrences\n";
+    os << H.first << " Histogram\n";
+    os << "Value : #Occurrences\n";
     for (auto entry : H.second) {
-      std::cout << entry.first << " : " << entry.second << '\n';
+      os << entry.first << " : " << entry.second << '\n';
     }
-    std::cout << '\n';
+    os << '\n';
   }
   if (Histogram.empty()) {
-    std::cout << "No histograms tracked!\n";
+    os << "No histograms tracked!\n";
+  }
+}
+
+void PAMM::printMeasuredData(std::ostream &os) {
+  os << "\n----- START OF EVALUATION DATA -----\n\n";
+  printTimers(os);
+  printCounters(os);
+  printHistograms(os);
+  os << "\n----- END OF EVALUATION DATA -----\n\n";
+}
+
+void PAMM::exportMeasuredData(std::string OutputPath) {
+  // json file for holding all data
+  json jsonData;
+
+  // add timer data
+  while (!RunningTimer.empty()) {
+    stopTimer(RunningTimer.begin()->first);
+  }
+  json jTimer;
+  for (auto timer : StoppedTimer) {
+    unsigned long time = elapsedTime(timer.first);
+    jTimer[timer.first] = time;
+  }
+  for (auto timer : elapsedTimeOfRepeatingTimer()) {
+    jTimer[timer.first] = timer.second;
+  }
+  jsonData["Timer"] = jTimer;
+
+  // add histogram data if available
+  json jHistogram;
+  for (auto H : Histogram) {
+    json jSetH;
+    for (auto entry : H.second) {
+      jSetH[entry.first] = entry.second;
+    }
+    jHistogram[H.first] = jSetH;
+  }
+  if (!jHistogram.is_null()) {
+    jsonData["Histogram"] = jHistogram;
+  }
+  // add counter data
+  json jCounter;
+  for (auto counter : Counter) {
+    jCounter[counter.first] = counter.second;
+  }
+  jsonData["Counter"] = jCounter;
+
+  // add analysis/project/source file information if available
+  json jInfo;
+  if (VariablesMap.count("project-id")) {
+    jInfo["Project-ID"] = VariablesMap["project-id"].as<std::string>();
+  }
+  if (VariablesMap.count("module")) {
+    jInfo["Module(s)"] = VariablesMap["module"].as<std::vector<std::string>>();
+  }
+  if (VariablesMap.count("data-flow-analysis")) {
+    jInfo["Data-flow analysis"] =
+        VariablesMap["data-flow-analysis"].as<std::vector<std::string>>();
+  }
+  if (!jInfo.is_null()) {
+    jsonData["Info"] = jInfo;
+  }
+
+  boost::filesystem::path cfp(OutputPath);
+  if (cfp.string().find(".json") == std::string::npos) {
+    OutputPath.append(".json");
+  }
+  std::ofstream file(OutputPath);
+  if (file.is_open()) {
+    file << std::setw(2) // sets the indentation
+         << jsonData << std::endl;
+    file.close();
+  } else {
+    throw std::ios_base::failure("could not write file: " + OutputPath);
   }
 }
 
 void PAMM::reset() {
   RunningTimer.clear();
   StoppedTimer.clear();
-  AccumulatedTimer.clear();
+  RepeatingTimer.clear();
   Counter.clear();
   Histogram.clear();
-  std::cout << "PAMM reseted!" << std::endl;
-}
-
-void PAMM::addHistogramToJSON(json &jsonData) {
-  for (auto H : Histogram) {
-    json jSetH;
-    for (auto entry : H.second) {
-      jSetH[entry.first] = entry.second;
-    }
-    jsonData[H.first + " Histogram"] = jSetH;
-  }
-}
-
-void PAMM::addCounterToJSON(json &jsonData) {
-  json jFFCounter, jEFCounter, jGSCounter, jDFACounter, jCallsCounter,
-      jGraphSizesCounter, jMiscCounter;
-  for (auto counter : Counter) {
-    if (counter.first.find("GS") != std::string::npos) {
-      jGSCounter[counter.first] = counter.second;
-    } else if (counter.first.find("Calls to") != std::string::npos) {
-      jCallsCounter[counter.first] = counter.second;
-    } else if (counter.first.find("JumpFn Construction") != std::string::npos ||
-               counter.first.find("Process") != std::string::npos ||
-               counter.first.find("FF Queries") != std::string::npos ||
-               counter.first.find("EF Queries") != std::string::npos ||
-               counter.first.find("SpecialSummary-FF Application") !=
-                   std::string::npos ||
-               counter.first.find("SpecialSummary-EF Queries") !=
-                   std::string::npos ||
-               counter.first.find("Value Computation") != std::string::npos ||
-               counter.first.find("Value Propagation") != std::string::npos) {
-      jDFACounter[counter.first] = counter.second;
-    } else if (counter.first.find("-FF") != std::string::npos) {
-      jFFCounter[counter.first] = counter.second;
-    } else if (counter.first.find("-EF") != std::string::npos) {
-      jEFCounter[counter.first] = counter.second;
-    } else if (counter.first.find("Edges") != std::string::npos ||
-               counter.first.find("Vertices") != std::string::npos) {
-      jGraphSizesCounter[counter.first] = counter.second;
-    } else {
-      jMiscCounter[counter.first] = counter.second;
-    }
-  }
-  jsonData["Flow Function Counter"] = jFFCounter;
-  jsonData["Edge Function Counter"] = jEFCounter;
-  jsonData["DFA Counter"] = jDFACounter;
-  jsonData["General Statistics"] = jGSCounter;
-  jsonData["Function Call Counter"] = jCallsCounter;
-  jsonData["Graph Sizes Counter"] = jGraphSizesCounter;
-  if (!jMiscCounter.empty())
-    jsonData["Misc Counter"] = jMiscCounter;
 }
 } // namespace psr

@@ -23,9 +23,14 @@
 
 #include <json.hpp>
 
-using json = nlohmann::json;
+namespace llvm {
+class Module;
+class Type;
+} // namespace llvm
 
 namespace psr {
+
+using json = nlohmann::json;
 
 /**
  * 	@brief Represents a virtual method table.
@@ -39,7 +44,11 @@ private:
 
 public:
   VTable() = default;
-  virtual ~VTable() = default;
+  VTable(const VTable &) = default;
+  VTable &operator=(const VTable &) = default;
+  VTable(VTable &&) = default;
+  VTable &operator=(VTable &&) = default;
+  ~VTable() = default;
 
   /**
    * 	@brief Returns a function identifier by it's index in the VTable.
@@ -69,15 +78,13 @@ public:
    * 	@return True, if VTable is empty, false otherwise.
    */
   bool empty() const;
+
+  size_t size() const;
+
   std::vector<std::string>::iterator begin();
   std::vector<std::string>::const_iterator begin() const;
   std::vector<std::string>::iterator end();
   std::vector<std::string>::const_iterator end() const;
-  /**
-   * 	@brief Returns the VTable as a std::vector.
-   * 	@return std::vector holding all information of the VTable.
-   */
-  std::vector<std::string> getVTable() const;
 
   /**
    * 	@brief VTable's print operator.
@@ -86,7 +93,7 @@ public:
    */
   friend std::ostream &operator<<(std::ostream &os, const VTable &t);
 
-  json exportPATBCJSON();
+  json getAsJson();
 };
 
 } // namespace psr

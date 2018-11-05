@@ -39,7 +39,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -76,7 +76,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              const vector<string> &EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -111,10 +111,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     WholeModulePTG.mergeWith(ptg, F);
     constructionWalker(F, resolver.get());
   }
-  REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
-  REG_COUNTER_WITH_VALUE("Call Graph Vertices", getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("Call Graph Edges", getNumOfEdges());
+  REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("WM-PTG Edges", WholeModulePTG.getNumOfEdges(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
 }
 
@@ -123,7 +125,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              vector<string> EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -166,12 +167,11 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
 
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                                        Resolver_t *resolver) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   static bool first_function = true;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Walking in function: " << F->getName().str());
-
   if (VisitedFunctions.count(F) || F->isDeclaration()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Function already visited or only declaration: "
@@ -190,11 +190,10 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
     first_function = false;
     resolver->firstFunction(F);
   }
-
+  // iterate all instructions of the current function
   for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
        I != E; ++I) {
     const llvm::Instruction &Inst = *I;
-
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
       resolver->preCall(&Inst);
 
@@ -212,7 +211,6 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                       << llvmIRToString(cs.getInstruction()));
         // call the resolve routine
         set<string> possible_target_names;
-
         if (isVirtualFunctionCall(cs)) {
           possible_target_names = resolver->resolveVirtualCall(cs);
         } else {
@@ -261,31 +259,26 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
 bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *V = CS.getArgOperand(0);
-    if (V->getType()->isPointerTy()) {
-      if (V->getType()->getPointerElementType()->isStructTy()) {
-        string type_name =
-            V->getType()->getPointerElementType()->getStructName();
-
-        // get the type name and check if it has a virtual member function
-        if (CH.containsType(type_name) && CH.containsVTable(type_name)) {
-          VTable vtbl = CH.getVTable(type_name);
-          for (const string &Fname : vtbl) {
-            const llvm::Function *F = IRDB.getFunction(Fname);
-
-            if (!F) {
-              // Is a pure virtual function
-              // or there is an error with the function in the module (that can
-              // happen)
+    if (V->getType()->isPointerTy() &&
+        V->getType()->getPointerElementType()->isStructTy()) {
+      string TypeName = V->getType()->getPointerElementType()->getStructName();
+      // get the type name and check if it has a virtual member function
+      if (CH.containsType(TypeName) && CH.containsVTable(TypeName)) {
+        VTable VTBL = CH.getVTable(TypeName);
+        for (const string &Fname : VTBL) {
+          const llvm::Function *F = IRDB.getFunction(Fname);
+          if (!F) {
+            // Is a pure virtual function
+            // or there is an error with the function in the module (that can
+            // happen)
+            return true;
+          }
+          if (CS.getCalledValue()->getType()->isPointerTy()) {
+            if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
+                                        CS.getCalledValue()
+                                            ->getType()
+                                            ->getPointerElementType()))) {
               return true;
-            }
-
-            if (CS.getCalledValue()->getType()->isPointerTy()) {
-              if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
-                                          CS.getCalledValue()
-                                              ->getType()
-                                              ->getPointerElementType()))) {
-                return true;
-              }
             }
           }
         }

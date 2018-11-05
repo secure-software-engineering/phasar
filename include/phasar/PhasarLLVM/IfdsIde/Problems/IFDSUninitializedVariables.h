@@ -16,7 +16,6 @@
 #include <string>
 
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSSummaryPool.h>
 
 namespace llvm {
 class Instruction;
@@ -38,7 +37,6 @@ public:
   typedef LLVMBasedICFG &i_t;
 
 private:
-  IFDSSummaryPool<d_t, n_t> dynSum;
   std::map<n_t, std::set<d_t>> UndefValueUses;
   std::vector<std::string> EntryPoints;
 

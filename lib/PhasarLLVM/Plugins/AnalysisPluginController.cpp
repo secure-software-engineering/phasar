@@ -43,7 +43,7 @@ AnalysisPluginController::AnalysisPluginController(
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                       << "Solving plugin: " << Problem.first);
         unique_ptr<IFDSTabulationProblemPlugin> plugin(
-            Problem.second(ICFG, {"main"}));
+            Problem.second(ICFG, EntryPoints));
         cout << "DONE" << endl;
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
             *plugin, true);
