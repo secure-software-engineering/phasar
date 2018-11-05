@@ -43,17 +43,19 @@ class LLVMBasedBackwardsICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
       public virtual LLVMBasedBackwardCFG {
 private:
-  CallGraphAnalysisType CGType;
-  LLVMTypeHierarchy &CH;
-  ProjectIRDB &IRDB;
-  PointsToGraph WholeModulePTG;
-  LLVMBasedICFG ForwardICFG;
+  
 
 public:
+  LLVMBasedICFG ForwardICFG;
+  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
+
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                         CallGraphAnalysisType CGType,
-                         const std::vector<std::string> &EntryPoints = {
-                             "main"});
+                CallGraphAnalysisType CGType,
+                const std::vector<std::string> &EntryPoints = {"main"});
+
+  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
+                const llvm::Module &M, CallGraphAnalysisType CGType,
+                std::vector<std::string> EntryPoints = {});
 
   virtual ~LLVMBasedBackwardsICFG() = default;
 

@@ -44,102 +44,123 @@ using namespace psr;
 using namespace std;
 namespace psr {
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const vector<string> &EntryPoints)
-    : CGType(CGType), CH(STH), IRDB(IRDB),
-      ForwardICFG(STH, IRDB, CGType, EntryPoints) {}
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB):ForwardICFG(STH,IRDB){};
+
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
+              CallGraphAnalysisType CGType,
+              const std::vector<std::string> &EntryPoints):ForwardICFG(STH,IRDB,CGType,EntryPoints){};
+
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
+              const llvm::Module &M, CallGraphAnalysisType CGType,
+              std::vector<std::string> EntryPoints):ForwardICFG(STH,IRDB,M,CGType,EntryPoints){};
 
 bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
-  return false;
+  return ForwardICFG.isVirtualFunctionCall(CS);
 }
 
 std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllMethods() {
-  return std::set<const llvm::Function *>();
+  return ForwardICFG.getAllMethods();
 }
 
 const llvm::Function *
 LLVMBasedBackwardsICFG::getMethod(const std::string &fun) {
-  return nullptr;
+  return ForwardICFG.getMethod(fun);
 }
 
 std::set<const llvm::Function *>
 LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
-  return std::set<const llvm::Function *>();
+  return ForwardICFG.getCalleesOfCallAt(n);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *m) {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.getCallersOf(m);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.getCallsFromWithin(m);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.getStartPointsOf(m);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.getExitPointsOf(fun);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.getReturnSitesOfCallAt(n);
 }
 
 bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) {
-  return false;
+  return ForwardICFG.isCallStmt(stmt);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::allNonCallStartNodes() {
-  return std::set<const llvm::Instruction *>();
+  return ForwardICFG.allNonCallStartNodes();
 }
 
 const llvm::Instruction *
 LLVMBasedBackwardsICFG::getLastInstructionOf(const std::string &name) {
-  return nullptr;
+  return ForwardICFG.getLastInstructionOf(name);
 }
 
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getAllInstructionsOfFunction(const std::string &name) {
-  return std::vector<const llvm::Instruction *>();
+  return ForwardICFG.getAllInstructionsOfFunction(name);
 }
 
-void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &other) {}
+void LLVMBasedBackwardsICFG::mergeWith(const LLVMBasedBackwardsICFG &other) {
+  ForwardICFG.mergeWith(other.ForwardICFG);
+}
 
 bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &name) {
-  return false;
+  return ForwardICFG.isPrimitiveFunction(name);
 }
 
-void LLVMBasedBackwardsICFG::print() {}
+void LLVMBasedBackwardsICFG::print() {
+  ForwardICFG.print();
+}
 
-void LLVMBasedBackwardsICFG::printAsDot(const std::string &filename) {}
+void LLVMBasedBackwardsICFG::printAsDot(const std::string &filename){
+  ForwardICFG.printAsDot(filename);
+}
+
 
 void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
-    const std::string &filename) {}
+    const std::string &filename) {
+      ForwardICFG.printInternalPTGAsDot(filename);
+    }
 
-json LLVMBasedBackwardsICFG::getAsJson() { return json(); }
+json LLVMBasedBackwardsICFG::getAsJson() {
+  return ForwardICFG.getAsJson(); 
+  }
 
-unsigned LLVMBasedBackwardsICFG::getNumOfVertices() { return 0; }
+unsigned LLVMBasedBackwardsICFG::getNumOfVertices() {
+  return ForwardICFG.getNumOfVertices();
+}
 
-unsigned LLVMBasedBackwardsICFG::getNumOfEdges() { return 0; }
+unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
+  return ForwardICFG.getNumOfEdges();
+}
 
-void LLVMBasedBackwardsICFG::exportPATBCJSON() {}
+void LLVMBasedBackwardsICFG::exportPATBCJSON() {
+  return ForwardICFG.exportPATBCJSON();
+}
 
 PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() {
-  return WholeModulePTG;
+  return ForwardICFG.getWholeModulePTG();
 }
 
 std::vector<std::string>
 LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
-  return std::vector<std::string>();
+  return ForwardICFG.getDependencyOrderedFunctions();
 }
 
 } // namespace psr

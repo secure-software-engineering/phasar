@@ -13,14 +13,6 @@ protected:
       PhasarDirectory + "build/test/llvm_test_code/";
 };
 
-TEST_F(LLVMBasedBackwardCFGTest, FallThroughSuccTest) {
-  LLVMBasedBackwardCFG cfg;
-  ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
-
-  ASSERT_EQ(true, false);
-}
-
 TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});

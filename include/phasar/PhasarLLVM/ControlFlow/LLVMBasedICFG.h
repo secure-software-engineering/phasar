@@ -52,6 +52,7 @@ public:
   // using TypeGraph_t = CachedTypeGraph;
   using Resolver_t = Resolver;
 
+
 private:
   CallGraphAnalysisType CGType;
   LLVMTypeHierarchy &CH;
