@@ -48,10 +48,12 @@ class LLVMTypeHierarchy;
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
       public virtual LLVMBasedCFG {
+        friend class LLVMBasedBackwardsICFG;
 public:
   // using TypeGraph_t = CachedTypeGraph;
   using Resolver_t = Resolver;
 
+  
 
 private:
   CallGraphAnalysisType CGType;
@@ -91,6 +93,8 @@ private:
                                 boost::bidirectionalS, VertexProperties,
                                 EdgeProperties>
       bidigraph_t;
+
+  
 
   // Let us have some handy typedefs.
   typedef boost::graph_traits<bidigraph_t>::vertex_descriptor vertex_t;

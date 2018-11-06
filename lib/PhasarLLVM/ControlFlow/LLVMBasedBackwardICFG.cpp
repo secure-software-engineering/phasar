@@ -44,15 +44,21 @@ using namespace psr;
 using namespace std;
 namespace psr {
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB):ForwardICFG(STH,IRDB){};
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB):ForwardICFG(STH,IRDB){
+  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg),ForwardICFG.cg);
+};
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
               CallGraphAnalysisType CGType,
-              const std::vector<std::string> &EntryPoints):ForwardICFG(STH,IRDB,CGType,EntryPoints){};
+              const std::vector<std::string> &EntryPoints):ForwardICFG(STH,IRDB,CGType,EntryPoints){
+  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg),ForwardICFG.cg);
+};
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
               const llvm::Module &M, CallGraphAnalysisType CGType,
-              std::vector<std::string> EntryPoints):ForwardICFG(STH,IRDB,M,CGType,EntryPoints){};
+              std::vector<std::string> EntryPoints):ForwardICFG(STH,IRDB,M,CGType,EntryPoints){
+  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg),ForwardICFG.cg);
+};
 
 bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return ForwardICFG.isVirtualFunctionCall(CS);
