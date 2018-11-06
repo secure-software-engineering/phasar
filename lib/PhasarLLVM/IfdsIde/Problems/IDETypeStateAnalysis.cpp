@@ -112,6 +112,10 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
             set<IDETypeStateAnalysis::d_t>
             computeTargets(IDETypeStateAnalysis::d_t source) override {
               if (source == Load->getPointerOperand()) {
+                //Test
+                cout << "Testing this source:" << endl;
+                source->print(llvm::outs());
+                llvm::outs() << '\n';
                 return {source, Load};
               }
               return {source};
@@ -197,7 +201,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
   }
   llvm::ImmutableCallSite CS(callSite);
   // Generate the return value of fopen()
-  if (CS.getCalledFunction()->getName() == "fopen" /*|| CS.getCalledFunction()->getName() == "freopen"*/) {
+  if (CS.getCalledFunction()->getName() == "fopen" || CS.getCalledFunction()->getName() == "freopen") {
     return make_shared<Gen<IDETypeStateAnalysis::d_t>>(CS.getInstruction(),
                                                        zeroValue());
   }
@@ -307,7 +311,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     std::set<IDETypeStateAnalysis::m_t> callees) {
   // Set return value from fopen to opened
   llvm::ImmutableCallSite CS(callSite);
-  if (CS.getCalledFunction()->getName() == "fopen" /*|| CS.getCalledFunction()->getName() == "freopen"*/) {
+  if (CS.getCalledFunction()->getName() == "fopen" || CS.getCalledFunction()->getName() == "freopen") {
     if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
       struct TSEdgeFunctionImpl : public TSEdgeFunction {
         TSEdgeFunctionImpl() {}
@@ -329,6 +333,30 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   if (CS.getCalledFunction()->getName() == "fclose") {
     // Handle parameter itself
     if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
+      /**/if(CS.getArgOperand(0) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0)))
+      {
+        cout << "Test:" << endl;
+       CS.getArgOperand(0)->print(llvm::outs());
+       llvm::outs() << '\n';
+        cout << "Test2:" << endl;
+       llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->print(llvm::outs());
+       llvm::outs() << '\n';
+       //llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()
+       /*        cout << "Test3:" << endl;
+       llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->print(llvm::outs());
+       llvm::outs() << '\n';*/
+               cout << "Test4:" << endl;
+       callSite->print(llvm::outs());
+       llvm::outs() << '\n';
+       callNode->print(llvm::outs());
+       llvm::outs() << '\n';       
+       retSite->print(llvm::outs());
+       llvm::outs() << '\n';
+       retSiteNode->print(llvm::outs());
+       llvm::outs() << '\n';
+
+       //llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->computeTargets(State::CLOSED);
+      }
       cout << " fclose processing for: ";
       printDataFlowFact(cout, callNode);
       cout << endl;
@@ -340,6 +368,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
           // TODO insert automaton as fclose() is a consuming function
+          cout << "Test angekommen" << endl;
           return getNextState(Token::FCLOSE, source);//return State::CLOSED;
         }
       };
