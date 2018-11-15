@@ -49,22 +49,28 @@ const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
             IDETypeStateAnalysis::BOTTOM));
 
 /*const std::map<std::string,unsigned> IDETypeStateAnalysis::STDIOFunctions = {
-    ("fopen",0),   ("fclose",1),   ("freopen",2),  ("fgetc",3),   ("fputc",4),
-   ("putchar",5), ("_IO_getc",6), ("_I0_putc",7), ("fprintf",8), ("__isoc99_fscanf",9),
-    ("feof",10),    ("ferror",11),   ("ungetc",12),   ("fflush",13),  ("fseek",14),
-    ("ftell",15),   ("rewind",16),   ("fgetpos",17),  ("fsetpos",18)};*/
+    ("fopen",0),   ("fclose",0),   ("freopen",2),  ("fgetc",0),   ("fputc",1),
+   ("putchar",), ("_IO_getc",0), ("_I0_putc",1), ("fprintf",0), ("__isoc99_fscanf",0),
+    ("feof",0),    ("ferror",0),   ("ungetc",1),   ("fflush",0),  ("fseek",0),
+    ("ftell",0),   ("rewind",0),   ("fgetpos",0),  ("fsetpos",0)};*/
 
-const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
+/*const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
     "fopen",   "fclose",   "freopen",  "fgetc",   "fputc",
     "putchar", "_IO_getc", "_I0_putc", "fprintf", "__isoc99_fscanf",
     "feof",    "ferror",   "ungetc",   "fflush",  "fseek",
-    "ftell",   "rewind",   "fgetpos",  "fsetpos"};
+    "ftell",   "rewind",   "fgetpos",  "fsetpos"};*/ //Standardversion
 
   /*const std::map<std::string, unsigned> IDETypeStateAnalysis::STDIOFunctions = {
     {"fopen", 0},   {"fclose", 1},   {"freopen", 2},  {"fgetc", 3},   {"fputc", 4},
    {"putchar", 5}, {"_IO_getc", 6}, {"_I0_putc", 7}, {"fprintf", 8}, {"__isoc99_fscanf", 9},
     {"feof", 10},    {"ferror", 11},   {"ungetc", 12},   {"fflush", 13},  {"fseek", 14},
     {"ftell", 15},   {"rewind", 16},   {"fgetpos", 17},  {"fsetpos", 18}};*/
+
+    const std::map<std::string, unsigned> IDETypeStateAnalysis::STDIOFunctions = {
+    {"fopen", 0},   {"fclose", 0},   {"freopen", 2},  {"fgetc", 0},   {"fputc", 1},
+    {"_IO_getc", 0}, {"_I0_putc", 1}, {"fprintf",  0}, {"__isoc99_fscanf", 0},
+    {"feof", 0},    {"ferror", 0},   {"ungetc", 1},   {"fflush", 0},  {"fseek", 0},
+    {"ftell", 0},   {"rewind", 0},   {"fgetpos", 0},  {"fsetpos", 0}};
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            vector<string> EntryPoints)
@@ -206,7 +212,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
                                                        zeroValue());
   }
   // Handle all functions that are not modeld with special semantics
-  if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
+  /*if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
                 CalleeNames.begin(), CalleeNames.end())) {
     // Pass all data-flow facts to STDIOFunctions as identity.
     // Kill actual parameters of type '%struct._IO_FILE*' as these
@@ -224,7 +230,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
         }
       }
     }
-  }
+  }*/
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -330,53 +336,84 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   // For all other STDIO functions, that do not generate file handles but only
   // operate on them, model their behavior using a finite state machine.
   //if (CS.getCalledFunction()->getName() == "fclose") {
-  if (CS.getCalledFunction()->getName() == "fclose") {
-    // Handle parameter itself
-    if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
-      /**/if(CS.getArgOperand(0) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0)))
-      {
-        cout << "Test:" << endl;
-       CS.getArgOperand(0)->print(llvm::outs());
-       llvm::outs() << '\n';
-        cout << "Test2:" << endl;
-       llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->print(llvm::outs());
-       llvm::outs() << '\n';
-       //llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()
-       /*        cout << "Test3:" << endl;
-       llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->print(llvm::outs());
-       llvm::outs() << '\n';*/
-               cout << "Test4:" << endl;
-       callSite->print(llvm::outs());
-       llvm::outs() << '\n';
-       callNode->print(llvm::outs());
-       llvm::outs() << '\n';       
-       retSite->print(llvm::outs());
-       llvm::outs() << '\n';
-       retSiteNode->print(llvm::outs());
-       llvm::outs() << '\n';
+  for(auto i : STDIOFunctions){  
+    if (CS.getCalledFunction()->getName() == i.first/*"fclose"*/) {
+      // Handle parameter itself
+      if (callNode == retSiteNode && callNode == CS.getArgOperand(i.second)) {
+        /**//*if(CS.getArgOperand(i.second) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second)))
+        {
+          cout << "Test:" << endl;
+        CS.getArgOperand(0)->print(llvm::outs());
+        llvm::outs() << '\n';
+          cout << "Test2:" << endl;
+        llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->print(llvm::outs());
+        llvm::outs() << '\n';
+                cout << "Test4:" << endl;
+        callSite->print(llvm::outs());
+        llvm::outs() << '\n';
+        callNode->print(llvm::outs());
+        llvm::outs() << '\n';       
+        retSite->print(llvm::outs());
+        llvm::outs() << '\n';
+        retSiteNode->print(llvm::outs());
+        llvm::outs() << '\n';
+        /*callees->print(llvm::outs());
+        llvm::outs() << '\n';*/
+        // Hier muss noch die übergabe des close an allocaanweisung geschehen über computeTarget den source von llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSED
 
-       //llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->computeTargets(State::CLOSED);
+        /*for(auto Callee : callees){
+
+          cout << "Callee:" << endl;
+          Callee->print(llvm::outs());
+          llvm::outs() << '\n';
+        }
+
+        //llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand()->computeTargets(State::CLOSED);
+        }/**/
+        if(i.first == "fclose"){
+        cout << " fclose processing for: ";
+        printDataFlowFact(cout, callNode);
+        cout << endl;
+        struct TSEdgeFunctionImpl : public TSEdgeFunction {
+          TSEdgeFunctionImpl() {
+            cout << "make edge function for fclose()" << endl;
+          }
+          IDETypeStateAnalysis::v_t
+          computeTarget(IDETypeStateAnalysis::v_t source) override {
+            cout << "computeTarget()" << endl;
+            //if(i.first == "fclose"){
+            return getNextState(Token::FCLOSE, source);//}
+            // TODO insert automaton as fclose() is a consuming function
+            //return State::CLOSED;
+          }
+        };
+        return make_shared<TSEdgeFunctionImpl>();
+        }
+        // Test vermutlich eleganter lösbar
+        else {
+        cout << " star processing for: ";
+        printDataFlowFact(cout, callNode);
+        cout << endl;
+        struct TSEdgeFunctionImpl : public TSEdgeFunction {
+          TSEdgeFunctionImpl() {
+            cout << "make edge function for starfunction()" << endl;
+          }
+          IDETypeStateAnalysis::v_t
+          computeTarget(IDETypeStateAnalysis::v_t source) override {
+            cout << "computeTarget()" << endl;
+            //if(i.first == "fclose"){
+            return getNextState(Token::STAR, source);//}
+            // TODO insert automaton as fclose() is a consuming function
+          }
+        };
+        return make_shared<TSEdgeFunctionImpl>();
+        }
+        // Test end
       }
-      cout << " fclose processing for: ";
-      printDataFlowFact(cout, callNode);
-      cout << endl;
-      struct TSEdgeFunctionImpl : public TSEdgeFunction {
-        TSEdgeFunctionImpl() {
-          cout << "make edge function for fclose()" << endl;
-        }
-        IDETypeStateAnalysis::v_t
-        computeTarget(IDETypeStateAnalysis::v_t source) override {
-          cout << "computeTarget()" << endl;
-          // TODO insert automaton as fclose() is a consuming function
-          cout << "Test angekommen" << endl;
-          return getNextState(Token::FCLOSE, source);//return State::CLOSED;
-        }
-      };
-      return make_shared<TSEdgeFunctionImpl>();
+      // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
+      // the
+      // same state as the parameter of the consuming function
     }
-    // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
-    // the
-    // same state as the parameter of the consuming function
   }
   // Otherwise
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
