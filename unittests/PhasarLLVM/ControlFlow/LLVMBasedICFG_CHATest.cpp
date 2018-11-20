@@ -9,13 +9,13 @@
 using namespace std;
 using namespace psr;
 
-class LLVMBasedICFGTest : public ::testing::Test {
+class LLVMBasedICFG_CHATest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarDirectory + "build/test/llvm_test_code/";
 };
 
-TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
+TEST_F(LLVMBasedICFG_CHATest, StaticCallSite_1) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"});
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
@@ -27,7 +27,10 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
       // inspect call-sites
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
         llvm::ImmutableCallSite CS(&I);
-        ASSERT_FALSE(ICFG.isVirtualFunctionCall(CS));
+        auto Callees = ICFG.getCalleesOfCallAt(&I);
+        ASSERT_EQ(Callees.size(), 1);
+        ASSERT_TRUE(Callees.count(Foo));
+        ASSERT_TRUE(ICFG.getCallersOf(Foo).count(&I));
       }
     }
   }
