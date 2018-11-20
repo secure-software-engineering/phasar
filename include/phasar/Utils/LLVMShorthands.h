@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+
 namespace llvm {
 class Value;
 class FunctionType;
@@ -29,9 +30,29 @@ class Instruction;
 class TerminatorInst;
 class StoreInst;
 class Module;
+class StringRef;
 } // namespace llvm
 
 namespace psr {
+/**
+ * @brief Return type of SpecialMemberFunctionType.
+ */
+enum class FuncType {none,ctor,dtor,cpyasmtopr,movasmtopr};
+
+/**
+ * @brief Hashes a string to an int so that strings can be used in switches.
+ * @note In rare conditions the hash values of two strings can collide.
+ */
+constexpr unsigned int str2int(const char* str, int h);
+
+/**
+ * @brief checks if a function name is the name of a special member function.
+ * @param s Mangled function name.
+ * @return Returns an enum element of FuncType.
+ */
+FuncType SpecialMemberFunctionType(const std::string& s);
+
+FuncType SpecialMemberFunctionType(const llvm::StringRef& sr);
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.

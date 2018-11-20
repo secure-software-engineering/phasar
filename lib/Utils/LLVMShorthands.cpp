@@ -23,6 +23,7 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
+#include <llvm/ADT/StringRef.h>
 
 #include <boost/algorithm/string/trim.hpp>
 
@@ -47,6 +48,80 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
            V->getType()->getPointerElementType()->isFunctionTy();
   }
   return false;
+}
+
+constexpr unsigned int str2int(const char* str, int h = 0)
+{
+    return !str[h] ? 5381 : (str2int(str,h+1)*33) ^ str[h];
+}
+
+FuncType SpecialMemberFunctionType(const std::string &s) {
+  // test if Codes for Constructors, Destructors or operator= are in string
+  std::vector<std::string> codes{"C1", "C2", "C3",      "D0",
+                                 "D1", "D2", "aSERKS_", "aSEOS_"};
+  std::vector<std::pair<std::size_t, FuncType>> found;
+  for (auto x : codes) {
+    std::size_t index = s.find(x);
+
+    if (index != std::string::npos) {
+      switch (str2int(x.c_str())) {
+      case (str2int("C1")):
+      case (str2int("C2")):
+      case (str2int("C3")):
+        found.push_back(
+            std::pair<std::size_t, FuncType>(index, FuncType::ctor));
+        break;
+      case (str2int("D0")):
+      case (str2int("D1")):
+      case (str2int("D2")):
+        found.push_back(
+            std::pair<std::size_t, FuncType>(index, FuncType::dtor));
+        break;
+      case (str2int("aSERKS_")):
+        found.push_back(
+            std::pair<std::size_t, FuncType>(index, FuncType::cpyasmtopr));
+        break;
+      case (str2int("aSEOS_")):
+        found.push_back(
+            std::pair<std::size_t, FuncType>(index, FuncType::movasmtopr));
+        break;
+      }
+    }
+  }
+  if (found.empty()) {
+    return FuncType::none;
+  }
+
+  // test if codes are in function name or type information
+  bool noName = true;
+  for (auto index : found) {
+    for (auto c = s.begin(); c < s.begin() + index.first; ++c) {
+      if (isdigit(*c)) {
+        short i = 0;
+        while (isdigit(*(c + i))) {
+          ++i;
+        }
+        std::string st(c, c + i);
+        if (index.first <= std::distance(s.begin(), c) + atoi(st.c_str())) {
+          noName = false;
+          break;
+        } else {
+          c = c + *c;
+        }
+      }
+    }
+    if (noName) {
+      return index.second;
+    } else {
+      noName = true;
+    }
+  }
+  return FuncType::none;
+}
+
+FuncType SpecialMemberFunctionType(const llvm::StringRef& sr)
+{
+  return SpecialMemberFunctionType(sr.str());
 }
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
