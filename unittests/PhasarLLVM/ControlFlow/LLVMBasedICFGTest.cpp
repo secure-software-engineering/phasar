@@ -16,11 +16,14 @@ protected:
 };
 
 TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"});
+  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"}, IRDBOptions::WPA);
+  IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
   llvm::Function *F = IRDB.getFunction("main");
   llvm::Function *Foo = IRDB.getFunction("foo");
+  ASSERT_TRUE(F);
+  ASSERT_TRUE(Foo);
   // iterate all instructions
   for (auto &BB : *F) {
     for (auto &I : BB) {
