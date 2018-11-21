@@ -56,9 +56,8 @@ const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            string TypeOfInterest,
                                            vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg),
-      TypeOfInterest(TypeOfInterest),
-      EntryPoints(EntryPoints) {
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints),
+      TypeOfInterest(TypeOfInterest) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -73,8 +72,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
                                                              zeroValue());
         }
@@ -92,15 +90,14 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                    ->getType()
                                                    ->getPointerElementType()
                                                    ->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           // we have to generate from value that is loaded!
           struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
             const llvm::LoadInst *Load;
             TSFlowFunction(const llvm::LoadInst *L) : Load(L) {}
             ~TSFlowFunction() override = default;
-            set<IDETypeStateAnalysis::d_t> computeTargets(
-                IDETypeStateAnalysis::d_t source) override {
+            set<IDETypeStateAnalysis::d_t>
+            computeTargets(IDETypeStateAnalysis::d_t source) override {
               if (source == Load->getPointerOperand()) {
                 return {source, Load};
               }
@@ -117,15 +114,14 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           // perform a strong update!
           struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
             const llvm::StoreInst *Store;
             TSFlowFunction(const llvm::StoreInst *S) : Store(S) {}
             ~TSFlowFunction() override = default;
-            set<IDETypeStateAnalysis::d_t> computeTargets(
-                IDETypeStateAnalysis::d_t source) override {
+            set<IDETypeStateAnalysis::d_t>
+            computeTargets(IDETypeStateAnalysis::d_t source) override {
               if (source == Store->getPointerOperand()) {
                 return {};
               }
@@ -252,13 +248,12 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           if (currNode == zeroValue() && succNode == Alloca) {
             struct TSEdgeFunctionImpl : public TSEdgeFunction {
               TSEdgeFunctionImpl() {}
-              IDETypeStateAnalysis::v_t computeTarget(
-                  IDETypeStateAnalysis::v_t source) override {
+              IDETypeStateAnalysis::v_t
+              computeTarget(IDETypeStateAnalysis::v_t source) override {
                 return State::UNINIT;
               }
             };
@@ -298,8 +293,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
       struct TSEdgeFunctionImpl : public TSEdgeFunction {
         TSEdgeFunctionImpl() {}
-        IDETypeStateAnalysis::v_t computeTarget(
-            IDETypeStateAnalysis::v_t source) override {
+        IDETypeStateAnalysis::v_t
+        computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
           return State::OPENED;
         }
@@ -315,9 +310,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     if ((callNode == retSiteNode && callNode == CS.getArgOperand(0)) ||
         (llvm::isa<llvm::LoadInst>(CS.getArgOperand(0)) &&
          callNode == retSiteNode &&
-         callNode ==
-             llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))
-                 ->getPointerOperand())) {
+         callNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))
+                         ->getPointerOperand())) {
       cout << "fclose processing for: ";
       printDataFlowFact(cout, callNode);
       cout << endl;
@@ -325,8 +319,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         TSEdgeFunctionImpl() {
           cout << "make edge function for fclose()" << endl;
         }
-        IDETypeStateAnalysis::v_t computeTarget(
-            IDETypeStateAnalysis::v_t source) override {
+        IDETypeStateAnalysis::v_t
+        computeTarget(IDETypeStateAnalysis::v_t source) override {
           cout << "computeTarget()" << endl;
           // TODO insert automaton as fclose() is a consuming function
           return State::CLOSED;
@@ -352,8 +346,9 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::join(
-    IDETypeStateAnalysis::v_t lhs, IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::v_t
+IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
+                           IDETypeStateAnalysis::v_t rhs) {
   // we use the following lattice
   //                BOT = all information
   //
@@ -392,27 +387,27 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
 void IDETypeStateAnalysis::printValue(ostream &os,
                                       IDETypeStateAnalysis::v_t v) const {
   switch (v) {
-    case State::TOP:
-      os << "TOP";
-      break;
-    case State::UNINIT:
-      os << "UNINIT";
-      break;
-    case State::OPENED:
-      os << "OPENED";
-      break;
-    case State::CLOSED:
-      os << "CLOSED";
-      break;
-    case State::ERROR:
-      os << "ERROR";
-      break;
-    case State::BOT:
-      os << "BOT";
-      break;
-    default:
-      assert(false && "received unknown state!");
-      break;
+  case State::TOP:
+    os << "TOP";
+    break;
+  case State::UNINIT:
+    os << "UNINIT";
+    break;
+  case State::OPENED:
+    os << "OPENED";
+    break;
+  case State::CLOSED:
+    os << "CLOSED";
+    break;
+  case State::ERROR:
+    os << "ERROR";
+    break;
+  case State::BOT:
+    os << "BOT";
+    break;
+  default:
+    assert(false && "received unknown state!");
+    break;
   }
 }
 
@@ -470,4 +465,4 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
   return this == other.get();
 }
 
-}  // namespace psr
+} // namespace psr

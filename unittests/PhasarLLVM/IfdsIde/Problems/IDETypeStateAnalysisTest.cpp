@@ -74,18 +74,14 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_3) {
   LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
       *TSProblem, true, true);
 
-			
   llvmtssolver.solve();
   // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
   // compareResults(gt, llvmtssolver);
 }
 
-
 /* ============== BRANCH TESTS ============== */
 
-
 /* ============== CALL TESTS ============== */
-
 
 // main function for the test case
 int main(int argc, char **argv) {
