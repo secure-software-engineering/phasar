@@ -2,6 +2,9 @@
 
 Phasar a LLVM-based Static Analysis Framework
 =============================================
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
+
 Version 1118
 
 Secure Software Engineering Group
