@@ -221,7 +221,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
-        IDETypeStateAnalysis typestateproblem(ICFG, EntryPoints);
+        IDETypeStateAnalysis typestateproblem(ICFG, "struct._IO_FILE", EntryPoints);
         LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
             llvmtypestatesolver(typestateproblem, true);
         llvmtypestatesolver.solve();
