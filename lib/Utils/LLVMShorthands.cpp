@@ -55,7 +55,7 @@ constexpr unsigned int str2int(const char* str, int h = 0)
     return !str[h] ? 5381 : (str2int(str,h+1)*33) ^ str[h];
 }
 
-FuncType SpecialMemberFunctionType(const std::string &s) {
+FuncType specialMemberFunctionType(const std::string &s) {
   // test if Codes for Constructors, Destructors or operator= are in string
   std::vector<std::string> codes{"C1", "C2", "C3",      "D0",
                                  "D1", "D2", "aSERKS_", "aSEOS_"};
@@ -119,9 +119,9 @@ FuncType SpecialMemberFunctionType(const std::string &s) {
   return FuncType::none;
 }
 
-FuncType SpecialMemberFunctionType(const llvm::StringRef& sr)
+FuncType specialMemberFunctionType(const llvm::StringRef& sr)
 {
-  return SpecialMemberFunctionType(sr.str());
+  return specialMemberFunctionType(sr.str());
 }
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {

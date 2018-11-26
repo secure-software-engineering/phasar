@@ -50,9 +50,9 @@ constexpr unsigned int str2int(const char* str, int h);
  * @param s Mangled function name.
  * @return Returns an enum element of FuncType.
  */
-FuncType SpecialMemberFunctionType(const std::string& s);
+FuncType specialMemberFunctionType(const std::string& s);
 
-FuncType SpecialMemberFunctionType(const llvm::StringRef& sr);
+FuncType specialMemberFunctionType(const llvm::StringRef& sr);
 
 /**
  * @brief Checks if the given LLVM Value is a LLVM Function Pointer.
