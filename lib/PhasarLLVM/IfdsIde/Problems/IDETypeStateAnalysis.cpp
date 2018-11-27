@@ -66,6 +66,9 @@ const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
     {"feof", 10},    {"ferror", 11},   {"ungetc", 12},   {"fflush", 13},  {"fseek", 14},
     {"ftell", 15},   {"rewind", 16},   {"fgetpos", 17},  {"fsetpos", 18}};*/
 
+// STDIO functions the first parameter is the operation, the second is where the file handler is called
+// -1 is a special case for fopen because it has no file handler in it's operation
+// -2 is for all other operations which has no file handler in it's operation like putchar
     const std::map<std::string, int> IDETypeStateAnalysis::STDIOFunctions = {
     {"fopen", -1},   {"fclose", 0},   {"freopen", 2},  {"fgetc", 0},   {"fputc", 1},
     {"putchar", -2}, {"_IO_getc", 0}, {"_I0_putc", 1}, {"fprintf",  0}, {"__isoc99_fscanf", 0},
@@ -307,6 +310,25 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
+
+      /*if(exitNode == State::CLOSED && retNode == State::CLOSED)
+      {
+          return State::CLOSED;
+      }*/
+
+      cout << "ExitNode:" << endl;
+      exitNode->print(llvm::outs());
+      cout << endl;
+      cout << "ReturnNode:" << endl;
+      retNode->print(llvm::outs());
+      cout << endl;
+      cout << "CallSite:" << endl;
+      callSite->print(llvm::outs());
+      cout << endl;
+      cout << "calleeMethod:" << endl;
+      calleeMethod->print(llvm::outs());
+      cout << endl;
+
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -337,7 +359,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   // operate on them, model their behavior using a finite state machine.
   //if (CS.getCalledFunction()->getName() == "fclose") {
   for(auto i : STDIOFunctions){  
-    if (CS.getCalledFunction()->getName() == i.first/*"fclose"*/) {
+    if (i.second >= 0 && CS.getCalledFunction()->getName() == i.first/*"fclose"*/) {
       // Handle parameter itself
       if (callNode == retSiteNode && callNode == CS.getArgOperand(i.second) || (llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) && callNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second))->getPointerOperand()) {
         /**//*if(CS.getArgOperand(i.second) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second)))
