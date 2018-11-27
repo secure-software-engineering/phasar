@@ -16,7 +16,8 @@ protected:
 };
 
 TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"}, IRDBOptions::WPA);
+  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"},
+                   IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});

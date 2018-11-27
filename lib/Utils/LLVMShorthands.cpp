@@ -14,6 +14,7 @@
  *      Author: philipp
  */
 
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/CallSite.h>
@@ -23,7 +24,6 @@
 #include <llvm/IR/Module.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
-#include <llvm/ADT/StringRef.h>
 
 #include <boost/algorithm/string/trim.hpp>
 
@@ -50,48 +50,28 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
-constexpr unsigned int str2int(const char* str, int h = 0)
-{
-    return !str[h] ? 5381 : (str2int(str,h+1)*33) ^ str[h];
-}
-
-FuncType specialMemberFunctionType(const std::string &s) {
+SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
   // test if Codes for Constructors, Destructors or operator= are in string
-  std::vector<std::string> codes{"C1", "C2", "C3",      "D0",
-                                 "D1", "D2", "aSERKS_", "aSEOS_"};
-  std::vector<std::pair<std::size_t, FuncType>> found;
-  for (auto x : codes) {
-    std::size_t index = s.find(x);
-
-    if (index != std::string::npos) {
-      switch (str2int(x.c_str())) {
-      case (str2int("C1")):
-      case (str2int("C2")):
-      case (str2int("C3")):
-        found.push_back(
-            std::pair<std::size_t, FuncType>(index, FuncType::ctor));
-        break;
-      case (str2int("D0")):
-      case (str2int("D1")):
-      case (str2int("D2")):
-        found.push_back(
-            std::pair<std::size_t, FuncType>(index, FuncType::dtor));
-        break;
-      case (str2int("aSERKS_")):
-        found.push_back(
-            std::pair<std::size_t, FuncType>(index, FuncType::cpyasmtopr));
-        break;
-      case (str2int("aSEOS_")):
-        found.push_back(
-            std::pair<std::size_t, FuncType>(index, FuncType::movasmtopr));
-        break;
+  static const std::map<std::string, SpecialMemberFunctionTy> codes{
+      {"C1", SpecialMemberFunctionTy::CTOR},
+      {"C2", SpecialMemberFunctionTy::CTOR},
+      {"C3", SpecialMemberFunctionTy::CTOR},
+      {"D0", SpecialMemberFunctionTy::DTOR},
+      {"D1", SpecialMemberFunctionTy::DTOR},
+      {"D2", SpecialMemberFunctionTy::DTOR},
+      {"aSERKS_", SpecialMemberFunctionTy::CPASSIGNOP},
+      {"aSEOS_", SpecialMemberFunctionTy::MVASSIGNOP}};
+  std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> found;
+  for (auto &code : codes) {
+    if (std::size_t index = s.find(code.first)) {
+      if (index != std::string::npos) {
+        found.push_back(std::make_pair(index, code.second));
       }
     }
   }
   if (found.empty()) {
-    return FuncType::none;
+    return SpecialMemberFunctionTy::NONE;
   }
-
   // test if codes are in function name or type information
   bool noName = true;
   for (auto index : found) {
@@ -116,11 +96,10 @@ FuncType specialMemberFunctionType(const std::string &s) {
       noName = true;
     }
   }
-  return FuncType::none;
+  return SpecialMemberFunctionTy::NONE;
 }
 
-FuncType specialMemberFunctionType(const llvm::StringRef& sr)
-{
+SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &sr) {
   return specialMemberFunctionType(sr.str());
 }
 
