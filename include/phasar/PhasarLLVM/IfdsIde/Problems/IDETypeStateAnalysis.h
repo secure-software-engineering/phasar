@@ -67,7 +67,8 @@ public:
 
 private:
   std::vector<std::string> EntryPoints;
-  static const std::set<std::string> STDIOFunctions;
+  //static const std::set<std::string> STDIOFunctions;
+  static const std::map<std::string,int> STDIOFunctions;
 
 public:
   static const State TOP;
@@ -173,6 +174,17 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    //Test
+    /*const IDETypeStateAnalysis & getState() const
+    {
+      return value;
+    }
+
+    void setState(const IDETypeStateAnalysis & laststate)
+    {
+      value = laststate;
+    }*/
+
   };
 };
 
