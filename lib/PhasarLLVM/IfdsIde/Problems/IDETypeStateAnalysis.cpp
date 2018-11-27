@@ -66,9 +66,9 @@ const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
     {"feof", 10},    {"ferror", 11},   {"ungetc", 12},   {"fflush", 13},  {"fseek", 14},
     {"ftell", 15},   {"rewind", 16},   {"fgetpos", 17},  {"fsetpos", 18}};*/
 
-    const std::map<std::string, unsigned> IDETypeStateAnalysis::STDIOFunctions = {
-    {"fopen", 0},   {"fclose", 0},   {"freopen", 2},  {"fgetc", 0},   {"fputc", 1},
-    {"_IO_getc", 0}, {"_I0_putc", 1}, {"fprintf",  0}, {"__isoc99_fscanf", 0},
+    const std::map<std::string, int> IDETypeStateAnalysis::STDIOFunctions = {
+    {"fopen", -1},   {"fclose", 0},   {"freopen", 2},  {"fgetc", 0},   {"fputc", 1},
+    {"putchar", -2}, {"_IO_getc", 0}, {"_I0_putc", 1}, {"fprintf",  0}, {"__isoc99_fscanf", 0},
     {"feof", 0},    {"ferror", 0},   {"ungetc", 1},   {"fflush", 0},  {"fseek", 0},
     {"ftell", 0},   {"rewind", 0},   {"fgetpos", 0},  {"fsetpos", 0}};
 
@@ -339,7 +339,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   for(auto i : STDIOFunctions){  
     if (CS.getCalledFunction()->getName() == i.first/*"fclose"*/) {
       // Handle parameter itself
-      if (callNode == retSiteNode && callNode == CS.getArgOperand(i.second)) {
+      if (callNode == retSiteNode && callNode == CS.getArgOperand(i.second) || (llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) && callNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second))->getPointerOperand()) {
         /**//*if(CS.getArgOperand(i.second) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second)))
         {
           cout << "Test:" << endl;
@@ -361,6 +361,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         llvm::outs() << '\n';*/
         // Hier muss noch die übergabe des close an allocaanweisung geschehen über computeTarget den source von llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSED
 
+
         /*for(auto Callee : callees){
 
           cout << "Callee:" << endl;
@@ -374,6 +375,11 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         cout << " fclose processing for: ";
         printDataFlowFact(cout, callNode);
         cout << endl;
+        //test
+        /*if(CS.getArgOperand(i.second) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second)))
+        {
+          // Hier muss die Funktion das llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSE über computeTarget setzen
+        }*/
         struct TSEdgeFunctionImpl : public TSEdgeFunction {
           TSEdgeFunctionImpl() {
             cout << "make edge function for fclose()" << endl;
