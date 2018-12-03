@@ -31,41 +31,43 @@ class Instruction;
 namespace psr {
 
 class LLVMBasedCFG
-    : public CFG<const llvm::Instruction *, const llvm::Function *> {
+    : public virtual CFG<const llvm::Instruction *, const llvm::Function *> {
 public:
   LLVMBasedCFG() = default;
 
-  virtual ~LLVMBasedCFG() = default;
+  ~LLVMBasedCFG() override = default;
 
-  virtual const llvm::Function *
-  getMethodOf(const llvm::Instruction *stmt) override;
+  const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
 
-  virtual std::vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *stmt) override;
 
-  virtual std::vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getSuccsOf(const llvm::Instruction *stmt) override;
 
-  virtual std::vector<
-      std::pair<const llvm::Instruction *, const llvm::Instruction *>>
+  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  virtual std::vector<const llvm::Instruction *>
+  std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *fun) override;
 
-  virtual bool isExitStmt(const llvm::Instruction *stmt) override;
+  bool isExitStmt(const llvm::Instruction *stmt) override;
 
-  virtual bool isStartPoint(const llvm::Instruction *stmt) override;
+  bool isStartPoint(const llvm::Instruction *stmt) override;
 
-  virtual bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                      const llvm::Instruction *succ) override;
+  bool isFieldLoad(const llvm::Instruction *stmt) override;
 
-  virtual bool isBranchTarget(const llvm::Instruction *stmt,
+  bool isFieldStore(const llvm::Instruction *stmt) override;
+
+  bool isFallThroughSuccessor(const llvm::Instruction *stmt,
                               const llvm::Instruction *succ) override;
 
-  virtual std::string getStatementId(const llvm::Instruction *stmt) override;
+  bool isBranchTarget(const llvm::Instruction *stmt,
+                      const llvm::Instruction *succ) override;
 
-  virtual std::string getMethodName(const llvm::Function *fun) override;
+  std::string getStatementId(const llvm::Instruction *stmt) override;
+
+  std::string getMethodName(const llvm::Function *fun) override;
 };
 
 } // namespace psr

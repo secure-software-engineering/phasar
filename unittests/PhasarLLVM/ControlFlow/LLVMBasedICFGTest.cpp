@@ -1,33 +1,40 @@
 #include <gtest/gtest.h>
-#include <llvm/IR/InstIterator.h>
+
+#include <string>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 using namespace std;
 using namespace psr;
 
-TEST(LLVMBasedCFGTest, DISABLED_FallThroughSuccTest) {
-  // LLVMBasedCFG cfg;
-  // ProjectIRDB
-  // IRDB({"../../../../test/llvm_test_code/control_flow/branch.ll"}); auto F =
-  // IRDB.getFunction("main");
-  //
-  // // HANDLING CONDITIONAL BRANCH
-  // // br i1 %5, label %6, label %9
-  // auto BranchInst = getNthTermInstruction(F, 1);
-  // // %7 = load i32, i32* %3, align 4
-  // ASSERT_FALSE(
-  //     cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F, 10)));
-  // // %10 = load i32, i32* %3, align 4
-  // ASSERT_TRUE(cfg.isFallThroughSuccessor(BranchInst, getNthInstruction(F,
-  // 14)));
-  //
-  // // HANDLING UNCONDITIONAL BRANCH
-  // // br label %12
-  // BranchInst = getNthTermInstruction(F, 2);
-  // // ret i32 0
-  // ASSERT_TRUE(
-  //     cfg.isFallThroughSuccessor(BranchInst, getNthTermInstruction(F, 4)));
+class LLVMBasedICFGTest : public ::testing::Test {
+protected:
+  const std::string pathToLLFiles =
+      PhasarDirectory + "build/test/llvm_test_code/";
+};
+
+TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
+  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"},
+                   IRDBOptions::WPA);
+  IRDB.preprocessIR();
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
+  llvm::Function *F = IRDB.getFunction("main");
+  llvm::Function *Foo = IRDB.getFunction("foo");
+  ASSERT_TRUE(F);
+  ASSERT_TRUE(Foo);
+  // iterate all instructions
+  for (auto &BB : *F) {
+    for (auto &I : BB) {
+      // inspect call-sites
+      if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
+        llvm::ImmutableCallSite CS(&I);
+        ASSERT_FALSE(ICFG.isVirtualFunctionCall(CS));
+      }
+    }
+  }
 }
 
 int main(int argc, char **argv) {
