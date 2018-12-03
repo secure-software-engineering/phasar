@@ -62,25 +62,23 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
       {"aSERKS_", SpecialMemberFunctionTy::CPASSIGNOP},
       {"aSEOS_", SpecialMemberFunctionTy::MVASSIGNOP}};
   std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> found;
-  std::size_t blacklist=0;
+  std::size_t blacklist = 0;
   auto it = codes.begin();
-  while(it!=codes.end()) {
-    if (std::size_t index = s.find(it->first,blacklist)) {
+  while (it != codes.end()) {
+    if (std::size_t index = s.find(it->first, blacklist)) {
       if (index != std::string::npos) {
         found.push_back(std::make_pair(index, it->second));
-        blacklist = index+1;
-      }
-      else
-      {
+        blacklist = index + 1;
+      } else {
         ++it;
-        blacklist=0;
+        blacklist = 0;
       }
     }
   }
   if (found.empty()) {
     return SpecialMemberFunctionTy::NONE;
   }
-  
+
   // test if codes are in function name or type information
   bool noName = true;
   for (auto index : found) {

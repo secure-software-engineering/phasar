@@ -180,6 +180,54 @@ TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   ASSERT_EQ(succsOfCallInst, Successors);
 }
 
+TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({pathToLLFiles + "fields/array_1_cpp.ll"});
+  auto F = IRDB.getFunction("main");
+  auto Inst = getNthInstruction(F, 1);
+  ASSERT_FALSE(cfg.isFieldLoad(Inst));
+  Inst = getNthInstruction(F, 6);
+  ASSERT_TRUE(cfg.isFieldLoad(Inst));
+}
+
+TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({pathToLLFiles + "fields/array_1_cpp.ll"});
+  auto F = IRDB.getFunction("main");
+  auto Inst = getNthInstruction(F, 1);
+  ASSERT_FALSE(cfg.isFieldStore(Inst));
+  Inst = getNthInstruction(F, 9);
+  ASSERT_TRUE(cfg.isFieldStore(Inst));
+}
+
+TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({pathToLLFiles + "fields/field_1_cpp.ll"});
+  auto F = IRDB.getFunction("main");
+  auto Inst = getNthInstruction(F, 1);
+  ASSERT_FALSE(cfg.isFieldLoad(Inst));
+  Inst = getNthInstruction(F, 11);
+  ASSERT_TRUE(cfg.isFieldLoad(Inst));
+  Inst = getNthInstruction(F, 15);
+  ASSERT_TRUE(cfg.isFieldLoad(Inst));
+  Inst = getNthInstruction(F, 19);
+  ASSERT_TRUE(cfg.isFieldLoad(Inst));
+}
+
+TEST_F(LLVMBasedCFGTest, HandleFieldStoreField) {
+  LLVMBasedCFG cfg;
+  ProjectIRDB IRDB({pathToLLFiles + "fields/field_1_cpp.ll"});
+  auto F = IRDB.getFunction("main");
+  auto Inst = getNthInstruction(F, 1);
+  ASSERT_FALSE(cfg.isFieldStore(Inst));
+  Inst = getNthInstruction(F, 5);
+  ASSERT_TRUE(cfg.isFieldStore(Inst));
+  Inst = getNthInstruction(F, 7);
+  ASSERT_TRUE(cfg.isFieldStore(Inst));
+  Inst = getNthInstruction(F, 9);
+  ASSERT_TRUE(cfg.isFieldStore(Inst));
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

@@ -27,7 +27,7 @@ using namespace psr;
 namespace psr {
 
 const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) {
-  return stmt->getParent()->getParent();
+  return stmt->getFunction();
 }
 
 vector<const llvm::Instruction *>
@@ -58,8 +58,9 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) {
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) {
   vector<const llvm::Instruction *> Successors;
-  if (I->getNextNode())
+  if (I->getNextNode()) {
     Successors.push_back(I->getNextNode());
+  }
   if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
     for (auto successor : T->successors()) {
       Successors.push_back(&*successor->begin());
@@ -102,8 +103,9 @@ bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *stmt) {
 }
 
 bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *stmt) {
-if (auto Load = llvm::dyn_cast<llvm::LoadInst>(stmt)) {
-    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand())) {
+  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(stmt)) {
+    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
+            Load->getPointerOperand())) {
       return true;
     }
   }
@@ -112,7 +114,8 @@ if (auto Load = llvm::dyn_cast<llvm::LoadInst>(stmt)) {
 
 bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(stmt)) {
-    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Store->getPointerOperand())) {
+    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
+            Store->getPointerOperand())) {
       return true;
     }
   }
@@ -121,6 +124,7 @@ bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) {
 
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
                                           const llvm::Instruction *succ) {
+  // assert(false && "FallThrough not valid in LLVM IR");
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == succ;

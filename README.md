@@ -2,7 +2,10 @@
 
 Phasar a LLVM-based Static Analysis Framework
 =============================================
-Version 1.1
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
+
+Version 1218
 
 Secure Software Engineering Group
 ---------------------------------
@@ -121,6 +124,33 @@ In case you would like to analyze larger programs adjust the stack size limit to
 limit to 16 MB:
 
 `$ ulimit -s 16777216`
+
+
+Be careful when analyzing code that contains C-style variadic functions. Depending on your flow function
+implementations PhASAR may crash. Observe the following example:
+```C++
+int sum(int n, ...) {
+	int s = 0;
+	va_list args;
+	va_start(args, n);
+	for (int i = 0; i < n; ++i) {
+		s += va_arg(args, int);
+	}
+	va_end(args);
+	return s;
+}
+
+int main() {
+	int s = sum(5 /* num args */, /* the actual args: */ 1, 2, 3, 4, 5);
+	printf("%d\n", s);
+	return 0;
+}
+```
+The problem is that - if not handled carefully - the getCallFlowFunction() tries to map
+more actual parameters into the callee than there are formal parameters (according to
+LLVM sum has one formal parameter). Please have a look at our auto-mapping LLVM-based
+flow function implementations `MapFactsToCallee` and `MapFactsToCaller` where we are using
+a sound over-approximation. You may wish to use a similar treatment for your application.
 
 
 Installation

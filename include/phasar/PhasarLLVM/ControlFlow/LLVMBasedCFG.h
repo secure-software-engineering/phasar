@@ -26,30 +26,30 @@
 namespace llvm {
 class Function;
 class Instruction;
-}  // namespace llvm
+} // namespace llvm
 
 namespace psr {
 
 class LLVMBasedCFG
-    : public CFG<const llvm::Instruction *, const llvm::Function *> {
- public:
+    : public virtual CFG<const llvm::Instruction *, const llvm::Function *> {
+public:
   LLVMBasedCFG() = default;
 
   ~LLVMBasedCFG() override = default;
 
   const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
 
-  std::vector<const llvm::Instruction *> getPredsOf(
-      const llvm::Instruction *stmt) override;
+  std::vector<const llvm::Instruction *>
+  getPredsOf(const llvm::Instruction *stmt) override;
 
-  std::vector<const llvm::Instruction *> getSuccsOf(
-      const llvm::Instruction *stmt) override;
+  std::vector<const llvm::Instruction *>
+  getSuccsOf(const llvm::Instruction *stmt) override;
 
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *fun) override;
 
-  std::vector<const llvm::Instruction *> getAllInstructionsOf(
-      const llvm::Function *fun) override;
+  std::vector<const llvm::Instruction *>
+  getAllInstructionsOf(const llvm::Function *fun) override;
 
   bool isExitStmt(const llvm::Instruction *stmt) override;
 
@@ -70,6 +70,6 @@ class LLVMBasedCFG
   std::string getMethodName(const llvm::Function *fun) override;
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif
