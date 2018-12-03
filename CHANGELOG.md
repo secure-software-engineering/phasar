@@ -1,3 +1,14 @@
+# Improvements and API changes in Version 1218
+
++ Various bugfixes and minor improvements
+
++ Added isFieldLoad()/isFieldStore() functionalities to control-flow infrastructure
+
++ Added backward-control-flow capabilities to enable backward analysis (additional unittests have to be written)
+
++ Implemented isSpecialMemberFunction()
+
+
 # Improvements and API changes in Version 1118
 
 + Added a prototypical IDETypeState analysis that checks the correctness of the <stdio.h> usage protocol for file handles.
