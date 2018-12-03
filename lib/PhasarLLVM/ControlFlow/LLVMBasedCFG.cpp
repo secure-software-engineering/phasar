@@ -101,6 +101,24 @@ bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *stmt) {
   return (stmt == &stmt->getFunction()->front().front());
 }
 
+bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *stmt) {
+if (auto Load = llvm::dyn_cast<llvm::LoadInst>(stmt)) {
+    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand())) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) {
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(stmt)) {
+    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Store->getPointerOperand())) {
+      return true;
+    }
+  }
+  return false;
+}
+
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
                                           const llvm::Instruction *succ) {
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {

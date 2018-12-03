@@ -41,6 +41,10 @@ public:
 
   virtual bool isStartPoint(N stmt) = 0;
 
+  virtual bool isFieldLoad(N stmt) = 0;
+  
+  virtual bool isFieldStore(N stmt) = 0;
+
   virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
 
   virtual bool isBranchTarget(N stmt, N succ) = 0;

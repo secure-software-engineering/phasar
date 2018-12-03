@@ -83,6 +83,16 @@ bool ICFGTestPlugin::isStartPoint(const llvm::Instruction *stmt) {
   return false;
 }
 
+bool ICFGTestPlugin::isFieldLoad(const llvm::Instruction *stmt) {
+throw logic_error("Not implemented yet!");
+  return false;
+}
+
+bool ICFGTestPlugin::isFieldStore(const llvm::Instruction *stmt) {
+throw logic_error("Not implemented yet!");
+  return false;
+}
+
 bool ICFGTestPlugin::isFallThroughSuccessor(const llvm::Instruction *stmt,
                                             const llvm::Instruction *succ) {
   throw logic_error("Not implemented yet!");

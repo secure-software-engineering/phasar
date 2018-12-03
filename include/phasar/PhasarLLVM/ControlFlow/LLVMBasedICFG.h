@@ -117,7 +117,7 @@ public:
                 const llvm::Module &M, CallGraphAnalysisType CGType,
                 std::vector<std::string> EntryPoints = {});
 
-  virtual ~LLVMBasedICFG() = default;
+  ~LLVMBasedICFG() override = default;
 
   bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 
@@ -172,6 +172,10 @@ public:
   getReturnSitesOfCallAt(const llvm::Instruction *n) override;
 
   bool isCallStmt(const llvm::Instruction *stmt) override;
+
+  bool isFieldLoad(const llvm::Instruction *stmt) override;
+
+  bool isFieldStore(const llvm::Instruction *stmt) override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() override;
 
