@@ -190,7 +190,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
-  cout << "ReturnFF" << endl;
+  
   // Just use the standard mapping
   return make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
@@ -309,14 +309,92 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
-    IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
+    IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retNode) {
 
       /*if(exitNode == State::CLOSED && retNode == State::CLOSED)
       {
           return State::CLOSED;
       }*/
 
-      cout << "ExitNode:" << endl;
+      /*llvm::ImmutableCallSite CS(callSite);
+      cout << "ImmutableCallSite" << endl;
+      //callSite = exitNode*/
+      /*if (CS.getCalledFunction()->getName() == "fclose") {
+        cout << "Hallo erreicht" << endl; //wird nicht erreicht
+        if (retNode == CS.getInstruction()) {
+          struct TSEdgeFunctionImpl : public TSEdgeFunction {
+            TSEdgeFunctionImpl() {}
+            IDETypeStateAnalysis::v_t
+            computeTarget(IDETypeStateAnalysis::v_t source) override {
+              cout << "computeTarget()" << endl;
+              return State::CLOSED;
+            }
+          };
+          return make_shared<TSEdgeFunctionImpl>();
+        }
+      }*/
+
+
+//       for(auto i : STDIOFunctions){  
+//    if (i.second >= 0 && CS.getCalledFunction()->getName() == i.first/*"fclose"*/) {
+//      cout << "A small test:"<< endl << i.first;  //kommt gar nicht hier hin???
+//      cout << endl;
+
+      // Handle parameter itself
+//      if (/*exitNode == retNode && */retNode == CS.getArgOperand(i.second) /*|| (llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) && exitNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second))->getPointerOperand()*/) {
+
+//        if(i.first == "fclose"){
+//        cout << " fclose processing for NEW: ";
+//        printDataFlowFact(cout, exitNode);
+//        cout << endl;
+        //test
+        /*if(CS.getArgOperand(i.second) == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(i.second)))
+        {
+          // Hier muss die Funktion das llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSE über computeTarget setzen
+        }*/
+//        struct TSEdgeFunctionImpl : public TSEdgeFunction {
+//          TSEdgeFunctionImpl() {
+//            cout << "make edge function for fclose()" << endl;
+//          }
+//          IDETypeStateAnalysis::v_t
+//          computeTarget(IDETypeStateAnalysis::v_t source) override {
+//            cout << "computeTarget()" << endl;
+            //if(i.first == "fclose"){
+//            return getNextState(Token::FCLOSE, source);//}
+            // TODO insert automaton as fclose() is a consuming function
+            //return State::CLOSED;
+//          }
+//        };
+//        return make_shared<TSEdgeFunctionImpl>();
+//        }
+        // Test vermutlich eleganter lösbar
+        /*else {
+        cout << " star processing for: ";
+        printDataFlowFact(cout, callNode);
+        cout << endl;
+        struct TSEdgeFunctionImpl : public TSEdgeFunction {
+          TSEdgeFunctionImpl() {
+            cout << "make edge function for starfunction()" << endl;
+          }
+          IDETypeStateAnalysis::v_t
+          computeTarget(IDETypeStateAnalysis::v_t source) override {
+            cout << "computeTarget()" << endl;
+            //if(i.first == "fclose"){
+            return getNextState(Token::STAR, source);//}
+            // TODO insert automaton as fclose() is a consuming function
+          }
+        };
+        return make_shared<TSEdgeFunctionImpl>();
+        }*/
+        // Test end
+//      }
+      // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
+      // the
+      // same state as the parameter of the consuming function
+//    }
+//  }
+
+      /*cout << "ExitNode:" << endl;
       exitNode->print(llvm::outs());
       cout << endl;
       cout << "ReturnNode:" << endl;
@@ -325,9 +403,18 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
       cout << "CallSite:" << endl;
       callSite->print(llvm::outs());
       cout << endl;
-      cout << "calleeMethod:" << endl;
-      calleeMethod->print(llvm::outs());
+      cout << "Second:" << endl;
+      CS.getArgOperand(0)->print(llvm::outs());
       cout << endl;
+            cout << "retSite:" << endl;
+      retSite->print(llvm::outs());
+      cout << endl;
+      cout << "exitStmt:" << endl;
+      exitStmt->print(llvm::outs());
+      cout << endl;
+      /*cout << "calleeMethod:" << endl;
+      calleeMethod->print(llvm::outs());
+      cout << endl;*/
 
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
@@ -402,6 +489,20 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         {
           // Hier muss die Funktion das llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSE über computeTarget setzen
         }*/
+
+        if(llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) {
+            for (auto U: callNode->users()){
+              if(auto SI = llvm::dyn_cast<llvm::StoreInst>(U)){
+                cout << "Anweisung:" << endl;
+                SI->print(llvm::outs());
+                llvm::outs() << '\n';
+                U->print(llvm::outs());
+                llvm::outs() << '\n';
+
+              }
+            }
+        }
+
         struct TSEdgeFunctionImpl : public TSEdgeFunction {
           TSEdgeFunctionImpl() {
             cout << "make edge function for fclose()" << endl;
@@ -441,6 +542,55 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
       // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
       // the
       // same state as the parameter of the consuming function
+    }
+  }
+
+  //testing works
+  for(auto i : STDIOFunctions){  
+    if (i.second >= 0 && CS.getCalledFunction()->getName() == i.first) {
+      // Handle parameter itself        
+      if(llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) {
+        for (auto U: callNode->users()){
+          if(auto SI = llvm::dyn_cast<llvm::StoreInst>(U)){
+
+            if(i.first == "fclose"){
+              cout << " fclose processing for: ";
+              printDataFlowFact(cout, callNode);
+              cout << endl;
+
+              struct TSEdgeFunctionImpl : public TSEdgeFunction {
+                TSEdgeFunctionImpl() {
+                cout << "make edge function for fclose()" << endl;
+                }
+                
+                IDETypeStateAnalysis::v_t
+                computeTarget(IDETypeStateAnalysis::v_t source) override {
+                  cout << "computeTarget()" << endl;
+                  return getNextState(Token::FCLOSE, source);
+                }
+              };
+              return make_shared<TSEdgeFunctionImpl>();
+            }
+            // Test vermutlich eleganter lösbar
+            else {
+              cout << " star processing for: ";
+              printDataFlowFact(cout, callNode);
+              cout << endl;
+              struct TSEdgeFunctionImpl : public TSEdgeFunction {
+                TSEdgeFunctionImpl() {
+                  cout << "make edge function for starfunction()" << endl;
+                }
+                IDETypeStateAnalysis::v_t
+                computeTarget(IDETypeStateAnalysis::v_t source) override {
+                  cout << "computeTarget()" << endl;
+                  return getNextState(Token::STAR, source);
+                }
+              };
+              return make_shared<TSEdgeFunctionImpl>();
+            }
+          }
+        }
+      }
     }
   }
   // Otherwise
