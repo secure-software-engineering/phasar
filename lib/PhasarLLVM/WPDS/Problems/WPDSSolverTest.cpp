@@ -137,4 +137,4 @@ void WPDSSolverTest::printValue(std::ostream &os, WPDSSolverTest::v_t v) const {
   }
 }
 
-}  // namespace psr
+} // namespace psr

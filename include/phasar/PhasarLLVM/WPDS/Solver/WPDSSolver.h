@@ -40,7 +40,7 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class WPDSSolver {
- private:
+private:
   WPDSProblem<N, D, M, V, I> &P;
   I ICFG;
   std::unique_ptr<wali::wpds::WPDS> PDS;
@@ -53,16 +53,13 @@ class WPDSSolver {
   wali::wfa::WFA Answer;
   wali::sem_elem_t SRElem;
 
- public:
+public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
-      : P(P),
-        ICFG(P.interproceduralCFG()),
+      : P(P), ICFG(P.interproceduralCFG()),
         // FIXME: use a FWPDS without witnesses for proof-of-concept
         // implementation
-        PDS(new wali::wpds::fwpds::FWPDS()),
-        ZeroValue(P.zeroValue()),
-        AcceptingState(wali::getKey("__accept")),
-        SRElem(nullptr) {
+        PDS(new wali::wpds::fwpds::FWPDS()), ZeroValue(P.zeroValue()),
+        AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
     DKey[ZeroValue] = wali::getKey(reinterpret_cast<size_t>(ZeroValue));
     PDSState = DKey[ZeroValue];
   }
@@ -205,19 +202,20 @@ class WPDSSolver {
         DKey[ZeroValue] = wali::getKey(reinterpret_cast<size_t>(ZeroValue));
         DKey[Value] = wali::getKey(reinterpret_cast<size_t>(Value));
         NKey[StartPoint] = wali::getKey(reinterpret_cast<size_t>(StartPoint));
-        wali::ref_ptr<EnvTrafoToSemElem<V>> 
-        wptr = new EnvTrafoToSemElem<V>(EdgeIdentity<V>::getInstance(), static_cast<JoinLattice<V> &>(P));
-        PDS->add_rule(DKey[ZeroValue], NKey[StartPoint], DKey[Value], NKey[StartPoint], wptr);
+        wali::ref_ptr<EnvTrafoToSemElem<V>> wptr = new EnvTrafoToSemElem<V>(
+            EdgeIdentity<V>::getInstance(), static_cast<JoinLattice<V> &>(P));
+        PDS->add_rule(DKey[ZeroValue], NKey[StartPoint], DKey[Value],
+                      NKey[StartPoint], wptr);
         // propagate facts along the ICFG
         propagate(ZeroValue, StartPoint, Value, nullptr, false);
       }
     }
   }
 
-  void propagate(
-      D sourceVal, N target, D targetVal,
-      /* deliberately exposed to clients */ N relatedCallSite,
-      /* deliberately exposed to clients */ bool isUnbalancedReturn) {
+  void
+  propagate(D sourceVal, N target, D targetVal,
+            /* deliberately exposed to clients */ N relatedCallSite,
+            /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     PathEdge<N, D> Edge(sourceVal, target, targetVal);
     pathEdgeProcessingTask(Edge);
   }
@@ -253,7 +251,7 @@ class WPDSSolver {
       //   std::cout << P.DtoString(r) << " || ";
       // }
       // std::cout << std::endl;
-      
+
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<V>> f =
             P.getNormalEdgeFunction(n, d2, m, d3);
@@ -408,6 +406,6 @@ class WPDSSolver {
   }
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

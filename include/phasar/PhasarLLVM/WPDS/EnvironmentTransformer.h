@@ -27,8 +27,7 @@ namespace psr {
  *
  * that is (R, +, 0) - is a join-semilattice with zero.
  */
-template <typename V>
-class EnvTrafoToSemElem : public wali::SemElem {
+template <typename V> class EnvTrafoToSemElem : public wali::SemElem {
 public:
   std::shared_ptr<EdgeFunction<V>> F;
   JoinLattice<V> &L;
@@ -48,8 +47,8 @@ public:
 
   wali::sem_elem_t zero() const override {
     // std::cout << "EnvTrafoToSemElem::zero()\n";
-    return wali::ref_ptr<EnvTrafoToSemElem<V>>(
-        new EnvTrafoToSemElem(std::make_shared<AllBottom<V>>(L.bottomElement()), L));
+    return wali::ref_ptr<EnvTrafoToSemElem<V>>(new EnvTrafoToSemElem(
+        std::make_shared<AllBottom<V>>(L.bottomElement()), L));
   }
 
   wali::sem_elem_t extend(SemElem *se) override {
@@ -82,6 +81,6 @@ std::ostream &operator<<(std::ostream &os, const EnvTrafoToSemElem<V> &ETS) {
   return os;
 }
 
-}  // namespace psr
+} // namespace psr
 
 #endif

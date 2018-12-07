@@ -82,8 +82,8 @@ WPDSLinearConstantAnalysis::getNormalFlowFunction(
         LCAFF(WPDSLinearConstantAnalysis::d_t PointerOperand,
               WPDSLinearConstantAnalysis::d_t ZeroValue)
             : PointerOp(PointerOperand), ZeroValue(ZeroValue) {}
-        set<WPDSLinearConstantAnalysis::d_t> computeTargets(
-            WPDSLinearConstantAnalysis::d_t source) override {
+        set<WPDSLinearConstantAnalysis::d_t>
+        computeTargets(WPDSLinearConstantAnalysis::d_t source) override {
           if (source == PointerOp) {
             return {};
           } else if (source == ZeroValue) {
@@ -102,8 +102,8 @@ WPDSLinearConstantAnalysis::getNormalFlowFunction(
         LCAFF(WPDSLinearConstantAnalysis::d_t PointerOperand,
               WPDSLinearConstantAnalysis::d_t ValueOperand)
             : PointerOp(PointerOperand), ValueOp(ValueOperand) {}
-        set<WPDSLinearConstantAnalysis::d_t> computeTargets(
-            WPDSLinearConstantAnalysis::d_t source) override {
+        set<WPDSLinearConstantAnalysis::d_t>
+        computeTargets(WPDSLinearConstantAnalysis::d_t source) override {
           if (source == PointerOp) {
             return {};
           } else if (source == ValueOp) {
@@ -168,19 +168,19 @@ WPDSLinearConstantAnalysis::getCallFlowFunction(
           formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
       }
-      set<WPDSLinearConstantAnalysis::d_t> computeTargets(
-          WPDSLinearConstantAnalysis::d_t source) override {
+      set<WPDSLinearConstantAnalysis::d_t>
+      computeTargets(WPDSLinearConstantAnalysis::d_t source) override {
         set<WPDSLinearConstantAnalysis::d_t> res;
         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
           // Ordinary case: Just perform mapping
           if (source == actuals[idx]) {
-            res.insert(formals[idx]);  // corresponding formal
+            res.insert(formals[idx]); // corresponding formal
           }
           // Special case: Check if function is called with integer literals as
           // parameter
           if (isLLVMZeroValue(source) &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
-            res.insert(formals[idx]);  // corresponding formal
+            res.insert(formals[idx]); // corresponding formal
           }
         }
         return res;
@@ -212,8 +212,8 @@ WPDSLinearConstantAnalysis::getRetFlowFunction(
       LCAFF(WPDSLinearConstantAnalysis::n_t cs,
             WPDSLinearConstantAnalysis::d_t retVal)
           : callSite(cs), ReturnValue(retVal) {}
-      set<WPDSLinearConstantAnalysis::d_t> computeTargets(
-          WPDSLinearConstantAnalysis::d_t source) override {
+      set<WPDSLinearConstantAnalysis::d_t>
+      computeTargets(WPDSLinearConstantAnalysis::d_t source) override {
         set<WPDSLinearConstantAnalysis::d_t> res;
         // Collect return value fact
         if (source == ReturnValue) {
@@ -281,7 +281,8 @@ WPDSLinearConstantAnalysis::getSummaryFlowFunction(
 //   return SeedMap;
 // }
 
-// WPDSLinearConstantAnalysis::d_t WPDSLinearConstantAnalysis::createZeroValue() {
+// WPDSLinearConstantAnalysis::d_t WPDSLinearConstantAnalysis::createZeroValue()
+// {
 //   // create a special value to represent the zero value!
 //   return LLVMZeroValue::getInstance();
 // }
@@ -368,21 +369,18 @@ WPDSLinearConstantAnalysis::getNormalEdgeFunction(
       LCAEF(const unsigned Op, WPDSLinearConstantAnalysis::d_t lop,
             WPDSLinearConstantAnalysis::d_t rop,
             WPDSLinearConstantAnalysis::d_t currNode)
-          : EdgeFunctionID(++WPDSLinearConstantAnalysis::CurrBinary_Id),
-            Op(Op),
-            lop(lop),
-            rop(rop),
-            currNode(currNode) {}
+          : EdgeFunctionID(++WPDSLinearConstantAnalysis::CurrBinary_Id), Op(Op),
+            lop(lop), rop(rop), currNode(currNode) {}
 
-      WPDSLinearConstantAnalysis::v_t computeTarget(
-          WPDSLinearConstantAnalysis::v_t source) override {
+      WPDSLinearConstantAnalysis::v_t
+      computeTarget(WPDSLinearConstantAnalysis::v_t source) override {
         auto &lg = lg::get();
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Left Op   : "
-                                               << llvmIRToString(lop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Right Op  : "
-                                               << llvmIRToString(rop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Curr Node : "
-                                               << llvmIRToString(currNode));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Left Op   : " << llvmIRToString(lop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Right Op  : " << llvmIRToString(rop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Curr Node : " << llvmIRToString(currNode));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
           auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
@@ -404,9 +402,9 @@ WPDSLinearConstantAnalysis::getNormalEdgeFunction(
             "Only linear constant propagation can be specified!");
       }
 
-      shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>> composeWith(
-          shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
-              secondFunction) override {
+      shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
+      composeWith(shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
+                      secondFunction) override {
         if (auto *EI =
                 dynamic_cast<EdgeIdentity<WPDSLinearConstantAnalysis::v_t> *>(
                     secondFunction.get())) {
@@ -419,9 +417,9 @@ WPDSLinearConstantAnalysis::getNormalEdgeFunction(
             this->shared_from_this(), secondFunction);
       }
 
-      shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>> joinWith(
-          shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
-              otherFunction) override {
+      shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
+      joinWith(shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
+                   otherFunction) override {
         if (otherFunction.get() == this ||
             otherFunction->equal_to(this->shared_from_this())) {
           return this->shared_from_this();
@@ -560,8 +558,9 @@ WPDSLinearConstantAnalysis::v_t WPDSLinearConstantAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-WPDSLinearConstantAnalysis::v_t WPDSLinearConstantAnalysis::join(
-    WPDSLinearConstantAnalysis::v_t lhs, WPDSLinearConstantAnalysis::v_t rhs) {
+WPDSLinearConstantAnalysis::v_t
+WPDSLinearConstantAnalysis::join(WPDSLinearConstantAnalysis::v_t lhs,
+                                 WPDSLinearConstantAnalysis::v_t rhs) {
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -573,13 +572,13 @@ WPDSLinearConstantAnalysis::v_t WPDSLinearConstantAnalysis::join(
   }
 }
 
- WPDSLinearConstantAnalysis::d_t WPDSLinearConstantAnalysis::zeroValue() {
-   return zerovalue;
- }
+WPDSLinearConstantAnalysis::d_t WPDSLinearConstantAnalysis::zeroValue() {
+  return zerovalue;
+}
 
 // shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
 // WPDSLinearConstantAnalysis::allTopFunction() {
-  // return make_shared<AllTop<WPDSLinearConstantAnalysis::v_t>>(TOP);
+// return make_shared<AllTop<WPDSLinearConstantAnalysis::v_t>>(TOP);
 // }
 
 shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
@@ -705,31 +704,31 @@ WPDSLinearConstantAnalysis::v_t WPDSLinearConstantAnalysis::executeBinOperation(
     WPDSLinearConstantAnalysis::v_t rop) {
   WPDSLinearConstantAnalysis::v_t res;
   switch (op) {
-    case llvm::Instruction::Add:
-      res = lop + rop;
-      break;
+  case llvm::Instruction::Add:
+    res = lop + rop;
+    break;
 
-    case llvm::Instruction::Sub:
-      res = lop - rop;
-      break;
+  case llvm::Instruction::Sub:
+    res = lop - rop;
+    break;
 
-    case llvm::Instruction::Mul:
-      res = lop * rop;
-      break;
+  case llvm::Instruction::Mul:
+    res = lop * rop;
+    break;
 
-    case llvm::Instruction::UDiv:
-    case llvm::Instruction::SDiv:
-      res = lop / rop;
-      break;
+  case llvm::Instruction::UDiv:
+  case llvm::Instruction::SDiv:
+    res = lop / rop;
+    break;
 
-    case llvm::Instruction::URem:
-    case llvm::Instruction::SRem:
-      res = lop % rop;
-      break;
+  case llvm::Instruction::URem:
+  case llvm::Instruction::SRem:
+    res = lop % rop;
+    break;
 
-    default:
-      throw runtime_error("Could not execute unknown operation '" +
-                          to_string(op) + "'!");
+  default:
+    throw runtime_error("Could not execute unknown operation '" +
+                        to_string(op) + "'!");
   }
   return res;
 }
@@ -799,4 +798,4 @@ void WPDSLinearConstantAnalysis::printValue(
   os << ((v == BOTTOM) ? "Bottom" : to_string(v));
 }
 
-}  // namespace psr
+} // namespace psr

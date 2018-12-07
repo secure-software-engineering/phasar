@@ -12,7 +12,7 @@ using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
 class WPDSLinearConstantAnalysisTest : public ::testing::Test {
- protected:
+protected:
   const std::string pathToLLFiles =
       PhasarDirectory + "build/test/llvm_test_code/linear_constant/";
   const std::vector<std::string> EntryPoints = {"main"};
@@ -71,7 +71,7 @@ class WPDSLinearConstantAnalysisTest : public ::testing::Test {
   //   }
   //   EXPECT_EQ(results, groundTruth);
   // }
-};  // Test Fixture
+}; // Test Fixture
 
 // /* ============== BASIC TESTS ============== */
 // TEST_F(WPDSLinearConstantAnalysisTest, HandleBasicTest_01) {

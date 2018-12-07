@@ -16,8 +16,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace psr {
 
