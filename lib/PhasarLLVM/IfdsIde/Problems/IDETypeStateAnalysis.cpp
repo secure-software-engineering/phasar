@@ -490,7 +490,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
           // Hier muss die Funktion das llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))->getPointerOperand() auf CLOSE über computeTarget setzen
         }*/
 
-        if(llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) {
+        /*if(llvm::isa<llvm::LoadInst>(CS.getArgOperand(i.second))) {
             for (auto U: callNode->users()){
               if(auto SI = llvm::dyn_cast<llvm::StoreInst>(U)){
                 cout << "Anweisung:" << endl;
@@ -501,7 +501,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
               }
             }
-        }
+        }*/
 
         struct TSEdgeFunctionImpl : public TSEdgeFunction {
           TSEdgeFunctionImpl() {
@@ -518,6 +518,24 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
         };
         return make_shared<TSEdgeFunctionImpl>();
         }
+
+        else if(i.first=="freopen"){
+          cout << " freopen processing for: ";
+          printDataFlowFact(cout, callNode);
+          cout << endl;
+          struct TSEdgeFunctionImpl : public TSEdgeFunction {
+            TSEdgeFunctionImpl() {
+              cout << "make edge function for freopenfunction()" << endl;
+            }
+            IDETypeStateAnalysis::v_t
+            computeTarget(IDETypeStateAnalysis::v_t source) override {
+              cout << "computeTarget()" << endl;
+              return getNextState(Token::FREOPEN, source);
+          }
+        };
+        return make_shared<TSEdgeFunctionImpl>();
+        }
+        
         // Test vermutlich eleganter lösbar
         else {
         cout << " star processing for: ";
@@ -571,6 +589,24 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
               };
               return make_shared<TSEdgeFunctionImpl>();
             }
+
+            else if(i.first=="freopen"){
+              cout << " freopen processing for: ";
+              printDataFlowFact(cout, callNode);
+              cout << endl;
+              struct TSEdgeFunctionImpl : public TSEdgeFunction {
+                TSEdgeFunctionImpl() {
+                  cout << "make edge function for freopenfunction()" << endl;
+                }
+                IDETypeStateAnalysis::v_t
+                computeTarget(IDETypeStateAnalysis::v_t source) override {
+                  cout << "computeTarget()" << endl;
+                  return getNextState(Token::FREOPEN, source);
+                }
+              };
+              return make_shared<TSEdgeFunctionImpl>();
+            }
+
             // Test vermutlich eleganter lösbar
             else {
               cout << " star processing for: ";
