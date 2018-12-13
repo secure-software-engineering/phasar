@@ -215,8 +215,13 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
                                                        zeroValue());
   }
   // Handle all functions that are not modeld with special semantics
-  /*if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
-                CalleeNames.begin(), CalleeNames.end())) {
+  bool calleeContainsSpecialFunction = 0;
+  for (const std::string &CalleeName : CalleeNames) {
+    if (STDIOFunctions.count(CalleeName)) {
+      calleeContainsSpecialFunction = 1;
+    }
+  }
+  if (!calleeContainsSpecialFunction) {
     // Pass all data-flow facts to STDIOFunctions as identity.
     // Kill actual parameters of type '%struct._IO_FILE*' as these
     // data-flow facts are (inter-procedurally) propagated via
@@ -233,7 +238,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
         }
       }
     }
-  }*/
+  }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
 }
 
@@ -606,6 +611,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
               };
               return make_shared<TSEdgeFunctionImpl>();
             }
+
+            // TODO handle fopen()
 
             // Test vermutlich eleganter lösbar
             else {
