@@ -8,6 +8,11 @@ cache:
   directories:
     - $TRAVIS_BUILD_DIR/boost_1_67_0/
 
+addons:
+  homebrew:
+    update: true
+    brewfile: true
+
 matrix:
   include:
   - os: linux
@@ -38,11 +43,10 @@ matrix:
           - libmysqlcppconn-dev
     env:
       - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-  # TODO decomment, when C++17 can be used on OSX (LLVM has been updated)
-  # - os: osx
-  #   osx_image: xcode8
-  #   env:
-  #     - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+   - os: osx
+     osx_image: xcode8
+     env:
+       - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
 
 branches:
     - development
@@ -58,7 +62,6 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - echo "checking C++ compiler"; clang++ --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; travis_wait 40 brew bundle ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
   # Initialize all submodules
@@ -69,7 +72,6 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
 
 # commands that need to be run before execution
-# before_script
 
 # build all interesting targets
 script:
