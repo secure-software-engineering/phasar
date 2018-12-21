@@ -15,12 +15,12 @@
 namespace llvm {
 class Module;
 class AnalysisUsage;
-}  // namespace llvm
+} // namespace llvm
 
 namespace psr {
 
 class PhasarPrinterPass : public llvm::ModulePass {
- public:
+public:
   static char ID;
 
   explicit PhasarPrinterPass();
@@ -41,6 +41,6 @@ class PhasarPrinterPass : public llvm::ModulePass {
   void releaseMemory() override;
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

@@ -16,12 +16,12 @@ namespace llvm {
 class Module;
 class AnalysisUsage;
 class raw_ostream;
-}  // namespace llvm
+} // namespace llvm
 
 namespace psr {
 
 class PhasarPass : public llvm::ModulePass {
- public:
+public:
   static char ID;
 
   explicit PhasarPass();
@@ -44,6 +44,6 @@ class PhasarPass : public llvm::ModulePass {
   void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

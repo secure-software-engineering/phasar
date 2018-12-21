@@ -47,7 +47,7 @@ void PhasarPass::print(llvm::raw_ostream &O, const llvm::Module *M) const {
 }
 
 static llvm::RegisterPass<PhasarPass> phasar("phasar", "PhASAR Pass",
-                                         false /* Only looks at CFG */,
-                                         false /* Analysis Pass */);
+                                             false /* Only looks at CFG */,
+                                             false /* Analysis Pass */);
 
-}  // namespace psr
+} // namespace psr
