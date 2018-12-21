@@ -7,26 +7,27 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARPASS_PHASAR_H_
-#define PHASAR_PHASARPASS_PHASAR_H_
+#ifndef PHASAR_PHASARPASS_PHASARPASS_H_
+#define PHASAR_PHASARPASS_PHASARPASS_H_
 
 #include <llvm/Pass.h>
 
 namespace llvm {
 class Module;
 class AnalysisUsage;
+class raw_ostream;
 }  // namespace llvm
 
 namespace psr {
 
-class Phasar : public llvm::ModulePass {
+class PhasarPass : public llvm::ModulePass {
  public:
   static char ID;
 
-  explicit Phasar();
-  Phasar(const Phasar &) = delete;
-  Phasar &operator=(const Phasar &) = delete;
-  ~Phasar() override = default;
+  explicit PhasarPass();
+  PhasarPass(const PhasarPass &) = delete;
+  PhasarPass &operator=(const PhasarPass &) = delete;
+  ~PhasarPass() override = default;
 
   llvm::StringRef getPassName() const override;
 
@@ -39,6 +40,8 @@ class Phasar : public llvm::ModulePass {
   void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
 
   void releaseMemory() override;
+
+  void print(llvm::raw_ostream &O, const llvm::Module *M) const override;
 };
 
 }  // namespace psr
