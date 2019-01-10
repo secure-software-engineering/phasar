@@ -101,7 +101,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
       throw std::invalid_argument(File + " is not a valid llvm module");
     }
   }
-  //cout << "All modules loaded\n";
+  // cout << "All modules loaded\n";
 }
 
 ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
@@ -123,7 +123,7 @@ ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
       compileAndAddToDB(args);
     }
   }
-  //cout << "All modules loaded\n";
+  // cout << "All modules loaded\n";
 }
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
@@ -155,7 +155,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
       compileAndAddToDB(CompileArgs);
     }
   }
-  //cout << "All modules loaded\n";
+  // cout << "All modules loaded\n";
 }
 
 void ProjectIRDB::setupHeaderSearchPaths() {
