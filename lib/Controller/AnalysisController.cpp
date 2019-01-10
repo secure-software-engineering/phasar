@@ -202,7 +202,7 @@ AnalysisController::AnalysisController(
         TaintSensitiveFunctions TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
-            TaintAnalysisProblem, false, false);
+            TaintAnalysisProblem, false, true);
         cout << "IFDS Taint Analysis ..." << endl;
         LLVMTaintSolver.solve();
         cout << "IFDS Taint Analysis done" << endl;
@@ -248,7 +248,7 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
         IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem, false);
+            uninitializedvarproblem, false, true);
         cout << "IFDS UninitVar Analysis ..." << endl;
         llvmunivsolver.solve();
         cout << "IFDS UninitVar Analysis ended" << endl;
