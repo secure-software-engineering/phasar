@@ -170,7 +170,7 @@ int main(int argc, const char **argv) {
   PAMM_GET_INSTANCE;
   START_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // set-up the logger and get a reference to it
-  initializeLogger(false);
+  initializeLogger(true);
   auto &lg = lg::get();
   // handling the command line parameters
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

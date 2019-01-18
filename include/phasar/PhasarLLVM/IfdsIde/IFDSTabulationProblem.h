@@ -46,7 +46,7 @@ public:
   SolverConfiguration getSolverConfiguration() { return solver_config; }
   virtual void printIFDSReport(std::ostream &os,
                                SolverResults<N, D, BinaryDomain> &SR) {
-    os << "No IFDS report available!";
+    os << "No IFDS report available!\n";
   }
 };
 } // namespace psr

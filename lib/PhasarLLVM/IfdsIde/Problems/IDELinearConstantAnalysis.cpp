@@ -149,7 +149,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "IDELinearConstantAnalysis::getCallFlowFunction()";)
+                    << "IDELinearConstantAnalysis::getCallFlowFunction()");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||

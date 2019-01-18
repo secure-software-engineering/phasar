@@ -26,8 +26,8 @@
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
-
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;
@@ -66,7 +66,9 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
-  cout << "NormalFF" << endl;
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getNormalFlowFunction()");
   // check alloca instruction for file handler
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
@@ -142,7 +144,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
-  cout << "CallFF" << endl;
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getCallFlowFunction()");
   // Kill all data-flow facts if we hit a function that we want to model
   // ourselfs within getCallToRetFlowFunction()
   if (STDIOFunctions.count(destMthd->getName().str())) {
@@ -163,7 +167,9 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
-  cout << "ReturnFF" << endl;
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getRetFlowFunction()");
   // Just use the standard mapping
   return make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
@@ -176,7 +182,9 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
-  cout << "CallToRetFF" << endl;
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getCallToRetFlowFunction()");
   set<std::string> CalleeNames;
   for (auto Callee : callees) {
     CalleeNames.insert(Callee->getName().str());
@@ -213,6 +221,9 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getSummaryFlowFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::m_t destMthd) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getSummaryFlowFunction()");
   return nullptr;
 }
 
@@ -242,6 +253,19 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getNormalEdgeFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Curr Inst : " << IDETypeStateAnalysis::NtoString(curr));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Curr Node :   "
+                << IDETypeStateAnalysis::DtoString(currNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Succ Inst : " << IDETypeStateAnalysis::NtoString(succ));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Succ Node :   "
+                << IDETypeStateAnalysis::DtoString(succNode));
   // Set struct._IO_FILE variables to uninitialized once they have been
   // allocated
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
@@ -279,6 +303,27 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getReturnEdgeFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Call Site : "
+                << IDETypeStateAnalysis::NtoString(callSite));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(M) Callee    : "
+                << IDETypeStateAnalysis::MtoString(calleeMethod));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Exit Stmt : "
+                << IDETypeStateAnalysis::NtoString(exitStmt));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Exit Node :   "
+                << IDETypeStateAnalysis::DtoString(exitNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Ret Site  : "
+                << IDETypeStateAnalysis::NtoString(reSite));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Ret Node  :   "
+                << IDETypeStateAnalysis::DtoString(retNode));
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -287,6 +332,9 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
     std::set<IDETypeStateAnalysis::m_t> callees) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getCallToRetEdgeFunction()");
   // Set return value from fopen to opened
   llvm::ImmutableCallSite CS(callSite);
   if (CS.getCalledFunction()->getName() == "fopen") {

@@ -69,8 +69,38 @@ protected:
 }; // Test Fixture
 
 /* ============== BASIC TESTS ============== */
-TEST_F(IDETypeStateAnalysisTest, HandleTypeState_3) {
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_0) {
+  Initialize({pathToLLFiles + "typestate_0_c.ll"});
+  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, true, true);
+
+  llvmtssolver.solve();
+  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
+  // compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_1) {
+  Initialize({pathToLLFiles + "typestate_1_c.ll"});
+  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, true, true);
+
+  llvmtssolver.solve();
+  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
+  // compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_2) {
   Initialize({pathToLLFiles + "typestate_2_c.ll"});
+  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, true, true);
+
+  llvmtssolver.solve();
+  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
+  // compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_3) {
+  Initialize({pathToLLFiles + "typestate_3_c.ll"});
   LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
       *TSProblem, true, true);
 
