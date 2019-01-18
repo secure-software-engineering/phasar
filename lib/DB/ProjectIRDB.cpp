@@ -158,6 +158,22 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
   cout << "All modules loaded\n";
 }
 
+ProjectIRDB::~ProjectIRDB(){
+  //if the IRDB doesn't own the given pointers, they have to be released before destruction
+  if(Options & IRDBOptions::OWNSNOT){
+    //release pointers
+
+    for (auto &elem : contexts){
+      elem.second.release();
+    }
+
+    for (auto &elem : modules){
+      elem.second.release();
+    }
+
+  }
+}
+
 void ProjectIRDB::setupHeaderSearchPaths() {
   header_search_paths = splitString(
       readFile(ConfigurationDirectory + HeaderSearchPathsFileName), "\n");

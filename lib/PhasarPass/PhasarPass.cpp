@@ -12,7 +12,15 @@
 #include <llvm/PassAnalysisSupport.h>
 #include <llvm/Support/raw_ostream.h>
 
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarPass/PhasarPass.h>
+#include <phasar/Utils/EnumFlags.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 namespace psr {
 
@@ -23,8 +31,31 @@ PhasarPass::PhasarPass() : llvm::ModulePass(ID) {}
 llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
 
 bool PhasarPass::runOnModule(llvm::Module &M) {
-  llvm::outs() << "PhasarPass::runOnModule()\n";
-  llvm::outs() << M << '\n';
+  IRDBOptions Opt = IRDBOptions::NONE;
+  Opt |= IRDBOptions::WPA;
+  Opt |= IRDBOptions::OWNSNOT;
+
+  ProjectIRDB DB(Opt);
+  DB.insertModule(std::unique_ptr<llvm::Module>(&M));
+  DB.preprocessIR();
+   if (DB.getFunction("main")) {
+    LLVMTypeHierarchy H(DB);
+    LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF,
+                    {"main"});
+    llvm::outs() << "=== Call graph ===\n";
+    I.print();
+    I.printAsDot("call_graph.dot");
+    // IFDS template parametrization test
+		IFDSLinearConstantAnalysis L(I, {"main"});
+    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L, true);
+    S.solve();
+		// IDE template parametrization test
+		IDELinearConstantAnalysis M(I, {"main"});
+		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M, true);
+		T.solve();
+  } else {
+    std::cerr << "error: file does not contain a 'main' function!\n";
+  }
   return false;
 }
 
