@@ -28,10 +28,8 @@ target_link_libraries(phasar_db
   LLVMIRReader
   LLVMInstCombine
   LLVMLinker
-  clangFrontend
-  clangBasic
-  clangCodeGen
   phasar_utils
+  phasar_passes
   ${SQLITE3_LIBRARY}
   mysqlcppconn
 )
