@@ -26,7 +26,7 @@ target_link_libraries(phasar_pass
   #libphasar_pluginsd.a
   libphasar_utilsd.a
   libphasar_passesd.a
-  #phasar_phasarllvm_utilsd.a
+  phasar_phasarllvm_utilsd.a
 )
 
 set_target_properties(phasar_pass
