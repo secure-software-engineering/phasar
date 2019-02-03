@@ -6,27 +6,20 @@ add_phasar_library(phasar_pass
 )
 
 target_link_libraries(phasar_pass
-  boost_program_options
   boost_filesystem
   boost_graph
-  boost_system
   boost_log
-  #phasar_ifdside
-  #phasar_controlflow
-  #phasar_db
+  boost_program_options
+  boost_system
 
-  libphasar_ifdsided.a
-  libphasar_controlflowd.a
-  #libphasar_controllerd.a
-  libphasar_dbd.a
-  libphasar_configd.a
-  #libphasar_experimentald.a
-  #libphasar_monod.a
-  libphasar_pointerd.a
-  #libphasar_pluginsd.a
-  libphasar_utilsd.a
-  libphasar_passesd.a
-  phasar_phasarllvm_utilsd.a
+  phasar_config
+  phasar_controlflow
+  phasar_db_without
+  phasar_ifdside
+  phasar_passes
+  phasar_phasarllvm_utils
+  phasar_pointer
+  phasar_utils_without
 )
 
 set_target_properties(phasar_pass
