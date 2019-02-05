@@ -29,19 +29,6 @@ set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-# Phasar Options
-if(APPLE)
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" ON)
-else()
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
-endif()
-
-if(PHASAR_ENABLE_LIBCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-endif(PHASAR_ENABLE_LIBCXX)
-
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
@@ -52,7 +39,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage  ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
 endif (PHASAR_ENABLE_WARNINGS)
 
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)

@@ -19,6 +19,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarPass/Options.h>
 #include <phasar/PhasarPass/PhasarPass.h>
 #include <phasar/Utils/EnumFlags.h>
 
@@ -80,4 +81,4 @@ static llvm::RegisterPass<PhasarPass> phasar("phasar", "PhASAR Pass",
                                              false /* Only looks at CFG */,
                                              false /* Analysis Pass */);
 
-} // namespace psr
+}  // namespace psr
