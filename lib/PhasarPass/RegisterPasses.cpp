@@ -38,10 +38,11 @@ static llvm::cl::opt<std::string, true> SetCallGraphAnalysis(
     llvm::cl::cat(PhASARCategory));
 
 std::vector<std::string> psr::EntryPoints;
-static llvm::cl::list<std::string, std::vector<std::string>> SetEntryPoints(
-    "entry-points", llvm::cl::desc("Set the analysis's entry points"),
-    llvm::cl::location(EntryPoints), llvm::cl::cat(PhASARCategory),
-    llvm::cl::CommaSeparated);
+static llvm::cl::list<std::string, std::vector<std::string>>
+    SetEntryPoints("entry-points",
+                   llvm::cl::desc("Set the analysis's entry points"),
+                   llvm::cl::location(EntryPoints),
+                   llvm::cl::cat(PhASARCategory), llvm::cl::CommaSeparated);
 
 std::string psr::PammOutputFile;
 static llvm::cl::opt<std::string, true> SetPammOutputFile(
@@ -50,7 +51,8 @@ static llvm::cl::opt<std::string, true> SetPammOutputFile(
     llvm::cl::cat(PhASARCategory));
 
 bool psr::PrintEdgeRecorder;
-static llvm::cl::opt<bool, true> SetPrintEdgeRecorder(
-    "printedgerec", llvm::cl::desc("Print the IFDS/IDE edge recorder"),
-    llvm::cl::location(PrintEdgeRecorder), llvm::cl::init(false),
-    llvm::cl::cat(PhASARCategory));
+static llvm::cl::opt<bool, true>
+    SetPrintEdgeRecorder("printedgerec",
+                         llvm::cl::desc("Print the IFDS/IDE edge recorder"),
+                         llvm::cl::location(PrintEdgeRecorder),
+                         llvm::cl::init(false), llvm::cl::cat(PhASARCategory));

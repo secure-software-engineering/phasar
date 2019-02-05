@@ -81,4 +81,4 @@ static llvm::RegisterPass<PhasarPass> phasar("phasar", "PhASAR Pass",
                                              false /* Only looks at CFG */,
                                              false /* Analysis Pass */);
 
-}  // namespace psr
+} // namespace psr
