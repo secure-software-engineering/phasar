@@ -10,6 +10,7 @@
 #include <llvm/ADT/StringRef.h>
 #include <llvm/IR/Module.h>
 #include <llvm/PassAnalysisSupport.h>
+#include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/DB/ProjectIRDB.h>
@@ -62,7 +63,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {
     if (!DB.getFunction(EP)) {
-      llvm::errs() << "psr error: entry point does not exist '" << EP << "'\n";
+      llvm::report_fatal_error("psr error: entry point does not exist '" + EP +
+                               "'");
     }
   }
   // set up the call-graph algorithm to be used
@@ -151,13 +153,13 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   llvm::outs() << "PhasarPass::doInitialization()\n";
   // check the user's parameters
   if (EntryPoints.empty()) {
-    llvm::errs() << "psr error: no entry points provided\n";
+    llvm::report_fatal_error("psr error: no entry points provided");
   }
   if (!StringToCallGraphAnalysisType.count(CallGraphAnalysis)) {
-    llvm::errs() << "psr error: call-graph analysis does not exist\n";
+    llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
   if (!StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
-    llvm::errs() << "psr error: data-flow analysis does not exist\n";
+    llvm::report_fatal_error("psr error: data-flow analysis does not exist");
   }
   return false;
 }
