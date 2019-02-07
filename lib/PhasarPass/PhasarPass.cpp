@@ -13,12 +13,33 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
+#include <phasar/PhasarLLVM/Mono/Problems/InterMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Problems/IntraMonotoneSolverTest.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+// #include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+// #include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
 #include <phasar/PhasarPass/Options.h>
 #include <phasar/PhasarPass/PhasarPass.h>
 #include <phasar/Utils/EnumFlags.h>
@@ -32,35 +53,113 @@ PhasarPass::PhasarPass() : llvm::ModulePass(ID) {}
 llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
 
 bool PhasarPass::runOnModule(llvm::Module &M) {
+  // set up the IRDB
   IRDBOptions Opt = IRDBOptions::NONE;
   Opt |= IRDBOptions::WPA;
   Opt |= IRDBOptions::OWNSNOT;
-
   ProjectIRDB DB(Opt);
   DB.insertModule(std::unique_ptr<llvm::Module>(&M));
   DB.preprocessIR();
-  if (DB.getFunction("main")) {
-    LLVMTypeHierarchy H(DB);
-    LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
-    llvm::outs() << "=== Call graph ===\n";
-    I.print();
-    I.printAsDot("call_graph.dot");
-    // IFDS template parametrization test
-    IFDSLinearConstantAnalysis L(I, {"main"});
-    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L, true);
-    S.solve();
-    // IDE template parametrization test
-    IDELinearConstantAnalysis M(I, {"main"});
-    LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M, true);
-    T.solve();
-  } else {
-    std::cerr << "error: file does not contain a 'main' function!\n";
+  // check if the requested entry points exist
+  for (const std::string &EP : EntryPoints) {
+    if (!DB.getFunction(EP)) {
+      llvm::errs() << "psr error: entry point does not exist '" << EP << "'\n";
+    }
+  }
+  // set up the call-graph algorithm to be used
+  CallGraphAnalysisType CGTy =
+      StringToCallGraphAnalysisType.at(CallGraphAnalysis);
+  LLVMTypeHierarchy H(DB);
+  LLVMBasedCFG CFG;
+  LLVMBasedICFG I(H, DB, CGTy, EntryPoints);
+  if (DataFlowAnalysis == "ifds-solvertest") {
+    IFDSSolverTest ifdstest(I, EntryPoints);
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
+        ifdstest, false);
+    llvmifdstestsolver.solve();
+  } else if (DataFlowAnalysis == "ide-solvertest") {
+    IDESolverTest idetest(I, EntryPoints);
+    LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+        llvmidetestsolver(idetest, true);
+    llvmidetestsolver.solve();
+  } else if (DataFlowAnalysis == "intra-mono-solvertest") {
+    const llvm::Function *F = DB.getFunction(EntryPoints.front());
+    IntraMonoSolverTest intra(CFG, F);
+    LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra,
+                                                                    true);
+    solver.solve();
+  } else if (DataFlowAnalysis == "inter-mono-solvertest") {
+    const llvm::Function *F = DB.getFunction(EntryPoints.front());
+    InterMonoSolverTest inter(I, EntryPoints);
+    CallString<typename InterMonoSolverTest::Node_t,
+               typename InterMonoSolverTest::Domain_t, 3>
+        Context(&inter, &inter);
+    auto solver = make_LLVMBasedIMS(inter, Context, F, true);
+    solver->solve();
+  } else if (DataFlowAnalysis == "ifds-const") {
+    IFDSConstAnalysis constproblem(I, DB.getAllMemoryLocations(), EntryPoints);
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
+        constproblem, true);
+    llvmconstsolver.solve();
+  } else if (DataFlowAnalysis == "ifds-lca") {
+    IFDSLinearConstantAnalysis lcaproblem(I, EntryPoints);
+    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem, true);
+    llvmlcasolver.solve();
+  } else if (DataFlowAnalysis == "ifds-taint") {
+    TaintSensitiveFunctions TSF;
+    IFDSTaintAnalysis TaintAnalysisProblem(I, TSF, EntryPoints);
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
+        TaintAnalysisProblem, false);
+    LLVMTaintSolver.solve();
+  } else if (DataFlowAnalysis == "ifds-type") {
+    IFDSTypeAnalysis typeanalysisproblem(I, EntryPoints);
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
+        typeanalysisproblem, true);
+    llvmtypesolver.solve();
+  } else if (DataFlowAnalysis == "ifds-uninit") {
+    IFDSUnitializedVariables uninitializedvarproblem(I, EntryPoints);
+    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
+        uninitializedvarproblem, false);
+    llvmunivsolver.solve();
+  } else if (DataFlowAnalysis == "ide-lca") {
+    IDELinearConstantAnalysis lcaproblem(I, EntryPoints);
+    LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
+        lcaproblem, true);
+    llvmlcasolver.solve();
+  } else if (DataFlowAnalysis == "ide-taint") {
+    IDETaintAnalysis taintanalysisproblem(I, EntryPoints);
+    LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+        llvmtaintsolver(taintanalysisproblem, true);
+    llvmtaintsolver.solve();
+  } else if (DataFlowAnalysis == "ide-typestate") {
+    IDETypeStateAnalysis typestateproblem(I, "struct._IO_FILE", EntryPoints);
+    LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
+        llvmtypestatesolver(typestateproblem, true);
+    llvmtypestatesolver.solve();
+  } else if (DataFlowAnalysis == "intra-mono-fullconstantpropagation") {
+    // todo
+  } else if (DataFlowAnalysis == "inter-mono-taint") {
+    // todo
+  } else if (DataFlowAnalysis == "plugin") {
+    // todo
+  } else if (DataFlowAnalysis == "none") {
+    // do nothing
   }
   return false;
 }
 
 bool PhasarPass::doInitialization(llvm::Module &M) {
   llvm::outs() << "PhasarPass::doInitialization()\n";
+  // check the user's parameters
+  if (EntryPoints.empty()) {
+    llvm::errs() << "psr error: no entry points provided\n";
+  }
+  if (!StringToCallGraphAnalysisType.count(CallGraphAnalysis)) {
+    llvm::errs() << "psr error: call-graph analysis does not exist\n";
+  }
+  if (!StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
+    llvm::errs() << "psr error: data-flow analysis does not exist\n";
+  }
   return false;
 }
 
@@ -81,4 +180,4 @@ static llvm::RegisterPass<PhasarPass> phasar("phasar", "PhASAR Pass",
                                              false /* Only looks at CFG */,
                                              false /* Analysis Pass */);
 
-} // namespace psr
+}  // namespace psr
