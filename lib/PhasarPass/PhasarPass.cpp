@@ -21,7 +21,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
@@ -180,4 +179,4 @@ static llvm::RegisterPass<PhasarPass> phasar("phasar", "PhASAR Pass",
                                              false /* Only looks at CFG */,
                                              false /* Analysis Pass */);
 
-}  // namespace psr
+} // namespace psr
