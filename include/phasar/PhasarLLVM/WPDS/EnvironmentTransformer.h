@@ -21,7 +21,7 @@
 
 namespace psr {
 /**
- * An ideompotent semi-ring is one whose addition is ideompotent
+ * An idempotent semi-ring is one whose addition is idempotent
  *
  *    a + a = a
  *
