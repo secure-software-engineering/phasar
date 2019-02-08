@@ -42,7 +42,7 @@ matrix:
   - os: osx
     osx_image: xcode8
     env:
-      - MATRIX_EVAL="brew install gcc && CC=clang && CXX=clang++"
+      - MATRIX_EVAL="travis_wait 40 brew install gcc && CC=clang && CXX=clang++"
 
 branches:
     - development
