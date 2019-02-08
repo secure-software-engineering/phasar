@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_SOLVER_WPDSSOLVER_H_
 #define PHASAR_PHASARLLVM_WPDS_SOLVER_WPDSSOLVER_H_
 
+#include <fstream>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -31,6 +32,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/WPDS/EnvironmentTransformer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace llvm {
 class CallInst;
@@ -67,7 +69,12 @@ public:
 
   virtual void solve(N n) {
     std::cout << "WPDSSolver::solve()\n";
+    // Construct the PDS
     submitInitalSeeds();
+    std::ofstream pdsfile("pds.dot");
+    PDS->print_dot(pdsfile, true);
+    // test the SRElem
+    wali::test_semelem_impl(SRElem);
     // Solve the PDS
     wali::Key node = NKey.at(n);
     wali::sem_elem_t ret = nullptr;
@@ -83,9 +90,11 @@ public:
       for (auto Entry : DKey) {
         if (Answer.find(Entry.second, NKey[n], AcceptingState, goal)) {
           std::cout << "FOUND ANSWER!" << std::endl;
-          goal.weight()->print(std::cout << "--- weight ---: ");
-          // std::cout << " : --- " <<
-          // static_cast<EnvTrafoToSemElem<V>&>(*goal.weight()).F->computeTarget(0);
+          std::cout << llvmIRToString(Entry.first);
+          goal.weight()->print(std::cout << " :--- weight ---: ");
+          std::cout << " : --- "
+                    << static_cast<EnvTrafoToSemElem<V> &>(*goal.weight())
+                           .F->computeTarget(0);
           std::cout << std::endl;
         }
       }
@@ -120,6 +129,36 @@ public:
   }
 
   void doForwardSearch(wali::wfa::WFA &Answer) {
+    // define our own attribute printer:
+    struct MyAttributePrinter : wali::wfa::DotAttributePrinter {
+      const std::unordered_map<D, wali::Key> &DKey;
+      const std::unordered_map<N, wali::Key> &NKey;
+      MyAttributePrinter(std::unordered_map<D, wali::Key> DKey,
+                         std::unordered_map<N, wali::Key> NKey)
+          : DKey(DKey), NKey(NKey) {}
+      void print_extra_attributes(wali::wfa::State const *state,
+                                  std::ostream &o) override {
+        auto key = state->name();
+        for (auto entry : DKey) {
+          if (entry.second == key) {
+            o << ", xlabel=\"" << llvmIRToString(entry.first) << "\"";
+            return;
+          }
+        }
+      }
+      void print_extra_attributes(wali::wfa::ITrans const *trans,
+                                  std::ostream &o) override {
+        auto key = trans->stack();
+        for (auto entry : NKey) {
+          if (entry.second == key) {
+            std::string lbl = llvmIRToString(entry.first);
+            o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) << "\"";
+            return;
+          }
+        }
+      }
+    };
+
     // Create an automaton to AcceptingState the configuration <PDSState,
     // main_entry>
     wali::Key main_entry = NKey.at(&*ICFG.getMethod("main")->begin()->begin());
@@ -129,8 +168,12 @@ public:
     Query.set_initial_state(PDSState);
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "before poststar!\n");
+    std::ofstream before("before.dot");
+    Query.print_dot(before, true, new MyAttributePrinter(DKey, NKey));
     PDS->poststar(Query, Answer);
     Answer.print(std::cout << "after poststar!\n");
+    std::ofstream after("after.dot");
+    Answer.print_dot(after, true, new MyAttributePrinter(DKey, NKey));
   }
 
   void doBackwardSearch(N n, wali::wfa::WFA &Answer) {

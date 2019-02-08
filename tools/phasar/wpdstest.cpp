@@ -51,9 +51,9 @@ int main(int argc, char **argv) {
     Ret->print(llvm::outs());
     llvm::outs() << '\n';
     if (DFA == "ID") {
-      WPDSSolverTest T(I, WPDSType::FWPDS, SearchDirection::FORWARD);
-      LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG &> S(T);
-      S.solve(Ret);
+      // WPDSSolverTest T(I, WPDSType::FWPDS, SearchDirection::FORWARD);
+      // LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG &> S(T);
+      // S.solve(Ret);
       // auto Results = S.resultsAt(Ret);
       // llvm::outs() << "Results:\n";
       // for (auto &Result : Results) {
