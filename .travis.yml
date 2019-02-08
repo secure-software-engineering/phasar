@@ -50,7 +50,7 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; fi
   - eval "${MATRIX_EVAL}"
 
 # install all dependencies
