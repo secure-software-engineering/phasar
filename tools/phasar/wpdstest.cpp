@@ -64,6 +64,8 @@ int main(int argc, char **argv) {
       WPDSLinearConstantAnalysis L(I, WPDSType::FWPDS,
                                    SearchDirection::FORWARD);
       LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
+      // F = DB.getFunction("_Z9incrementi");
+      // Ret = &F->back().back();
       S.solve(Ret);
     }
     std::cout << "DONE!\n";
