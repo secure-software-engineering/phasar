@@ -1,9 +1,5 @@
 file(GLOB_RECURSE DB_SRC *.h *.cpp)
 
-include_directories(
-  ${SQLITE3_INCLUDE_DIR}
-)
-
 # Compile phasar_db once into an object
 add_library(phasar_db_o OBJECT
   ${DB_SRC}
@@ -20,7 +16,6 @@ add_phasar_library(phasar_db
 set(phasar_db_public_dep
   ${Boost_LIBRARIES}
   phasar_passes
-  ${SQLITE3_LIBRARY}
   mysqlcppconn
 )
 

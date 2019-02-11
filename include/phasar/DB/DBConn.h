@@ -33,7 +33,6 @@
 #include <phasar/DB/ProjectIRDB.h>
 
 #include <mysql_connection.h>
-#include <sqlite3.h>
 
 namespace llvm {
 class GlobalVariable;
