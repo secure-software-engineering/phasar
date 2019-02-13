@@ -33,6 +33,7 @@
 #include <phasar/PhasarLLVM/WPDS/EnvironmentTransformer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Table.h>
 
 namespace llvm {
 class CallInst;
@@ -50,10 +51,10 @@ private:
   wali::Key PDSState;
   wali::Key AcceptingState;
   std::unordered_map<D, wali::Key> DKey;
-  std::unordered_map<N, wali::Key> NKey;
   wali::wfa::WFA Query;
   wali::wfa::WFA Answer;
   wali::sem_elem_t SRElem;
+  Table<N, D, std::map<N, std::set<D>>> incomingtab;
 
 public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
@@ -62,8 +63,8 @@ public:
         // implementation
         PDS(new wali::wpds::fwpds::FWPDS()), ZeroValue(P.zeroValue()),
         AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
-    DKey[ZeroValue] = wali::getKey(reinterpret_cast<size_t>(ZeroValue));
-    PDSState = DKey[ZeroValue];
+    PDSState = wali::getKey(ZeroValue);
+    DKey[ZeroValue] = PDSState;
   }
   ~WPDSSolver() = default;
 
@@ -73,10 +74,12 @@ public:
     submitInitalSeeds();
     std::ofstream pdsfile("pds.dot");
     PDS->print_dot(pdsfile, true);
+    // // first, check if the inter-PDS is build correctly
+    // return;
     // test the SRElem
     wali::test_semelem_impl(SRElem);
     // Solve the PDS
-    wali::Key node = NKey.at(n);
+    wali::Key node = wali::getKey(n);
     wali::sem_elem_t ret = nullptr;
     if (SearchDirection::FORWARD == P.getSearchDirection()) {
       std::cout << "FORWARD\n";
@@ -88,7 +91,7 @@ public:
       // check all data-flow facts
       std::cout << "All D(s)" << std::endl;
       for (auto Entry : DKey) {
-        if (Answer.find(Entry.second, NKey[n], AcceptingState, goal)) {
+        if (Answer.find(Entry.second, node, AcceptingState, goal)) {
           std::cout << "FOUND ANSWER!" << std::endl;
           std::cout << llvmIRToString(Entry.first);
           goal.weight()->print(std::cout << " :--- weight ---: ");
@@ -129,39 +132,39 @@ public:
   }
 
   void doForwardSearch(wali::wfa::WFA &Answer) {
-    // define our own attribute printer:
-    struct MyAttributePrinter : wali::wfa::DotAttributePrinter {
-      const std::unordered_map<D, wali::Key> &DKey;
-      const std::unordered_map<N, wali::Key> &NKey;
-      MyAttributePrinter(std::unordered_map<D, wali::Key> DKey,
-                         std::unordered_map<N, wali::Key> NKey)
-          : DKey(DKey), NKey(NKey) {}
-      void print_extra_attributes(wali::wfa::State const *state,
-                                  std::ostream &o) override {
-        auto key = state->name();
-        for (auto entry : DKey) {
-          if (entry.second == key) {
-            o << ", xlabel=\"" << llvmIRToString(entry.first) << "\"";
-            return;
-          }
-        }
-      }
-      void print_extra_attributes(wali::wfa::ITrans const *trans,
-                                  std::ostream &o) override {
-        auto key = trans->stack();
-        for (auto entry : NKey) {
-          if (entry.second == key) {
-            std::string lbl = llvmIRToString(entry.first);
-            o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) << "\"";
-            return;
-          }
-        }
-      }
-    };
+    // // define our own attribute printer:
+    // struct MyAttributePrinter : wali::wfa::DotAttributePrinter {
+    //   const std::unordered_map<D, wali::Key> &DKey;
+    //   const std::unordered_map<N, wali::Key> &NKey;
+    //   MyAttributePrinter(std::unordered_map<D, wali::Key> DKey,
+    //                      std::unordered_map<N, wali::Key> NKey)
+    //       : DKey(DKey), NKey(NKey) {}
+    //   void print_extra_attributes(wali::wfa::State const *state,
+    //                               std::ostream &o) override {
+    //     auto key = state->name();
+    //     for (auto entry : DKey) {
+    //       if (entry.second == key) {
+    //         o << ", xlabel=\"" << llvmIRToString(entry.first) << "\"";
+    //         return;
+    //       }
+    //     }
+    //   }
+    //   void print_extra_attributes(wali::wfa::ITrans const *trans,
+    //                               std::ostream &o) override {
+    //     auto key = trans->stack();
+    //     for (auto entry : NKey) {
+    //       if (entry.second == key) {
+    //         std::string lbl = llvmIRToString(entry.first);
+    //         o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) << "\"";
+    //         return;
+    //       }
+    //     }
+    //   }
+    // };
 
     // Create an automaton to AcceptingState the configuration <PDSState,
     // main_entry>
-    wali::Key main_entry = NKey.at(&*ICFG.getMethod("main")->begin()->begin());
+    wali::Key main_entry = wali::getKey(&*ICFG.getMethod("main")->begin()->begin());
     (&*ICFG.getMethod("main")->begin()->begin())->print(llvm::outs());
     llvm::outs() << '\n';
     Query.addTrans(PDSState, main_entry, AcceptingState, SRElem->one());
@@ -169,11 +172,11 @@ public:
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "before poststar!\n");
     std::ofstream before("before.dot");
-    Query.print_dot(before, true, new MyAttributePrinter(DKey, NKey));
+    Query.print_dot(before, true);//, new MyAttributePrinter(DKey, NKey));
     PDS->poststar(Query, Answer);
     Answer.print(std::cout << "after poststar!\n");
     std::ofstream after("after.dot");
-    Answer.print_dot(after, true, new MyAttributePrinter(DKey, NKey));
+    Answer.print_dot(after, true);//, new MyAttributePrinter(DKey, NKey));
   }
 
   void doBackwardSearch(N n, wali::wfa::WFA &Answer) {
@@ -242,13 +245,15 @@ public:
       N StartPoint = Seed.first;
       for (const D &Value : Seed.second) {
         // generate rule for initial seed
-        DKey[ZeroValue] = wali::getKey(reinterpret_cast<size_t>(ZeroValue));
-        DKey[Value] = wali::getKey(reinterpret_cast<size_t>(Value));
-        NKey[StartPoint] = wali::getKey(reinterpret_cast<size_t>(StartPoint));
+        auto ZeroValue_k = wali::getKey(ZeroValue);
+        DKey[ZeroValue] = ZeroValue_k;
+        auto Value_k = wali::getKey(Value);
+        DKey[Value] = Value_k;
+        auto StartPoint_k = wali::getKey(StartPoint);
         wali::ref_ptr<EnvTrafoToSemElem<V>> wptr = new EnvTrafoToSemElem<V>(
             EdgeIdentity<V>::getInstance(), static_cast<JoinLattice<V> &>(P));
-        PDS->add_rule(DKey[ZeroValue], NKey[StartPoint], DKey[Value],
-                      NKey[StartPoint], wptr);
+        PDS->add_rule(ZeroValue_k, StartPoint_k, Value_k,
+                      StartPoint_k, wptr);
         // propagate facts along the ICFG
         propagate(ZeroValue, StartPoint, Value, nullptr, false);
       }
@@ -287,28 +292,22 @@ public:
       std::shared_ptr<FlowFunction<D>> flowFunction =
           P.getNormalFlowFunction(n, m);
       std::set<D> res = flowFunction->computeTargets(d2);
-
-      // std::cout << "SRC: " << P.DtoString(d2) << std::endl;
-      // std::cout << "RES: ";
-      // for (auto r : res) {
-      //   std::cout << P.DtoString(r) << " || ";
-      // }
-      // std::cout << std::endl;
-
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<V>> f =
             P.getNormalEdgeFunction(n, d2, m, d3);
         // TODO we need a EdgeFunction() to weight sem_elem_t conversion
-        DKey[d2] = wali::getKey(reinterpret_cast<size_t>(d2));
-        DKey[d3] = wali::getKey(reinterpret_cast<size_t>(d3));
-        NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-        NKey[m] = wali::getKey(reinterpret_cast<size_t>(m));
+        auto d2_k = wali::getKey(d2);
+        DKey[d2] = d2_k;
+        auto d3_k = wali::getKey(d3);
+        DKey[d3] = d3_k;
+        auto n_k = wali::getKey(n);
+        auto m_k = wali::getKey(m);
         wali::ref_ptr<EnvTrafoToSemElem<V>> wptr;
         wptr = new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P));
-        std::cout << "PDS rule: " << P.DtoString(d2) << " | " << P.NtoString(n)
-                  << " --> " << P.DtoString(d3) << " | " << P.DtoString(m)
-                  << ", " << *wptr << ")" << std::endl;
-        PDS->add_rule(DKey[d2], NKey[n], DKey[d3], NKey[m], wptr);
+        std::cout << "Normal-PDS rule: " << P.DtoString(d2) << " | "
+                  << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
+                  << P.DtoString(m) << ", " << *wptr << ")" << std::endl;
+        PDS->add_rule(d2_k, n_k, d3_k, m_k, wptr);
         if (!SRElem.is_valid()) {
           SRElem = wptr;
         }
@@ -323,14 +322,13 @@ public:
     // N n = Edge.getTarget();
     // D d2 = Edge.factAtTarget();
     // std::set<N> returnSiteNs = ICFG.getReturnSitesOfCallAt(n);
-    // std::cout << "returnSiteNs.size(): " << returnSiteNs.size() << '\n';
     // std::set<M> callees = ICFG.getCalleesOfCallAt(n);
     // // for each possible callee
-    // for (M sCalledProcN : callees) {  // still line 14
+    // for (M sCalledProcN : callees) { // still line 14
     //   // compute the call-flow function
     //   std::shared_ptr<FlowFunction<D>> flowFunction =
     //       P.getCallFlowFunction(n, sCalledProcN);
-    //   std::set<D> res = flowFunction->computeTargets(d1);
+    //   std::set<D> res = flowFunction->computeTargets(d2);
     //   // for each callee's start point(s)
     //   std::set<N> startPointsOf = ICFG.getStartPointsOf(sCalledProcN);
     //   // if startPointsOf is empty, the called function is a declaration
@@ -346,20 +344,19 @@ public:
     //       NKey[*returnSiteNs.begin()] =
     //           wali::getKey(reinterpret_cast<size_t>(*returnSiteNs.begin()));
     //       wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-    //           new EnvTrafoToSemElem<V>(fun, static_cast<JoinLattice<V>
-    //           &>(P)));
-    //       // std::cout << "PDS->add_rule(" << DKey[d1] << ", " << NKey[n] <<
-    //       ",
-    //       // "
-    //       //           << DKey[d3] << ", " << NKey[*returnSiteNs.begin()] <<
-    //       ",
-    //       //           "
-    //       //           << *wptr << ")\n";
-    //       SRElem = wptr;
+    //           new EnvTrafoToSemElem<V>(fun, static_cast<JoinLattice<V> &>(P)));
+    //       std::cout << "Call-PDS rule: " << P.DtoString(d1) << ", "
+    //                 << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
+    //                 << P.NtoString(sP) << ", " << *wptr << std::endl;
     //       PDS->add_rule(DKey[d1], NKey[n], DKey[d3], NKey[sP],
     //                     NKey[*returnSiteNs.begin()], wptr);
+    //       if (!SRElem.is_valid()) {
+    //         SRElem = wptr;
+    //       }
+    //       std::cout << "ADD INCOMING" << std::endl;
+    //       addIncoming(sP, d3, n, d2);
     //       // create initial self-loop
-    //       propagate(d3, sP, d3, EdgeIdentity<V>::getInstance(), n, false);
+    //       propagate(d3, sP, d3, n, false);
     //     }
     //   }
     // }
@@ -367,25 +364,24 @@ public:
     // for (N returnSiteN : returnSiteNs) {
     //   std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
     //       P.getCallToRetFlowFunction(n, returnSiteN, callees);
-    //   std::set<D> returnFacts = callToReturnFlowFunction->computeTargets(d1);
+    //   std::set<D> returnFacts = callToReturnFlowFunction->computeTargets(d2);
     //   for (D d3 : returnFacts) {
     //     std::shared_ptr<EdgeFunction<V>> edgeFnE =
     //         P.getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
     //     DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
     //     DKey[d3] = wali::getKey(reinterpret_cast<size_t>(d3));
     //     NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-    //     NKey[returnSiteN] =
-    //     wali::getKey(reinterpret_cast<size_t>(returnSiteN));
+    //     NKey[returnSiteN] = wali::getKey(reinterpret_cast<size_t>(returnSiteN));
     //     wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(new EnvTrafoToSemElem<V>(
     //         edgeFnE, static_cast<JoinLattice<V> &>(P)));
-    //     //  std::cout << "PDS->add_rule(" << DKey[d1] << ", " << NKey[n] <<
-    //     ", "
-    //     //            << DKey[d3] << ", " << NKey[returnSiteN] << ", " <<
-    //     *wptr
-    //     //            << ")\n";
-    //     SRElem = wptr;
+    //     std::cout << "CallToRet-PDS rule: " << P.DtoString(d2) << " | "
+    //               << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
+    //               << *wptr << std::endl;
     //     PDS->add_rule(DKey[d1], NKey[n], DKey[d3], NKey[returnSiteN], wptr);
-    //     propagate(d1, returnSiteN, d3, edgeFnE, n, false);
+    //     if (!SRElem.is_valid()) {
+    //       SRElem = wptr;
+    //     }
+    //     propagate(d1, returnSiteN, d3, n, false);
     //   }
     // }
   }
@@ -396,56 +392,55 @@ public:
     // M methodThatNeedsSummary = ICFG.getMethodOf(n);
     // D d1 = Edge.factAtSource();
     // D d2 = Edge.factAtTarget();
-    // //   // for each return site
-    // //   // const llvm::CallInst *CI = nullptr;
-    // //   // auto Mod = n->getModule();
-    // //   // llvm::outs() << *Mod << "\n";
-    // //   // for (auto &BB : *Mod) {
-    // //   //   for (auto &Inst : BB) {
-    // //   //     if (const llvm::CallInst *CallI =
-    // //   llvm::dyn_cast<llvm::CallInst>(&Inst)) {
-    // //   //       CI = CallI;
-    // //   //     }
-    // //   //   }
-    // //   // }
-    // //   // std::cout << CI << std::endl;
-    // //   // exit(1);
-    // //   // for (N retSiteC : ICFG.getReturnSitesOfCallAt(CI)) {
-    // //     // compute return-flow function
-    // //     std::shared_ptr<FlowFunction<D>> retFunction =
-    // //         P.getRetFlowFunction(nullptr, methodThatNeedsSummary, n,
-    // //         nullptr);
-    // //     // for each incoming-call value
-    // //     std::set<D> targets =
-    // //         retFunction->computeTargets(d1);
-    // //     // for each target value at the return site
-    // //     for (D d5 : targets) {
-    // std::shared_ptr<EdgeFunction<V>> f = EdgeIdentity<V>::getInstance();
-    // // P.getReturnEdgeFunction(nullptr, methodThatNeedsSummary, n, d1,
-    // nullptr,
-    // // d2);
-
-    // DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
-    // DKey[d2] = wali::getKey(reinterpret_cast<size_t>(d2));
-    // NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-    // wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-    //     new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
-    // //       //  std::cout << "PDS->add_rule(" << DKey[d1] << ", " << NKey[n]
-    // <<
-    // //       ",
-    // //       //  "
-    // //       //            << DKey[d3] << ", " << NKey[returnSiteN] << ", "
-    // <<
-    // //       //            *wptr
-    // //       //            << ")\n";
-
-    // PDS->add_rule(DKey[d1], NKey[n], DKey[d2], wptr);
-    // if (!SRElem.is_valid()) {
-    //   SRElem = wptr;
+    // // for each of the method's start points, determine incoming calls
+    // std::set<N> startPointsOf = ICFG.getStartPointsOf(methodThatNeedsSummary);
+    // std::map<N, std::set<D>> inc;
+    // for (N sP : startPointsOf) {
+    //   for (auto entry : incoming(d1, sP)) {
+    //     inc[entry.first] = std::set<D>{entry.second};
+    //   }
     // }
-    // //       // propagate(d1, retSiteC, d5, f, CI, false);
-    // //     }
-    // //   // }
+    // std::cout << "inc.size(): " << inc.size() << std::endl;
+    // // for each incoming-call value
+    // for (auto entry : inc) {
+    //   N c = entry.first;
+    //   for (N retSiteC : ICFG.getReturnSitesOfCallAt(c)) {
+    //     std::cout << "STILL HERE" << std::endl;
+    //     // compute return-flow function
+    //     std::shared_ptr<FlowFunction<D>> retFunction =
+    //         P.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
+    //     std::set<D> targets = retFunction->computeTargets(d1);
+    //     std::cout << "RET TARGETS size(): " << targets.size() << std::endl;
+    //     // for each target value at the return site
+    //     for (D d5 : targets) {
+    //       std::shared_ptr<EdgeFunction<V>> f = P.getReturnEdgeFunction(c, ICFG.getMethodOf(n), n, d2, retSiteC, d5);
+    //       DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
+    //       DKey[d2] = wali::getKey(reinterpret_cast<size_t>(d2));
+    //       DKey[d5] = wali::getKey(reinterpret_cast<size_t>(d5));
+    //       NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
+    //       wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
+    //           new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
+    //       std::cout << "Ret-PDS rule: " << P.DtoString(d1) << ", "
+    //                 << P.NtoString(n) << ", " << P.DtoString(d2) << ", "
+    //                 << P.NtoString(retSiteC) << ", " << *wptr << std::endl;
+
+    //       PDS->add_rule(DKey[d2], NKey[n], DKey[d5], wptr);
+    //       if (!SRElem.is_valid()) {
+    //         SRElem = wptr;
+    //       }
+    //       propagate(d2, retSiteC, d5, c, false);
+    //     }
+    //   }
+    // }
+  }
+
+protected:
+  void addIncoming(N sP, D d3, N n, D d2) {
+    incomingtab.get(sP, d3)[n].insert(d2);
+  }
+
+  std::map<N, std::set<D>> incoming(D d1, N sP) {
+    return incomingtab.get(sP, d1);
   }
 };
 
