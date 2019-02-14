@@ -15,8 +15,8 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <utility>
 #include <unordered_map>
+#include <utility>
 
 #include <llvm/Support/Casting.h>
 #include <llvm/Support/raw_ostream.h>
@@ -157,8 +157,8 @@ public:
     //     for (auto entry : NKey) {
     //       if (entry.second == key) {
     //         std::string lbl = llvmIRToString(entry.first);
-    //         o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) << "\"";
-    //         return;
+    //         o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) <<
+    //         "\""; return;
     //       }
     //     }
     //   }
@@ -166,7 +166,8 @@ public:
 
     // Create an automaton to AcceptingState the configuration <PDSState,
     // main_entry>
-    wali::Key main_entry = wali::getKey(&*ICFG.getMethod("main")->begin()->begin());
+    wali::Key main_entry =
+        wali::getKey(&*ICFG.getMethod("main")->begin()->begin());
     (&*ICFG.getMethod("main")->begin()->begin())->print(llvm::outs());
     llvm::outs() << '\n';
     Query.addTrans(PDSState, main_entry, AcceptingState, SRElem->one());
@@ -174,11 +175,11 @@ public:
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "before poststar!\n");
     std::ofstream before("before.dot");
-    Query.print_dot(before, true);//, new MyAttributePrinter(DKey, NKey));
+    Query.print_dot(before, true); //, new MyAttributePrinter(DKey, NKey));
     PDS->poststar(Query, Answer);
     Answer.print(std::cout << "after poststar!\n");
     std::ofstream after("after.dot");
-    Answer.print_dot(after, true);//, new MyAttributePrinter(DKey, NKey));
+    Answer.print_dot(after, true); //, new MyAttributePrinter(DKey, NKey));
   }
 
   void doBackwardSearch(N n, wali::wfa::WFA &Answer) {
@@ -329,7 +330,8 @@ public:
       if (d2 == ZeroValue) {
         res.insert(ZeroValue); // FIXME
       }
-      std::cout << "CALL FF TARGETS CONTAIN ZEROVALUE: " << res.count(ZeroValue) << std::endl;
+      std::cout << "CALL FF TARGETS CONTAIN ZEROVALUE: " << res.count(ZeroValue)
+                << std::endl;
       // for each callee's start point(s)
       std::set<N> startPointsOf = ICFG.getStartPointsOf(sCalledProcN);
       // if startPointsOf is empty, the called function is a declaration
@@ -344,15 +346,14 @@ public:
           DKey[d3] = d3_k;
           auto n_k = wali::getKey(n);
           auto sP_k = wali::getKey(sP);
-          wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-              new EnvTrafoToSemElem<V>(fcall, static_cast<JoinLattice<V> &>(P)));
+          wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(new EnvTrafoToSemElem<V>(
+              fcall, static_cast<JoinLattice<V> &>(P)));
           std::cout << "ADD CALL RULE: " << P.DtoString(d1) << ", "
                     << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
                     << P.NtoString(sP) << ", " << *wptr << std::endl;
           for (auto retSiteN : returnSiteNs) {
             auto retSiteN_k = wali::getKey(retSiteN);
-            PDS->add_rule(d1_k, n_k, d3_k, sP_k,
-                          retSiteN_k, wptr);
+            PDS->add_rule(d1_k, n_k, d3_k, sP_k, retSiteN_k, wptr);
           }
           if (!SRElem.is_valid()) {
             SRElem = wptr;
@@ -382,8 +383,7 @@ public:
             edgeFnE, static_cast<JoinLattice<V> &>(P)));
         std::cout << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
                   << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
-                  << P.NtoString(returnSiteN) << ", "
-                  << *wptr << std::endl;
+                  << P.NtoString(returnSiteN) << ", " << *wptr << std::endl;
         PDS->add_rule(d1_k, n_k, d3_k, returnSiteN_k, wptr);
         if (!SRElem.is_valid()) {
           SRElem = wptr;
@@ -399,7 +399,8 @@ public:
     M methodThatNeedsSummary = ICFG.getMethodOf(n);
     D d1 = Edge.factAtSource();
     D d2 = Edge.factAtTarget();
-    std::cout << "D1: " << llvmIRToString(d1) << " -- " << llvmIRToString(n) << " -- D2: " << llvmIRToString(d2) << std::endl; 
+    std::cout << "D1: " << llvmIRToString(d1) << " -- " << llvmIRToString(n)
+              << " -- D2: " << llvmIRToString(d2) << std::endl;
     // for each of the method's start points, determine incoming calls
     std::set<N> startPointsOf = ICFG.getStartPointsOf(methodThatNeedsSummary);
     std::map<N, std::set<D>> inc;
@@ -410,9 +411,9 @@ public:
     // }
     // FIXME get the callsite by hand
     if (methodThatNeedsSummary->getName() != "main") {
-     auto main = n->getModule()->getFunction("main");
-     for (auto &BB : *main) {
-       for (auto &i : BB) {
+      auto main = n->getModule()->getFunction("main");
+      for (auto &BB : *main) {
+        for (auto &i : BB) {
           if (auto cs = llvm::dyn_cast<llvm::CallInst>(&i)) {
             std::cout << "FOUND CALLSITE: " << llvmIRToString(cs) << std::endl;
             inc.insert(std::make_pair(cs, std::set<D>{}));
@@ -437,7 +438,8 @@ public:
         std::cout << "RET TARGETS size(): " << targets.size() << std::endl;
         // for each target value at the return site
         for (D d5 : targets) {
-          std::shared_ptr<EdgeFunction<V>> f = P.getReturnEdgeFunction(c, methodThatNeedsSummary, n, d2, retSiteC, d5);
+          std::shared_ptr<EdgeFunction<V>> f = P.getReturnEdgeFunction(
+              c, methodThatNeedsSummary, n, d2, retSiteC, d5);
           auto d1_k = wali::getKey(d1);
           DKey[d1] = d1_k;
           auto d2_k = wali::getKey(d2);
@@ -448,8 +450,8 @@ public:
           wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
               new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
           std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
-                    << P.NtoString(n) << ", " << P.DtoString(d5)
-                    << ", " << *wptr << std::endl;
+                    << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
+                    << *wptr << std::endl;
           PDS->add_rule(d2_k, n_k, d5_k, wptr);
           if (!SRElem.is_valid()) {
             SRElem = wptr;
