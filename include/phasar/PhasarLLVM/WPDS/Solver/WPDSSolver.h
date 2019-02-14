@@ -15,6 +15,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <utility>
 #include <unordered_map>
 
 #include <llvm/Support/Casting.h>
@@ -74,8 +75,9 @@ public:
     submitInitalSeeds();
     std::ofstream pdsfile("pds.dot");
     PDS->print_dot(pdsfile, true);
-    // // first, check if the inter-PDS is build correctly
-    // return;
+    pdsfile.flush();
+    pdsfile.close();
+    std::cout << "PRINTED DOT FILE" << std::endl;
     // test the SRElem
     wali::test_semelem_impl(SRElem);
     // Solve the PDS
@@ -84,9 +86,8 @@ public:
     if (SearchDirection::FORWARD == P.getSearchDirection()) {
       std::cout << "FORWARD\n";
       doForwardSearch(Answer);
-
+      std::cout << "PATH SUMMARY - COMPUTING THE WEIGHTS" << std::endl;
       Answer.path_summary();
-
       wali::wfa::Trans goal;
       // check all data-flow facts
       std::cout << "All D(s)" << std::endl;
@@ -129,6 +130,7 @@ public:
       //   ret = ret->combine(tmp);
       // }
     }
+    std::cout << "SOLVED\n";
   }
 
   void doForwardSearch(wali::wfa::WFA &Answer) {
@@ -244,16 +246,10 @@ public:
     for (const auto &Seed : InitialSeeds) {
       N StartPoint = Seed.first;
       for (const D &Value : Seed.second) {
-        // generate rule for initial seed
         auto ZeroValue_k = wali::getKey(ZeroValue);
         DKey[ZeroValue] = ZeroValue_k;
         auto Value_k = wali::getKey(Value);
         DKey[Value] = Value_k;
-        auto StartPoint_k = wali::getKey(StartPoint);
-        wali::ref_ptr<EnvTrafoToSemElem<V>> wptr = new EnvTrafoToSemElem<V>(
-            EdgeIdentity<V>::getInstance(), static_cast<JoinLattice<V> &>(P));
-        PDS->add_rule(ZeroValue_k, StartPoint_k, Value_k,
-                      StartPoint_k, wptr);
         // propagate facts along the ICFG
         propagate(ZeroValue, StartPoint, Value, nullptr, false);
       }
@@ -304,7 +300,7 @@ public:
         auto m_k = wali::getKey(m);
         wali::ref_ptr<EnvTrafoToSemElem<V>> wptr;
         wptr = new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P));
-        std::cout << "Normal-PDS rule: " << P.DtoString(d2) << " | "
+        std::cout << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
                   << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
                   << P.DtoString(m) << ", " << *wptr << ")" << std::endl;
         PDS->add_rule(d2_k, n_k, d3_k, m_k, wptr);
@@ -318,120 +314,150 @@ public:
 
   void processCall(PathEdge<N, D> Edge) {
     std::cout << "processCall()\n";
-    // D d1 = Edge.factAtSource();
-    // N n = Edge.getTarget();
-    // D d2 = Edge.factAtTarget();
-    // std::set<N> returnSiteNs = ICFG.getReturnSitesOfCallAt(n);
-    // std::set<M> callees = ICFG.getCalleesOfCallAt(n);
-    // // for each possible callee
-    // for (M sCalledProcN : callees) { // still line 14
-    //   // compute the call-flow function
-    //   std::shared_ptr<FlowFunction<D>> flowFunction =
-    //       P.getCallFlowFunction(n, sCalledProcN);
-    //   std::set<D> res = flowFunction->computeTargets(d2);
-    //   // for each callee's start point(s)
-    //   std::set<N> startPointsOf = ICFG.getStartPointsOf(sCalledProcN);
-    //   // if startPointsOf is empty, the called function is a declaration
-    //   for (N sP : startPointsOf) {
-    //     // for each result node of the call-flow function
-    //     for (D d3 : res) {
-    //       std::shared_ptr<EdgeFunction<V>> fun =
-    //           P.getCallEdgeFunction(n, d1, sCalledProcN, d3);
-    //       DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
-    //       DKey[d3] = wali::getKey(reinterpret_cast<size_t>(d3));
-    //       NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-    //       NKey[sP] = wali::getKey(reinterpret_cast<size_t>(sP));
-    //       NKey[*returnSiteNs.begin()] =
-    //           wali::getKey(reinterpret_cast<size_t>(*returnSiteNs.begin()));
-    //       wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-    //           new EnvTrafoToSemElem<V>(fun, static_cast<JoinLattice<V> &>(P)));
-    //       std::cout << "Call-PDS rule: " << P.DtoString(d1) << ", "
-    //                 << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
-    //                 << P.NtoString(sP) << ", " << *wptr << std::endl;
-    //       PDS->add_rule(DKey[d1], NKey[n], DKey[d3], NKey[sP],
-    //                     NKey[*returnSiteNs.begin()], wptr);
-    //       if (!SRElem.is_valid()) {
-    //         SRElem = wptr;
-    //       }
-    //       std::cout << "ADD INCOMING" << std::endl;
-    //       addIncoming(sP, d3, n, d2);
-    //       // create initial self-loop
-    //       propagate(d3, sP, d3, n, false);
-    //     }
-    //   }
-    // }
-    // // process intra-procedural flows along call-to-return flow functions
-    // for (N returnSiteN : returnSiteNs) {
-    //   std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
-    //       P.getCallToRetFlowFunction(n, returnSiteN, callees);
-    //   std::set<D> returnFacts = callToReturnFlowFunction->computeTargets(d2);
-    //   for (D d3 : returnFacts) {
-    //     std::shared_ptr<EdgeFunction<V>> edgeFnE =
-    //         P.getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
-    //     DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
-    //     DKey[d3] = wali::getKey(reinterpret_cast<size_t>(d3));
-    //     NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-    //     NKey[returnSiteN] = wali::getKey(reinterpret_cast<size_t>(returnSiteN));
-    //     wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(new EnvTrafoToSemElem<V>(
-    //         edgeFnE, static_cast<JoinLattice<V> &>(P)));
-    //     std::cout << "CallToRet-PDS rule: " << P.DtoString(d2) << " | "
-    //               << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
-    //               << *wptr << std::endl;
-    //     PDS->add_rule(DKey[d1], NKey[n], DKey[d3], NKey[returnSiteN], wptr);
-    //     if (!SRElem.is_valid()) {
-    //       SRElem = wptr;
-    //     }
-    //     propagate(d1, returnSiteN, d3, n, false);
-    //   }
-    // }
+    D d1 = Edge.factAtSource();
+    N n = Edge.getTarget();
+    D d2 = Edge.factAtTarget();
+    std::set<N> returnSiteNs = ICFG.getReturnSitesOfCallAt(n);
+    std::set<M> callees = ICFG.getCalleesOfCallAt(n);
+    // for each possible callee
+    for (M sCalledProcN : callees) { // still line 14
+      // compute the call-flow function
+      std::shared_ptr<FlowFunction<D>> flowFunction =
+          P.getCallFlowFunction(n, sCalledProcN);
+      std::cout << "CALL FF SOURCE: " << llvmIRToString(d2) << std::endl;
+      std::set<D> res = flowFunction->computeTargets(d2);
+      if (d2 == ZeroValue) {
+        res.insert(ZeroValue); // FIXME
+      }
+      std::cout << "CALL FF TARGETS CONTAIN ZEROVALUE: " << res.count(ZeroValue) << std::endl;
+      // for each callee's start point(s)
+      std::set<N> startPointsOf = ICFG.getStartPointsOf(sCalledProcN);
+      // if startPointsOf is empty, the called function is a declaration
+      for (N sP : startPointsOf) {
+        // for each result node of the call-flow function
+        for (D d3 : res) {
+          std::shared_ptr<EdgeFunction<V>> fcall =
+              P.getCallEdgeFunction(n, d1, sCalledProcN, d3);
+          auto d1_k = wali::getKey(d1);
+          DKey[d1] = d1_k;
+          auto d3_k = wali::getKey(d3);
+          DKey[d3] = d3_k;
+          auto n_k = wali::getKey(n);
+          auto sP_k = wali::getKey(sP);
+          wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
+              new EnvTrafoToSemElem<V>(fcall, static_cast<JoinLattice<V> &>(P)));
+          std::cout << "ADD CALL RULE: " << P.DtoString(d1) << ", "
+                    << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
+                    << P.NtoString(sP) << ", " << *wptr << std::endl;
+          for (auto retSiteN : returnSiteNs) {
+            auto retSiteN_k = wali::getKey(retSiteN);
+            PDS->add_rule(d1_k, n_k, d3_k, sP_k,
+                          retSiteN_k, wptr);
+          }
+          if (!SRElem.is_valid()) {
+            SRElem = wptr;
+          }
+          std::cout << "ADD INCOMING" << std::endl;
+          addIncoming(sP, d3, n, d2);
+          // create initial self-loop
+          propagate(d3, sP, d3, n, false);
+        }
+      }
+    }
+    // process intra-procedural flows along call-to-return flow functions
+    for (N returnSiteN : returnSiteNs) {
+      std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
+          P.getCallToRetFlowFunction(n, returnSiteN, callees);
+      std::set<D> returnFacts = callToReturnFlowFunction->computeTargets(d2);
+      for (D d3 : returnFacts) {
+        std::shared_ptr<EdgeFunction<V>> edgeFnE =
+            P.getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
+        auto d1_k = wali::getKey(d1);
+        DKey[d1] = d1_k;
+        auto d3_k = wali::getKey(d3);
+        DKey[d3] = d3_k;
+        auto n_k = wali::getKey(n);
+        auto returnSiteN_k = wali::getKey(returnSiteN);
+        wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(new EnvTrafoToSemElem<V>(
+            edgeFnE, static_cast<JoinLattice<V> &>(P)));
+        std::cout << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
+                  << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
+                  << P.NtoString(returnSiteN) << ", "
+                  << *wptr << std::endl;
+        PDS->add_rule(d1_k, n_k, d3_k, returnSiteN_k, wptr);
+        if (!SRElem.is_valid()) {
+          SRElem = wptr;
+        }
+        propagate(d1, returnSiteN, d3, n, false);
+      }
+    }
   }
 
   void processExit(PathEdge<N, D> Edge) {
     std::cout << "processExit()\n";
-    // N n = Edge.getTarget();
-    // M methodThatNeedsSummary = ICFG.getMethodOf(n);
-    // D d1 = Edge.factAtSource();
-    // D d2 = Edge.factAtTarget();
-    // // for each of the method's start points, determine incoming calls
-    // std::set<N> startPointsOf = ICFG.getStartPointsOf(methodThatNeedsSummary);
-    // std::map<N, std::set<D>> inc;
+    N n = Edge.getTarget();
+    M methodThatNeedsSummary = ICFG.getMethodOf(n);
+    D d1 = Edge.factAtSource();
+    D d2 = Edge.factAtTarget();
+    std::cout << "D1: " << llvmIRToString(d1) << " -- " << llvmIRToString(n) << " -- D2: " << llvmIRToString(d2) << std::endl; 
+    // for each of the method's start points, determine incoming calls
+    std::set<N> startPointsOf = ICFG.getStartPointsOf(methodThatNeedsSummary);
+    std::map<N, std::set<D>> inc;
     // for (N sP : startPointsOf) {
     //   for (auto entry : incoming(d1, sP)) {
     //     inc[entry.first] = std::set<D>{entry.second};
     //   }
     // }
-    // std::cout << "inc.size(): " << inc.size() << std::endl;
-    // // for each incoming-call value
-    // for (auto entry : inc) {
-    //   N c = entry.first;
-    //   for (N retSiteC : ICFG.getReturnSitesOfCallAt(c)) {
-    //     std::cout << "STILL HERE" << std::endl;
-    //     // compute return-flow function
-    //     std::shared_ptr<FlowFunction<D>> retFunction =
-    //         P.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
-    //     std::set<D> targets = retFunction->computeTargets(d1);
-    //     std::cout << "RET TARGETS size(): " << targets.size() << std::endl;
-    //     // for each target value at the return site
-    //     for (D d5 : targets) {
-    //       std::shared_ptr<EdgeFunction<V>> f = P.getReturnEdgeFunction(c, ICFG.getMethodOf(n), n, d2, retSiteC, d5);
-    //       DKey[d1] = wali::getKey(reinterpret_cast<size_t>(d1));
-    //       DKey[d2] = wali::getKey(reinterpret_cast<size_t>(d2));
-    //       DKey[d5] = wali::getKey(reinterpret_cast<size_t>(d5));
-    //       NKey[n] = wali::getKey(reinterpret_cast<size_t>(n));
-    //       wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-    //           new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
-    //       std::cout << "Ret-PDS rule: " << P.DtoString(d1) << ", "
-    //                 << P.NtoString(n) << ", " << P.DtoString(d2) << ", "
-    //                 << P.NtoString(retSiteC) << ", " << *wptr << std::endl;
-
-    //       PDS->add_rule(DKey[d2], NKey[n], DKey[d5], wptr);
-    //       if (!SRElem.is_valid()) {
-    //         SRElem = wptr;
-    //       }
-    //       propagate(d2, retSiteC, d5, c, false);
-    //     }
-    //   }
-    // }
+    // FIXME get the callsite by hand
+    if (methodThatNeedsSummary->getName() != "main") {
+     auto main = n->getModule()->getFunction("main");
+     for (auto &BB : *main) {
+       for (auto &i : BB) {
+          if (auto cs = llvm::dyn_cast<llvm::CallInst>(&i)) {
+            std::cout << "FOUND CALLSITE: " << llvmIRToString(cs) << std::endl;
+            inc.insert(std::make_pair(cs, std::set<D>{}));
+          }
+        }
+      }
+    }
+    std::cout << "inc.size(): " << inc.size() << std::endl;
+    // for each incoming-call value
+    for (auto entry : inc) {
+      N c = entry.first;
+      for (N retSiteC : ICFG.getReturnSitesOfCallAt(c)) {
+        std::cout << "STILL HERE" << std::endl;
+        // compute return-flow function
+        std::shared_ptr<FlowFunction<D>> returnFlowFunc =
+            P.getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
+        std::cout << "RET FF SOURCE VALUE: " << llvmIRToString(d2) << std::endl;
+        std::set<D> targets = returnFlowFunc->computeTargets(d2);
+        if (d2 == ZeroValue && methodThatNeedsSummary->getName() != "main") {
+          targets.insert(ZeroValue); // FIXME
+        }
+        std::cout << "RET TARGETS size(): " << targets.size() << std::endl;
+        // for each target value at the return site
+        for (D d5 : targets) {
+          std::shared_ptr<EdgeFunction<V>> f = P.getReturnEdgeFunction(c, methodThatNeedsSummary, n, d2, retSiteC, d5);
+          auto d1_k = wali::getKey(d1);
+          DKey[d1] = d1_k;
+          auto d2_k = wali::getKey(d2);
+          DKey[d2] = d2_k;
+          auto d5_k = wali::getKey(d5);
+          DKey[d5] = d5_k;
+          auto n_k = wali::getKey(n);
+          wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
+              new EnvTrafoToSemElem<V>(f, static_cast<JoinLattice<V> &>(P)));
+          std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
+                    << P.NtoString(n) << ", " << P.DtoString(d5)
+                    << ", " << *wptr << std::endl;
+          PDS->add_rule(d2_k, n_k, d5_k, wptr);
+          if (!SRElem.is_valid()) {
+            SRElem = wptr;
+          }
+          propagate(d2, retSiteC, d5, c, false);
+        }
+      }
+    }
   }
 
 protected:

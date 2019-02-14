@@ -40,20 +40,20 @@ public:
   std::ostream &print(std::ostream &os) const override { return os << *F; }
 
   wali::sem_elem_t one() const override {
-    std::cout << "EnvTrafoToSemElem::one()" << std::endl;
+    // std::cout << "EnvTrafoToSemElem::one()" << std::endl;
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(new EnvTrafoToSemElem(
         std::make_shared<AllBottom<V>>(L.bottomElement()), L));
   }
 
   wali::sem_elem_t zero() const override {
-    std::cout << "EnvTrafoToSemElem::zero()" << std::endl;
+    // std::cout << "EnvTrafoToSemElem::zero()" << std::endl;
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
         // new EnvTrafoToSemElem(EdgeIdentity<V>::getInstance(), L));
         new EnvTrafoToSemElem(std::make_shared<AllTop<V>>(L.topElement()), L));
   }
 
   wali::sem_elem_t extend(SemElem *se) override {
-    std::cout << "EnvTrafoToSemElem::extend()" << std::endl;
+    // std::cout << "EnvTrafoToSemElem::extend()" << std::endl;
     auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
     auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
@@ -61,7 +61,7 @@ public:
   }
 
   wali::sem_elem_t combine(SemElem *se) override {
-    std::cout << "EnvTrafoToSemElem::combine()" << std::endl;
+    // std::cout << "EnvTrafoToSemElem::combine()" << std::endl;
     auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
     auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
@@ -69,7 +69,7 @@ public:
   }
 
   bool equal(SemElem *se) const override {
-    std::cout << "EnvTrafoToSemElem::equal()" << std::endl;
+    // std::cout << "EnvTrafoToSemElem::equal()" << std::endl;
     auto ThisF = dynamic_cast<const EnvTrafoToSemElem *>(this);
     auto ThatF = dynamic_cast<const EnvTrafoToSemElem *>(se);
     return ThisF->F->equal_to(ThatF->F);

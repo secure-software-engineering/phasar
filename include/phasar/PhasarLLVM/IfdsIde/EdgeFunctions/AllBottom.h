@@ -61,7 +61,7 @@ public:
     if (EdgeIdentity<V> *ei =
             dynamic_cast<EdgeIdentity<V> *>(otherFunction.get()))
       return this->shared_from_this();
-    throw std::runtime_error("UNEXPECTED EDGE FUNCTION");
+    return this->shared_from_this();
   }
 
   virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
