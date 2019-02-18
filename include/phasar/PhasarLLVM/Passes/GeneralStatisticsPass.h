@@ -58,15 +58,13 @@ private:
   size_t instructions = 0;
   size_t storeInstructions = 0;
   size_t memIntrinsic = 0;
-  size_t pointers = 0;
+  size_t globalPointers = 0;
   std::set<const llvm::Type *> allocatedTypes;
   std::set<const llvm::Value *> allocaInstrucitons;
   std::set<const llvm::Instruction *> retResInstructions;
 
 public:
-  // TODO What's the ID good for?
   static char ID;
-  // TODO What exactly does the constructor do?
   GeneralStatisticsPass() : llvm::ModulePass(ID) {}
 
   /**
@@ -119,9 +117,9 @@ public:
   size_t getInstructions();
 
   /**
-   * @brief Returns the number of Pointers.
+   * @brief Returns the number of global pointers.
    */
-  size_t getPointers();
+  size_t getGlobalPointers();
 
   /**
    * @brief Returns all possible Types.

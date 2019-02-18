@@ -39,7 +39,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -76,13 +76,13 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              const vector<string> &EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
-  unique_ptr<Resolver_t> resolver(
-      [CGType, &IRDB, &STH, this]() -> unique_ptr<Resolver_t> {
+  unique_ptr<Resolver> resolver(
+      [CGType, &IRDB, &STH, this]() -> unique_ptr<Resolver> {
         switch (CGType) {
         case (CallGraphAnalysisType::CHA):
           return make_unique<CHAResolver>(IRDB, STH);
@@ -111,10 +111,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
     WholeModulePTG.mergeWith(ptg, F);
     constructionWalker(F, resolver.get());
   }
-  REG_COUNTER_WITH_VALUE("WM-PTG Vertices", WholeModulePTG.getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("WM-PTG Edges", WholeModulePTG.getNumOfEdges());
-  REG_COUNTER_WITH_VALUE("Call Graph Vertices", getNumOfVertices());
-  REG_COUNTER_WITH_VALUE("Call Graph Edges", getNumOfEdges());
+  REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("WM-PTG Edges", WholeModulePTG.getNumOfEdges(),
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
 }
 
@@ -123,7 +125,6 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
                              vector<string> EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
-  PAMM_FACTORY;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -133,8 +134,8 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
       EntryPoints.push_back(F.getName().str());
     }
   }
-  unique_ptr<Resolver_t> resolver(
-      [CGType, &IRDB, &STH, this]() -> unique_ptr<Resolver_t> {
+  unique_ptr<Resolver> resolver(
+      [CGType, &IRDB, &STH, this]() -> unique_ptr<Resolver> {
         switch (CGType) {
         case (CallGraphAnalysisType::CHA):
           return make_unique<CHAResolver>(IRDB, STH);
@@ -165,13 +166,12 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
 }
 
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
-                                       Resolver_t *resolver) {
-  PAMM_FACTORY;
+                                       Resolver *resolver) {
+  PAMM_GET_INSTANCE;
   static bool first_function = true;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Walking in function: " << F->getName().str());
-
   if (VisitedFunctions.count(F) || F->isDeclaration()) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Function already visited or only declaration: "
@@ -190,11 +190,10 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
     first_function = false;
     resolver->firstFunction(F);
   }
-
+  // iterate all instructions of the current function
   for (llvm::const_inst_iterator I = llvm::inst_begin(F), E = llvm::inst_end(F);
        I != E; ++I) {
     const llvm::Instruction &Inst = *I;
-
     if (llvm::isa<llvm::CallInst>(Inst) || llvm::isa<llvm::InvokeInst>(Inst)) {
       resolver->preCall(&Inst);
 
@@ -206,22 +205,32 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found static call-site: "
                       << llvmIRToString(cs.getInstruction()));
-      } else { // the function call must be resolved dynamically
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Found dynamic call-site: "
-                      << llvmIRToString(cs.getInstruction()));
-        // call the resolve routine
-        set<string> possible_target_names;
-
-        if (isVirtualFunctionCall(cs)) {
-          possible_target_names = resolver->resolveVirtualCall(cs);
+      } else {
+        // still try to resolve the called function statically
+        const llvm::Value *v = cs.getCalledValue();
+        const llvm::Value *sv = v->stripPointerCasts();
+        if (sv->hasName() && IRDB.getFunction(sv->getName())) {
+          possible_targets.insert(IRDB.getFunction(sv->getName()));
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Found static call-site: "
+                        << llvmIRToString(cs.getInstruction()));
         } else {
-          possible_target_names = resolver->resolveFunctionPointer(cs);
-        }
+          // the function call must be resolved dynamically
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Found dynamic call-site: "
+                        << llvmIRToString(cs.getInstruction()));
+          // call the resolve routine
+          set<string> possible_target_names;
+          if (isVirtualFunctionCall(cs)) {
+            possible_target_names = resolver->resolveVirtualCall(cs);
+          } else {
+            possible_target_names = resolver->resolveFunctionPointer(cs);
+          }
 
-        for (auto &possible_target_name : possible_target_names) {
-          if (IRDB.getFunction(possible_target_name)) {
-            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          for (auto &possible_target_name : possible_target_names) {
+            if (IRDB.getFunction(possible_target_name)) {
+              possible_targets.insert(IRDB.getFunction(possible_target_name));
+            }
           }
         }
       }
@@ -261,31 +270,26 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
 bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *V = CS.getArgOperand(0);
-    if (V->getType()->isPointerTy()) {
-      if (V->getType()->getPointerElementType()->isStructTy()) {
-        string type_name =
-            V->getType()->getPointerElementType()->getStructName();
-
-        // get the type name and check if it has a virtual member function
-        if (CH.containsType(type_name) && CH.containsVTable(type_name)) {
-          VTable vtbl = CH.getVTable(type_name);
-          for (const string &Fname : vtbl) {
-            const llvm::Function *F = IRDB.getFunction(Fname);
-
-            if (!F) {
-              // Is a pure virtual function
-              // or there is an error with the function in the module (that can
-              // happen)
+    if (V->getType()->isPointerTy() &&
+        V->getType()->getPointerElementType()->isStructTy()) {
+      string TypeName = V->getType()->getPointerElementType()->getStructName();
+      // get the type name and check if it has a virtual member function
+      if (CH.containsType(TypeName) && CH.containsVTable(TypeName)) {
+        VTable VTBL = CH.getVTable(TypeName);
+        for (const string &Fname : VTBL) {
+          const llvm::Function *F = IRDB.getFunction(Fname);
+          if (!F) {
+            // Is a pure virtual function
+            // or there is an error with the function in the module (that can
+            // happen)
+            return true;
+          }
+          if (CS.getCalledValue()->getType()->isPointerTy()) {
+            if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
+                                        CS.getCalledValue()
+                                            ->getType()
+                                            ->getPointerElementType()))) {
               return true;
-            }
-
-            if (CS.getCalledValue()->getType()->isPointerTy()) {
-              if (matchesSignature(F, llvm::dyn_cast<llvm::FunctionType>(
-                                          CS.getCalledValue()
-                                              ->getType()
-                                              ->getPointerElementType()))) {
-                return true;
-              }
             }
           }
         }
@@ -293,126 +297,14 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
     }
   }
   return false;
-}
-
-const llvm::Function *
-LLVMBasedICFG::getMethodOf(const llvm::Instruction *stmt) {
-  return stmt->getFunction();
 }
 
 const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) {
   return IRDB.getFunction(fun);
 }
 
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getPredsOf(const llvm::Instruction *I) {
-  vector<const llvm::Instruction *> Preds;
-  if (I->getPrevNode()) {
-    Preds.push_back(I->getPrevNode());
-  }
-  /*
-   * If we do not have a predecessor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
-  if (Preds.empty()) {
-    for (auto &BB : *I->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == I) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
-  }
-  return Preds;
-}
-
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getSuccsOf(const llvm::Instruction *I) {
-  vector<const llvm::Instruction *> Successors;
-  if (I->getNextNode())
-    Successors.push_back(I->getNextNode());
-  if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
-    for (auto successor : T->successors()) {
-      Successors.push_back(&*successor->begin());
-    }
-  }
-  return Successors;
-}
-
-vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
-LLVMBasedICFG::getAllControlFlowEdges(const llvm::Function *fun) {
-  vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
-  for (auto &BB : *fun) {
-    for (auto &I : BB) {
-      auto Successors = getSuccsOf(&I);
-      for (auto Successor : Successors) {
-        Edges.push_back(make_pair(&I, Successor));
-      }
-    }
-  }
-  return Edges;
-}
-
 set<const llvm::Function *> LLVMBasedICFG::getAllMethods() {
   return IRDB.getAllFunctions();
-}
-
-vector<const llvm::Instruction *>
-LLVMBasedICFG::getAllInstructionsOf(const llvm::Function *fun) {
-  vector<const llvm::Instruction *> Instructions;
-  for (auto &BB : *fun) {
-    for (auto &I : BB) {
-      Instructions.push_back(&I);
-    }
-  }
-  return Instructions;
-}
-
-bool LLVMBasedICFG::isExitStmt(const llvm::Instruction *stmt) {
-  return llvm::isa<llvm::ReturnInst>(stmt);
-}
-
-bool LLVMBasedICFG::isStartPoint(const llvm::Instruction *stmt) {
-  return (stmt == &stmt->getFunction()->front().front());
-}
-
-bool LLVMBasedICFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                           const llvm::Instruction *succ) {
-  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
-    if (B->isConditional()) {
-      return &B->getSuccessor(1)->front() == succ;
-    } else {
-      return &B->getSuccessor(0)->front() == succ;
-    }
-  }
-  return false;
-}
-
-bool LLVMBasedICFG::isBranchTarget(const llvm::Instruction *stmt,
-                                   const llvm::Instruction *succ) {
-  if (const llvm::TerminatorInst *T =
-          llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-    for (auto successor : T->successors()) {
-      if (&*successor->begin() == succ) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-string LLVMBasedICFG::getStatementId(const llvm::Instruction *stmt) {
-  return llvm::cast<llvm::MDString>(
-             stmt->getMetadata(MetaDataKind)->getOperand(0))
-      ->getString()
-      .str();
-}
-
-string LLVMBasedICFG::getMethodName(const llvm::Function *fun) {
-  return fun->getName().str();
 }
 
 /**

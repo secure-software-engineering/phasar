@@ -2,7 +2,10 @@
 
 Phasar a LLVM-based Static Analysis Framework
 =============================================
-Version 1.1
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
+
+Version 1218
 
 Secure Software Engineering Group
 ---------------------------------
@@ -121,6 +124,33 @@ In case you would like to analyze larger programs adjust the stack size limit to
 limit to 16 MB:
 
 `$ ulimit -s 16777216`
+
+
+Be careful when analyzing code that contains C-style variadic functions. Depending on your flow function
+implementations PhASAR may crash. Observe the following example:
+```C++
+int sum(int n, ...) {
+	int s = 0;
+	va_list args;
+	va_start(args, n);
+	for (int i = 0; i < n; ++i) {
+		s += va_arg(args, int);
+	}
+	va_end(args);
+	return s;
+}
+
+int main() {
+	int s = sum(5 /* num args */, /* the actual args: */ 1, 2, 3, 4, 5);
+	printf("%d\n", s);
+	return 0;
+}
+```
+The problem is that - if not handled carefully - the getCallFlowFunction() tries to map
+more actual parameters into the callee than there are formal parameters (according to
+LLVM sum has one formal parameter). Please have a look at our auto-mapping LLVM-based
+flow function implementations `MapFactsToCallee` and `MapFactsToCaller` where we are using
+a sound over-approximation. You may wish to use a similar treatment for your application.
 
 
 Installation
@@ -353,7 +383,7 @@ When using CMake to compile Phasar the following optional parameters can be used
 | <b>CMAKE_INSTALL_PREFIX</b> : PATH | Path where Phasar will be installed if <br> “make install” is invoked or the “install” <br> target is built (default is /usr/local) |
 | <b>PHASAR_BUILD_DOC</b> : BOOL | Build Phasar documentation (default is OFF) |
 | <b>PHASAR_BUILD_UNITTESTS</b> : BOOL | Build Phasar unittests (default is OFF) |
-| <b>PHASAR_ENABLE_PAMM</b> : BOOL | Enable the performance measurement <br> mechanism (default is OFF) |
+| <b>PHASAR_ENABLE_PAMM</b> : STRING | Enable the performance measurement mechanism <br> ('Off', 'Core' or 'Full', default is Off) |
 | <b>PHASAR_ENABLE_PIC</b> : BOOL | Build Position-Independed Code (default is ON) |
 | <b>PHASAR_ENABLE_WARNINGS</b> : BOOL | Enable compiler warnings (default is ON) |
 
@@ -459,6 +489,7 @@ Configuration file options:
   --project-id arg (=myphasarproject)  Project Id used for the database
   --graph-id arg (=123456)             Graph Id used by the visualization
                                        framework
+  --pamm-out arg (=PAMM_data.json)     Filename for PAMM's gathered data
 ```
 
 ### Running an analysis
@@ -515,7 +546,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-`$ main -m path/to/your/main.ll -D ifds-solvertest`
+`$ phasar -m path/to/your/main.ll -D ifds-solvertest`
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
@@ -558,7 +589,7 @@ int function(int x) {
 	return x + 1;
 }
 
-int main(int argc, char** argv) {
+int main() {
 	int i = 42;
 	int j = function(i);
 	return 0;

@@ -1,4 +1,5 @@
 add_subdirectory(PhasarLLVM)
+add_subdirectory(PhasarPass)
 add_subdirectory(PhasarClang)
 add_subdirectory(DB)
 add_subdirectory(Config)

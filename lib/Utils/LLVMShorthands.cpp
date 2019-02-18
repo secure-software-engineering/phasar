@@ -14,6 +14,7 @@
  *      Author: philipp
  */
 
+#include <llvm/ADT/StringRef.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/IR/CallSite.h>
@@ -31,7 +32,6 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
 
 using namespace std;
 using namespace psr;
@@ -48,6 +48,66 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
            V->getType()->getPointerElementType()->isFunctionTy();
   }
   return false;
+}
+
+SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
+  // test if Codes for Constructors, Destructors or operator= are in string
+  static const std::map<std::string, SpecialMemberFunctionTy> codes{
+      {"C1", SpecialMemberFunctionTy::CTOR},
+      {"C2", SpecialMemberFunctionTy::CTOR},
+      {"C3", SpecialMemberFunctionTy::CTOR},
+      {"D0", SpecialMemberFunctionTy::DTOR},
+      {"D1", SpecialMemberFunctionTy::DTOR},
+      {"D2", SpecialMemberFunctionTy::DTOR},
+      {"aSERKS_", SpecialMemberFunctionTy::CPASSIGNOP},
+      {"aSEOS_", SpecialMemberFunctionTy::MVASSIGNOP}};
+  std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> found;
+  std::size_t blacklist = 0;
+  auto it = codes.begin();
+  while (it != codes.end()) {
+    if (std::size_t index = s.find(it->first, blacklist)) {
+      if (index != std::string::npos) {
+        found.push_back(std::make_pair(index, it->second));
+        blacklist = index + 1;
+      } else {
+        ++it;
+        blacklist = 0;
+      }
+    }
+  }
+  if (found.empty()) {
+    return SpecialMemberFunctionTy::NONE;
+  }
+
+  // test if codes are in function name or type information
+  bool noName = true;
+  for (auto index : found) {
+    for (auto c = s.begin(); c < s.begin() + index.first; ++c) {
+      if (isdigit(*c)) {
+        short i = 0;
+        while (isdigit(*(c + i))) {
+          ++i;
+        }
+        std::string st(c, c + i);
+        if (index.first <= std::distance(s.begin(), c) + atoi(st.c_str())) {
+          noName = false;
+          break;
+        } else {
+          c = c + *c;
+        }
+      }
+    }
+    if (noName) {
+      return index.second;
+    } else {
+      noName = true;
+    }
+  }
+  return SpecialMemberFunctionTy::NONE;
+}
+
+SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &sr) {
+  return specialMemberFunctionType(sr.str());
 }
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {

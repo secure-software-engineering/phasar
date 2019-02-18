@@ -27,7 +27,6 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
 
 using namespace std;
 using namespace psr;
@@ -49,8 +48,8 @@ void RTAResolver::firstFunction(const llvm::Function *F) {
 }
 
 set<string> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  throw runtime_error("RTA is currently unabled to deal with already built "
-                      "library, it has been disable until this is fixed");
+  // throw runtime_error("RTA is currently unabled to deal with already built "
+  //                     "library, it has been disable until this is fixed");
 
   set<string> possible_call_targets;
   auto &lg = lg::get();

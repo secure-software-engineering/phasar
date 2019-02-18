@@ -1,9 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
 
-# Set-up the compiler
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
-
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
 
@@ -33,19 +29,6 @@ set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-# Phasar Options
-if(APPLE)
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" ON)
-else()
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
-endif()
-
-if(PHASAR_ENABLE_LIBCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-endif(PHASAR_ENABLE_LIBCXX)
-
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
@@ -56,7 +39,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage  ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
 endif (PHASAR_ENABLE_WARNINGS)
 
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
@@ -64,10 +47,21 @@ if (PHASAR_ENABLE_PIC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 endif (PHASAR_ENABLE_PIC)
 
-option(PHASAR_ENABLE_PAMM "Enable the performance measurement mechanism" OFF)
-if (PHASAR_ENABLE_PAMM)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPERFORMANCE_EVA")
-endif (PHASAR_ENABLE_PAMM)
+if (NOT PHASAR_ENABLE_PAMM)
+  set(PHASAR_ENABLE_PAMM "Off" CACHE STRING "Enable the performance measurement mechanism ('Off', 'Core' or 'Full', default is 'Off')" FORCE)
+  set_property(CACHE PHASAR_ENABLE_PAMM PROPERTY STRINGS "Off" "Core" "Full")
+endif()
+if(PHASAR_ENABLE_PAMM STREQUAL "Core" AND NOT PHASAR_BUILD_UNITTESTS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPAMM_CORE")
+  message("PAMM metric severity level: Core")
+elseif(PHASAR_ENABLE_PAMM STREQUAL "Full" AND NOT PHASAR_BUILD_UNITTESTS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPAMM_FULL")
+  message("PAMM metric severity level: Full")
+elseif(PHASAR_BUILD_UNITTESTS)
+  message("PAMM metric severity level: Off (due to unittests)")
+else()
+  message("PAMM metric severity level: Off")
+endif()
 
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
@@ -86,7 +80,7 @@ find_package(Threads)
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
-include_directories(external/json/src)
+include_directories(external/json/single_include/nlohmann)
 
 # Googletest
 add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
@@ -310,7 +304,7 @@ install(DIRECTORY include/
   FILES_MATCHING PATTERN "*.h"
 )
 # Install the header only json container
-install(DIRECTORY external/json/src/
+install(DIRECTORY external/json/single_include/nlohmann/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )

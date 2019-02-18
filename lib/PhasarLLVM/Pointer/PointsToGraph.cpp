@@ -33,7 +33,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace std;
 using namespace psr;
@@ -209,6 +209,7 @@ const map<PointerAnalysisType, string> PointerAnalysisTypeToString = {
 
 PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Analyzing function: " << F->getName().str());
@@ -255,6 +256,7 @@ PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
           Pointers.insert(*OI);
     }
   }
+  INC_COUNTER("GS Pointer", Pointers.size(), PAMM_SEVERITY_LEVEL::Core);
 
   //  llvm::errs() << "Function: " << F->getName() << ": " << Pointers.size()
   //               << " pointers, " << CallSites.size() << " call sites\n";
@@ -415,9 +417,9 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
 }
 
 set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
-  PAMM_FACTORY;
-  INC_COUNTER("Calls to getPointsToSet");
-  START_TIMER("Compute PointsToSet");
+  PAMM_GET_INSTANCE;
+  INC_COUNTER("[Calls] getPointsToSet", 1, PAMM_SEVERITY_LEVEL::Full);
+  START_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
   set<vertex_t> reachable_vertices;
   reachability_dfs_visitor vis(reachable_vertices);
   vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
@@ -430,8 +432,8 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   for (auto vertex : reachable_vertices) {
     result.insert(ptg[vertex].value);
   }
-  PAUSE_TIMER("Compute PointsToSet");
-  ADD_TO_HIST("Points-to", result.size());
+  PAUSE_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
+  ADD_TO_HISTOGRAM("Points-to", result.size(), 1, PAMM_SEVERITY_LEVEL::Full);
   return result;
 }
 

@@ -32,7 +32,7 @@
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
@@ -167,8 +167,8 @@ ostream &operator<<(ostream &os, const std::vector<T> &v) {
 }
 
 int main(int argc, const char **argv) {
-  PAMM_FACTORY;
-  START_TIMER("FW Runtime");
+  PAMM_GET_INSTANCE;
+  START_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // set-up the logger and get a reference to it
   initializeLogger(false);
   auto &lg = lg::get();
@@ -231,7 +231,6 @@ int main(int argc, const char **argv) {
     Config.add_options()
 			("function,f", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
-			("project,p", bpo::value<std::string>()->notifier(validateParamProject), "Path to the project under analysis")
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
@@ -249,7 +248,8 @@ int main(int argc, const char **argv) {
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
       ("project-id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
-      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework");
+      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
+      ("pamm-out", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
       // clang-format on
       bpo::options_description CmdlineOptions;
       CmdlineOptions.add(PhasarMode).add(Generic).add(Config);
@@ -320,10 +320,6 @@ int main(int argc, const char **argv) {
                     << VariablesMap["module"].as<std::vector<std::string>>()
                     << '\n';
         }
-        if (VariablesMap.count("project")) {
-          std::cout << "Project: " << VariablesMap["project"].as<std::string>()
-                    << '\n';
-        }
         if (VariablesMap.count("data-flow-analysis")) {
           std::cout << "Data-flow analysis: "
                     << VariablesMap["data-flow-analysis"]
@@ -385,6 +381,10 @@ int main(int argc, const char **argv) {
           std::cout << "Output: " << VariablesMap["output"].as<std::string>()
                     << '\n';
         }
+        if (VariablesMap.count("output-pamm")) {
+          std::cout << "Output PAMM: " << VariablesMap["output-pamm"].as<std::string>()
+                    << '\n';
+        }
       } else {
         setLoggerFilterLevel(INFO);
       }
@@ -393,9 +393,8 @@ int main(int argc, const char **argv) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                     << "Check program options for logical errors.");
       // validate the logic of the command-line arguments
-      if (VariablesMap.count("project") == VariablesMap.count("module")) {
-        std::cerr << "Either a project OR a module must be specified for an "
-                     "analysis.\n";
+      if (!VariablesMap.count("module")) {
+        std::cerr << "A module must be specified for an analysis.\n";
         return 1;
       }
 
@@ -452,9 +451,9 @@ int main(int argc, const char **argv) {
     // At this point we have set-up all the parameters and can start the actual
     // analyses that have been choosen.
     AnalysisController Controller(
-        [&lg](bool usingModules) {
-          PAMM_FACTORY;
-          START_TIMER("IRDB Construction");
+        [&lg]() {
+          PAMM_GET_INSTANCE;
+          START_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.");
           IRDBOptions Opt = IRDBOptions::NONE;
           if (VariablesMap["wpa"].as<bool>()) {
@@ -463,29 +462,11 @@ int main(int argc, const char **argv) {
           if (VariablesMap["mem2reg"].as<bool>()) {
             Opt |= IRDBOptions::MEM2REG;
           }
-          if (usingModules) {
             ProjectIRDB IRDB(
                 VariablesMap["module"].as<std::vector<std::string>>(), Opt);
-            STOP_TIMER("IRDB Construction");
+            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
             return IRDB;
-          } else {
-            // perform a little trick to make OptionsParser only responsible for
-            // the project sources
-            int OnlyTakeCareOfSources = 2;
-            const char *ProjectSources =
-                VariablesMap["project"].as<std::string>().c_str();
-            const char *DummyProgName = "not_important";
-            const char *DummyArgs[] = {DummyProgName, ProjectSources};
-            clang::tooling::CommonOptionsParser OptionsParser(
-                OnlyTakeCareOfSources, DummyArgs, StaticAnalysisCategory,
-                OccurrencesFlag);
-            clang::tooling::CompilationDatabase &CompileDB =
-                OptionsParser.getCompilations();
-            ProjectIRDB IRDB(CompileDB, Opt);
-            STOP_TIMER("IRDB Construction");
-            return IRDB;
-          }
-        }(VariablesMap.count("module")),
+        }(),
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph-id"].as<std::string>());
@@ -562,11 +543,8 @@ int main(int argc, const char **argv) {
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
   bl::core::get()->flush();
-  STOP_TIMER("FW Runtime");
-  // PRINT_EVA_DATA;
-  if (VariablesMap.count("config"))
-    EXPORT_EVA_DATA(VariablesMap["config"].as<string>());
-  else
-    EXPORT_EVA_DATA("PAMM_results.json");
+  STOP_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
+  // PRINT_MEASURED_DATA(std::cout);
+  EXPORT_MEASURED_DATA(VariablesMap["pamm-out"].as<std::string>());
   return 0;
 }

@@ -11,12 +11,6 @@
 #include <cassert>
 #include <iostream>
 
-#include <clang/Basic/Diagnostic.h>
-#include <clang/CodeGen/CodeGenAction.h>
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Frontend/CompilerInvocation.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/BasicAliasAnalysis.h>
 #include <llvm/Analysis/CFLAndersAliasAnalysis.h>
@@ -42,7 +36,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace psr;
 using namespace std;
@@ -104,58 +98,20 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   cout << "All modules loaded\n";
 }
 
-ProjectIRDB::ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
-                         enum IRDBOptions Opt)
-    : Options(Opt) {
-  setupHeaderSearchPaths();
-  for (auto file : CompileDB.getAllFiles()) {
-    auto compilecommands = CompileDB.getCompileCommands(file);
-    for (auto compilecommand : compilecommands) {
-      std::vector<const char *> args;
-      // save the filename
-      source_files.insert(compilecommand.Filename);
-      // prepare the compile command for the clang compiler
-      // the compile command is not sanitized yet
-      args.push_back(compilecommand.Filename.c_str());
-      for (std::size_t i = 2; i < compilecommand.CommandLine.size() - 1; ++i) {
-        args.push_back(compilecommand.CommandLine[i].c_str());
-      }
-      compileAndAddToDB(args);
-    }
-  }
-  cout << "All modules loaded\n";
-}
+ProjectIRDB::~ProjectIRDB() {
+  // if the IRDB doesn't own the given pointers, they have to be released before
+  // destruction
+  if (Options & IRDBOptions::OWNSNOT) {
+    // release pointers
 
-ProjectIRDB::ProjectIRDB(const std::vector<std::string> &Modules,
-                         std::vector<const char *> CompileArgs,
-                         enum IRDBOptions Opt)
-    : Options(Opt) {
-  setupHeaderSearchPaths();
-  for (auto &Path : Modules) {
-    source_files.insert(Path);
-    // if we have a file that is already compiled to llvm ir
-    if (Path.find(".ll") != Path.npos && boost::filesystem::exists(Path)) {
-      llvm::SMDiagnostic Diag;
-      std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
-      std::unique_ptr<llvm::Module> M = llvm::parseIRFile(Path, Diag, *C);
-      bool broken_debug_info = false;
-      if (M.get() == nullptr ||
-          llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
-        std::cout << "error: module not valid\n";
-        DIE_HARD;
-      }
-      if (broken_debug_info) {
-        std::cout << "caution: debug info is broken\n";
-      }
-      contexts.insert(std::make_pair(Path, std::move(C)));
-      modules.insert(std::make_pair(Path, std::move(M)));
-    } else {
-      // else we compile and then add to the database
-      CompileArgs.insert(CompileArgs.begin(), Path.c_str());
-      compileAndAddToDB(CompileArgs);
+    for (auto &elem : contexts) {
+      elem.second.release();
+    }
+
+    for (auto &elem : modules) {
+      elem.second.release();
     }
   }
-  cout << "All modules loaded\n";
 }
 
 void ProjectIRDB::setupHeaderSearchPaths() {
@@ -166,103 +122,12 @@ void ProjectIRDB::setupHeaderSearchPaths() {
   }
 }
 
-void ProjectIRDB::compileAndAddToDB(std::vector<const char *> CompileCommand) {
-  auto &lg = lg::get();
-  // sanitize the compile command
-  // kill all arguments that we are not interested in
-  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
-    if (unknown_flags.count(std::string(*it))) {
-      it = CompileCommand.erase(it);
-    } else {
-      ++it;
-    }
-  }
-  // also remove the '-o some_filename.o' output options
-  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
-    if (std::string(*it) == "-o") {
-      it = CompileCommand.erase(it, it + 1);
-    } else {
-      ++it;
-    }
-  }
-  // also remove the '-o some_filename.o' output options
-  for (auto it = CompileCommand.begin(); it != CompileCommand.end();) {
-    if (std::string(*it) == "-c") {
-      it = CompileCommand.erase(it, it + 1);
-    } else {
-      ++it;
-    }
-  }
-  // add the standard header search paths to the compile command
-  for_each(header_search_paths.begin(), header_search_paths.end(),
-           [&CompileCommand](std::string &path) {
-             CompileCommand.push_back(path.c_str());
-           });
-  std::string commandstr;
-  for (auto s : CompileCommand) {
-    commandstr += s;
-    commandstr += ' ';
-  }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                << "compile with command: " << commandstr);
-  std::unique_ptr<clang::CompilerInstance> ClangCompiler(
-      new clang::CompilerInstance());
-  clang::DiagnosticOptions *DiagOpts(new clang::DiagnosticOptions());
-  clang::TextDiagnosticPrinter *DiagPrinterClient(
-      new clang::TextDiagnosticPrinter(llvm::errs(), DiagOpts));
-  llvm::IntrusiveRefCntPtr<clang::DiagnosticIDs> DiagID(
-      new clang::DiagnosticIDs());
-  clang::DiagnosticsEngine *DiagEngine(
-      new clang::DiagnosticsEngine(DiagID, DiagOpts, DiagPrinterClient, true));
-  // prepare CodeGenAction and CompilerInvocation and compile!
-  std::unique_ptr<clang::CodeGenAction> Action(new clang::EmitLLVMOnlyAction());
-  // Awesome, this does not need to be a smart-pointer, because some idiot
-  // thought it is a good
-  // idea that the CompilerInstance the CompilerInvocation is handed to owns it
-  // and CLEANS IT UP!
-  std::shared_ptr<clang::CompilerInvocation> CI =
-      make_shared<clang::CompilerInvocation>();
-  clang::CompilerInvocation::CreateFromArgs(
-      *CI, &CompileCommand[0], &CompileCommand[0] + CompileCommand.size(),
-      *DiagEngine);
-  ClangCompiler->setDiagnostics(DiagEngine);
-  ClangCompiler->setInvocation(CI);
-  if (!ClangCompiler->hasDiagnostics()) {
-    std::cout << "compiler has no diagnostics engine\n";
-  }
-  if (!ClangCompiler->ExecuteAction(*Action)) {
-    std::cout << "could not compile module!\n";
-  }
-  std::unique_ptr<llvm::Module> module = Action->takeModule();
-  if (module != nullptr) {
-    std::string name = module->getName().str();
-    // check if module is alright
-    bool broken_debug_info = false;
-    if (llvm::verifyModule(*module, &llvm::errs(), &broken_debug_info)) {
-      std::cout << "module is broken!\nabort!\n";
-      DIE_HARD;
-    }
-    if (broken_debug_info) {
-      std::cout << "debug info is broken\n";
-    }
-    buildFunctionModuleMapping(module.get());
-    buildGlobalModuleMapping(module.get());
-    contexts.insert(std::make_pair(
-        name, std::unique_ptr<llvm::LLVMContext>(Action->takeLLVMContext())));
-    modules.insert(std::make_pair(name, std::move(module)));
-  } else {
-    std::cout << "could not compile module!\nabort\n";
-    DIE_HARD;
-  }
-}
-
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
   // WARNING: Activating passes lead to higher time in llvmIRToString
-  PAMM_FACTORY;
+  PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
-  // const std::string moduleID = " [" + M->getModuleIdentifier() + "]";
-  START_TIMER("LLVM Passes" /* + moduleID*/);
+  START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
 
@@ -346,11 +211,12 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   }
   // Obtain the allocated types found in the module
   allocated_types = GSP->getAllocatedTypes();
-  STOP_TIMER("LLVM Passes" /* + moduleID*/);
+  STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   cout << "PTG construction ...\n";
-  START_TIMER("PTG Construction" /* + moduleID*/);
+  START_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   // Obtain the very important alias analysis results
   // and construct the intra-procedural points-to graphs.
+  REG_COUNTER("GS Pointer", 0, PAMM_SEVERITY_LEVEL::Core)
   for (auto &F : *M) {
     // When module-wise analysis is performed, declarations might occure
     // causing meaningless points-to graphs to be produced.
@@ -366,7 +232,7 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
       insertPointsToGraph(F.getName().str(), new PointsToGraph(AARes, &F));
     }
   }
-  STOP_TIMER("PTG Construction" /* + moduleID*/);
+  STOP_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   cout << "PTG construction ended\n";
 
   buildIDModuleMapping(M);

@@ -30,6 +30,7 @@ namespace psr {
  */
 class MapFactsToCallee : public FlowFunction<const llvm::Value *> {
 protected:
+  const llvm::Function *destMthd;
   std::vector<const llvm::Value *> actuals;
   std::vector<const llvm::Value *> formals;
   std::function<bool(const llvm::Value *)> predicate;
