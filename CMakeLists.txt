@@ -100,6 +100,11 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIR})
 
+# SQL
+find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
+find_library(SQLITE3_LIBRARY NAMES sqlite3)
+include_directories(${SQLITE3_INCLUDE_DIR})
+
 # LLVM
 find_package(LLVM REQUIRED CONFIG)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
@@ -205,6 +210,7 @@ target_link_libraries(phasar
   boost_system
   boost_log
   ${BOOST_THREAD}
+  ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -330,10 +336,10 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 #                                   libboost_system (>= 1.66.0),
 #                                   libboost_log (>= 1.66.0),
 #                                   libboost_thread (>= 1.66.0),
+#                                   libsqlite3 (>= 4.5.0),
 #                                   libpthread (>= 4.5.0),
 #                                   libdl (>= 4.5.0),
 #                                   libcurl-gnutls (>= 4.5.0),
-#                                   libmysqlcppconn (>= 4.5.0),
 #                                   librt (>= 4.5.0),
 #                                   libtinfo (>= 4.5.0),
 #                                   libz (>= 4.5.0),

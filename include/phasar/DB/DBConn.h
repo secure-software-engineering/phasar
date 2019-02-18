@@ -13,7 +13,7 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-
+/*
 #ifndef PHASAR_DB_DBCONN_H_
 #define PHASAR_DB_DBCONN_H_
 
@@ -33,6 +33,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 
 #include <mysql_connection.h>
+#include <sqlite3.h>
 
 namespace llvm {
 class GlobalVariable;
@@ -148,3 +149,4 @@ public:
 } // namespace psr
 
 #endif
+*/
