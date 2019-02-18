@@ -244,9 +244,11 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_8) {
   llvm::Function *FooF = IRDB.getFunction("_ZN4Foo21fEv");
   ASSERT_TRUE(F);
   ASSERT_TRUE(FooF);
-  
-  std::vector<const llvm::Instruction *> Insts = ICFG.getAllInstructionsOf(FooF);
-  std::vector<const llvm::Instruction *> Insts1 = ICFG.getAllInstructionsOfFunction("_ZN4Foo21fEv");
+
+  std::vector<const llvm::Instruction *> Insts =
+      ICFG.getAllInstructionsOf(FooF);
+  std::vector<const llvm::Instruction *> Insts1 =
+      ICFG.getAllInstructionsOfFunction("_ZN4Foo21fEv");
   ASSERT_EQ(Insts.size(), Insts1.size());
 
   set<const llvm::Function *> FunSet = ICFG.getAllMethods();
@@ -254,7 +256,6 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_8) {
 
   const llvm::Instruction *I = getNthInstruction(F, 1);
   ASSERT_TRUE(ICFG.isStartPoint(I));
-
 }
 
 int main(int argc, char **argv) {

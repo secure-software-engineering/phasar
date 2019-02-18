@@ -50,14 +50,14 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
   llvm::Function *AptrFoo = IRDB.getFunction("_ZN5AImpl3fooEv");
   ASSERT_TRUE(F);
   ASSERT_TRUE(AptrFoo);
-  
+
   const llvm::Instruction *I = getNthInstruction(F, 14);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-  llvm::ImmutableCallSite CS(I);
-  ASSERT_TRUE(ICFG.isVirtualFunctionCall(CS));
-  std::set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
-  ASSERT_EQ(Callees.size(), 1);
-  ASSERT_TRUE(Callees.count(AptrFoo));
+    llvm::ImmutableCallSite CS(I);
+    ASSERT_TRUE(ICFG.isVirtualFunctionCall(CS));
+    std::set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
+    ASSERT_EQ(Callees.size(), 1);
+    ASSERT_TRUE(Callees.count(AptrFoo));
   }
 }
 
