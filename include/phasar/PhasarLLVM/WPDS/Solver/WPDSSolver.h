@@ -28,6 +28,9 @@
 #include <wali/wpds/RuleFunctor.hpp>
 #include <wali/wpds/WPDS.hpp>
 #include <wali/wpds/fwpds/FWPDS.hpp>
+#include <wali/wpds/fwpds/SWPDS.hpp>
+#include <wali/witness/WitnessWrapper.hpp>
+#include <wali/KeySource.hpp>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
@@ -49,7 +52,7 @@ private:
   I ICFG;
   std::unique_ptr<wali::wpds::WPDS> PDS;
   D ZeroValue;
-  wali::Key PDSState;
+  wali::Key ZeroPDSState;
   wali::Key AcceptingState;
   std::unordered_map<D, wali::Key> DKey;
   wali::wfa::WFA Query;
@@ -57,15 +60,31 @@ private:
   wali::sem_elem_t SRElem;
   Table<N, D, std::map<N, std::set<D>>> incomingtab;
 
+  wali::wpds::WPDS *makePDS(WPDSType T, bool Witnesses) {
+    wali::wpds::Wrapper *Wrapper = (Witnesses) ? new wali::witness::WitnessWrapper() : nullptr;
+    switch (T) {
+      case WPDSType::WPDS:
+      return new wali::wpds::WPDS(Wrapper);
+      break;
+      case WPDSType::EWPDS:
+      return new wali::wpds::ewpds::EWPDS(Wrapper);
+      break;
+      case WPDSType::FWPDS:
+      return new wali::wpds::fwpds::FWPDS(Wrapper);
+      break;
+      case WPDSType::SWPDS:
+      return new wali::wpds::fwpds::SWPDS(Wrapper);
+      break;
+    }
+  }
+
 public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
       : P(P), ICFG(P.interproceduralCFG()),
-        // FIXME: use a FWPDS without witnesses for proof-of-concept
-        // implementation
-        PDS(new wali::wpds::fwpds::FWPDS()), ZeroValue(P.zeroValue()),
+        PDS(makePDS(P.getWPDSTy(), P.getWitnesses())), ZeroValue(P.zeroValue()),
         AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
-    PDSState = wali::getKey(ZeroValue);
-    DKey[ZeroValue] = PDSState;
+    ZeroPDSState = wali::getKey(ZeroValue);
+    DKey[ZeroValue] = ZeroPDSState;
   }
   ~WPDSSolver() = default;
 
@@ -106,7 +125,7 @@ public:
       // auto ret = SRElem->zero();
       // wali::wfa::TransSet tset;
       // wali::wfa::TransSet::iterator titer;
-      // tset = Answer.match(PDSState, node);
+      // tset = Answer.match(ZeroPDSState, node);
       // for (titer = tset.begin(); titer != tset.end(); titer++) {
       //   wali::wfa::ITrans *t = *titer;
       //   wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
@@ -116,123 +135,112 @@ public:
 
     } else {
       std::cout << "BACKWARD\n";
-      // doBackwardSearch(node, Answer);
+      auto alloca1 = &ICFG.getMethod("main")->front().front();
+      auto a1key = wali::getKey(alloca1);
+      doBackwardSearch(node, Answer);
+      std::cout << "PATH SUMMARY - COMPUTING THE WEIGHTS" << std::endl;
+      Answer.path_summary();
+      wali::wfa::Trans goal;
+      // check all data-flow facts
+      std::cout << "All D(s)" << std::endl;
+      // for (auto Entry : DKey) {
+        if (Answer.find(ZeroPDSState, a1key, AcceptingState, goal)) {
+          std::cout << "FOUND ANSWER!" << std::endl;
+          std::cout << llvmIRToString(ZeroValue);
+          goal.weight()->print(std::cout << " :--- weight ---: ");
+          std::cout << " : --- "
+                    << static_cast<EnvTrafoToSemElem<V> &>(*goal.weight())
+                           .F->computeTarget(0);
+          std::cout << std::endl;
+        }
+      // }
 
       // ret = SRElem->zero();
-
       // wali::wfa::TransSet tset;
       // wali::wfa::TransSet::iterator titer;
-      // tset = Answer.match(PDSState, node);
+      // tset = Answer.match(a1key, node);
+      // std::cout << "TRANSSET" << std::endl;
+      // for (auto trans : tset) {
+      //   trans->print(std::cout);
+      //   std::cout << std::endl;
+      // }
       // for (titer = tset.begin(); titer != tset.end(); titer++) {
       //   wali::wfa::ITrans *t = *titer;
       //   if (!Answer.isFinalState(t->to())) continue;
       //   wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
       //   ret = ret->combine(tmp);
       // }
+      // std::cout << "FOUND ANSWER!" << std::endl;
+      // // std::cout << llvmIRToString(alloca1);
+      // ret->print(std::cout << " :--- weight ---: ");
+      // std::cout << " : --- "
+      //           << static_cast<EnvTrafoToSemElem<V> &>(*ret).F->computeTarget(0);
+      // std::cout << std::endl;
     }
     std::cout << "SOLVED\n";
   }
 
   void doForwardSearch(wali::wfa::WFA &Answer) {
-    // // define our own attribute printer:
-    // struct MyAttributePrinter : wali::wfa::DotAttributePrinter {
-    //   const std::unordered_map<D, wali::Key> &DKey;
-    //   const std::unordered_map<N, wali::Key> &NKey;
-    //   MyAttributePrinter(std::unordered_map<D, wali::Key> DKey,
-    //                      std::unordered_map<N, wali::Key> NKey)
-    //       : DKey(DKey), NKey(NKey) {}
-    //   void print_extra_attributes(wali::wfa::State const *state,
-    //                               std::ostream &o) override {
-    //     auto key = state->name();
-    //     for (auto entry : DKey) {
-    //       if (entry.second == key) {
-    //         o << ", xlabel=\"" << llvmIRToString(entry.first) << "\"";
-    //         return;
-    //       }
-    //     }
-    //   }
-    //   void print_extra_attributes(wali::wfa::ITrans const *trans,
-    //                               std::ostream &o) override {
-    //     auto key = trans->stack();
-    //     for (auto entry : NKey) {
-    //       if (entry.second == key) {
-    //         std::string lbl = llvmIRToString(entry.first);
-    //         o << ", xlabel=\"" << lbl.substr(0, lbl.find(", align 4")) <<
-    //         "\""; return;
-    //       }
-    //     }
-    //   }
-    // };
-
-    // Create an automaton to AcceptingState the configuration <PDSState,
-    // main_entry>
+    // Create an automaton to AcceptingState the configuration:
+    // <ZeroPDSState, main_entry>
     wali::Key main_entry =
         wali::getKey(&*ICFG.getMethod("main")->begin()->begin());
     (&*ICFG.getMethod("main")->begin()->begin())->print(llvm::outs());
     llvm::outs() << '\n';
-    Query.addTrans(PDSState, main_entry, AcceptingState, SRElem->one());
-    Query.set_initial_state(PDSState);
+    Query.addTrans(ZeroPDSState, main_entry, AcceptingState, SRElem->one());
+    Query.set_initial_state(ZeroPDSState);
     Query.add_final_state(AcceptingState);
     Query.print(std::cout << "before poststar!\n");
-    std::ofstream before("before.dot");
-    Query.print_dot(before, true); //, new MyAttributePrinter(DKey, NKey));
+    std::ofstream before("before_poststar.dot");
+    Query.print_dot(before, true);
     PDS->poststar(Query, Answer);
     Answer.print(std::cout << "after poststar!\n");
-    std::ofstream after("after.dot");
-    Answer.print_dot(after, true); //, new MyAttributePrinter(DKey, NKey));
+    std::ofstream after("after_poststar.dot");
+    Answer.print_dot(after, true);
   }
 
-  void doBackwardSearch(N n, wali::wfa::WFA &Answer) {
-    // // Create an automaton to AcceptingState the configurations {n \Gamma^*}
-    // // wali::wfa::WFA query;
-
-    // // Find the set of all return points
-    // wali::wpds::WpdsStackSymbols syms;
-    // PDS->for_each(syms);
-
-    // Query.addTrans(PDSState, node, AcceptingState, SRElem->one());
-
-    // std::set<wali::Key>::iterator it;
-    // for (it = syms.returnPoints.begin(); it != syms.returnPoints.end(); it++)
-    // {
-    //   Query.addTrans(AcceptingState, *it, AcceptingState, SRElem->one());
-    // }
-
-    // Query.set_initial_state(PDSState);
-    // Query.add_final_state(AcceptingState);
-
-    // PDS->prestar(Query, Answer);
+  void doBackwardSearch(wali::Key node, wali::wfa::WFA &Answer) {
+    // Create an automaton to AcceptingState the configurations {n \Gamma^*}
+    wali::wfa::WFA Query;
+    // Find the set of all return points
+    wali::wpds::WpdsStackSymbols syms;
+    PDS->for_each(syms);
+    auto alloca1 = &ICFG.getMethod("main")->front().front();
+    auto a1key = wali::getKey(alloca1);
+    Query.addTrans(a1key, node, AcceptingState, SRElem->one());
+    std::set<wali::Key>::iterator it;
+    for (it = syms.returnPoints.begin(); it != syms.returnPoints.end(); it++) {
+      std::cout << "RETURN POINT: ";
+      wali::getKeySource(*it)->print(std::cout);
+      std::cout << std::endl;
+      Query.addTrans(AcceptingState, *it, AcceptingState, SRElem->one());
+    }
+    Query.set_initial_state(a1key);
+    Query.add_final_state(AcceptingState);
+    Query.print(std::cout << "before prestar!\n");
+    std::ofstream before("before_prestar.dot");
+    Query.print_dot(before, true);
+    PDS->prestar(Query, Answer);
+    Answer.print(std::cout << "after prestar!\n");
+    std::ofstream after("after_prestar.dot");
+    Answer.print_dot(after, true); 
   }
 
-  void doBackwardSearch(std::vector<N> &n_stack, wali::wfa::WFA &Answer) {
-    // assert(n_stack.size() > 0);
-    // std::vector<wali::Key> node_stack;
-    // node_stack.reserve(n_stack.size());
-    // for (auto n : n_stack) {
-    //   node_stack.push_back(NKey.at(n));
-    // }
-
-    // // Create an automaton to AcceptingState the configuration <PDSState,
-    // // node_stack>
-    // wali::wfa::WFA query;
-    // wali::Key temp_from = PDSState;
-    // wali::Key temp_to = wali::WALI_EPSILON;  // add initialization to skip
-    // g++
-    //                                          // warning. safe b/c of above
-    //                                          // assertion.
-
-    // for (size_t i = 0; i < node_stack.size(); i++) {
-    //   std::stringstream ss;
-    //   ss << "__tmp_state_" << i;
-    //   temp_to = wali::getKey(ss.str());
-    //   query.addTrans(temp_from, node_stack[i], temp_to, SRElem->one());
-    //   temp_from = temp_to;
-    // }
-
-    // query.set_initial_state(PDSState);
-    // query.add_final_state(temp_to);
-
-    // PDS->prestar(query, Answer);
+  void doBackwardSearch(std::vector<wali::Key> node_stack, wali::wfa::WFA &Answer) {
+    assert(!node_stack.empty());
+    // Create an automaton to AcceptingState the configuration <ZeroPDSState, node_stack>
+    wali::Key temp_from = ZeroPDSState;
+    wali::Key temp_to = wali::WALI_EPSILON;
+    for (size_t i = 0; i < node_stack.size(); i++) {
+      std::stringstream ss;
+      ss << "__tmp_state_" << i;
+      temp_to = wali::getKey(ss.str());
+      Query.addTrans(temp_from, node_stack[i], temp_to, SRElem->one());
+      temp_from = temp_to;
+    }
+    Query.set_initial_state(ZeroPDSState);
+    Query.add_final_state(temp_to);
+    PDS->prestar(Query, Answer);
   }
 
   std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {

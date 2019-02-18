@@ -54,24 +54,24 @@ public:
 
   wali::sem_elem_t extend(SemElem *se) override {
     // std::cout << "EnvTrafoToSemElem::extend()" << std::endl;
-    auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
-    auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
+    auto ThisF = static_cast<EnvTrafoToSemElem *>(this);
+    auto ThatF = static_cast<EnvTrafoToSemElem *>(se);
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
         new EnvTrafoToSemElem(ThisF->F->composeWith(ThatF->F), L));
   }
 
   wali::sem_elem_t combine(SemElem *se) override {
     // std::cout << "EnvTrafoToSemElem::combine()" << std::endl;
-    auto ThisF = dynamic_cast<EnvTrafoToSemElem *>(this);
-    auto ThatF = dynamic_cast<EnvTrafoToSemElem *>(se);
+    auto ThisF = static_cast<EnvTrafoToSemElem *>(this);
+    auto ThatF = static_cast<EnvTrafoToSemElem *>(se);
     return wali::ref_ptr<EnvTrafoToSemElem<V>>(
         new EnvTrafoToSemElem(ThisF->F->joinWith(ThatF->F), L));
   }
 
   bool equal(SemElem *se) const override {
     // std::cout << "EnvTrafoToSemElem::equal()" << std::endl;
-    auto ThisF = dynamic_cast<const EnvTrafoToSemElem *>(this);
-    auto ThatF = dynamic_cast<const EnvTrafoToSemElem *>(se);
+    auto ThisF = static_cast<const EnvTrafoToSemElem *>(this);
+    auto ThatF = static_cast<const EnvTrafoToSemElem *>(se);
     return ThisF->F->equal_to(ThatF->F);
   }
 };

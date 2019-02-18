@@ -45,6 +45,8 @@ public:
   I interproceduralCFG() { return ICFG; }
   virtual D zeroValue() = 0;
   SearchDirection getSearchDirection() { return Direction; }
+  WPDSType getWPDSTy() { return WPDSTy; }
+  bool getWitnesses() { return Witnesses; }
 };
 
 } // namespace psr

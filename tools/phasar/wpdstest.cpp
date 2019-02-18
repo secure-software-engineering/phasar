@@ -29,13 +29,18 @@ int main(int argc, char **argv) {
   cout << "Hello, WPDS-Test!\n";
   initializeLogger(false);
   auto &lg = lg::get();
-  if (argc < 3 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
-    std::cerr << "usage: <prog> <ir file> <ID or LCA>\n";
+  if (argc < 4 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
+    std::cerr << "usage: <prog> <ir file> <ID or LCA> <DIRECTION>\n";
     return 1;
   }
   string DFA(argv[2]);
   if (DFA != "ID" && DFA != "LCA") {
     std::cerr << "analysis is not valid!\n";
+    return 1;
+  }
+  string DIRECTION(argv[3]);
+  if (!(DIRECTION == "FORWARD" || DIRECTION == "BACKWARD")) {
+    std::cerr << "analysis direction must be FORWARD or BACKWARD\n";
     return 1;
   }
   initializeLogger(false);
@@ -61,8 +66,14 @@ int main(int argc, char **argv) {
       // llvm::outs() << " - TBA\n";
       // }
     } else if (DFA == "LCA") {
+      std::cout << "LCA" << std::endl;
       WPDSLinearConstantAnalysis L(I, WPDSType::FWPDS,
-                                   SearchDirection::FORWARD);
+                                   [DIRECTION]() {
+                                     if (DIRECTION == "FORWARD") {
+                                       return SearchDirection::FORWARD;
+                                     }
+                                     return SearchDirection::BACKWARD;
+                                     }());
       LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
       // F = DB.getFunction("_Z9incrementi");
       // Ret = &F->back().back();
