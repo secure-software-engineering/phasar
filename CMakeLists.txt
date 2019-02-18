@@ -80,7 +80,7 @@ find_package(Threads)
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
-include_directories(external/json/src)
+include_directories(external/json/single_include/nlohmann)
 
 # Googletest
 add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
@@ -270,7 +270,7 @@ install(DIRECTORY include/
   FILES_MATCHING PATTERN "*.h"
 )
 # Install the header only json container
-install(DIRECTORY external/json/src/
+install(DIRECTORY external/json/single_include/nlohmann/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )
