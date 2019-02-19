@@ -359,14 +359,14 @@ public:
    * Returns the V-type result for the given value at the given statement.
    * TOP values are never returned.
    */
-  V resultAt(N stmt, D value) { return valtab.get(stmt, value); }
+  virtual V resultAt(N stmt, D value) { return valtab.get(stmt, value); }
 
   /**
    * Returns the resulting environment for the given statement.
    * The artificial zero value can be automatically stripped.
    * TOP values are never returned.
    */
-  std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
+  virtual std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
     std::unordered_map<D, V> result = valtab.row(stmt);
     if (stripZero) {
       for (auto it = result.begin(); it != result.end();) {
@@ -380,21 +380,9 @@ public:
     return result;
   }
 
-private:
+protected:
   std::unique_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
   IDETabulationProblem<N, D, M, V, I> &ideTabulationProblem;
-  FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
-  bool recordEdges;
-
-  void saveEdges(N sourceNode, N sinkStmt, D sourceVal, std::set<D> destVals,
-                 bool interP) {
-    if (!recordEdges)
-      return;
-    Table<N, N, std::map<D, std::set<D>>> &tgtMap =
-        (interP) ? computedInterPathEdges : computedIntraPathEdges;
-    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
-                                                       destVals.end());
-  }
 
   /**
    * Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -414,7 +402,7 @@ private:
    *
    * @param edge an edge whose target node resembles a method call
    */
-  void processCall(PathEdge<N, D> edge) {
+  virtual void processCall(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
@@ -598,7 +586,7 @@ private:
    * Simply propagate normal, intra-procedural flows.
    * @param edge
    */
-  void processNormalFlow(PathEdge<N, D> edge) {
+  virtual void processNormalFlow(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
@@ -807,6 +795,19 @@ protected:
   bool followReturnPastSeeds;
   bool computePersistedSummaries;
   unsigned PathEdgeCount;
+  bool recordEdges;
+
+  virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal, std::set<D> destVals,
+                 bool interP) {
+    if (!recordEdges)
+      return;
+    Table<N, N, std::map<D, std::set<D>>> &tgtMap =
+        (interP) ? computedInterPathEdges : computedIntraPathEdges;
+    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
+                                                       destVals.end());
+  }
+
+  FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
 
   Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
 
@@ -936,7 +937,7 @@ protected:
    *
    * @param edge an edge whose target node resembles a method exit
    */
-  void processExit(PathEdge<N, D> edge) {
+  virtual void processExit(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();

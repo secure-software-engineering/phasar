@@ -13,24 +13,15 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class WPDSProblem : public FlowFunctions<N, D, M>,
-                    public EdgeFunctions<N, D, M, V>,
-                    public JoinLattice<V>,
-                    public NodePrinter<N>,
-                    public DataFlowFactPrinter<D>,
-                    public MethodPrinter<M>,
-                    public ValuePrinter<V> {
+class WPDSProblem : public IDETabulationProblem<N, D, M, V, I> {
 private:
-  I ICFG;
   WPDSType WPDSTy;
   SearchDirection Direction;
   std::vector<N> Stack;
@@ -41,9 +32,9 @@ public:
               std::vector<N> Stack = {}, bool Witnesses = false)
       : ICFG(ICFG), WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
         Witnesses(Witnesses) {}
-  virtual ~WPDSProblem() = default;
-  I interproceduralCFG() { return ICFG; }
-  virtual D zeroValue() = 0;
+  ~WPDSProblem() override = default;
+  I ICFG;
+  I interproceduralCFG() override { return ICFG; }
   SearchDirection getSearchDirection() { return Direction; }
   WPDSType getWPDSTy() { return WPDSTy; }
   bool getWitnesses() { return Witnesses; }

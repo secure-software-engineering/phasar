@@ -50,8 +50,9 @@ const WPDSLinearConstantAnalysis::v_t WPDSLinearConstantAnalysis::BOTTOM =
 
 WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
     LLVMBasedICFG &I, WPDSType WPDS, SearchDirection Direction,
+    std::vector<std::string> EntryPoints,
     std::vector<n_t> Stack, bool Witnesses)
-    : WPDSProblem(I, WPDS, Direction, Stack, Witnesses) {
+    : WPDSProblem(I, WPDS, Direction, Stack, Witnesses), EntryPoints(EntryPoints) {
   zerovalue = LLVMZeroValue::getInstance();
 }
 
@@ -576,10 +577,34 @@ WPDSLinearConstantAnalysis::d_t WPDSLinearConstantAnalysis::zeroValue() {
   return zerovalue;
 }
 
-// shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
-// WPDSLinearConstantAnalysis::allTopFunction() {
-// return make_shared<AllTop<WPDSLinearConstantAnalysis::v_t>>(TOP);
-// }
+std::map<WPDSLinearConstantAnalysis::n_t, std::set<WPDSLinearConstantAnalysis::d_t>> WPDSLinearConstantAnalysis::initialSeeds() {
+  // Check commandline arguments, e.g. argc, and generate all integer
+  // typed arguments.
+  map<WPDSLinearConstantAnalysis::n_t, set<WPDSLinearConstantAnalysis::d_t>>
+      SeedMap;
+  for (auto &EntryPoint : EntryPoints) {
+    if (EntryPoint == "main") {
+      set<WPDSLinearConstantAnalysis::d_t> CmdArgs;
+      for (auto &Arg : ICFG.getMethod(EntryPoint)->args()) {
+        if (Arg.getType()->isIntegerTy()) {
+          CmdArgs.insert(&Arg);
+        }
+      }
+      CmdArgs.insert(zeroValue());
+      SeedMap.insert(
+          make_pair(&ICFG.getMethod(EntryPoint)->front().front(), CmdArgs));
+    } else {
+      SeedMap.insert(
+          make_pair(&ICFG.getMethod(EntryPoint)->front().front(),
+                    set<WPDSLinearConstantAnalysis::d_t>({zeroValue()})));
+    }
+  }
+  return SeedMap;    
+}
+
+std::shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>> WPDSLinearConstantAnalysis::allTopFunction() {
+return make_shared<AllTop<WPDSLinearConstantAnalysis::v_t>>(TOP);
+}
 
 shared_ptr<EdgeFunction<WPDSLinearConstantAnalysis::v_t>>
 WPDSLinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(

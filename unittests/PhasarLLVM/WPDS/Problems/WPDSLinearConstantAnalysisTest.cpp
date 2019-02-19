@@ -6,7 +6,7 @@
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/WPDS/Solver/LLVMWPDSSolver.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMM.h>
+#include <phasar/Utils/PAMMMacros.h>
 
 using namespace psr;
 
@@ -41,7 +41,7 @@ protected:
   }
 
   void TearDown() override {
-    PAMM_FACTORY;
+    PAMM_GET_INSTANCE;
     delete IRDB;
     delete TH;
     delete ICFG;

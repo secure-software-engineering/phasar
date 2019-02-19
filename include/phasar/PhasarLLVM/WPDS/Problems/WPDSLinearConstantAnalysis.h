@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <vector>
+#include <string>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
@@ -36,6 +37,7 @@ private:
   static unsigned CurrLCAID_Id;
   static unsigned CurrBinary_Id;
   LLVMZeroValue *zerovalue;
+  std::vector<std::string> EntryPoints;
 
 public:
   typedef const llvm::Instruction *n_t;
@@ -49,6 +51,7 @@ public:
 
   WPDSLinearConstantAnalysis(LLVMBasedICFG &I, WPDSType WPDS,
                              SearchDirection Direction,
+                             std::vector<std::string> EntryPoints = {"main"},
                              std::vector<n_t> Stack = {},
                              bool Witnesses = false);
 
@@ -91,9 +94,11 @@ public:
 
   d_t zeroValue() override;
 
-  bool isZeroValue(WPDSLinearConstantAnalysis::d_t d) const;
+  bool isZeroValue(WPDSLinearConstantAnalysis::d_t d) const override;
 
-  // std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  std::map<n_t, std::set<d_t>> initialSeeds() override;
+
+  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
 
   // Custom EdgeFunction declarations
 
