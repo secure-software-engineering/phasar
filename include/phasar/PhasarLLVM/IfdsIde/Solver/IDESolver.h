@@ -797,8 +797,8 @@ protected:
   unsigned PathEdgeCount;
   bool recordEdges;
 
-  virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal, std::set<D> destVals,
-                 bool interP) {
+  virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
+                         std::set<D> destVals, bool interP) {
     if (!recordEdges)
       return;
     Table<N, N, std::map<D, std::set<D>>> &tgtMap =

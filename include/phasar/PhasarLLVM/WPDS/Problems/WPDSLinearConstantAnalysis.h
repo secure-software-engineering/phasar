@@ -11,8 +11,8 @@
 #define PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSLINEARCONSTANTANALYSIS_H_
 
 #include <memory>
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>

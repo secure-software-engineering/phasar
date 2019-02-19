@@ -33,13 +33,13 @@
 #include <wali/wpds/fwpds/SWPDS.hpp>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/WPDS/EnvironmentTransformer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Table.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/Table.h>
 
 namespace llvm {
 class CallInst;
@@ -83,8 +83,7 @@ private:
 
 public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
-      : IDESolver<N, D, M, V, I>(P),
-        P(P), ICFG(P.interproceduralCFG()),
+      : IDESolver<N, D, M, V, I>(P), P(P), ICFG(P.interproceduralCFG()),
         PDS(makePDS(P.getWPDSTy(), P.getWitnesses())), ZeroValue(P.zeroValue()),
         AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
     ZeroPDSState = wali::getKey(ZeroValue);
@@ -185,30 +184,35 @@ public:
     std::cout << "SOLVED\n";
   }
 
-void processNormalFlow(PathEdge<N, D> edge) override {
-  std::cout << "WPDS::processNormal" << std::endl;
+  void processNormalFlow(PathEdge<N, D> edge) override {
+    std::cout << "WPDS::processNormal" << std::endl;
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
     //               << "Process normal at target: "
-    //               << IDESolver<N, D, M, V, I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    //               << IDESolver<N, D, M, V,
+    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
-    std::shared_ptr<EdgeFunction<V>> f = IDESolver<N, D, M, V, I>::jumpFunction(edge);
+    std::shared_ptr<EdgeFunction<V>> f =
+        IDESolver<N, D, M, V, I>::jumpFunction(edge);
     auto successorInst = IDESolver<N, D, M, V, I>::icfg.getSuccsOf(n);
     for (auto m : successorInst) {
       std::shared_ptr<FlowFunction<D>> flowFunction =
-          IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
+          IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+              .getNormalFlowFunction(n, m);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-      std::set<D> res = IDESolver<N, D, M, V, I>::computeNormalFlowFunction(flowFunction, d1, d2);
+      std::set<D> res = IDESolver<N, D, M, V, I>::computeNormalFlowFunction(
+          flowFunction, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
       IDESolver<N, D, M, V, I>::saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<V>> g =
-            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
+            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                .getNormalEdgeFunction(n, d2, m, d3);
         // add normal PDS rule
         auto d2_k = wali::getKey(d2);
         DKey[d2] = d2_k;
@@ -235,19 +239,22 @@ void processNormalFlow(PathEdge<N, D> edge) override {
     }
   }
 
-void processCall(PathEdge<N, D> edge) override {
+  void processCall(PathEdge<N, D> edge) override {
     std::cout << "WPDS::processCall" << std::endl;
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
     //               << "Process call at target: "
-    //               << IDESolver<N, D, M, V, I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    //               << IDESolver<N, D, M, V,
+    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
-    std::shared_ptr<EdgeFunction<V>> f = IDESolver<N, D, M, V, I>::jumpFunction(edge);
-    std::set<N> returnSiteNs = IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(n);
+    std::shared_ptr<EdgeFunction<V>> f =
+        IDESolver<N, D, M, V, I>::jumpFunction(edge);
+    std::set<N> returnSiteNs =
+        IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(n);
     std::set<M> callees = IDESolver<N, D, M, V, I>::icfg.getCalleesOfCallAt(n);
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
     // for (auto callee : callees) {
@@ -257,20 +264,24 @@ void processCall(PathEdge<N, D> edge) override {
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
     // for (auto ret : returnSiteNs) {
     //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //                 << "  " << IDESolver<N, D, M, V, I>::ideTabulationProblem.NtoString(ret));
+    //                 << "  " << IDESolver<N, D, M, V,
+    //                 I>::ideTabulationProblem.NtoString(ret));
     // }
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
       std::shared_ptr<FlowFunction<D>> specialSum =
-          IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
+          IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+              .getSummaryFlowFunction(n, sCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (specialSum) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
-          std::set<D> res = IDESolver<N, D, M, V, I>::computeSummaryFlowFunction(specialSum, d1, d2);
+          std::set<D> res =
+              IDESolver<N, D, M, V, I>::computeSummaryFlowFunction(specialSum,
+                                                                   d1, d2);
           INC_COUNTER("SpecialSummary-FF Application", 1,
                       PAMM_SEVERITY_LEVEL::Full);
           ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
@@ -278,31 +289,36 @@ void processCall(PathEdge<N, D> edge) override {
           IDESolver<N, D, M, V, I>::saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
             std::shared_ptr<EdgeFunction<V>> sumEdgFnE =
-                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
-                                                               returnSiteN, d3);
+                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                    .getSummaryEdgeFunction(n, d2, returnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << sumEdgFnE->str() << " * "
                           << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-            IDESolver<N, D, M, V, I>::propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
+            IDESolver<N, D, M, V, I>::propagate(
+                d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
       } else {
         // compute the call-flow function
         std::shared_ptr<FlowFunction<D>> function =
-            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
+            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                .getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        std::set<D> res = IDESolver<N, D, M, V, I>::computeCallFlowFunction(function, d1, d2);
+        std::set<D> res =
+            IDESolver<N, D, M, V, I>::computeCallFlowFunction(function, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
         // for each callee's start point(s)
-        std::set<N> startPointsOf = IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(sCalledProcN);
+        std::set<N> startPointsOf =
+            IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(sCalledProcN);
         // if (startPointsOf.empty()) {
         //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
         //                 << "Start points of '" +
-        //                        IDESolver<N, D, M, V, I>::icfg.getMethodName(sCalledProcN) +
+        //                        IDESolver<N, D, M, V,
+        //                        I>::icfg.getMethodName(sCalledProcN) +
         //                        "' currently not available!");
         // }
         // if startPointsOf is empty, the called function is a declaration
@@ -311,8 +327,9 @@ void processCall(PathEdge<N, D> edge) override {
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
-            IDESolver<N, D, M, V, I>::propagate(d3, sP, d3, EdgeIdentity<V>::getInstance(), n,
-                      false); // line 15
+            IDESolver<N, D, M, V, I>::propagate(
+                d3, sP, d3, EdgeIdentity<V>::getInstance(), n,
+                false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
             // line 15.1 of Naeem/Lhotak/Rodriguez
             IDESolver<N, D, M, V, I>::addIncoming(sP, d3, n, d2);
@@ -344,21 +361,23 @@ void processCall(PathEdge<N, D> edge) override {
               for (N retSiteN : returnSiteNs) {
                 // compute return-flow function
                 std::shared_ptr<FlowFunction<D>> retFunction =
-                    IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
-                                                               eP, retSiteN);
+                    IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                        .getRetFlowFunction(n, sCalledProcN, eP, retSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-                std::set<D> returnedFacts = IDESolver<N, D, M, V, I>::computeReturnFlowFunction(
-                    retFunction, d3, d4, n, std::set<D>{d2});
+                std::set<D> returnedFacts =
+                    IDESolver<N, D, M, V, I>::computeReturnFlowFunction(
+                        retFunction, d3, d4, n, std::set<D>{d2});
                 ADD_TO_HISTOGRAM("Data-flow facts", returnedFacts.size(), 1,
                                  PAMM_SEVERITY_LEVEL::Full);
-                IDESolver<N, D, M, V, I>::saveEdges(eP, retSiteN, d4, returnedFacts, true);
+                IDESolver<N, D, M, V, I>::saveEdges(eP, retSiteN, d4,
+                                                    returnedFacts, true);
                 // for each target value of the function
                 for (D d5 : returnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
                   std::shared_ptr<EdgeFunction<V>> f4 =
-                      IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getCallEdgeFunction(
-                          n, d2, sCalledProcN, d3);
+                      IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                          .getCallEdgeFunction(n, d2, sCalledProcN, d3);
                   // add call PDS rule
                   auto d2_k = wali::getKey(d2);
                   DKey[d2] = d2_k;
@@ -366,32 +385,37 @@ void processCall(PathEdge<N, D> edge) override {
                   DKey[d3] = d3_k;
                   auto n_k = wali::getKey(n);
                   auto sP_k = wali::getKey(sP);
-                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrCall(new EnvTrafoToSemElem<V>(
-                      f4, static_cast<JoinLattice<V> &>(P)));
+                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrCall(
+                      new EnvTrafoToSemElem<V>(
+                          f4, static_cast<JoinLattice<V> &>(P)));
                   std::cout << "ADD CALL RULE: " << P.DtoString(d2) << ", "
                             << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
-                            << P.NtoString(sP) << ", " << *wptrCall << std::endl;
-                    auto retSiteN_k = wali::getKey(retSiteN);
-                    PDS->add_rule(d2_k, n_k, d3_k, sP_k, retSiteN_k, wptrCall);
+                            << P.NtoString(sP) << ", " << *wptrCall
+                            << std::endl;
+                  auto retSiteN_k = wali::getKey(retSiteN);
+                  PDS->add_rule(d2_k, n_k, d3_k, sP_k, retSiteN_k, wptrCall);
                   if (!SRElem.is_valid()) {
                     SRElem = wptrCall;
                   }
                   // get return edge function
                   std::shared_ptr<EdgeFunction<V>> f5 =
-                      IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                          n, sCalledProcN, eP, d4, retSiteN, d5);
+                      IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                          .getReturnEdgeFunction(n, sCalledProcN, eP, d4,
+                                                 retSiteN, d5);
                   // add ret PDS rule
                   auto d4_k = wali::getKey(d4);
                   DKey[d4] = d4_k;
                   auto d5_k = wali::getKey(d5);
                   DKey[d5] = d5_k;
-                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrRet(new EnvTrafoToSemElem<V>(
-                      f5, static_cast<JoinLattice<V> &>(P)));
-                  std::cout << "ADD RET RULE (CALL): " << P.DtoString(d4) << ", "
-                            << P.NtoString(retSiteN) << ", " << P.DtoString(d5) << ", "
-                            << *wptrRet << std::endl;
-                  std::set<N> exitPointsN = IDESolver<N, D, M, V, I>::icfg.getExitPointsOf(
-                                              IDESolver<N, D, M, V, I>::icfg.getMethodOf(sP));
+                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrRet(
+                      new EnvTrafoToSemElem<V>(
+                          f5, static_cast<JoinLattice<V> &>(P)));
+                  std::cout << "ADD RET RULE (CALL): " << P.DtoString(d4)
+                            << ", " << P.NtoString(retSiteN) << ", "
+                            << P.DtoString(d5) << ", " << *wptrRet << std::endl;
+                  std::set<N> exitPointsN =
+                      IDESolver<N, D, M, V, I>::icfg.getExitPointsOf(
+                          IDESolver<N, D, M, V, I>::icfg.getMethodOf(sP));
                   for (auto exitPointN : exitPointsN) {
                     auto exitPointN_k = wali::getKey(exitPointN);
                     PDS->add_rule(d4_k, exitPointN_k, d5_k, wptrRet);
@@ -411,14 +435,17 @@ void processCall(PathEdge<N, D> edge) override {
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "       = " << fPrime->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-                  D d5_restoredCtx = IDESolver<N, D, M, V, I>::restoreContextOnReturnedFact(n, d2, d5);
+                  D d5_restoredCtx =
+                      IDESolver<N, D, M, V, I>::restoreContextOnReturnedFact(
+                          n, d2, d5);
                   // propagte the effects of the entire call
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "Compose: " << fPrime->str() << " * "
                                 << f->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-                  IDESolver<N, D, M, V, I>::propagate(d1, retSiteN, d5_restoredCtx,
-                            f->composeWith(fPrime), n, false);
+                  IDESolver<N, D, M, V, I>::propagate(
+                      d1, retSiteN, d5_restoredCtx, f->composeWith(fPrime), n,
+                      false);
                 }
               }
             }
@@ -429,18 +456,20 @@ void processCall(PathEdge<N, D> edge) override {
       // process intra-procedural flows along call-to-return flow functions
       for (N returnSiteN : returnSiteNs) {
         std::shared_ptr<FlowFunction<D>> callToReturnFlowFunction =
-            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
-                                                             callees);
+            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                .getCallToRetFlowFunction(n, returnSiteN, callees);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         std::set<D> returnFacts =
-            IDESolver<N, D, M, V, I>::computeCallToReturnFlowFunction(callToReturnFlowFunction, d1, d2);
+            IDESolver<N, D, M, V, I>::computeCallToReturnFlowFunction(
+                callToReturnFlowFunction, d1, d2);
         ADD_TO_HISTOGRAM("Data-flow facts", returnFacts.size(), 1,
                          PAMM_SEVERITY_LEVEL::Full);
-        IDESolver<N, D, M, V, I>::saveEdges(n, returnSiteN, d2, returnFacts, false);
+        IDESolver<N, D, M, V, I>::saveEdges(n, returnSiteN, d2, returnFacts,
+                                            false);
         for (D d3 : returnFacts) {
           std::shared_ptr<EdgeFunction<V>> edgeFnE =
-              IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
-                  n, d2, returnSiteN, d3, callees);
+              IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                  .getCallToRetEdgeFunction(n, d2, returnSiteN, d3, callees);
           // add calltoret PDS rule
           auto d2_k = wali::getKey(d2);
           DKey[d2] = d2_k;
@@ -461,27 +490,31 @@ void processCall(PathEdge<N, D> edge) override {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Compose: " << edgeFnE->str() << " * " << f->str());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-          IDESolver<N, D, M, V, I>::propagate(d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
+          IDESolver<N, D, M, V, I>::propagate(
+              d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
         }
       }
     }
   }
 
   void processExit(PathEdge<N, D> edge) override {
-      std::cout << "WPDS::processExit" << std::endl;
+    std::cout << "WPDS::processExit" << std::endl;
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
     // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
     //               << "Process exit at target: "
-    //               << IDESolver<N, D, M, V, I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    //               << IDESolver<N, D, M, V,
+    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
-    std::shared_ptr<EdgeFunction<V>> f = IDESolver<N, D, M, V, I>::jumpFunction(edge);
+    std::shared_ptr<EdgeFunction<V>> f =
+        IDESolver<N, D, M, V, I>::jumpFunction(edge);
     M methodThatNeedsSummary = IDESolver<N, D, M, V, I>::icfg.getMethodOf(n);
     D d1 = edge.factAtSource();
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
-    std::set<N> startPointsOf = IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(methodThatNeedsSummary);
+    std::set<N> startPointsOf =
+        IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(methodThatNeedsSummary);
     std::map<N, std::set<D>> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
@@ -499,16 +532,18 @@ void processCall(PathEdge<N, D> edge) override {
       // line 22
       N c = entry.first;
       // for each return site
-      for (N retSiteC : IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(c)) {
+      for (N retSiteC :
+           IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(c)) {
         // compute return-flow function
         std::shared_ptr<FlowFunction<D>> retFunction =
-            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getRetFlowFunction(
-                c, methodThatNeedsSummary, n, retSiteC);
+            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                .getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
         for (D d4 : entry.second) {
           std::set<D> targets =
-              IDESolver<N, D, M, V, I>::computeReturnFlowFunction(retFunction, d1, d2, c, entry.second);
+              IDESolver<N, D, M, V, I>::computeReturnFlowFunction(
+                  retFunction, d1, d2, c, entry.second);
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           IDESolver<N, D, M, V, I>::saveEdges(n, retSiteC, d2, targets, true);
@@ -519,29 +554,33 @@ void processCall(PathEdge<N, D> edge) override {
             // compute composed function
             // get call edge function
             std::shared_ptr<EdgeFunction<V>> f4 =
-                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getCallEdgeFunction(
-                    c, d4, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n), d1);
+                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                    .getCallEdgeFunction(
+                        c, d4, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n),
+                        d1);
             // get return edge function
             std::shared_ptr<EdgeFunction<V>> f5 =
-                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n), n, d2, retSiteC, d5);
+                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                    .getReturnEdgeFunction(
+                        c, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n), n, d2,
+                        retSiteC, d5);
             // add ret PDS rule
-             auto d1_k = wali::getKey(d1);
-             DKey[d1] = d1_k;
-             auto d2_k = wali::getKey(d2);
-             DKey[d2] = d2_k;
-             auto d5_k = wali::getKey(d5);
-             DKey[d5] = d5_k;
-             auto n_k = wali::getKey(n);
-             wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-                 new EnvTrafoToSemElem<V>(f5, static_cast<JoinLattice<V> &>(P)));
-             std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
-                       << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
-                       << *wptr << std::endl;
-             PDS->add_rule(d2_k, n_k, d5_k, wptr);
-             if (!SRElem.is_valid()) {
-               SRElem = wptr;
-             }
+            auto d1_k = wali::getKey(d1);
+            DKey[d1] = d1_k;
+            auto d2_k = wali::getKey(d2);
+            DKey[d2] = d2_k;
+            auto d5_k = wali::getKey(d5);
+            DKey[d5] = d5_k;
+            auto n_k = wali::getKey(n);
+            wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
+                new EnvTrafoToSemElem<V>(f5, static_cast<JoinLattice<V> &>(P)));
+            std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
+                      << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
+                      << *wptr << std::endl;
+            PDS->add_rule(d2_k, n_k, d5_k, wptr);
+            if (!SRElem.is_valid()) {
+              SRElem = wptr;
+            }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -556,17 +595,21 @@ void processCall(PathEdge<N, D> edge) override {
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
             // for each jump function coming into the call, propagate to return
             // site using the composed function
-            for (auto valAndFunc : IDESolver<N, D, M, V, I>::jumpFn->reverseLookup(c, d4)) {
+            for (auto valAndFunc :
+                 IDESolver<N, D, M, V, I>::jumpFn->reverseLookup(c, d4)) {
               std::shared_ptr<EdgeFunction<V>> f3 = valAndFunc.second;
               if (!f3->equal_to(IDESolver<N, D, M, V, I>::allTop)) {
                 D d3 = valAndFunc.first;
-                D d5_restoredCtx = IDESolver<N, D, M, V, I>::restoreContextOnReturnedFact(c, d4, d5);
+                D d5_restoredCtx =
+                    IDESolver<N, D, M, V, I>::restoreContextOnReturnedFact(
+                        c, d4, d5);
                 LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                               << "Compose: " << fPrime->str() << " * "
                               << f3->str());
                 LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-                IDESolver<N, D, M, V, I>::propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
-                          c, false);
+                IDESolver<N, D, M, V, I>::propagate(
+                    d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime), c,
+                    false);
               }
             }
           }
@@ -580,27 +623,34 @@ void processCall(PathEdge<N, D> edge) override {
     // be propagated into callers that have an incoming edge for this condition
     if (IDESolver<N, D, M, V, I>::followReturnPastSeeds && inc.empty() &&
         IDESolver<N, D, M, V, I>::ideTabulationProblem.isZeroValue(d1)) {
-      std::set<N> callers = IDESolver<N, D, M, V, I>::icfg.getCallersOf(methodThatNeedsSummary);
+      std::set<N> callers =
+          IDESolver<N, D, M, V, I>::icfg.getCallersOf(methodThatNeedsSummary);
       for (N c : callers) {
-        for (N retSiteC : IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(c)) {
+        for (N retSiteC :
+             IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(c)) {
           std::shared_ptr<FlowFunction<D>> retFunction =
-              IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getRetFlowFunction(
-                  c, methodThatNeedsSummary, n, retSiteC);
+              IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                  .getRetFlowFunction(c, methodThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          std::set<D> targets = IDESolver<N, D, M, V, I>::computeReturnFlowFunction(
-              retFunction, d1, d2, c, std::set<D>{IDESolver<N, D, M, V, I>::zeroValue});
+          std::set<D> targets =
+              IDESolver<N, D, M, V, I>::computeReturnFlowFunction(
+                  retFunction, d1, d2, c,
+                  std::set<D>{IDESolver<N, D, M, V, I>::zeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           IDESolver<N, D, M, V, I>::saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets) {
             std::shared_ptr<EdgeFunction<V>> f5 =
-                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n), n, d2, retSiteC, d5);
+                IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                    .getReturnEdgeFunction(
+                        c, IDESolver<N, D, M, V, I>::icfg.getMethodOf(n), n, d2,
+                        retSiteC, d5);
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-            IDESolver<N, D, M, V, I>::propagteUnbalancedReturnFlow(retSiteC, d5, f->composeWith(f5), c);
+            IDESolver<N, D, M, V, I>::propagteUnbalancedReturnFlow(
+                retSiteC, d5, f->composeWith(f5), c);
             // register for value processing (2nd IDE phase)
             IDESolver<N, D, M, V, I>::unbalancedRetSites.insert(retSiteC);
           }
@@ -612,8 +662,9 @@ void processCall(PathEdge<N, D> edge) override {
       // instead we thus call the return flow function will a null caller
       if (callers.empty()) {
         std::shared_ptr<FlowFunction<D>> retFunction =
-            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions.getRetFlowFunction(
-                nullptr, methodThatNeedsSummary, n, nullptr);
+            IDESolver<N, D, M, V, I>::cachedFlowEdgeFunctions
+                .getRetFlowFunction(nullptr, methodThatNeedsSummary, n,
+                                    nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         retFunction->computeTargets(d2);
       }
@@ -703,12 +754,12 @@ void processCall(PathEdge<N, D> edge) override {
 
   V resultAt(N stmt, D fact) override {
     wali::wfa::Trans goal;
-    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState, goal)) {
+    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
+                    goal)) {
       static_cast<EnvTrafoToSemElem<V> &>(*goal.weight()).F->computeTarget(V{});
     }
     throw std::runtime_error("Requested invalid fact!");
   }
-
 };
 
 } // namespace psr
