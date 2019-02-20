@@ -13,7 +13,7 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-
+/*
 #ifndef PHASAR_DB_DBCONN_H_
 #define PHASAR_DB_DBCONN_H_
 
@@ -149,3 +149,4 @@ public:
 } // namespace psr
 
 #endif
+*/

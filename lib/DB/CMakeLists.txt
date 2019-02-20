@@ -21,7 +21,7 @@ set(phasar_db_public_dep
   ${Boost_LIBRARIES}
   phasar_passes
   ${SQLITE3_LIBRARY}
-  mysqlcppconn
+  # mysqlcppconn
 )
 
 target_link_libraries(phasar_db

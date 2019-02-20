@@ -240,7 +240,6 @@ target_link_libraries(myphasartool
   boost_system
   boost_log
   ${BOOST_THREAD}
-  ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -341,7 +340,6 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 #                                   libpthread (>= 4.5.0),
 #                                   libdl (>= 4.5.0),
 #                                   libcurl-gnutls (>= 4.5.0),
-#                                   libmysqlcppconn (>= 4.5.0),
 #                                   librt (>= 4.5.0),
 #                                   libtinfo (>= 4.5.0),
 #                                   libz (>= 4.5.0),
