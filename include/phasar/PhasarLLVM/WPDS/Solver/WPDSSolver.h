@@ -34,8 +34,9 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
-#include <phasar/PhasarLLVM/WPDS/EnvironmentTransformer.h>
+#include <phasar/PhasarLLVM/WPDS/JoinLatticeToSemiRingElem.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -52,6 +53,10 @@ class WPDSSolver : IDESolver<N, D, M, V, I> {
 private:
   WPDSProblem<N, D, M, V, I> &P;
   I ICFG;
+  WPDSType WPDSTy;
+  SearchDirection Direction;
+  std::vector<N> Stack;
+  bool Witnesses;
   std::unique_ptr<wali::wpds::WPDS> PDS;
   D ZeroValue;
   wali::Key ZeroPDSState;
@@ -119,7 +124,7 @@ public:
           std::cout << llvmIRToString(Entry.first);
           goal.weight()->print(std::cout << " :--- weight ---: ");
           std::cout << " : --- "
-                    << static_cast<EnvTrafoToSemElem<V> &>(*goal.weight())
+                    << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
                            .F->computeTarget(V{});
           std::cout << std::endl;
         }
@@ -152,7 +157,7 @@ public:
         std::cout << llvmIRToString(ZeroValue);
         goal.weight()->print(std::cout << " :--- weight ---: ");
         std::cout << " : --- "
-                  << static_cast<EnvTrafoToSemElem<V> &>(*goal.weight())
+                  << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
                          .F->computeTarget(0);
         std::cout << std::endl;
       }
@@ -177,7 +182,7 @@ public:
       // // std::cout << llvmIRToString(alloca1);
       // ret->print(std::cout << " :--- weight ---: ");
       // std::cout << " : --- "
-      //           << static_cast<EnvTrafoToSemElem<V>
+      //           << static_cast<JoinLatticeToSemiRingElem<V>
       //           &>(*ret).F->computeTarget(0);
       // std::cout << std::endl;
     }
@@ -189,10 +194,9 @@ public:
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //               << "Process normal at target: "
-    //               << IDESolver<N, D, M, V,
-    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process normal at target: "
+                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
@@ -220,8 +224,8 @@ public:
         DKey[d3] = d3_k;
         auto n_k = wali::getKey(n);
         auto m_k = wali::getKey(m);
-        wali::ref_ptr<EnvTrafoToSemElem<V>> wptr;
-        wptr = new EnvTrafoToSemElem<V>(g, static_cast<JoinLattice<V> &>(P));
+        wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr;
+        wptr = new JoinLatticeToSemiRingElem<V>(g, static_cast<JoinLattice<V> &>(P));
         std::cout << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
                   << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
                   << P.DtoString(m) << ", " << *wptr << ")" << std::endl;
@@ -244,10 +248,9 @@ public:
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //               << "Process call at target: "
-    //               << IDESolver<N, D, M, V,
-    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process call at target: "
+                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
@@ -256,17 +259,16 @@ public:
     std::set<N> returnSiteNs =
         IDESolver<N, D, M, V, I>::icfg.getReturnSitesOfCallAt(n);
     std::set<M> callees = IDESolver<N, D, M, V, I>::icfg.getCalleesOfCallAt(n);
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
-    // for (auto callee : callees) {
-    //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //                 << "  " << callee->getName().str());
-    // }
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
-    // for (auto ret : returnSiteNs) {
-    //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //                 << "  " << IDESolver<N, D, M, V,
-    //                 I>::ideTabulationProblem.NtoString(ret));
-    // }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
+    for (auto callee : callees) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "  " << callee->getName().str());
+    }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
+    for (auto ret : returnSiteNs) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "  " << this->ideTabulationProblem.NtoString(ret));
+    }
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
@@ -314,13 +316,12 @@ public:
         // for each callee's start point(s)
         std::set<N> startPointsOf =
             IDESolver<N, D, M, V, I>::icfg.getStartPointsOf(sCalledProcN);
-        // if (startPointsOf.empty()) {
-        //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-        //                 << "Start points of '" +
-        //                        IDESolver<N, D, M, V,
-        //                        I>::icfg.getMethodName(sCalledProcN) +
-        //                        "' currently not available!");
-        // }
+        if (startPointsOf.empty()) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Start points of '" +
+                               this->icfg.getMethodName(sCalledProcN) +
+                               "' currently not available!");
+        }
         // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
           IDESolver<N, D, M, V, I>::saveEdges(n, sP, d2, res, true);
@@ -385,8 +386,8 @@ public:
                   DKey[d3] = d3_k;
                   auto n_k = wali::getKey(n);
                   auto sP_k = wali::getKey(sP);
-                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrCall(
-                      new EnvTrafoToSemElem<V>(
+                  wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrCall(
+                      new JoinLatticeToSemiRingElem<V>(
                           f4, static_cast<JoinLattice<V> &>(P)));
                   std::cout << "ADD CALL RULE: " << P.DtoString(d2) << ", "
                             << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
@@ -407,8 +408,8 @@ public:
                   DKey[d4] = d4_k;
                   auto d5_k = wali::getKey(d5);
                   DKey[d5] = d5_k;
-                  wali::ref_ptr<EnvTrafoToSemElem<V>> wptrRet(
-                      new EnvTrafoToSemElem<V>(
+                  wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrRet(
+                      new JoinLatticeToSemiRingElem<V>(
                           f5, static_cast<JoinLattice<V> &>(P)));
                   std::cout << "ADD RET RULE (CALL): " << P.DtoString(d4)
                             << ", " << P.NtoString(retSiteN) << ", "
@@ -477,7 +478,7 @@ public:
           DKey[d3] = d3_k;
           auto n_k = wali::getKey(n);
           auto returnSiteN_k = wali::getKey(returnSiteN);
-          wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(new EnvTrafoToSemElem<V>(
+          wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(new JoinLatticeToSemiRingElem<V>(
               edgeFnE, static_cast<JoinLattice<V> &>(P)));
           std::cout << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
                     << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
@@ -502,10 +503,9 @@ public:
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
-    // LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-    //               << "Process exit at target: "
-    //               << IDESolver<N, D, M, V,
-    //               I>::ideTabulationProblem.NtoString(edge.getTarget()));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process exit at target: "
+                  << this->ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
     std::shared_ptr<EdgeFunction<V>> f =
         IDESolver<N, D, M, V, I>::jumpFunction(edge);
@@ -572,8 +572,8 @@ public:
             auto d5_k = wali::getKey(d5);
             DKey[d5] = d5_k;
             auto n_k = wali::getKey(n);
-            wali::ref_ptr<EnvTrafoToSemElem<V>> wptr(
-                new EnvTrafoToSemElem<V>(f5, static_cast<JoinLattice<V> &>(P)));
+            wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
+                new JoinLatticeToSemiRingElem<V>(f5, static_cast<JoinLattice<V> &>(P)));
             std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
                       << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
                       << *wptr << std::endl;
@@ -742,7 +742,7 @@ public:
     for (auto Entry : DKey) {
       if (Answer.find(Entry.second, wali::getKey(stmt), AcceptingState, goal)) {
         Results.insert(std::make_pair(
-            Entry.first, static_cast<EnvTrafoToSemElem<V> &>(*goal.weight())
+            Entry.first, static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
                              .F->computeTarget(V{})));
       }
     }
@@ -756,7 +756,7 @@ public:
     wali::wfa::Trans goal;
     if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
                     goal)) {
-      static_cast<EnvTrafoToSemElem<V> &>(*goal.weight()).F->computeTarget(V{});
+      static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight()).F->computeTarget(V{});
     }
     throw std::runtime_error("Requested invalid fact!");
   }

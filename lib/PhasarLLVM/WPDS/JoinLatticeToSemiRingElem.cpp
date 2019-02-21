@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/WPDS/EnvironmentTransformer.h>
+#include <phasar/PhasarLLVM/WPDS/JoinLatticeToSemiRingElem.h>
 
 using namespace std;
 using namespace psr;

@@ -14,7 +14,6 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace psr {
