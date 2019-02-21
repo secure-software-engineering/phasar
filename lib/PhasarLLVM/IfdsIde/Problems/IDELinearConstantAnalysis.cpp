@@ -82,8 +82,8 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
         LCAFF(IDELinearConstantAnalysis::d_t PointerOperand,
               IDELinearConstantAnalysis::d_t ZeroValue)
             : PointerOp(PointerOperand), ZeroValue(ZeroValue) {}
-        set<IDELinearConstantAnalysis::d_t> computeTargets(
-            IDELinearConstantAnalysis::d_t source) override {
+        set<IDELinearConstantAnalysis::d_t>
+        computeTargets(IDELinearConstantAnalysis::d_t source) override {
           if (source == PointerOp) {
             return {};
           } else if (source == ZeroValue) {
@@ -102,8 +102,8 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
         LCAFF(IDELinearConstantAnalysis::d_t PointerOperand,
               IDELinearConstantAnalysis::d_t ValueOperand)
             : PointerOp(PointerOperand), ValueOp(ValueOperand) {}
-        set<IDELinearConstantAnalysis::d_t> computeTargets(
-            IDELinearConstantAnalysis::d_t source) override {
+        set<IDELinearConstantAnalysis::d_t>
+        computeTargets(IDELinearConstantAnalysis::d_t source) override {
           if (source == PointerOp) {
             return {};
           } else if (source == ValueOp) {
@@ -159,7 +159,8 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       vector<const llvm::Value *> formals;
       const llvm::Function *destMthd;
       LCAFF(llvm::ImmutableCallSite callSite,
-            IDELinearConstantAnalysis::m_t destMthd) : destMthd(destMthd) {
+            IDELinearConstantAnalysis::m_t destMthd)
+          : destMthd(destMthd) {
         // Set up the actual parameters
         for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
           actuals.push_back(callSite.getArgOperand(idx));
@@ -169,12 +170,12 @@ IDELinearConstantAnalysis::getCallFlowFunction(
           formals.push_back(getNthFunctionArgument(destMthd, idx));
         }
       }
-      set<IDELinearConstantAnalysis::d_t> computeTargets(
-          IDELinearConstantAnalysis::d_t source) override {
+      set<IDELinearConstantAnalysis::d_t>
+      computeTargets(IDELinearConstantAnalysis::d_t source) override {
         set<IDELinearConstantAnalysis::d_t> res;
         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
           if (source == actuals[idx]) {
-             // Check for C-style varargs: idx >= destMthd->arg_size()
+            // Check for C-style varargs: idx >= destMthd->arg_size()
             if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
               // Over-approximate by trying to add the
               //   alloca [1 x %struct.__va_list_tag], align 16
@@ -197,15 +198,15 @@ IDELinearConstantAnalysis::getCallFlowFunction(
                 }
               }
             } else {
-               // Ordinary case: Just perform mapping
-              res.insert(formals[idx]);  // corresponding formal
+              // Ordinary case: Just perform mapping
+              res.insert(formals[idx]); // corresponding formal
             }
           }
           // Special case: Check if function is called with integer literals as
           // parameter (in case of varargs ignore)
           if (isLLVMZeroValue(source) && idx < destMthd->arg_size() &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
-            res.insert(formals[idx]);  // corresponding formal
+            res.insert(formals[idx]); // corresponding formal
           }
         }
         return res;
@@ -237,8 +238,8 @@ IDELinearConstantAnalysis::getRetFlowFunction(
       LCAFF(IDELinearConstantAnalysis::n_t cs,
             IDELinearConstantAnalysis::d_t retVal)
           : callSite(cs), ReturnValue(retVal) {}
-      set<IDELinearConstantAnalysis::d_t> computeTargets(
-          IDELinearConstantAnalysis::d_t source) override {
+      set<IDELinearConstantAnalysis::d_t>
+      computeTargets(IDELinearConstantAnalysis::d_t source) override {
         set<IDELinearConstantAnalysis::d_t> res;
         // Collect return value fact
         if (source == ReturnValue) {
@@ -393,21 +394,18 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       LCAEF(const unsigned Op, IDELinearConstantAnalysis::d_t lop,
             IDELinearConstantAnalysis::d_t rop,
             IDELinearConstantAnalysis::d_t currNode)
-          : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id),
-            Op(Op),
-            lop(lop),
-            rop(rop),
-            currNode(currNode) {}
+          : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id), Op(Op),
+            lop(lop), rop(rop), currNode(currNode) {}
 
-      IDELinearConstantAnalysis::v_t computeTarget(
-          IDELinearConstantAnalysis::v_t source) override {
+      IDELinearConstantAnalysis::v_t
+      computeTarget(IDELinearConstantAnalysis::v_t source) override {
         auto &lg = lg::get();
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Left Op   : "
-                                               << llvmIRToString(lop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Right Op  : "
-                                               << llvmIRToString(rop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Curr Node : "
-                                               << llvmIRToString(currNode));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Left Op   : " << llvmIRToString(lop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Right Op  : " << llvmIRToString(rop));
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Curr Node : " << llvmIRToString(currNode));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
           auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
@@ -429,9 +427,9 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
             "Only linear constant propagation can be specified!");
       }
 
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> composeWith(
-          shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-              secondFunction) override {
+      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+      composeWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+                      secondFunction) override {
         if (auto *EI =
                 dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
                     secondFunction.get())) {
@@ -444,9 +442,9 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
             this->shared_from_this(), secondFunction);
       }
 
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> joinWith(
-          shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-              otherFunction) override {
+      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+      joinWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+                   otherFunction) override {
         if (otherFunction.get() == this ||
             otherFunction->equal_to(this->shared_from_this())) {
           return this->shared_from_this();
@@ -585,8 +583,9 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::join(
-    IDELinearConstantAnalysis::v_t lhs, IDELinearConstantAnalysis::v_t rhs) {
+IDELinearConstantAnalysis::v_t
+IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::v_t lhs,
+                                IDELinearConstantAnalysis::v_t rhs) {
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -725,36 +724,37 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned op, IDELinearConstantAnalysis::v_t lop,
     IDELinearConstantAnalysis::v_t rop) {
   // default initialize with BOTTOM (all information)
-  IDELinearConstantAnalysis::v_t res = 
+  IDELinearConstantAnalysis::v_t res =
       numeric_limits<IDELinearConstantAnalysis::v_t>::max();
   switch (op) {
-    case llvm::Instruction::Add:
-      res = lop + rop;
-      break;
+  case llvm::Instruction::Add:
+    res = lop + rop;
+    break;
 
-    case llvm::Instruction::Sub:
-      res = lop - rop;
-      break;
+  case llvm::Instruction::Sub:
+    res = lop - rop;
+    break;
 
-    case llvm::Instruction::Mul:
-      res = lop * rop;
-      break;
+  case llvm::Instruction::Mul:
+    res = lop * rop;
+    break;
 
-    case llvm::Instruction::UDiv:
-    case llvm::Instruction::SDiv:
-      res = lop / rop;
-      break;
+  case llvm::Instruction::UDiv:
+  case llvm::Instruction::SDiv:
+    res = lop / rop;
+    break;
 
-    case llvm::Instruction::URem:
-    case llvm::Instruction::SRem:
-      res = lop % rop;
-      break;
+  case llvm::Instruction::URem:
+  case llvm::Instruction::SRem:
+    res = lop % rop;
+    break;
 
-    default:
-      auto &lg = lg::get();
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-         << "Operation not supported by IDELinearConstantAnalysis::executeBinOperation()");
-      break;
+  default:
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Operation not supported by "
+                                              "IDELinearConstantAnalysis::"
+                                              "executeBinOperation()");
+    break;
   }
   return res;
 }
@@ -804,4 +804,4 @@ void IDELinearConstantAnalysis::printIDEReport(
   }
 }
 
-}  // namespace psr
+} // namespace psr
