@@ -26,7 +26,6 @@ using namespace std;
 using namespace psr;
 
 int main(int argc, char **argv) {
-  cout << "Hello, WPDS-Test!\n";
   initializeLogger(false);
   auto &lg = lg::get();
   if (argc < 4 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {

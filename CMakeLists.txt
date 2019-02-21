@@ -173,6 +173,10 @@ add_executable(myphasartool
   tools/phasar/myphasartool.cpp
 )
 
+add_executable(spdstest
+  tools/phasar/spdstest.cpp
+)
+
 add_executable(wpdstest
   tools/phasar/wpdstest.cpp
 )
@@ -281,6 +285,31 @@ target_link_libraries(wpdstest
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
+  ${llvm_libs}
+)
+
+target_link_libraries(spdstest
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_wpds
+  wali
+  phasar_passes
+  phasar_pointer
+  phasar_phasarllvm_utils
+  phasar_utils
+  boost_program_options
+  boost_filesystem
+  boost_graph
+  boost_system
+  boost_log
+  ${BOOST_THREAD}
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
   ${llvm_libs}
 )
 
