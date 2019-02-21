@@ -33,8 +33,8 @@
 #include <wali/wpds/fwpds/SWPDS.hpp>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/WPDS/JoinLatticeToSemiRingElem.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
@@ -124,7 +124,8 @@ public:
           std::cout << llvmIRToString(Entry.first);
           goal.weight()->print(std::cout << " :--- weight ---: ");
           std::cout << " : --- "
-                    << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+                    << static_cast<JoinLatticeToSemiRingElem<V> &>(
+                           *goal.weight())
                            .F->computeTarget(V{});
           std::cout << std::endl;
         }
@@ -225,7 +226,8 @@ public:
         auto n_k = wali::getKey(n);
         auto m_k = wali::getKey(m);
         wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr;
-        wptr = new JoinLatticeToSemiRingElem<V>(g, static_cast<JoinLattice<V> &>(P));
+        wptr = new JoinLatticeToSemiRingElem<V>(
+            g, static_cast<JoinLattice<V> &>(P));
         std::cout << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
                   << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
                   << P.DtoString(m) << ", " << *wptr << ")" << std::endl;
@@ -478,8 +480,9 @@ public:
           DKey[d3] = d3_k;
           auto n_k = wali::getKey(n);
           auto returnSiteN_k = wali::getKey(returnSiteN);
-          wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(new JoinLatticeToSemiRingElem<V>(
-              edgeFnE, static_cast<JoinLattice<V> &>(P)));
+          wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
+              new JoinLatticeToSemiRingElem<V>(
+                  edgeFnE, static_cast<JoinLattice<V> &>(P)));
           std::cout << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
                     << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
                     << P.NtoString(returnSiteN) << ", " << *wptr << std::endl;
@@ -573,7 +576,8 @@ public:
             DKey[d5] = d5_k;
             auto n_k = wali::getKey(n);
             wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
-                new JoinLatticeToSemiRingElem<V>(f5, static_cast<JoinLattice<V> &>(P)));
+                new JoinLatticeToSemiRingElem<V>(
+                    f5, static_cast<JoinLattice<V> &>(P)));
             std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
                       << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
                       << *wptr << std::endl;
@@ -742,8 +746,9 @@ public:
     for (auto Entry : DKey) {
       if (Answer.find(Entry.second, wali::getKey(stmt), AcceptingState, goal)) {
         Results.insert(std::make_pair(
-            Entry.first, static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
-                             .F->computeTarget(V{})));
+            Entry.first,
+            static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+                .F->computeTarget(V{})));
       }
     }
     if (stripZero) {
@@ -756,7 +761,8 @@ public:
     wali::wfa::Trans goal;
     if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
                     goal)) {
-      static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight()).F->computeTarget(V{});
+      static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+          .F->computeTarget(V{});
     }
     throw std::runtime_error("Requested invalid fact!");
   }
