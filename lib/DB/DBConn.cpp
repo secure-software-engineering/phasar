@@ -13,7 +13,7 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-
+/*
 #include <thread>
 
 #include <llvm/Bitcode/BitcodeWriter.h>
@@ -1555,3 +1555,4 @@ void DBConn::dropDBAndRebuildScheme() {
 }
 
 } // namespace psr
+*/
