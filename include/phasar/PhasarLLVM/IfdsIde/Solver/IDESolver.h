@@ -78,7 +78,6 @@ public:
   IDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
         cachedFlowEdgeFunctions(tabulationProblem),
-        recordEdges(tabulationProblem.solver_config.recordEdges),
         zeroValue(tabulationProblem.zeroValue()),
         icfg(tabulationProblem.interproceduralCFG()),
         computevalues(tabulationProblem.solver_config.computeValues),
@@ -87,6 +86,7 @@ public:
             tabulationProblem.solver_config.followReturnsPastSeeds),
         computePersistedSummaries(
             tabulationProblem.solver_config.computePersistedSummaries),
+        recordEdges(tabulationProblem.solver_config.recordEdges),
         PathEdgeCount(0), allTop(tabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
@@ -797,16 +797,6 @@ protected:
   unsigned PathEdgeCount;
   bool recordEdges;
 
-  virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
-                         std::set<D> destVals, bool interP) {
-    if (!recordEdges)
-      return;
-    Table<N, N, std::map<D, std::set<D>>> &tgtMap =
-        (interP) ? computedInterPathEdges : computedIntraPathEdges;
-    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
-                                                       destVals.end());
-  }
-
   FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
 
   Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
@@ -847,7 +837,6 @@ protected:
                 tabulationProblem)),
         ideTabulationProblem(*transformedProblem),
         cachedFlowEdgeFunctions(ideTabulationProblem),
-        recordEdges(ideTabulationProblem.solver_config.recordEdges),
         zeroValue(ideTabulationProblem.zeroValue()),
         icfg(ideTabulationProblem.interproceduralCFG()),
         computevalues(ideTabulationProblem.solver_config.computeValues),
@@ -856,12 +845,23 @@ protected:
             ideTabulationProblem.solver_config.followReturnsPastSeeds),
         computePersistedSummaries(
             ideTabulationProblem.solver_config.computePersistedSummaries),
+        recordEdges(ideTabulationProblem.solver_config.recordEdges),
         PathEdgeCount(0), allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
     // std::cout << "called IDESolver::IDESolver() ctor with IFDSProblem" <<
     // std::endl;
+  }
+
+  virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
+                         std::set<D> destVals, bool interP) {
+    if (!recordEdges)
+      return;
+    Table<N, N, std::map<D, std::set<D>>> &tgtMap =
+        (interP) ? computedInterPathEdges : computedIntraPathEdges;
+    tgtMap.get(sourceNode, sinkStmt)[sourceVal].insert(destVals.begin(),
+                                                       destVals.end());
   }
 
   /**

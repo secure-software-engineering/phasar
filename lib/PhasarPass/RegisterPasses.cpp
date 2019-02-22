@@ -56,3 +56,17 @@ static llvm::cl::opt<bool, true>
                          llvm::cl::desc("Print the IFDS/IDE edge recorder"),
                          llvm::cl::location(PrintEdgeRecorder),
                          llvm::cl::init(false), llvm::cl::cat(PhASARCategory));
+
+bool psr::InitLogger;
+static llvm::cl::opt<bool, true>
+    SetInitializeLogger("init-logger",
+                        llvm::cl::desc("Initialize the logger (caution: very expensive)"),
+                        llvm::cl::location(InitLogger),
+                        llvm::cl::init(false), llvm::cl::cat(PhASARCategory));
+
+bool psr::DumpResults;
+static llvm::cl::opt<bool, true>
+    SetDumpResults("dump-results",
+                   llvm::cl::desc("Dump the analysis results to stdout"),
+                   llvm::cl::location(DumpResults),
+                   llvm::cl::init(true), llvm::cl::cat(PhASARCategory));

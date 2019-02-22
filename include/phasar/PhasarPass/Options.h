@@ -31,6 +31,10 @@ extern std::string PammOutputFile;
 
 extern bool PrintEdgeRecorder;
 
+extern bool InitLogger;
+
+extern bool DumpResults;
+
 } // namespace psr
 
 #endif
