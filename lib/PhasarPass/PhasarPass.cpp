@@ -84,8 +84,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
     const llvm::Function *F = DB.getFunction(EntryPoints.front());
     IntraMonoSolverTest intra(CFG, F);
-    LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra,
-                                                                    DumpResults);
+    LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(
+        intra, DumpResults);
     solver.solve();
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
     const llvm::Function *F = DB.getFunction(EntryPoints.front());
@@ -102,7 +102,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     llvmconstsolver.solve();
   } else if (DataFlowAnalysis == "ifds-lca") {
     IFDSLinearConstantAnalysis lcaproblem(I, EntryPoints);
-    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem, DumpResults);
+    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem,
+                                                           DumpResults);
     llvmlcasolver.solve();
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintSensitiveFunctions TSF;

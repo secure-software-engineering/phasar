@@ -77,7 +77,6 @@ class IDESolver {
 public:
   IDESolver(IDETabulationProblem<N, D, M, V, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
-        cachedFlowEdgeFunctions(tabulationProblem),
         zeroValue(tabulationProblem.zeroValue()),
         icfg(tabulationProblem.interproceduralCFG()),
         computevalues(tabulationProblem.solver_config.computeValues),
@@ -87,7 +86,9 @@ public:
         computePersistedSummaries(
             tabulationProblem.solver_config.computePersistedSummaries),
         recordEdges(tabulationProblem.solver_config.recordEdges),
-        PathEdgeCount(0), allTop(tabulationProblem.allTopFunction()),
+        PathEdgeCount(0),
+        cachedFlowEdgeFunctions(tabulationProblem),
+ allTop(tabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {
@@ -794,8 +795,8 @@ protected:
   bool autoAddZero;
   bool followReturnPastSeeds;
   bool computePersistedSummaries;
-  unsigned PathEdgeCount;
   bool recordEdges;
+  unsigned PathEdgeCount;
 
   FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
 
@@ -836,7 +837,6 @@ protected:
             std::make_unique<IFDSToIDETabulationProblem<N, D, M, I>>(
                 tabulationProblem)),
         ideTabulationProblem(*transformedProblem),
-        cachedFlowEdgeFunctions(ideTabulationProblem),
         zeroValue(ideTabulationProblem.zeroValue()),
         icfg(ideTabulationProblem.interproceduralCFG()),
         computevalues(ideTabulationProblem.solver_config.computeValues),
@@ -846,7 +846,9 @@ protected:
         computePersistedSummaries(
             ideTabulationProblem.solver_config.computePersistedSummaries),
         recordEdges(ideTabulationProblem.solver_config.recordEdges),
-        PathEdgeCount(0), allTop(ideTabulationProblem.allTopFunction()),
+        PathEdgeCount(0),
+        cachedFlowEdgeFunctions(ideTabulationProblem),
+        allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
