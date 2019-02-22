@@ -86,9 +86,8 @@ public:
         computePersistedSummaries(
             tabulationProblem.solver_config.computePersistedSummaries),
         recordEdges(tabulationProblem.solver_config.recordEdges),
-        PathEdgeCount(0),
-        cachedFlowEdgeFunctions(tabulationProblem),
- allTop(tabulationProblem.allTopFunction()),
+        PathEdgeCount(0), cachedFlowEdgeFunctions(tabulationProblem),
+        allTop(tabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {
@@ -846,8 +845,7 @@ protected:
         computePersistedSummaries(
             ideTabulationProblem.solver_config.computePersistedSummaries),
         recordEdges(ideTabulationProblem.solver_config.recordEdges),
-        PathEdgeCount(0),
-        cachedFlowEdgeFunctions(ideTabulationProblem),
+        PathEdgeCount(0), cachedFlowEdgeFunctions(ideTabulationProblem),
         allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
             allTop, ideTabulationProblem)),
