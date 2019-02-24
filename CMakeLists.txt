@@ -106,7 +106,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 include_directories(${SQLITE3_INCLUDE_DIR})
 
 # LLVM
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM REQUIRED CONFIG 5)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
@@ -273,6 +273,7 @@ target_link_libraries(wpdstest
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
+  curl
   boost_program_options
   boost_filesystem
   boost_graph
@@ -295,7 +296,9 @@ target_link_libraries(spdstest
   phasar_ifdside
   phasar_mono
   phasar_wpds
+  ${PHASAR_PLUGINS_LIB}
   wali
+  curl
   phasar_passes
   phasar_pointer
   phasar_phasarllvm_utils
