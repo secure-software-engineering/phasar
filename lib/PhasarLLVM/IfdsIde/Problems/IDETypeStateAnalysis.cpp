@@ -56,8 +56,8 @@ const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            string TypeOfInterest,
                                            vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), TypeOfInterest(TypeOfInterest),
-      EntryPoints(EntryPoints) {
+    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints),
+    TypeOfInterest(TypeOfInterest){
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

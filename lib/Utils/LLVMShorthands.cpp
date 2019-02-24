@@ -89,7 +89,7 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
           ++i;
         }
         std::string st(c, c + i);
-        if (index.first <= std::distance(s.begin(), c) + atoi(st.c_str())) {
+        if (index.first <= std::distance(s.begin(), c) + stoul(st)) {
           noName = false;
           break;
         } else {

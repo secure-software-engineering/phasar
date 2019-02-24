@@ -29,8 +29,8 @@ private:
 public:
   WPDSProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
               std::vector<N> Stack = {}, bool Witnesses = false)
-      : ICFG(ICFG), WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
-        Witnesses(Witnesses) {}
+      : WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
+        Witnesses(Witnesses), ICFG(ICFG) {}
   ~WPDSProblem() override = default;
   I ICFG;
   I interproceduralCFG() override { return ICFG; }
