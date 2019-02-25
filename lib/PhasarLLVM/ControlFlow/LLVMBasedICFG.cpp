@@ -602,4 +602,7 @@ unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
 
 unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
 
+void LLVMBasedICFG::exportPATBCJSON() {
+}
+
 } // namespace psr
