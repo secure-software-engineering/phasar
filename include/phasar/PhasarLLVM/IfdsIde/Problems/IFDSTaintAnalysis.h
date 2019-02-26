@@ -16,8 +16,9 @@
 #include <set>
 #include <string>
 #include <vector>
-
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
@@ -40,9 +41,8 @@ class LLVMBasedICFG;
  * @see TaintSensitiveFunctions on how to specify your own
  * taint-sensitive source and sink functions.
  */
-class IFDSTaintAnalysis : public DefaultIFDSTabulationProblem<
-                              const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG &> {
+class IFDSTaintAnalysis : public LLVMDefaultIFDSTabulationProblem<
+                              const llvm::Value *, LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -63,7 +63,7 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(i_t icfg, TaintSensitiveFunctions TSF,
+  IFDSTaintAnalysis(i_t icfg,const LLVMTypeHierarchy &th, const ProjectIRDB &irdb, TaintSensitiveFunctions TSF,
                     std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSTaintAnalysis() = default;

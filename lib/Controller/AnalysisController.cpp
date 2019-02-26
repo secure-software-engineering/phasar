@@ -197,7 +197,7 @@ AnalysisController::AnalysisController(
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         TaintSensitiveFunctions TSF;
-        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG,CH,IRDB, TSF, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
             TaintAnalysisProblem, false);
         cout << "IFDS Taint Analysis ..." << endl;
@@ -210,7 +210,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
-        IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
+        IDETaintAnalysis taintanalysisproblem(ICFG,CH,IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
