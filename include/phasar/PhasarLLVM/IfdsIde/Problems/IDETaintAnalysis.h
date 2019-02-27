@@ -46,7 +46,9 @@ public:
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(std::set<std::string> s, std::string str);
 
-  IDETaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb, std::vector<std::string> EntryPoints = {"main"});
+  IDETaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                   const ProjectIRDB &irdb,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETaintAnalysis() = default;
 

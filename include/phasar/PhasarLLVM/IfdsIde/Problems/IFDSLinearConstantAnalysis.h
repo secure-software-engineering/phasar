@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -51,9 +51,7 @@ template <> struct hash<psr::LCAPair> {
 namespace psr {
 
 class IFDSLinearConstantAnalysis
-    : public DefaultIFDSTabulationProblem<const llvm::Instruction *, LCAPair,
-                                          const llvm::Function *,
-                                          LLVMBasedICFG &> {
+    : public LLVMDefaultIFDSTabulationProblem<LCAPair, LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -63,7 +61,8 @@ public:
   typedef const llvm::Function *m_t;
   typedef LLVMBasedICFG &i_t;
 
-  IFDSLinearConstantAnalysis(LLVMBasedICFG &icfg,
+  IFDSLinearConstantAnalysis(LLVMBasedICFG &icfg, const LLVMTypeHierarchy &th,
+                             const ProjectIRDB &irdb,
                              std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSLinearConstantAnalysis() = default;

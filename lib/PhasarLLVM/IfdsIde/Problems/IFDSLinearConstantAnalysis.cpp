@@ -46,8 +46,10 @@ bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
-    LLVMBasedICFG &icfg, vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+    LLVMBasedICFG &icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
+    vector<string> EntryPoints)
+    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   IFDSLinearConstantAnalysis::zerovalue = createZeroValue();
 }
 

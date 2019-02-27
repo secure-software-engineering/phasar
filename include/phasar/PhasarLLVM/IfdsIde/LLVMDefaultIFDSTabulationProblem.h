@@ -20,32 +20,27 @@
 #include <memory>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 
 namespace psr {
 
 template <typename D, typename I>
-class LLVMDefaultIFDSTabulationProblem : public DefaultIFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I> {
+class LLVMDefaultIFDSTabulationProblem
+    : public DefaultIFDSTabulationProblem<const llvm::Instruction *, D,
+                                          const llvm::Function *, I> {
 protected:
-  I icfg;
   const LLVMTypeHierarchy &th;
   const ProjectIRDB &irdb;
-  virtual D createZeroValue() = 0;
-  D zerovalue;
 
 public:
-  LLVMDefaultIFDSTabulationProblem(I icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb) : icfg(icfg), th(th), irdb(irdb) {
-    this->solver_config.followReturnsPastSeeds = false;
-    this->solver_config.autoAddZero = true;
-    this->solver_config.computeValues = true;
-    this->solver_config.recordEdges = true;
-    this->solver_config.computePersistedSummaries = true;
+  LLVMDefaultIFDSTabulationProblem(I icfg, const LLVMTypeHierarchy &th,
+                                   const ProjectIRDB &irdb)
+      : irdb(irdb), th(th), DefaultIFDSTabulationProblem(icfg) {
   }
 
   virtual ~LLVMDefaultIFDSTabulationProblem() = default;
-
 };
 
 } // namespace psr

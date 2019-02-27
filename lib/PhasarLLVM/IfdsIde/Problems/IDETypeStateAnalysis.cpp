@@ -54,10 +54,12 @@ const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
     "ftell",   "rewind",   "fgetpos",  "fsetpos"};
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
+                                           const LLVMTypeHierarchy &th,
+                                           const ProjectIRDB &irdb,
                                            string TypeOfInterest,
                                            vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints),
-    TypeOfInterest(TypeOfInterest){
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), EntryPoints(EntryPoints),
+      TypeOfInterest(TypeOfInterest) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
