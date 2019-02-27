@@ -37,8 +37,9 @@ protected:
 public:
   LLVMDefaultIFDSTabulationProblem(I icfg, const LLVMTypeHierarchy &th,
                                    const ProjectIRDB &irdb)
-      : irdb(irdb), th(th), DefaultIFDSTabulationProblem(icfg) {
-  }
+      : irdb(irdb),
+        th(th), DefaultIFDSTabulationProblem<const llvm::Instruction *, D,
+                                             const llvm::Function *, I>(icfg) {}
 
   virtual ~LLVMDefaultIFDSTabulationProblem() = default;
 };

@@ -55,8 +55,8 @@ constexpr State delta[4][4] = {
 static State getNextState(Token tok, State state);
 
 class IDETypeStateAnalysis
-    : public LLVMDefaultIDETabulationProblem<
-          const llvm::Value *, const llvm::Value *, LLVMBasedICFG &> {
+    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, State,
+                                             LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;

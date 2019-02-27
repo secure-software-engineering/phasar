@@ -31,12 +31,14 @@ protected:
   const LLVMTypeHierarchy &th;
   const ProjectIRDB &irdb;
 
-
 public:
   LLVMDefaultIDETabulationProblem(I icfg, const LLVMTypeHierarchy &th,
                                   const ProjectIRDB &irdb)
-      : irdb(irdb), th(th), DefaultIDETabulationProblem(icfg) {
-  }
+      : irdb(irdb),
+        th(th), DefaultIDETabulationProblem<const llvm::Instruction *, D,
+                                            const llvm::Function *, V, I>(icfg) {
+                                              
+                                            }
 
   virtual ~LLVMDefaultIDETabulationProblem() = default;
 };
