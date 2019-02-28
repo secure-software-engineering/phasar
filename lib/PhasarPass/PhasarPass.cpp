@@ -72,12 +72,12 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(H, DB, CGTy, EntryPoints);
   if (DataFlowAnalysis == "ifds-solvertest") {
-    IFDSSolverTest ifdstest(I, EntryPoints);
+    IFDSSolverTest ifdstest(I, H, DB, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
         ifdstest, DumpResults);
     llvmifdstestsolver.solve();
   } else if (DataFlowAnalysis == "ide-solvertest") {
-    IDESolverTest idetest(I, EntryPoints);
+    IDESolverTest idetest(I, H, DB, EntryPoints);
     LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
         llvmidetestsolver(idetest, DumpResults);
     llvmidetestsolver.solve();
@@ -96,43 +96,43 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     auto solver = make_LLVMBasedIMS(inter, Context, F, DumpResults);
     solver->solve();
   } else if (DataFlowAnalysis == "ifds-const") {
-    IFDSConstAnalysis constproblem(I, DB.getAllMemoryLocations(), EntryPoints);
+    IFDSConstAnalysis constproblem(I, H, DB, DB.getAllMemoryLocations(), EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
         constproblem, DumpResults);
     llvmconstsolver.solve();
   } else if (DataFlowAnalysis == "ifds-lca") {
-    IFDSLinearConstantAnalysis lcaproblem(I, EntryPoints);
+    IFDSLinearConstantAnalysis lcaproblem(I, H, DB, EntryPoints);
     LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem,
                                                            DumpResults);
     llvmlcasolver.solve();
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintSensitiveFunctions TSF;
-    IFDSTaintAnalysis TaintAnalysisProblem(I, TSF, EntryPoints);
+    IFDSTaintAnalysis TaintAnalysisProblem(I, H, DB, TSF, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
         TaintAnalysisProblem, DumpResults);
     LLVMTaintSolver.solve();
   } else if (DataFlowAnalysis == "ifds-type") {
-    IFDSTypeAnalysis typeanalysisproblem(I, EntryPoints);
+    IFDSTypeAnalysis typeanalysisproblem(I, H, DB, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
         typeanalysisproblem, DumpResults);
     llvmtypesolver.solve();
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUnitializedVariables uninitializedvarproblem(I, EntryPoints);
+    IFDSUnitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
         uninitializedvarproblem, DumpResults);
     llvmunivsolver.solve();
   } else if (DataFlowAnalysis == "ide-lca") {
-    IDELinearConstantAnalysis lcaproblem(I, EntryPoints);
+    IDELinearConstantAnalysis lcaproblem(I, H, DB, EntryPoints);
     LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
         lcaproblem, DumpResults);
     llvmlcasolver.solve();
   } else if (DataFlowAnalysis == "ide-taint") {
-    IDETaintAnalysis taintanalysisproblem(I, EntryPoints);
+    IDETaintAnalysis taintanalysisproblem(I, H, DB, EntryPoints);
     LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
         llvmtaintsolver(taintanalysisproblem, DumpResults);
     llvmtaintsolver.solve();
   } else if (DataFlowAnalysis == "ide-typestate") {
-    IDETypeStateAnalysis typestateproblem(I, "struct._IO_FILE", EntryPoints);
+    IDETypeStateAnalysis typestateproblem(I, H, DB, "struct._IO_FILE", EntryPoints);
     LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
         llvmtypestatesolver(typestateproblem, DumpResults);
     llvmtypestatesolver.solve();
