@@ -9,6 +9,8 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
@@ -19,10 +21,10 @@ using namespace psr;
 
 namespace psr {
 
-WPDSSolverTest::WPDSSolverTest(LLVMBasedICFG &I, WPDSType WPDS,
+WPDSSolverTest::WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &IRDB, WPDSType WPDS,
                                SearchDirection Direction,
                                std::vector<n_t> Stack, bool Witnesses)
-    : WPDSProblem(I, WPDS, Direction, Stack, Witnesses) {}
+    : LLVMDefaultWPDSProblem(I, TH, IRDB, WPDS, Direction, Stack, Witnesses) {}
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t curr,

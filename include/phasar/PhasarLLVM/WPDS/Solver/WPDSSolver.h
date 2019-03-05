@@ -89,7 +89,7 @@ private:
 public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
       : IDESolver<N, D, M, V, I>(P), P(P), ICFG(P.interproceduralCFG()),
-        PDS(makePDS(P.getWPDSTy(), P.getWitnesses())), ZeroValue(P.zeroValue()),
+        PDS(makePDS(P.getWPDSTy(), P.recordWitnesses())), ZeroValue(P.zeroValue()),
         AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
     ZeroPDSState = wali::getKey(ZeroValue);
     DKey[ZeroValue] = ZeroPDSState;

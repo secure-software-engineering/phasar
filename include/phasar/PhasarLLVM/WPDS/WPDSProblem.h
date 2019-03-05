@@ -10,9 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 #define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 
-#include <vector>
-
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
@@ -20,23 +17,11 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class WPDSProblem : public IDETabulationProblem<N, D, M, V, I> {
-private:
-  WPDSType WPDSTy;
-  SearchDirection Direction;
-  std::vector<N> Stack;
-  bool Witnesses;
-
 public:
-  WPDSProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
-              std::vector<N> Stack = {}, bool Witnesses = false)
-      : WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
-        Witnesses(Witnesses), ICFG(ICFG) {}
   ~WPDSProblem() override = default;
-  I ICFG;
-  I interproceduralCFG() override { return ICFG; }
-  SearchDirection getSearchDirection() { return Direction; }
-  WPDSType getWPDSTy() { return WPDSTy; }
-  bool getWitnesses() { return Witnesses; }
+  virtual SearchDirection getSearchDirection() = 0;
+  virtual WPDSType getWPDSTy() = 0;
+  virtual bool recordWitnesses() = 0;
 };
 
 } // namespace psr
