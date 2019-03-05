@@ -2,12 +2,14 @@ set(lca_files
   basic_01.cpp
   dynamic_01.cpp
   inter_dynamic_01.cpp
+  inter_dynamic_02.cpp
 )
 
 set(lca_files_mem2reg
   basic_01.cpp
   dynamic_01.cpp
   inter_dynamic_01.cpp
+  inter_dynamic_02.cpp
 )
 
 foreach(TEST_SRC ${lca_files})

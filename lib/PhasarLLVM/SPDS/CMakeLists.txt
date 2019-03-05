@@ -12,9 +12,10 @@ else()
 	)
 endif()
 
-# target_link_libraries(phasar_wpds
-# 
-# )
+target_link_libraries(phasar_spds
+	phasar_controlflow
+	phasar_wpds
+)
 
 set_target_properties(phasar_spds
 	PROPERTIES

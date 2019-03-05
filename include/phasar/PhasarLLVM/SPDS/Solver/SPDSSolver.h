@@ -10,8 +10,19 @@
 #ifndef PHASAR_PHASARLLVM_SPDS_SOLVER_SPDSSOLVER_H_
 #define PHASAR_PHASARLLVM_SPDS_SOLVER_SPDSSOLVER_H_
 
+namespace psr {
+
 class SPDSSolver {
-  // TODO
+private:
+  // WPDSProblem CallProblem;
+  // WPDSProblem FieldProblem;
+  // WPDSSolver CallSolver;
+  // WPDSSolver FieldSolver;
+
+public:
+  ~SPDSSolver() = default;
 };
+
+} // namespace psr
 
 #endif

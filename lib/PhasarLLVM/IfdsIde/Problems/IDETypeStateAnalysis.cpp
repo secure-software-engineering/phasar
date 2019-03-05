@@ -57,7 +57,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            string TypeOfInterest,
                                            vector<string> EntryPoints)
     : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints),
-    TypeOfInterest(TypeOfInterest){
+      TypeOfInterest(TypeOfInterest) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
