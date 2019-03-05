@@ -43,8 +43,11 @@ class LLVMBasedBackwardsICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
       public virtual LLVMBasedBackwardCFG {
 private:
-public:
   LLVMBasedICFG ForwardICFG;
+
+public:
+  LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
+
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
 
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,

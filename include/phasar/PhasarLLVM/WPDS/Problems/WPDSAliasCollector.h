@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSSOLVERTEST_H_
-#define PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSSOLVERTEST_H_
+#ifndef PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H_
+#define PHASAR_PHASARLLVM_WPDS_PROBLEMS_WPDSALIASCOLLECTOR_H_
 
 #include <memory>
 
@@ -26,7 +26,7 @@ class Function;
 
 namespace psr {
 
-class WPDSSolverTest
+class WPDSAliasCollector
     : public WPDSProblem<const llvm::Instruction *, const llvm::Value *,
                          const llvm::Function *, BinaryDomain,
                          LLVMBasedICFG &> {
@@ -37,7 +37,7 @@ public:
   typedef BinaryDomain v_t;
   typedef LLVMBasedICFG &i_t;
 
-  WPDSSolverTest(LLVMBasedICFG &I, WPDSType WPDS, SearchDirection Direction,
+  WPDSAliasCollector(LLVMBasedICFG &I, WPDSType WPDS, SearchDirection Direction,
                  std::vector<n_t> Stack = {}, bool Witnesses = false);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
@@ -77,7 +77,7 @@ public:
 
   d_t zeroValue() override;
 
-  bool isZeroValue(d_t d) const override;
+  bool isZeroValue(WPDSAliasCollector::d_t d) const override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 

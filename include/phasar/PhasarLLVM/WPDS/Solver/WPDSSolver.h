@@ -159,7 +159,7 @@ public:
         goal.weight()->print(std::cout << " :--- weight ---: ");
         std::cout << " : --- "
                   << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
-                         .F->computeTarget(0);
+                         .F->computeTarget(V{});
         std::cout << std::endl;
       }
       // }

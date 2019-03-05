@@ -115,6 +115,18 @@ WPDSSolverTest::d_t WPDSSolverTest::zeroValue() {
   return LLVMZeroValue::getInstance();
 }
 
+bool WPDSSolverTest::isZeroValue(WPDSSolverTest::d_t d) const {
+  return isLLVMZeroValue(d);
+}
+
+std::map<WPDSSolverTest::n_t, std::set<WPDSSolverTest::d_t>> WPDSSolverTest::initialSeeds() {
+  return { { &ICFG.getMethod("main")->front().front(), { zeroValue() } } } ;
+}
+
+std::shared_ptr<EdgeFunction<WPDSSolverTest::v_t>> WPDSSolverTest::allTopFunction() {
+  return make_shared<AllTop<WPDSSolverTest::v_t>>(BinaryDomain::TOP);
+}
+
 void WPDSSolverTest::printNode(std::ostream &os, WPDSSolverTest::n_t n) const {
   os << llvmIRToString(n);
 }
