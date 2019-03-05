@@ -61,22 +61,21 @@ int main(int argc, char **argv) {
       auto Results = S.resultsAt(Ret);
       llvm::outs() << "Results:\n";
       for (auto &Result : Results) {
-      Result.first->print(llvm::outs());
-      llvm::outs() << " - TBA\n";
+        Result.first->print(llvm::outs());
+        llvm::outs() << " - TBA\n";
       }
     } else if (DFA == "LCA") {
       std::cout << "LCA" << std::endl;
-      // WPDSLinearConstantAnalysis L(I, WPDSType::FWPDS,
-      //                              [DIRECTION]() {
-      //                                if (DIRECTION == "FORWARD") {
-      //                                  return SearchDirection::FORWARD;
-      //                                }
-      //                                return SearchDirection::BACKWARD;
-      //                                }());
-      // LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
-      // // F = DB.getFunction("_Z9incrementi");
-      // // Ret = &F->back().back();
-      // S.solve(Ret);
+      WPDSLinearConstantAnalysis L(I, H, DB, WPDSType::FWPDS, [DIRECTION]() {
+        if (DIRECTION == "FORWARD") {
+          return SearchDirection::FORWARD;
+        }
+        return SearchDirection::BACKWARD;
+      }());
+      LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
+      // F = DB.getFunction("_Z9incrementi");
+      Ret = &F->back().back();
+      S.solve(Ret);
     }
     std::cout << "DONE!\n";
   } else {

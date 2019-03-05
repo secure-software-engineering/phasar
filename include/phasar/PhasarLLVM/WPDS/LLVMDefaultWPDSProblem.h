@@ -21,6 +21,9 @@ namespace llvm {
 
 namespace psr {
 
+class LLVMTypeHierarchy;
+class ProjectIRDB;
+
 template <typename D, typename V, typename I>
 class LLVMDefaultWPDSProblem : public DefaultWPDSProblem<const llvm::Instruction *, D, const llvm::Function *, V, I> {
 protected:

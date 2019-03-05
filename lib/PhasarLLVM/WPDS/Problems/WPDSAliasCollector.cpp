@@ -13,16 +13,19 @@
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSAliasCollector.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-WPDSAliasCollector::WPDSAliasCollector(LLVMBasedICFG &I, WPDSType WPDS,
+WPDSAliasCollector::WPDSAliasCollector(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB, WPDSType WPDS,
                                        SearchDirection Direction,
                                        std::vector<n_t> Stack, bool Witnesses)
-    : WPDSProblem(I, WPDS, Direction, Stack, Witnesses) {}
+    : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses) {}
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t curr,
