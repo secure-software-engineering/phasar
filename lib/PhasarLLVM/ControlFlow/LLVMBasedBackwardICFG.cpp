@@ -44,7 +44,8 @@ using namespace psr;
 using namespace std;
 namespace psr {
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG) : ForwardICFG(ICFG) {
+LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
+    : ForwardICFG(ICFG) {
   boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg), ForwardICFG.cg);
 }
 

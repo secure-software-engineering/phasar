@@ -38,7 +38,7 @@ public:
   typedef LLVMBasedICFG &i_t;
 
   WPDSAliasCollector(LLVMBasedICFG &I, WPDSType WPDS, SearchDirection Direction,
-                 std::vector<n_t> Stack = {}, bool Witnesses = false);
+                     std::vector<n_t> Stack = {}, bool Witnesses = false);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

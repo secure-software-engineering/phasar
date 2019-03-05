@@ -13,16 +13,16 @@
 namespace psr {
 
 class SPDSSolver {
- private:
+private:
   // WPDSProblem CallProblem;
   // WPDSProblem FieldProblem;
   // WPDSSolver CallSolver;
   // WPDSSolver FieldSolver;
 
- public:
+public:
   ~SPDSSolver() = default;
 };
 
-}
+} // namespace psr
 
 #endif

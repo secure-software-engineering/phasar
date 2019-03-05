@@ -119,11 +119,13 @@ WPDSAliasCollector::d_t WPDSAliasCollector::zeroValue() {
 bool WPDSAliasCollector::isZeroValue(WPDSAliasCollector::d_t d) const {
   return isLLVMZeroValue(d);
 }
-std::map<WPDSAliasCollector::n_t, std::set<WPDSAliasCollector::d_t>> WPDSAliasCollector::initialSeeds() {
+std::map<WPDSAliasCollector::n_t, std::set<WPDSAliasCollector::d_t>>
+WPDSAliasCollector::initialSeeds() {
   return {};
 }
 
-std::shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>> WPDSAliasCollector::allTopFunction() {
+std::shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+WPDSAliasCollector::allTopFunction() {
   return make_shared<AllTop<WPDSAliasCollector::v_t>>(BinaryDomain::TOP);
 }
 
@@ -151,4 +153,4 @@ void WPDSAliasCollector::printValue(std::ostream &os,
   }
 }
 
-}  // namespace psr
+} // namespace psr

@@ -17,10 +17,11 @@
 
 // SPDSSolver::SPDSSolver(LLVMBasedICFG &I) : I(I) {}
 
-// std::set<const llvm::Value *> SPDSSolver::getAliasesOf(const llvm::Value *V) {
+// std::set<const llvm::Value *> SPDSSolver::getAliasesOf(const llvm::Value *V)
+// {
 //   WPDSAliasCollector AC(I, WPDSType::FWPDS, SearchDirection::FORWARD);
-//   LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG&> WpdsSolver(AC);
-//   return {V};
+//   LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG&>
+//   WpdsSolver(AC); return {V};
 // }
 
 // }
