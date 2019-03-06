@@ -49,20 +49,16 @@ int main(int argc, char **argv) {
   if ((F = DB.getFunction("main"))) {
     LLVMTypeHierarchy H(DB);
     LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
-    std::cout << "=== Call graph ===\n";
-    I.print();
     auto Ret = &F->back().back();
-    Ret->print(llvm::outs());
-    llvm::outs() << '\n';
     if (DFA == "ID") {
       WPDSSolverTest T(I, H, DB, WPDSType::FWPDS, SearchDirection::FORWARD);
       LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG &> S(T);
-      S.solve(Ret);
+      S.solve();
       auto Results = S.resultsAt(Ret);
-      llvm::outs() << "Results:\n";
+      cout << "Results:\n";
       for (auto &Result : Results) {
         Result.first->print(llvm::outs());
-        llvm::outs() << " - TBA\n";
+        cout << '\n';
       }
     } else if (DFA == "LCA") {
       std::cout << "LCA" << std::endl;
@@ -73,9 +69,15 @@ int main(int argc, char **argv) {
         return SearchDirection::BACKWARD;
       }());
       LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
-      // F = DB.getFunction("_Z9incrementi");
-      Ret = &F->back().back();
-      S.solve(Ret);
+      S.solve();
+      auto Results = S.resultsAt(Ret);
+      cout << "Results:\n";
+      for (auto &Result : Results) {
+        Result.first->print(llvm::outs());
+        cout << " - with value: ";
+        L.printValue(cout, Result.second);
+        std::cout << '\n';
+      }
     }
     std::cout << "DONE!\n";
   } else {

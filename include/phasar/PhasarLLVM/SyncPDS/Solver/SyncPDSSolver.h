@@ -7,20 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_SPDS_SOLVER_SPDSSOLVER_H_
-#define PHASAR_PHASARLLVM_SPDS_SOLVER_SPDSSOLVER_H_
+#ifndef PHASAR_PHASARLLVM_SYNCSPDS_SOLVER_SYNCSPDSSOLVER_H_
+#define PHASAR_PHASARLLVM_SYNCSPDS_SOLVER_SYNCSPDSSOLVER_H_
 
 namespace psr {
 
-class SPDSSolver {
+class SyncPDSSolver {
 private:
-  // WPDSProblem CallProblem;
-  // WPDSProblem FieldProblem;
-  // WPDSSolver CallSolver;
-  // WPDSSolver FieldSolver;
 
 public:
-  ~SPDSSolver() = default;
+  ~SyncPDSSolver() = default;
 };
 
 } // namespace psr

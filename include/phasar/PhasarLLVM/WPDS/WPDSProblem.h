@@ -16,7 +16,7 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class WPDSProblem : public IDETabulationProblem<N, D, M, V, I> {
+class WPDSProblem : public virtual IDETabulationProblem<N, D, M, V, I> {
 public:
   ~WPDSProblem() override = default;
   virtual SearchDirection getSearchDirection() = 0;

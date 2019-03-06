@@ -173,8 +173,8 @@ add_executable(myphasartool
   tools/phasar/myphasartool.cpp
 )
 
-add_executable(spdstest
-  tools/phasar/spdstest.cpp
+add_executable(syncpdstest
+  tools/phasar/syncpdstest.cpp
 )
 
 add_executable(boomerangtest
@@ -292,7 +292,7 @@ target_link_libraries(wpdstest
   ${llvm_libs}
 )
 
-target_link_libraries(spdstest
+target_link_libraries(syncpdstest
   phasar_config
   phasar_controller
   phasar_db
@@ -300,7 +300,7 @@ target_link_libraries(spdstest
   phasar_ifdside
   phasar_mono
   phasar_wpds
-  phasar_spds
+  phasar_syncpds
   ${PHASAR_PLUGINS_LIB}
   wali
   curl
@@ -328,7 +328,7 @@ target_link_libraries(boomerangtest
   phasar_ifdside
   phasar_mono
   phasar_wpds
-  phasar_spds
+  phasar_syncpds
   ${PHASAR_PLUGINS_LIB}
   wali
   curl

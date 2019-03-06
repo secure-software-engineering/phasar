@@ -49,7 +49,7 @@ class CallInst;
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class WPDSSolver : IDESolver<N, D, M, V, I> {
+class WPDSSolver : public IDESolver<N, D, M, V, I> {
 private:
   WPDSProblem<N, D, M, V, I> &P;
   I ICFG;
@@ -96,41 +96,24 @@ public:
   }
   ~WPDSSolver() override = default;
 
-  virtual void solve(N n) {
-    std::cout << "WPDSSolver::solve()\n";
+  void solve() override {
+    auto &lg = lg::get();
     // Construct the PDS
     IDESolver<N, D, M, V, I>::submitInitalSeeds();
     std::ofstream pdsfile("pds.dot");
     PDS->print_dot(pdsfile, true);
     pdsfile.flush();
     pdsfile.close();
-    std::cout << "PRINTED DOT FILE" << std::endl;
     // test the SRElem
     wali::test_semelem_impl(SRElem);
     // Solve the PDS
-    wali::Key node = wali::getKey(n);
     wali::sem_elem_t ret = nullptr;
     if (SearchDirection::FORWARD == P.getSearchDirection()) {
-      std::cout << "FORWARD\n";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "FORWARD");
       doForwardSearch(Answer);
-      std::cout << "PATH SUMMARY - COMPUTING THE WEIGHTS" << std::endl;
       Answer.path_summary();
-      wali::wfa::Trans goal;
-      // check all data-flow facts
-      std::cout << "All D(s)" << std::endl;
-      for (auto Entry : DKey) {
-        if (Answer.find(Entry.second, node, AcceptingState, goal)) {
-          std::cout << "FOUND ANSWER!" << std::endl;
-          std::cout << llvmIRToString(Entry.first);
-          goal.weight()->print(std::cout << " :--- weight ---: ");
-          std::cout << " : --- "
-                    << static_cast<JoinLatticeToSemiRingElem<V> &>(
-                           *goal.weight())
-                           .F->computeTarget(V{});
-          std::cout << std::endl;
-        }
-      }
-
+      // another way not using path summary
+      // wali::Key node = wali::getKey(n);
       // auto ret = SRElem->zero();
       // wali::wfa::TransSet tset;
       // wali::wfa::TransSet::iterator titer;
@@ -141,33 +124,32 @@ public:
       //   tmp = tmp->extend(t->weight());
       //   ret = ret->combine(tmp);
       // }
-
     } else {
-      std::cout << "BACKWARD\n";
-      auto alloca1 = &ICFG.getMethod("main")->front().front();
-      auto a1key = wali::getKey(alloca1);
-      doBackwardSearch(node, Answer);
-      std::cout << "PATH SUMMARY - COMPUTING THE WEIGHTS" << std::endl;
+      auto retnode = wali::getKey(&IDESolver<N, D, M, V, I>::icfg.getMethod("main")->back().back());
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "BACKWARD");
+      doBackwardSearch(retnode, Answer);
       Answer.path_summary();
-      wali::wfa::Trans goal;
-      // check all data-flow facts
-      std::cout << "All D(s)" << std::endl;
+
+      // access the results
+      // wali::wfa::Trans goal;
+      // // check all data-flow facts
+      // std::cout << "All D(s)" << std::endl;
       // for (auto Entry : DKey) {
-      if (Answer.find(ZeroPDSState, a1key, AcceptingState, goal)) {
-        std::cout << "FOUND ANSWER!" << std::endl;
-        std::cout << llvmIRToString(ZeroValue);
-        goal.weight()->print(std::cout << " :--- weight ---: ");
-        std::cout << " : --- "
-                  << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
-                         .F->computeTarget(V{});
-        std::cout << std::endl;
-      }
+      //   if (Answer.find(Entry.second, retnode, AcceptingState, goal)) {
+      //     std::cout << "FOUND ANSWER!" << std::endl;
+      //     std::cout << llvmIRToString(Entry.first);
+      //     goal.weight()->print(std::cout << " :--- weight ---: ");
+      //     std::cout << " : --- "
+      //               << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+      //                      .F->computeTarget(V{});
+      //     std::cout << std::endl;
+      //   }
       // }
 
-      // ret = SRElem->zero();
+      // wali::sem_elem_t ret = SRElem->zero();
       // wali::wfa::TransSet tset;
       // wali::wfa::TransSet::iterator titer;
-      // tset = Answer.match(a1key, node);
+      // tset = Answer.match(a1key, retnode);
       // std::cout << "TRANSSET" << std::endl;
       // for (auto trans : tset) {
       //   trans->print(std::cout);
@@ -184,17 +166,16 @@ public:
       // ret->print(std::cout << " :--- weight ---: ");
       // std::cout << " : --- "
       //           << static_cast<JoinLatticeToSemiRingElem<V>
-      //           &>(*ret).F->computeTarget(0);
+      //           &>(*ret).F->computeTarget(V{});
       // std::cout << std::endl;
     }
-    std::cout << "SOLVED\n";
   }
 
   void processNormalFlow(PathEdge<N, D> edge) override {
-    std::cout << "WPDS::processNormal" << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processNormal");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process normal at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
@@ -228,9 +209,9 @@ public:
         wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr;
         wptr = new JoinLatticeToSemiRingElem<V>(
             g, static_cast<JoinLattice<V> &>(P));
-        std::cout << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
                   << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
-                  << P.DtoString(m) << ", " << *wptr << ")" << std::endl;
+                  << P.DtoString(m) << ", " << *wptr << ")");
         PDS->add_rule(d2_k, n_k, d3_k, m_k, wptr);
         if (!SRElem.is_valid()) {
           SRElem = wptr;
@@ -246,10 +227,10 @@ public:
   }
 
   void processCall(PathEdge<N, D> edge) override {
-    std::cout << "WPDS::processCall" << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processCall");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process call at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
@@ -391,10 +372,9 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrCall(
                       new JoinLatticeToSemiRingElem<V>(
                           f4, static_cast<JoinLattice<V> &>(P)));
-                  std::cout << "ADD CALL RULE: " << P.DtoString(d2) << ", "
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD CALL RULE: " << P.DtoString(d2) << ", "
                             << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
-                            << P.NtoString(sP) << ", " << *wptrCall
-                            << std::endl;
+                            << P.NtoString(sP) << ", " << *wptrCall);
                   auto retSiteN_k = wali::getKey(retSiteN);
                   PDS->add_rule(d2_k, n_k, d3_k, sP_k, retSiteN_k, wptrCall);
                   if (!SRElem.is_valid()) {
@@ -413,9 +393,9 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrRet(
                       new JoinLatticeToSemiRingElem<V>(
                           f5, static_cast<JoinLattice<V> &>(P)));
-                  std::cout << "ADD RET RULE (CALL): " << P.DtoString(d4)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD RET RULE (CALL): " << P.DtoString(d4)
                             << ", " << P.NtoString(retSiteN) << ", "
-                            << P.DtoString(d5) << ", " << *wptrRet << std::endl;
+                            << P.DtoString(d5) << ", " << *wptrRet);
                   std::set<N> exitPointsN =
                       IDESolver<N, D, M, V, I>::icfg.getExitPointsOf(
                           IDESolver<N, D, M, V, I>::icfg.getMethodOf(sP));
@@ -483,9 +463,9 @@ public:
           wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
               new JoinLatticeToSemiRingElem<V>(
                   edgeFnE, static_cast<JoinLattice<V> &>(P)));
-          std::cout << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
                     << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
-                    << P.NtoString(returnSiteN) << ", " << *wptr << std::endl;
+                    << P.NtoString(returnSiteN) << ", " << *wptr);
           PDS->add_rule(d2_k, n_k, d3_k, returnSiteN_k, wptr);
           if (!SRElem.is_valid()) {
             SRElem = wptr;
@@ -502,10 +482,10 @@ public:
   }
 
   void processExit(PathEdge<N, D> edge) override {
-    std::cout << "WPDS::processExit" << std::endl;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processExit");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process exit at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
@@ -578,9 +558,9 @@ public:
             wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
                 new JoinLatticeToSemiRingElem<V>(
                     f5, static_cast<JoinLattice<V> &>(P)));
-            std::cout << "ADD RET RULE: " << P.DtoString(d2) << ", "
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD RET RULE: " << P.DtoString(d2) << ", "
                       << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
-                      << *wptr << std::endl;
+                      << *wptr);
             PDS->add_rule(d2_k, n_k, d5_k, wptr);
             if (!SRElem.is_valid()) {
               SRElem = wptr;
@@ -677,46 +657,44 @@ public:
 
   void doForwardSearch(wali::wfa::WFA &Answer) {
     // Create an automaton to AcceptingState the configuration:
-    // <ZeroPDSState, main_entry>
-    wali::Key main_entry =
-        wali::getKey(&*ICFG.getMethod("main")->begin()->begin());
-    (&*ICFG.getMethod("main")->begin()->begin())->print(llvm::outs());
-    llvm::outs() << '\n';
-    Query.addTrans(ZeroPDSState, main_entry, AcceptingState, SRElem->one());
+    // <ZeroPDSState, entry>
+    for (auto seed : IDESolver<N, D, M, V, I>::initialSeeds) {
+      wali::Key entry = wali::getKey(seed.first);
+      Query.addTrans(ZeroPDSState, entry, AcceptingState, SRElem->one());
+    }
     Query.set_initial_state(ZeroPDSState);
     Query.add_final_state(AcceptingState);
-    Query.print(std::cout << "before poststar!\n");
+    Query.print(std::cout << "BEFORE POSTSTAR\n");
     std::ofstream before("before_poststar.dot");
     Query.print_dot(before, true);
     PDS->poststar(Query, Answer);
-    Answer.print(std::cout << "after poststar!\n");
+    Answer.print(std::cout << "AFTER POSTSTAR\n");
     std::ofstream after("after_poststar.dot");
     Answer.print_dot(after, true);
   }
 
   void doBackwardSearch(wali::Key node, wali::wfa::WFA &Answer) {
     // Create an automaton to AcceptingState the configurations {n \Gamma^*}
-    wali::wfa::WFA Query;
     // Find the set of all return points
     wali::wpds::WpdsStackSymbols syms;
     PDS->for_each(syms);
     auto alloca1 = &ICFG.getMethod("main")->front().front();
     auto a1key = wali::getKey(alloca1);
+    // the weight is essential here!
     Query.addTrans(a1key, node, AcceptingState, SRElem->one());
     std::set<wali::Key>::iterator it;
     for (it = syms.returnPoints.begin(); it != syms.returnPoints.end(); it++) {
-      std::cout << "RETURN POINT: ";
       wali::getKeySource(*it)->print(std::cout);
       std::cout << std::endl;
       Query.addTrans(AcceptingState, *it, AcceptingState, SRElem->one());
     }
     Query.set_initial_state(a1key);
     Query.add_final_state(AcceptingState);
-    Query.print(std::cout << "before prestar!\n");
+    Query.print(std::cout << "BEFORE PRESTAR\n");
     std::ofstream before("before_prestar.dot");
     Query.print_dot(before, true);
     PDS->prestar(Query, Answer);
-    Answer.print(std::cout << "after prestar!\n");
+    Answer.print(std::cout << "AFTER PRESTAR\n");
     std::ofstream after("after_prestar.dot");
     Answer.print_dot(after, true);
   }
@@ -759,9 +737,8 @@ public:
 
   V resultAt(N stmt, D fact) override {
     wali::wfa::Trans goal;
-    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
-                    goal)) {
-      static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState, goal)) {
+      return static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
           .F->computeTarget(V{});
     }
     throw std::runtime_error("Requested invalid fact!");

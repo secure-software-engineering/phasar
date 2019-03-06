@@ -12,7 +12,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/SPDS/Solver/SPDSSolver.h>
+#include <phasar/PhasarLLVM/SyncPDS/Solver/SyncPDSSolver.h>
 #include <phasar/Utils/Logger.h>
 
 #include <llvm/Support/raw_ostream.h>
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
             Load->getPointerOperand()->print(llvm::outs());
             llvm::outs() << '\n';
             // query SPDS solver to find the aliases
-            // SPDSSolver SPDS(ICFG);
+            // SyncPDSSolver SPDS(ICFG);
             // set<const llvm::Value *> Aliases = SPDS.getAliasesOf(Load->getPointerOperand());
             // llvm::outs() << "Found aliases:";
             // for (auto A : Aliases) {

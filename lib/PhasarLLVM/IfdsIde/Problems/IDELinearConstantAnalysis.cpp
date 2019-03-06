@@ -776,7 +776,13 @@ void IDELinearConstantAnalysis::printMethod(
 
 void IDELinearConstantAnalysis::printValue(
     ostream &os, IDELinearConstantAnalysis::v_t v) const {
-  os << ((v == BOTTOM) ? "Bottom" : to_string(v));
+  if (v == BOTTOM) {
+    os << "Bottom";
+  } else if (v == TOP) {
+    os << "Top";
+  } else {
+    os << to_string(v);
+  }
 }
 
 void IDELinearConstantAnalysis::printIDEReport(
