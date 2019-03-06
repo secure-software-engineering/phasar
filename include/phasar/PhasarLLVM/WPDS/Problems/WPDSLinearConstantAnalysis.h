@@ -13,9 +13,9 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
-#include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Value;
@@ -30,10 +30,13 @@ class LLVMTypeHierarchy;
 class ProjectIRDB;
 
 class WPDSLinearConstantAnalysis
-    : public LLVMDefaultWPDSProblem<const llvm::Value *, int64_t, LLVMBasedICFG &>, public IDELinearConstantAnalysis {
+    : public LLVMDefaultWPDSProblem<const llvm::Value *, int64_t,
+                                    LLVMBasedICFG &>,
+      public IDELinearConstantAnalysis {
 
 public:
-  WPDSLinearConstantAnalysis(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB, WPDSType WPDS,
+  WPDSLinearConstantAnalysis(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
+                             const ProjectIRDB &DB, WPDSType WPDS,
                              SearchDirection Direction,
                              std::vector<std::string> EntryPoints = {"main"},
                              std::vector<n_t> Stack = {},

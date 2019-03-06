@@ -10,21 +10,21 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 
-
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
 WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
-    LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB, WPDSType WPDS, SearchDirection Direction,
+    LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB,
+    WPDSType WPDS, SearchDirection Direction,
     std::vector<std::string> EntryPoints, std::vector<n_t> Stack,
     bool Witnesses)
     : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses),
       IDELinearConstantAnalysis(I, EntryPoints) {}
 
-  LLVMBasedICFG &WPDSLinearConstantAnalysis::interproceduralCFG() {
-    return this->icfg;
-  }
+LLVMBasedICFG &WPDSLinearConstantAnalysis::interproceduralCFG() {
+  return this->icfg;
+}
 
 } // namespace psr

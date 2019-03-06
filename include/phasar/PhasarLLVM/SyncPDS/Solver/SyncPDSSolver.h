@@ -14,7 +14,6 @@ namespace psr {
 
 class SyncPDSSolver {
 private:
-
 public:
   ~SyncPDSSolver() = default;
 };

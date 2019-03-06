@@ -7,22 +7,24 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSAliasCollector.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-WPDSAliasCollector::WPDSAliasCollector(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB, WPDSType WPDS,
+WPDSAliasCollector::WPDSAliasCollector(LLVMBasedICFG &I,
+                                       const LLVMTypeHierarchy &TH,
+                                       const ProjectIRDB &DB, WPDSType WPDS,
                                        SearchDirection Direction,
                                        std::vector<n_t> Stack, bool Witnesses)
     : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses) {}

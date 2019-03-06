@@ -12,15 +12,15 @@
 
 #include <vector>
 
-#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
 class DefaultWPDSProblem : public WPDSProblem<N, D, M, V, I> {
 protected:
-	I ICFG;
+  I ICFG;
   WPDSType WPDSTy;
   SearchDirection Direction;
   std::vector<N> Stack;
@@ -28,7 +28,7 @@ protected:
 
 public:
   DefaultWPDSProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
-              std::vector<N> Stack = {}, bool Witnesses = false)
+                     std::vector<N> Stack = {}, bool Witnesses = false)
       : ICFG(ICFG), WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
         Witnesses(Witnesses) {}
   ~DefaultWPDSProblem() override = default;

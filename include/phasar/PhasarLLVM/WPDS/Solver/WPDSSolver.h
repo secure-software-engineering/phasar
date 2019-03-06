@@ -89,8 +89,9 @@ private:
 public:
   WPDSSolver(WPDSProblem<N, D, M, V, I> &P)
       : IDESolver<N, D, M, V, I>(P), P(P), ICFG(P.interproceduralCFG()),
-        PDS(makePDS(P.getWPDSTy(), P.recordWitnesses())), ZeroValue(P.zeroValue()),
-        AcceptingState(wali::getKey("__accept")), SRElem(nullptr) {
+        PDS(makePDS(P.getWPDSTy(), P.recordWitnesses())),
+        ZeroValue(P.zeroValue()), AcceptingState(wali::getKey("__accept")),
+        SRElem(nullptr) {
     ZeroPDSState = wali::getKey(ZeroValue);
     DKey[ZeroValue] = ZeroPDSState;
   }
@@ -125,7 +126,8 @@ public:
       //   ret = ret->combine(tmp);
       // }
     } else {
-      auto retnode = wali::getKey(&IDESolver<N, D, M, V, I>::icfg.getMethod("main")->back().back());
+      auto retnode = wali::getKey(
+          &IDESolver<N, D, M, V, I>::icfg.getMethod("main")->back().back());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "BACKWARD");
       doBackwardSearch(retnode, Answer);
       Answer.path_summary();
@@ -140,7 +142,8 @@ public:
       //     std::cout << llvmIRToString(Entry.first);
       //     goal.weight()->print(std::cout << " :--- weight ---: ");
       //     std::cout << " : --- "
-      //               << static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
+      //               << static_cast<JoinLatticeToSemiRingElem<V>
+      //               &>(*goal.weight())
       //                      .F->computeTarget(V{});
       //     std::cout << std::endl;
       //   }
@@ -209,9 +212,10 @@ public:
         wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr;
         wptr = new JoinLatticeToSemiRingElem<V>(
             g, static_cast<JoinLattice<V> &>(P));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
-                  << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
-                  << P.DtoString(m) << ", " << *wptr << ")");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "ADD NORMAL RULE: " << P.DtoString(d2) << " | "
+                      << P.NtoString(n) << " --> " << P.DtoString(d3) << " | "
+                      << P.DtoString(m) << ", " << *wptr << ")");
         PDS->add_rule(d2_k, n_k, d3_k, m_k, wptr);
         if (!SRElem.is_valid()) {
           SRElem = wptr;
@@ -372,9 +376,11 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrCall(
                       new JoinLatticeToSemiRingElem<V>(
                           f4, static_cast<JoinLattice<V> &>(P)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD CALL RULE: " << P.DtoString(d2) << ", "
-                            << P.NtoString(n) << ", " << P.DtoString(d3) << ", "
-                            << P.NtoString(sP) << ", " << *wptrCall);
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "ADD CALL RULE: " << P.DtoString(d2) << ", "
+                                << P.NtoString(n) << ", " << P.DtoString(d3)
+                                << ", " << P.NtoString(sP) << ", "
+                                << *wptrCall);
                   auto retSiteN_k = wali::getKey(retSiteN);
                   PDS->add_rule(d2_k, n_k, d3_k, sP_k, retSiteN_k, wptrCall);
                   if (!SRElem.is_valid()) {
@@ -393,9 +399,10 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptrRet(
                       new JoinLatticeToSemiRingElem<V>(
                           f5, static_cast<JoinLattice<V> &>(P)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD RET RULE (CALL): " << P.DtoString(d4)
-                            << ", " << P.NtoString(retSiteN) << ", "
-                            << P.DtoString(d5) << ", " << *wptrRet);
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "ADD RET RULE (CALL): " << P.DtoString(d4)
+                                << ", " << P.NtoString(retSiteN) << ", "
+                                << P.DtoString(d5) << ", " << *wptrRet);
                   std::set<N> exitPointsN =
                       IDESolver<N, D, M, V, I>::icfg.getExitPointsOf(
                           IDESolver<N, D, M, V, I>::icfg.getMethodOf(sP));
@@ -463,9 +470,10 @@ public:
           wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
               new JoinLatticeToSemiRingElem<V>(
                   edgeFnE, static_cast<JoinLattice<V> &>(P)));
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
-                    << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
-                    << P.NtoString(returnSiteN) << ", " << *wptr);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "ADD CALLTORET RULE: " << P.DtoString(d2) << " | "
+                        << P.NtoString(n) << " --> " << P.DtoString(d3) << ", "
+                        << P.NtoString(returnSiteN) << ", " << *wptr);
           PDS->add_rule(d2_k, n_k, d3_k, returnSiteN_k, wptr);
           if (!SRElem.is_valid()) {
             SRElem = wptr;
@@ -558,9 +566,10 @@ public:
             wali::ref_ptr<JoinLatticeToSemiRingElem<V>> wptr(
                 new JoinLatticeToSemiRingElem<V>(
                     f5, static_cast<JoinLattice<V> &>(P)));
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "ADD RET RULE: " << P.DtoString(d2) << ", "
-                      << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
-                      << *wptr);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "ADD RET RULE: " << P.DtoString(d2) << ", "
+                          << P.NtoString(n) << ", " << P.DtoString(d5) << ", "
+                          << *wptr);
             PDS->add_rule(d2_k, n_k, d5_k, wptr);
             if (!SRElem.is_valid()) {
               SRElem = wptr;
@@ -737,7 +746,8 @@ public:
 
   V resultAt(N stmt, D fact) override {
     wali::wfa::Trans goal;
-    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState, goal)) {
+    if (Answer.find(wali::getKey(fact), wali::getKey(stmt), AcceptingState,
+                    goal)) {
       return static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
           .F->computeTarget(V{});
     }

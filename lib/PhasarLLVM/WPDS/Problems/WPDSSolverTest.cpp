@@ -7,11 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -21,7 +21,8 @@ using namespace psr;
 
 namespace psr {
 
-WPDSSolverTest::WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &IRDB, WPDSType WPDS,
+WPDSSolverTest::WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
+                               const ProjectIRDB &IRDB, WPDSType WPDS,
                                SearchDirection Direction,
                                std::vector<n_t> Stack, bool Witnesses)
     : LLVMDefaultWPDSProblem(I, TH, IRDB, WPDS, Direction, Stack, Witnesses) {}

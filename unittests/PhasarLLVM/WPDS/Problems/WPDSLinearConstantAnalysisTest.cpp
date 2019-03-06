@@ -31,8 +31,8 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    LCAProblem = new WPDSLinearConstantAnalysis(*ICFG, *TH, *IRDB, WPDSType::FWPDS,
-                                                SearchDirection::BACKWARD);
+    LCAProblem = new WPDSLinearConstantAnalysis(
+        *ICFG, *TH, *IRDB, WPDSType::FWPDS, SearchDirection::BACKWARD);
   }
 
   void SetUp() override {

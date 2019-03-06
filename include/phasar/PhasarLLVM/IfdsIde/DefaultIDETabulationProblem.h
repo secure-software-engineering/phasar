@@ -22,7 +22,8 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class DefaultIDETabulationProblem : public virtual IDETabulationProblem<N, D, M, V, I> {
+class DefaultIDETabulationProblem
+    : public virtual IDETabulationProblem<N, D, M, V, I> {
 protected:
   I icfg;
   virtual D createZeroValue() = 0;

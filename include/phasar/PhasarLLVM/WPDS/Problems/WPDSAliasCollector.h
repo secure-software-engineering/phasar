@@ -14,8 +14,8 @@
 
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 #include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Instruction;
@@ -30,9 +30,8 @@ class LLVMTypeHierarchy;
 class ProjectIRDB;
 
 class WPDSAliasCollector
-    : public LLVMDefaultWPDSProblem<const llvm::Value *,
-                         BinaryDomain,
-                         LLVMBasedICFG &> {
+    : public LLVMDefaultWPDSProblem<const llvm::Value *, BinaryDomain,
+                                    LLVMBasedICFG &> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
@@ -40,8 +39,10 @@ public:
   typedef BinaryDomain v_t;
   typedef LLVMBasedICFG &i_t;
 
-  WPDSAliasCollector(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB, WPDSType WPDS, SearchDirection Direction,
-                     std::vector<n_t> Stack = {}, bool Witnesses = false);
+  WPDSAliasCollector(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
+                     const ProjectIRDB &DB, WPDSType WPDS,
+                     SearchDirection Direction, std::vector<n_t> Stack = {},
+                     bool Witnesses = false);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

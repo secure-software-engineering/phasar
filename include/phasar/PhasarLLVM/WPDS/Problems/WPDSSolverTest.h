@@ -15,8 +15,8 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 #include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Instruction;
@@ -31,7 +31,7 @@ class ProjectIRDB;
 
 class WPDSSolverTest
     : public LLVMDefaultWPDSProblem<const llvm::Value *, BinaryDomain,
-                         LLVMBasedICFG &> {
+                                    LLVMBasedICFG &> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
@@ -39,8 +39,10 @@ public:
   typedef BinaryDomain v_t;
   typedef LLVMBasedICFG &i_t;
 
-  WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &IRDB, WPDSType WPDS, SearchDirection Direction,
-                 std::vector<n_t> Stack = {}, bool Witnesses = false);
+  WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
+                 const ProjectIRDB &IRDB, WPDSType WPDS,
+                 SearchDirection Direction, std::vector<n_t> Stack = {},
+                 bool Witnesses = false);
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
