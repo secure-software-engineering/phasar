@@ -31,8 +31,8 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    constproblem = new IFDSConstAnalysis(*ICFG, *TH, *IRDB, IRDB->getAllMemoryLocations(),
-                                         EntryPoints);
+    constproblem = new IFDSConstAnalysis(
+        *ICFG, *TH, *IRDB, IRDB->getAllMemoryLocations(), EntryPoints);
   }
 
   void SetUp() override {

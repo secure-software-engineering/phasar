@@ -96,7 +96,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     auto solver = make_LLVMBasedIMS(inter, Context, F, DumpResults);
     solver->solve();
   } else if (DataFlowAnalysis == "ifds-const") {
-    IFDSConstAnalysis constproblem(I, H, DB, DB.getAllMemoryLocations(), EntryPoints);
+    IFDSConstAnalysis constproblem(I, H, DB, DB.getAllMemoryLocations(),
+                                   EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
         constproblem, DumpResults);
     llvmconstsolver.solve();
@@ -132,7 +133,8 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
         llvmtaintsolver(taintanalysisproblem, DumpResults);
     llvmtaintsolver.solve();
   } else if (DataFlowAnalysis == "ide-typestate") {
-    IDETypeStateAnalysis typestateproblem(I, H, DB, "struct._IO_FILE", EntryPoints);
+    IDETypeStateAnalysis typestateproblem(I, H, DB, "struct._IO_FILE",
+                                          EntryPoints);
     LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
         llvmtypestatesolver(typestateproblem, DumpResults);
     llvmtypestatesolver.solve();

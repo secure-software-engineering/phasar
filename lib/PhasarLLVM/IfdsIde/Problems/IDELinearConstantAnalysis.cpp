@@ -51,8 +51,10 @@ const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
     numeric_limits<IDELinearConstantAnalysis::v_t>::max();
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    IDELinearConstantAnalysis::i_t &icfg,const LLVMTypeHierarchy &th, const ProjectIRDB &irdb, vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg,th,irdb), EntryPoints(EntryPoints) {
+    IDELinearConstantAnalysis::i_t &icfg, const LLVMTypeHierarchy &th,
+    const ProjectIRDB &irdb, vector<string> EntryPoints)
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

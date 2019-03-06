@@ -27,8 +27,8 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IFDSUnitializedVariables
-    : public LLVMDefaultIFDSTabulationProblem<
-          const llvm::Value *, LLVMBasedICFG &> {
+    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
+                                              LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -40,7 +40,8 @@ private:
   std::vector<std::string> EntryPoints;
 
 public:
-  IFDSUnitializedVariables(i_t icfg,const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
+  IFDSUnitializedVariables(i_t icfg, const LLVMTypeHierarchy &th,
+                           const ProjectIRDB &irdb,
                            std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSUnitializedVariables() = default;

@@ -29,9 +29,12 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(IDETaintAnalysis::i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb, 
+IDETaintAnalysis::IDETaintAnalysis(IDETaintAnalysis::i_t icfg,
+                                   const LLVMTypeHierarchy &th,
+                                   const ProjectIRDB &irdb,
                                    vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg,th,irdb), EntryPoints(EntryPoints) {
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

@@ -35,9 +35,8 @@ public:
   LLVMDefaultIDETabulationProblem(I icfg, const LLVMTypeHierarchy &th,
                                   const ProjectIRDB &irdb)
       : DefaultIDETabulationProblem<const llvm::Instruction *, D,
-                                            const llvm::Function *, V, I>(icfg), th(th), irdb(irdb) {
-                                              
-                                            }
+                                    const llvm::Function *, V, I>(icfg),
+        th(th), irdb(irdb) {}
 
   virtual ~LLVMDefaultIDETabulationProblem() = default;
 };
