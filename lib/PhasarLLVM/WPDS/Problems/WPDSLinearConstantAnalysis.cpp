@@ -21,7 +21,7 @@ WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
     std::vector<std::string> EntryPoints, std::vector<n_t> Stack,
     bool Witnesses)
     : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses),
-      IDELinearConstantAnalysis(I, EntryPoints) {}
+      IDELinearConstantAnalysis(I, TH, DB, EntryPoints) {}
 
 LLVMBasedICFG &WPDSLinearConstantAnalysis::interproceduralCFG() {
   return this->icfg;

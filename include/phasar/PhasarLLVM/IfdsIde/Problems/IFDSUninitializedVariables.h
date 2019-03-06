@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -27,9 +27,8 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IFDSUnitializedVariables
-    : public DefaultIFDSTabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedICFG &> {
+    : public LLVMDefaultIFDSTabulationProblem<
+          const llvm::Value *, LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -41,7 +40,7 @@ private:
   std::vector<std::string> EntryPoints;
 
 public:
-  IFDSUnitializedVariables(i_t icfg,
+  IFDSUnitializedVariables(i_t icfg,const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
                            std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSUnitializedVariables() = default;

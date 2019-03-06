@@ -33,10 +33,12 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, TaintSensitiveFunctions TSF,
+IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                                     const ProjectIRDB &irdb,
+                                     TaintSensitiveFunctions TSF,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), SourceSinkFunctions(TSF),
-      EntryPoints(EntryPoints) {
+    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
+      SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
   IFDSTaintAnalysis::zerovalue = createZeroValue();
 }
 

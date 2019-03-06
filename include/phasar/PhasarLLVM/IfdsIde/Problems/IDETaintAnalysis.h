@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -28,9 +28,8 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDETaintAnalysis
-    : public DefaultIDETabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, const llvm::Value *, LLVMBasedICFG &> {
+    : public LLVMDefaultIDETabulationProblem<
+          const llvm::Value *, const llvm::Value *, LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -47,7 +46,9 @@ public:
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(std::set<std::string> s, std::string str);
 
-  IDETaintAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
+  IDETaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                   const ProjectIRDB &irdb,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETaintAnalysis() = default;
 

@@ -25,8 +25,11 @@ using namespace psr;
 namespace psr {
 
 IFDSSolverTest::IFDSSolverTest(IFDSSolverTest::i_t icfg,
+                               const LLVMTypeHierarchy &th,
+                               const ProjectIRDB &irdb,
                                vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   IFDSSolverTest::zerovalue = createZeroValue();
 }
 
