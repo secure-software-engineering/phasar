@@ -28,6 +28,7 @@
 #include <boost/graph/adjacency_list.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 
 namespace llvm {
@@ -45,10 +46,9 @@ class ProjectIRDB;
 class LLVMTypeHierarchy;
 
 class LLVMBasedICFG
-    : public ICFG<const llvm::Instruction *, const llvm::Function *> {
-public:
-  // using TypeGraph_t = CachedTypeGraph;
-  using Resolver_t = Resolver;
+    : public ICFG<const llvm::Instruction *, const llvm::Function *>,
+      public virtual LLVMBasedCFG {
+  friend class LLVMBasedBackwardsICFG;
 
 private:
   CallGraphAnalysisType CGType;
@@ -102,7 +102,7 @@ private:
   /// Maps function names to the corresponding vertex id.
   std::unordered_map<std::string, vertex_t> function_vertex_map;
 
-  void constructionWalker(const llvm::Function *F, Resolver_t *resolver);
+  void constructionWalker(const llvm::Function *F, Resolver *resolver);
 
   struct dependency_visitor;
 
@@ -117,39 +117,11 @@ public:
                 const llvm::Module &M, CallGraphAnalysisType CGType,
                 std::vector<std::string> EntryPoints = {});
 
-  virtual ~LLVMBasedICFG() = default;
-
-  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
-
-  const llvm::Function *getMethodOf(const llvm::Instruction *stmt) override;
-
-  std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *I) override;
-
-  std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *I) override;
-
-  std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-  getAllControlFlowEdges(const llvm::Function *fun) override;
+  ~LLVMBasedICFG() override = default;
 
   std::set<const llvm::Function *> getAllMethods();
 
-  std::vector<const llvm::Instruction *>
-  getAllInstructionsOf(const llvm::Function *fun) override;
-
-  bool isExitStmt(const llvm::Instruction *stmt) override;
-
-  bool isStartPoint(const llvm::Instruction *stmt) override;
-
-  bool isFallThroughSuccessor(const llvm::Instruction *stmt,
-                              const llvm::Instruction *succ) override;
-
-  bool isBranchTarget(const llvm::Instruction *stmt,
-                      const llvm::Instruction *succ) override;
-
-  std::string getMethodName(const llvm::Function *fun) override;
-
-  std::string getStatementId(const llvm::Instruction *stmt) override;
+  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
 
   const llvm::Function *getMethod(const std::string &fun) override;
 

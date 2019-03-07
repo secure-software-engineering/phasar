@@ -198,7 +198,8 @@ AnalysisController::AnalysisController(
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
         TaintSensitiveFunctions TSF;
-        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, TSF, EntryPoints);
+        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
+                                               EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
             TaintAnalysisProblem, false);
         cout << "IFDS Taint Analysis ..." << endl;
@@ -211,7 +212,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
-        IDETaintAnalysis taintanalysisproblem(ICFG, EntryPoints);
+        IDETaintAnalysis taintanalysisproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmtaintsolver(taintanalysisproblem, true);
         llvmtaintsolver.solve();
@@ -222,7 +223,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
-        IDETypeStateAnalysis typestateproblem(ICFG, "struct._IO_FILE",
+        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, "struct._IO_FILE",
                                               EntryPoints);
         LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
             llvmtypestatesolver(typestateproblem, true);
@@ -234,7 +235,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
-        IFDSTypeAnalysis typeanalysisproblem(ICFG, EntryPoints);
+        IFDSTypeAnalysis typeanalysisproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
             typeanalysisproblem, true);
         llvmtypesolver.solve();
@@ -245,7 +246,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-        IFDSUnitializedVariables uninitializedvarproblem(ICFG, EntryPoints);
+        IFDSUnitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
+                                                         EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
             uninitializedvarproblem, false);
         cout << "IFDS UninitVar Analysis ..." << endl;
@@ -258,7 +260,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_LinearConstantAnalysis: {
-        IFDSLinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
+        IFDSLinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem,
                                                                true);
         llvmlcasolver.solve();
@@ -269,7 +271,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
-        IDELinearConstantAnalysis lcaproblem(ICFG, EntryPoints);
+        IDELinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
             llvmlcasolver(lcaproblem, true);
         llvmlcasolver.solve();
@@ -280,8 +282,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
-        IFDSConstAnalysis constproblem(ICFG, IRDB.getAllMemoryLocations(),
-                                       EntryPoints);
+        IFDSConstAnalysis constproblem(
+            ICFG, CH, IRDB, IRDB.getAllMemoryLocations(), EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
             constproblem, true);
         llvmconstsolver.solve();
@@ -292,7 +294,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
-        IFDSSolverTest ifdstest(ICFG, EntryPoints);
+        IFDSSolverTest ifdstest(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
             ifdstest, false);
         cout << "IFDS Solvertest ..." << endl;
@@ -305,7 +307,7 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
-        IDESolverTest idetest(ICFG, EntryPoints);
+        IDESolverTest idetest(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest, true);
         llvmidetestsolver.solve();

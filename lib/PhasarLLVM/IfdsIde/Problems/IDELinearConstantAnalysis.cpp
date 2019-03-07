@@ -51,9 +51,11 @@ const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
     numeric_limits<IDELinearConstantAnalysis::v_t>::max();
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    IDELinearConstantAnalysis::i_t &icfg, vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
-  DefaultIDETabulationProblem::zerovalue = createZeroValue();
+    IDELinearConstantAnalysis::i_t &icfg, const LLVMTypeHierarchy &th,
+    const ProjectIRDB &irdb, vector<string> EntryPoints)
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
+  LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
@@ -149,7 +151,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::m_t destMthd) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "IDELinearConstantAnalysis::getCallFlowFunction()");
+                << "IDELinearConstantAnalysis::getCallFlowFunction()");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
@@ -157,8 +159,10 @@ IDELinearConstantAnalysis::getCallFlowFunction(
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> actuals;
       vector<const llvm::Value *> formals;
+      const llvm::Function *destMthd;
       LCAFF(llvm::ImmutableCallSite callSite,
-            IDELinearConstantAnalysis::m_t destMthd) {
+            IDELinearConstantAnalysis::m_t destMthd)
+          : destMthd(destMthd) {
         // Set up the actual parameters
         for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
           actuals.push_back(callSite.getArgOperand(idx));
@@ -172,13 +176,37 @@ IDELinearConstantAnalysis::getCallFlowFunction(
       computeTargets(IDELinearConstantAnalysis::d_t source) override {
         set<IDELinearConstantAnalysis::d_t> res;
         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-          // Ordinary case: Just perform mapping
           if (source == actuals[idx]) {
-            res.insert(formals[idx]); // corresponding formal
+            // Check for C-style varargs: idx >= destMthd->arg_size()
+            if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
+              // Over-approximate by trying to add the
+              //   alloca [1 x %struct.__va_list_tag], align 16
+              // to the results
+              // find the allocated %struct.__va_list_tag and generate it
+              for (auto &BB : *destMthd) {
+                for (auto &I : BB) {
+                  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                    if (Alloc->getAllocatedType()->isArrayTy() &&
+                        Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                        Alloc->getAllocatedType()
+                            ->getArrayElementType()
+                            ->isStructTy() &&
+                        Alloc->getAllocatedType()
+                                ->getArrayElementType()
+                                ->getStructName() == "struct.__va_list_tag") {
+                      res.insert(Alloc);
+                    }
+                  }
+                }
+              }
+            } else {
+              // Ordinary case: Just perform mapping
+              res.insert(formals[idx]); // corresponding formal
+            }
           }
           // Special case: Check if function is called with integer literals as
-          // parameter
-          if (isLLVMZeroValue(source) &&
+          // parameter (in case of varargs ignore)
+          if (isLLVMZeroValue(source) && idx < destMthd->arg_size() &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
             res.insert(formals[idx]); // corresponding formal
           }
@@ -697,7 +725,9 @@ void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned op, IDELinearConstantAnalysis::v_t lop,
     IDELinearConstantAnalysis::v_t rop) {
-  IDELinearConstantAnalysis::v_t res;
+  // default initialize with BOTTOM (all information)
+  IDELinearConstantAnalysis::v_t res =
+      numeric_limits<IDELinearConstantAnalysis::v_t>::max();
   switch (op) {
   case llvm::Instruction::Add:
     res = lop + rop;
@@ -722,8 +752,11 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     break;
 
   default:
-    throw runtime_error("Could not execute unknown operation '" +
-                        to_string(op) + "'!");
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Operation not supported by "
+                                              "IDELinearConstantAnalysis::"
+                                              "executeBinOperation()");
+    break;
   }
   return res;
 }
@@ -745,7 +778,13 @@ void IDELinearConstantAnalysis::printMethod(
 
 void IDELinearConstantAnalysis::printValue(
     ostream &os, IDELinearConstantAnalysis::v_t v) const {
-  os << ((v == BOTTOM) ? "Bottom" : to_string(v));
+  if (v == BOTTOM) {
+    os << "Bottom";
+  } else if (v == TOP) {
+    os << "Top";
+  } else {
+    os << to_string(v);
+  }
 }
 
 void IDELinearConstantAnalysis::printIDEReport(

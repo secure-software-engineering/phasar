@@ -16,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -30,9 +30,8 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDELinearConstantAnalysis
-    : public DefaultIDETabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, int64_t, LLVMBasedICFG &> {
+    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, int64_t,
+                                             LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -52,7 +51,8 @@ public:
   static const v_t TOP;
   static const v_t BOTTOM;
 
-  IDELinearConstantAnalysis(i_t icfg,
+  IDELinearConstantAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                            const ProjectIRDB &irdb,
                             std::vector<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;

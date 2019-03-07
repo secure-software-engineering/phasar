@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_WPDS_SOLVER_LLVMWPDSSOLVER_H_
 
 #include <phasar/PhasarLLVM/WPDS/Solver/WPDSSolver.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -20,8 +21,15 @@ class Function;
 namespace psr {
 
 template <typename D, typename V, typename I>
-class LLVMWPDSSolver : psr::WPDSSolver<const llvm::Instruction *, D,
-                                       const llvm::Function *, V, I> {};
+class LLVMWPDSSolver : public WPDSSolver<const llvm::Instruction *, D,
+                                         const llvm::Function *, V, I> {
+public:
+  LLVMWPDSSolver(WPDSProblem<const llvm::Instruction *, D,
+                             const llvm::Function *, V, I> &P)
+      : WPDSSolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
+            P) {}
+  virtual ~LLVMWPDSSolver() = default;
+};
 } // namespace psr
 
 #endif

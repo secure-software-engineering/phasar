@@ -29,7 +29,8 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    TSProblem = new IDETypeStateAnalysis(*ICFG, "struct._IO_FILE", EntryPoints);
+    TSProblem = new IDETypeStateAnalysis(*ICFG, *TH, *IRDB, "struct._IO_FILE",
+                                         EntryPoints);
   }
 
   void SetUp() override {

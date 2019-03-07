@@ -35,7 +35,8 @@ namespace psr {
 enum class IRDBOptions : uint32_t {
   NONE = 0,
   MEM2REG = (1 << 0),
-  WPA = (1 << 1)
+  WPA = (1 << 1),
+  OWNSNOT = (1 << 2)
 };
 
 /**
@@ -99,7 +100,7 @@ public:
   ProjectIRDB(ProjectIRDB &) = delete;
   ProjectIRDB &operator=(const ProjectIRDB &) = delete;
 
-  ~ProjectIRDB() = default;
+  ~ProjectIRDB();
 
   void preprocessIR();
 

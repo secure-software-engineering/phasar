@@ -29,7 +29,7 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    LCAProblem = new IDELinearConstantAnalysis(*ICFG, EntryPoints);
+    LCAProblem = new IDELinearConstantAnalysis(*ICFG, *TH, *IRDB, EntryPoints);
   }
 
   void SetUp() override {

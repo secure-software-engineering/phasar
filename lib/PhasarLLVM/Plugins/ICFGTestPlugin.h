@@ -48,6 +48,10 @@ public:
 
   bool isStartPoint(const llvm::Instruction *stmt) override;
 
+  bool isFieldLoad(const llvm::Instruction *stmt) override;
+
+  bool isFieldStore(const llvm::Instruction *stmt) override;
+
   bool isFallThroughSuccessor(const llvm::Instruction *stmt,
                               const llvm::Instruction *succ) override;
 

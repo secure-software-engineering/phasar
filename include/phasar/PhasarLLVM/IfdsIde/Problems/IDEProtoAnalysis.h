@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -28,9 +28,8 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDEProtoAnalysis
-    : public DefaultIDETabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, const llvm::Value *, LLVMBasedICFG &> {
+    : public LLVMDefaultIDETabulationProblem<
+          const llvm::Value *, const llvm::Value *, LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -41,7 +40,9 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG &i_t;
 
-  IDEProtoAnalysis(i_t icfg, std::vector<std::string> EntryPoints = {"main"});
+  IDEProtoAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                   const ProjectIRDB &irdb,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDEProtoAnalysis() = default;
 

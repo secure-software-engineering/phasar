@@ -32,8 +32,10 @@ using namespace psr;
 namespace psr {
 
 IFDSUnitializedVariables::IFDSUnitializedVariables(
-    IFDSUnitializedVariables::i_t icfg, vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), EntryPoints(EntryPoints) {
+    IFDSUnitializedVariables::i_t icfg, const LLVMTypeHierarchy &th,
+    const ProjectIRDB &irdb, vector<string> EntryPoints)
+    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   IFDSUnitializedVariables::zerovalue = createZeroValue();
 }
 

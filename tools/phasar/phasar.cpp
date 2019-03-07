@@ -231,7 +231,6 @@ int main(int argc, const char **argv) {
     Config.add_options()
 			("function,f", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
-			("project,p", bpo::value<std::string>()->notifier(validateParamProject), "Path to the project under analysis")
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
@@ -321,10 +320,6 @@ int main(int argc, const char **argv) {
                     << VariablesMap["module"].as<std::vector<std::string>>()
                     << '\n';
         }
-        if (VariablesMap.count("project")) {
-          std::cout << "Project: " << VariablesMap["project"].as<std::string>()
-                    << '\n';
-        }
         if (VariablesMap.count("data-flow-analysis")) {
           std::cout << "Data-flow analysis: "
                     << VariablesMap["data-flow-analysis"]
@@ -398,9 +393,8 @@ int main(int argc, const char **argv) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                     << "Check program options for logical errors.");
       // validate the logic of the command-line arguments
-      if (VariablesMap.count("project") == VariablesMap.count("module")) {
-        std::cerr << "Either a project OR a module must be specified for an "
-                     "analysis.\n";
+      if (!VariablesMap.count("module")) {
+        std::cerr << "A module must be specified for an analysis.\n";
         return 1;
       }
 
@@ -457,7 +451,7 @@ int main(int argc, const char **argv) {
     // At this point we have set-up all the parameters and can start the actual
     // analyses that have been choosen.
     AnalysisController Controller(
-        [&lg](bool usingModules) {
+        [&lg]() {
           PAMM_GET_INSTANCE;
           START_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Set-up IR database.");
@@ -468,29 +462,11 @@ int main(int argc, const char **argv) {
           if (VariablesMap["mem2reg"].as<bool>()) {
             Opt |= IRDBOptions::MEM2REG;
           }
-          if (usingModules) {
             ProjectIRDB IRDB(
                 VariablesMap["module"].as<std::vector<std::string>>(), Opt);
             STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
             return IRDB;
-          } else {
-            // perform a little trick to make OptionsParser only responsible for
-            // the project sources
-            int OnlyTakeCareOfSources = 2;
-            const char *ProjectSources =
-                VariablesMap["project"].as<std::string>().c_str();
-            const char *DummyProgName = "not_important";
-            const char *DummyArgs[] = {DummyProgName, ProjectSources};
-            clang::tooling::CommonOptionsParser OptionsParser(
-                OnlyTakeCareOfSources, DummyArgs, StaticAnalysisCategory,
-                OccurrencesFlag);
-            clang::tooling::CompilationDatabase &CompileDB =
-                OptionsParser.getCompilations();
-            ProjectIRDB IRDB(CompileDB, Opt);
-            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
-            return IRDB;
-          }
-        }(VariablesMap.count("module")),
+        }(),
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
         VariablesMap["graph-id"].as<std::string>());
