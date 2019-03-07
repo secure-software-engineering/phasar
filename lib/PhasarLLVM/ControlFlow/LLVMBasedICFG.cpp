@@ -205,21 +205,32 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found static call-site: "
                       << llvmIRToString(cs.getInstruction()));
-      } else { // the function call must be resolved dynamically
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Found dynamic call-site: "
-                      << llvmIRToString(cs.getInstruction()));
-        // call the resolve routine
-        set<string> possible_target_names;
-        if (isVirtualFunctionCall(cs)) {
-          possible_target_names = resolver->resolveVirtualCall(cs);
+      } else {
+        // still try to resolve the called function statically
+        const llvm::Value *v = cs.getCalledValue();
+        const llvm::Value *sv = v->stripPointerCasts();
+        if (sv->hasName() && IRDB.getFunction(sv->getName())) {
+          possible_targets.insert(IRDB.getFunction(sv->getName()));
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Found static call-site: "
+                        << llvmIRToString(cs.getInstruction()));
         } else {
-          possible_target_names = resolver->resolveFunctionPointer(cs);
-        }
+          // the function call must be resolved dynamically
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Found dynamic call-site: "
+                        << llvmIRToString(cs.getInstruction()));
+          // call the resolve routine
+          set<string> possible_target_names;
+          if (isVirtualFunctionCall(cs)) {
+            possible_target_names = resolver->resolveVirtualCall(cs);
+          } else {
+            possible_target_names = resolver->resolveFunctionPointer(cs);
+          }
 
-        for (auto &possible_target_name : possible_target_names) {
-          if (IRDB.getFunction(possible_target_name)) {
-            possible_targets.insert(IRDB.getFunction(possible_target_name));
+          for (auto &possible_target_name : possible_target_names) {
+            if (IRDB.getFunction(possible_target_name)) {
+              possible_targets.insert(IRDB.getFunction(possible_target_name));
+            }
           }
         }
       }
@@ -590,5 +601,7 @@ vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
 unsigned LLVMBasedICFG::getNumOfVertices() { return boost::num_vertices(cg); }
 
 unsigned LLVMBasedICFG::getNumOfEdges() { return boost::num_edges(cg); }
+
+void LLVMBasedICFG::exportPATBCJSON() {}
 
 } // namespace psr

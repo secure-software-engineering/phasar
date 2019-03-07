@@ -34,10 +34,13 @@ using namespace psr;
 namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(IFDSConstAnalysis::i_t icfg,
+                                     const LLVMTypeHierarchy &th,
+                                     const ProjectIRDB &irdb,
                                      set<IFDSConstAnalysis::d_t> AllMemLocs,
                                      vector<string> EntryPoints)
-    : DefaultIFDSTabulationProblem(icfg), ptg(icfg.getWholeModulePTG()),
-      AllMemLocs(AllMemLocs), EntryPoints(EntryPoints) {
+    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
+      ptg(icfg.getWholeModulePTG()), AllMemLocs(AllMemLocs),
+      EntryPoints(EntryPoints) {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,

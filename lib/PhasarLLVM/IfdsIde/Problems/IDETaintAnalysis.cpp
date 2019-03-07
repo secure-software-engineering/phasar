@@ -30,8 +30,11 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
 }
 
 IDETaintAnalysis::IDETaintAnalysis(IDETaintAnalysis::i_t icfg,
+                                   const LLVMTypeHierarchy &th,
+                                   const ProjectIRDB &irdb,
                                    vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

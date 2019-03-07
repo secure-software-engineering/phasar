@@ -29,8 +29,11 @@ using namespace psr;
 namespace psr {
 
 IDESolverTest::IDESolverTest(IDESolverTest::i_t icfg,
+                             const LLVMTypeHierarchy &th,
+                             const ProjectIRDB &irdb,
                              vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 

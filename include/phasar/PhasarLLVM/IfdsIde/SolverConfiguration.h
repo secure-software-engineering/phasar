@@ -36,7 +36,7 @@ struct SolverConfiguration {
   SolverConfiguration(SolverConfiguration &&) = default;
   SolverConfiguration &operator=(SolverConfiguration &&) = default;
   bool followReturnsPastSeeds = false;
-  bool autoAddZero = false;
+  bool autoAddZero = true;
   bool computeValues = false;
   bool recordEdges = false;
   bool computePersistedSummaries = false;

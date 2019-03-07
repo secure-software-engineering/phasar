@@ -52,7 +52,7 @@ class ProjectIRDB;
 class LLVMTypeHierarchy {
 public:
   /// necessary for storing/loading the LLVMTypeHierarchy to/from database
-  friend class DBConn;
+  // friend class DBConn;
   using json = nlohmann::json;
 
   struct VertexProperties {

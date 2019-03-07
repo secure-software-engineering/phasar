@@ -4,6 +4,10 @@ set(lca_files
   basic_03.cpp
   basic_04.cpp
   basic_05.cpp
+  basic_06.cpp
+  basic_07.cpp
+  basic_08.cpp
+  basic_09.cpp
   branch_01.cpp
   branch_02.cpp
   branch_03.cpp
@@ -16,6 +20,9 @@ set(lca_files
   call_03.cpp
   call_04.cpp
   call_05.cpp
+  call_06.cpp
+  call_07.cpp
+  call_08.cpp
 )
 
 set(lca_files_mem2reg

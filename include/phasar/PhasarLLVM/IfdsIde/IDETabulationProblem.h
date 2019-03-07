@@ -27,10 +27,10 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
-                             public EdgeFunctions<N, D, M, V>,
-                             public JoinLattice<V>,
-                             public ValuePrinter<V> {
+class IDETabulationProblem : public virtual IFDSTabulationProblem<N, D, M, I>,
+                             public virtual EdgeFunctions<N, D, M, V>,
+                             public virtual JoinLattice<V>,
+                             public virtual ValuePrinter<V> {
 public:
   virtual ~IDETabulationProblem() = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;

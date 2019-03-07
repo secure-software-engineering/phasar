@@ -33,7 +33,7 @@ protected:
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     TSF = new TaintSensitiveFunctions(true);
-    TaintProblem = new IFDSTaintAnalysis(*ICFG, *TSF, EntryPoints);
+    TaintProblem = new IFDSTaintAnalysis(*ICFG, *TH, *IRDB, *TSF, EntryPoints);
   }
 
   void SetUp() override {

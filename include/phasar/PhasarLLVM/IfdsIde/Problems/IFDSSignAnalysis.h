@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -27,9 +27,9 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-class IFDSSignAnalysis : public DefaultIFDSTabulationProblem<
-                             const llvm::Instruction *, const llvm::Value *,
-                             const llvm::Function *, LLVMBasedICFG &> {
+class IFDSSignAnalysis
+    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
+                                              LLVMBasedICFG &> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -39,7 +39,9 @@ public:
   typedef const llvm::Function *m_t;
   typedef LLVMBasedICFG &i_t;
 
-  IFDSSignAnalysis(i_t &icfg, std::vector<std::string> EntryPoints = {"main"});
+  IFDSSignAnalysis(i_t &icfg, const LLVMTypeHierarchy &th,
+                   const ProjectIRDB &irdb,
+                   std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSSignAnalysis() = default;
 

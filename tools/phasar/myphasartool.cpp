@@ -45,11 +45,11 @@ int main(int argc, const char **argv) {
     I.print();
     I.printAsDot("call_graph.dot");
     // IFDS template parametrization test
-		IFDSLinearConstantAnalysis L(I, {"main"});
+		IFDSLinearConstantAnalysis L(I,H,DB, {"main"});
     LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L, true);
     S.solve();
 		// IDE template parametrization test
-		IDELinearConstantAnalysis M(I, {"main"});
+		IDELinearConstantAnalysis M(I,H,DB, {"main"});
 		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M, true);
 		T.solve();
   } else {
