@@ -351,6 +351,13 @@ Then you can simply:
 Done!
 
 ### Compile Phasar
+Set the system's variables for the C and C++ compiler to clang:
+```
+$ export CC=/usr/local/bin/clang
+$ export CXX=/usr/local/bin/clang++
+```
+You may need to adjust the paths according to your system.
+
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 
 ```
@@ -358,6 +365,12 @@ $ mkdir build
 $ cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j $(nproc) # or use a different number of cores to compile it
+```
+
+Depending on your system, you may get some compiler errors from the json library. If this is the case please change the C++ standard in the top-level CMakeLists.txt:
+
+```
+set(CMAKE_CXX_STANDARD 14)
 ```
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
