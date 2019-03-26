@@ -96,11 +96,10 @@ public:
 template <typename IMP_t, typename Context_t,
           typename Ordering_t = LLVMOrderingById>
 auto make_LLVMBasedIMS(IMP_t &IMP, Context_t &Context,
-                       typename IMP_t::Method_t Method, bool dump = false)
+                       typename IMP_t::m_t Method, bool dump = false)
     -> std::unique_ptr<
-        LLVMInterMonoSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>> {
-  using ptr_t =
-      LLVMInterMonoSolver<typename IMP_t::Domain_t, Context_t, Ordering_t>;
+        LLVMInterMonoSolver<typename IMP_t::d_t, Context_t, Ordering_t>> {
+  using ptr_t = LLVMInterMonoSolver<typename IMP_t::d_t, Context_t, Ordering_t>;
   return std::make_unique<ptr_t>(IMP, Context, Method, dump);
 }
 

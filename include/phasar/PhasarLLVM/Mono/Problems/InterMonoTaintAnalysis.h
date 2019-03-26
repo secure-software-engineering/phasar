@@ -37,43 +37,43 @@ class InterMonoTaintAnalysis
                               MonoSet<const llvm::Value *>,
                               const llvm::Function *, LLVMBasedICFG &> {
 public:
-  using Node_t = const llvm::Instruction *;
-  using Domain_t = MonoSet<const llvm::Value *>;
-  using Method_t = const llvm::Function *;
-  using ICFG_t = LLVMBasedICFG &;
+  typedef const llvm::Instruction * n_t;
+  typedef MonoSet<const llvm::Value *> d_t;
+  typedef const llvm::Function * m_t;
+  typedef LLVMBasedICFG &i_t;
 
 protected:
   std::vector<std::string> EntryPoints;
 
 public:
-  InterMonoTaintAnalysis(ICFG_t &Icfg,
+  InterMonoTaintAnalysis(i_t &Icfg,
                          std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonoTaintAnalysis() = default;
 
-  Domain_t join(const Domain_t &Lhs, const Domain_t &Rhs) override;
+  d_t join(const d_t &Lhs, const d_t &Rhs) override;
 
-  bool sqSubSetEqual(const Domain_t &Lhs, const Domain_t &Rhs) override;
+  bool sqSubSetEqual(const d_t &Lhs, const d_t &Rhs) override;
 
-  Domain_t normalFlow(Node_t Stmt, const Domain_t &In) override;
+  d_t normalFlow(n_t Stmt, const d_t &In) override;
 
-  Domain_t callFlow(Node_t CallSite, Method_t Callee,
-                    const Domain_t &In) override;
+  d_t callFlow(n_t CallSite, m_t Callee,
+                    const d_t &In) override;
 
-  Domain_t returnFlow(Node_t CallSite, Method_t Callee, Node_t RetSite,
-                      const Domain_t &In) override;
+  d_t returnFlow(n_t CallSite, m_t Callee, n_t RetSite,
+                      const d_t &In) override;
 
-  Domain_t callToRetFlow(Node_t CallSite, Node_t RetSite,
-                         const Domain_t &In) override;
+  d_t callToRetFlow(n_t CallSite, n_t RetSite,
+                         const d_t &In) override;
 
-  MonoMap<Node_t, Domain_t> initialSeeds() override;
+  MonoMap<n_t, d_t> initialSeeds() override;
 
-  void printNode(std::ostream &os, Node_t n) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  void printDataFlowFact(std::ostream &os, Domain_t d) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, Method_t m) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
 
-  bool recompute(Method_t Callee) override;
+  bool recompute(m_t Callee) override;
 };
 
 } // namespace psr

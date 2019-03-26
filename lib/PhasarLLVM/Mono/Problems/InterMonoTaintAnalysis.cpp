@@ -23,35 +23,30 @@ using namespace psr;
 
 namespace psr {
 
-using Node_t = InterMonoTaintAnalysis::Node_t;
-using Domain_t = InterMonoTaintAnalysis::Domain_t;
-using Method_t = InterMonoTaintAnalysis::Method_t;
-using ICFG_t = InterMonoTaintAnalysis::ICFG_t;
-
-InterMonoTaintAnalysis::InterMonoTaintAnalysis(ICFG_t &Icfg,
+InterMonoTaintAnalysis::InterMonoTaintAnalysis(i_t &Icfg,
                                                vector<string> EntryPoints)
-    : InterMonoProblem<Node_t, Domain_t, Method_t, ICFG_t>(Icfg),
+    : InterMonoProblem<n_t, d_t, m_t, i_t>(Icfg),
       EntryPoints(EntryPoints) {}
 
-Domain_t InterMonoTaintAnalysis::join(const Domain_t &Lhs,
-                                      const Domain_t &Rhs) {
+d_t InterMonoTaintAnalysis::join(const d_t &Lhs,
+                                      const d_t &Rhs) {
   cout << "InterMonoTaintAnalysis::join()\n";
-  Domain_t Result;
+  d_t Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
   cout << "Result size: " << Result.size() << endl;
   return Result;
 }
 
-bool InterMonoTaintAnalysis::sqSubSetEqual(const Domain_t &Lhs,
-                                           const Domain_t &Rhs) {
+bool InterMonoTaintAnalysis::sqSubSetEqual(const d_t &Lhs,
+                                           const d_t &Rhs) {
   cout << "InterMonoTaintAnalysis::sqSubSetEqual()\n";
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
   // return true;
 }
 
-Domain_t InterMonoTaintAnalysis::normalFlow(const Node_t Stmt,
-                                            const Domain_t &In) {
+d_t InterMonoTaintAnalysis::normalFlow(const n_t Stmt,
+                                            const d_t &In) {
   cout << "InterMonoTaintAnalysis::normalFlow()\n";
   MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
@@ -62,9 +57,9 @@ Domain_t InterMonoTaintAnalysis::normalFlow(const Node_t Stmt,
   return Result;
 }
 
-Domain_t InterMonoTaintAnalysis::callFlow(const Node_t CallSite,
-                                          const Method_t Callee,
-                                          const Domain_t &In) {
+d_t InterMonoTaintAnalysis::callFlow(const n_t CallSite,
+                                          const m_t Callee,
+                                          const d_t &In) {
   cout << "InterMonoTaintAnalysis::callFlow()\n";
   MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
@@ -75,43 +70,43 @@ Domain_t InterMonoTaintAnalysis::callFlow(const Node_t CallSite,
   return Result;
 }
 
-Domain_t InterMonoTaintAnalysis::returnFlow(const Node_t CallSite,
-                                            const Method_t Callee,
-                                            const Node_t RetSite,
-                                            const Domain_t &In) {
+d_t InterMonoTaintAnalysis::returnFlow(const n_t CallSite,
+                                            const m_t Callee,
+                                            const n_t RetSite,
+                                            const d_t &In) {
   cout << "InterMonoTaintAnalysis::returnFlow()\n";
   return In;
 }
 
-Domain_t InterMonoTaintAnalysis::callToRetFlow(const Node_t CallSite,
-                                               const Node_t RetSite,
-                                               const Domain_t &In) {
+d_t InterMonoTaintAnalysis::callToRetFlow(const n_t CallSite,
+                                               const n_t RetSite,
+                                               const d_t &In) {
   cout << "InterMonoTaintAnalysis::callToRetFlow()\n";
   return In;
 }
 
-MonoMap<Node_t, Domain_t> InterMonoTaintAnalysis::initialSeeds() {
+MonoMap<n_t, d_t> InterMonoTaintAnalysis::initialSeeds() {
   cout << "InterMonoTaintAnalysis::initialSeeds()\n";
-  const Method_t main = ICFG.getMethod("main");
-  MonoMap<Node_t, Domain_t> Seeds;
-  Seeds.insert(make_pair(&main->front().front(), Domain_t()));
+  const m_t main = ICFG.getMethod("main");
+  MonoMap<n_t, d_t> Seeds;
+  Seeds.insert(make_pair(&main->front().front(), d_t()));
   return Seeds;
 }
 
-void InterMonoTaintAnalysis::printNode(ostream &os, Node_t n) const {
+void InterMonoTaintAnalysis::printNode(ostream &os, n_t n) const {
   os << llvmIRToString(n);
 }
 
-void InterMonoTaintAnalysis::printDataFlowFact(ostream &os, Domain_t d) const {
+void InterMonoTaintAnalysis::printDataFlowFact(ostream &os, d_t d) const {
   for (auto fact : d) {
     os << llvmIRToString(fact) << '\n';
   }
 }
 
-void InterMonoTaintAnalysis::printMethod(ostream &os, Method_t m) const {
+void InterMonoTaintAnalysis::printMethod(ostream &os, m_t m) const {
   os << m->getName().str();
 }
 
-bool InterMonoTaintAnalysis::recompute(const Method_t Callee) { return false; }
+bool InterMonoTaintAnalysis::recompute(const m_t Callee) { return false; }
 
 } // namespace psr

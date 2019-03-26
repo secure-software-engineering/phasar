@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
-#include <iostream> // std::cout please remove it
 #include <map>
 #include <utility>
 #include <vector>
@@ -62,7 +61,7 @@ public:
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
-      std::cout << "worklist size: " << Worklist.size() << "\n";
+      //std::cout << "worklist size: " << Worklist.size() << "\n";
       std::pair<N, N> path = Worklist.front();
       Worklist.pop_front();
       N src = path.first;

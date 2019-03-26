@@ -22,6 +22,7 @@
 #include <set>
 #include <utility> // std::make_pair, std::pair
 #include <vector>
+#include <type_traits>
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
@@ -35,54 +36,44 @@ namespace psr {
  * @tparam Context type (must be a derived class of ContextBase<N, V, Context>)
  * @tparam EdgeOrdering class function that state the order of edge evaluation
  */
-template <typename IMP_temp, typename Context, typename EdgeOrdering>
+template <typename IMP_t, typename Context_t, typename Ordering_t>
 class InterMonoGeneralizedSolver {
 public:
-  using IMP_t = IMP_temp;
-  using Context_t = Context;
-  using Ordering_t = EdgeOrdering;
-
-  using Node_t = typename IMP_t::Node_t;
-  using Value_t = typename IMP_t::Domain_t;
-  using Method_t = typename IMP_t::Method_t;
-  using ICFG_t = typename IMP_t::ICFG_t;
-
-  using analysis_t = MonoMap<Node_t, MonoMap<Context_t, Value_t>>;
+  typedef typename IMP_t::N n_t;
+  typedef typename IMP_t::D d_t;
+  typedef typename IMP_t::M m_t;
+  typedef typename IMP_t::I i_t;
 
 private:
   void InterMonoGeneralizedSolver_check() {
-    static_assert(std::is_base_of<ContextBase<Node_t, Value_t, Context_t>,
-                                  Context_t>::value,
-                  "Context_t must be a sub class of ContextBase<Node_t, "
-                  "Value_t, Context_t>\n");
     static_assert(
-        std::is_base_of<InterMonoProblem<Node_t, Value_t, Method_t, ICFG_t>,
-                        IMP_t>::value,
-        "IMP_t type must be a sub class of InterMonoProblem<Node_t, "
-        "Value_t, Method_t, ICFG_t>\n");
+        std::is_base_of<ContextBase<n_t, d_t, Context_t>, Context_t>::value,
+        "Context_t must be a sub class of ContextBase<n_t, "
+        "d_t, Context_t>\n");
+    static_assert(
+        std::is_base_of<InterMonoProblem<n_t, d_t, m_t, std::remove_reference<i_t>>, IMP_t>::value,
+        "IMP_t type must be a sub class of InterMonoProblem<n_t, "
+        "d_t, m_t, i_t>\n");
   }
 
 protected:
-  using edge_t = std::pair<Node_t, Node_t>;
-  using priority_t = unsigned int;
-  using WorkListKey_t = std::pair<priority_t, Context_t>;
-  using WorkListValue_t = std::set<edge_t, Ordering_t>;
-
   IMP_t &IMProblem;
-  std::map<WorkListKey_t, WorkListValue_t, std::greater<WorkListKey_t>>
+  std::map<std::pair<size_t, Context_t>,
+           std::set<std::pair<n_t, n_t>, Ordering_t>,
+           std::greater<std::pair<size_t, Context_t>>>
       Worklist;
 
   using WL_first_it_t = typename decltype(Worklist)::iterator;
   using WL_second_const_it_t =
       typename decltype(Worklist)::mapped_type::const_iterator;
-  analysis_t Analysis;
-  ICFG_t &ICFG;
+  MonoMap<n_t, MonoMap<Context_t, d_t>> Analysis;
+  i_t ICFG;
 
   Context_t current_context;
-  priority_t current_priority = 0;
+  size_t current_priority = 0;
   WL_first_it_t current_it_on_priority;
   WL_second_const_it_t current_it_on_edge;
-  std::set<edge_t> call_edges;
+  std::set<std::pair<n_t, n_t>> call_edges;
 
   // TODO: initialize the Analysis map with different contexts
   // void initialize_with_context() {
@@ -101,28 +92,31 @@ protected:
     }
   }
 
-  virtual void analyse_function(Method_t method) {
+  virtual void analyse_function(m_t method) {
     analyse_function(method, current_context, current_priority);
   }
 
-  virtual void analyse_function(Method_t method, Context_t &new_context) {
+  virtual void analyse_function(m_t method, Context_t &new_context) {
     analyse_function(method, new_context, current_priority);
   }
 
-  virtual void analyse_function(Method_t method, Context_t &new_context,
-                                priority_t new_priority) {
-    std::vector<edge_t> edges = ICFG.getAllControlFlowEdges(method);
+  virtual void analyse_function(m_t method, Context_t &new_context,
+                                size_t new_priority) {
+    std::vector<std::pair<n_t, n_t>> edges =
+        ICFG.getAllControlFlowEdges(method);
     auto current_pair = std::make_pair(new_priority, new_context);
     Worklist[current_pair].insert(edges.begin(), edges.end());
   }
 
-  bool isIntraEdge(const edge_t &edge) const {
+  bool isIntraEdge(const std::pair<n_t, n_t> &edge) const {
     return ICFG.getMethodOf(edge.first) == ICFG.getMethodOf(edge.second);
   }
 
-  bool isCallEdge(const edge_t &edge) const { return call_edges.count(edge); }
+  bool isCallEdge(const std::pair<n_t, n_t> &edge) const {
+    return call_edges.count(edge);
+  }
 
-  bool isReturnEdge(const edge_t &edge) const {
+  bool isReturnEdge(const std::pair<n_t, n_t> &edge) const {
     return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
   }
 
@@ -149,7 +143,7 @@ protected:
       Worklist.erase(current_it_on_priority);
   }
 
-  virtual void insertSuccessor(Node_t dst) {
+  virtual void insertSuccessor(n_t dst) {
     for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
       // NOTE: current_it_on_priority->second could be changed by
       //      Worklist[std::make_pair(current_priority,
@@ -161,7 +155,7 @@ protected:
     }
   }
 
-  virtual void GenerateCallEdge(Node_t dst) {
+  virtual void GenerateCallEdge(n_t dst) {
     auto key = std::make_pair(current_priority + 1, current_context);
     for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
       for (auto entry_point : ICFG.getStartPointsOf(callee)) {
@@ -172,8 +166,7 @@ protected:
     }   // callee of method
   }
 
-  virtual void generateExitEdge(Node_t callSite, Node_t dst,
-                                Context_t &dst_context) {
+  virtual void generateExitEdge(n_t callSite, n_t dst, Context_t &dst_context) {
     for (auto exit_point : ICFG.getExitPointsOf(ICFG.getMethodOf(dst))) {
       Worklist[std::make_pair(current_priority, dst_context)].emplace(
           std::make_pair(exit_point, callSite));
@@ -181,7 +174,7 @@ protected:
   }
 
 public:
-  InterMonoGeneralizedSolver(IMP_t &IMP, Context_t &context, Method_t method)
+  InterMonoGeneralizedSolver(IMP_t &IMP, Context_t &context, m_t method)
       : IMProblem(IMP), ICFG(IMP.getICFG()), current_context(context) {
     initialize();
     analyse_function(method);
@@ -195,7 +188,9 @@ public:
   InterMonoGeneralizedSolver &
   operator=(InterMonoGeneralizedSolver &&move) = delete;
 
-  analysis_t &getAnalysisResults() { return Analysis; }
+  MonoMap<n_t, MonoMap<Context_t, d_t>> &getAnalysisResults() {
+    return Analysis;
+  }
 
   virtual void solve() {
     while (!isWLempty()) {
@@ -205,7 +200,7 @@ public:
       const auto &src = edge.first;
       const auto &dst = edge.second;
 
-      Value_t Out;
+      d_t Out;
 
       Context_t src_context(current_context);
       Context_t dst_context(src_context);

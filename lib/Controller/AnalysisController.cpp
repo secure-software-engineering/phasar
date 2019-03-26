@@ -335,8 +335,8 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoSolverTest inter(ICFG, EntryPoints);
-        CallString<typename InterMonoSolverTest::Node_t,
-                   typename InterMonoSolverTest::Domain_t, 3>
+        CallString<typename InterMonoSolverTest::n_t,
+                   typename InterMonoSolverTest::d_t, 3>
             Context(&inter, &inter);
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();
@@ -345,8 +345,8 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoTaintAnalysis inter(ICFG, EntryPoints);
-        CallString<typename InterMonoTaintAnalysis::Node_t,
-                   typename InterMonoTaintAnalysis::Domain_t, 10>
+        CallString<typename InterMonoTaintAnalysis::n_t,
+                   typename InterMonoTaintAnalysis::d_t, 10>
             Context(&inter, &inter);
         auto solver = make_LLVMBasedIMS(inter, Context, F, true);
         solver->solve();

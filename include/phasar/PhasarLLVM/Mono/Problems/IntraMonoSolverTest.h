@@ -35,29 +35,27 @@ class IntraMonoSolverTest
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
-  using Node_t = const llvm::Instruction *;
-  using Domain_t = const llvm::Value *;
-  using Method_t = const llvm::Function *;
-  using CFG_t = LLVMBasedCFG &;
+  typedef const llvm::Instruction *n_t;
+  typedef const llvm::Value *d_t;
+  typedef const llvm::Function *m_t;
+  typedef LLVMBasedCFG &i_t;
 
-  IntraMonoSolverTest(CFG_t Cfg, Method_t F);
+  IntraMonoSolverTest(i_t Cfg, m_t F);
   virtual ~IntraMonoSolverTest() = default;
 
-  MonoSet<Domain_t> join(const MonoSet<Domain_t> &Lhs,
-                         const MonoSet<Domain_t> &Rhs) override;
+  MonoSet<d_t> join(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<Domain_t> &Lhs,
-                     const MonoSet<Domain_t> &Rhs) override;
+  bool sqSubSetEqual(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
 
-  MonoSet<Domain_t> flow(Node_t S, const MonoSet<Domain_t> &In) override;
+  MonoSet<d_t> flow(n_t S, const MonoSet<d_t> &In) override;
 
-  MonoMap<Node_t, MonoSet<Domain_t>> initialSeeds() override;
+  MonoMap<n_t, MonoSet<d_t>> initialSeeds() override;
 
-  void printNode(std::ostream &os, Node_t n) const override;
+  void printNode(std::ostream &os, n_t n) const override;
 
-  void printDataFlowFact(std::ostream &os, Domain_t d) const override;
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, Method_t m) const override;
+  void printMethod(std::ostream &os, m_t m) const override;
 };
 
 } // namespace psr
