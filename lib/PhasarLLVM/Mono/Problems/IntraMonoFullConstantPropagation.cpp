@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include <algorithm>
-#include <iostream>
+#include <ostream>
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -40,7 +40,7 @@ bool IntraMonoFullConstantPropagation::sqSubSetEqual(const MonoSet<d_t> &Lhs,
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<d_t> IntraMonoFullConstantPropagation::flow(n_t S,
+MonoSet<d_t> IntraMonoFullConstantPropagation::normalFlow(n_t S,
                                                     const MonoSet<d_t> &In) {
   return MonoSet<d_t>();
 }

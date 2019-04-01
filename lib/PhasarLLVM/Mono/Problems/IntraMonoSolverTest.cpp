@@ -15,7 +15,7 @@
  */
 
 #include <algorithm>
-#include <iostream>
+#include <iosfwd>
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -48,8 +48,8 @@ bool IntraMonoSolverTest::sqSubSetEqual(const MonoSet<d_t> &Lhs,
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<d_t> IntraMonoSolverTest::flow(n_t S, const MonoSet<d_t> &In) {
-  cout << "IntraMonoSolverTest::flow()\n";
+MonoSet<d_t> IntraMonoSolverTest::normalFlow(n_t S, const MonoSet<d_t> &In) {
+  cout << "IntraMonoSolverTest::normalFlow()\n";
   MonoSet<d_t> Result;
   Result.insert(In.begin(), In.end());
   if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
