@@ -33,43 +33,49 @@ namespace psr {
 class LLVMBasedICFG;
 
 class InterMonoSolverTest
-    : public InterMonoProblem<const llvm::Instruction *,
-                              const llvm::Value *,
+    : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
-public:
-  typedef const llvm::Instruction *n_t;
-  typedef const llvm::Value *d_t;
-  typedef const llvm::Function *m_t;
-  typedef LLVMBasedICFG &i_t;
-
 protected:
   std::vector<std::string> EntryPoints;
 
 public:
-  InterMonoSolverTest(i_t &Icfg,
+  InterMonoSolverTest(LLVMBasedICFG &Icfg,
                       std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonoSolverTest() = default;
 
-  MonoSet<d_t> join(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
+  MonoSet<const llvm::Value *>
+  join(const MonoSet<const llvm::Value *> &Lhs,
+       const MonoSet<const llvm::Value *> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
+  bool sqSubSetEqual(const MonoSet<const llvm::Value *> &Lhs,
+                     const MonoSet<const llvm::Value *> &Rhs) override;
 
-  MonoSet<d_t> normalFlow(n_t Stmt, const MonoSet<d_t> &In) override;
+  MonoSet<const llvm::Value *>
+  normalFlow(const llvm::Instruction *Stmt,
+             const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<d_t> callFlow(n_t CallSite, m_t Callee, const MonoSet<d_t> &In) override;
+  MonoSet<const llvm::Value *>
+  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
+           const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<d_t> returnFlow(n_t CallSite, m_t Callee, n_t RetSite, const MonoSet<d_t> &In) override;
+  MonoSet<const llvm::Value *>
+  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
+             const llvm::Instruction *RetSite,
+             const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite, const MonoSet<d_t> &In) override;
+  MonoSet<const llvm::Value *>
+  callToRetFlow(const llvm::Instruction *CallSite,
+                const llvm::Instruction *RetSite,
+                const MonoSet<const llvm::Value *> &In) override;
 
-  MonoMap<n_t, MonoSet<d_t>> initialSeeds() override;
+  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
+  initialSeeds() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
-
+  void printMethod(std::ostream &os, const llvm::Function *m) const override;
 };
 
 } // namespace psr

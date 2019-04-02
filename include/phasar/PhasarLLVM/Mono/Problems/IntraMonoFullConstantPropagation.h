@@ -37,27 +37,32 @@ class IntraMonoFullConstantPropagation
                               std::pair<const llvm::Value *, unsigned>,
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef std::pair<const llvm::Value *, unsigned> d_t;
-  typedef const llvm::Function *m_t;
-  typedef LLVMBasedCFG &i_t;
-
-  IntraMonoFullConstantPropagation(i_t Cfg, m_t F);
+  IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
   virtual ~IntraMonoFullConstantPropagation() = default;
 
-  MonoSet<d_t> join(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
+  MonoSet<std::pair<const llvm::Value *, unsigned>>
+  join(const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+       const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<d_t> &Lhs, const MonoSet<d_t> &Rhs) override;
+  bool sqSubSetEqual(
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
 
-  MonoSet<d_t> normalFlow(n_t S, const MonoSet<d_t> &In) override;
+  MonoSet<std::pair<const llvm::Value *, unsigned>> normalFlow(
+      const llvm::Instruction *S,
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &In) override;
 
-  MonoMap<n_t, MonoSet<d_t>> initialSeeds() override;
+  MonoMap<const llvm::Instruction *,
+          MonoSet<std::pair<const llvm::Value *, unsigned>>>
+  initialSeeds() override;
 
-  void printNode(std::ostream &os, n_t n) const override;
+  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
 
-  void printDataFlowFact(std::ostream &os, d_t d) const override;
+  void
+  printDataFlowFact(std::ostream &os,
+                    std::pair<const llvm::Value *, unsigned> d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printMethod(std::ostream &os, const llvm::Function *m) const override;
 };
 
 } // namespace psr

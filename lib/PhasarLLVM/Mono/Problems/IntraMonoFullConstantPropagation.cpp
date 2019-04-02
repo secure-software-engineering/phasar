@@ -24,41 +24,53 @@ using namespace psr;
 namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
-    LLVMBasedCFG &Cfg, m_t F)
-    : IntraMonoProblem<n_t, d_t, m_t, LLVMBasedCFG &>(Cfg, F) {}
+    LLVMBasedCFG &Cfg, const llvm::Function *F)
+    : IntraMonoProblem<const llvm::Instruction *,
+                       std::pair<const llvm::Value *, unsigned>,
+                       const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
 
-MonoSet<d_t> IntraMonoFullConstantPropagation::join(const MonoSet<d_t> &Lhs,
-                                                    const MonoSet<d_t> &Rhs) {
-  MonoSet<d_t> Result;
+MonoSet<std::pair<const llvm::Value *, unsigned>>
+IntraMonoFullConstantPropagation::join(
+    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
+  MonoSet<std::pair<const llvm::Value *, unsigned>> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
   return Result;
 }
 
-bool IntraMonoFullConstantPropagation::sqSubSetEqual(const MonoSet<d_t> &Lhs,
-                                                     const MonoSet<d_t> &Rhs) {
+bool IntraMonoFullConstantPropagation::sqSubSetEqual(
+    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<d_t> IntraMonoFullConstantPropagation::normalFlow(n_t S,
-                                                    const MonoSet<d_t> &In) {
-  return MonoSet<d_t>();
+MonoSet<std::pair<const llvm::Value *, unsigned>>
+IntraMonoFullConstantPropagation::normalFlow(
+    const llvm::Instruction *S,
+    const MonoSet<std::pair<const llvm::Value *, unsigned>> &In) {
+  return MonoSet<std::pair<const llvm::Value *, unsigned>>();
 }
 
-MonoMap<n_t, MonoSet<d_t>> IntraMonoFullConstantPropagation::initialSeeds() {
-  return MonoMap<n_t, MonoSet<d_t>>();
+MonoMap<const llvm::Instruction *,
+        MonoSet<std::pair<const llvm::Value *, unsigned>>>
+IntraMonoFullConstantPropagation::initialSeeds() {
+  return MonoMap<const llvm::Instruction *,
+                 MonoSet<std::pair<const llvm::Value *, unsigned>>>();
 }
 
-void IntraMonoFullConstantPropagation::printNode(ostream &os, n_t n) const {
+void IntraMonoFullConstantPropagation::printNode(
+    ostream &os, const llvm::Instruction *n) const {
   os << llvmIRToString(n);
 }
 
-void IntraMonoFullConstantPropagation::printDataFlowFact(ostream &os,
-                                                         d_t d) const {
+void IntraMonoFullConstantPropagation::printDataFlowFact(
+    ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
   os << "< " + llvmIRToString(d.first) << ", " + to_string(d.second) + " >";
 }
 
-void IntraMonoFullConstantPropagation::printMethod(ostream &os, m_t m) const {
+void IntraMonoFullConstantPropagation::printMethod(
+    ostream &os, const llvm::Function *m) const {
   os << m->getName().str();
 }
 

@@ -32,7 +32,7 @@ protected:
   I ICFG;
 
 public:
-  InterMonoProblem(I Icfg) : ICFG(Icfg) {}
+  InterMonoProblem(I Icfg) : IntraMonoProblem<N,D,M,I>(Icfg), ICFG(Icfg) {}
 
   InterMonoProblem(const InterMonoProblem &copy) = delete;
   InterMonoProblem(InterMonoProblem &&move) = delete;

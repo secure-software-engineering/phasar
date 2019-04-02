@@ -31,6 +31,7 @@ class IntraMonoProblem : public NodePrinter<N>,
 protected:
   C CFG;
   M Function;
+  IntraMonoProblem(C Cfg) : CFG(Cfg) {}
 
 public:
   IntraMonoProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}

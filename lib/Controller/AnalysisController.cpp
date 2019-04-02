@@ -37,7 +37,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Mono/Contexts/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
@@ -335,22 +334,17 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoSolverTest inter(ICFG, EntryPoints);
-        CallString<typename InterMonoSolverTest::n_t,
-                   typename InterMonoSolverTest::d_t, 3>
-            Context(&inter, &inter);
-        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
-        solver->solve();
+        LLVMInterMonoSolver<const llvm::Value *,LLVMBasedICFG &> solver(inter, true);
+
+        solver.solve();
         break;
       }
       case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        InterMonoTaintAnalysis inter(ICFG, EntryPoints);
-        CallString<typename InterMonoTaintAnalysis::n_t,
-                   typename InterMonoTaintAnalysis::d_t, 10>
-            Context(&inter, &inter);
-        auto solver = make_LLVMBasedIMS(inter, Context, F, true);
-        solver->solve();
-        solver->dumpResults();
+        InterMonoSolverTest inter(ICFG, EntryPoints);
+        LLVMInterMonoSolver<const llvm::Value *,LLVMBasedICFG &> solver(inter, true);
+
+        solver.solve();
         break;
       }
       case DataFlowAnalysisType::Plugin: {

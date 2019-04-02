@@ -88,7 +88,7 @@ public:
         auto callsite = (callsites.size() == 1) ? callsites[0] : nullptr;
         assert(callsite && "call-site not valid!");
         assert(ICFG.isCallStmt(callsite) == true && "call-site not found!");
-        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst, Analysis[src]);
+        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), dst, Analysis[src]);
       } else {
         // Handle normal flow
         Out = IMProblem.normalFlow(src, Analysis[src]);
