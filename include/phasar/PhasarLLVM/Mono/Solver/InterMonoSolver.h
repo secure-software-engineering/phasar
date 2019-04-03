@@ -19,6 +19,7 @@
 
 #include <deque>
 #include <iosfwd>
+#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <utility>
