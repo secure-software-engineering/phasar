@@ -309,7 +309,7 @@ to build llvm-5.0.1 using 4 cores in your home directory.
 #### Installing cURL
 cURL can be installed from the Ubuntu sources using:
 
-`$ sudo apt-get install curl`
+`$ sudo apt-get install libcurl4-openssl-dev curl`
 
 Done!
 
