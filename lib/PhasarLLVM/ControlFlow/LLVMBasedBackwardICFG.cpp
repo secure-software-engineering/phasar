@@ -46,27 +46,31 @@ namespace psr {
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
     : ForwardICFG(ICFG) {
-  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg), ForwardICFG.cg);
+  auto cgCopy = ForwardICFG.cg;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
 }
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH,
                                                ProjectIRDB &IRDB)
     : ForwardICFG(STH, IRDB) {
-  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg), ForwardICFG.cg);
+  auto cgCopy = ForwardICFG.cg;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
 };
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     const std::vector<std::string> &EntryPoints)
     : ForwardICFG(STH, IRDB, CGType, EntryPoints) {
-  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg), ForwardICFG.cg);
+  auto cgCopy = ForwardICFG.cg;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
 };
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, const llvm::Module &M,
     CallGraphAnalysisType CGType, std::vector<std::string> EntryPoints)
     : ForwardICFG(STH, IRDB, M, CGType, EntryPoints) {
-  boost::copy_graph(boost::make_reverse_graph(ForwardICFG.cg), ForwardICFG.cg);
+  auto cgCopy = ForwardICFG.cg;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
 };
 
 bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
