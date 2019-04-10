@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -38,9 +38,9 @@ class PointsToGraph;
  * to account for initialization.
  * @brief Computes all possibly mutable memory locations.
  */
-class IFDSConstAnalysis : public DefaultIFDSTabulationProblem<
-                              const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG &> {
+class IFDSConstAnalysis
+    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
+                                              LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -56,7 +56,8 @@ private:
   std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(i_t icfg, std::set<d_t> AllMemLocs,
+  IFDSConstAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                    const ProjectIRDB &irdb, std::set<d_t> AllMemLocs,
                     std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IFDSConstAnalysis() = default;

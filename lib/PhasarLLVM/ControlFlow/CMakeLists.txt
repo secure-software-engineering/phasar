@@ -13,7 +13,7 @@ else()
 endif()
 
 target_link_libraries(phasar_controlflow
-  
+  phasar_pointer
 )
 
 set_target_properties(phasar_controlflow

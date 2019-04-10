@@ -30,9 +30,12 @@ using namespace std;
 namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(IDEProtoAnalysis::i_t icfg,
+                                   const LLVMTypeHierarchy &th,
+                                   const ProjectIRDB &irdb,
                                    vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
-  DefaultIDETabulationProblem::zerovalue = createZeroValue();
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
+      EntryPoints(EntryPoints) {
+  LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
 // start formulating our analysis by specifying the parts required for IFDS

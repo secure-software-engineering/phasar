@@ -29,10 +29,10 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
-class IFDSTabulationProblem : public FlowFunctions<N, D, M>,
-                              public NodePrinter<N>,
-                              public DataFlowFactPrinter<D>,
-                              public MethodPrinter<M> {
+class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
+                              public virtual NodePrinter<N>,
+                              public virtual DataFlowFactPrinter<D>,
+                              public virtual MethodPrinter<M> {
 public:
   SolverConfiguration solver_config;
   virtual ~IFDSTabulationProblem() = default;

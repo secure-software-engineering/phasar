@@ -54,7 +54,7 @@ std::string getSrcCodeLine(const std::string &Dir, const std::string &File,
       return line;
     }
   }
-  throw std::ios_base::failure("could not read file: " + FilePath.string());
+  return "file does not exist: " + FilePath.string();
 }
 
 llvm::DILocalVariable *getDILocVarFromValue(const llvm::Value *V) {

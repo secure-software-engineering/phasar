@@ -1,10 +1,10 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2018 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Robin Suerig, Philipp Schubert and others
+ *     Philipp Schubert and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
@@ -17,8 +17,8 @@
 #include <type_traits>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -55,9 +55,8 @@ constexpr State delta[4][4] = {
 static State getNextState(Token tok, State state);
 
 class IDETypeStateAnalysis
-    : public DefaultIDETabulationProblem<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, State, LLVMBasedICFG &> {
+    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, State,
+                                             LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -72,9 +71,11 @@ private:
 public:
   static const State TOP;
   static const State BOTTOM;
+  std::string TypeOfInterest;
   static const std::shared_ptr<AllBottom<v_t>> AllBotFunction;
 
-  IDETypeStateAnalysis(i_t icfg,
+  IDETypeStateAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
+                       const ProjectIRDB &irdb, std::string TypeOfInterest,
                        std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETypeStateAnalysis() = default;

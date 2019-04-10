@@ -1,9 +1,5 @@
 cmake_minimum_required (VERSION 3.0)
 
-# Set-up the compiler
-set(CMAKE_C_COMPILER clang)
-set(CMAKE_CXX_COMPILER clang++)
-
 project (phasar)
 set(CMAKE_PROJECT_NAME "phasar")
 
@@ -33,19 +29,6 @@ set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
 include("phasar_macros")
 
-# Phasar Options
-if(APPLE)
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" ON)
-else()
-  option(PHASAR_ENABLE_LIBCXX "Use libc++ if available" OFF)
-endif()
-
-if(PHASAR_ENABLE_LIBCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-endif(PHASAR_ENABLE_LIBCXX)
-
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
@@ -56,7 +39,7 @@ endif (NOT CMAKE_BUILD_TYPE)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
 if (PHASAR_ENABLE_WARNINGS)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage  ")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-variable -Wno-unused-parameter -Wno-return-type-c-linkage ")
 endif (PHASAR_ENABLE_WARNINGS)
 
 option(PHASAR_ENABLE_PIC "Build Position-Independed Code" ON)
@@ -97,7 +80,7 @@ find_package(Threads)
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
-include_directories(external/json/src)
+include_directories(external/json/single_include/nlohmann)
 
 # Googletest
 add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
@@ -123,7 +106,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 include_directories(${SQLITE3_INCLUDE_DIR})
 
 # LLVM
-find_package(LLVM REQUIRED CONFIG)
+find_package(LLVM REQUIRED CONFIG 5)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
@@ -188,6 +171,18 @@ add_executable(phasar
 # Build a small test tool to show how phasar may be used
 add_executable(myphasartool
   tools/phasar/myphasartool.cpp
+)
+
+add_executable(syncpdstest
+  tools/phasar/syncpdstest.cpp
+)
+
+add_executable(boomerangtest
+  tools/phasar/boomerangtest.cpp
+)
+
+add_executable(wpdstest
+  tools/phasar/wpdstest.cpp
 )
 
 # Fix boost_thread dependency for MacOS
@@ -257,7 +252,6 @@ target_link_libraries(myphasartool
   boost_system
   boost_log
   ${BOOST_THREAD}
-  ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -265,6 +259,93 @@ target_link_libraries(myphasartool
   ${llvm_libs}
   curl
   gtest
+)
+
+target_link_libraries(wpdstest
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_experimental
+  phasar_clang
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_wpds
+  wali
+  phasar_passes
+  ${PHASAR_PLUGINS_LIB}
+  phasar_pointer
+  phasar_phasarllvm_utils
+  phasar_utils
+  curl
+  boost_program_options
+  boost_filesystem
+  boost_graph
+  boost_system
+  boost_log
+  ${BOOST_THREAD}
+  ${SQLITE3_LIBRARY}
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${CLANG_LIBRARIES}
+  ${llvm_libs}
+)
+
+target_link_libraries(syncpdstest
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_wpds
+  phasar_syncpds
+  ${PHASAR_PLUGINS_LIB}
+  wali
+  curl
+  phasar_passes
+  phasar_pointer
+  phasar_phasarllvm_utils
+  phasar_utils
+  boost_program_options
+  boost_filesystem
+  boost_graph
+  boost_system
+  boost_log
+  ${BOOST_THREAD}
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${llvm_libs}
+)
+
+target_link_libraries(boomerangtest
+  phasar_config
+  phasar_controller
+  phasar_db
+  phasar_controlflow
+  phasar_ifdside
+  phasar_mono
+  phasar_wpds
+  phasar_syncpds
+  ${PHASAR_PLUGINS_LIB}
+  wali
+  curl
+  phasar_passes
+  phasar_pointer
+  phasar_phasarllvm_utils
+  phasar_utils
+  boost_program_options
+  boost_filesystem
+  boost_graph
+  boost_system
+  boost_log
+  ${BOOST_THREAD}
+  ${Boost_LIBRARIES}
+  ${CMAKE_DL_LIBS}
+  ${CMAKE_THREAD_LIBS_INIT}
+  ${llvm_libs}
 )
 
 # Add Phasar unittests and .ll file generation
@@ -287,7 +368,7 @@ install(DIRECTORY include/
   FILES_MATCHING PATTERN "*.h"
 )
 # Install the header only json container
-install(DIRECTORY external/json/src/
+install(DIRECTORY external/json/single_include/nlohmann/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )
@@ -358,7 +439,6 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 #                                   libpthread (>= 4.5.0),
 #                                   libdl (>= 4.5.0),
 #                                   libcurl-gnutls (>= 4.5.0),
-#                                   libmysqlcppconn (>= 4.5.0),
 #                                   librt (>= 4.5.0),
 #                                   libtinfo (>= 4.5.0),
 #                                   libz (>= 4.5.0),

@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2018 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -28,7 +28,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
-//#include <phasar/Utils/Logger.h>
 
 using namespace std;
 using namespace psr;
@@ -55,8 +54,12 @@ const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
     "ftell",   "rewind",   "fgetpos",  "fsetpos"};
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
+                                           const LLVMTypeHierarchy &th,
+                                           const ProjectIRDB &irdb,
+                                           string TypeOfInterest,
                                            vector<string> EntryPoints)
-    : DefaultIDETabulationProblem(icfg), EntryPoints(EntryPoints) {
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), EntryPoints(EntryPoints),
+      TypeOfInterest(TypeOfInterest) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
@@ -71,8 +74,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
                                                              zeroValue());
         }
@@ -90,8 +92,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                    ->getType()
                                                    ->getPointerElementType()
                                                    ->getPointerElementType())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           // we have to generate from value that is loaded!
           struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
             const llvm::LoadInst *Load;
@@ -115,8 +116,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           // perform a strong update!
           struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
             const llvm::StoreInst *Store;
@@ -201,7 +201,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
       if (Arg->getType()->isPointerTy()) {
         if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
                 Arg->getType()->getPointerElementType())) {
-          if (StructTy->getName().find("struct._IO_FILE") !=
+          if (StructTy->getName().find(TypeOfInterest) !=
               llvm::StringRef::npos) {
             return make_shared<Kill<IDETypeStateAnalysis::d_t>>(Arg);
           }
@@ -250,14 +250,12 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find("struct._IO_FILE") !=
-            llvm::StringRef::npos) {
+        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
           if (currNode == zeroValue() && succNode == Alloca) {
             struct TSEdgeFunctionImpl : public TSEdgeFunction {
               TSEdgeFunctionImpl() {}
               IDETypeStateAnalysis::v_t
               computeTarget(IDETypeStateAnalysis::v_t source) override {
-                cout << "computeTarget()" << endl;
                 return State::UNINIT;
               }
             };
@@ -309,8 +307,13 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   // For all other STDIO functions, that do not generate file handles but only
   // operate on them, model their behavior using a finite state machine.
   if (CS.getCalledFunction()->getName() == "fclose") {
-    // Handle parameter itself
-    if (callNode == retSiteNode && callNode == CS.getArgOperand(0)) {
+    // Handle parameter itself (its actual memory location in case it is
+    // a load instruction, as well as all of its aliases)
+    if ((callNode == retSiteNode && callNode == CS.getArgOperand(0)) ||
+        (llvm::isa<llvm::LoadInst>(CS.getArgOperand(0)) &&
+         callNode == retSiteNode &&
+         callNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))
+                         ->getPointerOperand())) {
       cout << "fclose processing for: ";
       printDataFlowFact(cout, callNode);
       cout << endl;
@@ -327,9 +330,6 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
       };
       return make_shared<TSEdgeFunctionImpl>();
     }
-    // TODO handle allocated file handle (i) follow use-def chain, (ii) give it
-    // the
-    // same state as the parameter of the consuming function
   }
   // Otherwise
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();

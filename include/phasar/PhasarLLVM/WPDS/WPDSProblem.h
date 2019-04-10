@@ -10,25 +10,18 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 #define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <type_traits>
+#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
 
 namespace psr {
 
 template <typename N, typename D, typename M, typename V, typename I>
-class WPDSProblem {
-private:
-  I ICFG;
-
-  void WPDSProblem_check() {
-    static_assert(std::is_base_of<psr::ICFG<N, M>, I>::value,
-                  "Template class I must be a sub class of ICFG<N, M>\n");
-  }
-
+class WPDSProblem : public virtual IDETabulationProblem<N, D, M, V, I> {
 public:
-  WPDSProblem(I ICFG) : ICFG(ICFG) {}
-  virtual ~WPDSProblem() = default;
-  virtual void solve() {}
+  ~WPDSProblem() override = default;
+  virtual SearchDirection getSearchDirection() = 0;
+  virtual WPDSType getWPDSTy() = 0;
+  virtual bool recordWitnesses() = 0;
 };
 
 } // namespace psr
