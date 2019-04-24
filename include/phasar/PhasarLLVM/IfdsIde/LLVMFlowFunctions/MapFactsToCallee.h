@@ -36,10 +36,10 @@ protected:
   std::function<bool(const llvm::Value *)> predicate;
 
 public:
-  MapFactsToCallee(const llvm::ImmutableCallSite &callSite,
-                   const llvm::Function *destMthd,
-                   std::function<bool(const llvm::Value *)> predicate =
-                       [](const llvm::Value *) { return true; });
+  MapFactsToCallee(
+      const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
+      std::function<bool(const llvm::Value *)> predicate =
+          [](const llvm::Value *) { return true; });
   virtual ~MapFactsToCallee() = default;
 
   std::set<const llvm::Value *>

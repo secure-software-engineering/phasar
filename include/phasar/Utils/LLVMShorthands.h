@@ -143,7 +143,7 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
  * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
-                                                  unsigned termInstNo);
+                                               unsigned termInstNo);
 /**
  * The Store Instruction count starts with one (not zero, as in Function
  * arguments).

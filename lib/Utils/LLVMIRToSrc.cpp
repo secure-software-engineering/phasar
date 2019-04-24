@@ -80,8 +80,9 @@ std::string getLocalVarSrcInfo(const llvm::Value *V, bool ScopeInfo) {
     std::string Line("Line: " + std::to_string(DILocVar->getLine()));
     std::string Scope;
     if (ScopeInfo) {
-      Scope = "\nFunc: " +
-              DILocVar->getScope()->getSubprogram()->getName().str() + "\n";
+      Scope =
+          "\nFunc: " + DILocVar->getScope()->getSubprogram()->getName().str() +
+          "\n";
       Scope += "File: " + DILocVar->getScope()->getFilename().str();
     }
     return VarName + Line + Scope;

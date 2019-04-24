@@ -293,7 +293,7 @@ std::size_t computeModuleHash(const llvm::Module *M) {
 }
 
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
-                                                  unsigned termInstNo) {
+                                               unsigned termInstNo) {
   unsigned current = 1;
   for (auto &BB : *F) {
     if (const llvm::Instruction *T = BB.getTerminator()) {

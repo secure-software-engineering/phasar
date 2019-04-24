@@ -23,9 +23,9 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
+#include <llvm/Support/SourceMgr.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm/Transforms/Utils.h>
-#include <llvm/Support/SourceMgr.h>
 
 #include <boost/filesystem.hpp>
 
