@@ -103,17 +103,26 @@ LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) {
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) {
-  return ForwardICFG.getStartPointsOf(m);
+  return ForwardICFG.getExitPointsOf(m);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) {
-  return ForwardICFG.getExitPointsOf(fun);
+  return ForwardICFG.getStartPointsOf(fun);
 }
 
 std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
-  return ForwardICFG.getReturnSitesOfCallAt(n);
+  std::set<const llvm::Instruction *> ReturnSites;
+  if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
+    if(auto Prev = Call->getPrevNode())
+      ReturnSites.insert(Prev);
+  }
+  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
+    ReturnSites.insert(&Invoke->getNormalDest()->back());
+    ReturnSites.insert(&Invoke->getUnwindDest()->back());
+  }
+  return ReturnSites;
 }
 
 bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) {
