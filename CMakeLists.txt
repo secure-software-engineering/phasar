@@ -106,7 +106,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 include_directories(${SQLITE3_INCLUDE_DIR})
 
 # LLVM
-find_package(LLVM REQUIRED CONFIG 5)
+find_package(LLVM REQUIRED CONFIG 8)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})

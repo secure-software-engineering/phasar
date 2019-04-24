@@ -17,6 +17,7 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/InstrTypes.h>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
@@ -38,10 +39,9 @@ LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
   vector<const llvm::Instruction *> preds;
   if (stmt->getNextNode())
     preds.push_back(stmt->getNextNode());
-  if (const llvm::TerminatorInst *T =
-          llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-    for (auto successor : T->successors()) {
-      preds.push_back(&*successor->begin());
+  if (stmt->isTerminator()) {
+    for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
+      preds.push_back(&*stmt->getSuccessor(i)->begin());
     }
   }
   return preds;
@@ -59,10 +59,9 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
    */
   if (Preds.empty()) {
     for (auto &BB : *stmt->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == stmt) {
+      if (const llvm::Instruction *T = BB.getTerminator()) {
+        for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
+          if (&*stmt->getSuccessor(i)->begin() == stmt) {
             Preds.push_back(T);
           }
         }

@@ -271,13 +271,13 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
   std::string SourceCode;
   if (considerIdentifier) {
     llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(M, RSO);
+    llvm::WriteBitcodeToFile(*M, RSO);
     RSO.flush();
   } else {
     std::string Identifier = M->getModuleIdentifier();
     M->setModuleIdentifier("");
     llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(M, RSO);
+    llvm::WriteBitcodeToFile(*M, RSO);
     RSO.flush();
     M->setModuleIdentifier(Identifier);
   }
@@ -287,17 +287,16 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
 std::size_t computeModuleHash(const llvm::Module *M) {
   std::string SourceCode;
   llvm::raw_string_ostream RSO(SourceCode);
-  llvm::WriteBitcodeToFile(M, RSO);
+  llvm::WriteBitcodeToFile(*M, RSO);
   RSO.flush();
   return std::hash<std::string>{}(SourceCode);
 }
 
-const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
+const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
                                                   unsigned termInstNo) {
   unsigned current = 1;
   for (auto &BB : *F) {
-    if (const llvm::TerminatorInst *T =
-            llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+    if (const llvm::Instruction *T = BB.getTerminator()) {
       if (current == termInstNo) {
         return T;
       }

@@ -140,9 +140,9 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
  * Function.
  * @param F Function to retrieve the Termination Instruction from.
  * @param termInstNo Termination Instruction number.
- * @return LLVM Termination Instruction or nullptr, if termInstNo invalid.
+ * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
-const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
+const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
                                                   unsigned termInstNo);
 /**
  * The Store Instruction count starts with one (not zero, as in Function
