@@ -115,7 +115,7 @@ std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
   std::set<const llvm::Instruction *> ReturnSites;
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
-    if(auto Prev = Call->getPrevNode())
+    if (auto Prev = Call->getPrevNode())
       ReturnSites.insert(Prev);
   }
   if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(n)) {
