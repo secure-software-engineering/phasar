@@ -6,7 +6,7 @@ Phasar a LLVM-based Static Analysis Framework
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version 1218
+Version 0319
 
 Secure Software Engineering Group
 ---------------------------------
@@ -309,7 +309,7 @@ to build llvm-5.0.1 using 4 cores in your home directory.
 #### Installing cURL
 cURL can be installed from the Ubuntu sources using:
 
-`$ sudo apt-get install curl`
+`$ sudo apt-get install libcurl4-openssl-dev curl`
 
 Done!
 
@@ -351,6 +351,24 @@ Then you can simply:
 Done!
 
 ### Compile Phasar
+Set the system's variables for the C and C++ compiler to clang:
+```
+$ export CC=/usr/local/bin/clang
+$ export CXX=/usr/local/bin/clang++
+```
+You may need to adjust the paths according to your system. When you cloned PhASAR from Github you need to initialize PhASAR's submodules before building it:
+
+```
+$ git submodule init
+$ git submodule update
+```
+
+If you downloaded PhASAR as a compressed release (e.g. .zip or .tar.gz) you can use the `init-submodules-release.sh` script that manually clones the required submodules:
+
+```
+$ utils/init-submodules-release.sh
+```
+
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 
 ```
@@ -358,6 +376,12 @@ $ mkdir build
 $ cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j $(nproc) # or use a different number of cores to compile it
+```
+
+Depending on your system, you may get some compiler errors from the json library. If this is the case please change the C++ standard in the top-level CMakeLists.txt:
+
+```
+set(CMAKE_CXX_STANDARD 14)
 ```
 
 After compilation using cmake the following two binaries can be found in the build/ directory:
