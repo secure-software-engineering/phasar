@@ -334,17 +334,20 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *,LLVMBasedICFG &> solver(inter, true);
+        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(inter,
+                                                                         true);
 
         solver.solve();
         break;
       }
       case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        InterMonoSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *,LLVMBasedICFG &> solver(inter, true);
-
+        InterMonoTaintAnalysis interMonoTaintProblem(ICFG, EntryPoints);
+        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(
+            interMonoTaintProblem, true);
+        cout << "Mono Taint Analysis ..." << endl;
         solver.solve();
+        cout << "Mono Taint Analysis ended" << endl;
         break;
       }
       case DataFlowAnalysisType::Plugin: {
