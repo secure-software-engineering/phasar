@@ -23,11 +23,11 @@ protected:
                              psr::MonoMap<D> &In) override {}
 
 public:
-  bool isEqual(const CallString &rhs) const override {}
+  bool isEqual(const CallString &rhs) const override { return true;}
 
-  bool isDifferent(const CallString &rhs) const override {}
+  bool isDifferent(const CallString &rhs) const override {return false;}
 
-  bool isLessThan(const CallString &rhs) const override {}
+  bool isLessThan(const CallString &rhs) const override {return false;}
 
   void print(std::ostream &os) const override {}
 };
