@@ -14,7 +14,7 @@ target_link_libraries(phasar_pass
 
   phasar_config
   phasar_controlflow
-  phasar_db_without
+  phasar_db
   phasar_ifdside
   phasar_mono
   phasar_passes

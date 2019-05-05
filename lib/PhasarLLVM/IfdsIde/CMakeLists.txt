@@ -14,6 +14,8 @@ endif()
 
 target_link_libraries(phasar_ifdside
   phasar_config
+
+  LLVMCore
 )
 
 set_target_properties(phasar_ifdside
