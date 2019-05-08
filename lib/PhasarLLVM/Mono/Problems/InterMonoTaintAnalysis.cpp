@@ -101,7 +101,6 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
-  // cout << "InterMonoTaintAnalysis::callFlow()\n";
   TaintSensitiveFunctions TSF;
   MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
@@ -110,7 +109,7 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     if (TSF.isSource(Callee->getName()) || (TSF.isSink(Callee->getName()))) {
       cout << "it should be reported as tainted: " << Result.size() << endl;
-      Result.insert(CallSite);
+      Result.insert(Call);
     }
     llvm::Function *F =
         llvm::dyn_cast<llvm::CallInst>(CallSite)->getCalledFunction();
@@ -122,8 +121,8 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
         llvm::isa<llvm::InvokeInst>(CallSite)) {
       make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(CallSite), Callee);
     }
-    return Result;
   }
+  return Result;
 }
 
 MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
@@ -136,11 +135,13 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   TaintSensitiveFunctions TSF;
   MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
+
   if (const auto Return = llvm::dyn_cast<llvm::ReturnInst>(RetSite)) {
     if (TSF.isSource(Return->getName()) || (TSF.isSink(Return->getName()))) {
       Result.insert(Return->getReturnValue());
     }
   }
+
   make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(CallSite), Callee,
                                 RetSite, [](const llvm::Value *formal) {
                                   return formal->getType()->isPointerTy();

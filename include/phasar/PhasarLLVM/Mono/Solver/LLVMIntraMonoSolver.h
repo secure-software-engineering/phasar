@@ -65,10 +65,10 @@ public:
         std::cout << "\tEMPTY\n";
       } else {
         for (auto fact : entry.second) {
-          std::cout
-              << IntraMonoSolver<const llvm::Instruction *, D,
-                                 const llvm::Function *, C>::IMProblem.DtoString(fact)
-              << '\n';
+          std::cout << IntraMonoSolver<const llvm::Instruction *, D,
+                                       const llvm::Function *, C>::IMProblem
+                           .DtoString(fact)
+                    << '\n';
         }
       }
       std::cout << "\n\n";

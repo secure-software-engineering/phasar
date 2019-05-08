@@ -332,7 +332,6 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
-        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoSolverTest inter(ICFG, EntryPoints);
         LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(inter,
                                                                          true);
@@ -341,7 +340,6 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
-        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         InterMonoTaintAnalysis interMonoTaintProblem(ICFG, EntryPoints);
         LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(
             interMonoTaintProblem, true);

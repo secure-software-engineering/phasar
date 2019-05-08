@@ -19,9 +19,9 @@
 
 #include <deque>
 #include <iosfwd>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 #include <vector>
 
@@ -65,7 +65,8 @@ public:
     std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
-      std::cout << "worklist size: " << Worklist.size() << "\n";
+      std::cout << "\n"
+                << "worklist size: " << Worklist.size() << "\n";
       std::pair<N, N> edge = Worklist.front();
       Worklist.pop_front();
       auto src = edge.first;
@@ -80,8 +81,14 @@ public:
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
+          std::cout
+              << "check from callFlow monosolver if a call statement is found "
+              << ">\n";
         } else {
           Out = IMProblem.callToRetFlow(src, dst, Analysis[src]);
+          std::cout << "check from callToRetFlow monosolver if a call "
+                       "statement is found "
+                    << ">\n";
         }
       } else if (ICFG.isExitStmt(src)) {
         // Handle return flow
@@ -89,7 +96,8 @@ public:
         auto callsite = (callsites.size() == 1) ? callsites[0] : nullptr;
         assert(callsite && "call-site not valid!");
         assert(ICFG.isCallStmt(callsite) == true && "call-site not found!");
-        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), dst, Analysis[src]);
+        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), dst,
+                                   Analysis[src]);
       } else {
         // Handle normal flow
         Out = IMProblem.normalFlow(src, Analysis[src]);
@@ -100,15 +108,12 @@ public:
 
       if (!flowfactsstabilized) {
         if (isIntraEdge(edge)) {
-          Analysis[dst]=
-              IMProblem.join(Analysis[dst], Out);
+          Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         } else {
           if (isCallEdge(edge)) {
-            Analysis[dst] =
-                IMProblem.join(Analysis[dst], Out);
+            Analysis[dst] = IMProblem.join(Analysis[dst], Out);
           } else {
-            Analysis[dst] =
-                IMProblem.join(Analysis[dst], Out);
+            Analysis[dst] = IMProblem.join(Analysis[dst], Out);
           }
         }
         // Handle function call and add inter call edges
