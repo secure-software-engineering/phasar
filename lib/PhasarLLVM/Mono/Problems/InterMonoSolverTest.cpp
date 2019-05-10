@@ -71,11 +71,9 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   return In;
 }
 
-MonoSet<const llvm::Value *>
-InterMonoSolverTest::returnFlow(const llvm::Instruction *CallSite,
-                                const llvm::Function *Callee,
-                                const llvm::Instruction *RetSite,
-                                const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
+    const llvm::Instruction *CallSite, const llvm::Function *Callee,
+    const llvm::Instruction *RetSite, const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }

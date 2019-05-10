@@ -22,17 +22,17 @@
 namespace psr {
 
 template <typename N, typename D, typename M, typename I>
-class InterMonoProblem : public IntraMonoProblem<N,D,M,I> {
+class InterMonoProblem : public IntraMonoProblem<N, D, M, I> {
 
 private:
-  using IntraMonoProblem<N,D,M,I>::getCFG;
-  using IntraMonoProblem<N,D,M,I>::getFunction;
+  using IntraMonoProblem<N, D, M, I>::getCFG;
+  using IntraMonoProblem<N, D, M, I>::getFunction;
 
 protected:
   I ICFG;
 
 public:
-  InterMonoProblem(I Icfg) : IntraMonoProblem<N,D,M,I>(Icfg), ICFG(Icfg) {}
+  InterMonoProblem(I Icfg) : IntraMonoProblem<N, D, M, I>(Icfg), ICFG(Icfg) {}
 
   InterMonoProblem(const InterMonoProblem &copy) = delete;
   InterMonoProblem(InterMonoProblem &&move) = delete;
@@ -40,13 +40,13 @@ public:
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
   I getICFG() noexcept { return ICFG; }
-  
+
   virtual MonoSet<D> callFlow(const N CallSite, const M Callee,
-                            const MonoSet<D> &In) = 0;
+                              const MonoSet<D> &In) = 0;
   virtual MonoSet<D> returnFlow(const N CallSite, const M Callee,
-                              const N RetSite, const MonoSet<D> &In) = 0;
+                                const N RetSite, const MonoSet<D> &In) = 0;
   virtual MonoSet<D> callToRetFlow(const N CallSite, const N RetSite,
-                                 const MonoSet<D> &In) = 0;
+                                   const MonoSet<D> &In) = 0;
 };
 
 } // namespace psr

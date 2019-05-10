@@ -89,10 +89,11 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     solver.solve();
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
     const llvm::Function *F = DB.getFunction(EntryPoints.front());
-        InterMonoSolverTest inter(I, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *,LLVMBasedICFG &> solver(inter, true);
+    InterMonoSolverTest inter(I, EntryPoints);
+    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(inter,
+                                                                     true);
 
-        solver.solve();
+    solver.solve();
   } else if (DataFlowAnalysis == "ifds-const") {
     IFDSConstAnalysis constproblem(I, H, DB, DB.getAllMemoryLocations(),
                                    EntryPoints);
