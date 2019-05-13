@@ -30,34 +30,33 @@ using namespace psr;
 
 namespace psr {
 
-IntraMonoSolverTest::IntraMonoSolverTest(IntraMonoSolverTest::CFG_t Cfg,
-                                         IntraMonoSolverTest::Method_t F)
-    : IntraMonoProblem<
-          IntraMonoSolverTest::Node_t, IntraMonoSolverTest::Domain_t,
-          IntraMonoSolverTest::Method_t, IntraMonoSolverTest::CFG_t>(Cfg, F) {}
+IntraMonoSolverTest::IntraMonoSolverTest(LLVMBasedCFG &Cfg,
+                                         const llvm::Function *F)
+    : IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
+                       const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
 
-MonoSet<IntraMonoSolverTest::Domain_t>
-IntraMonoSolverTest::join(const MonoSet<IntraMonoSolverTest::Domain_t> &Lhs,
-                          const MonoSet<IntraMonoSolverTest::Domain_t> &Rhs) {
+MonoSet<const llvm::Value *>
+IntraMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
+                          const MonoSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::join()\n";
-  MonoSet<IntraMonoSolverTest::Domain_t> Result;
+  MonoSet<const llvm::Value *> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
   return Result;
 }
 
 bool IntraMonoSolverTest::sqSubSetEqual(
-    const MonoSet<IntraMonoSolverTest::Domain_t> &Lhs,
-    const MonoSet<IntraMonoSolverTest::Domain_t> &Rhs) {
+    const MonoSet<const llvm::Value *> &Lhs,
+    const MonoSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::sqSubSetEqual()\n";
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<IntraMonoSolverTest::Domain_t>
-IntraMonoSolverTest::flow(IntraMonoSolverTest::Node_t S,
-                          const MonoSet<IntraMonoSolverTest::Domain_t> &In) {
-  cout << "IntraMonoSolverTest::flow()\n";
-  MonoSet<IntraMonoSolverTest::Domain_t> Result;
+MonoSet<const llvm::Value *>
+IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
+                                const MonoSet<const llvm::Value *> &In) {
+  cout << "IntraMonoSolverTest::normalFlow()\n";
+  MonoSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
   if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
@@ -65,24 +64,24 @@ IntraMonoSolverTest::flow(IntraMonoSolverTest::Node_t S,
   return Result;
 }
 
-MonoMap<IntraMonoSolverTest::Node_t, MonoSet<IntraMonoSolverTest::Domain_t>>
+MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 IntraMonoSolverTest::initialSeeds() {
   cout << "IntraMonoSolverTest::initialSeeds()\n";
   return {};
 }
 
 void IntraMonoSolverTest::printNode(ostream &os,
-                                    IntraMonoSolverTest::Node_t n) const {
+                                    const llvm::Instruction *n) const {
   os << llvmIRToString(n);
 }
 
-void IntraMonoSolverTest::printDataFlowFact(
-    ostream &os, IntraMonoSolverTest::Domain_t d) const {
+void IntraMonoSolverTest::printDataFlowFact(ostream &os,
+                                            const llvm::Value *d) const {
   os << llvmIRToString(d);
 }
 
 void IntraMonoSolverTest::printMethod(ostream &os,
-                                      IntraMonoSolverTest::Method_t m) const {
+                                      const llvm::Function *m) const {
   os << m->getName().str();
 }
 

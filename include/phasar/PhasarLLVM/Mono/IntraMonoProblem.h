@@ -31,6 +31,7 @@ class IntraMonoProblem : public NodePrinter<N>,
 protected:
   C CFG;
   M Function;
+  IntraMonoProblem(C Cfg) : CFG(Cfg) {}
 
 public:
   IntraMonoProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
@@ -39,7 +40,7 @@ public:
   M getFunction() { return Function; }
   virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
   virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
-  virtual MonoSet<D> flow(N S, const MonoSet<D> &In) = 0;
+  virtual MonoSet<D> normalFlow(N S, const MonoSet<D> &In) = 0;
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
 };
 
