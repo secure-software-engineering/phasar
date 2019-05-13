@@ -26,7 +26,7 @@ namespace llvm {
 class Instruction;
 class Value;
 class Function;
-}  // namespace llvm
+} // namespace llvm
 
 namespace psr {
 
@@ -35,37 +35,39 @@ class LLVMBasedICFG;
 class InterMonoSolverTest
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
- protected:
+protected:
   std::vector<std::string> EntryPoints;
 
- public:
+public:
   InterMonoSolverTest(LLVMBasedICFG &Icfg,
                       std::vector<std::string> EntryPoints = {"main"});
   virtual ~InterMonoSolverTest() = default;
 
-  MonoSet<const llvm::Value *> join(
-      const MonoSet<const llvm::Value *> &Lhs,
-      const MonoSet<const llvm::Value *> &Rhs) override;
+  MonoSet<const llvm::Value *>
+  join(const MonoSet<const llvm::Value *> &Lhs,
+       const MonoSet<const llvm::Value *> &Rhs) override;
 
   bool sqSubSetEqual(const MonoSet<const llvm::Value *> &Lhs,
                      const MonoSet<const llvm::Value *> &Rhs) override;
 
-  MonoSet<const llvm::Value *> normalFlow(
-      const llvm::Instruction *Stmt,
-      const MonoSet<const llvm::Value *> &In) override;
+  MonoSet<const llvm::Value *>
+  normalFlow(const llvm::Instruction *Stmt,
+             const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *> callFlow(
-      const llvm::Instruction *CallSite, const llvm::Function *Callee,
-      const MonoSet<const llvm::Value *> &In) override;
+  MonoSet<const llvm::Value *>
+  callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
+           const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *> returnFlow(
-      const llvm::Instruction *CallSite, const llvm::Function *Callee,
-      const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
-      const MonoSet<const llvm::Value *> &In) override;
+  MonoSet<const llvm::Value *>
+  returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
+             const llvm::Instruction *ExitStmt,
+             const llvm::Instruction *RetSite,
+             const MonoSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *> callToRetFlow(
-      const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-      const MonoSet<const llvm::Value *> &In) override;
+  MonoSet<const llvm::Value *>
+  callToRetFlow(const llvm::Instruction *CallSite,
+                const llvm::Instruction *RetSite,
+                const MonoSet<const llvm::Value *> &In) override;
 
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
   initialSeeds() override;
@@ -77,6 +79,6 @@ class InterMonoSolverTest
   void printMethod(std::ostream &os, const llvm::Function *m) const override;
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

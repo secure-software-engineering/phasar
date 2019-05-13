@@ -133,6 +133,16 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
         }
       }
     }
+    if (TSF.isSource(Callee->getName().str())) {
+      for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
+        if (TSF.getSource(Callee->getName().str()).isTaintedArg(idx)) {
+          Out.insert(CS.getArgOperand(idx));
+        }
+      }
+      if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
+        Out.insert(CallSite);
+      }
+    }
   }
   return Out;
 }

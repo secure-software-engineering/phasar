@@ -17,11 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
+#include <deque>
+#include <iosfwd>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <deque>
-#include <iosfwd>
 #include <utility>
 #include <vector>
 
@@ -29,7 +29,7 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class InterMonoSolver {
- protected:
+protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
@@ -74,7 +74,7 @@ class InterMonoSolver {
     std::cout << "}" << std::endl;
   }
 
- public:
+public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
   ~InterMonoSolver() = default;
@@ -117,7 +117,6 @@ class InterMonoSolver {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
-          printMonoSet(Out);
         } else {
           Out = IMProblem.callToRetFlow(src, dst, Analysis[src]);
         }
@@ -142,7 +141,7 @@ class InterMonoSolver {
       // printMonoSet(Analysis[dst]);
       // std::cout << "NEW: ";
       // printMonoSet(Out);
-      std::cout << std::endl;
+      // std::cout << std::endl;
       if (!flowfactsstabilized) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         Worklist.push_back({src, dst});
@@ -171,6 +170,6 @@ class InterMonoSolver {
   }
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif
