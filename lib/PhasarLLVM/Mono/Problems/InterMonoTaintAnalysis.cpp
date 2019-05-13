@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2017 Philipp Schubert.
-  * All rights reserved. This program and the accompanying materials are made
+ * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
@@ -30,12 +30,11 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
                                                vector<string> EntryPoints)
     : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                        const llvm::Function *, LLVMBasedICFG &>(Icfg),
-      TSF(),
-      EntryPoints(EntryPoints) {}
+      TSF(), EntryPoints(EntryPoints) {}
 
-MonoSet<const llvm::Value *> InterMonoTaintAnalysis::join(
-    const MonoSet<const llvm::Value *> &Lhs,
-    const MonoSet<const llvm::Value *> &Rhs) {
+MonoSet<const llvm::Value *>
+InterMonoTaintAnalysis::join(const MonoSet<const llvm::Value *> &Lhs,
+                             const MonoSet<const llvm::Value *> &Rhs) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
@@ -55,8 +54,9 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
-    const llvm::Instruction *Stmt, const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *>
+InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
+                                   const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
@@ -74,9 +74,10 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
   return Out;
 }
 
-MonoSet<const llvm::Value *> InterMonoTaintAnalysis::callFlow(
-    const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *>
+InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
+                                 const llvm::Function *Callee,
+                                 const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
@@ -116,9 +117,10 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   return Out;
 }
 
-MonoSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
-    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *>
+InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
+                                      const llvm::Instruction *RetSite,
+                                      const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
@@ -178,4 +180,4 @@ void InterMonoTaintAnalysis::printMethod(ostream &os,
   os << m->getName().str();
 }
 
-}  // namespace psr
+} // namespace psr
