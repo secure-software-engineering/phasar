@@ -41,11 +41,11 @@ public:
 
   I getICFG() noexcept { return ICFG; }
 
-  virtual MonoSet<D> callFlow(const N CallSite, const M Callee,
+  virtual MonoSet<D> callFlow(N CallSite, M Callee,
                               const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> returnFlow(const N CallSite, const M Callee,
-                                const N RetSite, const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> callToRetFlow(const N CallSite, const N RetSite,
+  virtual MonoSet<D> returnFlow(N CallSite, M Callee,
+                                N ExitStmt, N RetSite, const MonoSet<D> &In) = 0;
+  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
                                    const MonoSet<D> &In) = 0;
 };
 

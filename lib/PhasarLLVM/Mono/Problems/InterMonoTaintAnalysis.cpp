@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2017 Philipp Schubert.
- * All rights reserved. This program and the accompanying materials are made
+  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
@@ -15,8 +15,6 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -32,18 +30,18 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
                                                vector<string> EntryPoints)
     : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                        const llvm::Function *, LLVMBasedICFG &>(Icfg),
+      TSF(),
       EntryPoints(EntryPoints) {}
 
-MonoSet<const llvm::Value *>
-InterMonoTaintAnalysis::join(const MonoSet<const llvm::Value *> &Lhs,
-                             const MonoSet<const llvm::Value *> &Rhs) {
+MonoSet<const llvm::Value *> InterMonoTaintAnalysis::join(
+    const MonoSet<const llvm::Value *> &Lhs,
+    const MonoSet<const llvm::Value *> &Rhs) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
   MonoSet<const llvm::Value *> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
-  cout << "Result size from join: " << Result.size() << endl;
   return Result;
 }
 
@@ -57,126 +55,86 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<const llvm::Value *>
-InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
-                                   const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
+    const llvm::Instruction *Stmt, const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
-  // cout << "InterMonoTaintAnalysis::normalFlow()\n";
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
-  if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
-    for (auto *source : In) {
-      if (Store->getValueOperand() == source) {
-        Result.insert(Store);
-        return Result;
-      }
+  MonoSet<const llvm::Value *> Out(In);
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
+    if (In.count(Store->getValueOperand())) {
+      Out.insert(Store->getPointerOperand());
     }
   }
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
-    for (auto *source : In) {
-      if (Load->getPointerOperand() == source) {
-        Result.insert(Load);
-        return Result;
-      }
+    if (In.count(Load->getPointerOperand())) {
+      Out.insert(Load);
     }
   }
-  if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Stmt)) {
-    for (auto *source : In) {
-      if (GEP->getPointerOperand() == source) {
-        Result.insert(GEP);
-        return Result;
-      }
-    }
-  }
-  cout << "Result size from NormalFlow: " << Result.size() << endl;
-  return Result;
+  return Out;
 }
 
-MonoSet<const llvm::Value *>
-InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
-                                 const llvm::Function *Callee,
-                                 const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *> InterMonoTaintAnalysis::callFlow(
+    const llvm::Instruction *CallSite, const llvm::Function *Callee,
+    const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
-  TaintSensitiveFunctions TSF;
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
-  cout << "CallSite inst is from callflow: " << endl;
-  cout << CallSite << "\n";
-  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
-    if (TSF.isSource(Callee->getName()) || (TSF.isSink(Callee->getName()))) {
-      cout << "it should be reported as tainted: " << Result.size() << endl;
-      Result.insert(Call);
-    }
-    llvm::Function *F =
-        llvm::dyn_cast<llvm::CallInst>(CallSite)->getCalledFunction();
-    cout << "FunctionName call inst: " << F->getName().str() << endl;
-    string FunctionName = Callee->getName().str();
-    cout << "FunctionName: " << FunctionName << endl;
-    cout << "Result size from callFlow: " << Result.size() << endl;
-    if (llvm::isa<llvm::CallInst>(CallSite) ||
-        llvm::isa<llvm::InvokeInst>(CallSite)) {
-      make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(CallSite), Callee);
+  MonoSet<const llvm::Value *> Out;
+  llvm::ImmutableCallSite CS(CallSite);
+  vector<const llvm::Value *> Actuals;
+  vector<const llvm::Value *> Formals;
+  // set up the actual parameters
+  for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
+    Actuals.push_back(CS.getArgOperand(idx));
+  }
+  // set up the formal parameters
+  for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
+    Formals.push_back(getNthFunctionArgument(Callee, idx));
+  }
+  for (unsigned idx = 0; idx < Actuals.size(); ++idx) {
+    if (In.count(Actuals[idx])) {
+      Out.insert(Formals[idx]);
     }
   }
-  return Result;
+  return Out;
 }
 
 MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
-    const llvm::Instruction *RetSite, const MonoSet<const llvm::Value *> &In) {
+    const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
+    const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
-
-  TaintSensitiveFunctions TSF;
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
-
-  if (const auto Return = llvm::dyn_cast<llvm::ReturnInst>(RetSite)) {
-    if (TSF.isSource(Return->getName()) || (TSF.isSink(Return->getName()))) {
-      Result.insert(Return->getReturnValue());
+  MonoSet<const llvm::Value *> Out;
+  if (auto Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+    if (In.count(Ret->getReturnValue())) {
+      Out.insert(CallSite);
     }
   }
-
-  make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(CallSite), Callee,
-                                RetSite, [](const llvm::Value *formal) {
-                                  return formal->getType()->isPointerTy();
-                                });
-  cout << "Result size from returnFlow: " << Result.size() << endl;
-  return Result;
+  return Out;
 }
 
-MonoSet<const llvm::Value *>
-InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
-                                      const llvm::Instruction *RetSite,
-                                      const MonoSet<const llvm::Value *> &In) {
+MonoSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
+    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
+    const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
-  // cout << "InterMonoTaintAnalysis::callToRetFlow()\n";
-  TaintSensitiveFunctions TSF;
-  MonoSet<const llvm::Value *> Result;
-
-  for (auto *Callee : ICFG.getCalleesOfCallAt(CallSite)) {
-    string FunctionName = cxx_demangle(Callee->getName().str());
-    if (TSF.isSource(FunctionName) || TSF.isSink(FunctionName)) {
-      auto Source = TSF.getSource(FunctionName);
-      llvm::ImmutableCallSite callSite(CallSite);
-      for (auto FormalIndex : Source.TaintedArgs) {
-        const llvm::Value *val = callSite.getArgOperand(FormalIndex);
-        Result.insert(val);
+  MonoSet<const llvm::Value *> Out(In);
+  llvm::ImmutableCallSite CS(CallSite);
+  if (auto Callee = CS.getCalledFunction()) {
+    if (TSF.isSink(Callee->getName().str())) {
+      for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
+        if (TSF.getSink(Callee->getName().str()).isLeakedArg(idx) &&
+            In.count(CS.getArgOperand(idx))) {
+          cout << "FOUND LEAK AT: " << llvmIRToString(CallSite) << endl;
+        }
       }
-      if (Source.TaintsReturn) {
-        Result.insert(CallSite);
-      }
-      return Result;
     }
   }
-  return In;
+  return Out;
 }
 
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
@@ -187,8 +145,11 @@ InterMonoTaintAnalysis::initialSeeds() {
   // cout << "InterMonoTaintAnalysis::initialSeeds()\n";
   const llvm::Function *main = ICFG.getMethod("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
-  Seeds.insert(
-      make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));
+  MonoSet<const llvm::Value *> Facts;
+  for (unsigned idx = 0; idx < main->arg_size(); ++idx) {
+    Facts.insert(getNthFunctionArgument(main, idx));
+  }
+  Seeds.insert(make_pair(&main->front().front(), Facts));
   return Seeds;
 }
 
@@ -207,4 +168,4 @@ void InterMonoTaintAnalysis::printMethod(ostream &os,
   os << m->getName().str();
 }
 
-} // namespace psr
+}  // namespace psr

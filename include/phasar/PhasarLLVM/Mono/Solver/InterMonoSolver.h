@@ -17,11 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
-#include <deque>
-#include <iosfwd>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <deque>
+#include <iosfwd>
 #include <utility>
 #include <vector>
 
@@ -29,10 +29,11 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename I>
 class InterMonoSolver {
-protected:
+ protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
+  MonoSet<M> AddedFunctions;
   I ICFG;
 
   void initialize() {
@@ -56,7 +57,24 @@ protected:
     return !isIntraEdge(edge) && ICFG.isExitStmt(edge.first);
   }
 
-public:
+  void printWorkList() {
+    std::cout << "CURRENT WORKLIST:" << std::endl;
+    for (auto Entry : Worklist) {
+      std::cout << llvmIRToString(Entry.first) << " ---> "
+                << llvmIRToString(Entry.second) << std::endl;
+    }
+    std::cout << "-----------------" << std::endl;
+  }
+
+  void printMonoSet(const MonoSet<D> &S) {
+    std::cout << "SET CONTENTS:\n{ ";
+    for (auto Entry : S) {
+      std::cout << llvmIRToString(Entry) << ", ";
+    }
+    std::cout << "}" << std::endl;
+  }
+
+ public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
   ~InterMonoSolver() = default;
@@ -65,84 +83,94 @@ public:
     std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
-      std::cout << "\n"
-                << "worklist size: " << Worklist.size() << "\n";
       std::pair<N, N> edge = Worklist.front();
       Worklist.pop_front();
       auto src = edge.first;
       auto dst = edge.second;
-      std::cout << "process edge (intra=" << isIntraEdge(edge) << ") <"
-                << llvmIRToString(src) << "> ---> <" << llvmIRToString(dst)
-                << ">\n";
-
+      if (ICFG.isCallStmt(src)) {
+        // Add inter- and intra-edges of callee(s)
+        for (auto callee : ICFG.getCalleesOfCallAt(src)) {
+          if (AddedFunctions.count(callee)) {
+            break;
+          }
+          AddedFunctions.insert(callee);
+          // Add call edge(s)
+          for (auto startPoint : ICFG.getStartPointsOf(callee)) {
+            Worklist.push_back({src, startPoint});
+          }
+          // Add intra edges of callee
+          std::vector<std::pair<N, N>> edges =
+              ICFG.getAllControlFlowEdges(callee);
+          Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+          // Add return edge(s)
+          for (auto ret : ICFG.getExitPointsOf(callee)) {
+            for (auto retSite : ICFG.getReturnSitesOfCallAt(src)) {
+              Worklist.push_back({ret, retSite});
+            }
+          }
+          // The call-to-return edge of the caller is already in the worklist
+        }
+      }
+      // Compute the data-flow facts using the respective flow function
       MonoSet<D> Out;
-
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
-          std::cout
-              << "check from callFlow monosolver if a call statement is found "
-              << ">\n";
+          printMonoSet(Out);
         } else {
           Out = IMProblem.callToRetFlow(src, dst, Analysis[src]);
-          std::cout << "check from callToRetFlow monosolver if a call "
-                       "statement is found "
-                    << ">\n";
         }
       } else if (ICFG.isExitStmt(src)) {
         // Handle return flow
         auto callsites = ICFG.getPredsOf(dst);
-        auto callsite = (callsites.size() == 1) ? callsites[0] : nullptr;
-        assert(callsite && "call-site not valid!");
+        assert(callsites.size() && "call-site not valid, multiple call-sites!");
+        auto callsite = callsites[0];
         assert(ICFG.isCallStmt(callsite) == true && "call-site not found!");
-        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), dst,
+        Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst,
                                    Analysis[src]);
       } else {
         // Handle normal flow
         Out = IMProblem.normalFlow(src, Analysis[src]);
       }
-      // Check if data-flow facts have changed and if so add them to worklist
+      // Check if data-flow facts have changed and if so, add them to worklist
       // again.
       bool flowfactsstabilized = IMProblem.sqSubSetEqual(Out, Analysis[dst]);
-
+      // std::cout << llvmIRToString(src) << " ---> " << llvmIRToString(dst)
+      //           << " | stabilized: " << flowfactsstabilized << std::endl;
+      // std::cout << "PRE: ";
+      // printMonoSet(Analysis[dst]);
+      // std::cout << "NEW: ";
+      // printMonoSet(Out);
+      std::cout << std::endl;
       if (!flowfactsstabilized) {
-        if (isIntraEdge(edge)) {
-          Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-        } else {
-          if (isCallEdge(edge)) {
-            Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-          } else {
-            Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-          }
-        }
-        // Handle function call and add inter call edges
-        if (ICFG.isCallStmt(dst)) {
-          for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
-            // Add call edges
-            for (auto first_inst : ICFG.getStartPointsOf(callee)) {
-              Worklist.push_back({dst, first_inst});
-            }
-            // Add intra edges of callee
-            std::vector<std::pair<N, N>> edges =
-                ICFG.getAllControlFlowEdges(callee);
-            Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-            // Add inter return edges
-            for (auto ret : ICFG.getExitPointsOf(callee)) {
-              for (auto retsite : ICFG.getReturnSitesOfCallAt(dst)) {
-                Worklist.push_back({ret, retsite});
-              }
-            }
-          }
-        }
+        Analysis[dst] = IMProblem.join(Analysis[dst], Out);
+        Worklist.push_back({src, dst});
+        // add intra-procedural edges again
         for (auto nprimeprime : ICFG.getSuccsOf(dst)) {
           Worklist.push_back({dst, nprimeprime});
+        }
+        // add inter-procedural call edges again
+        if (ICFG.isCallStmt(dst)) {
+          for (auto callee : ICFG.getCalleesOfCallAt(dst)) {
+            for (auto startPoint : ICFG.getStartPointsOf(callee)) {
+              Worklist.push_back({dst, startPoint});
+            }
+          }
+        }
+        // add inter-procedural return edges again
+        if (ICFG.isExitStmt(dst)) {
+          for (auto caller : ICFG.getCallersOf(ICFG.getMethodOf(dst))) {
+            for (auto nprimeprime : ICFG.getSuccsOf(caller)) {
+              Worklist.push_back({dst, nprimeprime});
+            }
+          }
         }
       }
     }
   }
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif
