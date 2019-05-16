@@ -23,91 +23,93 @@ using namespace psr;
 
 namespace psr {
 
-using Node_t = InterMonoSolverTest::Node_t;
-using Domain_t = InterMonoSolverTest::Domain_t;
-using Method_t = InterMonoSolverTest::Method_t;
-using ICFG_t = InterMonoSolverTest::ICFG_t;
-
-InterMonoSolverTest::InterMonoSolverTest(ICFG_t &Icfg,
+InterMonoSolverTest::InterMonoSolverTest(LLVMBasedICFG &Icfg,
                                          vector<string> EntryPoints)
-    : InterMonoProblem<Node_t, Domain_t, Method_t, ICFG_t>(Icfg),
+    : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
+                       const llvm::Function *, LLVMBasedICFG &>(Icfg),
       EntryPoints(EntryPoints) {}
 
-Domain_t InterMonoSolverTest::join(const Domain_t &Lhs, const Domain_t &Rhs) {
-  // cout << "InterMonoSolverTest::join()\n";
-  Domain_t Result;
-  // set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-  //           inserter(Result, Result.begin()));
+MonoSet<const llvm::Value *>
+InterMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
+                          const MonoSet<const llvm::Value *> &Rhs) {
+  cout << "InterMonoSolverTest::join()\n";
+  MonoSet<const llvm::Value *> Result;
+  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
+            inserter(Result, Result.begin()));
   return Result;
 }
 
-bool InterMonoSolverTest::sqSubSetEqual(const Domain_t &Lhs,
-                                        const Domain_t &Rhs) {
-  // cout << "InterMonoSolverTest::sqSubSetEqual()\n";
-  // return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
-  return true;
+bool InterMonoSolverTest::sqSubSetEqual(
+    const MonoSet<const llvm::Value *> &Lhs,
+    const MonoSet<const llvm::Value *> &Rhs) {
+  cout << "InterMonoSolverTest::sqSubSetEqual()\n";
+  return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-Domain_t InterMonoSolverTest::normalFlow(const Node_t Stmt,
-                                         const Domain_t &In) {
+MonoSet<const llvm::Value *>
+InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
+                                const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
-  // MonoSet<const llvm::Value *> Result;
-  // Result.insert(In.begin(), In.end());
-  // if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
-  //   Result.insert(Alloc);
-  // }
+  MonoSet<const llvm::Value *> Result;
+  Result.insert(In.begin(), In.end());
+  if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+    Result.insert(Alloc);
+  }
   return In;
 }
 
-Domain_t InterMonoSolverTest::callFlow(const Node_t CallSite,
-                                       const Method_t Callee,
-                                       const Domain_t &In) {
+MonoSet<const llvm::Value *>
+InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
+                              const llvm::Function *Callee,
+                              const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
-  // MonoSet<const llvm::Value *> Result;
-  // Result.insert(In.begin(), In.end());
-  // if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
-  //   Result.insert(Call);
-  // }
+  MonoSet<const llvm::Value *> Result;
+  Result.insert(In.begin(), In.end());
+  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
+    Result.insert(Call);
+  }
   return In;
 }
 
-Domain_t InterMonoSolverTest::returnFlow(const Node_t CallSite,
-                                         const Method_t Callee,
-                                         const Node_t RetSite,
-                                         const Domain_t &In) {
+MonoSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
+    const llvm::Instruction *CallSite, const llvm::Function *Callee,
+    const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
+    const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
-Domain_t InterMonoSolverTest::callToRetFlow(const Node_t CallSite,
-                                            const Node_t RetSite,
-                                            const Domain_t &In) {
+MonoSet<const llvm::Value *>
+InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
+                                   const llvm::Instruction *RetSite,
+                                   const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-MonoMap<Node_t, Domain_t> InterMonoSolverTest::initialSeeds() {
+MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
+InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const Method_t main = ICFG.getMethod("main");
-  MonoMap<Node_t, Domain_t> Seeds;
-  Seeds.insert(make_pair(&main->front().front(), Domain_t()));
+  const llvm::Function *main = ICFG.getMethod("main");
+  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
+  Seeds.insert(
+      make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));
   return Seeds;
 }
 
-void InterMonoSolverTest::printNode(ostream &os, Node_t n) const {
+void InterMonoSolverTest::printNode(ostream &os,
+                                    const llvm::Instruction *n) const {
   os << llvmIRToString(n);
 }
 
-void InterMonoSolverTest::printDataFlowFact(ostream &os, Domain_t d) const {
-  for (auto fact : d) {
-    os << llvmIRToString(fact) << '\n';
-  }
+void InterMonoSolverTest::printDataFlowFact(ostream &os,
+                                            const llvm::Value *d) const {
+  os << llvmIRToString(d) << '\n';
 }
 
-void InterMonoSolverTest::printMethod(ostream &os, Method_t m) const {
+void InterMonoSolverTest::printMethod(ostream &os,
+                                      const llvm::Function *m) const {
   os << m->getName().str();
 }
-
-bool InterMonoSolverTest::recompute(const Method_t Callee) { return false; }
 
 } // namespace psr

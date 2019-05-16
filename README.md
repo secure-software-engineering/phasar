@@ -356,7 +356,18 @@ Set the system's variables for the C and C++ compiler to clang:
 $ export CC=/usr/local/bin/clang
 $ export CXX=/usr/local/bin/clang++
 ```
-You may need to adjust the paths according to your system.
+You may need to adjust the paths according to your system. When you cloned PhASAR from Github you need to initialize PhASAR's submodules before building it:
+
+```
+$ git submodule init
+$ git submodule update
+```
+
+If you downloaded PhASAR as a compressed release (e.g. .zip or .tar.gz) you can use the `init-submodules-release.sh` script that manually clones the required submodules:
+
+```
+$ utils/init-submodules-release.sh
+```
 
 Navigate into the Phasar directory. The following commands will do the job and compile the Phasar framework:
 

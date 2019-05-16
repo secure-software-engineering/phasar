@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTRAMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTRAMONOSOLVER_H_
 
-#include <iostream> //  std::cout, please remove it
+#include <iosfwd>
 
 #include <llvm/IR/Instruction.h>
 
@@ -31,9 +31,6 @@ class LLVMIntraMonoSolver : public IntraMonoSolver<const llvm::Instruction *, D,
                                                    const llvm::Function *, C> {
 protected:
   bool DUMP_RESULTS;
-  // Duplicate of the IMProblem of IntraMonoSolver ...
-  IntraMonoProblem<const llvm::Instruction *, D, const llvm::Function *, C>
-      &IMP;
 
 public:
   LLVMIntraMonoSolver();
@@ -44,7 +41,7 @@ public:
                       bool dumpResults = false)
       : IntraMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
                         C>(problem),
-        DUMP_RESULTS(dumpResults), IMP(problem) {}
+        DUMP_RESULTS(dumpResults) {}
 
   virtual void solve() override {
     // do the solving of the analaysis problem
@@ -59,13 +56,19 @@ public:
                  "-----------------------------------\n";
     for (auto &entry : IntraMonoSolver<const llvm::Instruction *, D,
                                        const llvm::Function *, C>::Analysis) {
-      std::cout << "Instruction:\n" << IMP.NtoString(entry.first);
+      std::cout << "Instruction:\n"
+                << IntraMonoSolver<const llvm::Instruction *, D,
+                                   const llvm::Function *, C>::IMProblem
+                       .NtoString(entry.first);
       std::cout << "\nFacts:\n";
       if (entry.second.empty()) {
         std::cout << "\tEMPTY\n";
       } else {
         for (auto fact : entry.second) {
-          std::cout << IMP.DtoString(fact) << '\n';
+          std::cout << IntraMonoSolver<const llvm::Instruction *, D,
+                                       const llvm::Function *, C>::IMProblem
+                           .DtoString(fact)
+                    << '\n';
         }
       }
       std::cout << "\n\n";

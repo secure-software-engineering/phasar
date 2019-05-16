@@ -1,93 +1,82 @@
-/******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
- * All rights reserved. This program and the accompanying materials are made
- * available under the terms of LICENSE.txt.
- *
- * Contributors:
- *     Nicolas Bellec and others
- *****************************************************************************/
+#ifndef _PHASAR_PHASARLLVM_MONO_CONTEXTBASE_H_
+#define _PHASAR_PHASARLLVM_MONO_CONTEXTBASE_H_
 
-/*
- * ContextBase.h
- *
- *  Created on: 18.06.2018
- *      Author: nicolas
- */
-
-#ifndef PHASAR_PHASARLLVM_MONO_CONTEXTS_CONTEXTBASE_H_
-#define PHASAR_PHASARLLVM_MONO_CONTEXTS_CONTEXTBASE_H_
-
-#include <ostream>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
+#include <map>
+#include <phasar/Config/ContainerConfiguration.h>
+#include <stack>
+#include <utility>
 
 namespace psr {
 
-/**
- * Base class for function contexts used in the monotone framework. A function
- * context describes the state of the analyzed function.
- * @tparam N in the ICFG
- * @tparam D domain of the analysis
- * @tparam ConcreteContext class that implements the context (must be a sub
- * class of ContextBase<N,D,ConcreteContext>)
- */
-template <typename N, typename D, typename ConcreteContext> class ContextBase {
-public:
-  using Node_t = N;
-  using Domain_t = D;
-  const NodePrinter<N> *NP;
-  const DataFlowFactPrinter<D> *DP;
+template <typename D, typename N> class ContextBase {
+protected:
+  // management structures here
+  std::map<std::pair<psr::MonoSet<D>, N>, psr::MonoSet<D>> contextmap;
 
-private:
-  void ValueBase_check() {
-    static_assert(
-        std::is_base_of<ContextBase<Node_t, Domain_t, ConcreteContext>,
-                        ConcreteContext>::value,
-        "Template class ConcreteContext must be a sub class of ContextBase<N, "
-        "V, ConcreteContext>\n");
+  std::stack<std::pair<psr::MonoSet<D>, N>> tempstack;
+  bool switchSmartContext = true;
+
+public:
+  ContextBase() : contextmap(), tempstack() {}
+
+  void setSmartContext(bool smart) : switchSmartContext(smart) {}
+
+  bool isUnknown(psr::MonoSet<D> &In, const N src) {
+    if (contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src)) ==
+        contextmap.end()) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
+  psr::MonoSet<D> getResult(psr::MonoSet<D> &In, const N src) {
+
+    if (contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src)) ==
+        contextmap.end()) {
+      return psr::MonoSet<D>();
+    } else {
+      return psr::MonoSet<D>(
+          contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src))->second);
+    }
+  }
+
+  void enterFunction(const N src, const N dst, psr::MonoSet<D> &In) {
+    if (switchSmartContext) {
+      const std::pair<psr::MonoSet<D>, N> tmp(In, src);
+      contextmap[tmp];
+      tempstack.push(tmp);
+    }
+    addContext(src, dest, In);
+  }
+
+  void exitFunction(const N src, const N dst, psr::MonoSet<D> &In) {
+    if (switchSmartContext) {
+      contextmap[tempstack.pop()] = In;
+    }
+    removeContext(src, dst, In);
+  }
+
+protected:
+  virtual void addContext(const N src, const N dst, psr::MonoSet<D> &In) = 0;
+  virtual void removeContext(const N src, const N dst, psr::MonoMap<D> &In) = 0;
+
 public:
-  ContextBase(const NodePrinter<N> *np, const DataFlowFactPrinter<D> *dp)
-      : NP(np), DP(dp) {}
-
-  /*
-   * Update the context at the exit of a function
-   */
-  virtual void exitFunction(const Node_t src, const Node_t dest,
-                            const Domain_t &In) = 0;
-
-  /*
-   *
-   */
-  virtual void enterFunction(const Node_t src, const Node_t dest,
-                             const Domain_t &In) = 0;
-
-  /*
-   *
-   */
-  virtual bool isUnsure() = 0;
-
-  /*
-   *
-   */
-  virtual bool isEqual(const ConcreteContext &rhs) const = 0;
-  virtual bool isDifferent(const ConcreteContext &rhs) const = 0;
-  virtual bool isLessThan(const ConcreteContext &rhs) const = 0;
+  virtual bool isEqual(const ContextBase &rhs) const = 0;
+  virtual bool isDifferent(const ContextBase &rhs) const = 0;
+  virtual bool isLessThan(const ContextBase &rhs) const = 0;
   virtual void print(std::ostream &os) const = 0;
 
-  friend bool operator==(const ConcreteContext &lhs,
-                         const ConcreteContext &rhs) {
+  friend bool operator==(const ContextBase &lhs, const ContextBase &rhs) {
     return lhs.isEqual(rhs);
   }
-  friend bool operator!=(const ConcreteContext &lhs,
-                         const ConcreteContext &rhs) {
+  friend bool operator!=(const ContextBase &lhs, const ContextBase &rhs) {
     return lhs.isDifferent(rhs);
   }
-  friend bool operator<(const ConcreteContext &lhs,
-                        const ConcreteContext &rhs) {
+  friend bool operator<(const ContextBase &lhs, const ContextBase &rhs) {
     return lhs.isLessThan(rhs);
   }
-  friend std::ostream &operator<<(std::ostream &os, const ConcreteContext &c) {
+  friend std::ostream &operator<<(std::ostream &os, const ContextBase &c) {
     c.print(os);
     return os;
   }
