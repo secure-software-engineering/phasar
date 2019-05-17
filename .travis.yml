@@ -6,7 +6,7 @@ language: c++
 
 cache:
   directories:
-    - $TRAVIS_BUILD_DIR/boost_1_67_0/
+    - $TRAVIS_BUILD_DIR/boost_1_70_0/
 
 matrix:
   include:
@@ -37,7 +37,7 @@ matrix:
   - os: osx
     osx_image: xcode8
     env:
-      - MATRIX_EVAL="travis_wait 40 brew install gcc && CC=clang && CXX=clang++"
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 branches:
     - development
@@ -61,7 +61,7 @@ install:
   # Initialize all submodules
   - git submodule update --init --recursive
   # Install boost 1.70
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz; tar xf boost_1_70_0.tar.gz; cd boost_1_70_0/ ; ./bootstrap.sh 1> /dev/null ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz; tar xf boost_1_70_0.tar.gz; cd boost_1_70_0/; ./bootstrap.sh 1> /dev/null ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
 
