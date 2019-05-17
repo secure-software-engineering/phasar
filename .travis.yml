@@ -20,10 +20,6 @@ matrix:
         packages:
           - g++-7
           - build-essential
-          - clang-8.0
-          - libclang-8.0-dev
-          - llvm-8.0
-          - llvm-8.0-dev
           - sqlite3
           - libsqlite3-dev
           - bear
@@ -49,7 +45,7 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update -q ; sudo apt-get install clang-8.0 libclang-8.0-dev llvm-8.0 llvm-8.0-dev -y ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; fi
   - eval "${MATRIX_EVAL}"
 
