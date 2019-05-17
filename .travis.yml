@@ -53,7 +53,7 @@ before_install:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/local/bin/clang-8; export CXX=/usr/local/bin/clang++-8; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-8; export CXX=/usr/bin/clang++-8; fi
   - echo "checking C++ compiler"; clang++ --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; travis_wait 40 brew bundle ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@8/bin:$PATH" ; fi
