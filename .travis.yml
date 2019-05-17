@@ -17,7 +17,6 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
-          - llvm-toolchain-stretch-8
         packages:
           - g++-7
           - build-essential
@@ -50,6 +49,7 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; fi
   - eval "${MATRIX_EVAL}"
 
