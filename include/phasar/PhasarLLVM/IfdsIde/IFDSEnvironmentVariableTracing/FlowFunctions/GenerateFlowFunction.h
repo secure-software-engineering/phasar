@@ -5,7 +5,7 @@
 #ifndef GENERATEFLOWFUNCTION_H
 #define GENERATEFLOWFUNCTION_H
 
-#include "FlowFunctionBase.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/FlowFunctionBase.h>
 
 namespace psr {
 

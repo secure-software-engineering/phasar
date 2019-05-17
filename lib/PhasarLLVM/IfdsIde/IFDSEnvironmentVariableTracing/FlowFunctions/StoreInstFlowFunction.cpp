@@ -2,7 +2,7 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "StoreInstFlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/StoreInstFlowFunction.h>
 
 namespace psr {
 

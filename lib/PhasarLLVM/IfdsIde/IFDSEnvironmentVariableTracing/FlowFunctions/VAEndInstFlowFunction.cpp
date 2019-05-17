@@ -2,7 +2,7 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "VAEndInstFlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAEndInstFlowFunction.h>
 
 #include <llvm/IR/IntrinsicInst.h>
 

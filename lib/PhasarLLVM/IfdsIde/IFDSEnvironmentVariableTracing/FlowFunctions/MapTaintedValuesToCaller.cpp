@@ -2,10 +2,10 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "MapTaintedValuesToCaller.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCaller.h>
 
-#include "../Utils/DataFlowUtils.h"
-#include "../Utils/Log.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/DataFlowUtils.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/Log.h>
 
 #include <algorithm>
 

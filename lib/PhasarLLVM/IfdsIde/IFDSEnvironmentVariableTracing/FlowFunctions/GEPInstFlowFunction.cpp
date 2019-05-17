@@ -2,7 +2,7 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "GEPInstFlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GEPInstFlowFunction.h>
 
 namespace psr {
 

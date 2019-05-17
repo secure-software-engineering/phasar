@@ -5,7 +5,7 @@
 #ifndef IDENTITYFLOWFUNCTION_H
 #define IDENTITYFLOWFUNCTION_H
 
-#include "FlowFunctionBase.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/FlowFunctionBase.h>
 
 namespace psr {
 

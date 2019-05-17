@@ -2,7 +2,7 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "FlowFunctionBase.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/FlowFunctionBase.h>
 
 #include <llvm/IR/IntrinsicInst.h>
 

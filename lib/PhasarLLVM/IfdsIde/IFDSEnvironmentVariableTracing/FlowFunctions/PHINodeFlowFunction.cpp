@@ -2,7 +2,7 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "PHINodeFlowFunction.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/PHINodeFlowFunction.h>
 
 namespace psr {
 

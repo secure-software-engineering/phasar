@@ -14,11 +14,13 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
+
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
 namespace psr {
 
@@ -27,14 +29,8 @@ class IFDSEnvironmentVariableTracing
                                           ExtendedValue, const llvm::Function *,
                                           LLVMBasedICFG &> {
 public:
-  IFDSEnvironmentVariableTracing(
-      LLVMBasedICFG &ICFG, std::vector<std::string> EntryPoints = {"main"})
-      : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
-                                     const llvm::Function *, LLVMBasedICFG &>(
-            ICFG),
-        EntryPoints(EntryPoints) {
-    DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-  }
+  IFDSEnvironmentVariableTracing(LLVMBasedICFG &ICFG,
+                                 std::vector<std::string> EntryPoints);
   ~IFDSEnvironmentVariableTracing() override = default;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>

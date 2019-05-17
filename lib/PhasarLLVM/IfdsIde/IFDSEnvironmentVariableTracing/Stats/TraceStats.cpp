@@ -2,9 +2,9 @@
   * @author Sebastian Roland <seroland86@gmail.com>
   */
 
-#include "TraceStats.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 
-#include "../Utils/Log.h"
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/Log.h>
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instructions.h>
