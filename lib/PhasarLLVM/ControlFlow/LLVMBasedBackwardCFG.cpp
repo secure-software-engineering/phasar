@@ -18,6 +18,7 @@
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/CFG.h>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
@@ -53,20 +54,8 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
   if (stmt->getPrevNode()) {
     Preds.push_back(stmt->getPrevNode());
   }
-  /*
-   * If we do not have a successor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
-  if (Preds.empty()) {
-    for (auto &BB : *stmt->getFunction()) {
-      if (const llvm::Instruction *T = BB.getTerminator()) {
-        for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
-          if (&*stmt->getSuccessor(i)->begin() == stmt) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
+  for (auto PredBlock : llvm::predecessors(stmt->getParent())) {
+    Preds.push_back(&PredBlock->back());
   }
   return Preds;
 }

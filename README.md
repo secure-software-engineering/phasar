@@ -21,7 +21,7 @@ Secure Software Engineering Group
 
 Currently supported version of LLVM
 -----------------------------------
-Phasar is currently set up to support LLVM-5.0.0/ LLVM-5.0.1.
+Phasar is currently set up to support LLVM-8.0.0.
 
 What is Phasar?
 ---------------
