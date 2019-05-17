@@ -17,6 +17,7 @@ matrix:
       apt:
         sources:
           - ubuntu-toolchain-r-test
+          - llvm-toolchain-stretch-8
         packages:
           - g++-7
           - build-essential
