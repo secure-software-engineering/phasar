@@ -20,10 +20,10 @@ matrix:
         packages:
           - g++-7
           - build-essential
-          - clang-5.0
-          - libclang-5.0-dev
-          - llvm-5.0
-          - llvm-5.0-dev
+          - clang-8.0
+          - libclang-8.0-dev
+          - llvm-8.0
+          - llvm-8.0-dev
           - sqlite3
           - libsqlite3-dev
           - bear
@@ -38,11 +38,10 @@ matrix:
           - libmysqlcppconn-dev
     env:
       - MATRIX_EVAL="CC=clang && CXX=clang++"
-  # TODO decomment, when C++17 can be used on OSX (LLVM has been updated)
-  # - os: osx
-  #   osx_image: xcode8
-  #   env:
-  #     - MATRIX_EVAL="travis_wait 40 brew install gcc && CC=clang && CXX=clang++"
+  - os: osx
+    osx_image: xcode8
+    env:
+      - MATRIX_EVAL="travis_wait 40 brew install gcc && CC=clang && CXX=clang++"
 
 branches:
     - development
@@ -59,8 +58,8 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - echo "checking C++ compiler"; clang++ --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; travis_wait 40 brew bundle ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@8/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-8.0/bin:$PATH" ; fi
   # Initialize all submodules
   - git submodule update --init --recursive
   # Install boost 1.67
