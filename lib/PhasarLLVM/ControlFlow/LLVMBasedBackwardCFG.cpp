@@ -14,11 +14,11 @@
  *      Author: philipp
  */
 
+#include <llvm/IR/CFG.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
-#include <llvm/IR/CFG.h>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
