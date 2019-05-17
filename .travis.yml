@@ -45,7 +45,7 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update -q ; sudo apt-get install libllvm-8-ocaml-dev libllvm8 llvm-8 llvm-8-dev llvm-8-doc llvm-8-examples llvm-8-runtime clang-8 clang-tools-8 clang-8-doc libclang-common-8-dev libclang-8-dev libclang1-8 clang-format-8 python-clang-8 lld-8 -y ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-8 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update -q ; sudo apt-get install libllvm8 llvm-8 llvm-8-dev llvm-8-doc llvm-8-examples llvm-8-runtime clang-8 clang-tools-8 clang-8-doc libclang-common-8-dev libclang-8-dev libclang1-8 clang-format-8 python-clang-8 lld-8 -y ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 40 brew update ; fi
   - eval "${MATRIX_EVAL}"
 
