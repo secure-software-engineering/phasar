@@ -55,7 +55,7 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-8; export CXX=/usr/bin/clang++-8; fi
   - echo "checking C++ compiler"; clang++ --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle --verbose; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@8/bin:$PATH" ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-8.0/bin:$PATH" ; fi
   # Initialize all submodules
