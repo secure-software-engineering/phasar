@@ -44,6 +44,10 @@ protected:
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }
+    // insert initial seeds
+    for (auto &seed : IMProblem.initialSeeds()) {
+      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
+    }
   }
 
 public:
