@@ -422,6 +422,7 @@ install(DIRECTORY config/
 set(MAJOR_VERSION 0)
 set(MINOR_VERSION 8)
 set(PATCH_VERSION 0)
+if (NOT PHASAR_IN_TREE)
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
 set(CPACK_SET_DESTDIR "on")
@@ -463,6 +464,7 @@ set(CPACK_DEBIAN_ARCHITECTURE ${CMAKE_SYSTEM_PROCESSOR})
 set(CPACK_COMPONENTS_ALL Libraries ApplicationData)
 INCLUDE(CPack)
 ENDIF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
+endif()
 
 # Setup the doxygen code documentation
 if(PHASAR_BUILD_DOC)
