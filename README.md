@@ -302,9 +302,9 @@ install-llvm-*.sh that can be found in Phasar project directory utils/. Paramete
 shall be used for compilation (more is better) and tell it where you would like LLVM to
 be downloaded and build. E.g. use
 
-`$ ./install-llvm-5.0.1.sh 4 ~/`
+`$ ./install-llvm-8.0.0.sh 4 .`
 
-to build llvm-5.0.1 using 4 cores in your home directory.
+to build llvm-8.0.0 using 4 cores in the current directory.
 
 #### Installing cURL
 cURL can be installed from the Ubuntu sources using:

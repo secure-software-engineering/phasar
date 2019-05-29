@@ -30,10 +30,10 @@ namespace psr {
 template <typename D, typename I>
 class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
                                                    const llvm::Function *, I> {
-protected:
+ protected:
   bool DUMP_RESULTS;
 
-public:
+ public:
   LLVMInterMonoSolver(InterMonoProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, I> &problem,
                       bool dumpResults = false)
@@ -52,8 +52,7 @@ public:
     // do the solving of the analaysis problem
     InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
                     I>::solve();
-    if (DUMP_RESULTS)
-      dumpResults();
+    if (DUMP_RESULTS) dumpResults();
   }
 
   /**
@@ -71,11 +70,13 @@ public:
       if (entry.second.empty()) {
         std::cout << "\tEMPTY\n";
       } else {
-        for (auto fact : entry.second) {
-          std::cout << InterMonoSolver<const llvm::Instruction *, D,
-                                       const llvm::Function *, I>::IMProblem
-                           .DtoString(fact)
-                    << '\n';
+        for (auto &context : entry.second) {
+          for (auto &fact : context.second) {
+            std::cout << InterMonoSolver<const llvm::Instruction *, D,
+                                         const llvm::Function *, I>::IMProblem
+                             .DtoString(fact)
+                      << '\n';
+          }
         }
       }
       std::cout << "\n\n";
@@ -83,6 +84,6 @@ public:
   };
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif

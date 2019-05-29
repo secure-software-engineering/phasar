@@ -11,56 +11,53 @@
 namespace psr {
 
 template <typename D, typename N, unsigned K>
-class CallStringCTX : public ContextBase<D, N> {
-
-protected:
+class CallStringCTX {
+ protected:
   std::deque<N> cs;
   static const unsigned k = K;
 
-public:
-  CallStringCTX() : ContextBase<D, N>() {}
-  CallStringCTX(std::initializer_list<N> ilist)
-      : ContextBase<N, D, CallString<N, D, K>>(np, dp), cs(ilist) {
+ public:
+  CallStringCTX() {}
+
+  CallStringCTX(std::initializer_list<N> ilist) : cs(ilist) {
     if (ilist.size() > k) {
       throw std::runtime_error(
           "initial call std::string length exceeds maximal length K");
     }
   }
 
-protected:
-  virtual void addContext(const N src, const N dst,
-                          psr::MonoSet<D> &In) override {
+  virtual void addContext(const N src, const N dst, psr::MonoSet<D> &In) {
     if (cs.size() > k - 1) {
       cs.pop_front();
     }
     cs.push_back(src);
   }
-  virtual void removeContext(const N src, const N dst,
-                             psr::MonoMap<D> &In) override {
+  virtual void removeContext(const N src, const N dst, psr::MonoSet<D> &In) {
     if (cs.size() > 0) {
       cs.pop_back();
     }
   }
 
-public:
-  bool isEqual(const CallString &rhs) const override {
-    return cs == rhs.cs || (cs.size() == 0) || (rhs.cs.size() == 0);
+  virtual bool isEqual(const CallStringCTX &rhs) const { return cs == rhs.cs; }
+
+  bool isDifferent(const CallStringCTX &rhs) const { return !isEqual(rhs); }
+
+  friend bool operator==(const CallStringCTX<D, N, K> &Lhs,
+                         const CallStringCTX<D, N, K> &Rhs) {
+    return Lhs.isEqual(Rhs);
   }
 
-  bool isDifferent(const CallString &rhs) const override {
-    return !isEqual(rhs);
+  friend bool operator!=(const CallStringCTX<D, N, K> &Lhs,
+                         const CallStringCTX<D, N, K> &Rhs) {
+    return !Lhs.isEqual(Rhs);
   }
 
-  bool isLessThan(const CallString &rhs) const override {
-    // Base : lhs.cs < rhs.cs
-    // Addition : (lhs.cs.size() != 0) && (rhs.cs.size() != 0)
-    // Enable that every empty call-string context match every context
-    // That allows an output of a retFlow with an empty callString context
-    // to be join with every analysis results at the arrival node.
-    return cs < rhs.cs && (cs.size() != 0) && (rhs.cs.size() != 0);
+  friend bool operator<(const CallStringCTX<D, N, K> &Lhs,
+                        const CallStringCTX<D, N, K> &Rhs) {
+    return Lhs.cs < Rhs.cs;
   }
 
-  void print(std::ostream &os) const override {
+  void print(std::ostream &os) const {
     os << "Call string [" << cs.size() << "]: ";
     for (auto C : cs) {
       os << this->NP->NtoString(C) << " * ";
@@ -68,9 +65,8 @@ public:
   }
 
   std::size_t size() const { return cs.size(); }
-  std::deque<Node_t> getInternalCS() const { return cs; }
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif

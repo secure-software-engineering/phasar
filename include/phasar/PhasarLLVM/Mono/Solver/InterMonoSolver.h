@@ -21,6 +21,7 @@
 #include <iosfwd>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <utility>
 #include <vector>
@@ -32,16 +33,17 @@ class InterMonoSolver {
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoSet<D>> Analysis;
+  MonoMap<N, MonoMap<CallStringCTX<D, N, 3>, MonoSet<D>>> Analysis;
   MonoSet<M> AddedFunctions;
   I ICFG;
+  CallStringCTX<D, N, 3> ZeroCTX;
 
   void initialize() {
     for (auto &seed : IMProblem.initialSeeds()) {
       std::vector<std::pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
+      Analysis[seed.first][ZeroCTX].insert(seed.second.begin(), seed.second.end());
     }
   }
 
@@ -116,10 +118,10 @@ public:
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
-          Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
+          Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src][ZeroCTX]);
         } else {
           Out = IMProblem.callToRetFlow(src, dst, ICFG.getCalleesOfCallAt(src),
-                                        Analysis[src]);
+                                        Analysis[src][ZeroCTX]);
         }
       } else if (ICFG.isExitStmt(src)) {
         // Handle return flow
@@ -128,14 +130,14 @@ public:
         auto callsite = callsites[0];
         assert(ICFG.isCallStmt(callsite) == true && "call-site not found!");
         Out = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src), src, dst,
-                                   Analysis[src]);
+                                   Analysis[src][ZeroCTX]);
       } else {
         // Handle normal flow
-        Out = IMProblem.normalFlow(src, Analysis[src]);
+        Out = IMProblem.normalFlow(src, Analysis[src][ZeroCTX]);
       }
       // Check if data-flow facts have changed and if so, add them to worklist
       // again.
-      bool flowfactsstabilized = IMProblem.sqSubSetEqual(Out, Analysis[dst]);
+      bool flowfactsstabilized = IMProblem.sqSubSetEqual(Out, Analysis[dst][ZeroCTX]);
       // std::cout << llvmIRToString(src) << " ---> " << llvmIRToString(dst)
       //           << " | stabilized: " << flowfactsstabilized << std::endl;
       // std::cout << "PRE: ";
@@ -144,7 +146,7 @@ public:
       // printMonoSet(Out);
       // std::cout << std::endl;
       if (!flowfactsstabilized) {
-        Analysis[dst] = IMProblem.join(Analysis[dst], Out);
+        Analysis[dst][ZeroCTX] = IMProblem.join(Analysis[dst][ZeroCTX], Out);
         Worklist.push_back({src, dst});
         // add intra-procedural edges again
         for (auto nprimeprime : ICFG.getSuccsOf(dst)) {

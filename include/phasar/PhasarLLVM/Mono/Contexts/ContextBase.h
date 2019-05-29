@@ -10,68 +10,31 @@ namespace psr {
 
 template <typename D, typename N> class ContextBase {
 protected:
-  // management structures here
-  std::map<std::pair<psr::MonoSet<D>, N>, psr::MonoSet<D>> contextmap;
-
-  std::stack<std::pair<psr::MonoSet<D>, N>> tempstack;
-  bool switchSmartContext = true;
 
 public:
-  ContextBase() : contextmap(), tempstack() {}
+  virtual ~ContextBase() = default;
 
-  void setSmartContext(bool smart) : switchSmartContext(smart) {}
-
-  bool isUnknown(psr::MonoSet<D> &In, const N src) {
-    if (contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src)) ==
-        contextmap.end()) {
-      return true;
-    } else {
-      return false;
-    }
+  bool isKnown(psr::MonoSet<D> &In, const N src) {
   }
 
   psr::MonoSet<D> getResult(psr::MonoSet<D> &In, const N src) {
-
-    if (contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src)) ==
-        contextmap.end()) {
-      return psr::MonoSet<D>();
-    } else {
-      return psr::MonoSet<D>(
-          contextmap.find(std::make_pair<psr::MonoSet<D>, N>(In, src))->second);
-    }
   }
 
   void enterFunction(const N src, const N dst, psr::MonoSet<D> &In) {
-    if (switchSmartContext) {
-      const std::pair<psr::MonoSet<D>, N> tmp(In, src);
-      contextmap[tmp];
-      tempstack.push(tmp);
-    }
-    addContext(src, dest, In);
   }
 
   void exitFunction(const N src, const N dst, psr::MonoSet<D> &In) {
-    if (switchSmartContext) {
-      contextmap[tempstack.pop()] = In;
-    }
-    removeContext(src, dst, In);
   }
 
-protected:
-  virtual void addContext(const N src, const N dst, psr::MonoSet<D> &In) = 0;
-  virtual void removeContext(const N src, const N dst, psr::MonoMap<D> &In) = 0;
-
-public:
-  virtual bool isEqual(const ContextBase &rhs) const = 0;
-  virtual bool isDifferent(const ContextBase &rhs) const = 0;
-  virtual bool isLessThan(const ContextBase &rhs) const = 0;
+  bool isEqual(const ContextBase &rhs) const { return false; };
+  virtual bool isLessThan(const ContextBase &rhs) const { return false; }
   virtual void print(std::ostream &os) const = 0;
 
   friend bool operator==(const ContextBase &lhs, const ContextBase &rhs) {
     return lhs.isEqual(rhs);
   }
   friend bool operator!=(const ContextBase &lhs, const ContextBase &rhs) {
-    return lhs.isDifferent(rhs);
+    return !lhs.isEqual(rhs);
   }
   friend bool operator<(const ContextBase &lhs, const ContextBase &rhs) {
     return lhs.isLessThan(rhs);
