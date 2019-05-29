@@ -71,15 +71,19 @@ class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
         std::cout << "\tEMPTY\n";
       } else {
         for (auto &context : entry.second) {
-          for (auto &fact : context.second) {
-            std::cout << InterMonoSolver<const llvm::Instruction *, D,
-                                         const llvm::Function *, I>::IMProblem
-                             .DtoString(fact)
-                      << '\n';
+          std::cout << context.first << '\n';
+          if (context.second.empty()) {
+            std::cout << "\tEMPTY\n";
+          } else {
+            for (auto &fact : context.second) {
+              std::cout << InterMonoSolver<const llvm::Instruction *, D,
+                                           const llvm::Function *, I>::IMProblem
+                               .DtoString(fact);
+            }
           }
         }
       }
-      std::cout << "\n\n";
+      std::cout << '\n';
     }
   };
 };

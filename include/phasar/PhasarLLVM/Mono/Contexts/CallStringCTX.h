@@ -26,16 +26,19 @@ class CallStringCTX {
     }
   }
 
-  virtual void addContext(const N src, const N dst, psr::MonoSet<D> &In) {
+  virtual void addContext(N src, N dst) {
     if (cs.size() > k - 1) {
       cs.pop_front();
     }
     cs.push_back(src);
   }
-  virtual void removeContext(const N src, const N dst, psr::MonoSet<D> &In) {
+  virtual N removeContext(N src, N dst) {
     if (cs.size() > 0) {
+      N n = cs.back();
       cs.pop_back();
+      return n;
     }
+    return N{};
   }
 
   virtual bool isEqual(const CallStringCTX &rhs) const { return cs == rhs.cs; }
@@ -58,11 +61,22 @@ class CallStringCTX {
   }
 
   void print(std::ostream &os) const {
-    os << "Call string [" << cs.size() << "]: ";
+    os << "Call string: [ ";
     for (auto C : cs) {
-      os << this->NP->NtoString(C) << " * ";
+      os << llvmIRToString(C);
+      if (C != cs.back()) {
+        os << " * ";
+      }
     }
+    os << " ]";
   }
+
+  friend std::ostream &operator<<(std::ostream &os, const CallStringCTX<D, N, K> &c) {
+    c.print(os);
+    return os;
+  }
+
+  bool empty() const { return cs.empty(); }
 
   std::size_t size() const { return cs.size(); }
 };
