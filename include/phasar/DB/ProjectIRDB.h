@@ -113,7 +113,13 @@ public:
   llvm::LLVMContext *getLLVMContext(const std::string &ModuleName);
   void insertModule(std::unique_ptr<llvm::Module> M);
   llvm::Module *getModule(const std::string &ModuleName);
-  std::set<llvm::Module *> getAllModules() const;
+  inline std::set<llvm::Module *> getAllModules() const {
+    std::set<llvm::Module *> ModuleSet;
+    for (auto &entry : modules) {
+      ModuleSet.insert(entry.second.get());
+    }
+    return ModuleSet;
+  }
   std::set<const llvm::Function *> getAllFunctions();
   std::set<const llvm::Instruction *> getRetResInstructions();
   std::set<const llvm::Value *> getAllocaInstructions();

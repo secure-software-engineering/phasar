@@ -371,14 +371,6 @@ llvm::Module *ProjectIRDB::getModule(const std::string &name) {
   return nullptr;
 }
 
-std::set<llvm::Module *> ProjectIRDB::getAllModules() const {
-  std::set<llvm::Module *> ModuleSet;
-  for (auto &entry : modules) {
-    ModuleSet.insert(entry.second.get());
-  }
-  return ModuleSet;
-}
-
 std::size_t ProjectIRDB::getNumberOfModules() { return modules.size(); }
 
 llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &name) {
