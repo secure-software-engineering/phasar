@@ -183,12 +183,10 @@ std::string getMetaDataID(const llvm::Value *V) {
     }
 
   } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (!isLLVMZeroValue(V)) {
-      if (auto metaData = GV->getMetadata(MetaDataKind)) {
-        return llvm::cast<llvm::MDString>(metaData->getOperand(0))
-            ->getString()
-            .str();
-      }
+    if (auto metaData = GV->getMetadata(MetaDataKind)) {
+      return llvm::cast<llvm::MDString>(metaData->getOperand(0))
+          ->getString()
+          .str();
     }
   } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     string FName = Arg->getParent()->getName().str();
