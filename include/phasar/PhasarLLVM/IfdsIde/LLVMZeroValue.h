@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include <llvm/IR/Constants.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -31,10 +32,11 @@ class Value;
 namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working
-extern const std::string LLVMZeroValueInternalName;
-extern const std::string LLVMZeroValueInternalModuleName;
-extern const std::unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX;
-extern const std::unique_ptr<llvm::Module> LLVMZeroValueMod;
+static constexpr char LLVMZeroValueInternalName[] = "zero_value";
+static constexpr char LLVMZeroValueInternalModuleName[] = "zero_module";
+static const std::unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX(new llvm::LLVMContext);
+static const std::unique_ptr<llvm::Module> LLVMZeroValueMod(
+    new llvm::Module(LLVMZeroValueInternalModuleName, *LLVMZeroValueCTX));
 
 /**
  * This function can be used to determine if a Value is a ZeroVale.
@@ -45,7 +47,13 @@ extern const std::unique_ptr<llvm::Module> LLVMZeroValueMod;
  * may be used, but isZeroValue() is much cheaper since it
  * does not have to traverse the class hierarchy to check this.
  */
-bool isLLVMZeroValue(const llvm::Value *V);
+inline bool isLLVMZeroValue(const llvm::Value *V) {
+  if (V && V->hasName()) {
+    // checks if V's name start with "zero_value"
+    return V->getName().str().find(LLVMZeroValueInternalName) != std::string::npos;
+  }
+  return false;
+}
 
 /**
  * This class may be used to represent the special zero value for IFDS
@@ -77,7 +85,17 @@ bool isLLVMZeroValue(const llvm::Value *V);
  */
 class LLVMZeroValue : public llvm::GlobalVariable {
 private:
-  LLVMZeroValue();
+  LLVMZeroValue()
+      : llvm::GlobalVariable(*LLVMZeroValueMod,
+                             llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2), true,
+                             llvm::GlobalValue::LinkageTypes::ExternalLinkage,
+                             llvm::ConstantInt::get(*LLVMZeroValueCTX,
+                                                    llvm::APInt(/*nbits*/ 2,
+                                                                /*value*/ 0,
+                                                                /*signed*/ true)),
+                             LLVMZeroValueInternalName) {
+    setAlignment(4);
+  }
 
 public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
@@ -85,7 +103,10 @@ public:
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
   LLVMZeroValue &operator=(LLVMZeroValue &&Z) = delete;
   // Do not specify a destructor (at all)!
-  static LLVMZeroValue *getInstance();
+  static LLVMZeroValue *getInstance() {
+    static LLVMZeroValue *zv = new LLVMZeroValue;
+    return zv;
+  }
 };
 } // namespace psr
 

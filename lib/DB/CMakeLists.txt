@@ -5,10 +5,7 @@ include_directories(
 )
 
 add_phasar_library(phasar_db
-  # TODO fix circular dependency of DB
-  # Do not link phasar_db into a shared object library
-  # unitl the circular dependency is fixed.
-  # SHARED
+  SHARED
   ${DB_SRC}
 )
 
