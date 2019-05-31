@@ -4,7 +4,6 @@
 #include <deque>
 #include <initializer_list>
 
-#include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
