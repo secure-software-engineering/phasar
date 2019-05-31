@@ -9,13 +9,12 @@
 
 namespace psr {
 
-template <typename D, typename N, unsigned K>
-class CallStringCTX {
- protected:
+template <typename D, typename N, unsigned K> class CallStringCTX {
+protected:
   std::deque<N> cs;
   static const unsigned k = K;
 
- public:
+public:
   CallStringCTX() {}
 
   CallStringCTX(std::initializer_list<N> ilist) : cs(ilist) {
@@ -82,6 +81,6 @@ class CallStringCTX {
   std::size_t size() const { return cs.size(); }
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

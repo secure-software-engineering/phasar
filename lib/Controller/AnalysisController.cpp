@@ -333,8 +333,8 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         InterMonoSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(inter,
-                                                                         true);
+        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(
+            inter, true);
 
         solver.solve();
         break;

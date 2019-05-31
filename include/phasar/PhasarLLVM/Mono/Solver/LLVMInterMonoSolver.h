@@ -28,17 +28,18 @@
 namespace psr {
 
 template <typename D, typename I, unsigned K>
-class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
-                                                   const llvm::Function *, I, K> {
- protected:
+class LLVMInterMonoSolver
+    : public InterMonoSolver<const llvm::Instruction *, D,
+                             const llvm::Function *, I, K> {
+protected:
   bool DUMP_RESULTS;
 
- public:
+public:
   LLVMInterMonoSolver(InterMonoProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, I> &problem,
                       bool dumpResults = false)
-      : InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
-                        I, K>(problem),
+      : InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
+                        K>(problem),
         DUMP_RESULTS(dumpResults) {}
 
   virtual ~LLVMInterMonoSolver() = default;
@@ -50,9 +51,10 @@ class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
 
   virtual void solve() override {
     // do the solving of the analaysis problem
-    InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
-                    I, K>::solve();
-    if (DUMP_RESULTS) dumpResults();
+    InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
+                    K>::solve();
+    if (DUMP_RESULTS)
+      dumpResults();
   }
 
   /**
@@ -60,8 +62,9 @@ class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
    */
   void dumpResults() {
     std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
-    for (auto &entry : InterMonoSolver<const llvm::Instruction *, D,
-                                       const llvm::Function *, I, K>::Analysis) {
+    for (auto &entry :
+         InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
+                         I, K>::Analysis) {
       std::cout << "Instruction:\n"
                 << InterMonoSolver<const llvm::Instruction *, D,
                                    const llvm::Function *, I, K>::IMProblem
@@ -77,8 +80,8 @@ class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
           } else {
             for (auto &fact : context.second) {
               std::cout << InterMonoSolver<const llvm::Instruction *, D,
-                                           const llvm::Function *, I, K>::IMProblem
-                               .DtoString(fact);
+                                           const llvm::Function *, I,
+                                           K>::IMProblem.DtoString(fact);
             }
           }
         }
@@ -88,6 +91,6 @@ class LLVMInterMonoSolver : public InterMonoSolver<const llvm::Instruction *, D,
   };
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

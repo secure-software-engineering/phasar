@@ -91,7 +91,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     const llvm::Function *F = DB.getFunction(EntryPoints.front());
     InterMonoSolverTest inter(I, EntryPoints);
     LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(inter,
-                                                                     true);
+                                                                        true);
 
     solver.solve();
   } else if (DataFlowAnalysis == "ifds-const") {
