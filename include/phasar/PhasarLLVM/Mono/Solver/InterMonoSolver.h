@@ -28,22 +28,21 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename I>
+template <typename N, typename D, typename M, typename I, unsigned K>
 class InterMonoSolver {
  protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<CallStringCTX<D, N, 3>, MonoSet<D>>> Analysis;
+  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> Analysis;
   MonoSet<M> AddedFunctions;
   I ICFG;
-  // CallStringCTX<D, N, 3> ZeroCTX;
 
   void initialize() {
     for (auto &seed : IMProblem.initialSeeds()) {
       std::vector<std::pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-      Analysis[seed.first][CallStringCTX<D, N, 3>()].insert(seed.second.begin(),
+      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
                                                             seed.second.end());
     }
   }
@@ -147,14 +146,14 @@ class InterMonoSolver {
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      MonoMap<CallStringCTX<D, N, 3>, MonoSet<D>> Out;
+      MonoMap<CallStringCTX<D, N, K>, MonoSet<D>> Out;
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           // Handle call flow
           for (auto & [ CTX, Facts ] : Analysis[src]) {
             auto CTXAdd(CTX);
-            CTXAdd.addContext(src, dst);
+            CTXAdd.push_back(src);
             Out[CTXAdd] = IMProblem.callFlow(src, ICFG.getMethodOf(dst),
                                              Analysis[src][CTX]);
             bool flowfactsstabilized =
@@ -184,7 +183,7 @@ class InterMonoSolver {
         for (auto & [ CTX, Facts ] : Analysis[src]) {
           auto CTXRm(CTX);
           // might be nullptr or a default constructed node
-          auto callsite = CTXRm.removeContext(src, dst);
+          auto callsite = CTXRm.pop_back();
           std::set<N> retsites;
           // handle empty context
           if (CTX.empty()) {

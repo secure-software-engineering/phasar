@@ -333,7 +333,7 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::Inter_Mono_SolverTest: {
         InterMonoSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(inter,
+        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(inter,
                                                                          true);
 
         solver.solve();
@@ -341,7 +341,7 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
         InterMonoTaintAnalysis interMonoTaintProblem(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(
+        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> solver(
             interMonoTaintProblem, true);
         cout << "Mono Taint Analysis ..." << endl;
         solver.solve();

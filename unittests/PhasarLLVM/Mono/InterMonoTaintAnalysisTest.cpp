@@ -36,7 +36,7 @@ TEST(InterMonoTaintAnalysisTest, Running) {
     I.printAsDot("call_graph.dot");
     InterMonoTaintAnalysis IMTaintAnalysis(I, {"main"});
 
-    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(
+    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> solver(
         IMTaintAnalysis, true);
 
     solver.solve();

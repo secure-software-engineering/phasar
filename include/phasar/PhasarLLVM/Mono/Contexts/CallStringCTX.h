@@ -1,12 +1,11 @@
 #ifndef _PHASAR_PHASARLLVM_MONO_CALLSTRINGCTX_H_
 #define _PHASAR_PHASARLLVM_MONO_CALLSTRINGCTX_H_
 
-#include <algorithm>
 #include <deque>
 #include <initializer_list>
-#include <iterator>
 
 #include <phasar/PhasarLLVM/Mono/Contexts/ContextBase.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
@@ -26,13 +25,14 @@ class CallStringCTX {
     }
   }
 
-  virtual void addContext(N src, N dst) {
+  void push_back(N n) {
     if (cs.size() > k - 1) {
       cs.pop_front();
     }
-    cs.push_back(src);
+    cs.push_back(n);
   }
-  virtual N removeContext(N src, N dst) {
+
+  N pop_back() {
     if (cs.size() > 0) {
       N n = cs.back();
       cs.pop_back();
@@ -41,7 +41,7 @@ class CallStringCTX {
     return N{};
   }
 
-  virtual bool isEqual(const CallStringCTX &rhs) const { return cs == rhs.cs; }
+  bool isEqual(const CallStringCTX &rhs) const { return cs == rhs.cs; }
 
   bool isDifferent(const CallStringCTX &rhs) const { return !isEqual(rhs); }
 
@@ -71,7 +71,8 @@ class CallStringCTX {
     os << " ]";
   }
 
-  friend std::ostream &operator<<(std::ostream &os, const CallStringCTX<D, N, K> &c) {
+  friend std::ostream &operator<<(std::ostream &os,
+                                  const CallStringCTX<D, N, K> &c) {
     c.print(os);
     return os;
   }

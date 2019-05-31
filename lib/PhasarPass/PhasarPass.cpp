@@ -90,7 +90,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
     const llvm::Function *F = DB.getFunction(EntryPoints.front());
     InterMonoSolverTest inter(I, EntryPoints);
-    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &> solver(inter,
+    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(inter,
                                                                      true);
 
     solver.solve();
