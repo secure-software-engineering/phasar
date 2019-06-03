@@ -17,12 +17,12 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
-#include <deque>
-#include <iosfwd>
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <deque>
+#include <iosfwd>
 #include <utility>
 #include <vector>
 
@@ -30,7 +30,7 @@ namespace psr {
 
 template <typename N, typename D, typename M, typename I, unsigned K>
 class InterMonoSolver {
-protected:
+ protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> Analysis;
@@ -129,7 +129,7 @@ protected:
     }
   }
 
-public:
+ public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
   ~InterMonoSolver() = default;
@@ -151,7 +151,7 @@ public:
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
           // Handle call flow
-          for (auto &[CTX, Facts] : Analysis[src]) {
+          for (auto & [ CTX, Facts ] : Analysis[src]) {
             auto CTXAdd(CTX);
             CTXAdd.push_back(src);
             Out[CTXAdd] = IMProblem.callFlow(src, ICFG.getMethodOf(dst),
@@ -166,7 +166,7 @@ public:
           }
         } else {
           // Handle call-to-ret flow
-          for (auto &[CTX, Facts] : Analysis[src]) {
+          for (auto & [ CTX, Facts ] : Analysis[src]) {
             // call-to-ret flow does not modify contexts
             Out[CTX] = IMProblem.callToRetFlow(
                 src, dst, ICFG.getCalleesOfCallAt(src), Analysis[src][CTX]);
@@ -180,27 +180,28 @@ public:
         }
       } else if (ICFG.isExitStmt(src)) {
         // Handle return flow
-        for (auto &[CTX, Facts] : Analysis[src]) {
+        for (auto & [ CTX, Facts ] : Analysis[src]) {
           auto CTXRm(CTX);
-          // might be nullptr or a default constructed node
-          auto callsite = CTXRm.pop_back();
+          // we need to use several call- and retsites if the context is empty
+          std::set<N> callsites;
           std::set<N> retsites;
           // handle empty context
           if (CTX.empty()) {
-            auto callsites = ICFG.getCallersOf(ICFG.getMethodOf(src));
-            for (auto callsite : callsites) {
-              for (auto retsite : ICFG.getPredsOf(callsite)) {
-                retsites.insert(retsite);
-              }
-            }
+            callsites = ICFG.getCallersOf(ICFG.getMethodOf(src));
           } else {
-            // handle valid context
-            for (auto retsite : ICFG.getPredsOf(callsite)) {
-              retsites.insert(retsite);
-            }
+            // handle context containing at least one element
+            callsites.insert(CTXRm.pop_back());
           }
-          Out[CTXRm] = IMProblem.returnFlow(callsite, ICFG.getMethodOf(src),
-                                            src, dst, Analysis[src][CTX]);
+          // retrieve the possible return sites for each call
+          for (auto callsite : callsites) {
+            auto retsitesPerCall = ICFG.getReturnSitesOfCallAt(callsite);
+            retsites.insert(retsitesPerCall.begin(), retsitesPerCall.end());
+          }
+          for (auto callsite : callsites) {
+            auto retFactsPerCall = IMProblem.returnFlow(
+                callsite, ICFG.getMethodOf(src), src, dst, Analysis[src][CTX]);
+            Out[CTXRm].insert(retFactsPerCall.begin(), retFactsPerCall.end());
+          }
           for (auto retsite : retsites) {
             bool flowfactsstabilized =
                 IMProblem.sqSubSetEqual(Out[CTXRm], Analysis[retsite][CTXRm]);
@@ -213,7 +214,7 @@ public:
         }
       } else {
         // Handle normal flow
-        for (auto &[CTX, Facts] : Analysis[src]) {
+        for (auto & [ CTX, Facts ] : Analysis[src]) {
           Out[CTX] = IMProblem.normalFlow(src, Analysis[src][CTX]);
           // Check if data-flow facts have changed and if so, add edge(s) to
           // worklist again.
@@ -229,6 +230,6 @@ public:
   }
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif
