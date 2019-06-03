@@ -433,8 +433,8 @@ void ProjectIRDB::exportPATBCJSON() {
 }
 
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
-  if (isLLVMZeroValue(V)) {
-    return LLVMZeroValueInternalName;
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(V)) {
+    return LLVMZeroValue::getInstance()->getName();
   } else if (const llvm::Instruction *I =
                  llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
@@ -476,8 +476,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
 }
 
 const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
-  if (S == LLVMZeroValueInternalName ||
-      S.find(LLVMZeroValueInternalName) != std::string::npos) {
+  if (S.find(LLVMZeroValue::getInstance()->getName()) != std::string::npos) {
     return LLVMZeroValue::getInstance();
   } else if (S.find(".") == std::string::npos) {
     return getGlobalVariable(S);

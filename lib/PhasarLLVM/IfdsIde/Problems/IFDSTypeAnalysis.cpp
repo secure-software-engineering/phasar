@@ -99,7 +99,7 @@ IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() {
 }
 
 bool IFDSTypeAnalysis::isZeroValue(IFDSTypeAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSTypeAnalysis::printNode(ostream &os, IFDSTypeAnalysis::n_t n) const {

@@ -263,7 +263,7 @@ IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() {
 }
 
 bool IFDSConstAnalysis::isZeroValue(IFDSConstAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSConstAnalysis::printNode(ostream &os, IFDSConstAnalysis::n_t n) const {

@@ -119,7 +119,7 @@ WPDSSolverTest::d_t WPDSSolverTest::zeroValue() {
 }
 
 bool WPDSSolverTest::isZeroValue(WPDSSolverTest::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 std::map<WPDSSolverTest::n_t, std::set<WPDSSolverTest::d_t>>

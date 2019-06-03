@@ -95,7 +95,7 @@ IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() {
 }
 
 bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts
