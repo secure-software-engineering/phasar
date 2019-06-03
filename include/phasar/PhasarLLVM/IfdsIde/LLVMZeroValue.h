@@ -32,17 +32,17 @@ class Value;
 namespace psr {
 
 // do not touch, its only purpose is to make ZeroValue working
-static const std::unique_ptr<llvm::LLVMContext> LLVMZeroValueCTX(
-    new llvm::LLVMContext);
-static const std::unique_ptr<llvm::Module> LLVMZeroValueMod(
-    new llvm::Module("zero_module", *LLVMZeroValueCTX));
+static const std::unique_ptr<llvm::LLVMContext>
+    LLVMZeroValueCTX(new llvm::LLVMContext);
+static const std::unique_ptr<llvm::Module>
+    LLVMZeroValueMod(new llvm::Module("zero_module", *LLVMZeroValueCTX));
 
 /**
  * This class may be used to represent the special zero value for IFDS
  * and IDE problems. The LLVMZeroValue is implemented as a singleton.
  */
 class LLVMZeroValue : public llvm::GlobalVariable {
- private:
+private:
   LLVMZeroValue()
       : llvm::GlobalVariable(
             *LLVMZeroValueMod, llvm::Type::getIntNTy(*LLVMZeroValueCTX, 2),
@@ -56,7 +56,7 @@ class LLVMZeroValue : public llvm::GlobalVariable {
   }
   static constexpr char LLVMZeroValueInternalName[] = "zero_value";
 
- public:
+public:
   LLVMZeroValue(const LLVMZeroValue &Z) = delete;
   LLVMZeroValue &operator=(const LLVMZeroValue &Z) = delete;
   LLVMZeroValue(LLVMZeroValue &&Z) = delete;
@@ -79,6 +79,6 @@ class LLVMZeroValue : public llvm::GlobalVariable {
     return zv;
   }
 };
-}  // namespace psr
+} // namespace psr
 
 #endif

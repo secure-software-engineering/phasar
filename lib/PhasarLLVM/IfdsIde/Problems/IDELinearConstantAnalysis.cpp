@@ -206,7 +206,8 @@ IDELinearConstantAnalysis::getCallFlowFunction(
           }
           // Special case: Check if function is called with integer literals as
           // parameter (in case of varargs ignore)
-          if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) && idx < destMthd->arg_size() &&
+          if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
+              idx < destMthd->arg_size() &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
             res.insert(formals[idx]); // corresponding formal
           }
