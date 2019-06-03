@@ -35,7 +35,7 @@ public:
   virtual ~IDETabulationProblem() = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
   virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
-    os << "No IDE report available!";
+    os << "No IDE report available!\n";
   }
 };
 } // namespace psr

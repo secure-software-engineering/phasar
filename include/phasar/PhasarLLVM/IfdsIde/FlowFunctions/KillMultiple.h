@@ -7,15 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * Kill.h
- *
- *  Created on: 04.08.2016
- *      Author: pdschbrt
- */
-
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILL_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILL_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLMULTIPLE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLMULTIPLE_H_
 
 #include <set>
 
@@ -23,15 +16,15 @@
 
 namespace psr {
 
-template <typename D> class Kill : public FlowFunction<D> {
+template <typename D> class KillMultiple : public FlowFunction<D> {
 protected:
-  D killValue;
+  std::set<D> killValues;
 
 public:
-  Kill(D killValue) : killValue(killValue) {}
-  virtual ~Kill() = default;
+  KillMultiple(std::set<D> killValues) : killValues(killValues) {}
+  virtual ~KillMultiple() = default;
   std::set<D> computeTargets(D source) override {
-    if (source == killValue)
+    if (killValues.find(source) != killValues.end())
       return {};
     else
       return {source};
