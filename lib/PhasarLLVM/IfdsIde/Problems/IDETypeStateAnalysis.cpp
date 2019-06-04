@@ -9,6 +9,7 @@
 
 #include <algorithm>
 
+#include <llvm/IR/CallSite.h>
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
@@ -19,11 +20,14 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillMultiple.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/PropagateLoad.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -34,36 +38,17 @@ using namespace psr;
 
 namespace psr {
 
-State getNextState(Token tok, State state) {
-  return delta[static_cast<std::underlying_type_t<Token>>(tok)]
-              [static_cast<std::underlying_type_t<State>>(state)];
-}
-
-const State IDETypeStateAnalysis::TOP = State::TOP;
-const State IDETypeStateAnalysis::BOTTOM = State::BOT;
-
-const shared_ptr<AllBottom<IDETypeStateAnalysis::v_t>>
-    IDETypeStateAnalysis::AllBotFunction(
-        make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(
-            IDETypeStateAnalysis::BOTTOM));
-
-const std::set<std::string> IDETypeStateAnalysis::STDIOFunctions = {
-    "fopen",   "fclose",   "freopen",  "fgetc",   "fputc",
-    "putchar", "_IO_getc", "_I0_putc", "fprintf", "__isoc99_fscanf",
-    "feof",    "ferror",   "ungetc",   "fflush",  "fseek",
-    "ftell",   "rewind",   "fgetpos",  "fsetpos"};
-
 IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
                                            const LLVMTypeHierarchy &th,
                                            const ProjectIRDB &irdb,
-                                           string TypeOfInterest,
+                                           const TypeStateDescription &tsd,
                                            vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), EntryPoints(EntryPoints),
-      TypeOfInterest(TypeOfInterest) {
+    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), TSD(tsd),
+      EntryPoints(EntryPoints), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   DefaultIDETabulationProblem::zerovalue = createZeroValue();
 }
 
-// start formulating our analysis by specifying the parts required for IFDS
+// Start formulating our analysis by specifying the parts required for IFDS
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
@@ -71,19 +56,21 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getNormalFlowFunction()");
-  // check alloca instruction for file handler
+  // Check if Alloca's type matches the target type. If so, generate from zero
+  // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
           return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
                                                              zeroValue());
         }
       }
     }
   }
-  // check load instructions for file handler
+  // Check load instructions for target type. Generate from the loaded value.
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     if (Load->getPointerOperand()
             ->getType()
@@ -94,48 +81,47 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                                    ->getType()
                                                    ->getPointerElementType()
                                                    ->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
-          // we have to generate from value that is loaded!
-          struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-            const llvm::LoadInst *Load;
-            TSFlowFunction(const llvm::LoadInst *L) : Load(L) {}
-            ~TSFlowFunction() override = default;
-            set<IDETypeStateAnalysis::d_t>
-            computeTargets(IDETypeStateAnalysis::d_t source) override {
-              if (source == Load->getPointerOperand()) {
-                return {source, Load};
-              }
-              return {source};
-            }
-          };
-          return make_shared<TSFlowFunction>(Load);
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
+          // We have to generate from value that is loaded!
+          return make_shared<PropagateLoad<IDETypeStateAnalysis::d_t>>(Load);
         }
       }
     }
   }
-  // check store instructions for file handler
+  // Check store instructions for target type. Perform a strong update, i.e.
+  // kill the alloca pointed to by the pointer-operand and all alloca's related
+  // to the value-operand and then generate them from the value-operand.
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
-          // perform a strong update!
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
+          auto RelAllocas = getRelevantAllocas(Store->getValueOperand());
+
           struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
             const llvm::StoreInst *Store;
-            TSFlowFunction(const llvm::StoreInst *S) : Store(S) {}
+            std::set<IDETypeStateAnalysis::d_t> Allocas;
+            TSFlowFunction(const llvm::StoreInst *S,
+                           std::set<IDETypeStateAnalysis::d_t> A)
+                : Store(S), Allocas(A) {}
             ~TSFlowFunction() override = default;
             set<IDETypeStateAnalysis::d_t>
             computeTargets(IDETypeStateAnalysis::d_t source) override {
-              if (source == Store->getPointerOperand()) {
+              // We kill all relevant alloca's
+              if (Allocas.find(source) != Allocas.end()) {
                 return {};
               }
+              // Generate all relevant allocas from the stored value
               if (source == Store->getValueOperand()) {
-                return {source, Store->getPointerOperand()};
+                Allocas.insert(source);
+                return Allocas;
               }
               return {source};
             }
           };
-          return make_shared<TSFlowFunction>(Store);
+          return make_shared<TSFlowFunction>(Store, RelAllocas);
         }
       }
     }
@@ -149,13 +135,13 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getCallFlowFunction()");
-  // Kill all data-flow facts if we hit a function that we want to model
-  // ourselfs within getCallToRetFlowFunction()
-  if (STDIOFunctions.count(destMthd->getName().str())) {
+  // Kill all data-flow facts if we hit a function of the target API.
+  // Those functions are modled within Call-To-Return.
+  if (TSD.isAPIFunction(cxx_demangle(destMthd->getName().str()))) {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
-  // standard mapping
+  // standard mapping.
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
@@ -172,12 +158,93 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getRetFlowFunction()");
-  // Just use the standard mapping
-  return make_shared<MapFactsToCaller>(
-      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
-      [](IDETypeStateAnalysis::d_t formal) {
-        return formal->getType()->isPointerTy();
-      });
+
+  // Besides mapping the formal parameter back into the actual parameter and
+  // propagating the return value into the caller context, we also propagate
+  // all related alloca's of the formal parameter and the return value.
+  struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+    llvm::ImmutableCallSite CallSite;
+    const llvm::Function *CalleeMthd;
+    const llvm::ReturnInst *ExitStmt;
+    IDETypeStateAnalysis *Analysis;
+    std::vector<const llvm::Value *> actuals;
+    std::vector<const llvm::Value *> formals;
+    TSFlowFunction(llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
+                   const llvm::Instruction *exitstmt,
+                   IDETypeStateAnalysis *analysis)
+        : CallSite(cs), CalleeMthd(calleeMthd),
+          ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
+          Analysis(analysis) {
+      // Set up the actual parameters
+      for (unsigned idx = 0; idx < CallSite.getNumArgOperands(); ++idx) {
+        actuals.push_back(CallSite.getArgOperand(idx));
+      }
+      // Set up the formal parameters
+      for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
+        formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+      }
+    }
+
+    ~TSFlowFunction() override = default;
+
+    set<IDETypeStateAnalysis::d_t>
+    computeTargets(IDETypeStateAnalysis::d_t source) override {
+      if (!isLLVMZeroValue(source)) {
+        set<const llvm::Value *> res;
+        // Handle C-style varargs functions
+        if (CalleeMthd->isVarArg() && !CalleeMthd->isDeclaration()) {
+          const llvm::Instruction *AllocVarArg;
+          // Find the allocation of %struct.__va_list_tag
+          for (auto &BB : *CalleeMthd) {
+            for (auto &I : BB) {
+              if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+                if (Alloc->getAllocatedType()->isArrayTy() &&
+                    Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
+                    Alloc->getAllocatedType()
+                        ->getArrayElementType()
+                        ->isStructTy() &&
+                    Alloc->getAllocatedType()
+                            ->getArrayElementType()
+                            ->getStructName() == "struct.__va_list_tag") {
+                  AllocVarArg = Alloc;
+                  // TODO break out this nested loop earlier (without goto ;-)
+                }
+              }
+            }
+          }
+          // Generate the varargs things by using an over-approximation
+          if (source == AllocVarArg) {
+            for (unsigned idx = formals.size(); idx < actuals.size(); ++idx) {
+              res.insert(actuals[idx]);
+            }
+          }
+        }
+        // Handle ordinary case
+        // Map formal parameter into corresponding actual parameter.
+        for (unsigned idx = 0; idx < formals.size(); ++idx) {
+          if (source == formals[idx]) {
+            res.insert(actuals[idx]); // corresponding actual
+          }
+        }
+        // Collect the return value
+        if (source == ExitStmt->getReturnValue()) {
+          res.insert(CallSite.getInstruction());
+        }
+        // Collect all relevant alloca's to map into caller context
+        std::set<IDETypeStateAnalysis::d_t> RelAllocas;
+        for (auto fact : res) {
+          auto allocas = Analysis->getRelevantAllocas(fact);
+          RelAllocas.insert(allocas.begin(), allocas.end());
+        }
+        res.insert(RelAllocas.begin(), RelAllocas.end());
+        return res;
+      } else {
+        return {source};
+      }
+    }
+  };
+  return make_shared<TSFlowFunction>(llvm::ImmutableCallSite(callSite),
+                                     calleeMthd, exitStmt, this);
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
@@ -187,31 +254,53 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getCallToRetFlowFunction()");
-  set<std::string> CalleeNames;
+  const llvm::ImmutableCallSite CS(callSite);
   for (auto Callee : callees) {
-    CalleeNames.insert(Callee->getName().str());
-  }
-  llvm::ImmutableCallSite CS(callSite);
-  // Generate the return value of fopen()
-  if (CS.getCalledFunction()->getName() == "fopen") {
-    return make_shared<Gen<IDETypeStateAnalysis::d_t>>(CS.getInstruction(),
-                                                       zeroValue());
-  }
-  // Handle all functions that are not modeld with special semantics
-  if (!includes(STDIOFunctions.begin(), STDIOFunctions.end(),
-                CalleeNames.begin(), CalleeNames.end())) {
-    // Pass all data-flow facts to STDIOFunctions as identity.
-    // Kill actual parameters of type '%struct._IO_FILE*' as these
-    // data-flow facts are (inter-procedurally) propagated via
-    // getCallFlowFunction()
-    // and the corresponding getReturnFlowFunction().
-    for (auto &Arg : CS.args()) {
-      if (Arg->getType()->isPointerTy()) {
-        if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-                Arg->getType()->getPointerElementType())) {
-          if (StructTy->getName().find(TypeOfInterest) !=
-              llvm::StringRef::npos) {
-            return make_shared<Kill<IDETypeStateAnalysis::d_t>>(Arg);
+    std::string demangledFname = cxx_demangle(Callee->getName().str());
+
+    // Generate the return value of factory functions from the local alloca
+    // value. To get the alloca value we have to look for a subsequent store
+    // instruction of the return value, i.e. check uses of the call for store
+    // instructions.
+    if (TSD.isFactoryFunction(demangledFname)) {
+      for (auto User : callSite->users()) {
+        if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+          auto Alloca = Store->getPointerOperand();
+          return make_shared<GenIf<IDETypeStateAnalysis::d_t>>(
+              callSite, zeroValue(),
+              [Alloca](IDETypeStateAnalysis::d_t source) {
+                return source == Alloca;
+              });
+        }
+      }
+      // TODO: Check the case where the return value of a factory function is
+      // not used by target code but the points-to information indicates
+      // that the return value is used. This can lead to strange behaviour.
+      // assert(false && "No StoreInst found for a factory call!");
+    }
+
+    // Handle all functions that are not modeld with special semantics.
+    // Kill actual parameters of target type and all its aliases
+    // and the corresponding alloca(s) as these data-flow facts are
+    // (inter-procedurally) propagated via Call- and the corresponding
+    // Return-Flow. Otherwise we might propagate facts with not updated
+    // states.
+    // Alloca's related to the return value of non-api functions will
+    // not be killed during call-to-return, since it is not safe to assume
+    // that the return value will be used afterwards, i.e. is stored to memory
+    // pointed to by related alloca's.
+    if (!TSD.isAPIFunction(demangledFname) && !Callee->isDeclaration()) {
+      for (auto &Arg : CS.args()) {
+        if (Arg->getType()->isPointerTy()) {
+          if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+                  Arg->getType()->getPointerElementType())) {
+            if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+                llvm::StringRef::npos) {
+              std::set<IDETypeStateAnalysis::d_t> FactsToKill =
+                  getPointsToAndAllocas(Arg.get());
+              return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
+                  FactsToKill);
+            }
           }
         }
       }
@@ -268,22 +357,24 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "(D) Succ Node :   "
                 << IDETypeStateAnalysis::DtoString(succNode));
-  // Set struct._IO_FILE variables to uninitialized once they have been
-  // allocated
+  // Set alloca instructions of target type to uninitialized.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
               Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TypeOfInterest) != llvm::StringRef::npos) {
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
           if (currNode == zeroValue() && succNode == Alloca) {
             struct TSEdgeFunctionImpl : public TSEdgeFunction {
-              TSEdgeFunctionImpl() {}
+              TSEdgeFunctionImpl(const TypeStateDescription &tsd,
+                                 const std::string &tok)
+                  : TSEdgeFunction(tsd, tok) {}
               IDETypeStateAnalysis::v_t
               computeTarget(IDETypeStateAnalysis::v_t source) override {
-                return State::UNINIT;
+                return TSD.uninit();
               }
             };
-            return make_shared<TSEdgeFunctionImpl>();
+            return make_shared<TSEdgeFunctionImpl>(TSD, "not relevant");
           }
         }
       }
@@ -297,6 +388,21 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destiantionMethod,
     IDETypeStateAnalysis::d_t destNode) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "IDETypeStateAnalysis::getCallEdgeFunction()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Call Stmt : "
+                << IDETypeStateAnalysis::NtoString(callStmt));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Src Node  :   "
+                << IDETypeStateAnalysis::DtoString(srcNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(M) Callee    : "
+                << IDETypeStateAnalysis::MtoString(destiantionMethod));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Dest Node :   "
+                << IDETypeStateAnalysis::DtoString(destNode));
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -337,49 +443,59 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDETypeStateAnalysis::getCallToRetEdgeFunction()");
-  // Set return value from fopen to opened
-  llvm::ImmutableCallSite CS(callSite);
-  if (CS.getCalledFunction()->getName() == "fopen") {
-    if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
-      struct TSEdgeFunctionImpl : public TSEdgeFunction {
-        TSEdgeFunctionImpl() {}
-        IDETypeStateAnalysis::v_t
-        computeTarget(IDETypeStateAnalysis::v_t source) override {
-          cout << "computeTarget()" << endl;
-          return State::OPENED;
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Call Site : "
+                << IDETypeStateAnalysis::NtoString(callSite));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Call Node :   "
+                << IDETypeStateAnalysis::DtoString(callNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(N) Ret Site  : "
+                << IDETypeStateAnalysis::NtoString(retSite));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "(D) Ret Node  :   "
+                << IDETypeStateAnalysis::DtoString(retSiteNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callees   : ");
+  for (auto Callee : callees) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "  " << IDETypeStateAnalysis::MtoString(Callee));
+  }
+  const llvm::ImmutableCallSite CS(callSite);
+  for (auto Callee : callees) {
+    std::string demangledFname = cxx_demangle(Callee->getName().str());
+
+    // For now we assume that we can only generate from the return value.
+    // We apply the same edge function for the return value, i.e. callsite,
+    // and all it's aliases and relevant alloca's.
+    if (TSD.isFactoryFunction(demangledFname)) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Processing factory function");
+      std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
+          getPointsToAndAllocas(callSite);
+
+      if ((llvm::isa<llvm::AllocaInst>(callNode) &&
+           retSiteNode == CS.getInstruction()) ||
+          (callNode == retSiteNode &&
+           PointsToAndAllocas.find(callNode) != PointsToAndAllocas.end())) {
+        return make_shared<TSEdgeFunction>(TSD, demangledFname);
+      }
+    }
+
+    // For every consuming parameter and all its aliases and relevant alloca's
+    // we apply the same edge function.
+    if (TSD.isConsumingFunction(demangledFname)) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "Processing consuming function");
+      for (auto Idx : TSD.getConsumerParamIdx(demangledFname)) {
+        std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
+            getPointsToAndAllocas(CS.getArgument(Idx));
+
+        if (callNode == retSiteNode &&
+            PointsToAndAllocas.find(callNode) != PointsToAndAllocas.end()) {
+          return make_shared<TSEdgeFunction>(TSD, demangledFname);
         }
-      };
-      return make_shared<TSEdgeFunctionImpl>();
+      }
     }
   }
-  // For all other STDIO functions, that do not generate file handles but only
-  // operate on them, model their behavior using a finite state machine.
-  if (CS.getCalledFunction()->getName() == "fclose") {
-    // Handle parameter itself (its actual memory location in case it is
-    // a load instruction, as well as all of its aliases)
-    if ((callNode == retSiteNode && callNode == CS.getArgOperand(0)) ||
-        (llvm::isa<llvm::LoadInst>(CS.getArgOperand(0)) &&
-         callNode == retSiteNode &&
-         callNode == llvm::dyn_cast<llvm::LoadInst>(CS.getArgOperand(0))
-                         ->getPointerOperand())) {
-      cout << "fclose processing for: ";
-      printDataFlowFact(cout, callNode);
-      cout << endl;
-      struct TSEdgeFunctionImpl : public TSEdgeFunction {
-        TSEdgeFunctionImpl() {
-          cout << "make edge function for fclose()" << endl;
-        }
-        IDETypeStateAnalysis::v_t
-        computeTarget(IDETypeStateAnalysis::v_t source) override {
-          cout << "computeTarget()" << endl;
-          // TODO insert automaton as fclose() is a consuming function
-          return State::CLOSED;
-        }
-      };
-      return make_shared<TSEdgeFunctionImpl>();
-    }
-  }
-  // Otherwise
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -399,12 +515,6 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
 IDETypeStateAnalysis::v_t
 IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
                            IDETypeStateAnalysis::v_t rhs) {
-  // we use the following lattice
-  //                BOT = all information
-  //
-  // UNINIT   OPENED   CLOSED   ERROR
-  //
-  //                TOP = no information
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -436,83 +546,139 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
 
 void IDETypeStateAnalysis::printValue(ostream &os,
                                       IDETypeStateAnalysis::v_t v) const {
-  switch (v) {
-  case State::TOP:
-    os << "TOP";
-    break;
-  case State::UNINIT:
-    os << "UNINIT";
-    break;
-  case State::OPENED:
-    os << "OPENED";
-    break;
-  case State::CLOSED:
-    os << "CLOSED";
-    break;
-  case State::ERROR:
-    os << "ERROR";
-    break;
-  case State::BOT:
-    os << "BOT";
-    break;
-  default:
-    assert(false && "received unknown state!");
-    break;
-  }
+  os << TSD.stateToString(v);
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
     shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
-  cout << "IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith()" << endl;
-  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(this) &&
-      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(
+  if (otherFunction.get() == this ||
+      otherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
           otherFunction.get())) {
-    return otherFunction;
-  }
-  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(otherFunction.get()) &&
-      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(this)) {
     return this->shared_from_this();
-  } else if (this->equal_to(otherFunction)) {
-    return this->shared_from_this();
-  } else {
-    return AllBotFunction;
   }
-  return otherFunction;
+  return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(botElement);
+}
+
+IDETypeStateAnalysis::v_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
+    IDETypeStateAnalysis::v_t source) {
+  auto &lg = lg::get();
+  CurrentState = TSD.getNextState(Token, source);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "State machine transition: (" << Token << " , "
+                << TSD.stateToString(source) << ") -> "
+                << TSD.stateToString(CurrentState));
+  return CurrentState;
 }
 
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::TSEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
+  // TODO: Can we reduce the EF if composed with AllTop?
   return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
-                                             secondFunction);
+                                             secondFunction, TSD.bottom());
 }
 
-// this implementation must of course be consistent with the implementation
-// of the JoinLattice
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::TSEdgeFunction::joinWith(
     std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
-  // compare with the (one-level) lattice used by this analysis
-  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(this) &&
-      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(
+  if (otherFunction.get() == this ||
+      otherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
           otherFunction.get())) {
-    return otherFunction;
-  }
-  if (dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(otherFunction.get()) &&
-      !dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(this)) {
     return this->shared_from_this();
-  } else if (this->equal_to(otherFunction)) {
-    return this->shared_from_this();
-  } else {
-    return AllBotFunction;
   }
+  return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
     std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other) const {
-  // TODO needs improvement
+  if (auto *TSEF =
+          dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(other.get())) {
+    return this->CurrentState == TSEF->CurrentState;
+  }
   return this == other.get();
+}
+
+void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
+                                                 bool isForDebug) const {
+  OS << "TSEdgeFunc(" << TSD.stateToString(CurrentState) << ")";
+}
+
+std::set<IDETypeStateAnalysis::d_t>
+IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
+  if (RelevantAllocaCache.find(V) != RelevantAllocaCache.end()) {
+    return RelevantAllocaCache[V];
+  } else {
+    auto PointsToSet = getPointsToSet(V);
+    std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Compute relevant alloca's of "
+                  << IDETypeStateAnalysis::DtoString(V));
+    for (auto Alias : PointsToSet) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
+      // Collect the pointer operand of a aliased load instruciton
+      if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
+        LOG_IF_ENABLE(
+            BOOST_LOG_SEV(lg, DEBUG)
+            << " -> Alloca: "
+            << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
+        RelevantAllocas.insert(Load->getPointerOperand());
+      } else {
+        // For all other types of aliases, e.g. callsites, function arguments, 
+        // we check store instructions where thoses aliases are value operands. 
+        for (auto User : Alias->users()) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "  User: " << IDETypeStateAnalysis::DtoString(User));
+          if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+            LOG_IF_ENABLE(
+                BOOST_LOG_SEV(lg, DEBUG)
+                << "    -> Alloca (Pointer-Operand): "
+                << IDETypeStateAnalysis::DtoString(Store->getPointerOperand()));
+            RelevantAllocas.insert(Store->getPointerOperand());
+          }
+        }
+      }
+    }
+    for (auto Alias : PointsToSet) {
+      RelevantAllocaCache[Alias] = RelevantAllocas;
+    }
+    return RelevantAllocas;
+  }
+}
+
+std::set<IDETypeStateAnalysis::d_t>
+IDETypeStateAnalysis::getPointsToSet(IDETypeStateAnalysis::d_t V) {
+  if (PointsToCache.find(V) != PointsToCache.end()) {
+    return PointsToCache[V];
+  } else {
+    auto PointsToSet = icfg.getWholeModulePTG().getPointsToSet(V);
+    for (auto Alias : PointsToSet) {
+      PointsToCache[Alias] = PointsToSet;
+    }
+    return PointsToSet;
+  }
+}
+
+std::set<IDETypeStateAnalysis::d_t>
+IDETypeStateAnalysis::getPointsToAndAllocas(IDETypeStateAnalysis::d_t V) {
+  std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
+  std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
+  std::set<IDETypeStateAnalysis::d_t> Aliases = getPointsToSet(V);
+  PointsToAndAllocas.insert(Aliases.begin(), Aliases.end());
+  PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
+  return PointsToAndAllocas;
 }
 
 } // namespace psr

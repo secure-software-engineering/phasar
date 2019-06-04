@@ -1,8 +1,8 @@
 #include <stdio.h>
 
-int main(int argc, char **argv) {
+int main() {
   FILE *f;
-  f = fopen(argv[1], "r");
+  f = fopen("file.txt", "r");
 
   fclose(f);
   fclose(f);

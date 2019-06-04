@@ -1,18 +1,17 @@
 set(NoMem2regSources
-	typestate_0.c
-	typestate_1.c
-	typestate_2.c
-	typestate_3.c
-	typestate_4.c
-	typestate_5.c
-	typestate_6.c
-	typestate_7.c
-	typestate_8.c
-	typestate_9.c
+	typestate_01.c
+	typestate_02.c
+	typestate_03.c
+	typestate_04.c
+	typestate_05.c
+	typestate_06.c
+	# typestate_07.c
+	typestate_08.c
+	typestate_09.c
 	typestate_10.c
-	typestate_11.c
+	# typestate_11.c
 	typestate_12.c
-	typestate_13.c
+	# typestate_13.c
 	typestate_14.c
 	typestate_15.c
 	typestate_16.c
@@ -52,8 +51,14 @@ set(NoMem2regSources
 	typestate_50.c
 	typestate_51.c
 	typestate_52.c
+	typestate_53.c
+	typestate_54.c
+	typestate_55.c
+	typestate_56.c
+	typestate_57.c
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
   generate_ll_file(FILE ${TEST_SRC})
 endforeach(TEST_SRC)
+	

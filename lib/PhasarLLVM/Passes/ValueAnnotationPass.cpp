@@ -29,6 +29,7 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
@@ -50,6 +51,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
     ++unique_value_id;
   }
   for (auto &F : M) {
+    cout << F.getName().str() << endl;
     for (auto &BB : F) {
       for (auto &I : BB) {
         llvm::MDNode *node = llvm::MDNode::get(
@@ -60,6 +62,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
         // llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
         //<< std::endl;
         ++unique_value_id;
+        cout << llvmIRToString(&I) << endl;
       }
     }
   }

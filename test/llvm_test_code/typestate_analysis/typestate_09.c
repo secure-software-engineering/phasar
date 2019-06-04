@@ -3,7 +3,6 @@
 int main() {
   FILE *f;
   f = fopen("file.txt", "r");
-  fclose(f);
   f = fopen("file.txt", "r");
   fclose(f);
 

@@ -10,9 +10,9 @@ void foo(FILE *f) {
   fclose(f);
 }
 
-int main(int argc, char **argv) {
+int main() {
   FILE *f;
-  f = fopen(argv[1], "a");
+  f = fopen("file.txt", "a");
 
   foo(f);
 

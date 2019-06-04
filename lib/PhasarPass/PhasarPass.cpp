@@ -20,6 +20,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
@@ -133,9 +134,10 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
         llvmtaintsolver(taintanalysisproblem, DumpResults);
     llvmtaintsolver.solve();
   } else if (DataFlowAnalysis == "ide-typestate") {
-    IDETypeStateAnalysis typestateproblem(I, H, DB, "struct._IO_FILE",
+    CSTDFILEIOTypeStateDescription fileIODesc;
+    IDETypeStateAnalysis typestateproblem(I, H, DB, fileIODesc,
                                           EntryPoints);
-    LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
+    LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
         llvmtypestatesolver(typestateproblem, DumpResults);
     llvmtypestatesolver.solve();
   } else if (DataFlowAnalysis == "intra-mono-fullconstantpropagation") {

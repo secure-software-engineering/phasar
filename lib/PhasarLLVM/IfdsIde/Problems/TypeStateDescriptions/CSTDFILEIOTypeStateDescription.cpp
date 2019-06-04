@@ -16,31 +16,42 @@ using namespace psr;
 
 namespace psr {
 
-const std::map<std::string, int>
+// Return value is modeled as -1
+const std::map<std::string, std::set<int>>
     CSTDFILEIOTypeStateDescription::StdFileIOFuncs = {
-        {"fopen", -1},    {"fclose", 0},   {"freopen", -1},
-        {"fread", 3},     {"fwrite", 3},   {"fgetc", 13},
-        {"fputc", 13},    {"putchar", 13}, {"_IO_getc", 13},
-        {"_I0_putc", 13}, {"fprintf", 13}, {"__isoc99_fscanf", 13},
-        {"feof", 13},     {"ferror", 13},  {"ungetc", 13},
-        {"fflush", 13},   {"fseek", 13},   {"ftell", 13},
-        {"rewind", 13},   {"fgetpos", 13}, {"fsetpos", 13}};
+        {"fopen", {-1}},   {"fdopen", {-1}},   {"fclose", {0}},
+        {"fread", {3}},    {"fwrite", {3}},    {"fgetc", {0}},
+        {"fgetwc", {0}},   {"fgets", {2}},     {"getc", {0}},
+        {"getwc", {0}},    {"_IO_getc", {0}},  {"ungetc", {1}},
+        {"ungetwc", {1}},  {"fputc", {1}},     {"fputwc", {1}},
+        {"fputs", {1}},    {"putc", {1}},      {"putwc", {1}},
+        {"_IO_putc", {1}}, {"fprintf", {0}},   {"fwprintf", {0}},
+        {"vfprintf", {0}}, {"vfwprintf", {0}}, {"fscanf", {0}},
+        {"fwscanf", {0}},  {"vfscanf", {0}},   {"vfwscanf", {0}},
+        {"fflush", {0}},   {"fseek", {0}},     {"ftell", {0}},
+        {"rewind", {0}},   {"fgetpos", {0}},   {"fsetpos", {0}},
+        {"fileno", {0}}};
 
-const CSTDFILEIOState delta[4][4] = {
-    {CSTDFILEIOState::OPENED, CSTDFILEIOState::ERROR, CSTDFILEIOState::OPENED,
-     CSTDFILEIOState::ERROR},
-    {CSTDFILEIOState::UNINIT, CSTDFILEIOState::CLOSED, CSTDFILEIOState::ERROR,
-     CSTDFILEIOState::ERROR},
-    {CSTDFILEIOState::ERROR, CSTDFILEIOState::OPENED, CSTDFILEIOState::ERROR,
-     CSTDFILEIOState::ERROR},
-    {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
-     CSTDFILEIOState::ERROR},
+// delta[Token][State] = next State
+// Token: FOPEN = 0, FCLOSE = 1, STAR = 2
+// States: UNINIT = 0, OPENED = 1, CLOSED = 2, ERROR = 3
+const CSTDFILEIOTypeStateDescription::CSTDFILEIOState
+    CSTDFILEIOTypeStateDescription::delta[3][4] = {
+        /* FOPEN */
+        {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
+        /* FCLOSE */
+        {CSTDFILEIOState::ERROR, CSTDFILEIOState::CLOSED,
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
+        /* STAR */
+        {CSTDFILEIOState::ERROR, CSTDFILEIOState::OPENED,
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
 };
 
 bool CSTDFILEIOTypeStateDescription::isFactoryFunction(
     const std::string &F) const {
   if (isAPIFunction(F)) {
-    return StdFileIOFuncs.at(F) == -1;
+    return StdFileIOFuncs.at(F).find(-1) != StdFileIOFuncs.at(F).end();
   }
   return false;
 }
@@ -48,38 +59,50 @@ bool CSTDFILEIOTypeStateDescription::isFactoryFunction(
 bool CSTDFILEIOTypeStateDescription::isConsumingFunction(
     const std::string &F) const {
   if (isAPIFunction(F)) {
-    return StdFileIOFuncs.at(F) != -1;
+    return StdFileIOFuncs.at(F).find(-1) == StdFileIOFuncs.at(F).end();
   }
   return false;
 }
 
 bool CSTDFILEIOTypeStateDescription::isAPIFunction(const std::string &F) const {
-  return StdFileIOFuncs.count(F);
+  return StdFileIOFuncs.find(F) != StdFileIOFuncs.end();
 }
 
-CSTDFILEIOState
+TypeStateDescription::State
 CSTDFILEIOTypeStateDescription::getNextState(std::string Tok,
-                                             CSTDFILEIOState S) {
-  // return delta[static_cast<std::underlying_type_t<Token>>(tok)]
-  // [static_cast<std::underlying_type_t<State>>(state)];
-  return CSTDFILEIOState::BOT;
+                                             TypeStateDescription::State S) const {
+  if (isAPIFunction(Tok)) {
+    return delta[static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
+        funcNameToToken(Tok))][S];
+  } else {
+    return CSTDFILEIOState::BOT;
+  }
 }
 
 std::string CSTDFILEIOTypeStateDescription::getTypeNameOfInterest() const {
   return "struct._IO_FILE";
 }
 
-int CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
+set<int> CSTDFILEIOTypeStateDescription::getConsumerParamIdx(
     const std::string &F) const {
-  if (isAPIFunction(F)) {
+  if (isConsumingFunction(F)) {
     return StdFileIOFuncs.at(F);
   }
-  return -1;
+  return {};
 }
 
-std::string
-CSTDFILEIOTypeStateDescription::stateToString(CSTDFILEIOState State) const {
-  switch (State) {
+set<int>
+CSTDFILEIOTypeStateDescription::getFactoryParamIdx(const std::string &F) const {
+  if (isFactoryFunction(F)) {
+    // Trivial here, since we only generate via return value
+    return {-1};
+  }
+  return {};
+}
+
+std::string CSTDFILEIOTypeStateDescription::stateToString(
+    TypeStateDescription::State S) const {
+  switch (S) {
   case CSTDFILEIOState::TOP:
     return "TOP";
     break;
@@ -104,16 +127,26 @@ CSTDFILEIOTypeStateDescription::stateToString(CSTDFILEIOState State) const {
   }
 }
 
-CSTDFILEIOState CSTDFILEIOTypeStateDescription::bottom() const {
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::bottom() const {
   return CSTDFILEIOState::BOT;
 }
 
-CSTDFILEIOState CSTDFILEIOTypeStateDescription::top() const {
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::top() const {
   return CSTDFILEIOState::TOP;
 }
 
-CSTDFILEIOState CSTDFILEIOTypeStateDescription::uninit() const {
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::uninit() const {
   return CSTDFILEIOState::UNINIT;
+}
+
+CSTDFILEIOTypeStateDescription::CSTDFILEIOToken
+CSTDFILEIOTypeStateDescription::funcNameToToken(const std::string &F) const {
+  if (F == "fopen" || F == "fdopen")
+    return CSTDFILEIOToken::FOPEN;
+  else if (F == "fclose")
+    return CSTDFILEIOToken::FCLOSE;
+  else
+    return CSTDFILEIOToken::STAR;
 }
 
 } // namespace psr

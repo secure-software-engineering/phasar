@@ -2,6 +2,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
@@ -18,6 +19,7 @@ protected:
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
+  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc;
   IDETypeStateAnalysis *TSProblem;
 
   IDETypeStateAnalysisTest() = default;
@@ -29,7 +31,8 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    TSProblem = new IDETypeStateAnalysis(*ICFG, *TH, *IRDB, "struct._IO_FILE",
+    CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
+    TSProblem = new IDETypeStateAnalysis(*ICFG, *TH, *IRDB, *CSTDFILEIODesc,
                                          EntryPoints);
   }
 
@@ -52,67 +55,71 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::string, State> &groundTruth,
-      LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> &solver) {
-    // std::map<std::string, int64_t> results;
-    // for (auto M : IRDB->getAllModules()) {
-    //   for (auto &F : *M) {
-    //     for (auto exit : ICFG->getExitPointsOf(&F)) {
-    //       for (auto res : solver.resultsAt(exit, true)) {
-    //         results.insert(std::pair<std::string, int64_t>(
-    //             getMetaDataID(res.first), res.second));
-    //       }
-    //     }
-    //   }
-    // }
-    // EXPECT_EQ(results, groundTruth);
+      const std::map<std::string, int> &groundTruth,
+      LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> &solver) {
+    std::map<std::string, int> results;
+    for (auto M : IRDB->getAllModules()) {
+      for (auto &F : *M) {
+        for (auto exit : ICFG->getExitPointsOf(&F)) {
+          for (auto res : solver.resultsAt(exit, true)) {
+            results.insert(std::pair<std::string, int>(getMetaDataID(res.first),
+                                                       res.second));
+          }
+        }
+      }
+    }
+    EXPECT_EQ(results, groundTruth);
   }
 }; // Test Fixture
 
 /* ============== BASIC TESTS ============== */
-TEST_F(IDETypeStateAnalysisTest, HandleTypeState_0) {
-  Initialize({pathToLLFiles + "typestate_0_c.ll"});
-  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
-      *TSProblem, true, true);
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_01) {
+  Initialize({pathToLLFiles + "typestate_01_c.ll"});
+  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, false, false);
+
+  llvmtssolver.solve();
+  const std::map<std::string, int> gt = {
+      {"5", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
+      {"9", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
+      {"15", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
+  compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_02) {
+  Initialize({pathToLLFiles + "typestate_02_c.ll"});
+  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, false, false);
+
+  llvmtssolver.solve();
+  const std::map<std::string, int> gt = {
+      {"3", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::OPENED},
+      {"5", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::OPENED}};
+  compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_03) {
+  Initialize({pathToLLFiles + "typestate_03_c.ll"});
+  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, false, false);
+
+  llvmtssolver.solve();
+  const std::map<std::string, int> gt = {
+      {"4", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"11", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"13", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
+  compareResults(gt, llvmtssolver);
+}
+
+TEST_F(IDETypeStateAnalysisTest, HandleTypeState_04) {
+  Initialize({pathToLLFiles + "typestate_04_c.ll"});
+  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+      *TSProblem, true, false);
 
   llvmtssolver.solve();
   // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
   // compareResults(gt, llvmtssolver);
 }
-
-TEST_F(IDETypeStateAnalysisTest, HandleTypeState_1) {
-  Initialize({pathToLLFiles + "typestate_1_c.ll"});
-  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
-      *TSProblem, true, true);
-
-  llvmtssolver.solve();
-  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
-  // compareResults(gt, llvmtssolver);
-}
-
-TEST_F(IDETypeStateAnalysisTest, HandleTypeState_2) {
-  Initialize({pathToLLFiles + "typestate_2_c.ll"});
-  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
-      *TSProblem, true, true);
-
-  llvmtssolver.solve();
-  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
-  // compareResults(gt, llvmtssolver);
-}
-
-TEST_F(IDETypeStateAnalysisTest, HandleTypeState_3) {
-  Initialize({pathToLLFiles + "typestate_3_c.ll"});
-  LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &> llvmtssolver(
-      *TSProblem, true, true);
-
-  llvmtssolver.solve();
-  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
-  // compareResults(gt, llvmtssolver);
-}
-
-/* ============== BRANCH TESTS ============== */
-
-/* ============== CALL TESTS ============== */
 
 // main function for the test case
 int main(int argc, char **argv) {

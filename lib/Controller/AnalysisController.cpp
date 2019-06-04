@@ -168,7 +168,11 @@ AnalysisController::AnalysisController(
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-
+    ICFG.getWholeModulePTG().printAsDot("WMPTG.dot");
+    for (auto func : IRDB.getAllFunctions()) {
+      const string fname = func->getName().str();
+      IRDB.getPointsToGraph(fname)->printAsDot(fname + ".dot");
+    }
     if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
@@ -223,9 +227,10 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
-        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, "struct._IO_FILE",
+        CSTDFILEIOTypeStateDescription fileIODesc;
+        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, fileIODesc,
                                               EntryPoints);
-        LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
+        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
             llvmtypestatesolver(typestateproblem, true);
         llvmtypestatesolver.solve();
         FinalResultsJson += llvmtypestatesolver.getAsJson();
