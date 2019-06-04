@@ -59,71 +59,45 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   // Check if Alloca's type matches the target type. If so, generate from zero
   // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
-                                                             zeroValue());
-        }
-      }
+    if (hasMatchingType(Alloca)) {
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, zeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value.
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
-    if (Load->getPointerOperand()
-            ->getType()
-            ->getPointerElementType()
-            ->isPointerTy()) {
-      if (auto StructTy =
-              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
-                                                   ->getType()
-                                                   ->getPointerElementType()
-                                                   ->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          // We have to generate from value that is loaded!
-          return make_shared<PropagateLoad<IDETypeStateAnalysis::d_t>>(Load);
-        }
-      }
+    if (hasMatchingType(Load)) {
+      return make_shared<PropagateLoad<IDETypeStateAnalysis::d_t>>(Load);
     }
   }
   // Check store instructions for target type. Perform a strong update, i.e.
   // kill the alloca pointed to by the pointer-operand and all alloca's related
   // to the value-operand and then generate them from the value-operand.
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          auto RelAllocas = getRelevantAllocas(Store->getValueOperand());
+    if (hasMatchingType(Store)) {
+      auto RelAllocas = getRelevantAllocas(Store->getValueOperand());
 
-          struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
-            const llvm::StoreInst *Store;
-            std::set<IDETypeStateAnalysis::d_t> Allocas;
-            TSFlowFunction(const llvm::StoreInst *S,
-                           std::set<IDETypeStateAnalysis::d_t> A)
-                : Store(S), Allocas(A) {}
-            ~TSFlowFunction() override = default;
-            set<IDETypeStateAnalysis::d_t>
-            computeTargets(IDETypeStateAnalysis::d_t source) override {
-              // We kill all relevant alloca's
-              if (Allocas.find(source) != Allocas.end()) {
-                return {};
-              }
-              // Generate all relevant allocas from the stored value
-              if (source == Store->getValueOperand()) {
-                Allocas.insert(source);
-                return Allocas;
-              }
-              return {source};
-            }
-          };
-          return make_shared<TSFlowFunction>(Store, RelAllocas);
+      struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
+        const llvm::StoreInst *Store;
+        std::set<IDETypeStateAnalysis::d_t> Allocas;
+        TSFlowFunction(const llvm::StoreInst *S,
+                       std::set<IDETypeStateAnalysis::d_t> A)
+            : Store(S), Allocas(A) {}
+        ~TSFlowFunction() override = default;
+        set<IDETypeStateAnalysis::d_t>
+        computeTargets(IDETypeStateAnalysis::d_t source) override {
+          // We kill all relevant alloca's
+          if (Allocas.find(source) != Allocas.end()) {
+            return {};
+          }
+          // Generate all relevant allocas from the stored value
+          if (source == Store->getValueOperand()) {
+            Allocas.insert(source);
+            return Allocas;
+          }
+          return {source};
         }
-      }
+      };
+      return make_shared<TSFlowFunction>(Store, RelAllocas);
     }
   }
   return Identity<IDETypeStateAnalysis::d_t>::getInstance();
@@ -265,12 +239,14 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     if (TSD.isFactoryFunction(demangledFname)) {
       for (auto User : callSite->users()) {
         if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-          auto Alloca = Store->getPointerOperand();
-          return make_shared<GenIf<IDETypeStateAnalysis::d_t>>(
-              callSite, zeroValue(),
-              [Alloca](IDETypeStateAnalysis::d_t source) {
-                return source == Alloca;
-              });
+          if (hasMatchingType(Store)) {
+            auto Alloca = Store->getPointerOperand();
+            return make_shared<GenIf<IDETypeStateAnalysis::d_t>>(
+                callSite, zeroValue(),
+                [Alloca](IDETypeStateAnalysis::d_t source) {
+                  return source == Alloca;
+                });
+          }
         }
       }
       // TODO: Check the case where the return value of a factory function is
@@ -291,17 +267,11 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     // pointed to by related alloca's.
     if (!TSD.isAPIFunction(demangledFname) && !Callee->isDeclaration()) {
       for (auto &Arg : CS.args()) {
-        if (Arg->getType()->isPointerTy()) {
-          if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-                  Arg->getType()->getPointerElementType())) {
-            if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-                llvm::StringRef::npos) {
-              std::set<IDETypeStateAnalysis::d_t> FactsToKill =
-                  getPointsToAndAllocas(Arg.get());
-              return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
-                  FactsToKill);
-            }
-          }
+        if (hasMatchingType(Arg)) {
+          std::set<IDETypeStateAnalysis::d_t> FactsToKill =
+              getPointsToAndAllocas(Arg.get());
+          return make_shared<KillMultiple<IDETypeStateAnalysis::d_t>>(
+              FactsToKill);
         }
       }
     }
@@ -359,24 +329,18 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                 << IDETypeStateAnalysis::DtoString(succNode));
   // Set alloca instructions of target type to uninitialized.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-    if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          if (currNode == zeroValue() && succNode == Alloca) {
-            struct TSEdgeFunctionImpl : public TSEdgeFunction {
-              TSEdgeFunctionImpl(const TypeStateDescription &tsd,
-                                 const std::string &tok)
-                  : TSEdgeFunction(tsd, tok) {}
-              IDETypeStateAnalysis::v_t
-              computeTarget(IDETypeStateAnalysis::v_t source) override {
-                return TSD.uninit();
-              }
-            };
-            return make_shared<TSEdgeFunctionImpl>(TSD, "not relevant");
+    if (hasMatchingType(Alloca)) {
+      if (currNode == zeroValue() && succNode == Alloca) {
+        struct TSEdgeFunctionImpl : public TSEdgeFunction {
+          TSEdgeFunctionImpl(const TypeStateDescription &tsd,
+                             const std::string &tok)
+              : TSEdgeFunction(tsd, tok) {}
+          IDETypeStateAnalysis::v_t
+          computeTarget(IDETypeStateAnalysis::v_t source) override {
+            return TSD.uninit();
           }
-        }
+        };
+        return make_shared<TSEdgeFunctionImpl>(TSD, "not relevant");
       }
     }
   }
@@ -630,23 +594,27 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
                     << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
       // Collect the pointer operand of a aliased load instruciton
       if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
-        LOG_IF_ENABLE(
-            BOOST_LOG_SEV(lg, DEBUG)
-            << " -> Alloca: "
-            << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
-        RelevantAllocas.insert(Load->getPointerOperand());
+        if (hasMatchingType(Alias)) {
+          LOG_IF_ENABLE(
+              BOOST_LOG_SEV(lg, DEBUG)
+              << " -> Alloca: "
+              << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
+          RelevantAllocas.insert(Load->getPointerOperand());
+        }
       } else {
-        // For all other types of aliases, e.g. callsites, function arguments, 
-        // we check store instructions where thoses aliases are value operands. 
+        // For all other types of aliases, e.g. callsites, function arguments,
+        // we check store instructions where thoses aliases are value operands.
         for (auto User : Alias->users()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "  User: " << IDETypeStateAnalysis::DtoString(User));
           if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
-            LOG_IF_ENABLE(
-                BOOST_LOG_SEV(lg, DEBUG)
-                << "    -> Alloca (Pointer-Operand): "
-                << IDETypeStateAnalysis::DtoString(Store->getPointerOperand()));
-            RelevantAllocas.insert(Store->getPointerOperand());
+            if (hasMatchingType(Store)) {
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                            << "    -> Alloca (Pointer-Operand): "
+                            << IDETypeStateAnalysis::DtoString(
+                                   Store->getPointerOperand()));
+              RelevantAllocas.insert(Store->getPointerOperand());
+            }
           }
         }
       }
@@ -679,6 +647,64 @@ IDETypeStateAnalysis::getPointsToAndAllocas(IDETypeStateAnalysis::d_t V) {
   PointsToAndAllocas.insert(Aliases.begin(), Aliases.end());
   PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
   return PointsToAndAllocas;
+}
+
+bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
+  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
+    if (Alloca->getAllocatedType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Alloca->getAllocatedType()->getPointerElementType())) {
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(V)) {
+    if (Load->getPointerOperand()
+            ->getType()
+            ->getPointerElementType()
+            ->isPointerTy()) {
+      if (auto StructTy =
+              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
+                                                   ->getType()
+                                                   ->getPointerElementType()
+                                                   ->getPointerElementType()))
+                                                   {
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
+    if (Store->getValueOperand()->getType()->isPointerTy()) {
+      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+              Store->getValueOperand()->getType()->getPointerElementType()))
+              {
+        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+            llvm::StringRef::npos) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  // General case
+  if (V->getType()->isPointerTy()) {
+    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
+            V->getType()->getPointerElementType())) {
+      if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
+          llvm::StringRef::npos) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 } // namespace psr

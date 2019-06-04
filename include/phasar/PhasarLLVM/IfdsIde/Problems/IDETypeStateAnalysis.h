@@ -68,6 +68,11 @@ private:
    */
   std::set<d_t> getPointsToAndAllocas(d_t V);
 
+  /**
+   * @brief Checks if the type machtes the type of interest.
+   */
+  bool hasMatchingType(d_t V);
+
 public:
   const v_t TOP;
   const v_t BOTTOM;
