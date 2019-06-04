@@ -58,14 +58,11 @@ protected:
       const std::map<std::string, int> &groundTruth,
       LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> &solver) {
     std::map<std::string, int> results;
-    for (auto M : IRDB->getAllModules()) {
-      for (auto &F : *M) {
-        for (auto exit : ICFG->getExitPointsOf(&F)) {
-          for (auto res : solver.resultsAt(exit, true)) {
-            results.insert(std::pair<std::string, int>(getMetaDataID(res.first),
-                                                       res.second));
-          }
-        }
+    // Check exit points of main()
+    for (auto exit : ICFG->getExitPointsOf(IRDB->getFunction("main"))) {
+      for (auto res : solver.resultsAt(exit, true)) {
+        results.insert(
+            std::pair<std::string, int>(getMetaDataID(res.first), res.second));
       }
     }
     EXPECT_EQ(results, groundTruth);
@@ -80,9 +77,9 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_01) {
 
   llvmtssolver.solve();
   const std::map<std::string, int> gt = {
-      {"5", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
-      {"9", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
-      {"15", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
+      {"3", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"5", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"7", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
   compareResults(gt, llvmtssolver);
 }
 
@@ -105,20 +102,23 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_03) {
 
   llvmtssolver.solve();
   const std::map<std::string, int> gt = {
-      {"4", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
-      {"11", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
-      {"13", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
+      {"2", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"8", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED},
+      {"12", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
   compareResults(gt, llvmtssolver);
 }
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_04) {
   Initialize({pathToLLFiles + "typestate_04_c.ll"});
   LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
-      *TSProblem, true, false);
+      *TSProblem, false, false);
 
   llvmtssolver.solve();
-  // const std::map<std::string, State> gt = {{"0", 0}, {"1", 13}};
-  // compareResults(gt, llvmtssolver);
+  const std::map<std::string, int> gt = {
+      {"4", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
+      {"6", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::BOT},
+      {"11", CSTDFILEIOTypeStateDescription::CSTDFILEIOState::CLOSED}};
+  compareResults(gt, llvmtssolver);
 }
 
 // main function for the test case
