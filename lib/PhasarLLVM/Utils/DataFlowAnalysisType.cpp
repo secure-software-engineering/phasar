@@ -16,6 +16,7 @@ using namespace std;
 namespace psr {
 
 const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
+    {"ifds-environment", DataFlowAnalysisType::IFDS_EnvironmentVariableTracing},
     {"ifds-const", DataFlowAnalysisType::IFDS_ConstAnalysis},
     {"ifds-lca", DataFlowAnalysisType::IFDS_LinearConstantAnalysis},
     {"ifds-solvertest", DataFlowAnalysisType::IFDS_SolverTest},
@@ -35,6 +36,7 @@ const map<string, DataFlowAnalysisType> StringToDataFlowAnalysisType = {
     {"none", DataFlowAnalysisType::None}};
 
 const map<DataFlowAnalysisType, string> DataFlowAnalysisTypeToString = {
+    {DataFlowAnalysisType::IFDS_EnvironmentVariableTracing, "ifds-environment"},
     {DataFlowAnalysisType::IFDS_ConstAnalysis, "ifds-const"},
     {DataFlowAnalysisType::IFDS_LinearConstantAnalysis, "ifds-lca"},
     {DataFlowAnalysisType::IFDS_SolverTest, "ifds-solvertest"},

@@ -41,6 +41,7 @@
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
@@ -301,6 +302,19 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmifdstestsolver.exportJson(graph_id);
+        }
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
+        IFDSEnvironmentVariableTracing variableTracing(ICFG,EntryPoints);
+        LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &>llvmifdsenvsolver(variableTracing,false);
+
+        cout << "IFDS EnvironmentVariableTracing ..." << endl;
+        llvmifdsenvsolver.solve();
+        cout << "IFDS EnvironmentVariableTracing ended" << endl;
+        FinalResultsJson += llvmifdsenvsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmifdsenvsolver.exportJson(graph_id);
         }
         break;
       }

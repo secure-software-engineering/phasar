@@ -25,6 +25,7 @@ enum class DataFlowAnalysisType {
   IFDS_TypeAnalysis,
   IFDS_SolverTest,
   IFDS_LinearConstantAnalysis,
+  IFDS_EnvironmentVariableTracing,
   IDE_LinearConstantAnalysis,
   IDE_SolverTest,
   Intra_Mono_FullConstantPropagation,

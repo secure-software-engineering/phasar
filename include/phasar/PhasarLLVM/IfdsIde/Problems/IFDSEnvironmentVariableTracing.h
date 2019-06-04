@@ -21,6 +21,7 @@
 #include <phasar/Utils/LLVMShorthands.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
 
 namespace psr {
 
@@ -102,8 +103,7 @@ protected:
   std::vector<std::string> EntryPoints;
 
 private:
-  const std::set<std::string> taintedFunctions;
-  const std::set<std::string> blacklistedFunctions;
+  TaintSensitiveFunctions taintSenFun; 
 
   TraceStats traceStats;
 };

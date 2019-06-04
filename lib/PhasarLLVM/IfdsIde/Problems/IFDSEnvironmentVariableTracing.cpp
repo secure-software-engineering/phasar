@@ -30,6 +30,7 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/DataFlowUtils.h>
 
+
 #include <set>
 #include <string>
 #include <vector>
@@ -37,39 +38,20 @@
 #include <llvm/IR/IntrinsicInst.h>
 
 namespace psr {
-/*
-std::unique_ptr<
-    DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
-                                 const llvm::Function *, LLVMBasedICFG &>>
-makeIFDSEnvironmentVariableTracing(LLVMBasedICFG &icfg,
-                                   std::vector<std::string> entryPoints) {
-  return std::unique_ptr<
-      DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
-                                   const llvm::Function *, LLVMBasedICFG &>>(
-      new IFDSEnvironmentVariableTracing(icfg, entryPoints));
-}
-
-__attribute__((constructor)) void init() {
-  std::map<std::string,
-           std::unique_ptr<DefaultIFDSTabulationProblem<
-               const llvm::Instruction *, ExtendedValue, const llvm::Function *,
-               LLVMBasedICFG &>> (*)(LLVMBasedICFG & I,
-                                     std::vector<std::string> EntryPoints)>
-      IFDSTabulationProblemExtendedValueFactory
-          ["IFDSEnvironmentVariableTracing"] =
-              &makeIFDSEnvironmentVariableTracing;
-}
-
-__attribute__((destructor)) void fini() {}*/
 
 IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
     LLVMBasedICFG &ICFG, std::vector<std::string> EntryPoints = {"main"})
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
-      EntryPoints(EntryPoints),
-      taintedFunctions(DataFlowUtils::getTaintedFunctions()),
-      blacklistedFunctions(DataFlowUtils::getBlacklistedFunctions()) {
+      EntryPoints(EntryPoints), taintSenFun(true) {
+  for (auto fun : DataFlowUtils::getTaintedFunctions()){
+    taintSenFun.Sources.insert(std::pair<std::string,TaintSensitiveFunctions::SourceFunction>(fun,TaintSensitiveFunctions::SourceFunction(fun,false)));
+  }
+  for (auto fun : DataFlowUtils::getBlacklistedFunctions()){
+    taintSenFun.Sinks.insert(std::pair<std::string,TaintSensitiveFunctions::SinkFunction>(fun,TaintSensitiveFunctions::SinkFunction(fun,std::vector<unsigned>())));
+  }
+
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
   this->solver_config.computeValues = false;
   this->solver_config.computePersistedSummaries = false;
@@ -179,9 +161,8 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
   /*
    * Exclude blacklisted functions here.
    */
-  bool isBlacklistedFunction =
-      blacklistedFunctions.find(destMthdName) != blacklistedFunctions.end();
-  if (isBlacklistedFunction)
+  
+  if (taintSenFun.isSink(destMthdName))
     return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
                                                   zeroValue());
 
@@ -207,9 +188,7 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  bool isTaintedFunction =
-      taintedFunctions.find(destMthdName) != taintedFunctions.end();
-  if (isTaintedFunction)
+  if (taintSenFun.isSource(destMthdName))
     return std::make_shared<GenerateFlowFunction>(callStmt, traceStats,
                                                   zeroValue());
 
@@ -232,9 +211,7 @@ IFDSEnvironmentVariableTracing::initialSeeds() {
   std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
 
   for (const auto &entryPoint : this->EntryPoints) {
-    bool isBlacklistedFunction =
-        blacklistedFunctions.find(entryPoint) != blacklistedFunctions.end();
-    if (isBlacklistedFunction)
+    if (taintSenFun.isSink(entryPoint))
       continue;
 
     seedMap.insert(std::make_pair(&icfg.getMethod(entryPoint)->front().front(),
