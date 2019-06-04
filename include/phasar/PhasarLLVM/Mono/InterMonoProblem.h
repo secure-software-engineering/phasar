@@ -44,7 +44,7 @@ public:
   virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In) = 0;
   virtual MonoSet<D> returnFlow(N CallSite, M Callee, N ExitStmt, N RetSite,
                                 const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite,
+  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite, MonoSet<M> Callees,
                                    const MonoSet<D> &In) = 0;
 };
 

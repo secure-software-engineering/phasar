@@ -42,10 +42,9 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) {
    */
   if (Preds.empty()) {
     for (auto &BB : *I->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == I) {
+      if (const llvm::Instruction *T = BB.getTerminator()) {
+        for (unsigned i = 0; i < T->getNumSuccessors(); ++i) {
+          if (&*T->getSuccessor(i)->begin() == I) {
             Preds.push_back(T);
           }
         }
@@ -61,9 +60,9 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) {
   if (I->getNextNode()) {
     Successors.push_back(I->getNextNode());
   }
-  if (const llvm::TerminatorInst *T = llvm::dyn_cast<llvm::TerminatorInst>(I)) {
-    for (auto successor : T->successors()) {
-      Successors.push_back(&*successor->begin());
+  if (I->isTerminator()) {
+    for (unsigned i = 0; i < I->getNumSuccessors(); ++i) {
+      Successors.push_back(&*I->getSuccessor(i)->begin());
     }
   }
   return Successors;
@@ -137,10 +136,9 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
 
 bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *stmt,
                                   const llvm::Instruction *succ) {
-  if (const llvm::TerminatorInst *T =
-          llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-    for (auto successor : T->successors()) {
-      if (&*successor->begin() == succ) {
+  if (stmt->isTerminator()) {
+    for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
+      if (&*stmt->getSuccessor(i)->begin() == succ) {
         return true;
       }
     }

@@ -1,7 +1,14 @@
 cmake_minimum_required (VERSION 3.0)
 
-project (phasar)
-set(CMAKE_PROJECT_NAME "phasar")
+# Check if we build within the llvm source tree
+if (DEFINED LLVM_MAIN_SRC_DIR)
+  set(PHASAR_IN_TREE 1)
+endif()
+
+if (NOT PHASAR_IN_TREE)
+  project (phasar)
+  set(CMAKE_PROJECT_NAME "phasar")
+endif ()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 17)
@@ -84,9 +91,11 @@ add_subdirectory(external/json EXCLUDE_FROM_ALL)
 include_directories(external/json/single_include/nlohmann)
 
 # Googletest
-add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
-include_directories(external/googletest/googletest/include)
-include_directories(external/googletest/googlemock/include)
+if (NOT PHASAR_IN_TREE)
+  add_subdirectory(external/googletest EXCLUDE_FROM_ALL)
+  include_directories(external/googletest/googletest/include)
+  include_directories(external/googletest/googlemock/include)
+endif()
 
 # WALi-OpenNWA
 add_subdirectory(external/WALi-OpenNWA)
@@ -107,7 +116,7 @@ find_library(SQLITE3_LIBRARY NAMES sqlite3)
 include_directories(${SQLITE3_INCLUDE_DIR})
 
 # LLVM
-find_package(LLVM REQUIRED CONFIG 5)
+find_package(LLVM REQUIRED CONFIG 8)
 find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
 include_directories(${LLVM_INCLUDE_DIRS})
 link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})

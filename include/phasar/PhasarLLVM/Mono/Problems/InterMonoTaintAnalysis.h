@@ -69,6 +69,7 @@ public:
   MonoSet<const llvm::Value *>
   callToRetFlow(const llvm::Instruction *CallSite,
                 const llvm::Instruction *RetSite,
+                MonoSet<const llvm::Function *> Callees,
                 const MonoSet<const llvm::Value *> &In) override;
 
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>

@@ -14,7 +14,9 @@
  *      Author: philipp
  */
 
+#include <llvm/IR/CFG.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 
@@ -38,10 +40,9 @@ LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
   vector<const llvm::Instruction *> preds;
   if (stmt->getNextNode())
     preds.push_back(stmt->getNextNode());
-  if (const llvm::TerminatorInst *T =
-          llvm::dyn_cast<llvm::TerminatorInst>(stmt)) {
-    for (auto successor : T->successors()) {
-      preds.push_back(&*successor->begin());
+  if (stmt->isTerminator()) {
+    for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
+      preds.push_back(&*stmt->getSuccessor(i)->begin());
     }
   }
   return preds;
@@ -53,21 +54,8 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
   if (stmt->getPrevNode()) {
     Preds.push_back(stmt->getPrevNode());
   }
-  /*
-   * If we do not have a successor yet, look for basic blocks which
-   * lead to our instruction in question!
-   */
-  if (Preds.empty()) {
-    for (auto &BB : *stmt->getFunction()) {
-      if (const llvm::TerminatorInst *T =
-              llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
-        for (auto successor : T->successors()) {
-          if (&*successor->begin() == stmt) {
-            Preds.push_back(T);
-          }
-        }
-      }
-    }
+  for (auto PredBlock : llvm::predecessors(stmt->getParent())) {
+    Preds.push_back(&PredBlock->back());
   }
   return Preds;
 }

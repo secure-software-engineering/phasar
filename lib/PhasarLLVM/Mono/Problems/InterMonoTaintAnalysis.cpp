@@ -120,6 +120,7 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
 MonoSet<const llvm::Value *>
 InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
                                       const llvm::Instruction *RetSite,
+                                      MonoSet<const llvm::Function *> Callees,
                                       const MonoSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

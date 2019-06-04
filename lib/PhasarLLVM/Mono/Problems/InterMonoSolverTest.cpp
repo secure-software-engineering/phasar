@@ -82,6 +82,7 @@ MonoSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
 MonoSet<const llvm::Value *>
 InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
                                    const llvm::Instruction *RetSite,
+                                   MonoSet<const llvm::Function *> Callees,
                                    const MonoSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;

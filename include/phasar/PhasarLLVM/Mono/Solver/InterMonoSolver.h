@@ -118,7 +118,8 @@ public:
         if (!isIntraEdge(edge)) {
           Out = IMProblem.callFlow(src, ICFG.getMethodOf(dst), Analysis[src]);
         } else {
-          Out = IMProblem.callToRetFlow(src, dst, Analysis[src]);
+          Out = IMProblem.callToRetFlow(src, dst, ICFG.getCalleesOfCallAt(src),
+                                        Analysis[src]);
         }
       } else if (ICFG.isExitStmt(src)) {
         // Handle return flow

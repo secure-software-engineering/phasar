@@ -38,7 +38,7 @@ set(phasar_utils_dep
 target_link_libraries(phasar_utils
 	LLVMCore
 	LLVMSupport
-	LLVMBitWriter
+  LLVMBitWriter
   ${phasar_utils_dep}
 )
 
