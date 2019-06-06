@@ -271,7 +271,7 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add timer data
   while (!RunningTimer.empty()) {
-    stopTimer(RunningTimer.begin()->first);
+    stopTimer(std::string(RunningTimer.begin()->first));
   }
   json jTimer;
   for (auto timer : StoppedTimer) {
