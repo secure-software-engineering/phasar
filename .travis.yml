@@ -76,7 +76,7 @@ script:
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
   - sudo make install
-  # - make test # make DBConnTest run on CI build nodes first
+  - ctest -j2
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make
