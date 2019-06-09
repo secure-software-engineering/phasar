@@ -134,6 +134,11 @@ public:
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
   ~InterMonoSolver() = default;
 
+
+  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis(){
+    return this->Analysis;
+  }
+
   virtual void solve() {
     std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
