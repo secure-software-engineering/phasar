@@ -29,7 +29,7 @@ public:
   virtual std::shared_ptr<EdgeFunction<V>>
   getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod,
+  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod,
                       D destNode) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
   getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt, D exitNode,

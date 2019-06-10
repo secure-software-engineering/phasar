@@ -106,7 +106,7 @@ IDETaintAnalysis::getNormalEdgeFunction(IDETaintAnalysis::n_t curr,
 shared_ptr<EdgeFunction<IDETaintAnalysis::v_t>>
 IDETaintAnalysis::getCallEdgeFunction(IDETaintAnalysis::n_t callStmt,
                                       IDETaintAnalysis::d_t srcNode,
-                                      IDETaintAnalysis::m_t destiantionMethod,
+                                      IDETaintAnalysis::m_t destinationMethod,
                                       IDETaintAnalysis::d_t destNode) {
   return EdgeIdentity<IDETaintAnalysis::v_t>::getInstance();
 }

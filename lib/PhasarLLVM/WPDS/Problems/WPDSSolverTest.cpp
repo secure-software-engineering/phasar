@@ -71,7 +71,7 @@ WPDSSolverTest::getNormalEdgeFunction(WPDSSolverTest::n_t curr,
 shared_ptr<EdgeFunction<WPDSSolverTest::v_t>>
 WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t callStmt,
                                     WPDSSolverTest::d_t srcNode,
-                                    WPDSSolverTest::m_t destiantionMethod,
+                                    WPDSSolverTest::m_t destinationMethod,
                                     WPDSSolverTest::d_t destNode) {
   return EdgeIdentity<WPDSSolverTest::v_t>::getInstance();
 }
