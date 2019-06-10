@@ -421,6 +421,12 @@ PointsToGraph *ProjectIRDB::getPointsToGraph(const std::string &name) {
   return nullptr;
 }
 
+PointsToGraph *ProjectIRDB::getPointsToGraph(const std::string &name) const {
+  if (ptgs.count(name))
+    return ptgs.at(name).get();
+  return nullptr;
+}
+
 void ProjectIRDB::print() {
   std::cout << "modules:" << std::endl;
   for (auto &entry : modules) {

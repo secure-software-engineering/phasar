@@ -168,11 +168,7 @@ AnalysisController::AnalysisController(
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-    ICFG.getWholeModulePTG().printAsDot("WMPTG.dot");
-    for (auto func : IRDB.getAllFunctions()) {
-      const string fname = func->getName().str();
-      IRDB.getPointsToGraph(fname)->printAsDot(fname + ".dot");
-    }
+    
     if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
