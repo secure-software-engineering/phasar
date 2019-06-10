@@ -20,13 +20,13 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
@@ -135,8 +135,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     llvmtaintsolver.solve();
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription fileIODesc;
-    IDETypeStateAnalysis typestateproblem(I, H, DB, fileIODesc,
-                                          EntryPoints);
+    IDETypeStateAnalysis typestateproblem(I, H, DB, fileIODesc, EntryPoints);
     LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
         llvmtypestatesolver(typestateproblem, DumpResults);
     llvmtypestatesolver.solve();

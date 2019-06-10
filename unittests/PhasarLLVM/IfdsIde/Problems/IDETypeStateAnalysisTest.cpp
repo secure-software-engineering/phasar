@@ -135,13 +135,9 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_04) {
   llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // At exit in foo()
-      {6,
-       {{"2", IOSTATE::OPENED},
-        {"8", IOSTATE::OPENED}}},
+      {6, {{"2", IOSTATE::OPENED}, {"8", IOSTATE::OPENED}}},
       // At exit in main()
-      {14,
-       {{"2", IOSTATE::CLOSED},
-        {"8", IOSTATE::CLOSED}}}};
+      {14, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
   compareResults(gt, llvmtssolver);
 }
 
@@ -318,17 +314,11 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_12) {
   llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // At exit in bar()
-      {6,
-       {{"2", IOSTATE::OPENED},
-        {"10", IOSTATE::OPENED}}},
+      {6, {{"2", IOSTATE::OPENED}, {"10", IOSTATE::OPENED}}},
       // At exit in foo()
-      {8,
-       {{"2", IOSTATE::OPENED},
-        {"10", IOSTATE::OPENED}}},
+      {8, {{"2", IOSTATE::OPENED}, {"10", IOSTATE::OPENED}}},
       // At exit in main()
-      {16,
-       {{"2", IOSTATE::CLOSED},
-        {"10", IOSTATE::CLOSED}}}};
+      {16, {{"2", IOSTATE::CLOSED}, {"10", IOSTATE::CLOSED}}}};
   compareResults(gt, llvmtssolver);
 }
 

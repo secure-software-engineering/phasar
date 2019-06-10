@@ -22,7 +22,7 @@ protected:
 };
 
 TEST_F(PAMMTest, HandleTimer) {
-//   PAMM &pamm = PAMM::getInstance();
+  //   PAMM &pamm = PAMM::getInstance();
   PAMM::getInstance().startTimer("timer1");
   std::this_thread::sleep_for(std::chrono::milliseconds(1200));
   PAMM::getInstance().stopTimer("timer1");

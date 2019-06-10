@@ -48,14 +48,16 @@ struct TypeStateDescription {
   virtual std::string stateToString(State S) const = 0;
   virtual State bottom() const = 0;
   virtual State top() const = 0;
-  
+
   /**
-   * Represents the uninitialized state of an object, e.g. allocation of a file handle 
+   * Represents the uninitialized state of an object, e.g. allocation of a file
+   * handle
    */
   virtual State uninit() const = 0;
-  
+
   /**
-   * Represents the start/initial state of an object after creation, e.g. state of a file handle after fopen()
+   * Represents the start/initial state of an object after creation, e.g. state
+   * of a file handle after fopen()
    */
   virtual State start() const = 0;
 

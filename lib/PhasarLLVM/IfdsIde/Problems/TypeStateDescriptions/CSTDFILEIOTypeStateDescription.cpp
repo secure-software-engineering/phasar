@@ -26,11 +26,11 @@ const std::map<std::string, std::set<int>>
         {"ungetwc", {1}},  {"fputc", {1}},     {"fputwc", {1}},
         {"fputs", {1}},    {"putc", {1}},      {"putwc", {1}},
         {"_IO_putc", {1}}, {"fprintf", {0}},   {"fwprintf", {0}},
-        {"vfprintf", {0}}, {"vfwprintf", {0}}, {"__isoc99_fscanf", {0}},{"fscanf", {0}},
-        {"fwscanf", {0}},  {"vfscanf", {0}},   {"vfwscanf", {0}},
-        {"fflush", {0}},   {"fseek", {0}},     {"ftell", {0}},
-        {"rewind", {0}},   {"fgetpos", {0}},   {"fsetpos", {0}},
-        {"fileno", {0}}};
+        {"vfprintf", {0}}, {"vfwprintf", {0}}, {"__isoc99_fscanf", {0}},
+        {"fscanf", {0}},   {"fwscanf", {0}},   {"vfscanf", {0}},
+        {"vfwscanf", {0}}, {"fflush", {0}},    {"fseek", {0}},
+        {"ftell", {0}},    {"rewind", {0}},    {"fgetpos", {0}},
+        {"fsetpos", {0}},  {"fileno", {0}}};
 
 // delta[Token][State] = next State
 // Token: FOPEN = 0, FCLOSE = 1, STAR = 2
@@ -68,9 +68,8 @@ bool CSTDFILEIOTypeStateDescription::isAPIFunction(const std::string &F) const {
   return StdFileIOFuncs.find(F) != StdFileIOFuncs.end();
 }
 
-TypeStateDescription::State
-CSTDFILEIOTypeStateDescription::getNextState(std::string Tok,
-                                             TypeStateDescription::State S) const {
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
+    std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
     return delta[static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
         funcNameToToken(Tok))][S];

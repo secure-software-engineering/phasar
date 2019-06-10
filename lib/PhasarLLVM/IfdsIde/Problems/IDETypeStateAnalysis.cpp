@@ -786,8 +786,8 @@ void IDETypeStateAnalysis::printIDEReport(
                 os << "============================\n";
               } else {
                 os << "\nAlloca : " << DtoString(res.first)
-                  << "\nState  : " << VtoString(res.second) << '\n'
-                 << llvmValueToSrc(res.first, false) << '\n';
+                   << "\nState  : " << VtoString(res.second) << '\n'
+                   << llvmValueToSrc(res.first, false) << '\n';
               }
             }
           }

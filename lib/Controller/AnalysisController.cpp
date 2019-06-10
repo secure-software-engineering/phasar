@@ -168,7 +168,7 @@ AnalysisController::AnalysisController(
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-    
+
     if (VariablesMap.count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }

@@ -49,19 +49,19 @@ private:
       RelevantAllocaCache;
 
   /**
-   * @brief Returns all alloca's that are (indirect) aliases of V. 
-   * 
+   * @brief Returns all alloca's that are (indirect) aliases of V.
+   *
    * Currently PhASAR's points-to information does not include alloca
-   * instructions, since alloca instructions, i.e. memory locations, are of 
-   * type T* for a target type T. Thus they do not alias directly. Therefore, 
-   * for each alias of V we collect related alloca instructions by checking 
+   * instructions, since alloca instructions, i.e. memory locations, are of
+   * type T* for a target type T. Thus they do not alias directly. Therefore,
+   * for each alias of V we collect related alloca instructions by checking
    * load and store instructions for used alloca's.
    */
   std::set<d_t> getRelevantAllocas(d_t V);
 
   /**
    * @brief Returns whole-module aliases of V.
-   * 
+   *
    * This function retrieves whole-module points-to information. We store
    * already computed points-to information in a cache to prevent expensive
    * recomputation since the whole module points-to graph can be huge. This
@@ -74,7 +74,7 @@ private:
    * @brief Provides whole module aliases and relevant alloca's of V.
    */
   std::set<d_t> getWMAliasesAndAllocas(d_t V);
-  
+
   /**
    * @brief Provides local aliases and relevant alloca's of V.
    */
