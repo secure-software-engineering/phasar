@@ -1,11 +1,14 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+FILE *foo() {
+  FILE *p;
+  p = fopen("bar.txt", "w+");
+  return p;
+}
 
 int main() {
   FILE *f;
-  f = fopen("file.txt", "r");
-
-  fclose(f);
-  fclose(f);
-
+  foo();
   return 0;
 }

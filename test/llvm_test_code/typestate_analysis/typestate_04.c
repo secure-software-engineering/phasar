@@ -1,12 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-extern int cond;
+void foo(FILE *p) {
+  p = fopen("bar.txt", "w+");
+}
 
 int main() {
   FILE *f;
-  f = fopen("file.txt", "r");
-  if (cond) {
-    fclose(f);
-  }
+  foo(f);
+  fclose(f);
   return 0;
 }

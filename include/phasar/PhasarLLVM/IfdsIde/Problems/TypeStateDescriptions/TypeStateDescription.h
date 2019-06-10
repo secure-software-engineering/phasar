@@ -26,7 +26,7 @@ namespace psr {
  * cannot be modeled by this interface, since analyzing such functions correctly
  * introduces dependencies that cannot be solved by a distributive framework
  * such as IDE.
- * 
+ *
  * @see CSTDFILEIOTypeStateDescription as an example of type state description.
  */
 struct TypeStateDescription {
@@ -36,7 +36,7 @@ struct TypeStateDescription {
   virtual bool isFactoryFunction(const std::string &F) const = 0;
   virtual bool isConsumingFunction(const std::string &F) const = 0;
   virtual bool isAPIFunction(const std::string &F) const = 0;
-  
+
   /**
    * @brief For a given function name (as a string token) and a state, this
    * function returns the next state.
@@ -48,7 +48,21 @@ struct TypeStateDescription {
   virtual std::string stateToString(State S) const = 0;
   virtual State bottom() const = 0;
   virtual State top() const = 0;
+  
+  /**
+   * Represents the uninitialized state of an object, e.g. allocation of a file handle 
+   */
   virtual State uninit() const = 0;
+  
+  /**
+   * Represents the start/initial state of an object after creation, e.g. state of a file handle after fopen()
+   */
+  virtual State start() const = 0;
+
+  /**
+   * Represents the error state of an object
+   */
+  virtual State error() const = 0;
 };
 
 } // namespace psr

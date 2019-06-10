@@ -1,13 +1,13 @@
 #include <stdio.h>
 
-void foo(FILE *f) { fclose(f); }
-
+// Fails since f and d are assumed to be may-alias
 int main() {
   FILE *f;
-  fclose(f);
-  f = fopen("file.txt", "r");
+  FILE *d;
+  f = fopen("foo.txt", "r");
+  d = fopen("bar.txt", "w");
 
-  foo(f);
+  fclose(f);
 
   return 0;
 }

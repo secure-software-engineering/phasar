@@ -24,7 +24,7 @@ namespace psr {
  * columns as states.
  */
 class CSTDFILEIOTypeStateDescription : public TypeStateDescription {
-public:
+private:
   /**
    * We use the following lattice
    *                BOT = all information
@@ -49,7 +49,6 @@ public:
    */
   enum class CSTDFILEIOToken { FOPEN = 0, FCLOSE = 1, STAR = 2 };
 
-private:
   static const std::map<std::string, std::set<int>> StdFileIOFuncs;
   // delta matrix to implement the state machine's delta function
   static const CSTDFILEIOState delta[3][4];
@@ -68,6 +67,8 @@ public:
   TypeStateDescription::State bottom() const override;
   TypeStateDescription::State top() const override;
   TypeStateDescription::State uninit() const override;
+  TypeStateDescription::State start() const override;
+  TypeStateDescription::State error() const override;
 };
 
 } // namespace psr

@@ -26,7 +26,7 @@ const std::map<std::string, std::set<int>>
         {"ungetwc", {1}},  {"fputc", {1}},     {"fputwc", {1}},
         {"fputs", {1}},    {"putc", {1}},      {"putwc", {1}},
         {"_IO_putc", {1}}, {"fprintf", {0}},   {"fwprintf", {0}},
-        {"vfprintf", {0}}, {"vfwprintf", {0}}, {"fscanf", {0}},
+        {"vfprintf", {0}}, {"vfwprintf", {0}}, {"__isoc99_fscanf", {0}},{"fscanf", {0}},
         {"fwscanf", {0}},  {"vfscanf", {0}},   {"vfwscanf", {0}},
         {"fflush", {0}},   {"fseek", {0}},     {"ftell", {0}},
         {"rewind", {0}},   {"fgetpos", {0}},   {"fsetpos", {0}},
@@ -137,6 +137,14 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::top() const {
 
 TypeStateDescription::State CSTDFILEIOTypeStateDescription::uninit() const {
   return CSTDFILEIOState::UNINIT;
+}
+
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::start() const {
+  return CSTDFILEIOState::OPENED;
+}
+
+TypeStateDescription::State CSTDFILEIOTypeStateDescription::error() const {
+  return CSTDFILEIOState::ERROR;
 }
 
 CSTDFILEIOTypeStateDescription::CSTDFILEIOToken

@@ -49,24 +49,36 @@ private:
       RelevantAllocaCache;
 
   /**
-   * Currently PhASAR's points-to information does not include alloca instructions,
-   * e.g. alloca instructions are of type T** while the used type is T*, thus they
-   * do not alias directly. Therefore, for each alias of V we collect related alloca
-   * instructions by checking load and store instructions for used alloca's.
+   * @brief Returns all alloca's that are (indirect) aliases of V. 
+   * 
+   * Currently PhASAR's points-to information does not include alloca
+   * instructions, since alloca instructions, i.e. memory locations, are of 
+   * type T* for a target type T. Thus they do not alias directly. Therefore, 
+   * for each alias of V we collect related alloca instructions by checking 
+   * load and store instructions for used alloca's.
    */
   std::set<d_t> getRelevantAllocas(d_t V);
 
   /**
-   * We store already computed points-to information in a cache to prevent
-   * expensive recomputation. This might become unnecessary once PhASAR's
-   * PointsToGraph starts using a cache.
+   * @brief Returns whole-module aliases of V.
+   * 
+   * This function retrieves whole-module points-to information. We store
+   * already computed points-to information in a cache to prevent expensive
+   * recomputation since the whole module points-to graph can be huge. This
+   * might become unnecessary once PhASAR's PointsToGraph starts using a cache
+   * itself.
    */
-  std::set<d_t> getPointsToSet(d_t V);
+  std::set<d_t> getWMPointsToSet(d_t V);
 
   /**
-   * @brief Provides both points-to informatio and relevant alloca's.
+   * @brief Provides whole module aliases and relevant alloca's of V.
    */
-  std::set<d_t> getPointsToAndAllocas(d_t V);
+  std::set<d_t> getWMAliasesAndAllocas(d_t V);
+  
+  /**
+   * @brief Provides local aliases and relevant alloca's of V.
+   */
+  std::set<d_t> getLocalAliasesAndAllocas(d_t V, const std::string &Fname);
 
   /**
    * @brief Checks if the type machtes the type of interest.
@@ -136,14 +148,14 @@ public:
 
   v_t bottomElement() override;
 
-/**
- * We have a lattice with BOTTOM representing all information
- * and TOP representing no information. The other lattice elements 
- * are defined by the type state description, i.e. represented by the 
- * states of the finite state machine.
- *
- * @note Only one-level lattice's are handled currently
- */
+  /**
+   * We have a lattice with BOTTOM representing all information
+   * and TOP representing no information. The other lattice elements
+   * are defined by the type state description, i.e. represented by the
+   * states of the finite state machine.
+   *
+   * @note Only one-level lattice's are handled currently
+   */
   v_t join(v_t lhs, v_t rhs) override;
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
@@ -155,6 +167,9 @@ public:
   void printMethod(std::ostream &os, m_t m) const override;
 
   void printValue(std::ostream &os, v_t v) const override;
+
+  void printIDEReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> &SR) override;
 
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
@@ -169,7 +184,6 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
   };
 
-
   class TSEdgeFunction : public EdgeFunction<v_t>,
                          public std::enable_shared_from_this<TSEdgeFunction> {
   protected:
@@ -178,7 +192,6 @@ public:
     // might turn to nullptr for whatever reason...
     const std::string Token;
     v_t CurrentState;
-
 
   public:
     TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok)

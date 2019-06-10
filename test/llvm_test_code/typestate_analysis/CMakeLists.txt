@@ -5,57 +5,19 @@ set(NoMem2regSources
 	typestate_04.c
 	typestate_05.c
 	typestate_06.c
-	# typestate_07.c
+	typestate_07.c
 	typestate_08.c
 	typestate_09.c
 	typestate_10.c
-	# typestate_11.c
+	typestate_11.c
 	typestate_12.c
-	# typestate_13.c
+	typestate_13.c
 	typestate_14.c
 	typestate_15.c
 	typestate_16.c
 	typestate_17.c
 	typestate_18.c
 	typestate_19.c
-	typestate_20.c
-	typestate_21.c
-	typestate_22.c
-	typestate_23.c
-	typestate_24.c
-	typestate_25.c
-	typestate_26.c
-	typestate_27.c
-	typestate_28.c
-	typestate_29.c
-	typestate_30.c
-	typestate_31.c
-	typestate_32.c
-	typestate_33.c
-	typestate_34.c
-	typestate_35.c
-	typestate_36.c
-	typestate_37.c
-	typestate_38.c
-	typestate_39.c
-	typestate_40.c
-	typestate_41.c
-	typestate_42.c
-	typestate_43.c
-	typestate_44.c
-	typestate_45.c
-	typestate_46.c
-	typestate_47.c
-	typestate_48.c
-	typestate_49.c
-	typestate_50.c
-	typestate_51.c
-	typestate_52.c
-	typestate_53.c
-	typestate_54.c
-	typestate_55.c
-	typestate_56.c
-	typestate_57.c
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
