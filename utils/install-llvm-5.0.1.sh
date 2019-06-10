@@ -14,8 +14,8 @@ target_dir=$2
 
 echo "Getting the complete LLVM source code"
 echo "Get llvm"
-svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_501/final/ "${target_dir}llvm-5.0.1"
-cd ${target_dir}llvm-5.0.1/tools
+svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_501/final/ "${target_dir}/llvm-5.0.1"
+cd ${target_dir}/llvm-5.0.1/tools
 echo "Get clang"
 svn co http://llvm.org/svn/llvm-project/cfe/tags/RELEASE_501/final/ clang
 cd clang/tools

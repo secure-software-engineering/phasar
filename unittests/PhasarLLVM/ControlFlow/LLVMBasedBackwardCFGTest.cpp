@@ -82,11 +82,12 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 
   // ret i32 0
   auto TermInst = getNthTermInstruction(F, 4);
+  std::cout << llvmIRToString(TermInst) << std::endl;
   std::vector<const llvm::Instruction *> Successor;
   // br label %12
-  Successor.push_back(getNthTermInstruction(F, 2));
-  // br label %12
   Successor.push_back(getNthTermInstruction(F, 3));
+  // br label %12
+  Successor.push_back(getNthTermInstruction(F, 2));
   auto succsOfTermInst = cfg.getSuccsOf(TermInst);
   ASSERT_EQ(succsOfTermInst, Successor);
 }
