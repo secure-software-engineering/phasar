@@ -32,7 +32,7 @@ namespace psr {
  */
 template <typename N, typename D, typename M, typename V, typename I>
 class FlowEdgeFunctionCache {
-  private:
+private:
   IDETabulationProblem<N, D, M, V, I> &problem;
   // Auto add zero
   bool autoAddZero;
@@ -98,9 +98,9 @@ public:
 
   ~FlowEdgeFunctionCache() = default;
 
-  FlowEdgeFunctionCache(const FlowEdgeFunctionCache& FEFC) = default;
-  
-  FlowEdgeFunctionCache(FlowEdgeFunctionCache&& FEFC) = default;
+  FlowEdgeFunctionCache(const FlowEdgeFunctionCache &FEFC) = default;
+
+  FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) = default;
 
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
