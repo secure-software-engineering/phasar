@@ -1,18 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void bar(FILE *p) {
-	fclose(p);
-}
-
-void foo(FILE *p) {
+FILE *foo() {
+  FILE *p;
   p = fopen("bar.txt", "w+");
+  return p;
 }
 
 int main() {
   FILE *f;
-  foo(f);
-  bar(f);
-
+  foo();
   return 0;
 }

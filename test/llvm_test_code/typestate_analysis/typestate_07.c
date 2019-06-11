@@ -2,10 +2,10 @@
 
 void foo(FILE *f) { fclose(f); }
 
-int main(int argc, char **argv) {
+int main() {
   FILE *f;
   fclose(f);
-  f = fopen(argv[1], "r");
+  f = fopen("file.txt", "r");
 
   foo(f);
 

@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void bar(FILE *p) {
-	fclose(p);
-}
-
 void foo(FILE *p) {
   p = fopen("bar.txt", "w+");
 }
@@ -12,7 +8,6 @@ void foo(FILE *p) {
 int main() {
   FILE *f;
   foo(f);
-  bar(f);
-
+  fclose(f);
   return 0;
 }

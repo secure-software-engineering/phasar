@@ -1,9 +1,11 @@
 #include <stdio.h>
 
-int main(int argc, char **argv) {
+extern int cond;
+
+int main() {
   FILE *f;
   f = fopen("file.txt", "r");
-  if (argv - 1) {
+  if (cond) {
     fclose(f);
   }
   return 0;

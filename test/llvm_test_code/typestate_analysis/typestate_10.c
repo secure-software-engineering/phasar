@@ -1,10 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(int argc, char **argv) {
+FILE *bar() {
+	FILE *fp;
+	return fp;
+}
+
+FILE *foo() {
+  FILE *p = bar();
+  p = fopen("bar.txt", "w+");
+  return p;
+}
+
+int main() {
   FILE *f;
-  f = fopen(argv[1], "r");
-  fclose(f);
-  f = fopen(argv[1], "r");
+  f = foo();
   fclose(f);
 
   return 0;

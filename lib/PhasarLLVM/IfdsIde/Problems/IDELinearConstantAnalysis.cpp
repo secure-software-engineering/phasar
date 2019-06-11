@@ -347,7 +347,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
-        bottomElement());
+        IDELinearConstantAnalysis::BOTTOM);
   }
   // Check store instruction
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {

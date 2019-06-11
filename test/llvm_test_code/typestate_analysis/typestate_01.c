@@ -2,9 +2,7 @@
 
 int main() {
   FILE *f;
-  f = fopen("foo.txt", "r");
-  f = fopen("bar.txt", "w");
+  f = fopen("file.txt", "r");
   fclose(f);
-
   return 0;
 }

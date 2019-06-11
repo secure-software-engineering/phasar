@@ -12,6 +12,7 @@
 
 #include <map>
 #include <memory>
+#include <ostream>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -19,6 +20,7 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 
 namespace llvm {
 class Instruction;
@@ -29,53 +31,66 @@ class Value;
 namespace psr {
 class LLVMBasedICFG;
 
-// caution the underlying intergers do matter!
-enum class State {
-  TOP = 42,
-  UNINIT = 0,
-  OPENED = 1,
-  CLOSED = 2,
-  ERROR = 3,
-  BOT = 13
-};
-
-// the tokens of interest that may change state (the underlying intergers do
-// matter!)
-enum class Token { FOPEN = 0, FCLOSE = 1, STAR = 2, FREOPEN = 3 };
-
-// delta matrix to implement the state machine's delta function
-constexpr State delta[4][4] = {
-    {State::OPENED, State::ERROR, State::OPENED, State::ERROR},
-    {State::UNINIT, State::CLOSED, State::ERROR, State::ERROR},
-    {State::ERROR, State::OPENED, State::ERROR, State::ERROR},
-    {State::OPENED, State::OPENED, State::OPENED, State::ERROR},
-};
-
-// delta function that computes the next state
-static State getNextState(Token tok, State state);
-
 class IDETypeStateAnalysis
-    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, State,
+    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, int,
                                              LLVMBasedICFG &> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  typedef State v_t;
+  typedef int v_t;
   typedef LLVMBasedICFG &i_t;
 
 private:
+  const TypeStateDescription &TSD;
   std::vector<std::string> EntryPoints;
-  static const std::set<std::string> STDIOFunctions;
+  std::map<const llvm::Value *, std::set<const llvm::Value *>> PointsToCache;
+  std::map<const llvm::Value *, std::set<const llvm::Value *>>
+      RelevantAllocaCache;
+
+  /**
+   * @brief Returns all alloca's that are (indirect) aliases of V.
+   *
+   * Currently PhASAR's points-to information does not include alloca
+   * instructions, since alloca instructions, i.e. memory locations, are of
+   * type T* for a target type T. Thus they do not alias directly. Therefore,
+   * for each alias of V we collect related alloca instructions by checking
+   * load and store instructions for used alloca's.
+   */
+  std::set<d_t> getRelevantAllocas(d_t V);
+
+  /**
+   * @brief Returns whole-module aliases of V.
+   *
+   * This function retrieves whole-module points-to information. We store
+   * already computed points-to information in a cache to prevent expensive
+   * recomputation since the whole module points-to graph can be huge. This
+   * might become unnecessary once PhASAR's PointsToGraph starts using a cache
+   * itself.
+   */
+  std::set<d_t> getWMPointsToSet(d_t V);
+
+  /**
+   * @brief Provides whole module aliases and relevant alloca's of V.
+   */
+  std::set<d_t> getWMAliasesAndAllocas(d_t V);
+
+  /**
+   * @brief Provides local aliases and relevant alloca's of V.
+   */
+  std::set<d_t> getLocalAliasesAndAllocas(d_t V, const std::string &Fname);
+
+  /**
+   * @brief Checks if the type machtes the type of interest.
+   */
+  bool hasMatchingType(d_t V);
 
 public:
-  static const State TOP;
-  static const State BOTTOM;
-  std::string TypeOfInterest;
-  static const std::shared_ptr<AllBottom<v_t>> AllBotFunction;
+  const v_t TOP;
+  const v_t BOTTOM;
 
   IDETypeStateAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                       const ProjectIRDB &irdb, std::string TypeOfInterest,
+                       const ProjectIRDB &irdb, const TypeStateDescription &tsd,
                        std::vector<std::string> EntryPoints = {"main"});
 
   virtual ~IDETypeStateAnalysis() = default;
@@ -133,6 +148,14 @@ public:
 
   v_t bottomElement() override;
 
+  /**
+   * We have a lattice with BOTTOM representing all information
+   * and TOP representing no information. The other lattice elements
+   * are defined by the type state description, i.e. represented by the
+   * states of the finite state machine.
+   *
+   * @note Only one-level lattice's are handled currently
+   */
   v_t join(v_t lhs, v_t rhs) override;
 
   std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
@@ -145,27 +168,36 @@ public:
 
   void printValue(std::ostream &os, v_t v) const override;
 
+  void printIDEReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> &SR) override;
+
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
+  private:
+    v_t botElement;
+
   public:
     TSEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
-                           std::shared_ptr<EdgeFunction<v_t>> G)
-        : EdgeFunctionComposer<v_t>(F, G){};
+                           std::shared_ptr<EdgeFunction<v_t>> G, v_t bot)
+        : EdgeFunctionComposer<v_t>(F, G), botElement(bot){};
     std::shared_ptr<EdgeFunction<v_t>>
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
   };
 
-  // simplify the art of encoding edge functions
-  // the composeWith(), joinWith() and equal_to() implementation
-  // can stay the same for each instance
   class TSEdgeFunction : public EdgeFunction<v_t>,
                          public std::enable_shared_from_this<TSEdgeFunction> {
-  private:
-    v_t value;
+  protected:
+    const TypeStateDescription &TSD;
+    // Do not use a reference here, since LLVM's StringRef's (obtained by str())
+    // might turn to nullptr for whatever reason...
+    const std::string Token;
+    v_t CurrentState;
 
   public:
-    // to be implemented by a concrete edge function type
-    // virtual V computeTarget(V source) = 0;
+    TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok)
+        : TSD(tsd), Token(tok), CurrentState(TSD.top()){};
+
+    v_t computeTarget(v_t source) override;
 
     std::shared_ptr<EdgeFunction<v_t>>
     composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
@@ -174,6 +206,8 @@ public:
     joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
 
     bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 };
 

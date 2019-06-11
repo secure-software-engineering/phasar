@@ -1,9 +1,12 @@
 #include <stdio.h>
 
+// Fails since f and d are assumed to be may-alias
 int main() {
   FILE *f;
+  FILE *d;
   f = fopen("foo.txt", "r");
-  f = fopen("bar.txt", "w");
+  d = fopen("bar.txt", "w");
+
   fclose(f);
 
   return 0;

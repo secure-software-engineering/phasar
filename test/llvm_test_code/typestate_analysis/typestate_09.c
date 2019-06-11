@@ -1,20 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-FILE* bar() {
-	FILE *p;
-	p = fopen("test", "w+");
-	return p;
-}
-
-FILE* foo() {
-  return bar();
+FILE *foo() {
+  FILE *p;
+  p = fopen("bar.txt", "w+");
+  return p;
 }
 
 int main() {
   FILE *f;
   f = foo();
+  fprintf(f, "%s %d", "Life is ", 42);
   fclose(f);
-  
   return 0;
 }

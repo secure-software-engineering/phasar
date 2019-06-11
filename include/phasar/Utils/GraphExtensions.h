@@ -33,7 +33,7 @@ void contract_vertices(VertexTy replacement, VertexTy replace, GraphTy &g) {
   while (beit != be.second) {
     typename boost::graph_traits<GraphTy>::out_edge_iterator out_edge, end;
     boost::tie(out_edge, end) = boost::out_edges(replace, g);
-    while(out_edge != end) {
+    while (out_edge != end) {
       add_edge(replacement, *beit, EdgeProp(g[*out_edge]), g);
       remove_edge(*out_edge, g);
       boost::tie(out_edge, end) = boost::out_edges(replace, g);

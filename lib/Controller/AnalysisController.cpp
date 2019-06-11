@@ -35,6 +35,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
@@ -221,9 +222,10 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
-        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, "struct._IO_FILE",
+        CSTDFILEIOTypeStateDescription fileIODesc;
+        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, fileIODesc,
                                               EntryPoints);
-        LLVMIDESolver<const llvm::Value *, State, LLVMBasedICFG &>
+        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
             llvmtypestatesolver(typestateproblem, true);
         llvmtypestatesolver.solve();
         FinalResultsJson += llvmtypestatesolver.getAsJson();

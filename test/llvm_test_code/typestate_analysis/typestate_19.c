@@ -1,15 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void foo(FILE *f) {
-  fprintf(f, "Do something.\n");
-  fclose(f);
-}
+void foo(FILE *f) { fclose(f); }
 
-int main(int argc, char **argv) {
+int main() {
   FILE *f;
 
-  f = fopen(argv[1], "a");
+  int i;
+
+  while ((i = getc(f)) != EOF)
+    putc(i, f);
+
+  f = fopen("file.txt", "a");
 
   foo(f);
 
