@@ -389,7 +389,7 @@ IDETypeStateAnalysis::getCallEdgeFunction(
                 << IDETypeStateAnalysis::DtoString(srcNode));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "(M) Callee    : "
-                << IDETypeStateAnalysis::MtoString(destiantionMethod));
+                << IDETypeStateAnalysis::MtoString(destinationMethod));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "(D) Dest Node :   "
                 << IDETypeStateAnalysis::DtoString(destNode));
