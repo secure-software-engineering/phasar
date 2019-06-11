@@ -381,7 +381,8 @@ public:
   }
 
 protected:
-  std::unique_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
+  // have a shared point to allow for a copy constructor of IDESolver
+  std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
   IDETabulationProblem<N, D, M, V, I> &ideTabulationProblem;
 
   /**

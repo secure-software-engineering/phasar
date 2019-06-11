@@ -17,11 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
-#include <map>
 #include <memory>
 #include <unordered_map>
-
-#include <boost/log/sources/record_ostream.hpp>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -45,12 +42,12 @@ protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
+  Table<N, D, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>
+  Table<D, N, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>
       nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
@@ -59,11 +56,14 @@ protected:
       nonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(std::shared_ptr<EdgeFunction<L>> allTop,
-                const IDETabulationProblem<N, D, M, L, I> &p)
+  JumpFunctions(std::shared_ptr<EdgeFunction<L>> allTop, const IDETabulationProblem<N, D, M, L, I> &p)
       : allTop(allTop), problem(p) {}
 
-  virtual ~JumpFunctions() = default;
+  ~JumpFunctions() = default;
+
+  JumpFunctions(const JumpFunctions& JFs) = default;
+
+  JumpFunctions(JumpFunctions&& JFs) = default;
 
   /**
    * Records a jump function. The source statement is implicit.
@@ -84,11 +84,11 @@ public:
     // we do not store the default function (all-top)
     if (function->equal_to(allTop))
       return;
-    std::map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
+    std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc.insert({sourceVal, function});
     //	printNonEmptyReverseLookup();
-    std::map<D, std::shared_ptr<EdgeFunction<L>>> &targetValToFunc =
+    std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc.insert({targetVal, function});
     //	printNonEmptyForwardLookup();
@@ -103,10 +103,10 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::map<D, std::shared_ptr<EdgeFunction<L>>> reverseLookup(N target,
+  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> reverseLookup(N target,
                                                               D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal))
-      return std::map<D, std::shared_ptr<EdgeFunction<L>>>{};
+      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
     else
       return nonEmptyReverseLookup.get(target, targetVal);
   }
@@ -116,10 +116,10 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::map<D, std::shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal,
+  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> forwardLookup(D sourceVal,
                                                               N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target))
-      return std::map<D, std::shared_ptr<EdgeFunction<L>>>{};
+      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
     else
       return nonEmptyForwardLookup.get(sourceVal, target);
   }
@@ -131,9 +131,6 @@ public:
    * (sourceVal,targetVal,edgeFunction).
    */
   Table<D, D, std::shared_ptr<EdgeFunction<L>>> lookupByTarget(N target) {
-    // if (nonEmptyLookupByTargetNode.count(target))
-    //	return Table<D, D, std::shared_ptr<EdgeFunction<L>>>{};
-    // else
     return nonEmptyLookupByTargetNode[target];
   }
 
@@ -144,36 +141,10 @@ public:
    * there anyway.
    */
   bool removeFunction(D sourceVal, N target, D targetVal) {
-    //			Map<D,EdgeFunction<L>> sourceValToFunc =
-    // nonEmptyReverseLookup.get(target, targetVal);
-    //			if (sourceValToFunc == null)
-    //				return false;
-    //			if (sourceValToFunc.remove(sourceVal) == null)
-    //				return false;
-    //			if (sourceValToFunc.empty())
-    //				nonEmptyReverseLookup.remove(targetVal,
-    // targetVal);
-    //
-    //			Map<D, EdgeFunction<L>> targetValToFunc =
-    // nonEmptyForwardLookup.get(sourceVal, target);
-    //			if (targetValToFunc == null)
-    //				return false;
-    //			if (targetValToFunc.remove(targetVal) == null)
-    //				return false;
-    //			if (targetValToFunc.empty())
-    //				nonEmptyForwardLookup.remove(sourceVal, target);
-    //
-    //			Table<D,D,EdgeFunction<L>> table =
-    // nonEmptyLookupByTargetNode.get(target);
-    //			if (table == null)
-    //				return false;
-    //			if (table.remove(sourceVal, targetVal) == null)
-    //				return false;
-    //			if (table.empty())
-    //				nonEmptyLookupByTargetNode.remove(target);
-    //
-    //			return true;
-    return false;
+    nonEmptyReverseLookup.get(target, targetVal).erase(sourceVal);
+    nonEmptyForwardLookup.get(sourceVal, target).erase(targetVal);
+    bool removed = nonEmptyLookupByTargetNode.erase(target);
+    return removed;
   }
 
   /**
@@ -207,7 +178,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyReverseLookup");
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg, DEBUG)
-        << "Table<N, D, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
+        << "Table<N, D, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyReverseLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
@@ -224,7 +195,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyForwardLookup");
     LOG_IF_ENABLE(
         BOOST_LOG_SEV(lg, DEBUG)
-        << "Table<D, N, std::map<D, std::shared_ptr<EdgeFunction<L>>>>");
+        << "Table<D, N, std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>");
     auto cellset = nonEmptyForwardLookup.cellSet();
     for (auto cell : cellset) {
       cell.r->dump();
