@@ -271,7 +271,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
-    IDETypeStateAnalysis::m_t destiantionMethod,
+    IDETypeStateAnalysis::m_t destinationMethod,
     IDETypeStateAnalysis::d_t destNode) {
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }

@@ -195,16 +195,16 @@ struct FlowEdgeFunctionCache {
   }
 
   std::shared_ptr<EdgeFunction<V>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod, D destNode) {
+  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
     PAMM_GET_INSTANCE;
-    auto key = std::tie(callStmt, srcNode, destiantionMethod, destNode);
+    auto key = std::tie(callStmt, srcNode, destinationMethod, destNode);
     if (CallEdgeFunctionCache.count(key)) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return CallEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
-                                            destiantionMethod, destNode);
+                                            destinationMethod, destNode);
       CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }

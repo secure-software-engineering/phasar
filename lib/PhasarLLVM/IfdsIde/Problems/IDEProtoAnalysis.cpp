@@ -112,7 +112,7 @@ IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t curr,
 shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
 IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t callStmt,
                                       IDEProtoAnalysis::d_t srcNode,
-                                      IDEProtoAnalysis::m_t destiantionMethod,
+                                      IDEProtoAnalysis::m_t destinationMethod,
                                       IDEProtoAnalysis::d_t destNode) {
   cout << "IDEProtoAnalysis::getCallEdgeFunction()\n";
   return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
