@@ -25,6 +25,8 @@ target_link_libraries(phasar_utils
   LLVMSupport
   LLVMBitWriter
 
+  boost_log
+
   ${CMAKE_DL_LIBS}
 )
 
