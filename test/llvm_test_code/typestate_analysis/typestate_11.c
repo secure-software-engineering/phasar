@@ -1,14 +1,18 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(int argc, char **argv) {
+void bar(FILE *p) {
+	fclose(p);
+}
+
+void foo(FILE *p) {
+  p = fopen("bar.txt", "w+");
+}
+
+int main() {
   FILE *f;
-
-  freopen(argv[1], "r", f);
-
-  f = fopen(argv[1], "r");
-  fclose(f);
-  f = fopen(argv[1], "r");
-  fclose(f);
+  foo(f);
+  bar(f);
 
   return 0;
 }

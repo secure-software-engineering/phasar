@@ -107,7 +107,7 @@ IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t curr,
 
 shared_ptr<EdgeFunction<IDESolverTest::v_t>> IDESolverTest::getCallEdgeFunction(
     IDESolverTest::n_t callStmt, IDESolverTest::d_t srcNode,
-    IDESolverTest::m_t destiantionMethod, IDESolverTest::d_t destNode) {
+    IDESolverTest::m_t destinationMethod, IDESolverTest::d_t destNode) {
   cout << "IDESolverTest::getCallEdgeFunction()\n";
   return EdgeIdentity<IDESolverTest::v_t>::getInstance();
 }

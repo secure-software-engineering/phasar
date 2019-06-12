@@ -1,18 +1,10 @@
 #include <stdio.h>
-#include <stdlib.h>
 
-void foo(FILE *f) { fclose(f); }
-
-int main(int argc, char **argv) {
-  int i;
+int main() {
   FILE *f;
-
-  f = fopen(argv[1], "r");
-
-  foo(f);
-
-  while ((i = fgetc(f)) != EOF)
-    ;
+  f = fopen("foo.txt", "r");
+  f = fopen("bar.txt", "w");
+  fclose(f);
 
   return 0;
 }

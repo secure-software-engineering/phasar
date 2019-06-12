@@ -93,7 +93,7 @@ public:
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          std::cout << "--- IDE START RESULT RECORD ---\n";
+          std::cout << "\n--- IDE START RESULT RECORD ---\n";
           std::cout << "N: " << Problem.NtoString(cells[i].r)
                     << " in function: ";
           if (const llvm::Instruction *inst =

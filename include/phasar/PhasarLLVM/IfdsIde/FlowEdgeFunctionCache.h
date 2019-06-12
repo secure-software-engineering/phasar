@@ -31,7 +31,8 @@ namespace psr {
  * into the cache.
  */
 template <typename N, typename D, typename M, typename V, typename I>
-struct FlowEdgeFunctionCache {
+class FlowEdgeFunctionCache {
+private:
   IDETabulationProblem<N, D, M, V, I> &problem;
   // Auto add zero
   bool autoAddZero;
@@ -57,6 +58,7 @@ struct FlowEdgeFunctionCache {
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
       SummaryEdgeFunctionCache;
 
+public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
   FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &problem)
@@ -93,6 +95,12 @@ struct FlowEdgeFunctionCache {
     REG_COUNTER("Summary-EF Construction", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Summary-EF Cache Hit", 0, PAMM_SEVERITY_LEVEL::Full);
   }
+
+  ~FlowEdgeFunctionCache() = default;
+
+  FlowEdgeFunctionCache(const FlowEdgeFunctionCache &FEFC) = default;
+
+  FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) = default;
 
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
@@ -195,16 +203,16 @@ struct FlowEdgeFunctionCache {
   }
 
   std::shared_ptr<EdgeFunction<V>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destiantionMethod, D destNode) {
+  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
     PAMM_GET_INSTANCE;
-    auto key = std::tie(callStmt, srcNode, destiantionMethod, destNode);
+    auto key = std::tie(callStmt, srcNode, destinationMethod, destNode);
     if (CallEdgeFunctionCache.count(key)) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       return CallEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
-                                            destiantionMethod, destNode);
+                                            destinationMethod, destNode);
       CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       return ef;
     }

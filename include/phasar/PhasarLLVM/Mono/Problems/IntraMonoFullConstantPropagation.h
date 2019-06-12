@@ -37,29 +37,32 @@ class IntraMonoFullConstantPropagation
                               std::pair<const llvm::Value *, unsigned>,
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
-  using Node_t = const llvm::Instruction *;
-  using Domain_t = std::pair<const llvm::Value *, unsigned>;
-  using Method_t = const llvm::Function *;
-  using CFG_t = LLVMBasedCFG &;
-
-  IntraMonoFullConstantPropagation(CFG_t Cfg, Method_t F);
+  IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
   virtual ~IntraMonoFullConstantPropagation() = default;
 
-  MonoSet<Domain_t> join(const MonoSet<Domain_t> &Lhs,
-                         const MonoSet<Domain_t> &Rhs) override;
+  MonoSet<std::pair<const llvm::Value *, unsigned>>
+  join(const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+       const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<Domain_t> &Lhs,
-                     const MonoSet<Domain_t> &Rhs) override;
+  bool sqSubSetEqual(
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
 
-  MonoSet<Domain_t> flow(Node_t S, const MonoSet<Domain_t> &In) override;
+  MonoSet<std::pair<const llvm::Value *, unsigned>> normalFlow(
+      const llvm::Instruction *S,
+      const MonoSet<std::pair<const llvm::Value *, unsigned>> &In) override;
 
-  MonoMap<Node_t, MonoSet<Domain_t>> initialSeeds() override;
+  MonoMap<const llvm::Instruction *,
+          MonoSet<std::pair<const llvm::Value *, unsigned>>>
+  initialSeeds() override;
 
-  void printNode(std::ostream &os, Node_t n) const override;
+  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
 
-  void printDataFlowFact(std::ostream &os, Domain_t d) const override;
+  void
+  printDataFlowFact(std::ostream &os,
+                    std::pair<const llvm::Value *, unsigned> d) const override;
 
-  void printMethod(std::ostream &os, Method_t m) const override;
+  void printMethod(std::ostream &os, const llvm::Function *m) const override;
 };
 
 } // namespace psr

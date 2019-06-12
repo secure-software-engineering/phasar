@@ -23,7 +23,9 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
+#include <llvm/Support/SourceMgr.h>
 #include <llvm/Transforms/Scalar.h>
+#include <llvm/Transforms/Utils.h>
 
 #include <boost/filesystem.hpp>
 
@@ -255,7 +257,7 @@ void ProjectIRDB::linkForWPA() {
         // reload the modules into the module containing the main function
         std::string IRBuffer;
         llvm::raw_string_ostream RSO(IRBuffer);
-        llvm::WriteBitcodeToFile(entry.second.get(), RSO);
+        llvm::WriteBitcodeToFile(*entry.second.get(), RSO);
         RSO.flush();
         llvm::SMDiagnostic ErrorDiagnostics;
         std::unique_ptr<llvm::MemoryBuffer> MemBuffer =
@@ -418,6 +420,12 @@ std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
 PointsToGraph *ProjectIRDB::getPointsToGraph(const std::string &name) {
   if (ptgs.count(name))
     return ptgs[name].get();
+  return nullptr;
+}
+
+PointsToGraph *ProjectIRDB::getPointsToGraph(const std::string &name) const {
+  if (ptgs.count(name))
+    return ptgs.at(name).get();
   return nullptr;
 }
 

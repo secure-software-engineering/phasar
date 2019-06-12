@@ -135,6 +135,7 @@ public:
   llvm::Instruction *getInstruction(std::size_t id);
   std::size_t getInstructionID(const llvm::Instruction *I);
   PointsToGraph *getPointsToGraph(const std::string &FunctionName);
+  PointsToGraph *getPointsToGraph(const std::string &FunctionName) const;
   void insertPointsToGraph(const std::string &FunctionName, PointsToGraph *ptg);
   void print();
   void exportPATBCJSON();

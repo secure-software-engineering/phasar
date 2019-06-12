@@ -63,7 +63,7 @@ public:
                         d_t succNode) override;
   std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
-                                                         m_t destiantionMethod,
+                                                         m_t destinationMethod,
                                                          d_t destNode) override;
   std::shared_ptr<EdgeFunction<v_t>>
   getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,

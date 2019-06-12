@@ -347,7 +347,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
-        bottomElement());
+        IDELinearConstantAnalysis::BOTTOM);
   }
   // Check store instruction
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
@@ -480,7 +480,7 @@ shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t srcNode,
-    IDELinearConstantAnalysis::m_t destiantionMethod,
+    IDELinearConstantAnalysis::m_t destinationMethod,
     IDELinearConstantAnalysis::d_t destNode) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -493,7 +493,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
                 << IDELinearConstantAnalysis::DtoString(srcNode));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "(M) Dest Method : "
-                << IDELinearConstantAnalysis::MtoString(destiantionMethod));
+                << IDELinearConstantAnalysis::MtoString(destinationMethod));
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "(D) Dest Node   :   "
                 << IDELinearConstantAnalysis::DtoString(destNode));

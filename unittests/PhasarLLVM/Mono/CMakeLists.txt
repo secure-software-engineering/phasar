@@ -1,5 +1,4 @@
 set(MonoSources
-	InterMonoGeneralizedSolverTest.cpp
 	InterMonoTaintAnalysisTest.cpp
 )
 

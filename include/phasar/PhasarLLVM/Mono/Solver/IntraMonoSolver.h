@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
-#include <iostream> // std::cout please remove it
 #include <map>
 #include <utility>
 #include <vector>
@@ -35,7 +34,6 @@ protected:
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
   C CFG;
-  size_t prealloc_hint;
 
   void initialize() {
     std::vector<std::pair<N, N>> edges =
@@ -46,28 +44,27 @@ protected:
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
       Analysis.insert(std::make_pair(s, MonoSet<D>()));
     }
-    if (prealloc_hint) {
-      // for (auto &AnalysisSet : Analysis) {
-      //   AnalysisSet.second.reserve(prealloc_hint);
-      // }
+    // insert initial seeds
+    for (auto &seed : IMProblem.initialSeeds()) {
+      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
     }
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, M, C> &IMP, size_t prealloc_hint = 0)
-      : IMProblem(IMP), CFG(IMP.getCFG()), prealloc_hint(prealloc_hint) {}
+  IntraMonoSolver(IntraMonoProblem<N, D, M, C> &IMP)
+      : IMProblem(IMP), CFG(IMP.getCFG()) {}
   virtual ~IntraMonoSolver() = default;
   virtual void solve() {
     // step 1: Initalization (of Worklist and Analysis)
     initialize();
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
-      std::cout << "worklist size: " << Worklist.size() << "\n";
+      // std::cout << "worklist size: " << Worklist.size() << "\n";
       std::pair<N, N> path = Worklist.front();
       Worklist.pop_front();
       N src = path.first;
       N dst = path.second;
-      MonoSet<D> Out = IMProblem.flow(src, Analysis[src]);
+      MonoSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         for (auto nprimeprime : CFG.getSuccsOf(dst)) {
@@ -79,7 +76,7 @@ public:
     // MFP_in[s] = Analysis[s];
     // MFP out[s] = IMProblem.flow(Analysis[s]);
     for (auto entry : Analysis) {
-      entry.second = IMProblem.flow(entry.first, entry.second);
+      entry.second = IMProblem.normalFlow(entry.first, entry.second);
     }
   }
 };

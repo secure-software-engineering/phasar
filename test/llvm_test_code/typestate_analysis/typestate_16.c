@@ -4,15 +4,15 @@
 void foo(FILE *f) {
   int i;
 
-  while ((i = getc(f)) != EOF)
-    putc(i, f);
+  while ((i = fgetc(f)) != EOF)
+    putchar(i);
 
   fclose(f);
 }
 
-int main(int argc, char **argv) {
+int main() {
   FILE *f;
-  f = fopen(argv[1], "a");
+  f = fopen("foo.txt", "r");
 
   foo(f);
 

@@ -3,17 +3,15 @@
 
 void foo(FILE *f) { fclose(f); }
 
-int main(int argc, char **argv) {
+int main() {
+  int i;
   FILE *f;
 
-  int i;
-
-  while ((i = getc(f)) != EOF)
-    putc(i, f);
-
-  f = fopen(argv[1], "a");
+  f = fopen("foo.txt", "r");
 
   foo(f);
+
+  while ((i = fgetc(f)) != EOF) {}
 
   return 0;
 }

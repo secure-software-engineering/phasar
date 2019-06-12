@@ -73,7 +73,7 @@ WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t curr,
 shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
 WPDSAliasCollector::getCallEdgeFunction(
     WPDSAliasCollector::n_t callStmt, WPDSAliasCollector::d_t srcNode,
-    WPDSAliasCollector::m_t destiantionMethod,
+    WPDSAliasCollector::m_t destinationMethod,
     WPDSAliasCollector::d_t destNode) {
   return EdgeIdentity<WPDSAliasCollector::v_t>::getInstance();
 }

@@ -20,7 +20,6 @@
 #include <set>
 
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
-#include <set>
 
 namespace psr {
 
