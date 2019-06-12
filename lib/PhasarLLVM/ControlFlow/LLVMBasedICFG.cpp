@@ -572,11 +572,11 @@ json LLVMBasedICFG::getAsJson() {
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(cg); vi_v != vi_v_end;
        ++vi_v) {
-    J[JsonCallGraphID][cg[*vi_v].functionName];
+    J[PhasarConfig::JsonCallGraphID()][cg[*vi_v].functionName];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, cg); ei != ei_end;
          ++ei) {
-      J[JsonCallGraphID][cg[*vi_v].functionName] +=
+      J[PhasarConfig::JsonCallGraphID()][cg[*vi_v].functionName] +=
           cg[boost::target(*ei, cg)].functionName;
     }
   }

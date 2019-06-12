@@ -117,8 +117,10 @@ ProjectIRDB::~ProjectIRDB() {
 }
 
 void ProjectIRDB::setupHeaderSearchPaths() {
-  header_search_paths = splitString(
-      readFile(ConfigurationDirectory + HeaderSearchPathsFileName), "\n");
+  header_search_paths =
+      splitString(readFile(PhasarConfig::ConfigurationDirectory() +
+                           PhasarConfig::HeaderSearchPathsFileName()),
+                  "\n");
   for (auto &path : header_search_paths) {
     path = std::string("-I") + path;
   }
@@ -403,7 +405,7 @@ llvm::Instruction *ProjectIRDB::getInstruction(std::size_t id) {
 std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   std::size_t id = 0;
   if (auto MD = llvm::cast<llvm::MDString>(
-          I->getMetadata(MetaDataKind)->getOperand(0))) {
+          I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))) {
     id = stol(MD->getString().str());
   }
   return id;
