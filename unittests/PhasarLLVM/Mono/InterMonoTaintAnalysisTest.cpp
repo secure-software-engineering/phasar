@@ -1,13 +1,3 @@
-// #include <iostream>
-// #include <memory>
-
-// #include <boost/filesystem/operations.hpp>
-// #include <llvm/IR/LLVMContext.h>
-// #include <llvm/IR/Module.h>
-// #include <llvm/IR/Verifier.h>
-// #include <llvm/IRReader/IRReader.h>
-// #include <llvm/Support/SourceMgr.h>
-
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -27,12 +17,11 @@ protected:
       PhasarDirectory + "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-// @ retruned the number of tained Instruction
-int computeCounterResult(LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> & TaintSolver, 
-                          MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> &Analysis){
+// @ retrun the number of tained Instruction
+int computeCounterResult(MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> &Analysis){
   int counter = 0;
   // count the number of facts after investigating the last Instruction
-  for (auto &entry : TaintSolver.getAnalysis()) {
+  for (auto &entry :Analysis) {
       if (!entry.second.empty()) {
         for (auto &context : entry.second) {
           counter = 0;
@@ -46,7 +35,27 @@ int computeCounterResult(LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG 
     }
     return counter;
   }
+
+void compareResults(MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> &Analysis, map<int, set<string>> &Facts ){
+   map<int, set<string>> FoundLeaks;
+   map<int, set<string>> TempLeaks;
+    for (auto &entry : Analysis) {
+      int SinkId = stoi(getMetaDataID(entry.first));
+      set<string> LeakedValueIds;
+      FoundLeaks = TempLeaks;
+      for (auto &context : entry.second) {
+          if (!context.second.empty()) {
+            for (auto &fact : context.second) {
+              LeakedValueIds.insert(getMetaDataID(fact));
+            }
+          }
+        }
+        FoundLeaks.insert(make_pair(SinkId, LeakedValueIds));
+    }
+    EXPECT_EQ(FoundLeaks, Facts);
+  }
 };
+
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_9_c.ll"}, IRDBOptions::WPA);
@@ -58,13 +67,15 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
             TaintProblem, true);
   TaintSolver.solve();
-  cout<<"analyis size is: "<<TaintSolver.getAnalysis().size();
 
    MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(TaintSolver, Analysis );
-  cout<<"counter is: "<<counter;
+  int counter = computeCounterResult(Analysis);
   ASSERT_EQ(counter, 8);
+
+  map<int, set<string>> Facts;
+  Facts[15] = set<string>{ "10", "11", "13", "5", "6", "7", "main.0", "main.1" };
+  compareResults(Analysis, Facts);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
@@ -77,12 +88,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
             TaintProblem, true);
   TaintSolver.solve();
-  cout<<"analyis size is: "<<TaintSolver.getAnalysis().size();
   MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(TaintSolver, Analysis );
-  cout<<"counter is: "<<counter;
+  int counter = computeCounterResult(Analysis);
   ASSERT_EQ(counter, 1);
+
+  map<int, set<string>> Facts;
+  Facts[17] = set<string>{"_Z3fooi.0"};
+  compareResults(Analysis, Facts);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
@@ -95,12 +108,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
             TaintProblem, true);
   TaintSolver.solve();
-  cout<<"analyis size is: "<<TaintSolver.getAnalysis().size();
   MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(TaintSolver, Analysis );
-  cout<<"counter is: "<<counter;
+  int counter = computeCounterResult(Analysis);
   ASSERT_EQ(counter, 3);
+
+  map<int, set<string>> Facts;
+  Facts[44] = set<string>{ "41", "43", "_Z3quki.0" };
+  compareResults(Analysis, Facts);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
@@ -113,12 +128,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
             TaintProblem, true);
   TaintSolver.solve();
-  cout<<"analyis size is: "<<TaintSolver.getAnalysis().size();
   MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(TaintSolver, Analysis );
-  cout<<"counter is: "<<counter;
+  int counter = computeCounterResult(Analysis);
   ASSERT_EQ(counter, 0);
+
+  map<int, set<string>> Facts;
+  Facts[96] = set<string>{"81", "91", "_Z3fooii.0" };
+  compareResults(Analysis, Facts);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
@@ -131,12 +148,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
             TaintProblem, true);
   TaintSolver.solve();
-  cout<<"analyis size is: "<<TaintSolver.getAnalysis().size();
   MonoMap<const llvm::Instruction *, MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>, MonoSet<const llvm::Value *>>> Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(TaintSolver, Analysis );
-  cout<<"counter is: "<<counter;
-  ASSERT_EQ(counter, 1);
+  int counter = computeCounterResult(Analysis);
+  //ASSERT_EQ(counter, 0);
+
+  map<int, set<string>> Facts;
+  Facts[120] = set<string>{"_Z3fooi.0"};
+  compareResults(Analysis, Facts);
 }
 
 int main(int argc, char **argv) {
