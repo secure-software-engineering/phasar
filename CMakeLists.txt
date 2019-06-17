@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.0)
 
+
+
 # Check if we build within the llvm source tree
 if (DEFINED LLVM_MAIN_SRC_DIR)
   set(PHASAR_IN_TREE 1)
@@ -35,6 +37,12 @@ enable_testing()
 
 set(PHASAR_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PHASAR_SRC_DIR}/cmake")
+
+file(STRINGS ${PHASAR_SRC_DIR}/include/phasar/Config/Version.h VERSION_NUMBER_FILE)
+string(REPLACE " " ";" VERSION_NUMBER_FILE ${VERSION_NUMBER_FILE})
+list(GET VERSION_NUMBER_FILE 2 VERSION_NUMBER_PHASAR)
+
+
 include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)

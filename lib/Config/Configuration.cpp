@@ -17,6 +17,7 @@
 #include <boost/filesystem.hpp>
 
 #include <phasar/Config/Configuration.h>
+#include <phasar/Config/Version.h>
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
@@ -25,7 +26,7 @@ using namespace psr;
 
 namespace psr {
 
-const std::string PhasarVersion("PhASAR v0319");
+const std::string PhasarVersion(PHASAR_VERSION);
 const std::string MetaDataKind("phasar.instruction.id");
 const std::string ConfigurationDirectory([]() {
   std::string phasar_config =
