@@ -419,8 +419,8 @@ install(DIRECTORY config/
 #     $ cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local ..
 #     $ cpack ..
 #     $ dpkg -i <the_package>.deb
-set(MAJOR_VERSION 0)
-set(MINOR_VERSION 8)
+set(MAJOR_VERSION 1)
+set(MINOR_VERSION 0)
 set(PATCH_VERSION 0)
 IF(EXISTS "${CMAKE_ROOT}/Modules/CPack.cmake")
 INCLUDE(InstallRequiredSystemLibraries)
