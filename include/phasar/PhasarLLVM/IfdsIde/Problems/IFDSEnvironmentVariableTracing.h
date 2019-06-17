@@ -19,7 +19,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/Utils/LLVMShorthands.h>
-
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
 

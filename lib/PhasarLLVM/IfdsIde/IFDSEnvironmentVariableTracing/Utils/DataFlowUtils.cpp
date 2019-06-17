@@ -19,7 +19,6 @@
 #include <string>
 
 #include <llvm/Analysis/PostDominators.h>
-
 #include <llvm/IR/IntrinsicInst.h>
 
 #include <phasar/Utils/LLVMShorthands.h>

@@ -2,14 +2,18 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
+#include <set>
+#include <string>
+#include <vector>
 
+#include <llvm/IR/IntrinsicInst.h>
+
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovRetValWriter.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovWriter.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LineNumberWriter.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStatsWriter.h>
-
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/BranchSwitchInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CallToRetFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CheckOperandsFlowFunction.h>
@@ -21,21 +25,11 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/StoreInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAEndInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAStartInstFlowFunction.h>
-
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GenerateFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/IdentityFlowFunction.h>
-
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCallee.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCaller.h>
-
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/DataFlowUtils.h>
-
-
-#include <set>
-#include <string>
-#include <vector>
-
-#include <llvm/IR/IntrinsicInst.h>
 
 namespace psr {
 
