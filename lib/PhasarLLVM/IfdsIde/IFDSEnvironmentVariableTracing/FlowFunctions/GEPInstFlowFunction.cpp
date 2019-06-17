@@ -1,42 +1,45 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GEPInstFlowFunction.h>
 
 namespace psr {
 
 std::set<ExtendedValue>
-GEPInstFlowFunction::computeTargetsExt(ExtendedValue& fact)
-{
+GEPInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   const auto gepInst = llvm::cast<llvm::GetElementPtrInst>(currentInst);
   const auto gepInstPtr = gepInst->getPointerOperand();
 
   bool isVarArgFact = fact.isVarArg();
   if (isVarArgFact) {
     bool killFact = gepInstPtr->getName().contains_lower("reg_save_area");
-    if (killFact) return { };
+    if (killFact)
+      return {};
 
-    bool incrementCurrentVarArgIndex = gepInst->getName().contains_lower("overflow_arg_area.next");
+    bool incrementCurrentVarArgIndex =
+        gepInst->getName().contains_lower("overflow_arg_area.next");
     if (incrementCurrentVarArgIndex) {
-      const auto gepVaListMemLocationSeq = DataFlowUtils::getMemoryLocationSeqFromMatr(gepInstPtr);
+      const auto gepVaListMemLocationSeq =
+          DataFlowUtils::getMemoryLocationSeqFromMatr(gepInstPtr);
 
-      bool isVaListEqual = DataFlowUtils::isSubsetMemoryLocationSeq(DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
-                                                                    gepVaListMemLocationSeq);
+      bool isVaListEqual = DataFlowUtils::isSubsetMemoryLocationSeq(
+          DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
+          gepVaListMemLocationSeq);
       if (isVaListEqual) {
         ExtendedValue ev(fact);
         ev.incrementCurrentVarArgIndex();
 
-        return { ev };
+        return {ev};
       }
     }
-  }
-  else {
+  } else {
     bool isPtrTainted = DataFlowUtils::isValueTainted(gepInstPtr, fact);
-    if (isPtrTainted) return { fact, ExtendedValue(gepInst) };
+    if (isPtrTainted)
+      return {fact, ExtendedValue(gepInst)};
   }
 
-  return { fact };
+  return {fact};
 }
 
-} // namespace
+} // namespace psr

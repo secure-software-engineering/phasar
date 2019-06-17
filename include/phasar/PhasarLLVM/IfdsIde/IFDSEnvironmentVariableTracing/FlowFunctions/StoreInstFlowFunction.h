@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef STOREINSTFLOWFUNCTION_H
 #define STOREINSTFLOWFUNCTION_H
@@ -9,19 +9,16 @@
 
 namespace psr {
 
-class StoreInstFlowFunction :
-    public FlowFunctionBase
-{
+class StoreInstFlowFunction : public FlowFunctionBase {
 public:
-  StoreInstFlowFunction(const llvm::Instruction* _currentInst,
-                        TraceStats& _traceStats,
-                        ExtendedValue _zeroValue) :
-    FlowFunctionBase(_currentInst, _traceStats, _zeroValue) { }
+  StoreInstFlowFunction(const llvm::Instruction *_currentInst,
+                        TraceStats &_traceStats, ExtendedValue _zeroValue)
+      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
   ~StoreInstFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue& fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // STOREINSTFLOWFUNCTION_H

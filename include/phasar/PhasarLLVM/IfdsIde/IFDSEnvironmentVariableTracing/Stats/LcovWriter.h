@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef LCOVWRITER_H
 #define LCOVWRITER_H
@@ -9,18 +9,15 @@
 
 namespace psr {
 
-class LcovWriter :
-    public TraceStatsWriter
-{
+class LcovWriter : public TraceStatsWriter {
 public:
-  LcovWriter(const TraceStats& _traceStats,
-             const std::string _outFile) :
-    TraceStatsWriter(_traceStats, _outFile) { }
+  LcovWriter(const TraceStats &_traceStats, const std::string _outFile)
+      : TraceStatsWriter(_traceStats, _outFile) {}
   ~LcovWriter() override = default;
 
   void write() const override;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // LCOVWRITER_H

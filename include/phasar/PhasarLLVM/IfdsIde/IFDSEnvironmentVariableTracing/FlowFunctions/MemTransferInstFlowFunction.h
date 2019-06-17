@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef MEMTRANSFERINSTFLOWFUNCTION_H
 #define MEMTRANSFERINSTFLOWFUNCTION_H
@@ -9,19 +9,16 @@
 
 namespace psr {
 
-class MemTransferInstFlowFunction :
-    public FlowFunctionBase
-{
+class MemTransferInstFlowFunction : public FlowFunctionBase {
 public:
-  MemTransferInstFlowFunction(const llvm::Instruction* _currentInst,
-                              TraceStats& _traceStats,
-                              ExtendedValue _zeroValue) :
-    FlowFunctionBase(_currentInst, _traceStats, _zeroValue) { }
+  MemTransferInstFlowFunction(const llvm::Instruction *_currentInst,
+                              TraceStats &_traceStats, ExtendedValue _zeroValue)
+      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
   ~MemTransferInstFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue& fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // MEMTRANSFERINSTFLOWFUNCTION_H

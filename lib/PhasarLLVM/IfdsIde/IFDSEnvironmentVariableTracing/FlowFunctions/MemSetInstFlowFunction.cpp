@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MemSetInstFlowFunction.h>
 
@@ -9,19 +9,19 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MemSetInstFlowFunction::computeTargetsExt(ExtendedValue& fact)
-{
+MemSetInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   const auto memSetInst = llvm::cast<const llvm::MemSetInst>(currentInst);
   const auto dstMemLocationMatr = memSetInst->getRawDest();
 
-  bool killFact = DataFlowUtils::isMemoryLocationTainted(dstMemLocationMatr, fact);
+  bool killFact =
+      DataFlowUtils::isMemoryLocationTainted(dstMemLocationMatr, fact);
   if (killFact) {
     traceStats.add(memSetInst);
 
-    return { };
+    return {};
   }
 
-  return { fact };
+  return {fact};
 }
 
-} // namespace
+} // namespace psr

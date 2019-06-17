@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAStartInstFlowFunction.h>
 
@@ -9,23 +9,25 @@
 namespace psr {
 
 std::set<ExtendedValue>
-VAStartInstFlowFunction::computeTargetsExt(ExtendedValue& fact)
-{
+VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   std::set<ExtendedValue> targetFacts;
   targetFacts.insert(fact);
 
   bool isVarArgTemplateFact = fact.isVarArgTemplate();
-  if (!isVarArgTemplateFact) return targetFacts;
+  if (!isVarArgTemplateFact)
+    return targetFacts;
 
   const auto vaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
   const auto vaListMemLocationMatr = vaStartInst->getArgList();
 
-  auto vaListMemLocationSeq = DataFlowUtils::getMemoryLocationSeqFromMatr(vaListMemLocationMatr);
+  auto vaListMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(vaListMemLocationMatr);
 
   bool isValidMemLocationSeq = !vaListMemLocationSeq.empty();
   if (isValidMemLocationSeq) {
     bool isArrayDecay = DataFlowUtils::isArrayDecay(vaListMemLocationMatr);
-    if (isArrayDecay) vaListMemLocationSeq.pop_back();
+    if (isArrayDecay)
+      vaListMemLocationSeq.pop_back();
 
     ExtendedValue ev(fact);
     ev.setVaListMemLocationSeq(vaListMemLocationSeq);
@@ -42,4 +44,4 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue& fact)
   return targetFacts;
 }
 
-} // namespace
+} // namespace psr

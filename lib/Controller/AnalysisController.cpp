@@ -30,6 +30,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
@@ -42,7 +43,6 @@
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
@@ -308,8 +308,9 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
-        IFDSEnvironmentVariableTracing variableTracing(ICFG,EntryPoints);
-        LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &>llvmifdsenvsolver(variableTracing,false);
+        IFDSEnvironmentVariableTracing variableTracing(ICFG, EntryPoints);
+        LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
+            variableTracing, false);
 
         cout << "IFDS EnvironmentVariableTracing ..." << endl;
         llvmifdsenvsolver.solve();

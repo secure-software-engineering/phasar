@@ -8,16 +8,14 @@
 
 #include <llvm/IR/IntrinsicInst.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovRetValWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LineNumberWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStatsWriter.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/BranchSwitchInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CallToRetFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CheckOperandsFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GEPInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GenerateFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/IdentityFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCallee.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCaller.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MemSetInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MemTransferInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/PHINodeFlowFunction.h>
@@ -25,11 +23,13 @@
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/StoreInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAEndInstFlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAStartInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GenerateFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/IdentityFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCallee.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCaller.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovRetValWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LineNumberWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStatsWriter.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/DataFlowUtils.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 
 namespace psr {
 
@@ -39,11 +39,16 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
       EntryPoints(EntryPoints), taintSenFun(true) {
-  for (auto fun : DataFlowUtils::getTaintedFunctions()){
-    taintSenFun.Sources.insert(std::pair<std::string,TaintSensitiveFunctions::SourceFunction>(fun,TaintSensitiveFunctions::SourceFunction(fun,false)));
+  for (auto fun : DataFlowUtils::getTaintedFunctions()) {
+    taintSenFun.Sources.insert(
+        std::pair<std::string, TaintSensitiveFunctions::SourceFunction>(
+            fun, TaintSensitiveFunctions::SourceFunction(fun, false)));
   }
-  for (auto fun : DataFlowUtils::getBlacklistedFunctions()){
-    taintSenFun.Sinks.insert(std::pair<std::string,TaintSensitiveFunctions::SinkFunction>(fun,TaintSensitiveFunctions::SinkFunction(fun,std::vector<unsigned>())));
+  for (auto fun : DataFlowUtils::getBlacklistedFunctions()) {
+    taintSenFun.Sinks.insert(
+        std::pair<std::string, TaintSensitiveFunctions::SinkFunction>(
+            fun, TaintSensitiveFunctions::SinkFunction(
+                     fun, std::vector<unsigned>())));
   }
 
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
@@ -155,7 +160,7 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
   /*
    * Exclude blacklisted functions here.
    */
-  
+
   if (taintSenFun.isSink(destMthdName))
     return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
                                                   zeroValue());

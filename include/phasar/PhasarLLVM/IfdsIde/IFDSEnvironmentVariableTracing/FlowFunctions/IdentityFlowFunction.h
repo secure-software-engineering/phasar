@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef IDENTITYFLOWFUNCTION_H
 #define IDENTITYFLOWFUNCTION_H
@@ -9,19 +9,16 @@
 
 namespace psr {
 
-class IdentityFlowFunction :
-    public FlowFunctionBase
-{
+class IdentityFlowFunction : public FlowFunctionBase {
 public:
-  IdentityFlowFunction(const llvm::Instruction* _currentInst,
-                      TraceStats& _traceStats,
-                      ExtendedValue _zeroValue) :
-    FlowFunctionBase(_currentInst, _traceStats, _zeroValue) { }
+  IdentityFlowFunction(const llvm::Instruction *_currentInst,
+                       TraceStats &_traceStats, ExtendedValue _zeroValue)
+      : FlowFunctionBase(_currentInst, _traceStats, _zeroValue) {}
   ~IdentityFlowFunction() override = default;
 
-  std::set<ExtendedValue> computeTargetsExt(ExtendedValue& fact) override;
+  std::set<ExtendedValue> computeTargetsExt(ExtendedValue &fact) override;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // IDENTITYFLOWFUNCTION_H

@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAEndInstFlowFunction.h>
 
@@ -9,32 +9,35 @@
 namespace psr {
 
 std::set<ExtendedValue>
-VAEndInstFlowFunction::computeTargetsExt(ExtendedValue& fact)
-{
+VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   bool isVarArgFact = fact.isVarArg();
-  if (!isVarArgFact) return { fact };
+  if (!isVarArgFact)
+    return {fact};
 
   const auto vaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
   const auto vaEndMemLocationMatr = vaEndInst->getArgList();
 
-  auto vaEndMemLocationSeq = DataFlowUtils::getMemoryLocationSeqFromMatr(vaEndMemLocationMatr);
+  auto vaEndMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(vaEndMemLocationMatr);
 
   bool isValidMemLocationSeq = !vaEndMemLocationSeq.empty();
   if (isValidMemLocationSeq) {
     bool isArrayDecay = DataFlowUtils::isArrayDecay(vaEndMemLocationMatr);
-    if (isArrayDecay) vaEndMemLocationSeq.pop_back();
+    if (isArrayDecay)
+      vaEndMemLocationSeq.pop_back();
 
-    bool isVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
-                                                                  vaEndMemLocationSeq);
+    bool isVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(
+        DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
+        vaEndMemLocationSeq);
     if (isVaListEqual) {
       LOG_DEBUG("Killed VarArg");
       DataFlowUtils::dumpFact(fact);
 
-      return { };
+      return {};
     }
   }
 
-  return { fact };
+  return {fact};
 }
 
-} // namespace
+} // namespace psr

@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCallee.h>
 
@@ -15,54 +15,61 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MapTaintedValuesToCallee::computeTargets(ExtendedValue fact)
-{
+MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
   bool isFactVarArgTemplate = fact.isVarArgTemplate();
-  if (isFactVarArgTemplate) return { };
+  if (isFactVarArgTemplate)
+    return {};
 
   std::set<ExtendedValue> targetGlobalFacts;
   std::set<ExtendedValue> targetParamFacts;
 
-  bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(DataFlowUtils::getMemoryLocationSeqFromFact(fact));
-  if (isGlobalMemLocationFact) targetGlobalFacts.insert(fact);
+  bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
+      DataFlowUtils::getMemoryLocationSeqFromFact(fact));
+  if (isGlobalMemLocationFact)
+    targetGlobalFacts.insert(fact);
 
   long varArgIndex = 0L;
 
-  const auto sanitizedArgList = DataFlowUtils::getSanitizedArgList(callInst, destMthd, zeroValue.getValue());
+  const auto sanitizedArgList = DataFlowUtils::getSanitizedArgList(
+      callInst, destMthd, zeroValue.getValue());
 
-  for (const auto& argParamTriple : sanitizedArgList) {
+  for (const auto &argParamTriple : sanitizedArgList) {
 
     const auto arg = std::get<0>(argParamTriple);
     const auto argMemLocationSeq = std::get<1>(argParamTriple);
     const auto param = std::get<2>(argParamTriple);
 
-    bool isVarArgParam = DataFlowUtils::isVarArgParam(param, zeroValue.getValue());
+    bool isVarArgParam =
+        DataFlowUtils::isVarArgParam(param, zeroValue.getValue());
     bool isVarArgFact = fact.isVarArg();
 
     bool isArgMemLocation = !argMemLocationSeq.empty();
     if (isArgMemLocation) {
 
-      const auto factMemLocationSeq = isVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact) :
-                                                     DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+      const auto factMemLocationSeq =
+          isVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact)
+                       : DataFlowUtils::getMemoryLocationSeqFromFact(fact);
 
-      bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(argMemLocationSeq,
-                                                              factMemLocationSeq);
+      bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(
+          argMemLocationSeq, factMemLocationSeq);
       if (genFact) {
-        const auto relocatableMemLocationSeq = DataFlowUtils::getRelocatableMemoryLocationSeq(factMemLocationSeq,
-                                                                                              argMemLocationSeq);
-        std::vector<const llvm::Value*> patchablePart{ param };
-        const auto patchableMemLocationSeq = DataFlowUtils::joinMemoryLocationSeqs(patchablePart,
-                                                                                   relocatableMemLocationSeq);
+        const auto relocatableMemLocationSeq =
+            DataFlowUtils::getRelocatableMemoryLocationSeq(factMemLocationSeq,
+                                                           argMemLocationSeq);
+        std::vector<const llvm::Value *> patchablePart{param};
+        const auto patchableMemLocationSeq =
+            DataFlowUtils::joinMemoryLocationSeqs(patchablePart,
+                                                  relocatableMemLocationSeq);
 
         ExtendedValue ev(fact);
         if (isVarArgFact) {
           ev.setVaListMemLocationSeq(patchableMemLocationSeq);
-        }
-        else {
+        } else {
           ev.setMemLocationSeq(patchableMemLocationSeq);
         }
 
-        if (isVarArgParam) ev.setVarArgIndex(varArgIndex);
+        if (isVarArgParam)
+          ev.setVarArgIndex(varArgIndex);
 
         targetParamFacts.insert(ev);
 
@@ -72,15 +79,15 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact)
         LOG_DEBUG("Destination");
         DataFlowUtils::dumpFact(ev);
       }
-    }
-    else {
+    } else {
       bool genFact = DataFlowUtils::isValueTainted(arg, fact);
       if (genFact) {
-        std::vector<const llvm::Value*> patchablePart{ param };
+        std::vector<const llvm::Value *> patchablePart{param};
 
         ExtendedValue ev(fact);
         ev.setMemLocationSeq(patchablePart);
-        if (isVarArgParam) ev.setVarArgIndex(varArgIndex);
+        if (isVarArgParam)
+          ev.setVarArgIndex(varArgIndex);
 
         targetParamFacts.insert(ev);
 
@@ -92,11 +99,13 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact)
       }
     }
 
-    if (isVarArgParam) ++varArgIndex;
+    if (isVarArgParam)
+      ++varArgIndex;
   }
 
   bool addLineNumber = !targetParamFacts.empty();
-  if (addLineNumber) traceStats.add(callInst);
+  if (addLineNumber)
+    traceStats.add(callInst);
 
   std::set<ExtendedValue> targetFacts;
   std::set_union(targetGlobalFacts.begin(), targetGlobalFacts.end(),
@@ -106,4 +115,4 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact)
   return targetFacts;
 }
 
-} // namespace
+} // namespace psr

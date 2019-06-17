@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef TRACESTATSWRITER_H
 #define TRACESTATSWRITER_H
@@ -14,31 +14,23 @@
 
 namespace psr {
 
-class TraceStatsWriter
-{
+class TraceStatsWriter {
 public:
-  TraceStatsWriter(const TraceStats& _traceStats,
-                   const std::string _outFile) :
-    traceStats(_traceStats), outFile(_outFile) { }
+  TraceStatsWriter(const TraceStats &_traceStats, const std::string _outFile)
+      : traceStats(_traceStats), outFile(_outFile) {}
   virtual ~TraceStatsWriter() = default;
 
   virtual void write() const = 0;
 
 protected:
-  const TraceStats& getTraceStats() const
-  {
-    return traceStats;
-  }
-  const std::string getOutFile() const
-  {
-    return outFile;
-  }
+  const TraceStats &getTraceStats() const { return traceStats; }
+  const std::string getOutFile() const { return outFile; }
 
 private:
-  const TraceStats& traceStats;
+  const TraceStats &traceStats;
   const std::string outFile;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // TRACESTATSWRITER_H

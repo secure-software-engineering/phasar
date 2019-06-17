@@ -1,28 +1,27 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovRetValWriter.h>
 
 namespace psr {
 
-static void
-filterReturnValues(TraceStats::FileStats& fileStats)
-{
-  for (auto fileStatsIt = fileStats.begin(); fileStatsIt != fileStats.end(); ) {
+static void filterReturnValues(TraceStats::FileStats &fileStats) {
+  for (auto fileStatsIt = fileStats.begin(); fileStatsIt != fileStats.end();) {
     const auto file = fileStatsIt->first;
-    auto& functionStats = fileStatsIt->second;
+    auto &functionStats = fileStatsIt->second;
 
-    for (auto functionStatsIt = functionStats.begin(); functionStatsIt != functionStats.end(); ) {
+    for (auto functionStatsIt = functionStats.begin();
+         functionStatsIt != functionStats.end();) {
       const auto function = functionStatsIt->first;
-      auto& lineNumberStats = functionStatsIt->second;
+      auto &lineNumberStats = functionStatsIt->second;
 
-      for (auto lineNumberStatsIt = lineNumberStats.begin(); lineNumberStatsIt != lineNumberStats.end(); ) {
+      for (auto lineNumberStatsIt = lineNumberStats.begin();
+           lineNumberStatsIt != lineNumberStats.end();) {
         bool isLineNumberRetVal = lineNumberStatsIt->isReturnValue();
         if (!isLineNumberRetVal) {
           lineNumberStatsIt = lineNumberStats.erase(lineNumberStatsIt);
-        }
-        else {
+        } else {
           ++lineNumberStatsIt;
         }
       }
@@ -30,8 +29,7 @@ filterReturnValues(TraceStats::FileStats& fileStats)
       bool isLineNumberStatsEmpty = lineNumberStats.empty();
       if (isLineNumberStatsEmpty) {
         functionStatsIt = functionStats.erase(functionStatsIt);
-      }
-      else {
+      } else {
         ++functionStatsIt;
       }
     }
@@ -39,16 +37,13 @@ filterReturnValues(TraceStats::FileStats& fileStats)
     bool isFunctionStatsEmpty = functionStats.empty();
     if (isFunctionStatsEmpty) {
       fileStatsIt = fileStats.erase(fileStatsIt);
-    }
-    else {
+    } else {
       ++fileStatsIt;
     }
   }
 }
 
-void
-LcovRetValWriter::write() const
-{
+void LcovRetValWriter::write() const {
   std::ofstream writer(getOutFile());
 
   LOG_INFO("Writing lcov return value trace to: " << getOutFile());
@@ -57,29 +52,32 @@ LcovRetValWriter::write() const
 
   filterReturnValues(stats);
 
-  for (const auto& fileEntry : stats) {
+  for (const auto &fileEntry : stats) {
     const auto file = fileEntry.first;
     const auto functionStats = fileEntry.second;
 
     writer << "SF:" << file << "\n";
 
-    for (const auto& functionEntry : functionStats) {
+    for (const auto &functionEntry : functionStats) {
       const auto function = functionEntry.first;
 
-      writer << "FNDA:" << "1," << function << "\n";
+      writer << "FNDA:"
+             << "1," << function << "\n";
     }
 
-    for (const auto& functionEntry : functionStats) {
+    for (const auto &functionEntry : functionStats) {
       const auto lineNumberStats = functionEntry.second;
 
-      for (const auto& lineNumberEntry : lineNumberStats) {
+      for (const auto &lineNumberEntry : lineNumberStats) {
 
-        writer << "DA:" << lineNumberEntry.getLineNumber() << ",1" << "\n";
+        writer << "DA:" << lineNumberEntry.getLineNumber() << ",1"
+               << "\n";
       }
     }
 
-    writer << "end_of_record" << "\n";
+    writer << "end_of_record"
+           << "\n";
   }
 }
 
-} // namespace
+} // namespace psr

@@ -1,6 +1,6 @@
 /**
-  * @author Sebastian Roland <seroland86@gmail.com>
-  */
+ * @author Sebastian Roland <seroland86@gmail.com>
+ */
 
 #ifndef TRACESTATS_H
 #define TRACESTATS_H
@@ -14,34 +14,30 @@
 
 namespace psr {
 
-class TraceStats
-{
+class TraceStats {
 public:
-  using FileStats = std::map<std::string, std::map<std::string, std::set<LineNumberEntry>>>;
+  using FileStats =
+      std::map<std::string, std::map<std::string, std::set<LineNumberEntry>>>;
   using FunctionStats = std::map<std::string, std::set<LineNumberEntry>>;
   using LineNumberStats = std::set<LineNumberEntry>;
 
-  TraceStats() { }
+  TraceStats() {}
   ~TraceStats() = default;
 
-  long add(const llvm::Instruction* instruction,
-           const std::vector<const llvm::Value*> memLocationSeq = std::vector<const llvm::Value*>());
+  long add(const llvm::Instruction *instruction,
+           const std::vector<const llvm::Value *> memLocationSeq =
+               std::vector<const llvm::Value *>());
 
-  const FileStats getStats() const
-  {
-    return stats;
-  }
+  const FileStats getStats() const { return stats; }
 
 private:
-  long add(const llvm::Instruction* instruction,
-           bool isReturnValue);
+  long add(const llvm::Instruction *instruction, bool isReturnValue);
 
-  FunctionStats& getFunctionStats(std::string file);
-  LineNumberStats& getLineNumberStats(std::string file,
-                                      std::string function);
+  FunctionStats &getFunctionStats(std::string file);
+  LineNumberStats &getLineNumberStats(std::string file, std::string function);
   FileStats stats;
 };
 
-} // namespace
+} // namespace psr
 
 #endif // TRACESTATS_H

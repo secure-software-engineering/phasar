@@ -14,13 +14,13 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
 
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
@@ -102,7 +102,7 @@ protected:
   std::vector<std::string> EntryPoints;
 
 private:
-  TaintSensitiveFunctions taintSenFun; 
+  TaintSensitiveFunctions taintSenFun;
 
   TraceStats traceStats;
 };
