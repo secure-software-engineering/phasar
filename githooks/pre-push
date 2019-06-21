@@ -6,9 +6,6 @@ local="$(git rev-parse --abbrev-ref HEAD)"
 
 if [ "$local" = "master" ] ; then
 version="#define PHASAR_VERSION v"
-version=${version}$(date +"%m%y")
-version="${version}"
-rm include/phasar/Config/Version.h
-touch include/phasar/Config/Version.h
-echo "$version" > include/phasar/Config/Version.h
+version="${version}$(date +"%m%y")"
+echo "${version}" > include/phasar/Config/Version.h
 fi
