@@ -136,7 +136,7 @@ public:
 
 
   MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis(){
-    return this->Analysis;
+    return Analysis;
   }
 
   virtual void solve() {
@@ -232,6 +232,14 @@ public:
         }
       }
     }
+  }
+
+  MonoSet<D> getResultsAt(N n) {
+    MonoSet<D> Result;
+    for (auto &[CTX, Facts] : Analysis[n]) {
+      Result.insert(Facts.begin(), Facts.end());
+    }
+    return Result;
   }
 };
 
