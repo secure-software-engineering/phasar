@@ -134,8 +134,7 @@ public:
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
   ~InterMonoSolver() = default;
 
-
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis(){
+  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
     return Analysis;
   }
 

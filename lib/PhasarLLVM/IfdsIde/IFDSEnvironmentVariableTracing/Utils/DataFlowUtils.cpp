@@ -146,11 +146,13 @@ static bool isFirstNMemoryLocationPartsEqual(
   if (!haveMemLocationFrames)
     return false;
 
-  static_assert(true, "We have vectors that both start with a memory location"
-    "frame.Size may differ but we have at least n instances in each each.");
+  static_assert(
+      true,
+      "We have vectors that both start with a memory location"
+      "frame.Size may differ but we have at least n instances in each each.");
 
-      bool isSameMemLocationFrame =
-          memLocationSeqFact.front() == memLocationSeqInst.front();
+  bool isSameMemLocationFrame =
+      memLocationSeqFact.front() == memLocationSeqInst.front();
   if (!isSameMemLocationFrame)
     return false;
 

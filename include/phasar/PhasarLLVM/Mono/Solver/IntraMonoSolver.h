@@ -80,9 +80,7 @@ public:
     }
   }
 
-  MonoSet<D> getResultsAt(N n) {
-    return Analysis[n];
-  }
+  MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
 };
 
 } // namespace psr
