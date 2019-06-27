@@ -219,17 +219,18 @@ int main(int argc, const char **argv) {
       bpo::options_description Generic("Command-line options");
       // clang-format off
 		Generic.add_options()
+      ("version,v","Print PhASAR version")
 			("help,h", "Print help message")
-      ("more_help", "Print more help")
-		  ("config", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
-      ("silent", "Suppress any non-result output");
+      ("helpextended,e", "Print more help")
+		  ("config,c", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
+      ("silent,s", "Suppress any non-result output");
       // clang-format on
       // Declare a group of options that will be allowed both on command line
       // and in config file
       bpo::options_description Config("Configuration file options");
       // clang-format off
     Config.add_options()
-			("function,f", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
+			("function,F", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
@@ -247,9 +248,9 @@ int main(int argc, const char **argv) {
 			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
-      ("project-id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
-      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
-      ("pamm-out", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
+      ("project-id,I", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
+      ("graph-id,G", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
+      ("pamm-out,A", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
       // clang-format on
       bpo::options_description CmdlineOptions;
       CmdlineOptions.add(PhasarMode).add(Generic).add(Config);
@@ -273,16 +274,25 @@ int main(int argc, const char **argv) {
         bpo::notify(VariablesMap);
       }
 
+      //print PhASER version
+      if(VariablesMap.count("version")) {
+        std::cout << "PhASAR " << PhasarVersion
+                  << "\n";
+        return 0;
+      }
+
       // Vanity header
       if (!VariablesMap.count("silent")) {
-        std::cout << PhasarVersion
+        std::cout << "PhASAR " << PhasarVersion
                   << "\n"
                      "A LLVM-based static analysis framework\n\n";
       }
       // check if we have anything at all or a call for help
-      if ((argc < 3 || VariablesMap.count("help")) &&
-          !VariablesMap.count("silent")) {
+      if (VariablesMap.count("help") && !VariablesMap.count("silent")) {
         std::cout << Visible << '\n';
+        if (VariablesMap.count("helpextended")) {
+          std::cout << MORE_PHASAR_LLVM_HELP << "\n";
+        }
         return 0;
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
@@ -291,10 +301,8 @@ int main(int argc, const char **argv) {
 
       if (!VariablesMap.count("silent")) {
         // Print current configuration
-        if (VariablesMap.count("more_help")) {
-          if (!VariablesMap.count("help")) {
-            std::cout << Visible << '\n';
-          }
+        if (VariablesMap.count("helpextended")) {
+          std::cout << Visible << '\n';
           std::cout << MORE_PHASAR_LLVM_HELP << '\n';
           return 0;
         }
