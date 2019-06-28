@@ -20,13 +20,15 @@ protected:
       MonoMap<const llvm::Instruction *,
               MonoMap<CallStringCTX<const llvm::Value *,
                                     const llvm::Instruction *, 3>,
-                      MonoSet<const llvm::Value *>>> &Analysis) {
+                      MonoSet<const llvm::Value *>>> &Analysis, ProjectIRDB &IRDB, unsigned InstNum) {
+    llvm::Function *F = IRDB.getFunction("main");
+    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
     int counter = 0;
     // count the number of facts after investigating the last Instruction
     for (auto &entry : Analysis) {
-      if (!entry.second.empty()) {
+      //if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first)) {
+        if (!entry.second.empty() && Inst == entry.first) {
         for (auto &context : entry.second) {
-          counter = 0;
           if (!context.second.empty()) {
             for (auto &fact : context.second) {
               counter++;
@@ -43,21 +45,25 @@ protected:
                          MonoMap<CallStringCTX<const llvm::Value *,
                                                const llvm::Instruction *, 3>,
                                  MonoSet<const llvm::Value *>>> &Analysis,
-                 map<int, set<string>> &Facts) {
-    map<int, set<string>> FoundLeaks;
-    map<int, set<string>> TempLeaks;
+                 set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
+    llvm::Function *F = IRDB.getFunction("main");
+    set<string> FoundLeaks;
+    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
     for (auto &entry : Analysis) {
       int SinkId = stoi(getMetaDataID(entry.first));
+      cout<<"SinkId: "<< SinkId<<endl;
       set<string> LeakedValueIds;
-      FoundLeaks = TempLeaks;
+      //if (llvm::isa<llvm::ReturnInst>(entry.first)){
+      if (Inst == entry.first){
       for (auto &context : entry.second) {
         if (!context.second.empty()) {
           for (auto &fact : context.second) {
             LeakedValueIds.insert(getMetaDataID(fact));
           }
         }
+        FoundLeaks = LeakedValueIds;
+        }
       }
-      FoundLeaks.insert(make_pair(SinkId, LeakedValueIds));
     }
     EXPECT_EQ(FoundLeaks, Facts);
   }
@@ -67,6 +73,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_9_c.ll"}, IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
+  set<string> Facts;
+  unsigned InstNum = 9;
 
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
@@ -80,18 +88,19 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
               MonoSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(Analysis);
-  ASSERT_EQ(counter, 8);
+  int counter = computeCounterResult(Analysis, IRDB, InstNum);
+  ASSERT_EQ(counter, 7);
 
-  map<int, set<string>> Facts;
-  Facts[15] = set<string>{"10", "11", "13", "5", "6", "7", "main.0", "main.1"};
-  compareResults(Analysis, Facts);
+  Facts = set<string>{"10", "11", "5", "6", "7", "main.0", "main.1"};
+  compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_10_c.ll"}, IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
+  set<string> Facts;
+  unsigned InstNum = 15;
 
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
@@ -104,18 +113,19 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
               MonoSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(Analysis);
-  ASSERT_EQ(counter, 1);
+  int counter = computeCounterResult(Analysis, IRDB, InstNum);
+  ASSERT_EQ(counter, 7);
 
-  map<int, set<string>> Facts;
-  Facts[17] = set<string>{"_Z3fooi.0"};
-  compareResults(Analysis, Facts);
+  Facts = set<string>{"21", "22", "23", "28", "29", "main.0", "main.1"};
+  compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_11_c.ll"}, IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
+  set<string> Facts;
+  unsigned InstNum = 15;
 
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
@@ -128,18 +138,19 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
               MonoSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(Analysis);
-  ASSERT_EQ(counter, 3);
+  int counter = computeCounterResult(Analysis, IRDB, InstNum);
+  ASSERT_EQ(counter, 9);
 
-  map<int, set<string>> Facts;
-  Facts[44] = set<string>{"41", "43", "_Z3quki.0"};
-  compareResults(Analysis, Facts);
+  Facts = set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
+  compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_12_c.ll"}, IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
+  set<string> Facts;
+  unsigned InstNum = 15;
 
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
@@ -152,18 +163,19 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
               MonoSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(Analysis);
-  ASSERT_EQ(counter, 0);
+  int counter = computeCounterResult(Analysis, IRDB, InstNum);
+  ASSERT_EQ(counter, 7);
 
-  map<int, set<string>> Facts;
-  Facts[96] = set<string>{"81", "91", "_Z3fooii.0"};
-  compareResults(Analysis, Facts);
+  Facts= set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
+  compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   ProjectIRDB IRDB({pathToLLFiles + "taint_13_c.ll"}, IRDBOptions::WPA);
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
+  set<string> Facts;
+  unsigned InstNum = 25;
 
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
@@ -176,12 +188,11 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
               MonoSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
-  int counter = computeCounterResult(Analysis);
-  // ASSERT_EQ(counter, 0);
+  int counter = computeCounterResult(Analysis, IRDB, InstNum);
+  ASSERT_EQ(counter, 8);
 
-  map<int, set<string>> Facts;
-  Facts[120] = set<string>{"_Z3fooi.0"};
-  compareResults(Analysis, Facts);
+  Facts = set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
+  compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
 int main(int argc, char **argv) {
