@@ -55,14 +55,10 @@ using namespace psr;
 
 namespace psr {
 
-const std::map<std::string, ExportType> StringToExportType = {
-    {"json", ExportType::JSON}};
 
-const std::map<ExportType, std::string> ExportTypeToString = {
-    {ExportType::JSON, "json"}};
 
 std::ostream &operator<<(std::ostream &os, const ExportType &E) {
-  return os << ExportTypeToString.at(E);
+  return os << wise_enum::to_string(E);
 }
 
 AnalysisController::AnalysisController(
@@ -161,8 +157,7 @@ AnalysisController::AnalysisController(
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
       (VariablesMap.count("callgraph-analysis"))
-          ? StringToCallGraphAnalysisType.at(
-                VariablesMap["callgraph-analysis"].as<string>())
+          ? wise_enum::from_string<CallGraphAnalysisType>(VariablesMap["callgraph-analysis"].as<string>()).value()
           : CallGraphAnalysisType::OTF);
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {

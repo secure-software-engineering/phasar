@@ -19,6 +19,8 @@
 
 #include <llvm/Support/CommandLine.h>
 
+#include <wise_enum.h>
+
 #include <phasar/Config/Configuration.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
@@ -74,7 +76,7 @@ void validateParamProject(const std::string &project) {
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
   for (const auto &analysis : dfa) {
-    if (StringToDataFlowAnalysisType.count(analysis) == 0) {
+    if (!wise_enum::from_string<DataFlowAnalysisType>(analysis)) {
       throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
@@ -82,21 +84,21 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
 }
 
 void validateParamPointerAnalysis(const std::string &pta) {
-  if (StringToPointerAnalysisType.count(pta) == 0) {
+  if (!wise_enum::from_string<PointerAnalysisType>(pta)) {
     throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
 
 void validateParamCallGraphAnalysis(const std::string &cga) {
-  if (StringToCallGraphAnalysisType.count(cga) == 0) {
+  if (!wise_enum::from_string<CallGraphAnalysisType>(cga)) {
     throw bpo::error_with_option_name("'" + cga +
                                       "' is not a valid call-graph analysis");
   }
 }
 
 void validateParamExport(const std::string &exp) {
-  if (StringToExportType.count(exp) == 0) {
+  if (!wise_enum::from_string<ExportType>(exp)) {
     throw bpo::error_with_option_name("'" + exp +
                                       "' is not a valid export parameter");
   }
@@ -439,9 +441,10 @@ int main(int argc, const char **argv) {
       ChosenDataFlowAnalyses.clear();
       for (auto &DataFlowAnalysis :
            VariablesMap["data-flow-analysis"].as<std::vector<std::string>>()) {
-        if (StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
+        if (wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)) {
+          std::cout << "ANALYSIS KNOWN\n";
           ChosenDataFlowAnalyses.push_back(
-              StringToDataFlowAnalysisType.at(DataFlowAnalysis));
+              wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis).value());
         }
       }
     }

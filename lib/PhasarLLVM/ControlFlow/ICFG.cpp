@@ -22,19 +22,7 @@ using namespace std;
 
 namespace psr {
 
-const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType = {
-    {"CHA", CallGraphAnalysisType::CHA},
-    {"RTA", CallGraphAnalysisType::RTA},
-    {"DTA", CallGraphAnalysisType::DTA},
-    {"OTF", CallGraphAnalysisType::OTF}};
-
-const map<CallGraphAnalysisType, string> CallGraphAnalysisTypeToString = {
-    {CallGraphAnalysisType::CHA, "CHA"},
-    {CallGraphAnalysisType::RTA, "RTA"},
-    {CallGraphAnalysisType::DTA, "DTA"},
-    {CallGraphAnalysisType::OTF, "OTF"}};
-
 ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
-  return os << CallGraphAnalysisTypeToString.at(CGA);
+  return os << wise_enum::to_string(CGA);
 }
 } // namespace psr

@@ -10,14 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
+#include <wise_enum.h>
 #include <iosfwd>
 #include <map>
 #include <string>
 
 namespace psr {
 
-enum class DataFlowAnalysisType {
-  IFDS_UninitializedVariables = 0,
+WISE_ENUM_CLASS(DataFlowAnalysisType,
+  (IFDS_UninitializedVariables,0),
   IFDS_ConstAnalysis,
   IFDS_TaintAnalysis,
   IDE_TaintAnalysis,
@@ -33,14 +34,7 @@ enum class DataFlowAnalysisType {
   Inter_Mono_SolverTest,
   Inter_Mono_TaintAnalysis,
   Plugin,
-  None
-};
-
-extern const std::map<std::string, DataFlowAnalysisType>
-    StringToDataFlowAnalysisType;
-
-extern const std::map<DataFlowAnalysisType, std::string>
-    DataFlowAnalysisTypeToString;
+  None)
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
 
