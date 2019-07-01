@@ -22,8 +22,8 @@
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
 
-#include "llvm/ADT/iterator_range.h"
-#include "llvm/Support/ManagedStatic.h"
+#include <llvm/ADT/iterator_range.h>
+#include <llvm/Support/ManagedStatic.h>
 
 namespace psr {
 
@@ -35,12 +35,12 @@ public:
   /// Stores the label/ tag with which we annotate the LLVM IR.
   static const std::string MetaDataKind() { return "phasar.instruction.id"; }
 
-  static const std::string &ConfigurationDirectory() {
+  static const std::string ConfigurationDirectory() {
     return configuration_directory;
   }
 
   /// Specifies the directory in which Phasar is located.
-  static const std::string &PhasarDirectory() { return phasar_directory; }
+  static const std::string PhasarDirectory() { return phasar_directory; }
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
@@ -72,10 +72,7 @@ public:
   /// Identifier for data-flow results export
   static const std::string JsonDataFlowID() { return "DataFlowInformation"; }
 
-public:
   static PhasarConfig &getPhasarConfig();
-
-  PhasarConfig();
 
   llvm::iterator_range<std::set<std::string>::iterator> specialFunctionNames() {
     return llvm::make_range(special_function_names.begin(),
@@ -92,7 +89,13 @@ public:
     special_function_names.insert(std::move(SFName));
   }
 
+  ~PhasarConfig() = default;
+  PhasarConfig(const PhasarConfig&) = delete;
+  PhasarConfig(PhasarConfig&&) = delete;
+
 private:
+  PhasarConfig();
+
   std::string readConfigFile(const std::string &path);
   void loadGlibcSpecialFunctionNames();
   void loadLLVMSpecialFunctionNames();

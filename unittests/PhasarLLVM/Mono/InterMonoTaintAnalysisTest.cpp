@@ -20,11 +20,11 @@ using namespace psr;
 
 TEST(InterMonoTaintAnalysisTest, Running) {
   ProjectIRDB IRDB(
-      {PhasarDirectory +
+      {PhasarConfig::getPhasarConfig().PhasarDirectory() +
        "build/test/llvm_test_code/control_flow/function_call_2_cpp.ll"},
       IRDBOptions::WPA);
   llvm::Module *M = IRDB.getModule(
-      PhasarDirectory +
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/control_flow/function_call_2_cpp.ll");
 
   if (M->getFunction("main")) {

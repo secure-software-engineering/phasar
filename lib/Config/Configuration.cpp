@@ -46,8 +46,7 @@ std::string PhasarConfig::readConfigFile(const std::string &path) {
       ifs.seekg(0, ifs.end);
       size_t file_size = ifs.tellg();
       ifs.seekg(0, ifs.beg);
-      std::string content;
-      content.resize(file_size);
+      std::string content(file_size + 1, '\0');
       ifs.read(const_cast<char *>(content.data()), file_size);
       return content;
     }
@@ -109,7 +108,10 @@ const std::string PhasarConfig::phasar_directory = std::string([]() {
   return curr_path.substr(0, i);
 }());
 
-static llvm::ManagedStatic<PhasarConfig> PC;
-PhasarConfig &PhasarConfig::getPhasarConfig() { return *PC; }
+// static llvm::ManagedStatic<PhasarConfig> PC;
+PhasarConfig &PhasarConfig::getPhasarConfig() { 
+  static PhasarConfig PC;
+  return PC;
+}
 
 } // namespace psr
