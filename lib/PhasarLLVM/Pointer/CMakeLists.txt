@@ -14,7 +14,13 @@ else()
 endif()
 
 target_link_libraries(phasar_pointer
+  phasar_utils
 
+  boost_log
+
+  LLVMCore
+  LLVMSupport
+  LLVMAnalysis
 )
 
 set_target_properties(phasar_pointer

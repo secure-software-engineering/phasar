@@ -13,7 +13,7 @@ using namespace psr;
 class IDETypeStateAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/typestate_analysis/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() + "build/test/llvm_test_code/typestate_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;

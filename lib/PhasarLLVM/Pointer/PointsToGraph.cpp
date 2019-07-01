@@ -477,11 +477,11 @@ json PointsToGraph::getAsJson() {
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(ptg); vi_v != vi_v_end;
        ++vi_v) {
-    J[JsonPointToGraphID][llvmIRToString(ptg[*vi_v].value)];
+    J[PhasarConfig::JsonPointToGraphID()][llvmIRToString(ptg[*vi_v].value)];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, ptg); ei != ei_end;
          ++ei) {
-      J[JsonPointToGraphID][llvmIRToString(ptg[*vi_v].value)] +=
+      J[PhasarConfig::JsonPointToGraphID()][llvmIRToString(ptg[*vi_v].value)] +=
           llvmIRToString(ptg[boost::target(*ei, ptg)].value);
     }
   }

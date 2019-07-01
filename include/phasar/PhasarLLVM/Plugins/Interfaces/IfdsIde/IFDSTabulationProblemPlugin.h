@@ -61,7 +61,7 @@ public:
   }
 
   bool isZeroValue(const llvm::Value *d) const override {
-    return isLLVMZeroValue(d);
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
   }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {

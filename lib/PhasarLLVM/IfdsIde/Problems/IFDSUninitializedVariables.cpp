@@ -329,7 +329,7 @@ IFDSUnitializedVariables::d_t IFDSUnitializedVariables::createZeroValue() {
 
 bool IFDSUnitializedVariables::isZeroValue(
     IFDSUnitializedVariables::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSUnitializedVariables::printNode(

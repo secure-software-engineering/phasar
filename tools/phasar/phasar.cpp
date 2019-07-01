@@ -66,7 +66,8 @@ void validateParamModule(const std::vector<std::string> &modules) {
 
 void validateParamProject(const std::string &project) {
   if (!(bfs::exists(project) && bfs::is_directory(project) &&
-        bfs::exists(bfs::path(project) / CompileCommandsJson))) {
+        bfs::exists(bfs::path(project) /
+                    PhasarConfig::CompileCommandsJson()))) {
     throw bpo::error_with_option_name("'" + project +
                                       "' is not a valid project");
   }
@@ -275,7 +276,7 @@ int main(int argc, const char **argv) {
 
       // Vanity header
       if (!VariablesMap.count("silent")) {
-        std::cout << PhasarVersion
+        std::cout << PhasarConfig::PhasarVersion()
                   << "\n"
                      "A LLVM-based static analysis framework\n\n";
       }

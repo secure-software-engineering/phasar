@@ -13,7 +13,14 @@ else()
 endif()
 
 target_link_libraries(phasar_controller
-	LINK_PUBLIC
+  phasar_ifdside
+  phasar_mono
+  phasar_plugins
+
+  LLVMCore
+
+  curl
+  boost_log
 )
 
 set_target_properties(phasar_controller

@@ -6,54 +6,32 @@ if(PHASAR_ENABLE_PAMM STREQUAL "Off" AND NOT PHASAR_BUILD_UNITTESTS)
 	list(REMOVE_ITEM UTILS_SRC ${pamm_src})
 endif()
 
-# Compile phasar_utils once into an object
-add_library(phasar_utils_o OBJECT
-  ${UTILS_SRC}
-)
-
 if(BUILD_SHARED_LIBS)
   add_phasar_library(phasar_utils
     SHARED
-    $<TARGET_OBJECTS:phasar_utils_o>
-  )
-  add_phasar_library(phasar_utils_without
-    SHARED
-    $<TARGET_OBJECTS:phasar_utils_o>
+    ${UTILS_SRC}
   )
 else()
   add_phasar_library(phasar_utils
     STATIC
-    $<TARGET_OBJECTS:phasar_utils_o>
-  )
-  add_phasar_library(phasar_utils_without
-    STATIC
-    $<TARGET_OBJECTS:phasar_utils_o>
+    ${UTILS_SRC}
   )
 endif()
 
-set(phasar_utils_dep
-  phasar_config
-)
-
 target_link_libraries(phasar_utils
-	LLVMCore
-	LLVMSupport
+  phasar_config
+
+  LLVMCore
+  LLVMSupport
   LLVMBitWriter
-  ${phasar_utils_dep}
+
+  boost_log
+
+  ${CMAKE_DL_LIBS}
 )
 
 set_target_properties(phasar_utils
 	PROPERTIES
 	LINKER_LANGUAGE CXX
 	PREFIX "lib"
-)
-
-target_link_libraries(phasar_utils_without
-  ${phasar_utils_dep}
-)
-
-set_target_properties(phasar_utils_without
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
 )

@@ -122,7 +122,7 @@ WPDSAliasCollector::d_t WPDSAliasCollector::zeroValue() {
 }
 
 bool WPDSAliasCollector::isZeroValue(WPDSAliasCollector::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 std::map<WPDSAliasCollector::n_t, std::set<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::initialSeeds() {

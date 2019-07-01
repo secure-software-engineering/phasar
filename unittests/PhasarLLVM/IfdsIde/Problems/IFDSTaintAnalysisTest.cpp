@@ -14,7 +14,7 @@ using namespace psr;
 class IFDSTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/taint_analysis/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() + "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;

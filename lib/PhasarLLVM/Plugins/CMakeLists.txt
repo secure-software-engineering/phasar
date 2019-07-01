@@ -15,7 +15,9 @@ else()
 endif()
 
 target_link_libraries(phasar_plugins
+  phasar_ifdside
 
+  boost_log
 )
 
 # Handle all plugins

@@ -258,7 +258,7 @@ IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() {
 }
 
 bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSTaintAnalysis::printNode(ostream &os, IFDSTaintAnalysis::n_t n) const {
