@@ -109,7 +109,7 @@ const std::string PhasarConfig::phasar_directory = std::string([]() {
   return curr_path.substr(0, i);
 }());
 
-PhasarConfig &PhasarConfig::getPhasarConfig() { 
+PhasarConfig &PhasarConfig::getPhasarConfig() {
   static PhasarConfig PC;
   return PC;
 }

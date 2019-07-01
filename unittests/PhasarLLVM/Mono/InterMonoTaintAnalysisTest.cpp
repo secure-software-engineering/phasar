@@ -12,7 +12,8 @@ using namespace psr;
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() + "build/test/llvm_test_code/taint_analysis/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   // @ retrun the number of tained Instruction
@@ -20,14 +21,16 @@ protected:
       MonoMap<const llvm::Instruction *,
               MonoMap<CallStringCTX<const llvm::Value *,
                                     const llvm::Instruction *, 3>,
-                      MonoSet<const llvm::Value *>>> &Analysis, ProjectIRDB &IRDB, unsigned InstNum) {
+                      MonoSet<const llvm::Value *>>> &Analysis,
+      ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
-    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
+    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
     int counter = 0;
     // count the number of facts after investigating the last Instruction
     for (auto &entry : Analysis) {
-      //if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first)) {
-        if (!entry.second.empty() && Inst == entry.first) {
+      // if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first))
+      // {
+      if (!entry.second.empty() && Inst == entry.first) {
         for (auto &context : entry.second) {
           if (!context.second.empty()) {
             for (auto &fact : context.second) {
@@ -48,20 +51,20 @@ protected:
                  set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
     set<string> FoundLeaks;
-    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
+    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
     for (auto &entry : Analysis) {
       int SinkId = stoi(getMetaDataID(entry.first));
-      cout<<"SinkId: "<< SinkId<<endl;
+      cout << "SinkId: " << SinkId << endl;
       set<string> LeakedValueIds;
-      //if (llvm::isa<llvm::ReturnInst>(entry.first)){
-      if (Inst == entry.first){
-      for (auto &context : entry.second) {
-        if (!context.second.empty()) {
-          for (auto &fact : context.second) {
-            LeakedValueIds.insert(getMetaDataID(fact));
+      // if (llvm::isa<llvm::ReturnInst>(entry.first)){
+      if (Inst == entry.first) {
+        for (auto &context : entry.second) {
+          if (!context.second.empty()) {
+            for (auto &fact : context.second) {
+              LeakedValueIds.insert(getMetaDataID(fact));
+            }
           }
-        }
-        FoundLeaks = LeakedValueIds;
+          FoundLeaks = LeakedValueIds;
         }
       }
     }
@@ -141,7 +144,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 9);
 
-  Facts = set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
+  Facts =
+      set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
@@ -166,7 +170,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 7);
 
-  Facts= set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
+  Facts = set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
@@ -191,7 +195,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 8);
 
-  Facts = set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
+  Facts =
+      set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 

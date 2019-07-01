@@ -11,7 +11,8 @@ using namespace psr;
 class LLVMBasedBackwardICFGTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarConfig::getPhasarConfig().PhasarDirectory() + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedBackwardICFGTest, test1) {
