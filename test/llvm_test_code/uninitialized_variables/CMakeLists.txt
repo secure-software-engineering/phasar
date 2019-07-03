@@ -19,6 +19,9 @@ set(NoMem2RegSources
   simple_store.cpp
   callsite.cpp
   return_uninit.cpp
+  struct_member_init.cpp
+  struct_member_uninit.cpp
+  struct_member_uninit2.cpp
 )
 
 set(Mem2RegSources
