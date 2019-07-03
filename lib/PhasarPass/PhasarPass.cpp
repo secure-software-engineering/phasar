@@ -118,7 +118,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
         typeanalysisproblem, DumpResults);
     llvmtypesolver.solve();
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUnitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
+    IFDSUninitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
         uninitializedvarproblem, DumpResults);
     llvmunivsolver.solve();
