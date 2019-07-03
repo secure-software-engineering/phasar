@@ -171,11 +171,9 @@ int main(int argc, const char **argv) {
   PAMM_GET_INSTANCE;
   START_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // set-up the logger and get a reference to it
-  initializeLogger(true);
+  // initializeLogger(true);
   auto &lg = lg::get();
   // handling the command line parameters
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Set-up the command-line parameters");
   // Here we start creating Phasars top level operation mode:
   // Based on the mode, we delegate to the further subtools and their
   // corresponding argument parsers.
@@ -212,8 +210,6 @@ int main(int argc, const char **argv) {
   // Next we can check what operation mode was chosen and resume accordingly:
   if (ModeMap["mode"].as<std::string>() == "phasarLLVM") {
     // --- LLVM mode ---
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Chosen operation mode: 'phasarLLVM'");
     try {
       std::string ConfigFile;
       // Declare a group of options that will be allowed only on command line
@@ -244,6 +240,7 @@ int main(int argc, const char **argv) {
 			("wpa,W", bpo::value<bool>()->default_value(1), "Whole-program analysis mode (1 or 0)")
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
+      ("log,L", bpo::value<bool>()->default_value(false), "Enable logging (1 or 0)")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
@@ -262,6 +259,12 @@ int main(int argc, const char **argv) {
           bpo::command_line_parser(argc, argv).options(CmdlineOptions).run(),
           VariablesMap);
       bpo::notify(VariablesMap);
+      if (VariablesMap.count("log")) {
+          initializeLogger(VariablesMap["log"].as<bool>());
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                        << "Program options have been successfully parsed.");
+          bl::core::get()->flush();
+      }
       ifstream ifs(ConfigFile.c_str());
       if (!ifs) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
@@ -286,10 +289,6 @@ int main(int argc, const char **argv) {
         std::cout << Visible << '\n';
         return 0;
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Program options have been successfully parsed.");
-      bl::core::get()->flush();
-
       if (!VariablesMap.count("silent")) {
         // Print current configuration
         if (VariablesMap.count("more_help")) {
@@ -383,8 +382,8 @@ int main(int argc, const char **argv) {
                     << '\n';
         }
         if (VariablesMap.count("output-pamm")) {
-          std::cout << "Output PAMM: " << VariablesMap["output-pamm"].as<std::string>()
-                    << '\n';
+          std::cout << "Output PAMM: "
+                    << VariablesMap["output-pamm"].as<std::string>() << '\n';
         }
       } else {
         setLoggerFilterLevel(INFO);
@@ -463,10 +462,10 @@ int main(int argc, const char **argv) {
           if (VariablesMap["mem2reg"].as<bool>()) {
             Opt |= IRDBOptions::MEM2REG;
           }
-            ProjectIRDB IRDB(
-                VariablesMap["module"].as<std::vector<std::string>>(), Opt);
-            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
-            return IRDB;
+          ProjectIRDB IRDB(
+              VariablesMap["module"].as<std::vector<std::string>>(), Opt);
+          STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
+          return IRDB;
         }(),
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
@@ -475,8 +474,6 @@ int main(int argc, const char **argv) {
     Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     // -- Clang mode ---
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Chosen operation mode: 'phasarClang'");
     std::string ConfigFile;
     // Declare a group of options that will be allowed only on command line
     bpo::options_description Generic("Command-line options");
