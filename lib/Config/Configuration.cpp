@@ -95,12 +95,16 @@ void PhasarConfig::loadLLVMSpecialFunctionNames() {
 }
 
 const std::string PhasarConfig::configuration_directory = std::string([]() {
-  std::string phasar_config =
-      std::string(std::getenv("HOME")) + "/.config/phasar/";
-  return (boost::filesystem::exists(phasar_config) &&
-          boost::filesystem::is_directory(phasar_config))
-             ? phasar_config
-             : "config/";
+  char *env_home = std::getenv("HOME");
+  std::string config_folder = "config/";
+  if (env_home) { // Check if HOME was defined in the environment
+    std::string phasar_config = std::string(env_home) + "/.config/phasar/";
+    if (boost::filesystem::exists(phasar_config) &&
+        boost::filesystem::is_directory(phasar_config)) {
+      config_folder = phasar_config;
+    }
+  }
+  return config_folder;
 }());
 
 const std::string PhasarConfig::phasar_directory = std::string([]() {
