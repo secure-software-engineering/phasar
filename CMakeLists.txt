@@ -109,6 +109,10 @@ endif()
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
+# wise enum
+add_subdirectory(external/wise_enum)
+include_directories(external/wise_enum)
+
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
