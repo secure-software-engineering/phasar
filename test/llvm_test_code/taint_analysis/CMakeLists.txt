@@ -21,6 +21,7 @@ set(NoMem2regSources
   taint_11.c
   taint_12.c
   taint_13.c
+  taint_4_v2.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

@@ -136,6 +136,7 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
           cout << "LEAKED VALUE: " << llvmIRToString(CS.getArgOperand(idx))
                << '\n'
                << endl;
+          Leaks[CallSite].insert(CS.getArgOperand(idx));
         }
       }
     }
@@ -182,6 +183,10 @@ void InterMonoTaintAnalysis::printDataFlowFact(ostream &os,
 void InterMonoTaintAnalysis::printMethod(ostream &os,
                                          const llvm::Function *m) const {
   os << m->getName().str();
+}
+const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
+InterMonoTaintAnalysis::getAllLeaks() const {
+  return Leaks;
 }
 
 } // namespace psr

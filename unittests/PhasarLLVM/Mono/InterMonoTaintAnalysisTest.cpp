@@ -1,10 +1,21 @@
 #include <gtest/gtest.h>
+#include <llvm/Support/raw_ostream.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/CallString.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/Utils/LLVMShorthands.h>
+
+/**
+ * The MetaDataIDs depend on execution-order.
+ * Only check the tainted values, not the actual leaks.
+ * Only check taints in main. There might be functions called by main, which
+ * both contain sources and leaks, such that there ads no DataFlowFacts holding
+ * in main at all.
+ */
 
 using namespace std;
 using namespace psr;
@@ -15,19 +26,60 @@ protected:
       PhasarDirectory + "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
+#pragma region Environment for leak checking
+  ProjectIRDB *IRDB = nullptr;
+  void SetUp() override {}
+  void TearDown() override {
+    if (IRDB) {
+      delete IRDB;
+      IRDB = nullptr;
+    }
+  }
+  const map<llvm::Instruction const *, set<llvm::Value const *>>
+  doAnalysis(std::string llvmFilePath) {
+    // make IRDB dynamic, such that the llvm::Value* and llvm::Instruction* live
+    // longer than this method (they are needed in compareResults)
+    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
+    ValueAnnotationPass::resetValueID();
+    IRDB->preprocessIR();
+    LLVMTypeHierarchy TH(*IRDB);
+    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
+    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
+        TaintProblem);
+    TaintSolver.solve();
+    return TaintProblem.getAllLeaks();
+  }
+  void compareResults(
+      map<llvm::Instruction const *, set<llvm::Value const *>> &Leaks,
+      map<int, set<string>> &GroundTruth) {
+    map<int, set<string>> LeakIds;
+    for (const auto &kvp : Leaks) {
+      int InstId = stoi(getMetaDataID(kvp.first));
+      EXPECT_NE(-1, InstId);
+      for (auto leakVal : kvp.second) {
+        LeakIds[InstId].insert(getMetaDataID(leakVal));
+      }
+    }
+    EXPECT_EQ(LeakIds, GroundTruth);
+  }
+#pragma endregion
+
   // @ return the number of tainted Instruction
   int computeCounterResult(
       MonoMap<const llvm::Instruction *,
               MonoMap<CallStringCTX<const llvm::Value *,
                                     const llvm::Instruction *, 3>,
-                      MonoSet<const llvm::Value *>>> &Analysis, ProjectIRDB &IRDB, unsigned InstNum) {
+                      MonoSet<const llvm::Value *>>> &Analysis,
+      ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
-    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
+    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
     int counter = 0;
     // count the number of facts after investigating the last Instruction
     for (auto &entry : Analysis) {
-      //if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first)) {
-        if (!entry.second.empty() && Inst == entry.first) {
+      // if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first))
+      // {
+      if (!entry.second.empty() && Inst == entry.first) {
         for (auto &context : entry.second) {
           if (!context.second.empty()) {
             for (auto &fact : context.second) {
@@ -48,20 +100,20 @@ protected:
                  set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
     set<string> FoundLeaks;
-    const llvm::Instruction * Inst = getNthInstruction(F, InstNum);
+    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
     for (auto &entry : Analysis) {
       int SinkId = stoi(getMetaDataID(entry.first));
-      cout<<"SinkId: "<< SinkId<<endl;
+      cout << "SinkId: " << SinkId << endl;
       set<string> LeakedValueIds;
-      //if (llvm::isa<llvm::ReturnInst>(entry.first)){
-      if (Inst == entry.first){
-      for (auto &context : entry.second) {
-        if (!context.second.empty()) {
-          for (auto &fact : context.second) {
-            LeakedValueIds.insert(getMetaDataID(fact));
+      // if (llvm::isa<llvm::ReturnInst>(entry.first)){
+      if (Inst == entry.first) {
+        for (auto &context : entry.second) {
+          if (!context.second.empty()) {
+            for (auto &fact : context.second) {
+              LeakedValueIds.insert(getMetaDataID(fact));
+            }
           }
-        }
-        FoundLeaks = LeakedValueIds;
+          FoundLeaks = LeakedValueIds;
         }
       }
     }
@@ -141,7 +193,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 9);
 
-  Facts = set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
+  Facts =
+      set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
@@ -166,7 +219,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 7);
 
-  Facts= set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
+  Facts = set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 
@@ -191,8 +244,66 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
   ASSERT_EQ(counter, 8);
 
-  Facts = set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
+  Facts =
+      set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
+}
+/*****************************************************
+ *
+ * Tests actually based on leaked values, not on dataflow facts
+ *
+ *
+ *****************************************************/
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_01_v2) {
+  auto Leaks = doAnalysis("taint_9_c.ll");
+  // 14 => {13}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[14] = {"13"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_02_v2) {
+  auto Leaks = doAnalysis("taint_10_c.ll");
+  // 20 => {19}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[20] = {"19"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
+  auto Leaks = doAnalysis("taint_11_c.ll");
+  // 35 => {34}
+  // 37 => {36} due to overapproximation (limitation of call string)
+  map<int, set<string>> GroundTruth;
+  GroundTruth[35] = {"34"};
+  GroundTruth[37] = {"36"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_04_v2) {
+  auto Leaks = doAnalysis("taint_12_c.ll");
+  // 36 => {35}
+  // why not 38 => {37} due to overapproximation in recursion (limitation of
+  // call string) ???
+  map<int, set<string>> GroundTruth;
+  GroundTruth[36] = {"35"};
+  // GroundTruth[38] = {"37"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_05_v2) {
+  auto Leaks = doAnalysis("taint_13_c.ll");
+  // 32 => {31}
+  // 34 => {33} will not leak (analysis is naturally never strong enough for
+  // this)
+  map<int, set<string>> GroundTruth;
+  GroundTruth[32] = {"31"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
+  auto Leaks = doAnalysis("taint_4_v2_cpp.ll");
+  // 19 => {18}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[19] = {"18"};
+  compareResults(Leaks, GroundTruth);
 }
 
 int main(int argc, char **argv) {
