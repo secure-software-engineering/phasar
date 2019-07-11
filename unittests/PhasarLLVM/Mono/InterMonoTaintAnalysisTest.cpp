@@ -8,6 +8,7 @@
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/Logger.h>
 
 /**
  * The MetaDataIDs depend on execution-order.
@@ -28,7 +29,7 @@ protected:
 
 #pragma region Environment for leak checking
   ProjectIRDB *IRDB = nullptr;
-  void SetUp() override {}
+  void SetUp() override { bl::core::get()->set_logging_enabled(false); }
   void TearDown() override {
     if (IRDB) {
       delete IRDB;
@@ -131,7 +132,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem, true);
+      TaintProblem);
   TaintSolver.solve();
 
   MonoMap<
@@ -157,7 +158,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem, true);
+      TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -182,7 +183,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem, true);
+      TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -208,7 +209,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem, true);
+      TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -233,7 +234,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem, true);
+      TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -303,6 +304,13 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
   // 19 => {18}
   map<int, set<string>> GroundTruth;
   GroundTruth[19] = {"18"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
+  auto Leaks = doAnalysis("taint_2_v2_cpp.ll");
+  // 10 => {9}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[10] = {"9"};
   compareResults(Leaks, GroundTruth);
 }
 
