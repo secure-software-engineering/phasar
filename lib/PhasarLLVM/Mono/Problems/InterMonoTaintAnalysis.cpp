@@ -64,6 +64,8 @@ InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
     if (In.count(Store->getValueOperand())) {
       Out.insert(Store->getPointerOperand());
+    } else {
+      Out.erase(Store->getPointerOperand());
     }
   }
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {

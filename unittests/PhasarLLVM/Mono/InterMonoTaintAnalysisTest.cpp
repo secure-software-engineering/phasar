@@ -53,7 +53,7 @@ protected:
   }
   void compareResults(
       map<llvm::Instruction const *, set<llvm::Value const *>> &Leaks,
-      map<int, set<string>> &GroundTruth) {
+      map<int, set<string>> &GroundTruth, string errorMessage = "") {
     map<int, set<string>> LeakIds;
     for (const auto &kvp : Leaks) {
       int InstId = stoi(getMetaDataID(kvp.first));
@@ -62,7 +62,7 @@ protected:
         LeakIds[InstId].insert(getMetaDataID(leakVal));
       }
     }
-    EXPECT_EQ(LeakIds, GroundTruth);
+    EXPECT_EQ(LeakIds, GroundTruth) << errorMessage;
   }
 #pragma endregion
 
@@ -242,10 +242,11 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  ASSERT_EQ(counter, 8);
-
+  EXPECT_EQ(counter, 7);
+  // 125 does no longer hold due to killing facts on store
   Facts =
-      set<string>{"125", "126", "127", "133", "134", "138", "main.0", "main.1"};
+      set<string>{/*"125", */ "126", "127",   "133", "134", "138",
+                  "main.0",          "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
 /*****************************************************
@@ -343,6 +344,24 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
   map<int, set<string>> GroundTruth;
   GroundTruth[12] = {"11"};
   compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
+  auto Leaks = doAnalysis("taint_15_cpp.ll", true);
+  // 21 => {20}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[21] = {"20"};
+  // GroundTruth[23] = {"22"}; // overapproximation due to lack of knowledge
+  // about ring-exchanges may be allowed
+  compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
+  auto Leaks = doAnalysis("taint_15_1_cpp.ll");
+  // 16 => {15}; fails => need to kill correctly on store
+  map<int, set<string>> GroundTruth;
+  GroundTruth[16] = {"15"};
+  compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
 }
 
 int main(int argc, char **argv) {
