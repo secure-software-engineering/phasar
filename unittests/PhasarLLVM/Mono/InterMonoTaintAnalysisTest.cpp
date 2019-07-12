@@ -37,7 +37,7 @@ protected:
     }
   }
   const map<llvm::Instruction const *, set<llvm::Value const *>>
-  doAnalysis(std::string llvmFilePath) {
+  doAnalysis(std::string llvmFilePath, bool printDump = false) {
     // make IRDB dynamic, such that the llvm::Value* and llvm::Instruction* live
     // longer than this method (they are needed in compareResults)
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
@@ -47,7 +47,7 @@ protected:
     LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
     LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-        TaintProblem);
+        TaintProblem, printDump);
     TaintSolver.solve();
     return TaintProblem.getAllLeaks();
   }
@@ -66,7 +66,6 @@ protected:
   }
 #pragma endregion
 
-  // @ return the number of tainted Instruction
   int computeCounterResult(
       MonoMap<const llvm::Instruction *,
               MonoMap<CallStringCTX<const llvm::Value *,
@@ -311,6 +310,38 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
   // 10 => {9}
   map<int, set<string>> GroundTruth;
   GroundTruth[10] = {"9"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
+  auto Leaks = doAnalysis("taint_2_v2_1_cpp.ll");
+  // 4 => {3}
+  map<int, set<string>> GroundTruth;
+  GroundTruth[4] = {"3"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_09) {
+  auto Leaks = doAnalysis("source_sink_function_test_c.ll");
+  // 41 => {40}; probably fails due to lack of alias information
+  map<int, set<string>> GroundTruth;
+  GroundTruth[41] = {"40"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
+  auto Leaks = doAnalysis("taint_14_cpp.ll", true);
+  // 12 => {11}; do not know, why it fails; getchar is definitely a source, but
+  // it doesn't generate a fact
+  map<int, set<string>> GroundTruth;
+  GroundTruth[12] = {"11"};
+  compareResults(Leaks, GroundTruth);
+}
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
+  auto Leaks = doAnalysis("taint_14_cpp.ll", true);
+  // 12 => {11}; same as TaintTest10, but all in main; it fails too for no
+  // reason
+  map<int, set<string>> GroundTruth;
+  GroundTruth[12] = {"11"};
   compareResults(Leaks, GroundTruth);
 }
 
