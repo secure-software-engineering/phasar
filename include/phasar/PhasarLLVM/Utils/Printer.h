@@ -24,6 +24,8 @@
 namespace psr {
 
 template <typename N> struct NodePrinter {
+  virtual ~NodePrinter() = default;
+
   virtual void printNode(std::ostream &os, N n) const = 0;
 
   virtual std::string NtoString(N n) const {
@@ -34,6 +36,8 @@ template <typename N> struct NodePrinter {
 };
 
 template <typename D> struct DataFlowFactPrinter {
+  virtual ~DataFlowFactPrinter() = default;
+
   virtual void printDataFlowFact(std::ostream &os, D d) const = 0;
 
   virtual std::string DtoString(D d) const {
@@ -44,6 +48,8 @@ template <typename D> struct DataFlowFactPrinter {
 };
 
 template <typename V> struct ValuePrinter {
+  virtual ~ValuePrinter() = default;
+
   virtual void printValue(std::ostream &os, V v) const = 0;
 
   virtual std::string VtoString(V v) const {
@@ -54,6 +60,8 @@ template <typename V> struct ValuePrinter {
 };
 
 template <typename M> struct MethodPrinter {
+  virtual ~MethodPrinter() = default;
+
   virtual void printMethod(std::ostream &os, M m) const = 0;
 
   virtual std::string MtoString(M m) const {
