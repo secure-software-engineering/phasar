@@ -21,6 +21,10 @@
 // #include <iostream>
 #include <vector>
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/Support/Casting.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
