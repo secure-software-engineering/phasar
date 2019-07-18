@@ -330,7 +330,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_09) {
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
-  auto Leaks = doAnalysis("taint_14_cpp.ll", true);
+  auto Leaks = doAnalysis("taint_14_cpp.ll");
   // 12 => {11}; do not know, why it fails; getchar is definitely a source, but
   // it doesn't generate a fact
   map<int, set<string>> GroundTruth;
@@ -338,7 +338,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
-  auto Leaks = doAnalysis("taint_14_cpp.ll", true);
+  auto Leaks = doAnalysis("taint_14_cpp.ll");
   // 12 => {11}; same as TaintTest10, but all in main; it fails too for no
   // reason
   map<int, set<string>> GroundTruth;
@@ -347,18 +347,21 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
-  auto Leaks = doAnalysis("taint_15_cpp.ll", true);
+  auto Leaks = doAnalysis("taint_15_cpp.ll");
   // 21 => {20}
   map<int, set<string>> GroundTruth;
   GroundTruth[21] = {"20"};
-  // GroundTruth[23] = {"22"}; // overapproximation due to lack of knowledge
-  // about ring-exchanges may be allowed
-  compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
+  // overapproximation due to lack of knowledge
+  // about ring-exchanges may be allowed, but actually 22 should not hold at 23
+  GroundTruth[23] = {"22"};
+  compareResults(Leaks, GroundTruth,
+                 "The xor ring-exchange was not successful");
+  // Unfortunately, the analysis detects no leaks at all
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
   auto Leaks = doAnalysis("taint_15_1_cpp.ll");
-  // 16 => {15}; fails => need to kill correctly on store
+  // 16 => {15};
   map<int, set<string>> GroundTruth;
   GroundTruth[16] = {"15"};
   compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
