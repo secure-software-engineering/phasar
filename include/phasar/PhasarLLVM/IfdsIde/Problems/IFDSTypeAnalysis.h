@@ -42,7 +42,7 @@ public:
                    const ProjectIRDB &irdb,
                    std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSTypeAnalysis() = default;
+  ~IFDSTypeAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

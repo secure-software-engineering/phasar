@@ -38,7 +38,7 @@ class IntraMonoFullConstantPropagation
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
   IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
-  virtual ~IntraMonoFullConstantPropagation() = default;
+  ~IntraMonoFullConstantPropagation() override = default;
 
   MonoSet<std::pair<const llvm::Value *, unsigned>>
   join(const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,

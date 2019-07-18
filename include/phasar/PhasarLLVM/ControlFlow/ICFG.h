@@ -37,7 +37,7 @@ using json = nlohmann::json;
 
 template <typename N, typename M> class ICFG : public virtual CFG<N, M> {
 public:
-  virtual ~ICFG() = default;
+  ~ICFG() override = default;
 
   virtual bool isCallStmt(N stmt) = 0;
 

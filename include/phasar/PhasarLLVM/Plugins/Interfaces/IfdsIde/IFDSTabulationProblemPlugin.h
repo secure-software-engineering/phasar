@@ -53,7 +53,7 @@ public:
         EntryPoints(EntryPoints) {
     DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
   }
-  ~IFDSTabulationProblemPlugin() = default;
+  ~IFDSTabulationProblemPlugin() override = default;
 
   const llvm::Value *createZeroValue() override {
     // create a special value to represent the zero value!

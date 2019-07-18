@@ -56,7 +56,7 @@ public:
    * Target value computation is implemented as
    *     G(F(source))
    */
-  virtual V computeTarget(V source) override {
+  V computeTarget(V source) override {
     return G->computeTarget(F->computeTarget(source));
   }
 
@@ -67,7 +67,7 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  virtual std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
     if (auto *EI = dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
       return this->shared_from_this();
@@ -78,14 +78,14 @@ public:
   // virtual std::shared_ptr<EdgeFunction<V>>
   // joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) = 0;
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     if (auto EFC = dynamic_cast<EdgeFunctionComposer<V> *>(other.get())) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }
     return false;
   }
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool isForDebug = false) const override {
     OS << "EFComposer_" << EFComposer_Id << "[ " << F.get()->str() << " , "
        << G.get()->str() << " ]";
   }

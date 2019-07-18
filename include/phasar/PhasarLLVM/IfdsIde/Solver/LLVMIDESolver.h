@@ -51,7 +51,7 @@ public:
         Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
   }
 
-  virtual ~LLVMIDESolver() = default;
+  ~LLVMIDESolver() override = default;
 
   void solve() override {
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
