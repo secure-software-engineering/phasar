@@ -22,9 +22,13 @@ set(NoMem2RegSources
   struct_member_init.cpp
   struct_member_uninit.cpp
   struct_member_uninit2.cpp
+  struct_test.cpp
   sanitizer.cpp
   sanitizer2.cpp
   sanitizer_uninit.cpp
+  array_init.cpp
+  array_init_simple.cpp
+  
 )
 
 set(Mem2RegSources

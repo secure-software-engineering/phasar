@@ -46,6 +46,11 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSUninitializedVariables::getNormalFlowFunction()");
+  //----------------------------------------------------------------------------------
+  // Why do we need this case?
+  // Every alloca is reached eventually by this function
+  //----------------------------------------------------------------------------------
+
   // initially mark every local as uninitialized (except entry point args)
   if (icfg.isStartPoint(curr) &&
       curr->getFunction()->getName().str() == "main") {
@@ -60,6 +65,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
       computeTargets(IFDSUninitializedVariables::d_t source) override {
         if (source == zerovalue) {
           set<IFDSUninitializedVariables::d_t> res;
+
           // first add all local values of primitive types
           for (auto &BB : *func) {
             for (auto &inst : BB) {
@@ -108,6 +114,11 @@ IFDSUninitializedVariables::getNormalFlowFunction(
           : store(s), UndefValueUses(UVU) {}
       set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t source) override {
+
+        //----------------------------------------------------------------------
+        // I don't get the purpose of this for-loop;
+        // When a undefined load is stored, it should eventually be source
+        //----------------------------------------------------------------------
         // check if an uninitialized value is loaded and stored in a variable
         for (auto &use : store->getValueOperand()->uses()) {
           // check if use is load
@@ -162,6 +173,12 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         const llvm::UndefValue *undef =
             llvm::dyn_cast<llvm::UndefValue>(operand);
         if (operand == source || operand == undef) {
+          //----------------------------------------------------------------
+          // It is not necessary and (from my point of view) not intended to
+          // report a leak on EVERY kind of instruction.
+          // For some of them (e.g. gep, bitcast, ...) propagating the dataflow
+          // facts may be enough
+          //----------------------------------------------------------------
           UndefValueUses[inst].insert(operand);
           return {source, inst};
         }
@@ -220,6 +237,10 @@ IFDSUninitializedVariables::getCallFlowFunction(
           }
           return res;
         } else {
+
+          //--------------------------------------------------------------
+          // Why not letting the normal FF generate the allocas?
+          //--------------------------------------------------------------
           // on zerovalue -> gen all locals parameter
           set<const llvm::Value *> res;
           for (auto &BB : *destMthd) {
@@ -274,6 +295,9 @@ IFDSUninitializedVariables::getRetFlowFunction(
         if (exit->getNumOperands() > 0 && exit->getOperand(0) == source) {
           return {call.getInstruction()};
         }
+        //----------------------------------------------------------------------
+        // What about pointer/reference parameters?
+        //----------------------------------------------------------------------
         // kill all other facts
         return {};
       }
@@ -292,6 +316,9 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSUninitializedVariables::getCallToRetFlowFunction()");
+  //----------------------------------------------------------------------
+  // TODO: Handle pointer/reference parameters
+  //----------------------------------------------------------------------
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
 

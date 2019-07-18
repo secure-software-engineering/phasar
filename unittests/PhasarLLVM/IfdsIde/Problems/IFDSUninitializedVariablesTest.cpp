@@ -286,7 +286,45 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   compareResults(GroundTruth);
 }
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 
+  Initialize({pathToLLFiles + "struct_test_cpp.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
+                                                              false, true);
+  Solver.solve();
+
+  map<int, set<string>> GroundTruth;
+  // printf should leak both parameters => fails
+
+  // Problem with field sensitivity: when all structs are treated as
+  // uninitialized per default, the analysis wouild not be able to detect
+  // correct constructor calls
+  GroundTruth[8] = {"5", "7"};
+  compareResults(GroundTruth);
+}
+
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
+
+  Initialize({pathToLLFiles + "array_init_cpp.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
+                                                              false, true);
+  Solver.solve();
+
+  map<int, set<string>> GroundTruth;
+
+  compareResults(GroundTruth);
+}
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
+
+  Initialize({pathToLLFiles + "array_init_simple_cpp.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
+                                                              false, true);
+  Solver.solve();
+
+  map<int, set<string>> GroundTruth;
+
+  compareResults(GroundTruth);
+}
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
