@@ -134,6 +134,10 @@ protected:
 public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
+  InterMonoSolver(const InterMonoSolver &) = delete;
+  InterMonoSolver &operator=(const InterMonoSolver &) = delete;
+  InterMonoSolver(InterMonoSolver &&) = delete;
+  InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
   MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
