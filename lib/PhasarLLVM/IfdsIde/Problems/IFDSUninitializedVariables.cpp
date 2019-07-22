@@ -105,8 +105,8 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   // check the all store instructions and kill initialized variables
   if (auto store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-      const llvm::Value *valueop;
-      const llvm::Value *pointerop;
+      // const llvm::Value *valueop;
+      // const llvm::Value *pointerop;
       const llvm::StoreInst *store;
       const llvm::Value *zero;
       map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
@@ -121,7 +121,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 
         //----------------------------------------------------------------------
         // I don't get the purpose of this for-loop;
-        // When a undefined load is stored, it should eventually be source
+        // When an undefined load is stored, it should eventually be source
         //----------------------------------------------------------------------
 
         /*
@@ -183,6 +183,10 @@ IFDSUninitializedVariables::getNormalFlowFunction(
                 alloc->getAllocatedType()->isFloatingPointTy() ||
                 alloc->getAllocatedType()->isPointerTy() ||
                 alloc->getAllocatedType()->isArrayTy()) {
+              //------------------------------------------------------------
+              // Why not generate for structs?
+              //------------------------------------------------------------
+
               // generate the alloca
               return {source, alloc};
             }
@@ -213,7 +217,8 @@ IFDSUninitializedVariables::getNormalFlowFunction(
           // facts may be enough
           //----------------------------------------------------------------
           if (!llvm::isa<llvm::GetElementPtrInst>(inst) &&
-              !llvm::isa<llvm::CastInst>(inst))
+              !llvm::isa<llvm::CastInst>(inst) &&
+              !llvm::isa<llvm::PHINode>(inst))
             UndefValueUses[inst].insert(operand);
           return {source, inst};
         }
@@ -251,8 +256,11 @@ IFDSUninitializedVariables::getCallFlowFunction(
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // set up the formal parameters
-        for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
+        /*for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
           formals.push_back(getNthFunctionArgument(destMthd, idx));
+        }*/
+        for (auto &arg : destMthd->args()) {
+          formals.push_back(&arg);
         }
       }
 
@@ -334,14 +342,16 @@ IFDSUninitializedVariables::getRetFlowFunction(
           ret.insert(call.getInstruction());
         }
         //----------------------------------------------------------------------
-        // What about pointer/reference parameters?
+        // Handle pointer/reference parameters?
         //----------------------------------------------------------------------
         if (call.getCalledFunction()) {
-          for (unsigned i = 0; i < call.getCalledFunction()->arg_size(); ++i) {
-            auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
-            if (arg == source && arg->getType()->isPointerTy()) {
+          unsigned i = 0;
+          for (auto &arg : call.getCalledFunction()->args()) {
+            // auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
+            if (&arg == source && arg.getType()->isPointerTy()) {
               ret.insert(call.getArgument(i));
             }
+            i++;
           }
         }
 
@@ -377,7 +387,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
               if (arg.get() == source)
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise, with
-                // pointer-depth(field) information in the dataflow-facts)
+                // field-sensitivity)
                 return {};
             }
           }

@@ -28,7 +28,7 @@ set(NoMem2RegSources
   sanitizer_uninit.cpp
   array_init.cpp
   array_init_simple.cpp
-  
+  recursion.cpp
 )
 
 set(Mem2RegSources

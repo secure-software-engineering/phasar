@@ -273,7 +273,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "growing_example_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false, true);
+                                                              false, false);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -290,14 +290,14 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "struct_test_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false, true);
+                                                              false, false);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
   // printf should leak both parameters => fails
 
   // Problem with field sensitivity: when all structs are treated as
-  // uninitialized per default, the analysis wouild not be able to detect
+  // uninitialized per default, the analysis would not be able to detect
   // correct constructor calls
   GroundTruth[8] = {"5", "7"};
   compareResults(GroundTruth);
@@ -307,7 +307,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false, true);
+                                                              false, false);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -318,13 +318,35 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_simple_cpp.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false, true);
+                                                              false, false);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
   // fails due to missing alias information
   // TODO: remove GT[15];
   GroundTruth[15] = {"14"};
+  compareResults(GroundTruth);
+}
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
+
+  Initialize({pathToLLFiles + "recursion_cpp.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
+                                                              false, false);
+  Solver.solve();
+
+  map<int, set<string>> GroundTruth;
+  // Leaks at 9 and 11 due to field-insensitivity
+  GroundTruth[9] = {"2"};
+  GroundTruth[12] = {"2"};
+
+  // Load uninitialized variable i
+  GroundTruth[27] = {"22"};
+  // Load recursive return-value for returning it
+  GroundTruth[18] = {"1"};
+  // Load return-value of foo in main
+  GroundTruth[25] = {"24"};
+  // Analysis does not check uninit on actualparameters
+  // GroundTruth[28] = {"27"};
   compareResults(GroundTruth);
 }
 int main(int argc, char **argv) {
