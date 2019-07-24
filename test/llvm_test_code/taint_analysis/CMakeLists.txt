@@ -28,6 +28,8 @@ set(NoMem2regSources
   taint_14_1.cpp
   taint_15.cpp
   taint_15_1.cpp
+  virtual_calls.cpp
+  virtual_calls_v2.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

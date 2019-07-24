@@ -271,6 +271,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02_v2) {
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
+  // bl::core::get()->set_logging_enabled(true);
   auto Leaks = doAnalysis("taint_11_c.ll");
   // 35 => {34}
   // 37 => {36} due to overapproximation (limitation of call string)
@@ -365,6 +366,30 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
   map<int, set<string>> GroundTruth;
   GroundTruth[16] = {"15"};
   compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
+}
+
+TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
+  // bl::core::get()->set_logging_enabled(true);
+  auto Leaks = doAnalysis("virtual_calls_cpp.ll");
+  // 20 => {19};
+  map<int, set<string>> GroundTruth;
+  // Fails, although putchar is definitely a source;
+  // when inserting '%15 = call i32 @putchar(i32 %0)' right before 'ret i32
+  // %14', it reports a leak correctly
+
+  // The dump says, the callgraph constrction only finds one possible callee for
+  // bar, namely _Z3fooi which is foo(int)
+  GroundTruth[20] = {"19"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, VirtualCalls_v2) {
+  auto Leaks = doAnalysis("virtual_calls_v2_cpp.ll");
+  // 7 => {6};
+  map<int, set<string>> GroundTruth;
+
+  GroundTruth[7] = {"6"};
+  compareResults(Leaks, GroundTruth);
 }
 
 int main(int argc, char **argv) {

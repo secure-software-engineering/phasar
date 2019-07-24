@@ -64,13 +64,18 @@ InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
     if (In.count(Store->getValueOperand())) {
       Out.insert(Store->getPointerOperand());
-    } else {
+    } else if (In.count(Store->getPointerOperand())) {
       Out.erase(Store->getPointerOperand());
     }
   }
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
     if (In.count(Load->getPointerOperand())) {
       Out.insert(Load);
+    }
+  }
+  if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Stmt)) {
+    if (In.count(Gep->getPointerOperand())) {
+      Out.insert(Gep);
     }
   }
   return Out;
@@ -129,7 +134,14 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   MonoSet<const llvm::Value *> Out(In);
   llvm::ImmutableCallSite CS(CallSite);
-  if (auto Callee = CS.getCalledFunction()) {
+  //-----------------------------------------------------------------------------
+  // Handle virtual calls
+  //-----------------------------------------------------------------------------
+  for (auto Callee : Callees) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "InterMonoTaintAnalysis::callToRetFlow()::"
+                  << Callee->getName().str());
+
     if (TSF.isSink(Callee->getName().str())) {
       for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(idx) &&
