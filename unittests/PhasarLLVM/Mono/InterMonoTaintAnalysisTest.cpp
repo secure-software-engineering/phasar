@@ -278,6 +278,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
   map<int, set<string>> GroundTruth;
   GroundTruth[35] = {"34"};
   GroundTruth[37] = {"36"};
+  // kind of nondeterministic: some compilations only leak at 35, some only at
+  // 37, but most at both
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_04_v2) {
@@ -392,6 +394,37 @@ TEST_F(InterMonoTaintAnalysisTest, VirtualCalls_v2) {
   compareResults(Leaks, GroundTruth);
 }
 
+TEST_F(InterMonoTaintAnalysisTest, StructMember) {
+  auto Leaks = doAnalysis("struct_member_cpp.ll");
+  // 16 => {15};
+  // 19 => {18};
+  map<int, set<string>> GroundTruth;
+
+  // Overapproximation due to field-insensitivity
+  GroundTruth[16] = {"15"};
+  // Actual leak
+  GroundTruth[19] = {"18"};
+  // Fails due to alias-unawareness (reports no leak at all)
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, DynamicMemory) {
+  auto Leaks = doAnalysis("dynamic_memory_cpp.ll");
+  // 11 => {10}
+  map<int, set<string>> GroundTruth;
+
+  GroundTruth[11] = {"10"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
+  auto Leaks = doAnalysis("dynamic_memory_simple_cpp.ll");
+  // 15 => {14}
+  map<int, set<string>> GroundTruth;
+
+  GroundTruth[15] = {"14"};
+  compareResults(Leaks, GroundTruth);
+}
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   auto result = RUN_ALL_TESTS();

@@ -30,6 +30,8 @@ set(NoMem2regSources
   taint_15_1.cpp
   virtual_calls.cpp
   virtual_calls_v2.cpp
+  struct_member.cpp
+  dynamic_memory.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
