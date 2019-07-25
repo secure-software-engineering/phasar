@@ -278,8 +278,8 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
   map<int, set<string>> GroundTruth;
   GroundTruth[35] = {"34"};
   GroundTruth[37] = {"36"};
-  // kind of nondeterministic: some compilations only leak at 35, some only at
-  // 37, but most at both
+  // kind of nondeterministic: sometimes it only leaks at 35, some only at
+  // 37, but most times at both
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_04_v2) {
@@ -307,6 +307,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
   // 19 => {18}
   map<int, set<string>> GroundTruth;
   GroundTruth[19] = {"18"};
+  // fails due to alias-unawareness
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
@@ -314,6 +315,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
   // 10 => {9}
   map<int, set<string>> GroundTruth;
   GroundTruth[10] = {"9"};
+  // fails, since std::cout is not a sink
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
@@ -341,9 +343,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
-  auto Leaks = doAnalysis("taint_14_cpp.ll");
-  // 12 => {11}; same as TaintTest10, but all in main; it fails too for no
-  // reason
+  auto Leaks = doAnalysis("taint_14_1_cpp.ll");
+  // 12 => {11}; same as TaintTest10, but all in main;
+  // In contrast to TaintTest10, getchar generates a fact here;
+  // fails, because arithmetic operations do not propagate taints
   map<int, set<string>> GroundTruth;
   GroundTruth[12] = {"11"};
   compareResults(Leaks, GroundTruth);
@@ -376,11 +379,9 @@ TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
   // 20 => {19};
   map<int, set<string>> GroundTruth;
   // Fails, although putchar is definitely a source;
-  // when inserting '%15 = call i32 @putchar(i32 %0)' right before 'ret i32
-  // %14', it reports a leak correctly
 
-  // The dump says, the callgraph constrction only finds one possible callee for
-  // bar, namely _Z3fooi which is foo(int)
+  // The dump says, the callgraph construction only finds one possible callee
+  // for bar, namely _Z3fooi which is foo(int)
   GroundTruth[20] = {"19"};
   compareResults(Leaks, GroundTruth);
 }
@@ -412,7 +413,7 @@ TEST_F(InterMonoTaintAnalysisTest, DynamicMemory) {
   auto Leaks = doAnalysis("dynamic_memory_cpp.ll");
   // 11 => {10}
   map<int, set<string>> GroundTruth;
-
+  // Fails due to alias-unawareness
   GroundTruth[11] = {"10"};
   compareResults(Leaks, GroundTruth);
 }
@@ -423,6 +424,18 @@ TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
   map<int, set<string>> GroundTruth;
 
   GroundTruth[15] = {"14"};
+  compareResults(Leaks, GroundTruth);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, FileIO) {
+  auto Leaks = doAnalysis("read_c.ll");
+
+  map<int, set<string>> GroundTruth;
+  // 37 => {36}
+  // 43 => {41}
+  GroundTruth[37] = {"36"};
+  GroundTruth[43] = {"41"};
+  // Fails due to alias unawareness; detects no leaks at all
   compareResults(Leaks, GroundTruth);
 }
 int main(int argc, char **argv) {

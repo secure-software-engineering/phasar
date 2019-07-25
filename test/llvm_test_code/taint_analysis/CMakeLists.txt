@@ -32,6 +32,7 @@ set(NoMem2regSources
   virtual_calls_v2.cpp
   struct_member.cpp
   dynamic_memory.cpp
+  dynamic_memory_simple.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})

@@ -97,8 +97,11 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
     Actuals.push_back(CS.getArgOperand(idx));
   }
   // set up the formal parameters
-  for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
+  /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
     Formals.push_back(getNthFunctionArgument(Callee, idx));
+  }*/
+  for (auto &arg : Callee->args()) {
+    Formals.push_back(&arg);
   }
   for (unsigned idx = 0; idx < Actuals.size(); ++idx) {
     if (In.count(Actuals[idx])) {
@@ -121,6 +124,16 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
       Out.insert(CallSite);
     }
   }
+  // propagate pointer arguments to the caller, since this callee may modify
+  // them
+  llvm::ImmutableCallSite CS(CallSite);
+  unsigned index = 0;
+  for (auto &arg : Callee->args()) {
+    if (arg.getType()->isPointerTy() && In.count(&arg)) {
+      Out.insert(CS.getArgOperand(index));
+    }
+    index++;
+  }
   return Out;
 }
 
@@ -135,7 +148,7 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
   MonoSet<const llvm::Value *> Out(In);
   llvm::ImmutableCallSite CS(CallSite);
   //-----------------------------------------------------------------------------
-  // Handle virtual calls
+  // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
   for (auto Callee : Callees) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -163,6 +176,13 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
         Out.insert(CallSite);
       }
+    }
+  }
+
+  // erase pointer arguments, since they are now propagated in the retFF
+  for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
+    if (CS.getArgOperand(i)->getType()->isPointerTy()) {
+      Out.erase(CS.getArgOperand(i));
     }
   }
   return Out;
