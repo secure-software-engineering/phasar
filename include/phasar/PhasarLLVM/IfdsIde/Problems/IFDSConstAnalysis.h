@@ -60,7 +60,7 @@ public:
                     const ProjectIRDB &irdb, std::set<d_t> AllMemLocs,
                     std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSConstAnalysis() = default;
+  ~IFDSConstAnalysis() override = default;
 
   /**
    * If the current instruction is a store instruction, the memory locations's

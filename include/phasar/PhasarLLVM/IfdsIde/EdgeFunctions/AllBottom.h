@@ -39,11 +39,11 @@ private:
 public:
   AllBottom(V bottomElement) : bottomElement(bottomElement) {}
 
-  virtual ~AllBottom() = default;
+  ~AllBottom() override = default;
 
   V computeTarget(V source) override { return bottomElement; }
 
-  virtual std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
     if (EdgeIdentity<V> *ei =
             dynamic_cast<EdgeIdentity<V> *>(secondFunction.get()))
@@ -51,7 +51,7 @@ public:
     return secondFunction;
   }
 
-  virtual std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     if (otherFunction.get() == this ||
         otherFunction->equal_to(this->shared_from_this()))
@@ -64,14 +64,14 @@ public:
     return this->shared_from_this();
   }
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     if (AllBottom<V> *allbottom = dynamic_cast<AllBottom<V> *>(other.get())) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;
   }
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool isForDebug = false) const override {
     OS << "AllBottom";
   }
 };

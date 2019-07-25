@@ -59,7 +59,7 @@ public:
                          const llvm::Module &M, CallGraphAnalysisType CGType,
                          std::vector<std::string> EntryPoints = {});
 
-  virtual ~LLVMBasedBackwardsICFG() = default;
+  ~LLVMBasedBackwardsICFG() override = default;
 
   std::set<const llvm::Function *> getAllMethods();
 

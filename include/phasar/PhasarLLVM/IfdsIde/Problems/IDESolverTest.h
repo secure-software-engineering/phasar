@@ -43,7 +43,7 @@ public:
   IDESolverTest(i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
                 std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IDESolverTest() = default;
+  ~IDESolverTest() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 

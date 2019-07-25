@@ -94,7 +94,7 @@ public:
     // std::cout << "called IDESolver::IDESolver() ctor with IDEProblem"
     //           << std::endl;
   }
-
+  IDESolver &operator=(IDESolver &&) = delete;
   virtual ~IDESolver() = default;
 
   json getAsJson() {

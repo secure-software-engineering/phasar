@@ -47,6 +47,7 @@ private:
 
 public:
   RandomChangeVisitor(clang::Rewriter &R);
+  virtual ~RandomChangeVisitor() = default;
   virtual bool VisitVarDecl(clang::VarDecl *V);
   virtual bool VisitTypeDecl(clang::TypeDecl *T);
   virtual bool VisitStmt(clang::Stmt *S);

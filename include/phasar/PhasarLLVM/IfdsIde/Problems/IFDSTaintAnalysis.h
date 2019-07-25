@@ -66,7 +66,7 @@ public:
                     const ProjectIRDB &irdb, TaintSensitiveFunctions TSF,
                     std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSTaintAnalysis() = default;
+  ~IFDSTaintAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

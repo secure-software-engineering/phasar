@@ -24,6 +24,11 @@
 namespace psr {
 
 template <typename N> struct NodePrinter {
+  NodePrinter() = default;
+  NodePrinter(const NodePrinter &) = delete;
+  NodePrinter &operator=(const NodePrinter &) = delete;
+  NodePrinter(NodePrinter &&) = delete;
+  NodePrinter &operator=(NodePrinter &&) = delete;
   virtual ~NodePrinter() = default;
 
   virtual void printNode(std::ostream &os, N n) const = 0;
@@ -36,6 +41,11 @@ template <typename N> struct NodePrinter {
 };
 
 template <typename D> struct DataFlowFactPrinter {
+  DataFlowFactPrinter() = default;
+  DataFlowFactPrinter(const DataFlowFactPrinter &) = delete;
+  DataFlowFactPrinter &operator=(const DataFlowFactPrinter &) = delete;
+  DataFlowFactPrinter(DataFlowFactPrinter &&) = delete;
+  DataFlowFactPrinter &operator=(DataFlowFactPrinter &&) = delete;
   virtual ~DataFlowFactPrinter() = default;
 
   virtual void printDataFlowFact(std::ostream &os, D d) const = 0;
@@ -48,6 +58,11 @@ template <typename D> struct DataFlowFactPrinter {
 };
 
 template <typename V> struct ValuePrinter {
+  ValuePrinter() = default;
+  ValuePrinter(const ValuePrinter &) = delete;
+  ValuePrinter &operator=(const ValuePrinter &) = delete;
+  ValuePrinter(ValuePrinter &&) = delete;
+  ValuePrinter &operator=(ValuePrinter &&) = delete;
   virtual ~ValuePrinter() = default;
 
   virtual void printValue(std::ostream &os, V v) const = 0;
@@ -60,6 +75,11 @@ template <typename V> struct ValuePrinter {
 };
 
 template <typename M> struct MethodPrinter {
+  MethodPrinter() = default;
+  MethodPrinter(const MethodPrinter &) = delete;
+  MethodPrinter &operator=(const MethodPrinter &) = delete;
+  MethodPrinter(MethodPrinter &&) = delete;
+  MethodPrinter &operator=(MethodPrinter &&) = delete;
   virtual ~MethodPrinter() = default;
 
   virtual void printMethod(std::ostream &os, M m) const = 0;

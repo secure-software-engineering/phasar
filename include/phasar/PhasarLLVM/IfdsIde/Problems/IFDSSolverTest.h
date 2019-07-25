@@ -43,7 +43,7 @@ public:
   IFDSSolverTest(i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
                  std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSSolverTest() = default;
+  ~IFDSSolverTest() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

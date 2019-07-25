@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTRAMONOSOLVER_H_
 
 #include <iosfwd>
+#include <iostream>
 
 #include <llvm/IR/Instruction.h>
 
@@ -34,7 +35,7 @@ protected:
 
 public:
   LLVMIntraMonoSolver();
-  virtual ~LLVMIntraMonoSolver() = default;
+  ~LLVMIntraMonoSolver() override = default;
 
   LLVMIntraMonoSolver(IntraMonoProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, C> &problem,
@@ -43,7 +44,7 @@ public:
                         C>(problem),
         DUMP_RESULTS(dumpResults) {}
 
-  virtual void solve() override {
+  void solve() override {
     // do the solving of the analaysis problem
     IntraMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
                     C>::solve();

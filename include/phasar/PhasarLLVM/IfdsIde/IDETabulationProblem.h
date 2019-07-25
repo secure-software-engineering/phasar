@@ -32,7 +32,7 @@ class IDETabulationProblem : public virtual IFDSTabulationProblem<N, D, M, I>,
                              public virtual JoinLattice<V>,
                              public virtual ValuePrinter<V> {
 public:
-  virtual ~IDETabulationProblem() = default;
+  ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
   virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
     os << "No IDE report available!\n";

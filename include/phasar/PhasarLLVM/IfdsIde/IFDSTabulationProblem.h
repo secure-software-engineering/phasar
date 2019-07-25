@@ -35,7 +35,7 @@ class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual MethodPrinter<M> {
 public:
   SolverConfiguration solver_config;
-  virtual ~IFDSTabulationProblem() = default;
+  ~IFDSTabulationProblem() override = default;
   virtual I interproceduralCFG() = 0;
   virtual std::map<N, std::set<D>> initialSeeds() = 0;
   virtual D zeroValue() = 0;
