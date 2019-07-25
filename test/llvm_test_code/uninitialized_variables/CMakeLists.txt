@@ -29,6 +29,7 @@ set(NoMem2RegSources
   array_init.cpp
   array_init_simple.cpp
   recursion.cpp
+  virtual_call.cpp
 )
 
 set(Mem2RegSources

@@ -1,3 +1,4 @@
+#include <cstdio>
 int main() {
   int i;
   int j;

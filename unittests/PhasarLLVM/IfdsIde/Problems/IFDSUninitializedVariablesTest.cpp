@@ -152,7 +152,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   map<int, set<string>> GroundTruth;
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
   GroundTruth[4] = {"3"};
-
+  // fails due to field-insensitivity + struct ignorance + clang compiler hacks
   compareResults(GroundTruth);
 }
 
@@ -173,13 +173,13 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
   Solver.solve();
   // global_variable.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
-  // load i32, i32* @i ; @i is uninitialized in the c++ code, but initialized in
-  // the LLVM-IR
+  // load i32, i32* @i ; fails, since @i is uninitialized in the c++ code, but
+  // initialized in the LLVM-IR
   GroundTruth[5] = {"0"};
   compareResults(GroundTruth);
 }
 
-TEST_F(IFDSUninitializedVariablesTest, UninitTEst_10_SHOULD_LEAK) {
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "return_uninit_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
                                                               false, false);
@@ -199,33 +199,41 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
                                                               false, false);
   Solver.solve();
-  // all undef-uses are sanitized
   map<int, set<string>> GroundTruth;
+  // all undef-uses are sanitized;
+  // However, the uninitialized variable j is read, which causes the analysis to
+  // report an undef-use
+  // 6 => {2}
+
+  GroundTruth[6] = {"2"};
   compareResults(GroundTruth);
 }
-TEST_F(IFDSUninitializedVariablesTest, UninitTest_12_SHOULD_LEAK) {
+//---------------------------------------------------------------------
+// Not relevant any more; Test case covered by UninitTest_11
+//---------------------------------------------------------------------
+/* TEST_F(IFDSUninitializedVariablesTest, UninitTest_12_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "sanitizer_uninit_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false, false);
+                                                              true, true);
   Solver.solve();
   // The sanitized value is not used always => the phi-node is "tainted"
   map<int, set<string>> GroundTruth;
-  // GroundTruth[6] = {"2"};
-  // GroundTruth[13] = {"2"};
-  // GroundTruth[15] = {"13"};
-  GroundTruth[16] = {"15"};
+  GroundTruth[6] = {"2"};
+  GroundTruth[13] = {"2"};
   compareResults(GroundTruth);
 }
+*/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "sanitizer2_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
                                                               false, false);
   Solver.solve();
-  // The undef-uses do not affect the program behaviour
+  // The undef-uses do not affect the program behaviour, but are of course still
+  // found and reported
   map<int, set<string>> GroundTruth;
-  // GroundTruth[9] = {"2"};
+  GroundTruth[9] = {"2"};
   compareResults(GroundTruth);
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
@@ -265,6 +273,8 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
 
   // store i32* %3, i32** %6, align 8, !dbg !28
   // %12 = load i32*, i32** %6, align 8, !dbg !29
+
+  // Fails probably due to field-insensitivity
 
   compareResults(GroundTruth);
 }
@@ -311,6 +321,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
+  // Fails, since the analysis is not able to detect memcpy calls
 
   compareResults(GroundTruth);
 }
@@ -322,7 +333,8 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  // fails due to missing alias information
+  // fails due to missing alias information (and missing field/array element
+  // information)
   // TODO: remove GT[15];
   GroundTruth[15] = {"14"};
   compareResults(GroundTruth);
@@ -347,6 +359,22 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
   GroundTruth[25] = {"24"};
   // Analysis does not check uninit on actualparameters
   // GroundTruth[28] = {"27"};
+  compareResults(GroundTruth);
+}
+TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
+
+  Initialize({pathToLLFiles + "virtual_call_cpp_dbg.ll"});
+  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
+                                                              false, false);
+  Solver.solve();
+
+  map<int, set<string>> GroundTruth = {
+      {3, {"0"}}, {8, {"5"}}, {10, {"5"}}, {35, {"34"}}, {37, {"17"}}};
+  // 3  => {0}; due to field-insensitivity
+  // 8  => {5}; due to field-insensitivity
+  // 10 => {5}; due to alias-unawareness
+  // 35 => {34}; actual leak
+  // 37 => {17}; actual leak
   compareResults(GroundTruth);
 }
 int main(int argc, char **argv) {

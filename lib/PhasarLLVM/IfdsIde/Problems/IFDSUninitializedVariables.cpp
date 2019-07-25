@@ -184,7 +184,8 @@ IFDSUninitializedVariables::getNormalFlowFunction(
                 alloc->getAllocatedType()->isPointerTy() ||
                 alloc->getAllocatedType()->isArrayTy()) {
               //------------------------------------------------------------
-              // Why not generate for structs?
+              // Why not generate for structs, but for arrays? (would be
+              // consistent to generate either both or none of them)
               //------------------------------------------------------------
 
               // generate the alloca
@@ -342,7 +343,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
           ret.insert(call.getInstruction());
         }
         //----------------------------------------------------------------------
-        // Handle pointer/reference parameters?
+        // Handle pointer/reference parameters
         //----------------------------------------------------------------------
         if (call.getCalledFunction()) {
           unsigned i = 0;
@@ -386,7 +387,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
             for (auto &arg : CS.args()) {
               if (arg.get() == source)
                 // do not propagate pointer arguments, since the function may
-                // initialize them (would be much more precise, with
+                // initialize them (would be much more precise with
                 // field-sensitivity)
                 return {};
             }
