@@ -249,12 +249,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
                   "main.0",          "main.1"};
   compareResults(Analysis, Facts, IRDB, InstNum);
 }
-/*****************************************************
- *
+/******************************************************************************
  * Tests actually based on leaked values, not on dataflow facts
  *
- *
- *****************************************************/
+ ******************************************************************************/
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_01_v2) {
   auto Leaks = doAnalysis("taint_9_c.ll");
@@ -302,22 +300,29 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05_v2) {
   GroundTruth[32] = {"31"};
   compareResults(Leaks, GroundTruth);
 }
+/**********************************************************
+ * fails due to alias-unawareness
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
   auto Leaks = doAnalysis("taint_4_v2_cpp.ll");
   // 19 => {18}
   map<int, set<string>> GroundTruth;
   GroundTruth[19] = {"18"};
-  // fails due to alias-unawareness
+  
   compareResults(Leaks, GroundTruth);
 }
+***********************************************************/
+/**********************************************************
+ * fails, since std::cout is not a sink
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
   auto Leaks = doAnalysis("taint_2_v2_cpp.ll");
   // 10 => {9}
   map<int, set<string>> GroundTruth;
   GroundTruth[10] = {"9"};
-  // fails, since std::cout is not a sink
   compareResults(Leaks, GroundTruth);
 }
+***********************************************************/
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
   auto Leaks = doAnalysis("taint_2_v2_1_cpp.ll");
   // 4 => {3}
@@ -325,33 +330,41 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
   GroundTruth[4] = {"3"};
   compareResults(Leaks, GroundTruth);
 }
-
+/**********************************************************
+ * fails due to lack of alias information
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_09) {
   auto Leaks = doAnalysis("source_sink_function_test_c.ll");
-  // 41 => {40}; probably fails due to lack of alias information
+  // 41 => {40};
   map<int, set<string>> GroundTruth;
   GroundTruth[41] = {"40"};
   compareResults(Leaks, GroundTruth);
 }
-
+***********************************************************/
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
   auto Leaks = doAnalysis("taint_14_cpp.ll");
-  // 12 => {11}; do not know, why it fails; getchar is definitely a source, but
+  // 11 => {10}; do not know, why it fails; getchar is definitely a source, but
   // it doesn't generate a fact
   map<int, set<string>> GroundTruth;
-  GroundTruth[12] = {"11"};
+  GroundTruth[11] = {"10"};
   compareResults(Leaks, GroundTruth);
 }
+/**********************************************************
+ * fails, because arithmetic operations do not propagate taints;
+ * In contrast to TaintTest10, getchar generates a fact here;
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
   auto Leaks = doAnalysis("taint_14_1_cpp.ll");
-  // 12 => {11}; same as TaintTest10, but all in main;
-  // In contrast to TaintTest10, getchar generates a fact here;
-  // fails, because arithmetic operations do not propagate taints
+  // 12 => {11}; quite similar as TaintTest10, but all in main;
   map<int, set<string>> GroundTruth;
   GroundTruth[12] = {"11"};
   compareResults(Leaks, GroundTruth);
 }
-
+***********************************************************/
+/**********************************************************
+ * fails, since arithmetic operations do not propagate taints;
+ * This can be very dangerous here, since we get false negatives
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
   auto Leaks = doAnalysis("taint_15_cpp.ll");
   // 21 => {20}
@@ -364,7 +377,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
                  "The xor ring-exchange was not successful");
   // Unfortunately, the analysis detects no leaks at all
 }
-
+***********************************************************/
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
   auto Leaks = doAnalysis("taint_15_1_cpp.ll");
   // 16 => {15};
@@ -372,7 +385,11 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
   GroundTruth[16] = {"15"};
   compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
 }
-
+/**********************************************************
+ * Fails, since the callgraph algorithm cannot find a function without body as
+ * possible callee for a virtual call; When removing this restriction we get a
+ * segmentation fault
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
   // bl::core::get()->set_logging_enabled(true);
   auto Leaks = doAnalysis("virtual_calls_cpp.ll");
@@ -385,7 +402,7 @@ TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
   GroundTruth[20] = {"19"};
   compareResults(Leaks, GroundTruth);
 }
-
+***********************************************************/
 TEST_F(InterMonoTaintAnalysisTest, VirtualCalls_v2) {
   auto Leaks = doAnalysis("virtual_calls_v2_cpp.ll");
   // 7 => {6};
@@ -394,7 +411,9 @@ TEST_F(InterMonoTaintAnalysisTest, VirtualCalls_v2) {
   GroundTruth[7] = {"6"};
   compareResults(Leaks, GroundTruth);
 }
-
+/**********************************************************
+ * Fails due to alias-unawareness (reports no leak at all)
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, StructMember) {
   auto Leaks = doAnalysis("struct_member_cpp.ll");
   // 16 => {15};
@@ -405,19 +424,20 @@ TEST_F(InterMonoTaintAnalysisTest, StructMember) {
   GroundTruth[16] = {"15"};
   // Actual leak
   GroundTruth[19] = {"18"};
-  // Fails due to alias-unawareness (reports no leak at all)
   compareResults(Leaks, GroundTruth);
 }
-
+***********************************************************/
+/**********************************************************
+ * Fails due to alias-unawareness
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, DynamicMemory) {
   auto Leaks = doAnalysis("dynamic_memory_cpp.ll");
   // 11 => {10}
   map<int, set<string>> GroundTruth;
-  // Fails due to alias-unawareness
   GroundTruth[11] = {"10"};
   compareResults(Leaks, GroundTruth);
 }
-
+***********************************************************/
 TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
   auto Leaks = doAnalysis("dynamic_memory_simple_cpp.ll");
   // 15 => {14}
@@ -426,7 +446,9 @@ TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
   GroundTruth[15] = {"14"};
   compareResults(Leaks, GroundTruth);
 }
-
+/**********************************************************
+ * Fails due to alias unawareness
+ **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, FileIO) {
   auto Leaks = doAnalysis("read_c.ll");
 
@@ -435,9 +457,10 @@ TEST_F(InterMonoTaintAnalysisTest, FileIO) {
   // 43 => {41}
   GroundTruth[37] = {"36"};
   GroundTruth[43] = {"41"};
-  // Fails due to alias unawareness; detects no leaks at all
   compareResults(Leaks, GroundTruth);
 }
+***********************************************************/
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   auto result = RUN_ALL_TESTS();

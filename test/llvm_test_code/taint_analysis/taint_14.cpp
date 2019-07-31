@@ -5,7 +5,7 @@ int doSomething() {
   if (tainted < 0)
     return 1;
 
-  printf("I guess, you meant %d\n", tainted + 1);
+  printf("Leak super secret value: %d\n", tainted);
   return 0;
 }
 
