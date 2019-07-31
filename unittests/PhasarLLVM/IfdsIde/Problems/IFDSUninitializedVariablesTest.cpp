@@ -142,7 +142,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   map<int, set<string>> GroundTruth;
   compareResults(GroundTruth);
 }
-
+/****************************************************************************************
+ * fails due to field-insensitivity + struct ignorance + clang compiler hacks
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "struct_member_uninit2_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
@@ -152,10 +155,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   map<int, set<string>> GroundTruth;
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
   GroundTruth[4] = {"3"};
-  // fails due to field-insensitivity + struct ignorance + clang compiler hacks
+  
+
   compareResults(GroundTruth);
 }
-
+*****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "global_variable_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
@@ -165,7 +169,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   map<int, set<string>> GroundTruth;
   compareResults(GroundTruth);
 }
-
+/****************************************************************************************
+ * failssince @i is uninitialized in the c++ code, but initialized in the
+ * LLVM-IR
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "global_variable_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
@@ -173,12 +181,11 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
   Solver.solve();
   // global_variable.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
-  // load i32, i32* @i ; fails, since @i is uninitialized in the c++ code, but
-  // initialized in the LLVM-IR
+  // load i32, i32* @i
   GroundTruth[5] = {"0"};
   compareResults(GroundTruth);
 }
-
+*****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "return_uninit_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
@@ -248,7 +255,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
   GroundTruth[16] = {"14", "15"};
   compareResults(GroundTruth);
 }
-
+/****************************************************************************************
+ * Fails probably due to field-insensitivity
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "dyn_mem_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
@@ -274,11 +284,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
   // store i32* %3, i32** %6, align 8, !dbg !28
   // %12 = load i32*, i32** %6, align 8, !dbg !29
 
-  // Fails probably due to field-insensitivity
 
   compareResults(GroundTruth);
 }
-
+*****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "growing_example_cpp_dbg.ll"});
@@ -296,6 +305,13 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   compareResults(GroundTruth);
 }
+
+/****************************************************************************************
+ * Fails due to struct ignorance; general problem with field sensitivity: when
+ * all structs would be treated as uninitialized per default, the analysis would
+ * not be able to detect correct constructor calls
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "struct_test_cpp.ll"});
@@ -306,13 +322,14 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
   map<int, set<string>> GroundTruth;
   // printf should leak both parameters => fails
 
-  // Problem with field sensitivity: when all structs are treated as
-  // uninitialized per default, the analysis would not be able to detect
-  // correct constructor calls
   GroundTruth[8] = {"5", "7"};
   compareResults(GroundTruth);
 }
-
+*****************************************************************************************/
+/****************************************************************************************
+ * Fails, since the analysis is not able to detect memcpy calls
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_cpp.ll"});
@@ -321,10 +338,16 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  // Fails, since the analysis is not able to detect memcpy calls
+  //
 
   compareResults(GroundTruth);
 }
+*****************************************************************************************/
+/****************************************************************************************
+ * fails due to missing alias information (and missing field/array element
+ *information)
+ *
+*****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_simple_cpp.ll"});
@@ -333,12 +356,12 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  // fails due to missing alias information (and missing field/array element
-  // information)
-  // TODO: remove GT[15];
-  GroundTruth[15] = {"14"};
+  
+
+
   compareResults(GroundTruth);
 }
+*****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "recursion_cpp.ll"});
