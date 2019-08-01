@@ -356,32 +356,29 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  
-
-
   compareResults(GroundTruth);
 }
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
-  Initialize({pathToLLFiles + "recursion_cpp.ll"});
+  Initialize({pathToLLFiles + "recursion_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
                                                               false, false);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  // Leaks at 9 and 11 due to field-insensitivity
-  GroundTruth[9] = {"2"};
-  GroundTruth[12] = {"2"};
+  // Leaks at 11 and 14 due to field-insensitivity
+  GroundTruth[11] = {"2"};
+  GroundTruth[14] = {"2"};
 
   // Load uninitialized variable i
-  GroundTruth[27] = {"22"};
+  GroundTruth[31] = {"24"};
   // Load recursive return-value for returning it
-  GroundTruth[18] = {"1"};
+  GroundTruth[20] = {"1"};
   // Load return-value of foo in main
-  GroundTruth[25] = {"24"};
+  GroundTruth[29] = {"28"};
   // Analysis does not check uninit on actualparameters
-  // GroundTruth[28] = {"27"};
+  // GroundTruth[32] = {"31"};
   compareResults(GroundTruth);
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
