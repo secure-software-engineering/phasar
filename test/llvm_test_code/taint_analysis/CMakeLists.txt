@@ -21,6 +21,18 @@ set(NoMem2regSources
   taint_11.c
   taint_12.c
   taint_13.c
+  taint_2_v2.cpp
+  taint_2_v2_1.cpp
+  taint_4_v2.cpp
+  taint_14.cpp
+  taint_14_1.cpp
+  taint_15.cpp
+  taint_15_1.cpp
+  virtual_calls.cpp
+  virtual_calls_v2.cpp
+  struct_member.cpp
+  dynamic_memory.cpp
+  dynamic_memory_simple.cpp
 )
 
 foreach(TEST_SRC ${NoMem2regSources})
