@@ -16,7 +16,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>

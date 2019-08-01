@@ -1,23 +1,22 @@
 #include <gtest/gtest.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 using namespace psr;
 
-TEST(TaintSensitiveFunctionsTest, HandleSSImport) {
-  TaintSensitiveFunctions TSF;
+TEST(TaintConfigurationTest, HandleSSImport) {
+  TaintConfiguration TSF;
   TSF.importSourceSinkFunctions();
   std::cout << TSF;
-  std::map<std::string, TaintSensitiveFunctions::SourceFunction> TSources;
-  std::map<std::string, TaintSensitiveFunctions::SinkFunction> TSinks;
+  std::map<std::string, TaintConfiguration::SourceFunction> TSources;
+  std::map<std::string, TaintConfiguration::SinkFunction> TSinks;
   TSources.insert(std::make_pair(
-      "source()", TaintSensitiveFunctions::SourceFunction("source()", true)));
+      "source()", TaintConfiguration::SourceFunction("source()", true)));
   TSources.insert(std::make_pair(
-      "read",
-      TaintSensitiveFunctions::SourceFunction("read", {0, 1, 3}, false)));
+      "read", TaintConfiguration::SourceFunction("read", {0, 1, 3}, false)));
   TSinks.insert(std::make_pair(
-      "sink(int)", TaintSensitiveFunctions::SinkFunction("sink(int)", {0})));
-  TSinks.insert(std::make_pair(
-      "write", TaintSensitiveFunctions::SinkFunction("write", {1})));
+      "sink(int)", TaintConfiguration::SinkFunction("sink(int)", {0})));
+  TSinks.insert(
+      std::make_pair("write", TaintConfiguration::SinkFunction("write", {1})));
   EXPECT_EQ(TSF.Sources, TSources);
   EXPECT_EQ(TSF.Sinks, TSinks);
 }

@@ -41,14 +41,14 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
       EntryPoints(EntryPoints), taintSenFun(true) {
   for (auto fun : DataFlowUtils::getTaintedFunctions()) {
     taintSenFun.Sources.insert(
-        std::pair<std::string, TaintSensitiveFunctions::SourceFunction>(
-            fun, TaintSensitiveFunctions::SourceFunction(fun, false)));
+        std::pair<std::string, TaintConfiguration::SourceFunction>(
+            fun, TaintConfiguration::SourceFunction(fun, false)));
   }
   for (auto fun : DataFlowUtils::getBlacklistedFunctions()) {
     taintSenFun.Sinks.insert(
-        std::pair<std::string, TaintSensitiveFunctions::SinkFunction>(
-            fun, TaintSensitiveFunctions::SinkFunction(
-                     fun, std::vector<unsigned>())));
+        std::pair<std::string, TaintConfiguration::SinkFunction>(
+            fun,
+            TaintConfiguration::SinkFunction(fun, std::vector<unsigned>())));
   }
 
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();

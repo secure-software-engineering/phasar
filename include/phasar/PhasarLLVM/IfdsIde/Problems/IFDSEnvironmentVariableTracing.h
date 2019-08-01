@@ -19,7 +19,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
@@ -102,7 +102,7 @@ protected:
   std::vector<std::string> EntryPoints;
 
 private:
-  TaintSensitiveFunctions taintSenFun;
+  TaintConfiguration taintSenFun;
 
   TraceStats traceStats;
 };

@@ -35,7 +35,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
                                      const ProjectIRDB &irdb,
-                                     TaintSensitiveFunctions TSF,
+                                     TaintConfiguration TSF,
                                      vector<string> EntryPoints)
     : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
       SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
@@ -171,11 +171,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::m_t calledMthd;
-        TaintSensitiveFunctions::SinkFunction Sink;
+        TaintConfiguration::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
         TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
-             TaintSensitiveFunctions::SinkFunction s,
+             TaintConfiguration::SinkFunction s,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
             : callSite(cs), calledMthd(calledMthd), Sink(s), Leaks(leaks),

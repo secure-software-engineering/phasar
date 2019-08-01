@@ -8,21 +8,26 @@
  *****************************************************************************/
 
 /*
- * TaintSensitiveFunctions.h
+ * TaintConfiguration.h
  *
  *  Created on: 25.08.2018
  *      Author: richard leer
  */
 
-#ifndef PHASAR_PHASARLLVM_UTILS_TAINTSENSITIVEFUNCTIONS_H
-#define PHASAR_PHASARLLVM_UTILS_TAINTSENSITIVEFUNCTIONS_H
+#ifndef PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
+#define PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 
+#include <initializer_list>
 #include <iosfwd>
 #include <map>
 #include <string>
 #include <vector>
 
 #include <phasar/Config/Configuration.h>
+
+namespace llvm {
+class Instruction;
+} // namespace llvm
 
 namespace psr {
 // clang-format off
@@ -54,8 +59,8 @@ namespace psr {
  * User specified source and sink functions can be imported as JSON.
  *
  * @brief Holds all taint-relevant source and sink functions.
- */ // clang-format on
-class TaintSensitiveFunctions {
+ */  // clang-format on
+class TaintConfiguration {
 public:
   /**
    * Encapsulates all taint-relevant information of a source function.
@@ -108,6 +113,10 @@ public:
   std::map<std::string, SourceFunction> Sources;
   /// Holds all source functions
   std::map<std::string, SinkFunction> Sinks;
+  /// Holds all source instructions
+  std::set<const llvm::Instruction *> SourceInstructions;
+  /// Holds all sink instruction
+  std::set<const llvm::Instruction *> SinkInstructions;
 
   /**
    * The dummy function have the following signature:
@@ -117,15 +126,23 @@ public:
    * @brief Initializes default source and sink functions, or uses dummy source
    * and sink functions.
    */
-  TaintSensitiveFunctions(bool useDummySourceSink = false);
-  ~TaintSensitiveFunctions() = default;
+  TaintConfiguration(bool useDummySourceSink = false);
+  /**
+   * @brief Specify instructions as sources and sinks
+   */
+  TaintConfiguration(
+      std::initializer_list<const llvm::Instruction *> sourceInst,
+      std::initializer_list<const llvm::Instruction *> sinkInst);
+  ~TaintConfiguration() = default;
 
   bool isSource(const std::string &FunctionName) const;
+  bool isSource(const llvm::Instruction *I) const;
   bool isSink(const std::string &FunctionName) const;
+  bool isSink(const llvm::Instruction *I) const;
   SourceFunction getSource(const std::string &FunctionName);
   SinkFunction getSink(const std::string &FunctionName);
   friend std::ostream &operator<<(std::ostream &OS,
-                                  const TaintSensitiveFunctions &TSF);
+                                  const TaintConfiguration &TSF);
 
   /**
    * Source and sink functions have to be in JSON format. An template file can

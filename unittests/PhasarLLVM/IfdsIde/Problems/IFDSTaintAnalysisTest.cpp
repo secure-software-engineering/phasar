@@ -22,7 +22,7 @@ protected:
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
   IFDSTaintAnalysis *TaintProblem;
-  TaintSensitiveFunctions *TSF;
+  TaintConfiguration *TSF;
 
   IFDSTaintAnalysisTest() {}
   virtual ~IFDSTaintAnalysisTest() {}
@@ -33,7 +33,7 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    TSF = new TaintSensitiveFunctions(true);
+    TSF = new TaintConfiguration(true);
     TaintProblem = new IFDSTaintAnalysis(*ICFG, *TH, *IRDB, *TSF, EntryPoints);
   }
 
