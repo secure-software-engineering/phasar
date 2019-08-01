@@ -41,7 +41,7 @@ protected:
 public:
   InterMonoSolverTest(LLVMBasedICFG &Icfg,
                       std::vector<std::string> EntryPoints = {"main"});
-  virtual ~InterMonoSolverTest() = default;
+  ~InterMonoSolverTest() override = default;
 
   MonoSet<const llvm::Value *>
   join(const MonoSet<const llvm::Value *> &Lhs,

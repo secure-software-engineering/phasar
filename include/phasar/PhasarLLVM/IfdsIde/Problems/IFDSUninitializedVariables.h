@@ -44,7 +44,7 @@ public:
                            const ProjectIRDB &irdb,
                            std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSUninitializedVariables() = default;
+  ~IFDSUnitializedVariables() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

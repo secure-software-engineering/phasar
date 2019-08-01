@@ -40,16 +40,16 @@ public:
 
   EdgeIdentity &operator=(const EdgeIdentity &ei) = delete;
 
-  virtual ~EdgeIdentity() = default;
+  ~EdgeIdentity() override = default;
 
-  virtual V computeTarget(V source) override { return source; }
+  V computeTarget(V source) override { return source; }
 
-  virtual std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
     return secondFunction;
   }
 
-  virtual std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<V>>
   joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
     if ((otherFunction.get() == this) ||
         otherFunction->equal_to(this->shared_from_this()))
@@ -62,7 +62,7 @@ public:
     return otherFunction->joinWith(this->shared_from_this());
   }
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
     return this == other.get();
   }
 
@@ -72,7 +72,7 @@ public:
     return instance;
   }
 
-  virtual void print(std::ostream &OS, bool isForDebug = false) const override {
+  void print(std::ostream &OS, bool isForDebug = false) const override {
     OS << "EdgeIdentity";
   }
 };

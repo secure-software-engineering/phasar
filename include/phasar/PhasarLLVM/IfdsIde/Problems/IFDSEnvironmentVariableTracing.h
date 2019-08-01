@@ -69,7 +69,7 @@ public:
   }
 
   bool isZeroValue(ExtendedValue ev) const override {
-    return isLLVMZeroValue(ev.getValue());
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(ev.getValue());
   }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {

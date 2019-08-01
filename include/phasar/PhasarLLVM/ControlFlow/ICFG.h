@@ -23,18 +23,13 @@
 #include <string>
 
 #include <json.hpp>
+#include <wise_enum.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 
 namespace psr {
 
-enum class CallGraphAnalysisType { CHA, RTA, DTA, OTF };
-
-extern const std::map<std::string, CallGraphAnalysisType>
-    StringToCallGraphAnalysisType;
-
-extern const std::map<CallGraphAnalysisType, std::string>
-    CallGraphAnalysisTypeToString;
+WISE_ENUM_CLASS(CallGraphAnalysisType, CHA, RTA, DTA, OTF)
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
@@ -42,7 +37,7 @@ using json = nlohmann::json;
 
 template <typename N, typename M> class ICFG : public virtual CFG<N, M> {
 public:
-  virtual ~ICFG() = default;
+  ~ICFG() override = default;
 
   virtual bool isCallStmt(N stmt) = 0;
 

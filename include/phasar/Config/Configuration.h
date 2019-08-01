@@ -19,42 +19,115 @@
 
 #include <string>
 
+#include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
+
+#include <llvm/ADT/iterator_range.h>
+#include <llvm/Support/ManagedStatic.h>
+
+#include <phasar/Config/Version.h>
+
+#define XSTR(S) STR(S)
+#define STR(S) #S
 
 namespace psr {
 
-/// Current Phasar version
-extern const std::string PhasarVersion;
-/// Stores the label/ tag with which we annotate the LLVM IR.
-extern const std::string MetaDataKind;
-/// Specifies the directory in which important configuration files are located.
-extern const std::string ConfigurationDirectory;
-/// Specifies the directory in which Phasar is located.
-extern const std::string PhasarDirectory;
-/// Name of the file storing all glibc function names.
-extern const std::string GLIBCFunctionListFileName;
-/// Name of the file storing all LLVM intrinsic function names.
-extern const std::string LLVMIntrinsicFunctionListFileName;
-/// Name of the file storing all standard header search paths used for
-/// compilation.
-extern const std::string HeaderSearchPathsFileName;
-/// Name of the compile_commands.json file (in case we wish to rename)
-extern const std::string CompileCommandsJson;
+class PhasarConfig {
+public:
+  /// Current Phasar version
+  static const std::string PhasarVersion() { return XSTR(PHASAR_VERSION); }
+
+  /// Stores the label/ tag with which we annotate the LLVM IR.
+  static const std::string MetaDataKind() { return "phasar.instruction.id"; }
+
+  static const std::string ConfigurationDirectory() {
+    return configuration_directory;
+  }
+
+  /// Specifies the directory in which Phasar is located.
+  static const std::string PhasarDirectory() { return phasar_directory; }
+
+  /// Name of the file storing all standard header search paths used for
+  /// compilation.
+  static const std::string HeaderSearchPathsFileName() {
+    return "standard_header_paths.conf";
+  }
+
+  /// Name of the compile_commands.json file (in case we wish to rename)
+  static const std::string CompileCommandsJson() {
+    return "compile_commands.json";
+  }
+
+  /// Default Source- and Sink-Functions path
+  static const std::string DefaultSourceSinkFunctionsPath() {
+    return std::string(PhasarDirectory() +
+                       "config/phasar-source-sink-function.json");
+  }
+
+  // Variables to be used in JSON export format
+  /// Identifier for call graph export
+  static const std::string JsonCallGraphID() { return "CallGraph"; }
+
+  /// Identifier for type hierarchy graph export
+  static const std::string JsonTypeHierarchyID() { return "TypeHierarchy"; }
+
+  /// Identifier for points-to graph export
+  static const std::string JsonPointToGraphID() { return "PointsToGraph"; }
+
+  /// Identifier for data-flow results export
+  static const std::string JsonDataFlowID() { return "DataFlowInformation"; }
+
+  static PhasarConfig &getPhasarConfig();
+
+  llvm::iterator_range<std::set<std::string>::iterator> specialFunctionNames() {
+    return llvm::make_range(special_function_names.begin(),
+                            special_function_names.end());
+  }
+
+  /// Add a function name to the special functions list.
+  /// Special functions are functions that cannot directly be analyzed but need
+  /// to be handled by the analysis.
+  ///
+  /// Remark: Manually added special functions need to be added before creating
+  /// the analysis.
+  void addSpecialFunctionName(std::string SFName) {
+    special_function_names.insert(std::move(SFName));
+  }
+
+  ~PhasarConfig() = default;
+  PhasarConfig(const PhasarConfig &) = delete;
+  PhasarConfig(PhasarConfig &&) = delete;
+
+private:
+  PhasarConfig();
+
+  std::string readConfigFile(const std::string &path);
+  void loadGlibcSpecialFunctionNames();
+  void loadLLVMSpecialFunctionNames();
+
+  std::set<std::string> special_function_names;
+
+  /// Specifies the directory in which important configuration files are
+  /// located.
+  static const std::string configuration_directory;
+
+  /// Specifies the directory in which Phasar is located.
+  static const std::string phasar_directory;
+
+  /// Name of the file storing all glibc function names.
+  const std::string GLIBCFunctionListFileName =
+      "glibc_function_list_v1-04.05.17.conf";
+
+  /// Name of the file storing all LLVM intrinsic function names.
+  const std::string LLVMIntrinsicFunctionListFileName =
+      "llvm_intrinsics_function_list_v1-04.05.17.conf";
+
+  /// Log file directory
+  const std::string LogFileDirectory = "log/";
+};
+
 /// Variables map of the parsed command-line parameters
 extern boost::program_options::variables_map VariablesMap;
-/// Log file directory
-extern const std::string LogFileDirectory;
-/// Default Source- and Sink-Functions path
-extern const std::string DefaultSourceSinkFunctionsPath;
-// Variables to be used in JSON export format
-/// Identifier for call graph export
-extern const std::string JsonCallGraphID;
-/// Identifier for type hierarchy graph export
-extern const std::string JsonTypeHierarchyID;
-/// Identifier for points-to graph export
-extern const std::string JsonPointToGraphID;
-/// Identifier for data-flow results export
-extern const std::string JsonDataFlowID;
 
 } // namespace psr
 

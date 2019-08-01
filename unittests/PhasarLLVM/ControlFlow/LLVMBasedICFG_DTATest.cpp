@@ -10,7 +10,8 @@ using namespace psr;
 class LLVMBasedICFG_DTATest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {

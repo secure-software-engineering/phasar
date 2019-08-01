@@ -41,7 +41,7 @@ public:
                                      const llvm::Function *, I>(icfg),
         th(th), irdb(irdb) {}
 
-  virtual ~LLVMDefaultIFDSTabulationProblem() = default;
+  ~LLVMDefaultIFDSTabulationProblem() override = default;
 };
 
 } // namespace psr

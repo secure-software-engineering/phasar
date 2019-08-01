@@ -93,7 +93,7 @@ public:
                        const ProjectIRDB &irdb, const TypeStateDescription &tsd,
                        std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IDETypeStateAnalysis() = default;
+  ~IDETypeStateAnalysis() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 

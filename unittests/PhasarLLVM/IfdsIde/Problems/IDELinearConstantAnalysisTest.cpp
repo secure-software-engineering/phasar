@@ -12,7 +12,8 @@ using namespace psr;
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/linear_constant/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/linear_constant/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;

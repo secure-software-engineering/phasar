@@ -93,7 +93,7 @@ IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() {
 }
 
 bool IFDSProtoAnalysis::isZeroValue(IFDSProtoAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSProtoAnalysis::printNode(ostream &os, IFDSProtoAnalysis::n_t n) const {

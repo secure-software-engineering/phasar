@@ -24,6 +24,7 @@
 #include <llvm/IR/CallSite.h>
 
 #include <json.hpp>
+#include <wise_enum.h>
 
 #include <phasar/Config/Configuration.h>
 
@@ -72,13 +73,7 @@ inline void PrintLoadStoreResults(const char *Msg, bool P,
                                   const llvm::Value *V1, const llvm::Value *V2,
                                   const llvm::Module *M);
 
-enum class PointerAnalysisType { CFLSteens, CFLAnders };
-
-extern const std::map<std::string, PointerAnalysisType>
-    StringToPointerAnalysisType;
-
-extern const std::map<PointerAnalysisType, std::string>
-    PointerAnalysisTypeToString;
+WISE_ENUM_CLASS(PointerAnalysisType, CFLSteens, CFLAnders)
 
 // TODO: add a more high level description.
 /**

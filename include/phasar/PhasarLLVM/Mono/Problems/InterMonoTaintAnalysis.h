@@ -46,7 +46,7 @@ private:
 public:
   InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
                          std::vector<std::string> EntryPoints = {"main"});
-  virtual ~InterMonoTaintAnalysis() = default;
+  ~InterMonoTaintAnalysis() override = default;
 
   MonoSet<const llvm::Value *>
   join(const MonoSet<const llvm::Value *> &Lhs,

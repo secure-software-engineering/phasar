@@ -36,7 +36,7 @@ public:
     //  << std::endl;
   }
 
-  virtual ~IFDSSolver() = default;
+  ~IFDSSolver() override = default;
 
   std::set<D> ifdsResultsAt(N stmt) {
     std::set<D> keyset;

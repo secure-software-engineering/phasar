@@ -14,6 +14,7 @@ endif()
 
 target_link_libraries(phasar_controlflow
   phasar_pointer
+  phasar_db
 )
 
 set_target_properties(phasar_controlflow

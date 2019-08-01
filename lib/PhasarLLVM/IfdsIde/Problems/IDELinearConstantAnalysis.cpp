@@ -206,7 +206,8 @@ IDELinearConstantAnalysis::getCallFlowFunction(
           }
           // Special case: Check if function is called with integer literals as
           // parameter (in case of varargs ignore)
-          if (isLLVMZeroValue(source) && idx < destMthd->arg_size() &&
+          if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
+              idx < destMthd->arg_size() &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
             res.insert(formals[idx]); // corresponding formal
           }
@@ -248,7 +249,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
           res.insert(callSite);
         }
         // Return value is integer literal
-        if (isLLVMZeroValue(source) &&
+        if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
             llvm::isa<llvm::ConstantInt>(ReturnValue)) {
           res.insert(callSite);
         }
@@ -316,7 +317,7 @@ IDELinearConstantAnalysis::d_t IDELinearConstantAnalysis::createZeroValue() {
 
 bool IDELinearConstantAnalysis::isZeroValue(
     IDELinearConstantAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // In addition provide specifications for the IDE parts
@@ -417,7 +418,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
           auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
           return IDELinearConstantAnalysis::executeBinOperation(
               Op, lic->getSExtValue(), source);
-        } else if (isLLVMZeroValue(currNode) &&
+        } else if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
                    llvm::isa<llvm::ConstantInt>(lop) &&
                    llvm::isa<llvm::ConstantInt>(rop)) {
           auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);

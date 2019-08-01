@@ -45,7 +45,7 @@ private:
   const bool PRINT_REPORT;
 
 public:
-  virtual ~LLVMIFDSSolver() = default;
+  ~LLVMIFDSSolver() override = default;
 
   LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, I> &problem,
@@ -55,7 +55,7 @@ public:
         Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
   }
 
-  virtual void solve() override {
+  void solve() override {
     // Solve the analaysis problem
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();

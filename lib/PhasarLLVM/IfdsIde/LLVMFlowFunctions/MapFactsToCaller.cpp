@@ -42,7 +42,7 @@ MapFactsToCaller::MapFactsToCaller(
 
 set<const llvm::Value *>
 MapFactsToCaller::computeTargets(const llvm::Value *source) {
-  if (!isLLVMZeroValue(source)) {
+  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Handle C-style varargs functions
     if (calleeMthd->isVarArg() && !calleeMthd->isDeclaration()) {

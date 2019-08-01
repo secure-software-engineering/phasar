@@ -455,11 +455,12 @@ json LLVMTypeHierarchy::getAsJson() {
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(g); vi_v != vi_v_end;
        ++vi_v) {
-    J[JsonTypeHierarchyID][g[*vi_v].name];
+    J[PhasarConfig::JsonTypeHierarchyID()][g[*vi_v].name];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, g); ei != ei_end;
          ++ei) {
-      J[JsonTypeHierarchyID][g[*vi_v].name] += g[boost::target(*ei, g)].name;
+      J[PhasarConfig::JsonTypeHierarchyID()][g[*vi_v].name] +=
+          g[boost::target(*ei, g)].name;
     }
   }
   return J;

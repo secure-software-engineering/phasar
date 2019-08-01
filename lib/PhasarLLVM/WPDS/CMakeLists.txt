@@ -12,9 +12,12 @@ else()
 	)
 endif()
 
-# target_link_libraries(phasar_wpds
-# 
-# )
+target_link_libraries(phasar_wpds
+  phasar_utils
+  phasar_ifdside
+
+  LLVMCore
+)
 
 set_target_properties(phasar_wpds
 	PROPERTIES
