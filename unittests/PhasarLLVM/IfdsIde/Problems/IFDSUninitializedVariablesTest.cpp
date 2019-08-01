@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-//#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <llvm/IR/Module.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
@@ -16,7 +15,8 @@ using namespace psr;
 class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/uninitialized_variables/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/uninitialized_variables/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
@@ -155,7 +155,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   map<int, set<string>> GroundTruth;
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
   GroundTruth[4] = {"3"};
-  
+
 
   compareResults(GroundTruth);
 }
@@ -356,7 +356,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
-  
+
 
 
   compareResults(GroundTruth);
@@ -364,7 +364,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
-  Initialize({pathToLLFiles + "recursion_cpp.ll"});
+  Initialize({pathToLLFiles + "recursion_cpp_dbg.ll"});
   LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
                                                               false, false);
   Solver.solve();

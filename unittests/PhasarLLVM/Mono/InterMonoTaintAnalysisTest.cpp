@@ -309,7 +309,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
   // 19 => {18}
   map<int, set<string>> GroundTruth;
   GroundTruth[19] = {"18"};
-  
+
   compareResults(Leaks, GroundTruth);
 }
 ***********************************************************/
