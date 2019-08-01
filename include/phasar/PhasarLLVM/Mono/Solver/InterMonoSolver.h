@@ -19,12 +19,14 @@
 
 #include <deque>
 #include <iosfwd>
+#include <iostream>
+#include <utility>
+#include <vector>
+
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -132,7 +134,11 @@ protected:
 public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
-  ~InterMonoSolver() = default;
+  InterMonoSolver(const InterMonoSolver &) = delete;
+  InterMonoSolver &operator=(const InterMonoSolver &) = delete;
+  InterMonoSolver(InterMonoSolver &&) = delete;
+  InterMonoSolver &operator=(InterMonoSolver &&) = delete;
+  virtual ~InterMonoSolver() = default;
 
   MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
     return Analysis;

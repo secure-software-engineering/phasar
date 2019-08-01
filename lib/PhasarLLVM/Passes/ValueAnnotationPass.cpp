@@ -43,7 +43,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
   for (auto &global : M.globals()) {
     llvm::MDNode *node = llvm::MDNode::get(
         context, llvm::MDString::get(context, std::to_string(unique_value_id)));
-    global.setMetadata(MetaDataKind, node);
+    global.setMetadata(PhasarConfig::MetaDataKind(), node);
     //		std::cout <<
     // llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
     //<< std::endl;
@@ -55,7 +55,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
         llvm::MDNode *node = llvm::MDNode::get(
             context,
             llvm::MDString::get(context, std::to_string(unique_value_id)));
-        I.setMetadata(MetaDataKind, node);
+        I.setMetadata(PhasarConfig::MetaDataKind(), node);
         //		    	std::cout <<
         // llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
         //<< std::endl;

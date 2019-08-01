@@ -431,9 +431,9 @@ IFDSUninitializedVariables::d_t IFDSUninitializedVariables::createZeroValue() {
   return LLVMZeroValue::getInstance();
 }
 
-bool IFDSUninitializedVariables::isZeroValue(
-    IFDSUninitializedVariables::d_t d) const {
-  return isLLVMZeroValue(d);
+bool IFDSUnitializedVariables::isZeroValue(
+    IFDSUnitializedVariables::d_t d) const {
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSUninitializedVariables::printNode(

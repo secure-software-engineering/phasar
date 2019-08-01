@@ -108,6 +108,9 @@ find_all_symbols_db.yaml
 # Emacs convenience metadata
 TAGS
 
+# vim swp files
+*.*.swp
+
 # config files
 compiler_info.txt
 standard_header_paths.conf

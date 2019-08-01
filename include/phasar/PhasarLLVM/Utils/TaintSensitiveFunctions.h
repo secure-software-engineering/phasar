@@ -136,8 +136,9 @@ public:
    * @param FilePath path to JSON file holdind source and sink function
    * definitions.
    */
-  void importSourceSinkFunctions(
-      const std::string &FilePath = DefaultSourceSinkFunctionsPath);
+  void
+  importSourceSinkFunctions(const std::string &FilePath =
+                                PhasarConfig::DefaultSourceSinkFunctionsPath());
 };
 
 } // namespace psr

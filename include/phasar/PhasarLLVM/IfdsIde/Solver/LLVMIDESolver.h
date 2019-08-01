@@ -21,6 +21,10 @@
 // #include <iostream>
 #include <vector>
 
+#include <llvm/IR/Function.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/Support/Casting.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
@@ -47,7 +51,7 @@ public:
         Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
   }
 
-  virtual ~LLVMIDESolver() = default;
+  ~LLVMIDESolver() override = default;
 
   void solve() override {
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,

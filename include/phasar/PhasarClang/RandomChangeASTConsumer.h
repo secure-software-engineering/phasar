@@ -35,7 +35,7 @@ private:
 public:
   RandomChangeASTConsumer(clang::Rewriter &R);
 
-  virtual void HandleTranslationUnit(clang::ASTContext &Context) override;
+  void HandleTranslationUnit(clang::ASTContext &Context) override;
 
   // virtual bool HandleTopLevelDecl(DeclGroupRef DG);
 };

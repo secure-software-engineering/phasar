@@ -148,7 +148,7 @@ macro(add_phasar_library name)
     string( REGEX MATCHALL "/[^/]" split_path ${CMAKE_CURRENT_SOURCE_DIR})
     list( GET split_path -1 dir)
     file( GLOB_RECURSE headers
-      ../../include/polly${dir}/*.h)
+      ../../include/phasar${dir}/*.h)
     set(srcs ${srcs} ${headers})
   endif(MSVC_IDE OR XCODE)
   if (MODULE)

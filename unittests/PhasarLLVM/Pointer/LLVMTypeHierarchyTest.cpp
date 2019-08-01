@@ -18,7 +18,8 @@ namespace psr {
 class LTHTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 // Check basic type hierarchy construction

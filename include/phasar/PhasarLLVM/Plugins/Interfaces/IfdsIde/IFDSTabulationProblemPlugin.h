@@ -53,7 +53,7 @@ public:
         EntryPoints(EntryPoints) {
     DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
   }
-  ~IFDSTabulationProblemPlugin() = default;
+  ~IFDSTabulationProblemPlugin() override = default;
 
   const llvm::Value *createZeroValue() override {
     // create a special value to represent the zero value!
@@ -61,7 +61,7 @@ public:
   }
 
   bool isZeroValue(const llvm::Value *d) const override {
-    return isLLVMZeroValue(d);
+    return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
   }
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override {

@@ -27,7 +27,7 @@
 
 namespace clang {
 class CompilerInstance;
-}
+} // namespace clang
 
 namespace psr {
 

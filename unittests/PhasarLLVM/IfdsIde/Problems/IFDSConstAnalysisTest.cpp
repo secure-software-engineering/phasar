@@ -14,7 +14,8 @@ using namespace psr;
 class IFDSConstAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/constness/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/constness/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;

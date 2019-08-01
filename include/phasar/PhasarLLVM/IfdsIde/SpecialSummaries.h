@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
@@ -42,25 +43,9 @@ private:
   // llvm.intrinsics and C++'s new, new[], delete, delete[] with identity
   // flow functions.
   SpecialSummaries() {
-    std::string glibc =
-        readFile(ConfigurationDirectory + GLIBCFunctionListFileName);
-    std::vector<std::string> glibcfunctions = splitString(glibc, "\n");
-    // Insert glibc function names
-    SpecialFunctionNames.insert(SpecialFunctionNames.end(),
-                                glibcfunctions.begin(), glibcfunctions.end());
-    std::string llvmintrinsics =
-        readFile(ConfigurationDirectory + LLVMIntrinsicFunctionListFileName);
-    std::vector<std::string> llvmintrinsicfunctions =
-        splitString(llvmintrinsics, "\n");
-    // Insert llvm intrinsic function names
-    SpecialFunctionNames.insert(SpecialFunctionNames.end(),
-                                llvmintrinsicfunctions.begin(),
-                                llvmintrinsicfunctions.end());
-    // Insert allocation operators
-    SpecialFunctionNames.insert(SpecialFunctionNames.end(),
-                                {"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
     // insert default flow and edge functions
-    for (auto &function_name : SpecialFunctionNames) {
+    for (auto function_name :
+         PhasarConfig::getPhasarConfig().specialFunctionNames()) {
       SpecialFlowFunctions.insert(
           std::make_pair(function_name, Identity<D>::getInstance()));
       SpecialEdgeFunctions.insert(

@@ -96,7 +96,7 @@ IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() {
 }
 
 bool IFDSSolverTest::isZeroValue(IFDSSolverTest::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSSolverTest::printNode(ostream &os, IFDSSolverTest::n_t n) const {

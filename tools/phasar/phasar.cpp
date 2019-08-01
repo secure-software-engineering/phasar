@@ -19,6 +19,8 @@
 
 #include <llvm/Support/CommandLine.h>
 
+#include <wise_enum.h>
+
 #include <phasar/Config/Configuration.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
@@ -66,7 +68,8 @@ void validateParamModule(const std::vector<std::string> &modules) {
 
 void validateParamProject(const std::string &project) {
   if (!(bfs::exists(project) && bfs::is_directory(project) &&
-        bfs::exists(bfs::path(project) / CompileCommandsJson))) {
+        bfs::exists(bfs::path(project) /
+                    PhasarConfig::CompileCommandsJson()))) {
     throw bpo::error_with_option_name("'" + project +
                                       "' is not a valid project");
   }
@@ -74,7 +77,7 @@ void validateParamProject(const std::string &project) {
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
   for (const auto &analysis : dfa) {
-    if (StringToDataFlowAnalysisType.count(analysis) == 0) {
+    if (!wise_enum::from_string<DataFlowAnalysisType>(analysis)) {
       throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
@@ -82,21 +85,21 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
 }
 
 void validateParamPointerAnalysis(const std::string &pta) {
-  if (StringToPointerAnalysisType.count(pta) == 0) {
+  if (!wise_enum::from_string<PointerAnalysisType>(pta)) {
     throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
 
 void validateParamCallGraphAnalysis(const std::string &cga) {
-  if (StringToCallGraphAnalysisType.count(cga) == 0) {
+  if (!wise_enum::from_string<CallGraphAnalysisType>(cga)) {
     throw bpo::error_with_option_name("'" + cga +
                                       "' is not a valid call-graph analysis");
   }
 }
 
 void validateParamExport(const std::string &exp) {
-  if (StringToExportType.count(exp) == 0) {
+  if (!wise_enum::from_string<ExportType>(exp)) {
     throw bpo::error_with_option_name("'" + exp +
                                       "' is not a valid export parameter");
   }
@@ -170,11 +173,9 @@ int main(int argc, const char **argv) {
   PAMM_GET_INSTANCE;
   START_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // set-up the logger and get a reference to it
-  initializeLogger(true);
+  // initializeLogger(true);
   auto &lg = lg::get();
   // handling the command line parameters
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Set-up the command-line parameters");
   // Here we start creating Phasars top level operation mode:
   // Based on the mode, we delegate to the further subtools and their
   // corresponding argument parsers.
@@ -206,30 +207,29 @@ int main(int argc, const char **argv) {
   // phasarLLVM as default.
   if (!ModeMap.count("mode")) {
     ModeMap.insert(
-        make_pair("mode", bpo::variable_value(string("phasarLLVM"), false)));
+        make_pair("mode", bpo::variable_value(string("phasarLLVM"), true)));
   }
   // Next we can check what operation mode was chosen and resume accordingly:
   if (ModeMap["mode"].as<std::string>() == "phasarLLVM") {
     // --- LLVM mode ---
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Chosen operation mode: 'phasarLLVM'");
     try {
       std::string ConfigFile;
       // Declare a group of options that will be allowed only on command line
       bpo::options_description Generic("Command-line options");
       // clang-format off
 		Generic.add_options()
+      ("version,v","Print PhASAR version")
 			("help,h", "Print help message")
-      ("more_help", "Print more help")
-		  ("config", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
-      ("silent", "Suppress any non-result output");
+      ("more-help", "Print more help")
+		  ("config,c", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'")
+      ("silent,s", "Suppress any non-result output");
       // clang-format on
       // Declare a group of options that will be allowed both on command line
       // and in config file
       bpo::options_description Config("Configuration file options");
       // clang-format off
     Config.add_options()
-			("function,f", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
+			("function,F", bpo::value<std::string>(), "Function under analysis (a mangled function name)")
 			("module,m", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
@@ -243,13 +243,14 @@ int main(int argc, const char **argv) {
 			("wpa,W", bpo::value<bool>()->default_value(1), "Whole-program analysis mode (1 or 0)")
 			("mem2reg,M", bpo::value<bool>()->default_value(1), "Promote memory to register pass (1 or 0)")
 			("printedgerec,R", bpo::value<bool>()->default_value(0), "Print exploded-super-graph edge recorder (1 or 0)")
+      ("log,L", bpo::value<bool>()->default_value(false), "Enable logging (1 or 0)")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
-      ("project-id", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
-      ("graph-id", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
-      ("pamm-out", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
+      ("project-id,I", bpo::value<std::string>()->default_value("myphasarproject")->notifier(validateParamProjectID), "Project Id used for the database")
+      ("graph-id,G", bpo::value<std::string>()->default_value("123456")->notifier(validateParamGraphID), "Graph Id used by the visualization framework")
+      ("pamm-out,A", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
       // clang-format on
       bpo::options_description CmdlineOptions;
       CmdlineOptions.add(PhasarMode).add(Generic).add(Config);
@@ -261,6 +262,12 @@ int main(int argc, const char **argv) {
           bpo::command_line_parser(argc, argv).options(CmdlineOptions).run(),
           VariablesMap);
       bpo::notify(VariablesMap);
+      if (VariablesMap.count("log")) {
+          initializeLogger(VariablesMap["log"].as<bool>());
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                        << "Program options have been successfully parsed.");
+          bl::core::get()->flush();
+      }
       ifstream ifs(ConfigFile.c_str());
       if (!ifs) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
@@ -273,28 +280,30 @@ int main(int argc, const char **argv) {
         bpo::notify(VariablesMap);
       }
 
-      // Vanity header
-      if (!VariablesMap.count("silent")) {
-        std::cout << PhasarVersion
-                  << "\n"
-                     "A LLVM-based static analysis framework\n\n";
-      }
-      // check if we have anything at all or a call for help
-      if ((argc < 3 || VariablesMap.count("help")) &&
-          !VariablesMap.count("silent")) {
-        std::cout << Visible << '\n';
+      //print PhASER version
+      if(VariablesMap.count("version")) {
+        std::cout << "PhASAR " << PhasarConfig::PhasarVersion()
+                  << "\n";
         return 0;
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Program options have been successfully parsed.");
-      bl::core::get()->flush();
 
+      // Vanity header
+      if (!VariablesMap.count("silent")) {
+        std::cout << "PhASAR " << PhasarConfig::PhasarVersion()
+                  << "\nA LLVM-based static analysis framework\n\n";
+      }
+      // check if we have anything at all or a call for help
+      if (VariablesMap.count("help") && !VariablesMap.count("silent")) {
+        std::cout << Visible << '\n';
+        if (VariablesMap.count("more-help")) {
+          std::cout << MORE_PHASAR_LLVM_HELP << "\n";
+        }
+        return 0;
+      }
       if (!VariablesMap.count("silent")) {
         // Print current configuration
-        if (VariablesMap.count("more_help")) {
-          if (!VariablesMap.count("help")) {
-            std::cout << Visible << '\n';
-          }
+        if (VariablesMap.count("more-help")) {
+          std::cout << Visible << '\n';
           std::cout << MORE_PHASAR_LLVM_HELP << '\n';
           return 0;
         }
@@ -382,8 +391,8 @@ int main(int argc, const char **argv) {
                     << '\n';
         }
         if (VariablesMap.count("output-pamm")) {
-          std::cout << "Output PAMM: " << VariablesMap["output-pamm"].as<std::string>()
-                    << '\n';
+          std::cout << "Output PAMM: "
+                    << VariablesMap["output-pamm"].as<std::string>() << '\n';
         }
       } else {
         setLoggerFilterLevel(INFO);
@@ -431,9 +440,10 @@ int main(int argc, const char **argv) {
       ChosenDataFlowAnalyses.clear();
       for (auto &DataFlowAnalysis :
            VariablesMap["data-flow-analysis"].as<std::vector<std::string>>()) {
-        if (StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
+        if (wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)) {
+          std::cout << "ANALYSIS KNOWN\n";
           ChosenDataFlowAnalyses.push_back(
-              StringToDataFlowAnalysisType.at(DataFlowAnalysis));
+              wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis).value());
         }
       }
     }
@@ -462,10 +472,10 @@ int main(int argc, const char **argv) {
           if (VariablesMap["mem2reg"].as<bool>()) {
             Opt |= IRDBOptions::MEM2REG;
           }
-            ProjectIRDB IRDB(
-                VariablesMap["module"].as<std::vector<std::string>>(), Opt);
-            STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
-            return IRDB;
+          ProjectIRDB IRDB(
+              VariablesMap["module"].as<std::vector<std::string>>(), Opt);
+          STOP_TIMER("IRDB Construction", PAMM_SEVERITY_LEVEL::Full);
+          return IRDB;
         }(),
         ChosenDataFlowAnalyses, VariablesMap["wpa"].as<bool>(),
         VariablesMap["printedgerec"].as<bool>(),
@@ -474,8 +484,6 @@ int main(int argc, const char **argv) {
     Controller.writeResults(VariablesMap["output"].as<std::string>());
   } else {
     // -- Clang mode ---
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Chosen operation mode: 'phasarClang'");
     std::string ConfigFile;
     // Declare a group of options that will be allowed only on command line
     bpo::options_description Generic("Command-line options");

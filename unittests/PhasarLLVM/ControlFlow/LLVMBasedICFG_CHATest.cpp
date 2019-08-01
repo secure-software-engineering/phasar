@@ -15,7 +15,8 @@ using namespace psr;
 class LLVMBasedICFG_CHATest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedICFG_CHATest, StaticCallSite_1) {

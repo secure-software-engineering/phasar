@@ -37,7 +37,7 @@ MapFactsToCallee::MapFactsToCallee(
 
 set<const llvm::Value *>
 MapFactsToCallee::computeTargets(const llvm::Value *source) {
-  if (!isLLVMZeroValue(source)) {
+  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Handle C-style varargs functions
     if (destMthd->isVarArg()) {
