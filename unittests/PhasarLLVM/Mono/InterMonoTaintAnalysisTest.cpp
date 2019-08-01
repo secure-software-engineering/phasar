@@ -16,7 +16,7 @@ protected:
       "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-  // @ retrun the number of tained Instruction
+  // @ return the number of tainted Instruction
   int computeCounterResult(
       MonoMap<const llvm::Instruction *,
               MonoMap<CallStringCTX<const llvm::Value *,
