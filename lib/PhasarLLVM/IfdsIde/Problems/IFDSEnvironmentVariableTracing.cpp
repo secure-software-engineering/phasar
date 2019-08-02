@@ -52,8 +52,7 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
   }
 
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-  this->solver_config.computeValues = false;
-  this->solver_config.computePersistedSummaries = false;
+  this->solver_config.computeValues = true; // do not touch
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
