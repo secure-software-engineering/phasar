@@ -38,14 +38,14 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
-      EntryPoints(EntryPoints), taintSenFun(true) {
+      EntryPoints(EntryPoints), taintConfig(true) {
   for (auto fun : DataFlowUtils::getTaintedFunctions()) {
-    taintSenFun.Sources.insert(
+    taintConfig.Sources.insert(
         std::pair<std::string, TaintConfiguration::SourceFunction>(
             fun, TaintConfiguration::SourceFunction(fun, false)));
   }
   for (auto fun : DataFlowUtils::getBlacklistedFunctions()) {
-    taintSenFun.Sinks.insert(
+    taintConfig.Sinks.insert(
         std::pair<std::string, TaintConfiguration::SinkFunction>(
             fun,
             TaintConfiguration::SinkFunction(fun, std::vector<unsigned>())));
@@ -60,6 +60,14 @@ std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSEnvironmentVariableTracing::getNormalFlowFunction(
     const llvm::Instruction *currentInst,
     const llvm::Instruction *successorInst) {
+  if (taintConfig.isSource(currentInst)) {
+    // TODO: generate current inst wrapped in an ExtendedValue
+  }
+
+  if (taintConfig.isSink(currentInst)) {
+    // TODO: report leak as done for the functions
+  }
+
   if (DataFlowUtils::isReturnValue(currentInst, successorInst))
     return std::make_shared<ReturnInstFlowFunction>(successorInst, traceStats,
                                                     zeroValue());
@@ -161,7 +169,7 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
    * Exclude blacklisted functions here.
    */
 
-  if (taintSenFun.isSink(destMthdName))
+  if (taintConfig.isSink(destMthdName))
     return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
                                                   zeroValue());
 
@@ -187,7 +195,7 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintSenFun.isSource(destMthdName))
+  if (taintConfig.isSource(destMthdName))
     return std::make_shared<GenerateFlowFunction>(callStmt, traceStats,
                                                   zeroValue());
 
@@ -210,7 +218,7 @@ IFDSEnvironmentVariableTracing::initialSeeds() {
   std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
 
   for (const auto &entryPoint : this->EntryPoints) {
-    if (taintSenFun.isSink(entryPoint))
+    if (taintConfig.isSink(entryPoint))
       continue;
 
     seedMap.insert(std::make_pair(&icfg.getMethod(entryPoint)->front().front(),

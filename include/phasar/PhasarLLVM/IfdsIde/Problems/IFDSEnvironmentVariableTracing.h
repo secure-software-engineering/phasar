@@ -102,7 +102,7 @@ protected:
   std::vector<std::string> EntryPoints;
 
 private:
-  TaintConfiguration taintSenFun;
+  TaintConfiguration taintConfig;
 
   TraceStats traceStats;
 };

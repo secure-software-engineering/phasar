@@ -305,8 +305,7 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
         IFDSEnvironmentVariableTracing variableTracing(ICFG, EntryPoints);
         LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
-            variableTracing, false);
-
+            variableTracing, true);
         cout << "IFDS EnvironmentVariableTracing ..." << endl;
         llvmifdsenvsolver.solve();
         cout << "IFDS EnvironmentVariableTracing ended" << endl;
