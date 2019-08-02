@@ -44,6 +44,16 @@ protected:
       std::vector<std::pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+      // Initialize with empty context and empty data-flow set such that the
+      // flow functions are at least called once per instruction
+      for (auto &edge : edges) {
+        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Initialize last
+      if (!edges.empty()) {
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Additionally, insert the initial seeds
       Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
                                                             seed.second.end());
     }
@@ -94,6 +104,15 @@ protected:
       // Add intra edges of callee
       std::vector<std::pair<N, N>> edges = ICFG.getAllControlFlowEdges(callee);
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+      // Initialize with empty context and empty data-flow set such that the
+      // flow functions are at least called once per instruction
+      for (auto &edge : edges) {
+        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Initialize last
+      if (!edges.empty()) {
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+      }
       // Add return edge(s)
       for (auto ret : ICFG.getExitPointsOf(callee)) {
         for (auto retSite : ICFG.getReturnSitesOfCallAt(src)) {
@@ -145,7 +164,6 @@ public:
   }
 
   virtual void solve() {
-    std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
       std::pair<N, N> edge = Worklist.front();
