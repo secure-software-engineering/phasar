@@ -444,7 +444,7 @@ install(DIRECTORY config/
 #   How to pack using the following settings?
 #     $ mkdir build
 #     $ cd build
-#     $ cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local ..
+#     $ cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
 #     $ cpack ..
 #     $ dpkg -i <the_package>.deb
 set(MAJOR_VERSION 1)

@@ -242,8 +242,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-        IFDSUnitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
-                                                         EntryPoints);
+        IFDSUninitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
+                                                           EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
             uninitializedvarproblem, false);
         cout << "IFDS UninitVar Analysis ..." << endl;
