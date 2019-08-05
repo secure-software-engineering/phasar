@@ -6,7 +6,7 @@ Phasar a LLVM-based Static Analysis Framework
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/secure-software-engineering/phasar/master/LICENSE.txt)
 
-Version v0619
+Version 0619
 
 Secure Software Engineering Group
 ---------------------------------
@@ -446,12 +446,12 @@ Phasar's built-in analyses can be selected using the -D or --analysis command-li
 Note: more than one analysis can be selected to be executed on the code under analsis. Example:
 
 ```
-$ phasar -m module.ll -D ifds-solvertest
-$ phasar -m module.ll -D ifds-uninit
+$ phasar -m module.ll -D IFDS_SolverTest
+$ phasar -m module.ll -D IFDS_UninitializedVariables
 ```
 
 If no analysis is selected only the call-graph and other support data structures are created. 
-If a call using "-D none" fails, there is definitely an error within the code or project under 
+If a call using "-D None" fails, there is definitely an error within the code or project under 
 analysis or within the framework (which is obviously worse). In any way please report these errors
 and include your target code that triggers the error.
 
@@ -459,22 +459,22 @@ Currently the following built-in analyses are available in Phasar:
 
 | DataFlowAnalysisType | Parameter |
 |----------------------|-----------|
-|DataFlowAnalysisType::IFDS_ConstAnalysis | "ifds-const"|
-|DataFlowAnalysisType::IFDS_LinearConstantAnalysis | "ifds-lca"|
-|DataFlowAnalysisType::IFDS_SolverTest | "ifds-solvertest"|
-|DataFlowAnalysisType::IFDS_TaintAnalysis | "ifds-taint"|
-|DataFlowAnalysisType::IFDS_TypeAnalysis | "ifds-type"|
-|DataFlowAnalysisType::IFDS_UninitializedVariables | "ifds-uninit"|
-|DataFlowAnalysisType::IDE_LinearConstantAnalysis | "ide-lca"|
-|DataFlowAnalysisType::IDE_SolverTest | "ide-solvertest"|
-|DataFlowAnalysisType::IDE_TaintAnalysis | "ide-taint"|
-|DataFlowAnalysisType::IDE_TypeStateAnalysis | "ide-typestate"|
-|DataFlowAnalysisType::Inter_Mono_SolverTest | "inter-mono-solvertest"|
-|DataFlowAnalysisType::Inter_Mono_TaintAnalysis | "inter-mono-taint"|
-|DataFlowAnalysisType::Intra_Mono_FullConstantPropagation | "intra-mono-fullconstpropagation"|
-|DataFlowAnalysisType::Intra_Mono_SolverTest | "intra-mono-solvertest"|
-|DataFlowAnalysisType::Plugin | "plugin"|
-|DataFlowAnalysisType::None | "none"|
+|DataFlowAnalysisType::IFDS_ConstAnalysis | "IFDS_ConstAnalysis"|
+|DataFlowAnalysisType::IFDS_LinearConstantAnalysis | "IFDS_LinearConstantAnalysis"|
+|DataFlowAnalysisType::IFDS_SolverTest | "IFDS_SolverTest"|
+|DataFlowAnalysisType::IFDS_TaintAnalysis | "IFDS_TaintAnalysis"|
+|DataFlowAnalysisType::IFDS_TypeAnalysis | "IFDS_TypeAnalysis"|
+|DataFlowAnalysisType::IFDS_UninitializedVariables | "IFDS_UninitializedVariables"|
+|DataFlowAnalysisType::IDE_LinearConstantAnalysis | "IDE_LinearConstantAnalysis"|
+|DataFlowAnalysisType::IDE_SolverTest | "IDE_SolverTest"|
+|DataFlowAnalysisType::IDE_TaintAnalysis | "IDE_TaintAnalysis"|
+|DataFlowAnalysisType::IDE_TypeStateAnalysis | "IDE_TypeStateAnalysis"|
+|DataFlowAnalysisType::Inter_Mono_SolverTest | "Inter_Mono_SolverTest"|
+|DataFlowAnalysisType::Inter_Mono_TaintAnalysis | "Inter_Mono_TaintAnalysis"|
+|DataFlowAnalysisType::Intra_Mono_FullConstantPropagation | "Intra_Mono_FullConstantPropagation"|
+|DataFlowAnalysisType::Intra_Mono_SolverTest | "Intra_Mono_SolverTest"|
+|DataFlowAnalysisType::Plugin | "Plugin"|
+|DataFlowAnalysisType::None | "None"|
 
 
 ### Command line interface
@@ -482,39 +482,43 @@ Phasar provides a stable command line interface (CLI). The Phasar frameworks sup
 using -h | --help.
 ```
 Command-line options:
-  -h [ --help ]                        Print help message
-  --more_help                          Print more help
-  --config arg                         Path to the configuration file, options
-                                       can be specified as 'parameter = option'
-  --silent                             Suppress any non-result output
+  -v [ --version ]                      Print PhASAR version
+  -h [ --help ]                         Print help message
+  -e [ --helpextended ]                 Print more help
+  -c [ --config ] arg                   Path to the configuration file, options
+                                        can be specified as 'parameter = 
+                                        option'
+  -s [ --silent ]                       Suppress any non-result output
 
 Configuration file options:
-  -f [ --function ] arg                Function under analysis (a mangled
-                                       function name)
-  -m [ --module ] arg                  Path to the module(s) under analysis
-  -p [ --project ] arg                 Path to the project under analysis
-  -E [ --entry-points ] arg            Set the entry point(s) to be used
-  -O [ --output ] arg (=results.json)  Filename for the results
-  -D [ --data-flow-analysis ] arg      Set the analysis to be run
-  -P [ --pointer-analysis ] arg        Set the points-to analysis to be used
-                                       (CFLSteens, CFLAnders)
-  -C [ --callgraph-analysis ] arg      Set the call-graph algorithm to be used
-                                       (CHA, RTA, DTA, VTA, OTF)
-  -H [ --classhierachy-analysis ] arg  Class-hierarchy analysis
-  -V [ --vtable-analysis ] arg         Virtual function table analysis
-  -S [ --statistical-analysis ] arg    Statistics
-  -W [ --wpa ] arg (=1)                Whole-program analysis mode (1 or 0)
-  -M [ --mem2reg ] arg (=1)            Promote memory to register pass (1 or 0)
-  -R [ --printedgerec ] arg (=0)       Print exploded-super-graph edge recorder
-                                       (1 or 0)
-  --analysis-plugin arg                Analysis plugin(s) (absolute path to the
-                                       shared object file(s))
-  --callgraph-plugin arg               ICFG plugin (absolute path to the shared
-                                       object file)
-  --project-id arg (=myphasarproject)  Project Id used for the database
-  --graph-id arg (=123456)             Graph Id used by the visualization
-                                       framework
-  --pamm-out arg (=PAMM_data.json)     Filename for PAMM's gathered data
+  -F [ --function ] arg                 Function under analysis (a mangled 
+                                        function name)
+  -m [ --module ] arg                   Path to the module(s) under analysis
+  -E [ --entry-points ] arg             Set the entry point(s) to be used
+  -O [ --output ] arg (=results.json)   Filename for the results
+  -D [ --data-flow-analysis ] arg       Set the analysis to be run
+  -P [ --pointer-analysis ] arg         Set the points-to analysis to be used 
+                                        (CFLSteens, CFLAnders)
+  -C [ --callgraph-analysis ] arg       Set the call-graph algorithm to be used
+                                        (CHA, RTA, DTA, VTA, OTF)
+  -H [ --classhierachy-analysis ] arg   Class-hierarchy analysis
+  -V [ --vtable-analysis ] arg          Virtual function table analysis
+  -S [ --statistical-analysis ] arg     Statistics
+  -W [ --wpa ] arg (=1)                 Whole-program analysis mode (1 or 0)
+  -M [ --mem2reg ] arg (=1)             Promote memory to register pass (1 or 
+                                        0)
+  -R [ --printedgerec ] arg (=0)        Print exploded-super-graph edge 
+                                        recorder (1 or 0)
+  --analysis-plugin arg                 Analysis plugin(s) (absolute path to 
+                                        the shared object file(s))
+  --callgraph-plugin arg                ICFG plugin (absolute path to the 
+                                        shared object file)
+  -I [ --project-id ] arg (=myphasarproject)
+                                        Project Id used for the database
+  -G [ --graph-id ] arg (=123456)       Graph Id used by the visualization 
+                                        framework
+  -A [ --pamm-out ] arg (=PAMM_data.json)
+                                        Filename for PAMM's gathered data
 ```
 
 ### Running an analysis
@@ -571,7 +575,7 @@ It is important to recognize that all of our analysis run on the IR rather than 
 
 An example call would be:
 
-`$ phasar -m path/to/your/main.ll -D ifds-solvertest`
+`$ phasar -m path/to/your/main.ll -D IFDS_SolverTest`
 
 to run an IFDS solver test on the IR code contained in main.ll.
 
