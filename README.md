@@ -1,4 +1,4 @@
-![alt text](img/Logo_RGB/Phasar_Logo.png)
+![PhASAR logo](img/Logo_RGB/Phasar_Logo.png)
 
 Phasar a LLVM-based Static Analysis Framework
 =============================================
@@ -33,7 +33,7 @@ what matters.
 
 How do I get started with Phasar?
 ---------------------------------
-We have some documentation on Phasar in our wiki. You probably would like to read 
+We have some documentation on Phasar in our [wiki](https://github.com/secure-software-engineering/phasar/wiki). You probably would like to read 
 this README first and then have a look on the material provided on https://phasar.org/
 as well. Please also have a look on Phasar's project directory and notice the project directory
 examples/ as well as the custom tool tools/myphasartool.cpp.
@@ -49,7 +49,7 @@ mode.
 Please help us to improve Phasar
 --------------------------------
 You are using Phasar and would like to help us in the future? Then please 
-support us by filling out this [web from](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
+support us by filling out this [web form](https://goo.gl/forms/YG6m3M7sxeUJmKyi1).
 
 By giving us feedback you help to decide in what direction Phasar should stride in
 the future and give us clues about our user base. Thank you very much!
@@ -71,9 +71,10 @@ Table of Contents
         * [Installing Node.js](#installing-node.js)
         * [Installing Yarn](#installing-yarn)
         * [Installing MongoDB](#installing-mongodb)
-    * [Compile Phasar](#compile-phasar)
-    * [A remark on compile time](#a-remark-on-compile-time)
     * [Brief example using a MacOS system](#brief-example-using-a-MacOS-system)
+    * [Compile Phasar](#compile-phasar)
+        * [A remark on compile time](#a-remark-on-compile-time)
+    
 
 Installation
 ------------
@@ -271,6 +272,18 @@ Then you can simply:
 
 Done!
 
+### Brief example using a MacOS system
+Mac OS 10.13.1 or higher only !
+To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
+
+The needed packages are
+```
+$ brew install boost
+$ brew install python3
+```
+
+**To be continued.**
+
 ### Compile Phasar
 Set the system's variables for the C and C++ compiler to clang:
 ```
@@ -337,20 +350,8 @@ When using CMake to compile Phasar the following optional parameters can be used
 #### A remark on compile time
 C++'s long compile times are always a pain. As shown in the above, when using cmake the compilation can easily be run in parallel, resulting in shorter compilation times. Make use of it!
 
-### Brief example using a MacOS system
-Mac OS 10.13.1 or higher only !
-To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
-The needed packages are
-```
-$ brew install boost
-$ brew install python3
-```
-
-**To be continued.**
-
-
-##### Running a test solver
+#### Running a test solver
 To test if everything works as expected please run the following command:
 
 `$ phasar --module test/build_systems_tests/installation_tests/module.ll -D ifds-solvertest`
