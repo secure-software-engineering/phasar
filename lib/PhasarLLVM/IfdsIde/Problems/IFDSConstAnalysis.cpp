@@ -317,7 +317,7 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
   return Initialized.size();
 }
 
-void IFDSConstAnalysis::printIFDSReport(
+void IFDSConstAnalysis::emitTextReport(
     ostream &os,
     SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t, BinaryDomain>
         &SR) {

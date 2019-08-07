@@ -436,10 +436,13 @@ void IFDSUninitializedVariables::printMethod(
   os << m->getName().str();
 }
 
-void IFDSUninitializedVariables::printIFDSReport(
+void IFDSUninitializedVariables::emitTextReport(
     ostream &os,
     SolverResults<IFDSUninitializedVariables::n_t,
                   IFDSUninitializedVariables::d_t, BinaryDomain> &SR) {
+  if (irdb.debugInfoAvailable()) {
+    os << "Debug Info available!\n";
+  }
   os << "=========== IFDS Uninitialized Analysis Results ===========\n";
   if (UndefValueUses.empty()) {
     os << "No uninitialized variables were used!\n";
@@ -447,14 +450,11 @@ void IFDSUninitializedVariables::printIFDSReport(
     for (auto User : UndefValueUses) {
       os << "At instruction\nIR  : ";
       printNode(os, User.first);
-      os << '\n';
-      // os << llvmValueToSrc(User.first)
-      //  << "\n\nUsed uninitialized variable(s):\n";
+      os << '\n' << llvmValueToSrc(User.first) << "\n\nUsed uninitialized variable(s):\n";
       for (auto UndefV : User.second) {
         os << "IR  : ";
         printDataFlowFact(os, UndefV);
-        os << '\n';
-        //  os << llvmValueToSrc(UndefV) << '\n';
+        os << '\n' << llvmValueToSrc(UndefV) << '\n';
       }
       os << "-----------------------------------------------------------\n\n";
     }

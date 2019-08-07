@@ -198,7 +198,7 @@ public:
 
   void printValue(std::ostream &os, v_t v) const override;
 
-  void printIDEReport(std::ostream &os,
+  void emitTextReport(std::ostream &os,
                       SolverResults<n_t, d_t, v_t> &SR) override;
 };
 

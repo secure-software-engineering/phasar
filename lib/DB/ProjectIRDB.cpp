@@ -654,4 +654,23 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() {
   }
   return allMemoryLoc;
 }
+
+bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
+  return M->getNamedMetadata("llvm.dbg.cu") != NULL;
+}
+
+bool ProjectIRDB::debugInfoAvailable() const {
+  if (modules.size() > 1) {
+    for (auto module : getAllModules()) {
+      if (!wasCompiledWithDebugInfo(module)) {
+        return false;
+      }
+    }
+    return true;
+  } else if (modules.size() == 1) {
+    return wasCompiledWithDebugInfo(WPAMOD); 
+  }
+  return false;
+}
+
 } // namespace psr

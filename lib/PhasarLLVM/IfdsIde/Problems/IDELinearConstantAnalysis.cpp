@@ -719,15 +719,16 @@ void IDELinearConstantAnalysis::printValue(
   }
 }
 
-void IDELinearConstantAnalysis::printIDEReport(
+void IDELinearConstantAnalysis::emitTextReport(
     std::ostream &os, SolverResults<IDELinearConstantAnalysis::n_t,
                                     IDELinearConstantAnalysis::d_t,
                                     IDELinearConstantAnalysis::v_t> &SR) {
   os << "\n======= LCA RESULTS =======\n";
   for (auto f : icfg.getAllMethods()) {
     os << llvmFunctionToSrc(f) << '\n';
-    for (auto exit : icfg.getExitPointsOf(f)) {
-      auto results = SR.resultsAt(exit, true);
+    for (auto stmt : icfg.getAllInstructionsOf(f)) {
+      os << "IR STMT: " << NtoString(stmt) << '\n' << llvmValueToSrc(stmt, false) << '\n';
+      auto results = SR.resultsAt(stmt, true);
       if (results.empty()) {
         os << "\nNo results available!\n";
       } else {
@@ -739,6 +740,7 @@ void IDELinearConstantAnalysis::printIDEReport(
           }
         }
       }
+      os << "---------------------\n";
     }
     os << "----------------\n";
   }

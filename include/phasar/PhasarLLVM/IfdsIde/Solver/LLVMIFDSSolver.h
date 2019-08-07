@@ -68,7 +68,7 @@ public:
   void printReport() {
     SolverResults<const llvm::Instruction *, D, BinaryDomain> SR(
         this->valtab, Problem.zeroValue());
-    Problem.printIFDSReport(std::cout, SR);
+    Problem.emitTextReport(std::cout, SR);
   }
 
   void dumpResults() {
