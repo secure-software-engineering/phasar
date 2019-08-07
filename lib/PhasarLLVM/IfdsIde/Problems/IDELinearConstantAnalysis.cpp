@@ -727,7 +727,8 @@ void IDELinearConstantAnalysis::emitTextReport(
   for (auto f : icfg.getAllMethods()) {
     os << llvmFunctionToSrc(f) << '\n';
     for (auto stmt : icfg.getAllInstructionsOf(f)) {
-      os << "IR STMT: " << NtoString(stmt) << '\n' << llvmValueToSrc(stmt, false) << '\n';
+      os << "IR STMT: " << NtoString(stmt) << '\n'
+         << llvmValueToSrc(stmt, false) << '\n';
       auto results = SR.resultsAt(stmt, true);
       if (results.empty()) {
         os << "\nNo results available!\n";

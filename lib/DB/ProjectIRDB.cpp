@@ -668,7 +668,7 @@ bool ProjectIRDB::debugInfoAvailable() const {
     }
     return true;
   } else if (modules.size() == 1) {
-    return wasCompiledWithDebugInfo(WPAMOD); 
+    return wasCompiledWithDebugInfo(WPAMOD);
   }
   return false;
 }

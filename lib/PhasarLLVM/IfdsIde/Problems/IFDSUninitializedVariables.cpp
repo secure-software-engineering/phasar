@@ -450,7 +450,9 @@ void IFDSUninitializedVariables::emitTextReport(
     for (auto User : UndefValueUses) {
       os << "At instruction\nIR  : ";
       printNode(os, User.first);
-      os << '\n' << llvmValueToSrc(User.first) << "\n\nUsed uninitialized variable(s):\n";
+      os << '\n'
+         << llvmValueToSrc(User.first)
+         << "\n\nUsed uninitialized variable(s):\n";
       for (auto UndefV : User.second) {
         os << "IR  : ";
         printDataFlowFact(os, UndefV);
