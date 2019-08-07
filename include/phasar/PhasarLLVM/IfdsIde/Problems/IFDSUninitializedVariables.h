@@ -41,10 +41,10 @@ private:
 
 public:
   IFDSUninitializedVariables(i_t icfg, const LLVMTypeHierarchy &th,
-                           const ProjectIRDB &irdb,
-                           std::vector<std::string> EntryPoints = {"main"});
+                             const ProjectIRDB &irdb,
+                             std::vector<std::string> EntryPoints = {"main"});
 
-  ~IFDSUnitializedVariables() override = default;
+  ~IFDSUninitializedVariables() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
@@ -79,7 +79,7 @@ public:
   void printIFDSReport(std::ostream &os,
                        SolverResults<n_t, d_t, BinaryDomain> &SR) override;
 
-  const std::map<n_t, std::set<d_t>>& getAllUndefUses()const;
+  const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
 };
 
 } // namespace psr

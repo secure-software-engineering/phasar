@@ -16,7 +16,8 @@ using namespace psr;
 class IFDSUninitializedVariablesTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/uninitialized_variables/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/uninitialized_variables/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
@@ -156,6 +157,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
   GroundTruth[4] = {"3"};
   
+
 
   compareResults(GroundTruth);
 }
