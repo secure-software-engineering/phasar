@@ -1,6 +1,6 @@
 ![PhASAR logo](img/Logo_RGB/Phasar_Logo.png)
 
-Phasar a LLVM-based Static Analysis Framework
+PhASAR a LLVM-based Static Analysis Framework
 =============================================
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/c944f18c7960488798a0728db9380eb5)](https://app.codacy.com/app/pdschubert/phasar?utm_source=github.com&utm_medium=referral&utm_content=secure-software-engineering/phasar&utm_campaign=Badge_Grade_Dashboard)
@@ -236,7 +236,7 @@ cURL can be installed from the Ubuntu sources using:
 Done!
 
 #### Installing Node.js
-To install Node.js 10 on Debian and Ubunut based Linux distributions, use the following commands:
+To install Node.js 10 on Debian and Ubuntu based Linux distributions, use the following commands:
 ```
 $ curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
 $ sudo apt-get install -y nodejs
