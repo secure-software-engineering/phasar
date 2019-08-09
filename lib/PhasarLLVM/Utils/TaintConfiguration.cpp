@@ -55,32 +55,34 @@ bool TaintConfiguration::SinkFunction::isLeakedArg(unsigned ArgIdx) {
   return find(LeakedArgs.begin(), LeakedArgs.end(), ArgIdx) != LeakedArgs.end();
 }
 
-TaintConfiguration::TaintConfiguration(bool useDummySourceSink) {
-  if (useDummySourceSink) {
-    Sources.insert(make_pair("source()", SourceFunction("source()", true)));
-    Sinks.insert(make_pair("sink(int)", SinkFunction("sink(int)", {0})));
-  }
-  // Otherwise use default source and sink functions
-  else {
-    Sources = {
-        {"fgetc", TaintConfiguration::SourceFunction("fgetc", true)},
-        {"fgets", TaintConfiguration::SourceFunction("fgets", {0}, true)},
-        {"fread", TaintConfiguration::SourceFunction("fread", {0}, false)},
-        {"getc", TaintConfiguration::SourceFunction("getc", true)},
-        {"getchar", TaintConfiguration::SourceFunction("getchar", true)},
-        {"read", TaintConfiguration::SourceFunction("read", {1}, false)},
-        {"ungetc", TaintConfiguration::SourceFunction("ungetc", true)}};
+TaintConfiguration::TaintConfiguration(const std::string &FilePath) {
+  importSourceSinkFunctions(FilePath);
 
-    Sinks = {{"fputc", TaintConfiguration::SinkFunction("fputc", {0})},
-             {"fputs", TaintConfiguration::SinkFunction("fputs", {0})},
-             {"fwrite", TaintConfiguration::SinkFunction("fwrite", {0})},
-             {"printf", TaintConfiguration::SinkFunction(
-                            "printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
-             {"putc", TaintConfiguration::SinkFunction("putc", {0})},
-             {"putchar", TaintConfiguration::SinkFunction("putchar", {0})},
-             {"puts", TaintConfiguration::SinkFunction("puts", {0})},
-             {"write", TaintConfiguration::SinkFunction("write", {1})}};
-  }
+  // if (useDummySourceSink) {
+  //   Sources.insert(make_pair("source()", SourceFunction("source()", true)));
+  //   Sinks.insert(make_pair("sink(int)", SinkFunction("sink(int)", {0})));
+  // }
+  // // Otherwise use default source and sink functions
+  // else {
+  //   Sources = {
+  //       {"fgetc", TaintConfiguration::SourceFunction("fgetc", true)},
+  //       {"fgets", TaintConfiguration::SourceFunction("fgets", {0}, true)},
+  //       {"fread", TaintConfiguration::SourceFunction("fread", {0}, false)},
+  //       {"getc", TaintConfiguration::SourceFunction("getc", true)},
+  //       {"getchar", TaintConfiguration::SourceFunction("getchar", true)},
+  //       {"read", TaintConfiguration::SourceFunction("read", {1}, false)},
+  //       {"ungetc", TaintConfiguration::SourceFunction("ungetc", true)}};
+
+  //   Sinks = {{"fputc", TaintConfiguration::SinkFunction("fputc", {0})},
+  //            {"fputs", TaintConfiguration::SinkFunction("fputs", {0})},
+  //            {"fwrite", TaintConfiguration::SinkFunction("fwrite", {0})},
+  //            {"printf", TaintConfiguration::SinkFunction(
+  //                           "printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
+  //            {"putc", TaintConfiguration::SinkFunction("putc", {0})},
+  //            {"putchar", TaintConfiguration::SinkFunction("putchar", {0})},
+  //            {"puts", TaintConfiguration::SinkFunction("puts", {0})},
+  //            {"write", TaintConfiguration::SinkFunction("write", {1})}};
+  // }
 }
 
 TaintConfiguration::TaintConfiguration(

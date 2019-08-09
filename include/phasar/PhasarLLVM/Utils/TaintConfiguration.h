@@ -20,6 +20,7 @@
 #include <initializer_list>
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -27,7 +28,7 @@
 
 namespace llvm {
 class Instruction;
-} // namespace llvm
+}  // namespace llvm
 
 namespace psr {
 // clang-format off
@@ -61,7 +62,29 @@ namespace psr {
  * @brief Holds all taint-relevant source and sink functions.
  */  // clang-format on
 class TaintConfiguration {
-public:
+
+class SourceFunction;
+class SinkFunction;
+
+ private:
+  // Object id's for parsing JSON
+  const std::string SourceJSONId = "Source Functions";
+  const std::string SinkJSONId = "Sink Functions";
+  const std::string ArgumentJSONId = "Args";
+  const std::string ReturnJSONId = "Return";
+  /// Holds all source functions
+  std::map<std::string, SourceFunction> Sources;
+  /// Holds all source functions
+  std::map<std::string, SinkFunction> Sinks;
+  /// Holds all source instructions
+  std::set<const llvm::Instruction *> SourceInstructions;
+  /// Holds all sink instruction
+  std::set<const llvm::Instruction *> SinkInstructions;
+
+  void TaintConfiguration::importSourceSinkFunctions(
+    const std::string &FilePath);
+
+ public:
   /**
    * Encapsulates all taint-relevant information of a source function.
    */
@@ -75,7 +98,8 @@ public:
 
     SourceFunction(std::string FunctionName, std::vector<unsigned> Args,
                    bool Ret)
-        : Name(std::move(FunctionName)), TaintedArgs(std::move(Args)),
+        : Name(std::move(FunctionName)),
+          TaintedArgs(std::move(Args)),
           TaintsReturn(Ret){};
     SourceFunction(std::string FunctionName, bool Ret)
         : Name(std::move(FunctionName)), TaintsReturn(Ret){};
@@ -101,38 +125,31 @@ public:
     friend bool operator==(const SinkFunction &Lhs, const SinkFunction &Rhs);
   };
 
-private:
-  // Object id's for parsing JSON
-  std::string SourceJSONId = "Source Functions";
-  std::string SinkJSONId = "Sink Functions";
-  std::string ArgumentJSONId = "Args";
-  std::string ReturnJSONId = "Return";
-
-public:
-  /// Holds all source functions
-  std::map<std::string, SourceFunction> Sources;
-  /// Holds all source functions
-  std::map<std::string, SinkFunction> Sinks;
-  /// Holds all source instructions
-  std::set<const llvm::Instruction *> SourceInstructions;
-  /// Holds all sink instruction
-  std::set<const llvm::Instruction *> SinkInstructions;
-
   /**
-   * The dummy function have the following signature:
-   * - int source()
-   * - void sink(int)
+   * Source and sink functions have to be in JSON format. An template file can
+   * be found in the config/ directory. Note that C++ source/sink function
+   * name's have to be demangled.
    *
-   * @brief Initializes default source and sink functions, or uses dummy source
-   * and sink functions.
+   * @brief Allows to import user specified source and sink functions.
+   * @param FilePath path to JSON file holdind source and sink function
+   * definitions.
    */
-  TaintConfiguration(bool useDummySourceSink = false);
+  TaintConfiguration(const std::string &FilePath);
+  /**
+   * @brief Specify functions as sources and sinks
+   */
+  TaintConfiguration(std::initializer_list<SourceFunction> SourceFunctions,
+                     std::initializer_list<SinkFunction> SinkFunctions);
   /**
    * @brief Specify instructions as sources and sinks
    */
   TaintConfiguration(
-      std::initializer_list<const llvm::Instruction *> sourceInst,
-      std::initializer_list<const llvm::Instruction *> sinkInst);
+      std::initializer_list<const llvm::Instruction *> SourceInsts,
+      std::initializer_list<const llvm::Instruction *> SinkInsts);
+  /**
+   * @brief Specify initial seeds the analysis starts with
+   */
+  // TaintConfiguration(std::map<const llvm::Instruction *, std::set<D>> Seeds);
   ~TaintConfiguration() = default;
 
   bool isSource(const std::string &FunctionName) const;
@@ -143,21 +160,8 @@ public:
   SinkFunction getSink(const std::string &FunctionName);
   friend std::ostream &operator<<(std::ostream &OS,
                                   const TaintConfiguration &TSF);
-
-  /**
-   * Source and sink functions have to be in JSON format. An template file can
-   * be found in the config/ directory. Note that C++ source/sink function
-   * name's have to be demangled.
-   *
-   * @brief Allows to import user specified source and sink functions.
-   * @param FilePath path to JSON file holdind source and sink function
-   * definitions.
-   */
-  void
-  importSourceSinkFunctions(const std::string &FilePath =
-                                PhasarConfig::DefaultSourceSinkFunctionsPath());
 };
 
-} // namespace psr
+}  // namespace psr
 
 #endif
