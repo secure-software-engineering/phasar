@@ -22,13 +22,14 @@
 #include <map>
 #include <set>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <phasar/Config/Configuration.h>
 
 namespace llvm {
 class Instruction;
-}  // namespace llvm
+} // namespace llvm
 
 namespace psr {
 // clang-format off
@@ -62,11 +63,14 @@ namespace psr {
  * @brief Holds all taint-relevant source and sink functions.
  */  // clang-format on
 class TaintConfiguration {
+public:
+  struct SourceFunction;
+  struct SinkFunction;
 
-class SourceFunction;
-class SinkFunction;
+  struct All;
+  struct None;
 
- private:
+private:
   // Object id's for parsing JSON
   const std::string SourceJSONId = "Source Functions";
   const std::string SinkJSONId = "Sink Functions";
@@ -81,10 +85,15 @@ class SinkFunction;
   /// Holds all sink instruction
   std::set<const llvm::Instruction *> SinkInstructions;
 
-  void TaintConfiguration::importSourceSinkFunctions(
-    const std::string &FilePath);
+  void importSourceSinkFunctions(const std::string &FilePath);
 
- public:
+public:
+  struct All {
+    friend bool operator==(const All &Lhs, const All &Rhs);
+  };
+  struct None {
+    friend bool operator==(const None &Lhs, const None &Rhs);
+  };
   /**
    * Encapsulates all taint-relevant information of a source function.
    */
@@ -92,14 +101,18 @@ class SinkFunction;
     /// Function name.
     std::string Name;
     /// States which function parameter are tainted.
-    std::vector<unsigned> TaintedArgs;
+    std::variant<std::vector<unsigned>, TaintConfiguration::All,
+                 TaintConfiguration::None>
+        TaintedArgs;
     /// States if the function return is tainted.
     bool TaintsReturn;
 
-    SourceFunction(std::string FunctionName, std::vector<unsigned> Args,
+    SourceFunction(std::string FunctionName,
+                   std::variant<std::vector<unsigned>, TaintConfiguration::All,
+                                TaintConfiguration::None>
+                       Args,
                    bool Ret)
-        : Name(std::move(FunctionName)),
-          TaintedArgs(std::move(Args)),
+        : Name(std::move(FunctionName)), TaintedArgs(std::move(Args)),
           TaintsReturn(Ret){};
     SourceFunction(std::string FunctionName, bool Ret)
         : Name(std::move(FunctionName)), TaintsReturn(Ret){};
@@ -116,9 +129,14 @@ class SinkFunction;
     /// Funciton name.
     std::string Name;
     /// States which function arguments will be leaked.
-    std::vector<unsigned> LeakedArgs;
+    std::variant<std::vector<unsigned>, TaintConfiguration::All,
+                 TaintConfiguration::None>
+        LeakedArgs;
 
-    SinkFunction(std::string FunctionName, std::vector<unsigned> Args)
+    SinkFunction(std::string FunctionName,
+                 std::variant<std::vector<unsigned>, TaintConfiguration::All,
+                              TaintConfiguration::None>
+                     Args)
         : Name(std::move(FunctionName)), LeakedArgs(std::move(Args)){};
     bool isLeakedArg(unsigned ArgIdx);
     friend std::ostream &operator<<(std::ostream &OS, const SinkFunction &SF);
@@ -162,6 +180,6 @@ class SinkFunction;
                                   const TaintConfiguration &TSF);
 };
 
-}  // namespace psr
+} // namespace psr
 
 #endif

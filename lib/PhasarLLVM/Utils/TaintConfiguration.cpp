@@ -21,10 +21,32 @@ namespace psr {
 
 using json = nlohmann::json;
 
+bool operator==(const TaintConfiguration::All &Lhs,
+                const TaintConfiguration::All &Rhs) {
+  return true;
+}
+
+bool operator==(const TaintConfiguration::None &Lhs,
+                const TaintConfiguration::None &Rhs) {
+  return true;
+}
+
 ostream &operator<<(ostream &OS, const TaintConfiguration::SourceFunction &SF) {
   OS << "F: " << SF.Name << " Args: [ ";
-  for (auto Arg : SF.TaintedArgs)
-    OS << Arg << " ";
+  if (auto pval = std::get_if<TaintConfiguration::All>(&SF.TaintedArgs)) {
+    OS << "All"
+       << " ";
+  } else if (auto pval =
+                 std::get_if<TaintConfiguration::None>(&SF.TaintedArgs)) {
+    OS << "None"
+       << " ";
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.TaintedArgs)) {
+    for (auto Arg : *pval)
+      OS << Arg << " ";
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
+
   return OS << "] Return: " << boolalpha << SF.TaintsReturn << "\n";
 }
 
@@ -35,14 +57,33 @@ bool operator==(const TaintConfiguration::SourceFunction &Lhs,
 }
 
 bool TaintConfiguration::SourceFunction::isTaintedArg(unsigned ArgIdx) {
-  return find(TaintedArgs.begin(), TaintedArgs.end(), ArgIdx) !=
-         TaintedArgs.end();
+  if (auto pval = std::get_if<TaintConfiguration::All>(&TaintedArgs)) {
+    return true;
+  } else if (auto pval = std::get_if<TaintConfiguration::None>(&TaintedArgs)) {
+    return false;
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&TaintedArgs)) {
+    return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
 }
 
 ostream &operator<<(ostream &OS, const TaintConfiguration::SinkFunction &SF) {
   OS << "F: " << SF.Name << " Args: [ ";
-  for (auto Arg : SF.LeakedArgs)
-    OS << Arg << " ";
+  if (auto pval = std::get_if<TaintConfiguration::All>(&SF.LeakedArgs)) {
+    OS << "All"
+       << " ";
+  } else if (auto pval =
+                 std::get_if<TaintConfiguration::None>(&SF.LeakedArgs)) {
+    OS << "None"
+       << " ";
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.LeakedArgs)) {
+    for (auto Arg : *pval)
+      OS << Arg << " ";
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
+
   return OS << "]\n";
 }
 
@@ -52,37 +93,19 @@ bool operator==(const TaintConfiguration::SinkFunction &Lhs,
 }
 
 bool TaintConfiguration::SinkFunction::isLeakedArg(unsigned ArgIdx) {
-  return find(LeakedArgs.begin(), LeakedArgs.end(), ArgIdx) != LeakedArgs.end();
+  if (auto pval = std::get_if<TaintConfiguration::All>(&LeakedArgs)) {
+    return true;
+  } else if (auto pval = std::get_if<TaintConfiguration::None>(&LeakedArgs)) {
+    return false;
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&LeakedArgs)) {
+    return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
 }
 
 TaintConfiguration::TaintConfiguration(const std::string &FilePath) {
   importSourceSinkFunctions(FilePath);
-
-  // if (useDummySourceSink) {
-  //   Sources.insert(make_pair("source()", SourceFunction("source()", true)));
-  //   Sinks.insert(make_pair("sink(int)", SinkFunction("sink(int)", {0})));
-  // }
-  // // Otherwise use default source and sink functions
-  // else {
-  //   Sources = {
-  //       {"fgetc", TaintConfiguration::SourceFunction("fgetc", true)},
-  //       {"fgets", TaintConfiguration::SourceFunction("fgets", {0}, true)},
-  //       {"fread", TaintConfiguration::SourceFunction("fread", {0}, false)},
-  //       {"getc", TaintConfiguration::SourceFunction("getc", true)},
-  //       {"getchar", TaintConfiguration::SourceFunction("getchar", true)},
-  //       {"read", TaintConfiguration::SourceFunction("read", {1}, false)},
-  //       {"ungetc", TaintConfiguration::SourceFunction("ungetc", true)}};
-
-  //   Sinks = {{"fputc", TaintConfiguration::SinkFunction("fputc", {0})},
-  //            {"fputs", TaintConfiguration::SinkFunction("fputs", {0})},
-  //            {"fwrite", TaintConfiguration::SinkFunction("fwrite", {0})},
-  //            {"printf", TaintConfiguration::SinkFunction(
-  //                           "printf", {0, 1, 2, 3, 4, 5, 6, 7, 8, 9})},
-  //            {"putc", TaintConfiguration::SinkFunction("putc", {0})},
-  //            {"putchar", TaintConfiguration::SinkFunction("putchar", {0})},
-  //            {"puts", TaintConfiguration::SinkFunction("puts", {0})},
-  //            {"write", TaintConfiguration::SinkFunction("write", {1})}};
-  // }
 }
 
 TaintConfiguration::TaintConfiguration(
