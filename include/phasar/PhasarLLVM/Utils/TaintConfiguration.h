@@ -156,8 +156,27 @@ public:
   /**
    * @brief Specify functions as sources and sinks
    */
-  TaintConfiguration(std::initializer_list<SourceFunction> SourceFunctions,
-                     std::initializer_list<SinkFunction> SinkFunctions);
+  //clang-format off
+  TaintConfiguration(
+      std::initializer_list<SourceFunction> SourceFunctions = {
+          TaintConfiguration::SourceFunction("fgetc", true),
+          TaintConfiguration::SourceFunction("fgets", std::vector<unsigned>({0}), true),
+          TaintConfiguration::SourceFunction("fread", std::vector<unsigned>({0}), false),
+          TaintConfiguration::SourceFunction("getc", true),
+          TaintConfiguration::SourceFunction("getchar", true),
+          TaintConfiguration::SourceFunction("read", std::vector<unsigned>({1}), false),
+          TaintConfiguration::SourceFunction("ungetc", true)},
+      std::initializer_list<SinkFunction> SinkFunctions = {
+          TaintConfiguration::SinkFunction("fputc", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("fputs", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("fwrite", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction(
+              "printf", std::vector<unsigned>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})),
+          TaintConfiguration::SinkFunction("putc", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("putchar", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("puts", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("write", std::vector<unsigned>({1}))});
+  //clang-format on
   /**
    * @brief Specify instructions as sources and sinks
    */
@@ -170,6 +189,8 @@ public:
   // TaintConfiguration(std::map<const llvm::Instruction *, std::set<D>> Seeds);
   ~TaintConfiguration() = default;
 
+  void addSource(SourceFunction src);
+  void addSink(SinkFunction snk);
   bool isSource(const std::string &FunctionName) const;
   bool isSource(const llvm::Instruction *I) const;
   bool isSink(const std::string &FunctionName) const;

@@ -149,16 +149,37 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
-      for (auto FormalIndex : Source.TaintedArgs) {
-        IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
-        // Insert the value V that gets tainted
-        ToGenerate.insert(V);
-        // We also have to collect all aliases of V and generate them
-        auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
-        for (auto Alias : PTS) {
-          ToGenerate.insert(Alias);
+      if (auto pval =
+              std::get_if<TaintConfiguration::All>(&Source.TaintedArgs)) {
+        for (unsigned i = 0; i < CallSite.getNumArgOperands(); ++i) {
+          IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(i);
+          // Insert the value V that gets tainted
+          ToGenerate.insert(V);
+          // We also have to collect all aliases of V and generate them
+          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          for (auto Alias : PTS) {
+            ToGenerate.insert(Alias);
+          }
         }
+      } else if (auto pval = std::get_if<TaintConfiguration::None>(
+                     &Source.TaintedArgs)) {
+        // don't do anything
+      } else if (auto pval =
+                     std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
+        for (auto FormalIndex : *pval) {
+          IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
+          // Insert the value V that gets tainted
+          ToGenerate.insert(V);
+          // We also have to collect all aliases of V and generate them
+          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          for (auto Alias : PTS) {
+            ToGenerate.insert(Alias);
+          }
+        }
+      } else {
+        throw std::runtime_error("Something went wrong, unexpected type");
       }
+
       if (Source.TaintsReturn) {
         ToGenerate.insert(callSite);
       }

@@ -109,6 +109,17 @@ TaintConfiguration::TaintConfiguration(const std::string &FilePath) {
 }
 
 TaintConfiguration::TaintConfiguration(
+    std::initializer_list<SourceFunction> SourceFunctions,
+    std::initializer_list<SinkFunction> SinkFunctions) {
+      for (auto elem : SourceFunctions){
+        Sources.insert(make_pair(elem.Name, elem));
+      }
+      for (auto elem : SinkFunctions){
+        Sinks.insert(make_pair(elem.Name, elem));
+      }
+    }
+
+TaintConfiguration::TaintConfiguration(
     std::initializer_list<const llvm::Instruction *> sourceInst,
     std::initializer_list<const llvm::Instruction *> sinkInst)
     : SourceInstructions(sourceInst.begin(), sourceInst.end()),
@@ -171,6 +182,14 @@ void TaintConfiguration::importSourceSinkFunctions(
   } else {
     throw ios_base::failure(FilePath + " is not a valid path");
   }
+}
+
+void TaintConfiguration::addSource(TaintConfiguration::SourceFunction src){
+  Sources.insert(make_pair(src.Name, src));
+}
+
+void TaintConfiguration::addSink(TaintConfiguration::SinkFunction snk){
+  Sinks.insert(make_pair(snk.Name, snk));
 }
 
 bool TaintConfiguration::isSource(const std::string &FunctionName) const {

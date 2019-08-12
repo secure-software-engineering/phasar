@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 #include <llvm/IR/IntrinsicInst.h>
 
@@ -38,19 +39,13 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
-      EntryPoints(EntryPoints), taintConfig(true) {
-  for (auto fun : DataFlowUtils::getTaintedFunctions()) {
-    taintConfig.Sources.insert(
-        std::pair<std::string, TaintConfiguration::SourceFunction>(
-            fun, TaintConfiguration::SourceFunction(fun, false)));
+      EntryPoints(EntryPoints), taintConfig(std::initializer_list<TaintConfiguration::SourceFunction>(),std::initializer_list<TaintConfiguration::SinkFunction>()) {
+  for (auto i: DataFlowUtils::getTaintedFunctions()){
+    taintConfig.addSource(TaintConfiguration::SourceFunction(i,false));
   }
-  for (auto fun : DataFlowUtils::getBlacklistedFunctions()) {
-    taintConfig.Sinks.insert(
-        std::pair<std::string, TaintConfiguration::SinkFunction>(
-            fun,
-            TaintConfiguration::SinkFunction(fun, std::vector<unsigned>())));
+  for (auto i: DataFlowUtils::getBlacklistedFunctions()){
+    taintConfig.addSink(TaintConfiguration::SinkFunction(i,TaintConfiguration::None()));
   }
-
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
   this->solver_config.computeValues = true; // do not touch
 }
