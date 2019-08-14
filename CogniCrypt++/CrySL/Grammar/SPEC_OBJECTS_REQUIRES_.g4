@@ -5,17 +5,24 @@ domainModel:
 spec: 'SPEC' qualifiedName;
 qualifiedName: Ident ('::' Ident)*;
 
-objects: 'OBJECTS' objectDecl*;
+objects: // allow now zero objects too
+	'OBJECTS' objectDecl*;
 objectDecl: typeName Ident array* ';';
 typeName: qualifiedName (pointer = '*')*;
+// C-style arrays
 array: '[' Int ']';
 
 requires: 'REQUIRES' (reqPred ';')*;
 reqPred:
-	reqPredLit
+	// a normal predicate
+	(not = '!')? reqPredLit
+	// a goal consisting of a conjunction of dependent predicates
 	| reqPred and = ',' reqPred
-	| reqPred or = '||' reqPred;
-reqPredLit: (constraint '=>')? (not = '!')? pred;
+	// a clause consisting of a disjunction of alternative prediactes
+	| reqPred or = '||' reqPred
+	// a more general form of constrained predicate requirement
+	| constraint implication = '=>' reqPred;
+reqPredLit: pred;
 pred: name = Ident '[' (paramList = suParList)? ']';
 suParList: suPar (',' suPar)*;
 suPar: value = consPred | thisptr = 'this' | wildcard = '_';
@@ -29,7 +36,10 @@ literal:
 	| boolean = 'false'
 	| String;
 
-memberAccess: Ident | deref = '*' Ident | Ident dot = '.' Ident;
+memberAccess:
+	Ident // an object
+	| deref = '*' Ident // dereferencing a pointer
+	| Ident dot = '.' Ident; // actual member-access
 preDefinedPredicate:
 	name = 'neverTypeOf' '[' obj = memberAccess ',' type = typeName ']'
 	| name = 'noCallTo' '[' evt = Ident ']'
