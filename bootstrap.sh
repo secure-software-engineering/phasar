@@ -23,4 +23,4 @@ cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
 echo "phasar successfully built"
 
-#TODO: do we need sudo make install ?
+sudo make install
