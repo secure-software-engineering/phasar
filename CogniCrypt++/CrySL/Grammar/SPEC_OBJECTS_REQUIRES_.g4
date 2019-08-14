@@ -39,7 +39,8 @@ literal:
 memberAccess:
 	Ident // an object
 	| deref = '*' Ident // dereferencing a pointer
-	| Ident dot = '.' Ident; // actual member-access
+	| Ident dot = '.' Ident // actual member-access
+	| Ident arrow = '->' Ident;
 preDefinedPredicate:
 	name = 'neverTypeOf' '[' obj = memberAccess ',' type = typeName ']'
 	| name = 'noCallTo' '[' evt = Ident ']'
