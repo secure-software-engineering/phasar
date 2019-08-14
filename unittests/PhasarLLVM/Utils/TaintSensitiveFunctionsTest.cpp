@@ -6,7 +6,7 @@ using namespace psr;
 TEST(TaintConfigurationTest, HandleSSImport) {
   TaintConfiguration TSF(PhasarConfig::DefaultSourceSinkFunctionsPath());
   std::cout << TSF;
-  EXPECT_EQ(TaintConfiguration::SourceFunction("read", std::vector<unsigned>({0, 1, 3}), false), TSF.getSource("read"));
+  EXPECT_EQ(TaintConfiguration::SourceFunction("read", false, std::vector<unsigned>({0, 1, 3})), TSF.getSource("read"));
   EXPECT_EQ(TaintConfiguration::SinkFunction("write", std::vector<unsigned>({1})), TSF.getSink("write"));
 }
 

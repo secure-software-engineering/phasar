@@ -107,15 +107,12 @@ public:
     /// States if the function return is tainted.
     bool TaintsReturn;
 
-    SourceFunction(std::string FunctionName,
+    SourceFunction(std::string FunctionName, bool Ret,
                    std::variant<std::vector<unsigned>, TaintConfiguration::All,
                                 TaintConfiguration::None>
-                       Args,
-                   bool Ret)
+                       Args = TaintConfiguration::All())
         : Name(std::move(FunctionName)), TaintedArgs(std::move(Args)),
           TaintsReturn(Ret){};
-    SourceFunction(std::string FunctionName, bool Ret)
-        : Name(std::move(FunctionName)), TaintsReturn(Ret){};
     bool isTaintedArg(unsigned ArgIdx);
     friend std::ostream &operator<<(std::ostream &OS, const SourceFunction &SF);
     friend bool operator==(const SourceFunction &Lhs,
@@ -158,24 +155,32 @@ public:
    */
   //clang-format off
   TaintConfiguration(
-      std::initializer_list<SourceFunction> SourceFunctions = {
-          TaintConfiguration::SourceFunction("fgetc", true),
-          TaintConfiguration::SourceFunction("fgets", std::vector<unsigned>({0}), true),
-          TaintConfiguration::SourceFunction("fread", std::vector<unsigned>({0}), false),
-          TaintConfiguration::SourceFunction("getc", true),
-          TaintConfiguration::SourceFunction("getchar", true),
-          TaintConfiguration::SourceFunction("read", std::vector<unsigned>({1}), false),
-          TaintConfiguration::SourceFunction("ungetc", true)},
+      std::initializer_list<SourceFunction> SourceFunctions =
+          {TaintConfiguration::SourceFunction("fgetc", true),
+           TaintConfiguration::SourceFunction("fgets",
+                                              true, std::vector<unsigned>({0})),
+           TaintConfiguration::SourceFunction("fread",
+                                              false,
+                                              std::vector<unsigned>({0})),
+           TaintConfiguration::SourceFunction("getc", true),
+           TaintConfiguration::SourceFunction("getchar", true),
+           TaintConfiguration::SourceFunction("read",
+                                              false,
+                                              std::vector<unsigned>({1})),
+           TaintConfiguration::SourceFunction("ungetc", true)},
       std::initializer_list<SinkFunction> SinkFunctions = {
           TaintConfiguration::SinkFunction("fputc", std::vector<unsigned>({0})),
           TaintConfiguration::SinkFunction("fputs", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("fwrite", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("fwrite",
+                                           std::vector<unsigned>({0})),
           TaintConfiguration::SinkFunction(
               "printf", std::vector<unsigned>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})),
           TaintConfiguration::SinkFunction("putc", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("putchar", std::vector<unsigned>({0})),
+          TaintConfiguration::SinkFunction("putchar",
+                                           std::vector<unsigned>({0})),
           TaintConfiguration::SinkFunction("puts", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("write", std::vector<unsigned>({1}))});
+          TaintConfiguration::SinkFunction("write",
+                                           std::vector<unsigned>({1}))});
   //clang-format on
   /**
    * @brief Specify instructions as sources and sinks

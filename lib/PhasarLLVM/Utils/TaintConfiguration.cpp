@@ -150,7 +150,7 @@ void TaintConfiguration::importSourceSinkFunctions(
             bool ReturnBool = JSource.at(ReturnJSONId);
             vector<unsigned> ArgVec = JSource.at(ArgumentJSONId);
             Sources.insert(make_pair(Fname, TaintConfiguration::SourceFunction(
-                                                Fname, ArgVec, ReturnBool)));
+                                                Fname, ReturnBool, ArgVec)));
           } else {
             throw invalid_argument(Fname + " is not valid format!");
           }
