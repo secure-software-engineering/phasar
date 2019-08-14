@@ -10,7 +10,7 @@ cd boost_1_66_0/
 sudo ./b2 install
 cd ..
 # installing LLVM
-./install-llvm-8.0.0.sh 4 .
+./utils/install-llvm-8.0.0.sh 4 .
 echo "dependencies successfully installed"
 echo "build phasar..."
 #TODO: Are these paths correct, or are there some env variables for them?
