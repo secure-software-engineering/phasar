@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "installing phasar dependencies..."
 
-sudo apt-get install zliblg-dev libncurses5-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz 
+sudo apt-get install zliblg-dev libncurses5-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig
 # installing boost
 wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
 tar xvf boost_1_66_0.tar.gz
@@ -10,10 +10,14 @@ cd boost_1_66_0/
 sudo ./b2 install
 cd ..
 # installing LLVM
-./utils/install-llvm-8.0.0.sh 4 .
+./utils/install-llvm-8.0.0.sh $(nproc) ./utils/
+# installing wllvm
+pip install wllvm
+sudo pip install wllvm
+
 echo "dependencies successfully installed"
 echo "build phasar..."
-#TODO: Are these paths correct, or are there some env variables for them?
+
 export CC=/usr/local/bin/clang
 export CXX=/usr/local/bin/clang++
 
@@ -22,5 +26,7 @@ cd build
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j $(nproc)
 echo "phasar successfully built"
-
+echo "install phasar..."
 sudo make install
+cd ..
+echo "phasar successfully installed"
