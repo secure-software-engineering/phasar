@@ -20,6 +20,8 @@ class ZeroFlowFact : public FlowFact {
 public:
   ~ZeroFlowFact() = default;
   void print(std::ostream &os) const override;
+  bool equal_to(const FlowFact &FF) const override;
+  bool less(const FlowFact &FF) const override;
   static FlowFact *getInstance();
 };
 

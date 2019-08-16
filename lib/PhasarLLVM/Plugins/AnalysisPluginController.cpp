@@ -38,9 +38,11 @@ AnalysisPluginController::AnalysisPluginController(
     // SOL SharedLib(AnalysisPlugin);
     boost::filesystem::path LibPath(AnalysisPlugin);
     boost::system::error_code Err;
-    boost::dll::shared_library SharedLib(LibPath, boost::dll::load_mode::rtld_lazy, Err);
+    boost::dll::shared_library SharedLib(LibPath,
+                                         boost::dll::load_mode::rtld_lazy, Err);
     if (Err) {
-      cerr << "error detected while loading shared object library: " << Err.message() << '\n';
+      cerr << "error detected while loading shared object library: "
+           << Err.message() << '\n';
     }
     if (!IDETabulationProblemPluginFactory.empty()) {
       for (auto Problem : IDETabulationProblemPluginFactory) {
