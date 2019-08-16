@@ -35,7 +35,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
                                      const ProjectIRDB &irdb,
-                                     TaintConfiguration TSF,
+                                     TaintConfiguration<IFDSTaintAnalysis::d_t> TSF,
                                      vector<string> EntryPoints)
     : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
       SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
@@ -150,7 +150,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
       if (auto pval =
-              std::get_if<TaintConfiguration::All>(&Source.TaintedArgs)) {
+              std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(&Source.TaintedArgs)) {
         for (unsigned i = 0; i < CallSite.getNumArgOperands(); ++i) {
           IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(i);
           // Insert the value V that gets tainted
@@ -161,7 +161,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
             ToGenerate.insert(Alias);
           }
         }
-      } else if (auto pval = std::get_if<TaintConfiguration::None>(
+      } else if (auto pval = std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
                      &Source.TaintedArgs)) {
         // don't do anything
       } else if (auto pval =
@@ -192,11 +192,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::m_t calledMthd;
-        TaintConfiguration::SinkFunction Sink;
+        TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
         TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
-             TaintConfiguration::SinkFunction s,
+             TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction s,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
             : callSite(cs), calledMthd(calledMthd), Sink(s), Leaks(leaks),

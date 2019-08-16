@@ -39,7 +39,7 @@ class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-  TaintConfiguration TSF;
+  TaintConfiguration<const llvm::Value *> TSF;
   std::vector<std::string> EntryPoints;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 

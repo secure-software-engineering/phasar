@@ -192,7 +192,7 @@ AnalysisController::AnalysisController(
                     << "Performing analysis: " << analysis);
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        TaintConfiguration TSF;
+        TaintConfiguration<const llvm::Value *> TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
                                                EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(

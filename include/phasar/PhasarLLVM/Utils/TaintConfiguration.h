@@ -10,15 +10,19 @@
 /*
  * TaintConfiguration.h
  *
- *  Created on: 25.08.2018
- *      Author: richard leer
+ *  Created on: 12.08.2019
+ *      Author: linus jungemann
  */
 
 #ifndef PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 #define PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 
+#include <boost/filesystem.hpp>
+#include <fstream>
 #include <initializer_list>
-#include <iosfwd>
+#include <iomanip>
+#include <iostream>
+#include <json.hpp>
 #include <map>
 #include <set>
 #include <string>
@@ -32,6 +36,89 @@ class Instruction;
 } // namespace llvm
 
 namespace psr {
+
+template <typename D>
+class TaintConfiguration;
+
+template <typename D>
+static inline std::ostream &operator<<(std::ostream &OS, const TaintConfiguration<D> &TSF) {
+  OS << "Source Functions:\n";
+  for (auto SF : TSF.Sources) {
+    OS << SF.second << "\n";
+  }
+  OS << "Sink Functions:\n";
+  for (auto SF : TSF.Sinks)
+    OS << SF.second << "\n";
+  return OS;
+}
+
+template <typename D>
+static inline bool operator==(const typename TaintConfiguration<D>::All &Lhs,
+                const typename TaintConfiguration<D>::All &Rhs) {
+  return true;
+}
+
+template <typename D>
+static inline bool operator==(const typename TaintConfiguration<D>::None &Lhs,
+                const typename TaintConfiguration<D>::None &Rhs) {
+  return true;
+}
+
+template <typename D>
+static inline std::ostream &operator<<(std::ostream &OS,
+                    const typename TaintConfiguration<D>::SourceFunction &SF) {
+  OS << "F: " << SF.Name << " Args: [ ";
+  if (auto pval = std::get_if<TaintConfiguration<D>::All>(&SF.TaintedArgs)) {
+    OS << "All"
+       << " ";
+  } else if (auto pval =
+                 std::get_if<TaintConfiguration<D>::None>(&SF.TaintedArgs)) {
+    OS << "None"
+       << " ";
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.TaintedArgs)) {
+    for (auto Arg : *pval)
+      OS << Arg << " ";
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
+
+  return OS << "] Return: " << std::boolalpha << SF.TaintsReturn << "\n";
+}
+
+template <typename D>
+static inline bool operator==(const typename TaintConfiguration<D>::SourceFunction &Lhs,
+                const typename TaintConfiguration<D>::SourceFunction &Rhs) {
+  return Lhs.Name == Rhs.Name && Lhs.TaintedArgs == Rhs.TaintedArgs &&
+         Lhs.TaintsReturn == Rhs.TaintsReturn;
+}
+
+template <typename D>
+static inline std::ostream &operator<<(std::ostream &OS,
+                    const typename TaintConfiguration<D>::SinkFunction &SF) {
+  OS << "F: " << SF.Name << " Args: [ ";
+  if (auto pval = std::get_if<TaintConfiguration<D>::All>(&SF.LeakedArgs)) {
+    OS << "All"
+       << " ";
+  } else if (auto pval =
+                 std::get_if<TaintConfiguration<D>::None>(&SF.LeakedArgs)) {
+    OS << "None"
+       << " ";
+  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.LeakedArgs)) {
+    for (auto Arg : *pval)
+      OS << Arg << " ";
+  } else {
+    throw std::runtime_error("Something went wrong, unexpected type");
+  }
+
+  return OS << "]\n";
+}
+
+template <typename D>
+static inline bool operator==(const typename TaintConfiguration<D>::SinkFunction &Lhs,
+                const typename TaintConfiguration<D>::SinkFunction &Rhs) {
+  return Lhs.Name == Rhs.Name && Lhs.LeakedArgs == Rhs.LeakedArgs;
+}
+
 // clang-format off
 /**
  * The following functions are considered to as taint-sensitve functions by default:
@@ -62,7 +149,7 @@ namespace psr {
  *
  * @brief Holds all taint-relevant source and sink functions.
  */  // clang-format on
-class TaintConfiguration {
+template <typename D> class TaintConfiguration {
 public:
   struct SourceFunction;
   struct SinkFunction;
@@ -84,8 +171,67 @@ private:
   std::set<const llvm::Instruction *> SourceInstructions;
   /// Holds all sink instruction
   std::set<const llvm::Instruction *> SinkInstructions;
+  /// Holds all initial seeds
+  std::map<const llvm::Instruction *, std::set<D>> seedMap;
 
-  void importSourceSinkFunctions(const std::string &FilePath);
+  void importSourceSinkFunctions(const std::string &FilePath) {
+    std::cout << "Parsing JSON with source and sink functions\n";
+    if (boost::filesystem::exists(FilePath) &&
+        !boost::filesystem::is_directory(FilePath)) {
+      std::ifstream ifs(FilePath);
+      if (ifs.is_open()) {
+        std::stringstream iss;
+        iss << ifs.rdbuf();
+        ifs.close();
+        nlohmann::json SSFunctions;
+        iss >> SSFunctions;
+        std::cout << std::setw(2) << SSFunctions << '\n';
+        if (SSFunctions.find(SourceJSONId) != SSFunctions.end()) {
+          // Discarding default source functions
+          Sources.clear();
+          nlohmann::json JSources = SSFunctions.at(SourceJSONId);
+          for (auto It = JSources.begin(); It != JSources.end(); ++It) {
+            std::string Fname = It.key();
+            nlohmann::json JSource = It.value();
+            if (JSource.find(ReturnJSONId) != JSource.end() &&
+                JSource.find(ArgumentJSONId) != JSource.end()) {
+              bool ReturnBool = JSource.at(ReturnJSONId);
+              std::vector<unsigned> ArgVec = JSource.at(ArgumentJSONId);
+              Sources.insert(
+                  make_pair(Fname, TaintConfiguration<D>::SourceFunction(
+                                       Fname, ReturnBool, ArgVec)));
+            } else {
+              throw std::invalid_argument(Fname + " is not valid format!");
+            }
+          }
+        } else {
+          std::cout << "No Source Functions found. Using default sink functions!\n";
+        }
+        if (SSFunctions.find(SinkJSONId) != SSFunctions.end()) {
+          // Discarding default sink functions
+          Sinks.clear();
+          nlohmann::json JSinks = SSFunctions.at(SinkJSONId);
+          for (auto It = JSinks.begin(); It != JSinks.end(); ++It) {
+            std::string Fname = It.key();
+            nlohmann::json JSink = It.value();
+            if (JSink.find(ArgumentJSONId) != JSink.end()) {
+              std::vector<unsigned> ArgVec = JSink.at(ArgumentJSONId);
+              Sinks.insert(make_pair(
+                  Fname, TaintConfiguration<D>::SinkFunction(Fname, ArgVec)));
+            } else {
+              throw std::invalid_argument(Fname + " is not valid format!");
+            }
+          }
+        } else {
+          std::cout << "No sink functions found. Using default sink functions!\n";
+        }
+      } else {
+        throw std::ios_base::failure("Could not open file");
+      }
+    } else {
+      throw std::ios_base::failure(FilePath + " is not a valid path");
+    }
+  }
 
 public:
   struct All {
@@ -101,22 +247,35 @@ public:
     /// Function name.
     std::string Name;
     /// States which function parameter are tainted.
-    std::variant<std::vector<unsigned>, TaintConfiguration::All,
-                 TaintConfiguration::None>
+    std::variant<std::vector<unsigned>, TaintConfiguration<D>::All,
+                 TaintConfiguration<D>::None>
         TaintedArgs;
     /// States if the function return is tainted.
     bool TaintsReturn;
 
-    SourceFunction(std::string FunctionName, bool Ret,
-                   std::variant<std::vector<unsigned>, TaintConfiguration::All,
-                                TaintConfiguration::None>
-                       Args = TaintConfiguration::All())
+    SourceFunction(
+        std::string FunctionName, bool Ret,
+        std::variant<std::vector<unsigned>, TaintConfiguration<D>::All,
+                     TaintConfiguration<D>::None>
+            Args = TaintConfiguration<D>::All())
         : Name(std::move(FunctionName)), TaintedArgs(std::move(Args)),
           TaintsReturn(Ret){};
-    bool isTaintedArg(unsigned ArgIdx);
-    friend std::ostream &operator<<(std::ostream &OS, const SourceFunction &SF);
-    friend bool operator==(const SourceFunction &Lhs,
-                           const SourceFunction &Rhs);
+    bool isTaintedArg(unsigned ArgIdx) {
+      if (auto pval = std::get_if<TaintConfiguration<D>::All>(&TaintedArgs)) {
+        return true;
+      } else if (auto pval =
+                     std::get_if<TaintConfiguration<D>::None>(&TaintedArgs)) {
+        return false;
+      } else if (auto pval = std::get_if<std::vector<unsigned>>(&TaintedArgs)) {
+        return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
+      } else {
+        throw std::runtime_error("Something went wrong, unexpected type");
+      }
+    }
+    friend std::ostream &operator<<(std::ostream &OS,
+                                      const SourceFunction &SF);
+    friend bool operator==
+        (const SourceFunction &Lhs, const SourceFunction &Rhs);
   };
 
   /**
@@ -126,16 +285,27 @@ public:
     /// Funciton name.
     std::string Name;
     /// States which function arguments will be leaked.
-    std::variant<std::vector<unsigned>, TaintConfiguration::All,
-                 TaintConfiguration::None>
+    std::variant<std::vector<unsigned>, TaintConfiguration<D>::All,
+                 TaintConfiguration<D>::None>
         LeakedArgs;
 
     SinkFunction(std::string FunctionName,
-                 std::variant<std::vector<unsigned>, TaintConfiguration::All,
-                              TaintConfiguration::None>
+                 std::variant<std::vector<unsigned>, TaintConfiguration<D>::All,
+                              TaintConfiguration<D>::None>
                      Args)
         : Name(std::move(FunctionName)), LeakedArgs(std::move(Args)){};
-    bool isLeakedArg(unsigned ArgIdx);
+    bool isLeakedArg(unsigned ArgIdx) {
+      if (auto pval = std::get_if<TaintConfiguration<D>::All>(&LeakedArgs)) {
+        return true;
+      } else if (auto pval =
+                     std::get_if<TaintConfiguration<D>::None>(&LeakedArgs)) {
+        return false;
+      } else if (auto pval = std::get_if<std::vector<unsigned>>(&LeakedArgs)) {
+        return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
+      } else {
+        throw std::runtime_error("Something went wrong, unexpected type");
+      }
+    }
     friend std::ostream &operator<<(std::ostream &OS, const SinkFunction &SF);
     friend bool operator==(const SinkFunction &Lhs, const SinkFunction &Rhs);
   };
@@ -149,61 +319,96 @@ public:
    * @param FilePath path to JSON file holdind source and sink function
    * definitions.
    */
-  TaintConfiguration(const std::string &FilePath);
+  TaintConfiguration(const std::string &FilePath) {
+    importSourceSinkFunctions(FilePath);
+  }
   /**
    * @brief Specify functions as sources and sinks
    */
   //clang-format off
   TaintConfiguration(
       std::initializer_list<SourceFunction> SourceFunctions =
-          {TaintConfiguration::SourceFunction("fgetc", true),
-           TaintConfiguration::SourceFunction("fgets",
-                                              true, std::vector<unsigned>({0})),
-           TaintConfiguration::SourceFunction("fread",
-                                              false,
-                                              std::vector<unsigned>({0})),
-           TaintConfiguration::SourceFunction("getc", true),
-           TaintConfiguration::SourceFunction("getchar", true),
-           TaintConfiguration::SourceFunction("read",
-                                              false,
-                                              std::vector<unsigned>({1})),
-           TaintConfiguration::SourceFunction("ungetc", true)},
+          {TaintConfiguration<D>::SourceFunction("fgetc", true),
+           TaintConfiguration<D>::SourceFunction("fgets", true,
+                                                 std::vector<unsigned>({0})),
+           TaintConfiguration<D>::SourceFunction("fread", false,
+                                                 std::vector<unsigned>({0})),
+           TaintConfiguration<D>::SourceFunction("getc", true),
+           TaintConfiguration<D>::SourceFunction("getchar", true),
+           TaintConfiguration<D>::SourceFunction("read", false,
+                                                 std::vector<unsigned>({1})),
+           TaintConfiguration<D>::SourceFunction("ungetc", true)},
       std::initializer_list<SinkFunction> SinkFunctions = {
-          TaintConfiguration::SinkFunction("fputc", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("fputs", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("fwrite",
-                                           std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction(
+          TaintConfiguration<D>::SinkFunction("fputc",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction("fputs",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction("fwrite",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction(
               "printf", std::vector<unsigned>({0, 1, 2, 3, 4, 5, 6, 7, 8, 9})),
-          TaintConfiguration::SinkFunction("putc", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("putchar",
-                                           std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("puts", std::vector<unsigned>({0})),
-          TaintConfiguration::SinkFunction("write",
-                                           std::vector<unsigned>({1}))});
+          TaintConfiguration<D>::SinkFunction("putc",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction("putchar",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction("puts",
+                                              std::vector<unsigned>({0})),
+          TaintConfiguration<D>::SinkFunction("write",
+                                              std::vector<unsigned>({1}))}) {
+    for (auto elem : SourceFunctions) {
+      Sources.insert(make_pair(elem.Name, elem));
+    }
+    for (auto elem : SinkFunctions) {
+      Sinks.insert(make_pair(elem.Name, elem));
+    }
+  }
   //clang-format on
   /**
    * @brief Specify instructions as sources and sinks
    */
   TaintConfiguration(
       std::initializer_list<const llvm::Instruction *> SourceInsts,
-      std::initializer_list<const llvm::Instruction *> SinkInsts);
+      std::initializer_list<const llvm::Instruction *> SinkInsts)
+      : SourceInstructions(SourceInsts.begin(), SourceInsts.end()),
+        SinkInstructions(SinkInsts.begin(), SinkInsts.end()) {}
   /**
    * @brief Specify initial seeds the analysis starts with
    */
-  // TaintConfiguration(std::map<const llvm::Instruction *, std::set<D>> Seeds);
+  TaintConfiguration(std::map<const llvm::Instruction *, std::set<D>> Seeds)
+      : seedMap(Seeds) {}
   ~TaintConfiguration() = default;
 
-  void addSource(SourceFunction src);
-  void addSink(SinkFunction snk);
-  bool isSource(const std::string &FunctionName) const;
-  bool isSource(const llvm::Instruction *I) const;
-  bool isSink(const std::string &FunctionName) const;
-  bool isSink(const llvm::Instruction *I) const;
-  SourceFunction getSource(const std::string &FunctionName);
-  SinkFunction getSink(const std::string &FunctionName);
+  void addInitialSeeds(std::map<const llvm::Instruction *, std::set<D>> Seeds) {
+    seedMap = Seeds;
+  }
+  std::map<const llvm::Instruction *, std::set<D>> getInitialSeeds() {
+    return seedMap;
+  }
+  void addSource(SourceFunction src) {
+    Sources.insert(make_pair(src.Name, src));
+  }
+  void addSink(SinkFunction snk) { Sinks.insert(make_pair(snk.Name, snk)); }
+  bool isSource(const std::string &FunctionName) const {
+    return Sources.find(FunctionName) != Sources.end();
+  }
+  bool isSource(const llvm::Instruction *I) const {
+    return SourceInstructions.count(I);
+  }
+  bool isSink(const std::string &FunctionName) const {
+    return Sinks.find(FunctionName) != Sinks.end();
+  }
+  bool isSink(const llvm::Instruction *I) const {
+    return SinkInstructions.count(I);
+  }
+  SourceFunction getSource(const std::string &FunctionName) {
+    return Sources.at(FunctionName);
+  }
+  SinkFunction getSink(const std::string &FunctionName) {
+    return Sinks.at(FunctionName);
+  }
+
   friend std::ostream &operator<<(std::ostream &OS,
-                                  const TaintConfiguration &TSF);
+                                    const TaintConfiguration<D> &TSF);
 };
 
 } // namespace psr

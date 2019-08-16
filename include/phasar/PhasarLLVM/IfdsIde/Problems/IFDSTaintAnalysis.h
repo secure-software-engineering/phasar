@@ -49,7 +49,7 @@ public:
   typedef LLVMBasedICFG &i_t;
 
 private:
-  TaintConfiguration SourceSinkFunctions;
+  TaintConfiguration<const llvm::Value *> SourceSinkFunctions;
   std::vector<std::string> EntryPoints;
 
 public:
@@ -63,7 +63,7 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                    const ProjectIRDB &irdb, TaintConfiguration TSF,
+                    const ProjectIRDB &irdb, TaintConfiguration<const llvm::Value *> TSF,
                     std::vector<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;

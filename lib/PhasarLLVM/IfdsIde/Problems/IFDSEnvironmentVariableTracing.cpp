@@ -39,12 +39,12 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
-      EntryPoints(EntryPoints), taintConfig(std::initializer_list<TaintConfiguration::SourceFunction>(),std::initializer_list<TaintConfiguration::SinkFunction>()) {
+      EntryPoints(EntryPoints), taintConfig(std::initializer_list<TaintConfiguration<ExtendedValue>::SourceFunction>(),std::initializer_list<TaintConfiguration<ExtendedValue>::SinkFunction>()) {
   for (auto i: DataFlowUtils::getTaintedFunctions()){
-    taintConfig.addSource(TaintConfiguration::SourceFunction(i,false));
+    taintConfig.addSource(TaintConfiguration<ExtendedValue>::SourceFunction(i,false));
   }
   for (auto i: DataFlowUtils::getBlacklistedFunctions()){
-    taintConfig.addSink(TaintConfiguration::SinkFunction(i,TaintConfiguration::None()));
+    taintConfig.addSink(TaintConfiguration<ExtendedValue>::SinkFunction(i,TaintConfiguration<ExtendedValue>::None()));
   }
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
   this->solver_config.computeValues = true; // do not touch
