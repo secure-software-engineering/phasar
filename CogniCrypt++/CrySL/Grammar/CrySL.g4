@@ -126,9 +126,8 @@ typeNameList: typeName (',' typeName)*;
 // 
 // =========================================================================
 Int: ([1-9][0-9_]*) | '0';
-Float: Int '.' Int;
 Double: Int '.' Int;
-Char: '\'' . '\'';
+Char: '\'' '\\'? . '\'';
 Bool: 'true' | 'false';
 String: '"' (~["] | '\\"')*? '"';
 Ident: [a-zA-Z_]([a-zA-Z0-9][a-zA-Z0-9_]*)?;
