@@ -74,52 +74,6 @@ cons: arrayElements 'in' '{' litList '}' | literalExpr;
 arrayElements: (el = 'elements' '(' consPred ')') | consPred;
 litList: literal (',' (literal | ellipsis = '...'))*;
 
-/* constr: logicalImplyExpression;
- logicalImplyExpression:
- logicalOrExpression ('=>'
- logicalImplyExpression)?;
- logicalOrExpression: (logicalOrExpression '||')? logicalAndExpression;
- logicalAndExpression: (logicalAndExpression '&&')? comparisonExpression;
- comparisonExpression: (
- comparisonExpression comparingEQNEQOperator
- )? comparisonHigherOpExpression;
- 
- comparingEQNEQOperator: equal = '==' | unequal = '!=';
- comparisonHigherOpExpression: (
- comparisonHigherOpExpression comparingRelOperator
- )? arithmeticExpression;
- comparingRelOperator:
- less = '<'
- | less_or_equal = '<='
- | greater_or_equal = '>='
- | greater = '>';
- arithmeticExpression: additionExpression;
- additionExpression: (
- additionExpression (plus = '+' |
- minus = '-')
- )? modularExpression;
- modularExpression: (modularExpression mod = '%')?
- multiplicationExpression;
- multiplicationExpression: (
- multiplicationExpression (times = '*' |
- div
- = '/')
- )? operand
- | unaryPreExpression;
- 
- operand: '(' constr ')' | cons;
- cons:
- arrayElements
- 'in' '{' litList '}' | literalExpr;
- arrayElements: (el = 'elements' '(' consPred
- ')') | consPred;
- litList: literal (',' (literal | ellipsis = '...'))*;
- 
- unaryPreExpression:
- unaryPreOperator
- operand;
- unaryPreOperator: not = '!';
- */
 //Events section starts
 events: 'EVENTS' eventsOccurence+;
 eventsOccurence:
@@ -159,7 +113,7 @@ typeNameList: typeName (',' typeName)*;
 // LEXER GRAMMAR
 // 
 // =========================================================================
-Int: [1-9][0-9_]*;
+Int: ([1-9][0-9_]*) | '0';
 Float: Int '.' Int;
 Double: Int '.' Int;
 Char: '\'' . '\'';
