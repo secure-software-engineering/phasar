@@ -13,8 +13,20 @@ qualifiedName: Ident ('::' Ident)*;
 
 objects: // allow now zero objects too
 	'OBJECTS' objectDecl*;
-objectDecl: typeName Ident array* ';';
-typeName: qualifiedName (pointer = '*')*;
+objectDecl: constModifier = 'const'? typeName Ident array* ';';
+primitiveTypeName:
+	booleanType = 'bool'
+	| unsignedInt = 'unsigned' (
+		'char'
+		| 'short'
+		| 'int'
+		| 'long'
+		| 'long' 'long'
+	)
+	| floatingPoint = 'float'
+	| longDouble = 'long'? doubleFloat = 'double'
+	| sizeType = 'size_t';
+typeName: (qualifiedName | primitiveTypeName) ( pointer = '*')*;
 // C-style arrays
 array: '[' Int ']';
 

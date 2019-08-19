@@ -20,23 +20,24 @@ public:
     T__32 = 33, T__33 = 34, T__34 = 35, T__35 = 36, T__36 = 37, T__37 = 38, 
     T__38 = 39, T__39 = 40, T__40 = 41, T__41 = 42, T__42 = 43, T__43 = 44, 
     T__44 = 45, T__45 = 46, T__46 = 47, T__47 = 48, T__48 = 49, T__49 = 50, 
-    T__50 = 51, T__51 = 52, Int = 53, Float = 54, Double = 55, Char = 56, 
-    Bool = 57, String = 58, Ident = 59, COMMENT = 60, LINE_COMMENT = 61, 
-    WS = 62
+    T__50 = 51, T__51 = 52, T__52 = 53, T__53 = 54, T__54 = 55, T__55 = 56, 
+    T__56 = 57, T__57 = 58, T__58 = 59, T__59 = 60, T__60 = 61, T__61 = 62, 
+    Int = 63, Float = 64, Double = 65, Char = 66, Bool = 67, String = 68, 
+    Ident = 69, COMMENT = 70, LINE_COMMENT = 71, WS = 72
   };
 
   enum {
     RuleDomainModel = 0, RuleSpec = 1, RuleQualifiedName = 2, RuleObjects = 3, 
-    RuleObjectDecl = 4, RuleTypeName = 5, RuleArray = 6, RuleRequiresBlock = 7, 
-    RuleReqPred = 8, RuleReqPredLit = 9, RulePred = 10, RuleSuParList = 11, 
-    RuleSuPar = 12, RuleConsPred = 13, RuleLiteralExpr = 14, RuleLiteral = 15, 
-    RuleMemberAccess = 16, RulePreDefinedPredicate = 17, RuleEnsures = 18, 
-    RuleEnsPred = 19, RuleConstraints = 20, RuleConstr = 21, RuleComparingRelOperator = 22, 
-    RuleCons = 23, RuleArrayElements = 24, RuleLitList = 25, RuleEvents = 26, 
-    RuleEventsOccurence = 27, RuleParametersList = 28, RuleParam = 29, RuleOrder = 30, 
-    RuleOrderSequence = 31, RuleSimpleOrder = 32, RuleUnorderdSymbols = 33, 
-    RulePrimary = 34, RuleNegates = 35, RuleNegatesOccurence = 36, RuleForbidden = 37, 
-    RuleForbiddenOccurence = 38, RuleFqn = 39, RuleTypeNameList = 40
+    RuleObjectDecl = 4, RulePrimitiveTypeName = 5, RuleTypeName = 6, RuleArray = 7, 
+    RuleRequiresBlock = 8, RuleReqPred = 9, RuleReqPredLit = 10, RulePred = 11, 
+    RuleSuParList = 12, RuleSuPar = 13, RuleConsPred = 14, RuleLiteralExpr = 15, 
+    RuleLiteral = 16, RuleMemberAccess = 17, RulePreDefinedPredicate = 18, 
+    RuleEnsures = 19, RuleEnsPred = 20, RuleConstraints = 21, RuleConstr = 22, 
+    RuleComparingRelOperator = 23, RuleCons = 24, RuleArrayElements = 25, 
+    RuleLitList = 26, RuleEvents = 27, RuleEventsOccurence = 28, RuleParametersList = 29, 
+    RuleParam = 30, RuleOrder = 31, RuleOrderSequence = 32, RuleSimpleOrder = 33, 
+    RuleUnorderdSymbols = 34, RulePrimary = 35, RuleNegates = 36, RuleNegatesOccurence = 37, 
+    RuleForbidden = 38, RuleForbiddenOccurence = 39, RuleFqn = 40, RuleTypeNameList = 41
   };
 
   CrySLParser(antlr4::TokenStream *input);
@@ -54,6 +55,7 @@ public:
   class QualifiedNameContext;
   class ObjectsContext;
   class ObjectDeclContext;
+  class PrimitiveTypeNameContext;
   class TypeNameContext;
   class ArrayContext;
   class RequiresBlockContext;
@@ -148,6 +150,7 @@ public:
 
   class  ObjectDeclContext : public antlr4::ParserRuleContext {
   public:
+    antlr4::Token *constModifier = nullptr;;
     ObjectDeclContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     TypeNameContext *typeName();
@@ -160,12 +163,29 @@ public:
 
   ObjectDeclContext* objectDecl();
 
+  class  PrimitiveTypeNameContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *booleanType = nullptr;;
+    antlr4::Token *unsignedInt = nullptr;;
+    antlr4::Token *floatingPoint = nullptr;;
+    antlr4::Token *longDouble = nullptr;;
+    antlr4::Token *doubleFloat = nullptr;;
+    antlr4::Token *sizeType = nullptr;;
+    PrimitiveTypeNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  PrimitiveTypeNameContext* primitiveTypeName();
+
   class  TypeNameContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *pointer = nullptr;;
     TypeNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     QualifiedNameContext *qualifiedName();
+    PrimitiveTypeNameContext *primitiveTypeName();
 
    
   };
