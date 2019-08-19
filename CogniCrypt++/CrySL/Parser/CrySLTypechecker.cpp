@@ -32,10 +32,11 @@ CrySLTypechecker(std::vector<CrySLParser::DomainModelContext *> &ASTs)
 bool CrySLTypeChecker::CrySLSpec::typecheck() {
   bool succ = true;
   succ &= typecheck(AST->objects());
-  if (AST->forbidden())
-    succ &= typecheck(AST->forbidden());
   succ &= typecheck(AST->events());
   succ &= typecheck(AST->order());
+
+  if (AST->forbidden())
+    succ &= typecheck(AST->forbidden());
   if (AST->constraints())
     succ &= typecheck(AST->constraints());
   if (AST->requiresBlock())
