@@ -6,7 +6,7 @@ using namespace std;
 
 bool typecheck(CrySLParser::ObjectDeclContext *decl) {
   auto name = decl->Ident()->getText();
-  auto typeNname = decl->typeName()->getText();
+  auto typeName = decl->typeName()->getText();
   if (DefinedObjects.count(name)) {
     cerr << Position(decl) << ": An object with the name '" << name
          << "' is already defined" << endl;
@@ -22,5 +22,6 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::ObjectsContext *objs) {
   for (auto decl : objs->objectDecl()) {
     succ &= typecheck(decl);
   }
+  return succ;
 }
 } // namespace CCPP
