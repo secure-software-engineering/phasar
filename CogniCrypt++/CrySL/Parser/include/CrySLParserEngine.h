@@ -13,7 +13,7 @@ class CrySLParserEngine {
 public:
   CrySLParserEngine(std::vector<std::string> &&CrySL_FileNames);
   bool parseAndTypecheck();
-  decltype(ASTs) &getAllASTs();
+  const decltype(ASTs) &getAllASTs() const;
   decltype(ASTs) &&getAllASTs();
 };
 } // namespace CCPP

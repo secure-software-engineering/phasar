@@ -5,8 +5,8 @@ namespace Types {
 ArrayType::ArrayType(std::shared_ptr<Type> &underlying, long long length)
     : PointerType(underlying), length(length) {}
 long long ArrayType::getArrayLength() const { return length; }
-virtual bool ArrayType::isArrayType() const override { return true; }
-virtual bool ArrayType::equivalent(Type *other) const override {
+bool ArrayType::isArrayType() const { return true; }
+bool ArrayType::equivalent(Type *other) const {
   if (other->isArrayType() && this->PointerType::equivalent(other)) {
     return length == ((ArrayType *)other)->getArrayLength();
   }

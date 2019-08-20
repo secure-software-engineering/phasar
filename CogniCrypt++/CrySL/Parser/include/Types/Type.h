@@ -12,7 +12,7 @@ protected:
   Type(const std::string &name, bool isConst) : Name(name), isConst(isConst) {}
 
 public:
-  enum class PrimitiveType {
+  enum PrimitiveType {
     NONE,
     BOOL,
     CHAR,

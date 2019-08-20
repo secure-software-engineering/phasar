@@ -5,8 +5,9 @@
 namespace CCPP {
 using namespace std;
 
-bool typecheck(std::unordered_map<std::string, std::shared_ptr<Type>>
-                   &DefinedObjects CrySLParser::ObjectDeclContext *decl) {
+bool typecheck(
+    std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects,
+    CrySLParser::ObjectDeclContext *decl) {
   auto name = decl->Ident()->getText();
   if (DefinedObjects.count(name)) {
     cerr << Position(decl) << ": An object with the name '" << name
@@ -21,7 +22,7 @@ bool typecheck(std::unordered_map<std::string, std::shared_ptr<Type>>
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::ObjectsContext *objs) {
   bool succ = true;
   for (auto decl : objs->objectDecl()) {
-    succ &= typecheck(this->DefinedObjects, decl);
+    succ &= ::CCPP::typecheck(this->DefinedObjects, decl);
   }
   return succ;
 }

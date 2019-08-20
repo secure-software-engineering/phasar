@@ -9,7 +9,7 @@ class PointerType : public Type {
 public:
   PointerType(std::shared_ptr<Type> &underlying);
   virtual bool isPointerType() const override;
-  std::shared_ptr<Type> &getPointerElementType() const;
+  const std::shared_ptr<Type> &getPointerElementType() const;
   virtual bool equivalent(Type *other) const override;
   virtual bool canBeAssignedTo(Type *other) const override;
 };

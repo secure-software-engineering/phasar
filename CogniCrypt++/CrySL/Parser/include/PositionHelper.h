@@ -8,7 +8,7 @@ struct Position {
   Position(antlr4::ParserRuleContext *p) {
     if (p) {
       line = p->getStart()->getLine();
-      column = p->getStart()->getColumn();
+      column = p->getStart()->getCharPositionInLine();
     } else {
       line = column = 0;
     }
@@ -16,7 +16,7 @@ struct Position {
   Position(antlr4::tree::TerminalNode *t) {
     if (t) {
       line = t->getSymbol()->getLine();
-      column = t->getSymbol()->getColumn();
+      column = t->getSymbol()->getCharPositionInLine();
     } else {
       line = column = 0;
     }

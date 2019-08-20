@@ -1,4 +1,6 @@
 #include "TypeParser.h"
+#include <Types/BaseType.h>
+#include <Types/PointerType.h>
 
 namespace CCPP {
 using namespace Types;
@@ -32,7 +34,7 @@ Type::PrimitiveType parsePrimitive(CrySLParser::PrimitiveTypeNameContext *ctx) {
   else if (ctx->longlongTy)
     ret = Type::PrimitiveType::ULONGLONG;
   if (!ctx->unsignedInt)
-    ret = ret - 1;
+    ret = (Type::PrimitiveType)(ret - 1);
   return ret;
 }
 
@@ -40,10 +42,12 @@ std::shared_ptr<Type> getOrCreateType(CrySLParser::TypeNameContext *ctx,
                                       bool isConst) {
   std::shared_ptr<Type> ty;
   if (ctx->qualifiedName()) {
+    auto name = ctx->qualifiedName()->getText();
     ty = std::shared_ptr<Type>((Type *)new BaseType(name, isConst));
   } else {
     auto prim = parsePrimitive(ctx->primitiveTypeName());
-    ty = std::shared_ptr<Type>((Type *)new BasicType(name, prim));
+    auto name = ctx->primitiveTypeName()->getText();
+    ty = std::shared_ptr<Type>((Type *)new BaseType(name, prim));
   }
   auto ptrCount = ctx->ptr().size();
   for (size_t i = 0; i < ptrCount; ++i) {

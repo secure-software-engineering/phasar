@@ -1,11 +1,13 @@
-#include "CrySLParserEngine.h"
-#include "CrySLLexer.h"
+#include <CrySLLexer.h>
+#include <CrySLParserEngine.h>
 #include <antlr4-runtime.h>
 #include <fstream>
 #include <future>
 #include <tuple>
+
 namespace CCPP {
 using namespace std;
+using namespace antlr4;
 
 CrySLParserEngine::CrySLParserEngine(vector<string> &&CrySL_FileNames)
     : FileNames(move(CrySL_FileNames)) {}
@@ -35,6 +37,12 @@ bool CrySLParserEngine::parseAndTypecheck() {
   }
   return succ;
 }
-decltype(ASTs) &CrySLParserEngine::getAllASTs() { return ASTs; }
-decltype(ASTs) &&CrySLParserEngine::getAllASTs() { return std::move(ASTs); }
+const decltype(CrySLParserEngine::ASTs) &
+CrySLParserEngine::CrySLParserEngine::getAllASTs() const {
+  return ASTs;
+}
+decltype(CrySLParserEngine::ASTs) &&
+CrySLParserEngine::CrySLParserEngine::getAllASTs() {
+  return std::move(ASTs);
+}
 } // namespace CCPP

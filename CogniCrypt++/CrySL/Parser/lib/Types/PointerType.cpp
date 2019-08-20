@@ -8,18 +8,18 @@ namespace Types {
 PointerType::PointerType(std::shared_ptr<Type> &underlying)
     : Type(underlying->getName() + "*", false), underlying(underlying) {}
 
-virtual bool PointerType::isPointerType() const override { return true; }
-std::shared_ptr<Type> &PointerType::getPointerElementType() const {
+bool PointerType::isPointerType() const { return true; }
+const std::shared_ptr<Type> &PointerType::getPointerElementType() const {
   return underlying;
 }
-virtual bool PointerType::equivalent(Type *other) const override {
+bool PointerType::equivalent(Type *other) const {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;
     return underlying->equivalent(ty->underlying.get());
   }
   return false;
 }
-virtual bool PointerType::canBeAssignedTo(Type *other) const override {
+bool PointerType::canBeAssignedTo(Type *other) const {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;
     // assign every pointer to void*

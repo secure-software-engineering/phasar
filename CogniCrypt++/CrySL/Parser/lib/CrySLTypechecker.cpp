@@ -6,7 +6,7 @@ bool CrySLTypechecker::typecheck() {
   bool succ = true;
   std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
   std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
-  for (auto ast : AST) {
+  for (auto ast : ASTs) {
     CrySLSpec spec(ast);
     if (succ = spec.typecheck()) {
       EnsuredPreds.insert(EnsuredPreds.end(), spec.ensuredPredicates().begin(),
@@ -24,12 +24,13 @@ bool CrySLTypechecker::typecheck() {
   return succ;
 }
 
-CrySLTypechecker(std::vector<CrySLParser::DomainModelContext *> &ASTs)
+CrySLTypechecker::CrySLTypechecker(
+    std::vector<CrySLParser::DomainModelContext *> &ASTs)
     : ASTs(ASTs) {}
 
 // CrySL Spec
 
-bool CrySLTypeChecker::CrySLSpec::typecheck() {
+bool CrySLTypechecker::CrySLSpec::typecheck() {
   bool succ = true;
   succ &= typecheck(AST->objects());
   succ &= typecheck(AST->events());
@@ -50,15 +51,15 @@ bool CrySLTypeChecker::CrySLSpec::typecheck() {
 }
 
 const std::vector<CrySLParser::EnsPredContext *> &
-CrySLTypeChecker::CrySLSpec::ensuredPredicates() const {
+CrySLTypechecker::CrySLSpec::ensuredPredicates() const {
   return this->EnsuredPreds;
 }
 const std::vector<CrySLParser::ReqPredContext *> &
-CrySLTypeChecker::CrySLSpec::requiredPredicates() const {
+CrySLTypechecker::CrySLSpec::requiredPredicates() const {
   return this->RequiredPreds;
 }
 const std::vector<CrySLParser::EnsPredContext *> &
-CrySLTypeChecker::CrySLSpec::negatedPredicates() const {
+CrySLTypechecker::CrySLSpec::negatedPredicates() const {
   return this->NegatedPreds;
 }
 } // namespace CCPP
