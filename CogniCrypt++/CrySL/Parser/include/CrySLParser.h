@@ -22,8 +22,8 @@ public:
     T__44 = 45, T__45 = 46, T__46 = 47, T__47 = 48, T__48 = 49, T__49 = 50, 
     T__50 = 51, T__51 = 52, T__52 = 53, T__53 = 54, T__54 = 55, T__55 = 56, 
     T__56 = 57, T__57 = 58, T__58 = 59, T__59 = 60, T__60 = 61, T__61 = 62, 
-    Int = 63, Double = 64, Char = 65, Bool = 66, String = 67, Ident = 68, 
-    COMMENT = 69, LINE_COMMENT = 70, WS = 71
+    T__62 = 63, Int = 64, Double = 65, Char = 66, Bool = 67, String = 68, 
+    Ident = 69, COMMENT = 70, LINE_COMMENT = 71, WS = 72
   };
 
   enum {
@@ -504,6 +504,7 @@ public:
   class  EventsOccurenceContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *eventName = nullptr;;
+    antlr4::Token *returnValue = nullptr;;
     antlr4::Token *methodName = nullptr;;
     EventsOccurenceContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;

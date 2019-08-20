@@ -90,7 +90,7 @@ litList: literal (',' (literal | ellipsis = '...'))*;
 //Events section starts
 events: 'EVENTS' eventsOccurence+;
 eventsOccurence:
-	eventName = Ident ':' methodName = Ident '(' parametersList? ')' ';';
+	eventName = Ident ':' (returnValue = Ident '=')? methodName = Ident '(' parametersList? ')' ';';
 parametersList: param (',' param)*;
 param: memberAccess | thisPtr = 'this' | wildCard = '_';
 

@@ -32,22 +32,22 @@ Type::PrimitiveType parsePrimitive(CrySLParser::PrimitiveTypeNameContext *ctx) {
   else if (ctx->longlongTy)
     ret = Type::PrimitiveType::ULONGLONG;
   if (!ctx->unsignedInt)
-    ret--;
+    ret = ret - 1;
   return ret;
 }
 
 std::shared_ptr<Type> getOrCreateType(CrySLParser::TypeNameContext *ctx,
                                       bool isConst) {
-  shared_ptr<Type> ty;
+  std::shared_ptr<Type> ty;
   if (ctx->qualifiedName()) {
-    ty = std::shared_ptr<Type>(new BaseType(name, isConst));
+    ty = std::shared_ptr<Type>((Type *)new BaseType(name, isConst));
   } else {
     auto prim = parsePrimitive(ctx->primitiveTypeName());
-    ty = std::shared_ptr<Type>(new BasicType(name, prim));
+    ty = std::shared_ptr<Type>((Type *)new BasicType(name, prim));
   }
   auto ptrCount = ctx->ptr().size();
   for (size_t i = 0; i < ptrCount; ++i) {
-    ty = std::shared_ptr<Type>(new PointerType(ty));
+    ty = std::shared_ptr<Type>((Type *)new PointerType(ty));
   }
   return ty;
 }

@@ -1,5 +1,6 @@
-#include "PointerType.h"
-#include "BaseType.h"
+#include <Types/BaseType.h>
+#include <Types/PointerType.h>
+
 namespace CCPP {
 namespace Types {
 
@@ -14,7 +15,7 @@ std::shared_ptr<Type> &PointerType::getPointerElementType() const {
 virtual bool PointerType::equivalent(Type *other) const override {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;
-    return underlying->equivalent(ty->underlying);
+    return underlying->equivalent(ty->underlying.get());
   }
   return false;
 }
@@ -23,19 +24,19 @@ virtual bool PointerType::canBeAssignedTo(Type *other) const override {
     auto ty = (PointerType *)other;
     // assign every pointer to void*
     if (ty->underlying->isPrimitiveType()) {
-      auto prim = ((BaseType *)ty->underlying)->getPrimitiveType();
+      auto prim = ((BaseType *)ty->underlying.get())->getPrimitiveType();
       if (prim == Type::PrimitiveType::VOID)
         return true;
     }
     // assign nullptr or NULL to every pointer
     else if (underlying->isPrimitiveType()) {
-      auto prim = ((BaseType *)underlying)->getPrimitiveType();
+      auto prim = ((BaseType *)underlying.get())->getPrimitiveType();
       if (prim == Type::PrimitiveType::NULL_T)
         return true;
     } else if (underlying->isConstant()) // covariance only with constant types
-      return underlying->canBeAssignedTo(ty->underlying);
+      return underlying->canBeAssignedTo(ty->underlying.get());
     else
-      return underlying->equivalent(ty->underlying);
+      return underlying->equivalent(ty->underlying.get());
   }
   return false;
 }

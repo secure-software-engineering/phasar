@@ -1,11 +1,12 @@
-#include "CrySLTypechecker.h"
-#include "PositionHelper.h"
-#include "TypeParser.h"
+#include <CrySLTypechecker.h>
+#include <PositionHelper.h>
+#include <TypeParser.h>
 
 namespace CCPP {
 using namespace std;
 
-bool typecheck(CrySLParser::ObjectDeclContext *decl) {
+bool typecheck(std::unordered_map<std::string, std::shared_ptr<Type>>
+                   &DefinedObjects CrySLParser::ObjectDeclContext *decl) {
   auto name = decl->Ident()->getText();
   if (DefinedObjects.count(name)) {
     cerr << Position(decl) << ": An object with the name '" << name
@@ -20,7 +21,7 @@ bool typecheck(CrySLParser::ObjectDeclContext *decl) {
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::ObjectsContext *objs) {
   bool succ = true;
   for (auto decl : objs->objectDecl()) {
-    succ &= typecheck(decl);
+    succ &= typecheck(this->DefinedObjects, decl);
   }
   return succ;
 }
