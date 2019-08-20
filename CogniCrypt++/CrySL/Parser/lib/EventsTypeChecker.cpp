@@ -32,6 +32,13 @@ bool CCPP::CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext* ev
 
 	for (auto event : evt->eventsOccurence()) {
 		auto eventName = event->eventName->getText();
+
+		if (!event->returnValue) {
+			if (!DefinedObjects.count(event->returnValue->getText())) {
+				return false;
+			}
+		}
+
 		if (DefinedEvents.count(eventName)) {
 			result = checkEventObjects(event->parametersList(), DefinedObjects);
 		}
