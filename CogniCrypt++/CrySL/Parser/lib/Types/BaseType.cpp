@@ -30,5 +30,16 @@ bool BaseType::canBeAssignedTo(Type *other) const {
   }
 }
 
+shared_ptr<const Type>
+BaseType::join(const shared_ptr<const Type> &other) const {
+  if (prim == PrimitiveType::NONE || !other->isPrimitiveType()) {
+    // TODO: report proper error value
+    return this->Type::join(other);
+  }
+  auto otherPrim = ((BaseType *)other.get())->getPrimitiveType();
+  // TODO: be more precise here
+  return prim >= otherPrim ? getShared() : other;
+}
+
 } // namespace Types
 } // namespace CCPP

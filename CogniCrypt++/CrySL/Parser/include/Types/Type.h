@@ -1,10 +1,11 @@
 #pragma once
+#include <memory>
 #include <string>
 
 namespace CCPP {
 namespace Types {
 /// \brief The root of the type hierarchy
-class Type {
+class Type : public std::enable_shared_from_this<Type> {
   const std::string Name;
   const bool isConst;
 
@@ -23,15 +24,18 @@ public:
     UINT,
     LONG,
     ULONG,
+    SIZE_T,
     LONGLONG,
     ULONGLONG,
     FLOAT,
     DOUBLE,
     LONGDOUBLE,
-    SIZE_T,
     VOID,
     NULL_T
   };
+  const std::shared_ptr<const Type> getShared() const {
+    return shared_from_this();
+  }
   const std::string &getName() const { return Name; }
   /// \brief a weak for of a subtype relationship
   virtual bool canBeAssignedTo(Type *other) const = 0;
@@ -39,7 +43,12 @@ public:
   virtual bool equivalent(Type *other) const { return this == other; }
   virtual bool isPointerType() const { return false; }
   virtual bool isArrayType() const { return false; };
-  virtual bool isPrimitiveType() const { return false; };
+  virtual bool isPrimitiveType() const { return false; }
+  virtual PrimitiveType getPrimitiveType() const { return PrimitiveType::NONE; }
+  virtual std::shared_ptr<const Type>
+  join(const std::shared_ptr<const Type> &other) const {
+    return shared_from_this();
+  }
   bool isConstant() const { return isConst; }
 };
 } // namespace Types
