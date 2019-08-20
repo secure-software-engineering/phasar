@@ -1,14 +1,15 @@
 #pragma once
 #include "Type.h"
+#include <memory>
 namespace CCPP {
 namespace Types {
 class PointerType : public Type {
-  Type *underlying;
+  std::shared_ptr<Type> underlying;
 
 public:
-  PointerType(Type *underlying);
+  PointerType(std::shared_ptr<Type> &underlying);
   virtual bool isPointerType() const override;
-  Type *getPointerElementType() const;
+  shared_ptr<Type> &getPointerElementType() const;
   virtual bool equivalent(Type *other) const override;
   virtual bool canBeAssignedTo(Type *other) const override;
 };

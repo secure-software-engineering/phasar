@@ -7,7 +7,6 @@
 #include <unordered_set>
 #include <vector>
 
-
 namespace CCPP {
 using namespace Types;
 
@@ -19,9 +18,8 @@ class CrySLTypechecker {
     std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
     std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
     // objects: name -> typename
-    // TODO: is it ok to only save the typename? Or maybe create a more complex
-    // Type-class?
-    std::unordered_map<std::string, std::unique_ptr<Type>> DefinedObjects;
+
+    std::unordered_map<std::string, std::shared_ptr<Type>> DefinedObjects;
     // TODO other context objects;
 
     bool typecheck(CrySLParser::ObjectsContext *objs);

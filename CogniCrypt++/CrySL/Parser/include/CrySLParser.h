@@ -28,16 +28,16 @@ public:
 
   enum {
     RuleDomainModel = 0, RuleSpec = 1, RuleQualifiedName = 2, RuleObjects = 3, 
-    RuleObjectDecl = 4, RulePrimitiveTypeName = 5, RuleTypeName = 6, RuleArray = 7, 
-    RuleRequiresBlock = 8, RuleReqPred = 9, RuleReqPredLit = 10, RulePred = 11, 
-    RuleSuParList = 12, RuleSuPar = 13, RuleConsPred = 14, RuleLiteralExpr = 15, 
-    RuleLiteral = 16, RuleMemberAccess = 17, RulePreDefinedPredicate = 18, 
-    RuleEnsures = 19, RuleEnsPred = 20, RuleConstraints = 21, RuleConstr = 22, 
-    RuleComparingRelOperator = 23, RuleCons = 24, RuleArrayElements = 25, 
-    RuleLitList = 26, RuleEvents = 27, RuleEventsOccurence = 28, RuleParametersList = 29, 
-    RuleParam = 30, RuleOrder = 31, RuleOrderSequence = 32, RuleSimpleOrder = 33, 
-    RuleUnorderdSymbols = 34, RulePrimary = 35, RuleNegates = 36, RuleNegatesOccurence = 37, 
-    RuleForbidden = 38, RuleForbiddenOccurence = 39, RuleFqn = 40, RuleTypeNameList = 41
+    RuleObjectDecl = 4, RulePrimitiveTypeName = 5, RuleTypeName = 6, RulePtr = 7, 
+    RuleArray = 8, RuleRequiresBlock = 9, RuleReqPred = 10, RuleReqPredLit = 11, 
+    RulePred = 12, RuleSuParList = 13, RuleSuPar = 14, RuleConsPred = 15, 
+    RuleLiteralExpr = 16, RuleLiteral = 17, RuleMemberAccess = 18, RulePreDefinedPredicate = 19, 
+    RuleEnsures = 20, RuleEnsPred = 21, RuleConstraints = 22, RuleConstr = 23, 
+    RuleComparingRelOperator = 24, RuleCons = 25, RuleArrayElements = 26, 
+    RuleLitList = 27, RuleEvents = 28, RuleEventsOccurence = 29, RuleParametersList = 30, 
+    RuleParam = 31, RuleOrder = 32, RuleOrderSequence = 33, RuleSimpleOrder = 34, 
+    RuleUnorderdSymbols = 35, RulePrimary = 36, RuleNegates = 37, RuleNegatesOccurence = 38, 
+    RuleForbidden = 39, RuleForbiddenOccurence = 40, RuleFqn = 41, RuleTypeNameList = 42
   };
 
   CrySLParser(antlr4::TokenStream *input);
@@ -57,6 +57,7 @@ public:
   class ObjectDeclContext;
   class PrimitiveTypeNameContext;
   class TypeNameContext;
+  class PtrContext;
   class ArrayContext;
   class RequiresBlockContext;
   class ReqPredContext;
@@ -167,6 +168,11 @@ public:
   public:
     antlr4::Token *booleanType = nullptr;;
     antlr4::Token *unsignedInt = nullptr;;
+    antlr4::Token *charTy = nullptr;;
+    antlr4::Token *shortTy = nullptr;;
+    antlr4::Token *intTy = nullptr;;
+    antlr4::Token *longTy = nullptr;;
+    antlr4::Token *longlongTy = nullptr;;
     antlr4::Token *floatingPoint = nullptr;;
     antlr4::Token *longDouble = nullptr;;
     antlr4::Token *doubleFloat = nullptr;;
@@ -181,16 +187,28 @@ public:
 
   class  TypeNameContext : public antlr4::ParserRuleContext {
   public:
-    antlr4::Token *pointer = nullptr;;
+    CrySLParser::PtrContext *pointer = nullptr;;
     TypeNameContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     QualifiedNameContext *qualifiedName();
     PrimitiveTypeNameContext *primitiveTypeName();
+    std::vector<PtrContext *> ptr();
+    PtrContext* ptr(size_t i);
 
    
   };
 
   TypeNameContext* typeName();
+
+  class  PtrContext : public antlr4::ParserRuleContext {
+  public:
+    PtrContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+
+   
+  };
+
+  PtrContext* ptr();
 
   class  ArrayContext : public antlr4::ParserRuleContext {
   public:

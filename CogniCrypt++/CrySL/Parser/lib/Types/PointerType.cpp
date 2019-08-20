@@ -4,11 +4,13 @@ namespace CCPP {
 namespace Types {
 
 // We decided to not make pointers const
-PointerType::PointerType(Type *underlying)
+PointerType::PointerType(std::shared_ptr<Type> &underlying)
     : Type(underlying->getName() + "*", false), underlying(underlying) {}
 
 virtual bool PointerType::isPointerType() const override { return true; }
-Type *PointerType::getPointerElementType() const { return underlying; }
+std::shared_ptr<Type> &PointerType::getPointerElementType() const {
+  return underlying;
+}
 virtual bool PointerType::equivalent(Type *other) const override {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;

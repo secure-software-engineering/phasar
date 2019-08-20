@@ -25,6 +25,9 @@ public:
     ULONG,
     LONGLONG,
     ULONGLONG,
+    FLOAT,
+    DOUBLE,
+    LONGDOUBLE,
     SIZE_T,
     VOID,
     NULL_T

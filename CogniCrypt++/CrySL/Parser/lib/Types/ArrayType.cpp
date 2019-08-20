@@ -2,7 +2,7 @@
 namespace CCPP {
 namespace Types {
 
-ArrayType::ArrayType(Type *underlying, long long length)
+ArrayType::ArrayType(std::shared_ptr<Type> &underlying, long long length)
     : PointerType(underlying), length(length) {}
 long long ArrayType::getArrayLength() const { return length; }
 virtual bool ArrayType::isArrayType() const override { return true; }

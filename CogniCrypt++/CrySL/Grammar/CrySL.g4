@@ -17,16 +17,17 @@ objectDecl: constModifier = 'const'? typeName Ident array* ';';
 primitiveTypeName:
 	booleanType = 'bool'
 	| unsignedInt = 'unsigned'? (
-		'char'
-		| 'short'
-		| 'int'
-		| 'long'
-		| 'long' 'long'
+		charTy = 'char'
+		| shortTy = 'short'
+		| intTy = 'int'
+		| longTy = 'long'
+		| longlongTy = 'long' 'long'
 	)
 	| floatingPoint = 'float'
 	| longDouble = 'long'? doubleFloat = 'double'
 	| sizeType = 'size_t';
-typeName: (qualifiedName | primitiveTypeName) ( pointer = '*')*;
+typeName: (qualifiedName | primitiveTypeName) ( pointer = ptr)*;
+ptr: '*';
 // C-style arrays
 array: '[' Int ']';
 
