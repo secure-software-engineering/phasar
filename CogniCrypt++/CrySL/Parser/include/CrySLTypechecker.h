@@ -1,10 +1,15 @@
 #pragma once
 
 #include "CrySLParser.h"
+#include "Types/Type.h"
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
+
 namespace CCPP {
+using namespace Types;
 
 class CrySLTypechecker {
   std::vector<CrySLParser::DomainModelContext *> &ASTs;
@@ -16,7 +21,7 @@ class CrySLTypechecker {
     // objects: name -> typename
     // TODO: is it ok to only save the typename? Or maybe create a more complex
     // Type-class?
-    std::unordered_map<std::string, std::string> DefinedObjects;
+    std::unordered_map<std::string, std::unique_ptr<Type>> DefinedObjects;
     // TODO other context objects;
 
     bool typecheck(CrySLParser::ObjectsContext *objs);

@@ -16,7 +16,7 @@ objects: // allow now zero objects too
 objectDecl: constModifier = 'const'? typeName Ident array* ';';
 primitiveTypeName:
 	booleanType = 'bool'
-	| unsignedInt = 'unsigned' (
+	| unsignedInt = 'unsigned'? (
 		'char'
 		| 'short'
 		| 'int'
