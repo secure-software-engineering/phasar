@@ -20,6 +20,8 @@ class CrySLTypechecker {
     // objects: name -> typename
 
     std::unordered_map<std::string, std::shared_ptr<Type>> DefinedObjects;
+
+	std::unordered_set<std::string> DefinedEvents;
     // TODO other context objects;
 
     bool typecheck(CrySLParser::ObjectsContext *objs);
