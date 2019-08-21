@@ -1,6 +1,7 @@
 #include "TypeParser.h"
 #include <Types/BaseType.h>
 #include <Types/PointerType.h>
+#include <vector>
 
 namespace CCPP {
 using namespace Types;
@@ -47,12 +48,23 @@ std::shared_ptr<Type> getOrCreateType(CrySLParser::TypeNameContext *ctx,
   } else {
     auto prim = parsePrimitive(ctx->primitiveTypeName());
     auto name = ctx->primitiveTypeName()->getText();
-    ty = std::shared_ptr<Type>((Type *)new BaseType(name, prim));
+    ty = getOrCreatePrimitive(name, prim);
   }
   auto ptrCount = ctx->ptr().size();
   for (size_t i = 0; i < ptrCount; ++i) {
     ty = std::shared_ptr<Type>((Type *)new PointerType(ty));
   }
   return ty;
+}
+
+std::shared_ptr<Types::Type>
+getOrCreatePrimitive(std::string &name, Types::Type::PrimitiveType prim) {
+  // We have 18 different primitive types (including NONE)
+  static std::vector<std::shared_ptr<Types::Type>> primCache(18, nullptr);
+  auto ret = primCache[prim];
+  if (!ret) {
+    ret = std::shared_ptr<Type>((Type *)new BaseType(name, prim));
+  }
+  return ret;
 }
 } // namespace CCPP

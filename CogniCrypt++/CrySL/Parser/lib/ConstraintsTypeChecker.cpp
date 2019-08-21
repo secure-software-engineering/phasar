@@ -4,11 +4,11 @@
 #include <iostream>
 
 namespace CCPP {
-using namesapce std;
+using namespace std;
 struct ConstraintsTypeChecker {
   const unordered_map<string, shared_ptr<Type>> &DefinedObjects;
   ConstraintsTypeChecker(
-      unordered_map<string, shared_ptr<Type>> &DefinedObjects)
+      const unordered_map<string, shared_ptr<Type>> &DefinedObjects)
       : DefinedObjects(DefinedObjects) {}
 
   shared_ptr<Type> typecheck(CrySLParser::ConstrContext *constr) {
@@ -34,8 +34,7 @@ struct ConstraintsTypeChecker {
     }
     return succ;
   }
-
-}
+};
 
 bool CrySLTypechecker::CrySLSpec::typecheck(
     CrySLParser::ConstraintsContext *constr) {
