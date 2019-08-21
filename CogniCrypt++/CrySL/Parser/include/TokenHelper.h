@@ -1,7 +1,18 @@
 #include <string>
-// TODO implement these methods in lib/TokenHelper.cpp
+/// \brief Parses the int-literal intVal using std::stoll(std::string&)
 long long parseInt(std::string &intVal);
+/// \brief Parses the string-literal stringVal
+///
+/// Removes the double-quotes at the beginning and the end and resolves all
+/// string-escapes (without Hex and Unicode escapes)
 std::string parseString(std::string &stringVal);
+/// \brief Parses the floating-point literal floatVal using
+/// std::stod(std::string&)
 double parseFloat(std::string &floatVal);
+/// \brief Parses the character literal charVal
+///
+/// Removes the single-quotes at the beginning and end and Resolves the
+/// char-escapes (without Hex and Unicode escapes)
 char parseChar(std::string &charVal);
+/// \brief Parses the boolean literal boolVal into true or false
 bool parseBool(std::string &boolVal);

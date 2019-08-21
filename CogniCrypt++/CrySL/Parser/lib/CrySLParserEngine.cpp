@@ -11,6 +11,8 @@ using namespace antlr4;
 
 CrySLParserEngine::CrySLParserEngine(vector<string> &&CrySL_FileNames)
     : FileNames(move(CrySL_FileNames)) {}
+CrySLParserEngine::CrySLParserEngine(const vector<string> &CrySL_FileNames)
+    : FileNames(CrySL_FileNames) {}
 
 bool CrySLParserEngine::parseAndTypecheck() {
   vector<future<tuple<CrySLParser::DomainModelContext *, bool>>> procs;
@@ -34,6 +36,11 @@ bool CrySLParserEngine::parseAndTypecheck() {
       ASTs.push_back(get<0>(result));
     } else
       succ = false;
+  }
+  // TODO make typechecking as parallel as possible
+  if (succ) {
+    CrySLTypechecker ctc(ASTs);
+    succ = ctc.typecheck();
   }
   return succ;
 }

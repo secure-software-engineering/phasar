@@ -1,6 +1,7 @@
 #include "Type.h"
 namespace CCPP {
 namespace Types {
+/// \brief A type representing primitives and struct/class/union types
 class BaseType : public Type {
 
 private:
