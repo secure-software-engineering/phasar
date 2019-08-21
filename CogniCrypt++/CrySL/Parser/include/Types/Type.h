@@ -65,7 +65,7 @@ public:
   /// Note, that it has the same constraints as Type::canBeAssignedTo(Type*).
   virtual std::shared_ptr<const Type>
   join(const std::shared_ptr<const Type> &other) const {
-    return shared_from_this();
+    return nullptr;
   }
   /// \brief True, iff the 'const' modifier is used for this type
   bool isConstant() const { return isConst; }
