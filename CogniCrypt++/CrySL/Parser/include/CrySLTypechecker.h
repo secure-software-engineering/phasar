@@ -52,6 +52,9 @@ class CrySLTypechecker {
     /// \param constr The AST node representing the CONSTRAINTS section
     /// \return True, iff the spec is semantically correct
     bool typecheck(CrySLParser::ConstraintsContext *constr);
+
+
+    bool checkPredicate(CrySLParser::EnsPredContext *ensu);
     /// \brief Helper method for typechecking the REQUIRES section of a CrySL
     /// spec
     ///
