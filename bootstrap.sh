@@ -3,7 +3,7 @@ set -e
 echo "installing phasar dependencies..."
 
 sudo apt-get update
-sudo apt-get install zlib1g-dev libncurses5-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev
+sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
 sudo pip install Pygments
 sudo pip install pyyaml
 # installing boost
@@ -21,8 +21,8 @@ sudo pip3 install wllvm
 echo "dependencies successfully installed"
 echo "build phasar..."
 
-git submodule init
-git submodule update
+#git submodule init
+#git submodule update
 
 export CC=/usr/local/bin/clang
 export CXX=/usr/local/bin/clang++
