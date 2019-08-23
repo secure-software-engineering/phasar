@@ -100,8 +100,8 @@ param: memberAccess | thisPtr = 'this' | wildCard = '_';
 
 order: 'ORDER' orderSequence;
 orderSequence: simpleOrder (',' simpleOrder)*;
-simpleOrder: unorderdSymbols ('|' unorderdSymbols)*;
-unorderdSymbols:
+simpleOrder: unorderedSymbols ('|' unorderedSymbols)*;
+unorderedSymbols:
 	primary (('~' primary)+ ((lower = Int)? '#' (upper = Int)?)?)?;
 primary:
 	eventName = Ident elementop = ('+' | '?' | '*')?

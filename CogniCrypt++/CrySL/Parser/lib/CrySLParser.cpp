@@ -2545,12 +2545,12 @@ CrySLParser::SimpleOrderContext::SimpleOrderContext(ParserRuleContext *parent, s
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<CrySLParser::UnorderdSymbolsContext *> CrySLParser::SimpleOrderContext::unorderdSymbols() {
-  return getRuleContexts<CrySLParser::UnorderdSymbolsContext>();
+std::vector<CrySLParser::UnorderedSymbolsContext *> CrySLParser::SimpleOrderContext::unorderedSymbols() {
+  return getRuleContexts<CrySLParser::UnorderedSymbolsContext>();
 }
 
-CrySLParser::UnorderdSymbolsContext* CrySLParser::SimpleOrderContext::unorderdSymbols(size_t i) {
-  return getRuleContext<CrySLParser::UnorderdSymbolsContext>(i);
+CrySLParser::UnorderedSymbolsContext* CrySLParser::SimpleOrderContext::unorderedSymbols(size_t i) {
+  return getRuleContext<CrySLParser::UnorderedSymbolsContext>(i);
 }
 
 
@@ -2570,7 +2570,7 @@ CrySLParser::SimpleOrderContext* CrySLParser::simpleOrder() {
   try {
     enterOuterAlt(_localctx, 1);
     setState(428);
-    unorderdSymbols();
+    unorderedSymbols();
     setState(433);
     _errHandler->sync(this);
     _la = _input->LA(1);
@@ -2578,7 +2578,7 @@ CrySLParser::SimpleOrderContext* CrySLParser::simpleOrder() {
       setState(429);
       match(CrySLParser::T__57);
       setState(430);
-      unorderdSymbols();
+      unorderedSymbols();
       setState(435);
       _errHandler->sync(this);
       _la = _input->LA(1);
@@ -2594,37 +2594,37 @@ CrySLParser::SimpleOrderContext* CrySLParser::simpleOrder() {
   return _localctx;
 }
 
-//----------------- UnorderdSymbolsContext ------------------------------------------------------------------
+//----------------- UnorderedSymbolsContext ------------------------------------------------------------------
 
-CrySLParser::UnorderdSymbolsContext::UnorderdSymbolsContext(ParserRuleContext *parent, size_t invokingState)
+CrySLParser::UnorderedSymbolsContext::UnorderedSymbolsContext(ParserRuleContext *parent, size_t invokingState)
   : ParserRuleContext(parent, invokingState) {
 }
 
-std::vector<CrySLParser::PrimaryContext *> CrySLParser::UnorderdSymbolsContext::primary() {
+std::vector<CrySLParser::PrimaryContext *> CrySLParser::UnorderedSymbolsContext::primary() {
   return getRuleContexts<CrySLParser::PrimaryContext>();
 }
 
-CrySLParser::PrimaryContext* CrySLParser::UnorderdSymbolsContext::primary(size_t i) {
+CrySLParser::PrimaryContext* CrySLParser::UnorderedSymbolsContext::primary(size_t i) {
   return getRuleContext<CrySLParser::PrimaryContext>(i);
 }
 
-std::vector<tree::TerminalNode *> CrySLParser::UnorderdSymbolsContext::Int() {
+std::vector<tree::TerminalNode *> CrySLParser::UnorderedSymbolsContext::Int() {
   return getTokens(CrySLParser::Int);
 }
 
-tree::TerminalNode* CrySLParser::UnorderdSymbolsContext::Int(size_t i) {
+tree::TerminalNode* CrySLParser::UnorderedSymbolsContext::Int(size_t i) {
   return getToken(CrySLParser::Int, i);
 }
 
 
-size_t CrySLParser::UnorderdSymbolsContext::getRuleIndex() const {
-  return CrySLParser::RuleUnorderdSymbols;
+size_t CrySLParser::UnorderedSymbolsContext::getRuleIndex() const {
+  return CrySLParser::RuleUnorderedSymbols;
 }
 
 
-CrySLParser::UnorderdSymbolsContext* CrySLParser::unorderdSymbols() {
-  UnorderdSymbolsContext *_localctx = _tracker.createInstance<UnorderdSymbolsContext>(_ctx, getState());
-  enterRule(_localctx, 70, CrySLParser::RuleUnorderdSymbols);
+CrySLParser::UnorderedSymbolsContext* CrySLParser::unorderedSymbols() {
+  UnorderedSymbolsContext *_localctx = _tracker.createInstance<UnorderedSymbolsContext>(_ctx, getState());
+  enterRule(_localctx, 70, CrySLParser::RuleUnorderedSymbols);
   size_t _la = 0;
 
   auto onExit = finally([=] {
@@ -2664,7 +2664,7 @@ CrySLParser::UnorderdSymbolsContext* CrySLParser::unorderdSymbols() {
         _la = _input->LA(1);
         if (_la == CrySLParser::Int) {
           setState(443);
-          dynamic_cast<UnorderdSymbolsContext *>(_localctx)->lower = match(CrySLParser::Int);
+          dynamic_cast<UnorderedSymbolsContext *>(_localctx)->lower = match(CrySLParser::Int);
         }
         setState(446);
         match(CrySLParser::T__59);
@@ -2674,7 +2674,7 @@ CrySLParser::UnorderdSymbolsContext* CrySLParser::unorderdSymbols() {
         _la = _input->LA(1);
         if (_la == CrySLParser::Int) {
           setState(447);
-          dynamic_cast<UnorderdSymbolsContext *>(_localctx)->upper = match(CrySLParser::Int);
+          dynamic_cast<UnorderedSymbolsContext *>(_localctx)->upper = match(CrySLParser::Int);
         }
       }
     }
@@ -3164,7 +3164,7 @@ std::vector<std::string> CrySLParser::_ruleNames = {
   "preDefinedPredicate", "ensures", "ensPred", "constraints", "constr", 
   "comparingRelOperator", "cons", "arrayElements", "litList", "events", 
   "eventsOccurence", "parametersList", "param", "order", "orderSequence", 
-  "simpleOrder", "unorderdSymbols", "primary", "negates", "negatesOccurence", 
+  "simpleOrder", "unorderedSymbols", "primary", "negates", "negatesOccurence", 
   "forbidden", "forbiddenOccurence", "fqn", "typeNameList"
 };
 

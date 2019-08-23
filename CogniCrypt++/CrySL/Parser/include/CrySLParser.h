@@ -36,7 +36,7 @@ public:
     RuleComparingRelOperator = 24, RuleCons = 25, RuleArrayElements = 26, 
     RuleLitList = 27, RuleEvents = 28, RuleEventsOccurence = 29, RuleParametersList = 30, 
     RuleParam = 31, RuleOrder = 32, RuleOrderSequence = 33, RuleSimpleOrder = 34, 
-    RuleUnorderdSymbols = 35, RulePrimary = 36, RuleNegates = 37, RuleNegatesOccurence = 38, 
+    RuleUnorderedSymbols = 35, RulePrimary = 36, RuleNegates = 37, RuleNegatesOccurence = 38, 
     RuleForbidden = 39, RuleForbiddenOccurence = 40, RuleFqn = 41, RuleTypeNameList = 42
   };
 
@@ -85,7 +85,7 @@ public:
   class OrderContext;
   class OrderSequenceContext;
   class SimpleOrderContext;
-  class UnorderdSymbolsContext;
+  class UnorderedSymbolsContext;
   class PrimaryContext;
   class NegatesContext;
   class NegatesOccurenceContext;
@@ -569,19 +569,19 @@ public:
   public:
     SimpleOrderContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
-    std::vector<UnorderdSymbolsContext *> unorderdSymbols();
-    UnorderdSymbolsContext* unorderdSymbols(size_t i);
+    std::vector<UnorderedSymbolsContext *> unorderedSymbols();
+    UnorderedSymbolsContext* unorderedSymbols(size_t i);
 
    
   };
 
   SimpleOrderContext* simpleOrder();
 
-  class  UnorderdSymbolsContext : public antlr4::ParserRuleContext {
+  class  UnorderedSymbolsContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *lower = nullptr;;
     antlr4::Token *upper = nullptr;;
-    UnorderdSymbolsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    UnorderedSymbolsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     std::vector<PrimaryContext *> primary();
     PrimaryContext* primary(size_t i);
@@ -591,7 +591,7 @@ public:
    
   };
 
-  UnorderdSymbolsContext* unorderdSymbols();
+  UnorderedSymbolsContext* unorderedSymbols();
 
   class  PrimaryContext : public antlr4::ParserRuleContext {
   public:
