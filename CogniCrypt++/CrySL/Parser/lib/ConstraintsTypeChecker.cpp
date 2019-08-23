@@ -73,7 +73,7 @@ shared_ptr<Type> ConstraintsTypeChecker::typecheckArithCompBinary(
 
 shared_ptr<Type>
 ConstraintsTypeChecker::typecheck(CrySLParser::ConstrContext *constr) {
-  // TODO typecheck constraints
+  //  typecheck constraints
   auto sub_constrs = constr->constr();
   if (sub_constrs.size() == 2) {
     if (constr->implies) {
