@@ -24,7 +24,7 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
   for (auto simord : order->orderSequence()->simpleOrder()) {
     for (auto unordsym : simord->unorderedSymbols()) {
       for (auto primcon : unordsym->primary()) {
-        result = checkEvent(primcon, DefinedObjects);
+        result &= checkEvent(primcon, DefinedObjects);
       }
     }
   }
