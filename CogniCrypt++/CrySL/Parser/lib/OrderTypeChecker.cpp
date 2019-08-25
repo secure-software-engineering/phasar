@@ -10,12 +10,11 @@ namespace CCPP {
 bool checkEventAndSymbols(
     CrySLParser::PrimaryContext *primaryContext,
     std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects) {
-  bool result = true;
+  
   if (!DefinedObjects.count(primaryContext->eventName->getText())) {
     std::cerr << Position(primaryContext)
               << ": event is not defined in EVENTS section" << std::endl;
-    result=false;
-    return result;
+    return false;
   }
 
   if(primaryContext-> eventTop->getText() == '+' || 
@@ -26,22 +25,33 @@ bool checkEventAndSymbols(
         }
   else{   std::cerr << Position(primaryContext)
               << ": symbol is not defined" << std::endl;
-              result=false;
+              return false;
         }
-    return result;
+    return true;
 }
 
 book checkBound(CrySLParser::UnorderedSymbolsContext *unorderedSymbolsContext,
     std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects){
-        bool result=true;
+    for (auto lowerIdent : unorderedSymbolsContext->lower->Ident()){
 
-        if!(unorderedSymbolsContext->lower->Ident()){
+          if (!DefinedObjects.count(lowerIdent->getText()))
+					{
+						std::cerr << Position(lowerIdent) << ": is not defined for this section" << std::endl;
+						return false;
+					}
             
         }
-         
 
+        for (auto upperIdent : unorderedSymbolsContext->upper->Ident()){
 
-        return result;
+          if (!DefinedObjects.count(upperIdent->getText()))
+					{
+						std::cerr << Position(upperIdent) << ": is not defined for this section" << std::endl;
+						return false;
+					}
+            
+        }
+       return true;
     }
 
 bool checkSymbols(
@@ -52,16 +62,27 @@ bool checkSymbols(
 
 }
 
+bool isEventCalled(
+  CrySLParser::PrimaryContext *primaryContext ,
+   std::unordered_set<std::string> &DefinedEvents){
+     if (!DefinedEvents.count(primaryContext->eventName->getText())) {
+      std::cerr << Position(primaryContext)
+              << ": event is defined in EVENTS section but not called in ORDER section" << std::endl;
+      return false;
+     }
+   }
+
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
   bool result = true;
   for (auto simpleOrder : order->orderSequence()->simpleOrder()) {
     for (auto unorderedSymbolsContext : simpleOrder->unorderedSymbols()) {
+      bool result1 &= checkBound(unorderedSymbolsContext, DefinedObjects);
       for (auto primaryContext : unorderedSymbolsContext->primary()) {
-        result &= checkEventAndSymbols(primaryContext, DefinedObjects);
+        bool result2 &= checkEventAndSymbols(primaryContext, DefinedObjects);
       }
     }
   }
-
+  result = result1 && result2;
   return result;
 }
 
