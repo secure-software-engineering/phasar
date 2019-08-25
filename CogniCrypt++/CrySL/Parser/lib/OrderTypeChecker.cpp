@@ -17,9 +17,9 @@ bool checkEventAndSymbols(
     return false;
   }
 
-  if(primaryContext-> eventTop->getText() == '+' || 
-      primaryContext-> eventTop->getText() == '*' || 
-      primaryContext-> eventTop->getText() == '?'){
+  if(primaryContext-> elementop->getText() == '+' || 
+      primaryContext-> elementop->getText() == '*' || 
+      primaryContext-> elementop->getText() == '?'){
           std:out <<Position(primaryContext)
               << ": symbol is defined" << std::endl;
         }
