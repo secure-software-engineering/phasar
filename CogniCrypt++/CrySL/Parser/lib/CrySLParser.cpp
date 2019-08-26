@@ -2667,7 +2667,7 @@ CrySLParser::UnorderedSymbolsContext* CrySLParser::unorderedSymbols() {
           dynamic_cast<UnorderedSymbolsContext *>(_localctx)->lower = match(CrySLParser::Int);
         }
         setState(446);
-        match(CrySLParser::T__59);
+        dynamic_cast<UnorderedSymbolsContext *>(_localctx)->bound = match(CrySLParser::T__59);
         setState(448);
         _errHandler->sync(this);
 

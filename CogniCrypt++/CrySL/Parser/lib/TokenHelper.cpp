@@ -3,9 +3,10 @@
 #include <sstream>
 #include <string>
 #include <string_view>
+namespace CCPP {
 using namespace std;
-long long parseInt(string &intVal) { return stoll(intVal); }
-string parseString(string &stringVal) {
+long long parseInt(const string &intVal) { return stoll(intVal); }
+const string parseString(const string &stringVal) {
   string_view strLit = string_view(stringVal).substr(1, stringVal.size() - 2);
   stringstream ss;
 
@@ -57,8 +58,8 @@ string parseString(string &stringVal) {
   }
   return ss.str();
 }
-double parseFloat(string &floatVal) { return stod(floatVal); }
-char parseChar(string &charVal) {
+double parseFloat(const string &floatVal) { return stod(floatVal); }
+char parseChar(const string &charVal) {
   auto charLit = string_view(charVal).substr(1, charVal.size() - 2);
   if (charLit.size() == 1) {
     return charLit[0];
@@ -86,8 +87,9 @@ char parseChar(string &charVal) {
     return charLit[1];
   }
 }
-bool parseBool(string &boolVal) {
+bool parseBool(const string &boolVal) {
   if (boolVal == "true")
     return true;
   return false;
 }
+} // namespace CCPP

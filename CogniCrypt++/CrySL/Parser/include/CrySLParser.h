@@ -580,6 +580,7 @@ public:
   class  UnorderedSymbolsContext : public antlr4::ParserRuleContext {
   public:
     antlr4::Token *lower = nullptr;;
+    antlr4::Token *bound = nullptr;;
     antlr4::Token *upper = nullptr;;
     UnorderedSymbolsContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;

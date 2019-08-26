@@ -10,18 +10,14 @@ struct Position {
   /// \brief The column number
   int column;
   Position(int line, int col) : line(line), column(col) {}
-  Position(antlr4::ParserRuleContext *p) {
-    if (p) {
-      line = p->getStart()->getLine();
-      column = p->getStart()->getCharPositionInLine();
-    } else {
-      line = column = 0;
-    }
-  }
-  Position(antlr4::tree::TerminalNode *t) {
-    if (t) {
-      line = t->getSymbol()->getLine();
-      column = t->getSymbol()->getCharPositionInLine();
+  Position(antlr4::ParserRuleContext *p)
+      : Position(p ? p->getStart() : nullptr) {}
+  Position(antlr4::tree::TerminalNode *t)
+      : Position(t ? t->getSymbol() : nullptr) {}
+  Position(antlr4::Token *tok) {
+    if (tok) {
+      line = tok->getLine();
+      column = tok->getCharPositionInLine();
     } else {
       line = column = 0;
     }

@@ -1,5 +1,6 @@
 #include <CrySLTypechecker.h>
 #include <ErrorHelper.h>
+#include <TokenHelper.h>
 #include <TypeParser.h>
 #include <Types/Type.h>
 #include <iostream>
@@ -10,79 +11,52 @@ namespace CCPP {
 bool checkEventAndSymbols(
     CrySLParser::PrimaryContext *primaryContext,
     std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects) {
-  
+
   if (!DefinedObjects.count(primaryContext->eventName->getText())) {
-    std::cerr << Position(primaryContext)
-              << ": event is not defined in EVENTS section" << std::endl;
+    std::cerr << Position(primaryContext) << ": The event '"
+              << primaryContext->eventName->getText()
+              << "' is not defined in EVENTS section" << std::endl;
     return false;
   }
 
-  if(primaryContext-> elementop->getText() == '+' || 
-      primaryContext-> elementop->getText() == '*' || 
-      primaryContext-> elementop->getText() == '?'){
-          std:out <<Position(primaryContext)
-              << ": symbol is defined" << std::endl;
-        }
-  else{   std::cerr << Position(primaryContext)
-              << ": symbol is not defined" << std::endl;
-              return false;
-        }
-    return true;
+  return true;
 }
 
-book checkBound(CrySLParser::UnorderedSymbolsContext *unorderedSymbolsContext,
-    std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects){
-    for (auto lowerIdent : unorderedSymbolsContext->lower->Ident()){
+bool checkBound(CrySLParser::UnorderedSymbolsContext *uno) {
+  bool succ = true;
+  if (uno->bound) {
+    long long lo, hi;
+    long long max_hi = (long long)uno->primary().size();
+    lo = uno->lower ? parseInt(uno->lower->getText()) : 0;
+    hi = uno->upper ? parseInt(uno->upper->getText()) : max_hi;
 
-          if (!DefinedObjects.count(lowerIdent->getText()))
-					{
-						std::cerr << Position(lowerIdent) << ": is not defined for this section" << std::endl;
-						return false;
-					}
-            
-        }
-
-        for (auto upperIdent : unorderedSymbolsContext->upper->Ident()){
-
-          if (!DefinedObjects.count(upperIdent->getText()))
-					{
-						std::cerr << Position(upperIdent) << ": is not defined for this section" << std::endl;
-						return false;
-					}
-            
-        }
-       return true;
+    if (lo > hi) {
+      std::cerr << Position(uno->bound)
+                << ": The lower bound must not be greater than the upper bound"
+                << std::endl;
+      succ = false;
     }
-
-bool checkSymbols(
-    CrySLParser::PrimaryContext *primaryContext,
-    std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects) {
-   bool result= true;
-   if(!DefinedObject.count(primaryContext->elementTop))     
-
+    if (hi > max_hi) {
+      std::cerr << Position(uno->upper)
+                << ": The upper bound must not be greater than the number of "
+                   "primary expressions in the unordered set"
+                << std::endl;
+      succ = false;
+    }
+  }
+  return succ;
 }
-
-bool isEventCalled(
-  CrySLParser::PrimaryContext *primaryContext ,
-   std::unordered_set<std::string> &DefinedEvents){
-     if (!DefinedEvents.count(primaryContext->eventName->getText())) {
-      std::cerr << Position(primaryContext)
-              << ": event is defined in EVENTS section but not called in ORDER section" << std::endl;
-      return false;
-     }
-   }
 
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
   bool result = true;
   for (auto simpleOrder : order->orderSequence()->simpleOrder()) {
     for (auto unorderedSymbolsContext : simpleOrder->unorderedSymbols()) {
-      bool result1 &= checkBound(unorderedSymbolsContext, DefinedObjects);
+      result &= checkBound(unorderedSymbolsContext);
       for (auto primaryContext : unorderedSymbolsContext->primary()) {
-        bool result2 &= checkEventAndSymbols(primaryContext, DefinedObjects);
+        result &= checkEventAndSymbols(primaryContext, DefinedObjects);
       }
     }
   }
-  result = result1 && result2;
   return result;
 }
 

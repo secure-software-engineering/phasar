@@ -102,7 +102,7 @@ order: 'ORDER' orderSequence;
 orderSequence: simpleOrder (',' simpleOrder)*;
 simpleOrder: unorderedSymbols ('|' unorderedSymbols)*;
 unorderedSymbols:
-	primary (('~' primary)+ ((lower = Int)? '#' (upper = Int)?)?)?;
+	primary (('~' primary)+ ((lower = Int)? bound='#' (upper = Int)?)?)?;
 primary:
 	eventName = Ident elementop = ('+' | '?' | '*')?
 	| ('(' orderSequence ')' elementop = ('+' | '?' | '*')?);
