@@ -23,7 +23,7 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 namespace llvm {
 class Instruction;
@@ -39,7 +39,7 @@ class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-  TaintSensitiveFunctions TSF;
+  TaintConfiguration<const llvm::Value *> TSF;
   std::vector<std::string> EntryPoints;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 

@@ -1,5 +1,5 @@
 set(UtilsSources
-	TaintSensitiveFunctionsTest.cpp
+	TaintConfigurationTest.cpp
 )
 
 foreach(TEST_SRC ${UtilsSources})

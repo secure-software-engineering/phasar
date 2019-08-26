@@ -108,7 +108,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
                                                            DumpResults);
     llvmlcasolver.solve();
   } else if (DataFlowAnalysis == "ifds-taint") {
-    TaintSensitiveFunctions TSF;
+    TaintConfiguration<const llvm::Value *> TSF;
     IFDSTaintAnalysis TaintAnalysisProblem(I, H, DB, TSF, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
         TaintAnalysisProblem, DumpResults);

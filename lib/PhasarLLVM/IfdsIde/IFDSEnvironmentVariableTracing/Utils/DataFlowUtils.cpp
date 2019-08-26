@@ -1023,6 +1023,8 @@ const std::set<std::string> DataFlowUtils::getTaintedFunctions() {
 const std::set<std::string> DataFlowUtils::getBlacklistedFunctions() {
   std::set<std::string> blacklistedFunctions =
       readFileFromEnvVar("BLACKLISTED_FUNCTIONS_LOCATION");
+  if (blacklistedFunctions.empty())
+    blacklistedFunctions = {"printf"};
 
   LOG_INFO("Blacklisted functions:");
   for (const auto &blacklistedFunction : blacklistedFunctions) {

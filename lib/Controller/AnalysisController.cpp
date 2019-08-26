@@ -192,7 +192,7 @@ AnalysisController::AnalysisController(
                     << "Performing analysis: " << analysis);
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        TaintSensitiveFunctions TSF;
+        TaintConfiguration<const llvm::Value *> TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
                                                EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
@@ -305,8 +305,7 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
         IFDSEnvironmentVariableTracing variableTracing(ICFG, EntryPoints);
         LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
-            variableTracing, false);
-
+            variableTracing, true);
         cout << "IFDS EnvironmentVariableTracing ..." << endl;
         llvmifdsenvsolver.solve();
         cout << "IFDS EnvironmentVariableTracing ended" << endl;
