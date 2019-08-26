@@ -30,6 +30,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
@@ -54,14 +55,8 @@ using namespace psr;
 
 namespace psr {
 
-const std::map<std::string, ExportType> StringToExportType = {
-    {"json", ExportType::JSON}};
-
-const std::map<ExportType, std::string> ExportTypeToString = {
-    {ExportType::JSON, "json"}};
-
 std::ostream &operator<<(std::ostream &os, const ExportType &E) {
-  return os << ExportTypeToString.at(E);
+  return os << wise_enum::to_string(E);
 }
 
 AnalysisController::AnalysisController(
@@ -160,8 +155,9 @@ AnalysisController::AnalysisController(
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
       (VariablesMap.count("callgraph-analysis"))
-          ? StringToCallGraphAnalysisType.at(
+          ? wise_enum::from_string<CallGraphAnalysisType>(
                 VariablesMap["callgraph-analysis"].as<string>())
+                .value()
           : CallGraphAnalysisType::OTF);
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
@@ -196,7 +192,7 @@ AnalysisController::AnalysisController(
                     << "Performing analysis: " << analysis);
       switch (analysis) {
       case DataFlowAnalysisType::IFDS_TaintAnalysis: {
-        TaintSensitiveFunctions TSF;
+        TaintConfiguration<const llvm::Value *> TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
                                                EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
@@ -246,8 +242,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
-        IFDSUnitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
-                                                         EntryPoints);
+        IFDSUninitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
+                                                           EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
             uninitializedvarproblem, false);
         cout << "IFDS UninitVar Analysis ..." << endl;
@@ -303,6 +299,19 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
         if (PrintEdgeRecorder) {
           llvmifdstestsolver.exportJson(graph_id);
+        }
+        break;
+      }
+      case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
+        IFDSEnvironmentVariableTracing variableTracing(ICFG, EntryPoints);
+        LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
+            variableTracing, true);
+        cout << "IFDS EnvironmentVariableTracing ..." << endl;
+        llvmifdsenvsolver.solve();
+        cout << "IFDS EnvironmentVariableTracing ended" << endl;
+        FinalResultsJson += llvmifdsenvsolver.getAsJson();
+        if (PrintEdgeRecorder) {
+          llvmifdsenvsolver.exportJson(graph_id);
         }
         break;
       }

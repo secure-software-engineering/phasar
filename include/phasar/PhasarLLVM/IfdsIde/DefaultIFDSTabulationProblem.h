@@ -40,10 +40,10 @@ public:
     this->solver_config.computePersistedSummaries = true;
   }
 
-  virtual ~DefaultIFDSTabulationProblem() = default;
+  ~DefaultIFDSTabulationProblem() override = default;
 
-  virtual std::shared_ptr<FlowFunction<D>>
-  getSummaryFlowFunction(N callStmt, M destMthd) override {
+  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
+                                                          M destMthd) override {
     return nullptr;
   }
 

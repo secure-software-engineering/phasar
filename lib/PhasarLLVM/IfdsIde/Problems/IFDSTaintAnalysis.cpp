@@ -33,10 +33,9 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                                     const ProjectIRDB &irdb,
-                                     TaintSensitiveFunctions TSF,
-                                     vector<string> EntryPoints)
+IFDSTaintAnalysis::IFDSTaintAnalysis(
+    i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
+    TaintConfiguration<IFDSTaintAnalysis::d_t> TSF, vector<string> EntryPoints)
     : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
       SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
   IFDSTaintAnalysis::zerovalue = createZeroValue();
@@ -149,16 +148,39 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
-      for (auto FormalIndex : Source.TaintedArgs) {
-        IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
-        // Insert the value V that gets tainted
-        ToGenerate.insert(V);
-        // We also have to collect all aliases of V and generate them
-        auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
-        for (auto Alias : PTS) {
-          ToGenerate.insert(Alias);
+      if (auto pval =
+              std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
+                  &Source.TaintedArgs)) {
+        for (unsigned i = 0; i < CallSite.getNumArgOperands(); ++i) {
+          IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(i);
+          // Insert the value V that gets tainted
+          ToGenerate.insert(V);
+          // We also have to collect all aliases of V and generate them
+          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          for (auto Alias : PTS) {
+            ToGenerate.insert(Alias);
+          }
         }
+      } else if (auto pval = std::get_if<
+                     TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
+                     &Source.TaintedArgs)) {
+        // don't do anything
+      } else if (auto pval =
+                     std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
+        for (auto FormalIndex : *pval) {
+          IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(FormalIndex);
+          // Insert the value V that gets tainted
+          ToGenerate.insert(V);
+          // We also have to collect all aliases of V and generate them
+          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          for (auto Alias : PTS) {
+            ToGenerate.insert(Alias);
+          }
+        }
+      } else {
+        throw std::runtime_error("Something went wrong, unexpected type");
       }
+
       if (Source.TaintsReturn) {
         ToGenerate.insert(callSite);
       }
@@ -171,11 +193,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::m_t calledMthd;
-        TaintSensitiveFunctions::SinkFunction Sink;
+        TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
         TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
-             TaintSensitiveFunctions::SinkFunction s,
+             TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction s,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
             : callSite(cs), calledMthd(calledMthd), Sink(s), Leaks(leaks),
@@ -258,7 +280,7 @@ IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() {
 }
 
 bool IFDSTaintAnalysis::isZeroValue(IFDSTaintAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 void IFDSTaintAnalysis::printNode(ostream &os, IFDSTaintAnalysis::n_t n) const {

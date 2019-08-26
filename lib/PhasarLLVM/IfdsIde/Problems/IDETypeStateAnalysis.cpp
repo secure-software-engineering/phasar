@@ -185,7 +185,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
 
     set<IDETypeStateAnalysis::d_t>
     computeTargets(IDETypeStateAnalysis::d_t source) override {
-      if (!isLLVMZeroValue(source)) {
+      if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
         set<const llvm::Value *> res;
         // Handle C-style varargs functions
         if (CalleeMthd->isVarArg() && !CalleeMthd->isDeclaration()) {
@@ -326,7 +326,7 @@ IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() {
 }
 
 bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts

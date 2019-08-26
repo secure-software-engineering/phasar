@@ -18,7 +18,7 @@
 
 namespace llvm {
 class Type;
-}
+} // namespace llvm
 
 namespace psr {
 

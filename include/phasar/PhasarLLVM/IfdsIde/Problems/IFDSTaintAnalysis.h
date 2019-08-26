@@ -14,7 +14,7 @@
 #include <map>
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -36,7 +36,7 @@ class LLVMBasedICFG;
  * dedicated sink functions. A leak is reported once a tainted value
  * reached a sink function.
  *
- * @see TaintSensitiveFunctions on how to specify your own
+ * @see TaintConfiguration on how to specify your own
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
@@ -49,7 +49,7 @@ public:
   typedef LLVMBasedICFG &i_t;
 
 private:
-  TaintSensitiveFunctions SourceSinkFunctions;
+  TaintConfiguration<const llvm::Value *> SourceSinkFunctions;
   std::vector<std::string> EntryPoints;
 
 public:
@@ -63,10 +63,11 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                    const ProjectIRDB &irdb, TaintSensitiveFunctions TSF,
+                    const ProjectIRDB &irdb,
+                    TaintConfiguration<const llvm::Value *> TSF,
                     std::vector<std::string> EntryPoints = {"main"});
 
-  virtual ~IFDSTaintAnalysis() = default;
+  ~IFDSTaintAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;

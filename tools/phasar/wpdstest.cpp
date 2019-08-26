@@ -50,6 +50,7 @@ int main(int argc, char **argv) {
     LLVMTypeHierarchy H(DB);
     LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
     auto Ret = &F->back().back();
+    cout << "RESULTS AT: " << llvmIRToString(Ret) << '\n';
     if (DFA == "ID") {
       WPDSSolverTest T(I, H, DB, WPDSType::FWPDS, SearchDirection::FORWARD);
       LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG &> S(T);
@@ -72,11 +73,15 @@ int main(int argc, char **argv) {
       S.solve();
       auto Results = S.resultsAt(Ret);
       cout << "Results:\n";
-      for (auto &Result : Results) {
-        Result.first->print(llvm::outs());
-        cout << " - with value: ";
-        L.printValue(cout, Result.second);
-        std::cout << '\n';
+      if (!Results.empty()) {
+        for (auto &Result : Results) {
+          Result.first->print(llvm::outs());
+          cout << " - with value: ";
+          L.printValue(cout, Result.second);
+          std::cout << '\n';
+        }
+      } else {
+        cout << "Results are empty!\n";
       }
     }
     std::cout << "DONE!\n";

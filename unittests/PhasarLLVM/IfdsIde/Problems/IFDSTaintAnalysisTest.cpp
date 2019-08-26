@@ -14,14 +14,15 @@ using namespace psr;
 class IFDSTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/taint_analysis/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
   IFDSTaintAnalysis *TaintProblem;
-  TaintSensitiveFunctions *TSF;
+  TaintConfiguration<const llvm::Value *> *TSF;
 
   IFDSTaintAnalysisTest() {}
   virtual ~IFDSTaintAnalysisTest() {}
@@ -32,7 +33,11 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    TSF = new TaintSensitiveFunctions(true);
+    TSF = new TaintConfiguration<const llvm::Value *>(
+        {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
+                                                                 true)},
+        {TaintConfiguration<const llvm::Value *>::SinkFunction(
+            "sink(int)", std::vector<unsigned>({0}))});
     TaintProblem = new IFDSTaintAnalysis(*ICFG, *TH, *IRDB, *TSF, EntryPoints);
   }
 

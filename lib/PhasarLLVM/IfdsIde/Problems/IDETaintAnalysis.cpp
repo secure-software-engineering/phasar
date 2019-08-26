@@ -90,7 +90,7 @@ IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() {
 }
 
 bool IDETaintAnalysis::isZeroValue(IDETaintAnalysis::d_t d) const {
-  return isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // in addition provide specifications for the IDE parts

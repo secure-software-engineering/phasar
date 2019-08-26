@@ -731,11 +731,30 @@ public:
     std::unordered_map<D, V> Results;
     wali::wfa::Trans goal;
     for (auto Entry : DKey) {
+      // Method 1: If query 'stmt' is located within the same function as the
+      // starting point
       if (Answer.find(Entry.second, wali::getKey(stmt), AcceptingState, goal)) {
         Results.insert(std::make_pair(
             Entry.first,
             static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
                 .F->computeTarget(V{})));
+      } else {
+        // Method 2: If query 'stmt' is located in a different function
+        wali::sem_elem_t ret = SRElem->zero();
+        wali::wfa::TransSet tset;
+        wali::wfa::TransSet::iterator titer;
+        tset = Answer.match(Entry.second, wali::getKey(stmt));
+        for (titer = tset.begin(); titer != tset.end(); titer++) {
+          wali::wfa::ITrans *t = *titer;
+          wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
+          tmp = tmp->extend(t->weight());
+          ret = ret->combine(tmp);
+        }
+        if (!ret->equal(SRElem->zero())) {
+          Results.insert(std::make_pair(
+              Entry.first, static_cast<JoinLatticeToSemiRingElem<V> &>(*ret)
+                               .F->computeTarget(V{})));
+        }
       }
     }
     if (stripZero) {
@@ -750,6 +769,20 @@ public:
                     goal)) {
       return static_cast<JoinLatticeToSemiRingElem<V> &>(*goal.weight())
           .F->computeTarget(V{});
+    }
+    wali::sem_elem_t ret = SRElem->zero();
+    wali::wfa::TransSet tset;
+    wali::wfa::TransSet::iterator titer;
+    tset = Answer.match(wali::getKey(fact), wali::getKey(stmt));
+    for (titer = tset.begin(); titer != tset.end(); titer++) {
+      wali::wfa::ITrans *t = *titer;
+      wali::sem_elem_t tmp(Answer.getState(t->to())->weight());
+      tmp = tmp->extend(t->weight());
+      ret = ret->combine(tmp);
+    }
+    if (!ret->equal(SRElem->zero())) {
+      return static_cast<JoinLatticeToSemiRingElem<V> &>(*ret).F->computeTarget(
+          V{});
     }
     throw std::runtime_error("Requested invalid fact!");
   }

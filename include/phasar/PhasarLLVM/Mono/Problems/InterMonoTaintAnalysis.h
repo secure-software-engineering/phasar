@@ -17,11 +17,13 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 namespace llvm {
 class Instruction;
@@ -37,13 +39,14 @@ class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, LLVMBasedICFG &> {
 private:
-  TaintSensitiveFunctions TSF;
+  TaintConfiguration<const llvm::Value *> TSF;
   std::vector<std::string> EntryPoints;
+  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 
 public:
   InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
                          std::vector<std::string> EntryPoints = {"main"});
-  virtual ~InterMonoTaintAnalysis() = default;
+  ~InterMonoTaintAnalysis() override = default;
 
   MonoSet<const llvm::Value *>
   join(const MonoSet<const llvm::Value *> &Lhs,
@@ -80,6 +83,8 @@ public:
   void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
 
   void printMethod(std::ostream &os, const llvm::Function *m) const override;
+  const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
+  getAllLeaks() const;
 };
 
 } // namespace psr

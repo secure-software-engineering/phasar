@@ -15,7 +15,11 @@ else()
 endif()
 
 target_link_libraries(phasar_plugins
-
+  phasar_ifdside
+  boost_system
+  boost_filesystem
+  boost_log
+  ${CMAKE_DL_LIBS}
 )
 
 # Handle all plugins

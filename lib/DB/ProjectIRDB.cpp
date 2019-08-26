@@ -117,8 +117,10 @@ ProjectIRDB::~ProjectIRDB() {
 }
 
 void ProjectIRDB::setupHeaderSearchPaths() {
-  header_search_paths = splitString(
-      readFile(ConfigurationDirectory + HeaderSearchPathsFileName), "\n");
+  header_search_paths =
+      splitString(readFile(PhasarConfig::ConfigurationDirectory() +
+                           PhasarConfig::HeaderSearchPathsFileName()),
+                  "\n");
   for (auto &path : header_search_paths) {
     path = std::string("-I") + path;
   }
@@ -371,14 +373,6 @@ llvm::Module *ProjectIRDB::getModule(const std::string &name) {
   return nullptr;
 }
 
-std::set<llvm::Module *> ProjectIRDB::getAllModules() const {
-  std::set<llvm::Module *> ModuleSet;
-  for (auto &entry : modules) {
-    ModuleSet.insert(entry.second.get());
-  }
-  return ModuleSet;
-}
-
 std::size_t ProjectIRDB::getNumberOfModules() { return modules.size(); }
 
 llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &name) {
@@ -411,7 +405,7 @@ llvm::Instruction *ProjectIRDB::getInstruction(std::size_t id) {
 std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   std::size_t id = 0;
   if (auto MD = llvm::cast<llvm::MDString>(
-          I->getMetadata(MetaDataKind)->getOperand(0))) {
+          I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))) {
     id = stol(MD->getString().str());
   }
   return id;
@@ -447,8 +441,8 @@ void ProjectIRDB::exportPATBCJSON() {
 }
 
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
-  if (isLLVMZeroValue(V)) {
-    return LLVMZeroValueInternalName;
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(V)) {
+    return LLVMZeroValue::getInstance()->getName();
   } else if (const llvm::Instruction *I =
                  llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
@@ -490,8 +484,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
 }
 
 const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
-  if (S == LLVMZeroValueInternalName ||
-      S.find(LLVMZeroValueInternalName) != std::string::npos) {
+  if (S.find(LLVMZeroValue::getInstance()->getName()) != std::string::npos) {
     return LLVMZeroValue::getInstance();
   } else if (S.find(".") == std::string::npos) {
     return getGlobalVariable(S);

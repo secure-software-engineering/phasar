@@ -14,6 +14,10 @@ endif()
 
 target_link_libraries(phasar_mono
   phasar_config
+  phasar_utils
+  phasar_phasarllvm_utils
+
+  LLVMCore
 )
 
 set_target_properties(phasar_mono

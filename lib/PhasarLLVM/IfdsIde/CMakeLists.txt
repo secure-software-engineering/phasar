@@ -14,6 +14,10 @@ endif()
 
 target_link_libraries(phasar_ifdside
   phasar_config
+  phasar_utils
+  phasar_pointer
+  phasar_controlflow
+  phasar_phasarllvm_utils
 
   LLVMCore
 )

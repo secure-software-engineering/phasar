@@ -129,7 +129,7 @@ std::string LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) {
 std::string
 LLVMBasedBackwardCFG::getStatementId(const llvm::Instruction *stmt) {
   return llvm::cast<llvm::MDString>(
-             stmt->getMetadata(MetaDataKind)->getOperand(0))
+             stmt->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
       ->getString()
       .str();
 }

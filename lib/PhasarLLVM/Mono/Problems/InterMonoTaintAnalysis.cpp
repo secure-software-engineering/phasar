@@ -16,7 +16,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/Utils/TaintSensitiveFunctions.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -64,11 +64,18 @@ InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
     if (In.count(Store->getValueOperand())) {
       Out.insert(Store->getPointerOperand());
+    } else if (In.count(Store->getPointerOperand())) {
+      Out.erase(Store->getPointerOperand());
     }
   }
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
     if (In.count(Load->getPointerOperand())) {
       Out.insert(Load);
+    }
+  }
+  if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Stmt)) {
+    if (In.count(Gep->getPointerOperand())) {
+      Out.insert(Gep);
     }
   }
   return Out;
@@ -90,8 +97,11 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
     Actuals.push_back(CS.getArgOperand(idx));
   }
   // set up the formal parameters
-  for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
+  /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
     Formals.push_back(getNthFunctionArgument(Callee, idx));
+  }*/
+  for (auto &arg : Callee->args()) {
+    Formals.push_back(&arg);
   }
   for (unsigned idx = 0; idx < Actuals.size(); ++idx) {
     if (In.count(Actuals[idx])) {
@@ -114,6 +124,16 @@ MonoSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
       Out.insert(CallSite);
     }
   }
+  // propagate pointer arguments to the caller, since this callee may modify
+  // them
+  llvm::ImmutableCallSite CS(CallSite);
+  unsigned index = 0;
+  for (auto &arg : Callee->args()) {
+    if (arg.getType()->isPointerTy() && In.count(&arg)) {
+      Out.insert(CS.getArgOperand(index));
+    }
+    index++;
+  }
   return Out;
 }
 
@@ -127,7 +147,14 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   MonoSet<const llvm::Value *> Out(In);
   llvm::ImmutableCallSite CS(CallSite);
-  if (auto Callee = CS.getCalledFunction()) {
+  //-----------------------------------------------------------------------------
+  // Handle virtual calls in the loop
+  //-----------------------------------------------------------------------------
+  for (auto Callee : Callees) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "InterMonoTaintAnalysis::callToRetFlow()::"
+                  << Callee->getName().str());
+
     if (TSF.isSink(Callee->getName().str())) {
       for (unsigned idx = 0; idx < CS.getNumArgOperands(); ++idx) {
         if (TSF.getSink(Callee->getName().str()).isLeakedArg(idx) &&
@@ -136,6 +163,7 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
           cout << "LEAKED VALUE: " << llvmIRToString(CS.getArgOperand(idx))
                << '\n'
                << endl;
+          Leaks[CallSite].insert(CS.getArgOperand(idx));
         }
       }
     }
@@ -148,6 +176,13 @@ InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
       if (TSF.getSource(Callee->getName().str()).TaintsReturn) {
         Out.insert(CallSite);
       }
+    }
+  }
+
+  // erase pointer arguments, since they are now propagated in the retFF
+  for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
+    if (CS.getArgOperand(i)->getType()->isPointerTy()) {
+      Out.erase(CS.getArgOperand(i));
     }
   }
   return Out;
@@ -182,6 +217,10 @@ void InterMonoTaintAnalysis::printDataFlowFact(ostream &os,
 void InterMonoTaintAnalysis::printMethod(ostream &os,
                                          const llvm::Function *m) const {
   os << m->getName().str();
+}
+const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
+InterMonoTaintAnalysis::getAllLeaks() const {
+  return Leaks;
 }
 
 } // namespace psr

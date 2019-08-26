@@ -12,6 +12,7 @@
 #include <llvm/PassAnalysisSupport.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/raw_ostream.h>
+#include <wise_enum.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
@@ -68,7 +69,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   }
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy =
-      StringToCallGraphAnalysisType.at(CallGraphAnalysis);
+      wise_enum::from_string<CallGraphAnalysisType>(CallGraphAnalysis).value();
   LLVMTypeHierarchy H(DB);
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(H, DB, CGTy, EntryPoints);
@@ -107,7 +108,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
                                                            DumpResults);
     llvmlcasolver.solve();
   } else if (DataFlowAnalysis == "ifds-taint") {
-    TaintSensitiveFunctions TSF;
+    TaintConfiguration<const llvm::Value *> TSF;
     IFDSTaintAnalysis TaintAnalysisProblem(I, H, DB, TSF, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
         TaintAnalysisProblem, DumpResults);
@@ -118,7 +119,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
         typeanalysisproblem, DumpResults);
     llvmtypesolver.solve();
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUnitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
+    IFDSUninitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
     LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
         uninitializedvarproblem, DumpResults);
     llvmunivsolver.solve();
@@ -157,10 +158,10 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   if (EntryPoints.empty()) {
     llvm::report_fatal_error("psr error: no entry points provided");
   }
-  if (!StringToCallGraphAnalysisType.count(CallGraphAnalysis)) {
+  if (!wise_enum::from_string<CallGraphAnalysisType>(CallGraphAnalysis)) {
     llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
-  if (!StringToDataFlowAnalysisType.count(DataFlowAnalysis)) {
+  if (!wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)) {
     llvm::report_fatal_error("psr error: data-flow analysis does not exist");
   }
   return false;

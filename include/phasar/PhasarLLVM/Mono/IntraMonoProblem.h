@@ -35,7 +35,7 @@ protected:
 
 public:
   IntraMonoProblem(C Cfg, M F) : CFG(Cfg), Function(F) {}
-  virtual ~IntraMonoProblem() = default;
+  ~IntraMonoProblem() override = default;
   C getCFG() { return CFG; }
   M getFunction() { return Function; }
   virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;

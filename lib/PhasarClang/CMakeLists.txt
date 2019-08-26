@@ -35,6 +35,12 @@ target_link_libraries(phasar_clang
   clangASTMatchers
   clangLex
   clangBasic
+
+  LLVMSupport
+  LLVMCore
+
+  boost_log
+  boost_system
 )
 
 set_target_properties(phasar_clang

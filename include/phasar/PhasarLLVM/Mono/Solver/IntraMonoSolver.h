@@ -79,6 +79,8 @@ public:
       entry.second = IMProblem.normalFlow(entry.first, entry.second);
     }
   }
+
+  MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
 };
 
 } // namespace psr

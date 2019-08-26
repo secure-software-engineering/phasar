@@ -36,7 +36,7 @@ class IntraMonoSolverTest
                               const llvm::Function *, LLVMBasedCFG &> {
 public:
   IntraMonoSolverTest(LLVMBasedCFG &Cfg, const llvm::Function *F);
-  virtual ~IntraMonoSolverTest() = default;
+  ~IntraMonoSolverTest() override = default;
 
   MonoSet<const llvm::Value *>
   join(const MonoSet<const llvm::Value *> &Lhs,

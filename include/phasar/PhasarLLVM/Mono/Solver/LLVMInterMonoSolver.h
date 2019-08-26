@@ -42,14 +42,14 @@ public:
                         K>(problem),
         DUMP_RESULTS(dumpResults) {}
 
-  virtual ~LLVMInterMonoSolver() = default;
+  ~LLVMInterMonoSolver() override = default;
 
   LLVMInterMonoSolver(const LLVMInterMonoSolver &copy) = delete;
   LLVMInterMonoSolver(LLVMInterMonoSolver &move) = delete;
   LLVMInterMonoSolver &operator=(const LLVMInterMonoSolver &copy) = delete;
   LLVMInterMonoSolver &operator=(LLVMInterMonoSolver &&move) = delete;
 
-  virtual void solve() override {
+  void solve() override {
     // do the solving of the analaysis problem
     InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
                     K>::solve();

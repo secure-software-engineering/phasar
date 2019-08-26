@@ -23,11 +23,7 @@ namespace psr {
 
 class ProjectIRDB;
 
-enum class ExportType { JSON = 0 };
-
-extern const std::map<std::string, ExportType> StringToExportType;
-
-extern const std::map<ExportType, std::string> ExportTypeToString;
+WISE_ENUM_CLASS(ExportType, (JSON, 0))
 
 std::ostream &operator<<(std::ostream &os, const ExportType &e);
 

@@ -7,6 +7,11 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+
+#include <boost/dll.hpp>
+#include <boost/filesystem.hpp>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
@@ -17,7 +22,6 @@
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonoProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/IntraMonoProblemPlugin.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/SOL.h>
 
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 using namespace std;
@@ -31,7 +35,15 @@ AnalysisPluginController::AnalysisPluginController(
     : FinalResultsJson(Results) {
   auto &lg = lg::get();
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
-    SOL SharedLib(AnalysisPlugin);
+    // SOL SharedLib(AnalysisPlugin);
+    boost::filesystem::path LibPath(AnalysisPlugin);
+    boost::system::error_code Err;
+    boost::dll::shared_library SharedLib(LibPath,
+                                         boost::dll::load_mode::rtld_lazy, Err);
+    if (Err) {
+      cerr << "error detected while loading shared object library: "
+           << Err.message() << '\n';
+    }
     if (!IDETabulationProblemPluginFactory.empty()) {
       for (auto Problem : IDETabulationProblemPluginFactory) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)

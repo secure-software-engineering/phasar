@@ -19,12 +19,14 @@
 
 #include <deque>
 #include <iosfwd>
+#include <iostream>
+#include <utility>
+#include <vector>
+
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <utility>
-#include <vector>
 
 namespace psr {
 
@@ -42,6 +44,16 @@ protected:
       std::vector<std::pair<N, N>> edges =
           ICFG.getAllControlFlowEdges(ICFG.getMethodOf(seed.first));
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+      // Initialize with empty context and empty data-flow set such that the
+      // flow functions are at least called once per instruction
+      for (auto &edge : edges) {
+        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Initialize last
+      if (!edges.empty()) {
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Additionally, insert the initial seeds
       Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
                                                             seed.second.end());
     }
@@ -92,6 +104,15 @@ protected:
       // Add intra edges of callee
       std::vector<std::pair<N, N>> edges = ICFG.getAllControlFlowEdges(callee);
       Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
+      // Initialize with empty context and empty data-flow set such that the
+      // flow functions are at least called once per instruction
+      for (auto &edge : edges) {
+        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+      }
+      // Initialize last
+      if (!edges.empty()) {
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+      }
       // Add return edge(s)
       for (auto ret : ICFG.getExitPointsOf(callee)) {
         for (auto retSite : ICFG.getReturnSitesOfCallAt(src)) {
@@ -132,10 +153,17 @@ protected:
 public:
   InterMonoSolver(InterMonoProblem<N, D, M, I> &IMP)
       : IMProblem(IMP), ICFG(IMP.getICFG()) {}
-  ~InterMonoSolver() = default;
+  InterMonoSolver(const InterMonoSolver &) = delete;
+  InterMonoSolver &operator=(const InterMonoSolver &) = delete;
+  InterMonoSolver(InterMonoSolver &&) = delete;
+  InterMonoSolver &operator=(InterMonoSolver &&) = delete;
+  virtual ~InterMonoSolver() = default;
+
+  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
+    return Analysis;
+  }
 
   virtual void solve() {
-    std::cout << "starting the InterMonoSolver::solve() procedure!\n";
     initialize();
     while (!Worklist.empty()) {
       std::pair<N, N> edge = Worklist.front();
@@ -227,6 +255,14 @@ public:
         }
       }
     }
+  }
+
+  MonoSet<D> getResultsAt(N n) {
+    MonoSet<D> Result;
+    for (auto &[CTX, Facts] : Analysis[n]) {
+      Result.insert(Facts.begin(), Facts.end());
+    }
+    return Result;
   }
 };
 

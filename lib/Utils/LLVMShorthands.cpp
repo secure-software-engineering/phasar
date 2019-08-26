@@ -176,19 +176,17 @@ globalValuesUsedinFunction(const llvm::Function *F) {
 
 std::string getMetaDataID(const llvm::Value *V) {
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto metaData = Inst->getMetadata(MetaDataKind)) {
+    if (auto metaData = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
       return llvm::cast<llvm::MDString>(metaData->getOperand(0))
           ->getString()
           .str();
     }
 
   } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (!isLLVMZeroValue(V)) {
-      if (auto metaData = GV->getMetadata(MetaDataKind)) {
-        return llvm::cast<llvm::MDString>(metaData->getOperand(0))
-            ->getString()
-            .str();
-      }
+    if (auto metaData = GV->getMetadata(PhasarConfig::MetaDataKind())) {
+      return llvm::cast<llvm::MDString>(metaData->getOperand(0))
+          ->getString()
+          .str();
     }
   } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     string FName = Arg->getParent()->getName().str();
