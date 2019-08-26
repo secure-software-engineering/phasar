@@ -70,10 +70,6 @@ Installation guides for the libraries can be found here:
 
 [SQLITE3](https://www.sqlite.org/download.html)
 
-[MySQL](https://www.mysql.com/)
-
-[BEAR](https://github.com/rizsotto/Bear)
-
 [PYTHON](https://www.python.org/)
 
 [ZLIB](https://zlib.net/) - a lossless data-compresion library

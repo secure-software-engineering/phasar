@@ -3,7 +3,7 @@ set -e
 echo "installing phasar dependencies..."
 
 sudo apt-get update
-sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
+sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
 sudo pip install Pygments
 sudo pip install pyyaml
 # installing boost
