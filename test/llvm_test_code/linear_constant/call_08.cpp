@@ -8,4 +8,5 @@ int decrement(int i) {
 int main() {
 	int i = 42;
 	int j = decrement(i);
+  return 0;
 }

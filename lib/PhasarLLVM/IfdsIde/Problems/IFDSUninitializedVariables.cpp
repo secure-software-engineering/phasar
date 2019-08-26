@@ -468,7 +468,8 @@ void IFDSUninitializedVariables::emitTextReport(
       os << '\n';
     } else {
       auto uninit_results = aggregateResults();
-      os << "\nTotal uses of uninitialized variables: " << uninit_results.size() << '\n';
+      os << "\nTotal uses of uninitialized variables: " << uninit_results.size()
+         << '\n';
       size_t count = 0;
       for (auto res : uninit_results) {
         os << "\n---------------------------------  " << ++count
@@ -509,14 +510,12 @@ IFDSUninitializedVariables::aggregateResults() {
       }
     }
   }
-  if (!UR.empty()) 
+  if (!UR.empty())
     results.push_back(UR);
   return results;
 }
 
-bool IFDSUninitializedVariables::UninitResult::empty() {
-  return line == 0;
-}
+bool IFDSUninitializedVariables::UninitResult::empty() { return line == 0; }
 
 void IFDSUninitializedVariables::UninitResult::print(std::ostream &os) {
   os << "Variable(s): ";

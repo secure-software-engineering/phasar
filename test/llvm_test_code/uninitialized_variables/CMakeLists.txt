@@ -15,6 +15,7 @@ set(NoMem2RegSources
   binop_uninit.cpp
   some_locals.cpp
   uninit.c
+  pointer_1.cpp
   main_args.cpp
   main_args_init.cpp
   simple_store.cpp

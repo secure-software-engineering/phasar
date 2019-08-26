@@ -1,10 +1,10 @@
-int foo(int a) {
-  a = 10;
-  return 44;
-}
+int increment(int i) { return ++i; }
 
 int main() {
-  int i = 10;
-  int k = foo(i);
+  int i = 42;
+  while(i > 0) {
+    i = increment(i);
+  }
+  int a = i;
   return 0;
 }
