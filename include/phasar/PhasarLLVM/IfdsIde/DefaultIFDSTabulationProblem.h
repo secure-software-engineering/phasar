@@ -42,8 +42,8 @@ public:
 
   ~DefaultIFDSTabulationProblem() override = default;
 
-  std::shared_ptr<FlowFunction<D>>
-  getSummaryFlowFunction(N callStmt, M destMthd) override {
+  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
+                                                          M destMthd) override {
     return nullptr;
   }
 

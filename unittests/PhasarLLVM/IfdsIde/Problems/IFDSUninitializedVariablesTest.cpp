@@ -1,8 +1,7 @@
 #include <gtest/gtest.h>
+#include <llvm/IR/Module.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-//#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <llvm/IR/Module.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
@@ -156,7 +155,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   map<int, set<string>> GroundTruth;
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
   GroundTruth[4] = {"3"};
-  
+
 
 
   compareResults(GroundTruth);

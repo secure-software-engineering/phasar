@@ -438,15 +438,15 @@ install(DIRECTORY config/
 #   $ export LD_LIBRARY_PATH=/lib:/usr/lib:/usr/local/lib:/home/philipp/Schreibtisch/tmp/lib
 #   $ sudo ldconfig
 #
-# Or even better: just link statically when trying to package Phasar
+# Or even better: just link statically when trying to package Phasar <- this is no longer possible
 
 # Settings for building various packages using Cpack
 #   How to pack using the following settings?
 #     $ mkdir build
 #     $ cd build
-#     $ cmake -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr/local ..
+#     $ cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local ..
 #     $ cpack ..
-#     $ dpkg -i <the_package>.deb
+#     $ dpkg -i ./<the_package>.deb or better: apt-get install ./<the_package>.deb
 set(MAJOR_VERSION 1)
 set(MINOR_VERSION 0)
 set(PATCH_VERSION 0)

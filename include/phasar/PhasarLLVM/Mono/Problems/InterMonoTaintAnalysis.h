@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -39,6 +41,7 @@ class InterMonoTaintAnalysis
 private:
   TaintSensitiveFunctions TSF;
   std::vector<std::string> EntryPoints;
+  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 
 public:
   InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
@@ -80,6 +83,8 @@ public:
   void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
 
   void printMethod(std::ostream &os, const llvm::Function *m) const override;
+  const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
+  getAllLeaks() const;
 };
 
 } // namespace psr
