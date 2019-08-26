@@ -357,8 +357,7 @@ void IFDSConstAnalysis::emitTextReport(
   } else {
     os << "Immutable/const stack and/or heap memory locations:\n";
     for (auto memloc : AllMemLocs) {
-      os << "\nIR  : " << llvmIRToString(memloc) << '\n'
-         << llvmValueToSrc(memloc) << "\n";
+      os << "\nIR  : " << llvmIRToString(memloc) << '\n';
     }
   }
   os << "\n===================================================\n";

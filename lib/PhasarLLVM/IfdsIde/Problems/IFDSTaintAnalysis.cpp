@@ -294,18 +294,14 @@ void IFDSTaintAnalysis::emitTextReport(
   } else {
     for (auto Leak : Leaks) {
       os << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
-      os << llvmValueToSrc(Leak.first);
       os << "\n\nLeak(s):\n";
       for (auto LeakedValue : Leak.second) {
         os << "IR  : ";
         // Get the actual leaked alloca instruction if possible
         if (auto Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
-          os << llvmIRToString(Load->getPointerOperand()) << '\n'
-             << llvmValueToSrc(Load->getPointerOperand()) << '\n';
-
+          os << llvmIRToString(Load->getPointerOperand()) << '\n';
         } else {
-          os << llvmIRToString(LeakedValue) << '\n'
-             << llvmValueToSrc(LeakedValue) << '\n';
+          os << llvmIRToString(LeakedValue) << '\n';
         }
       }
       os << "-------------------\n";
