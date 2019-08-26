@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 
 #include <boost/filesystem.hpp>
+#include <cassert>
 #include <fstream>
 #include <initializer_list>
 #include <iomanip>
@@ -36,88 +37,6 @@ class Instruction;
 } // namespace llvm
 
 namespace psr {
-
-template <typename D>
-class TaintConfiguration;
-
-template <typename D>
-static inline std::ostream &operator<<(std::ostream &OS, const TaintConfiguration<D> &TSF) {
-  OS << "Source Functions:\n";
-  for (auto SF : TSF.Sources) {
-    OS << SF.second << "\n";
-  }
-  OS << "Sink Functions:\n";
-  for (auto SF : TSF.Sinks)
-    OS << SF.second << "\n";
-  return OS;
-}
-
-template <typename D>
-static inline bool operator==(const typename TaintConfiguration<D>::All &Lhs,
-                const typename TaintConfiguration<D>::All &Rhs) {
-  return true;
-}
-
-template <typename D>
-static inline bool operator==(const typename TaintConfiguration<D>::None &Lhs,
-                const typename TaintConfiguration<D>::None &Rhs) {
-  return true;
-}
-
-template <typename D>
-static inline std::ostream &operator<<(std::ostream &OS,
-                    const typename TaintConfiguration<D>::SourceFunction &SF) {
-  OS << "F: " << SF.Name << " Args: [ ";
-  if (auto pval = std::get_if<TaintConfiguration<D>::All>(&SF.TaintedArgs)) {
-    OS << "All"
-       << " ";
-  } else if (auto pval =
-                 std::get_if<TaintConfiguration<D>::None>(&SF.TaintedArgs)) {
-    OS << "None"
-       << " ";
-  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.TaintedArgs)) {
-    for (auto Arg : *pval)
-      OS << Arg << " ";
-  } else {
-    throw std::runtime_error("Something went wrong, unexpected type");
-  }
-
-  return OS << "] Return: " << std::boolalpha << SF.TaintsReturn << "\n";
-}
-
-template <typename D>
-static inline bool operator==(const typename TaintConfiguration<D>::SourceFunction &Lhs,
-                const typename TaintConfiguration<D>::SourceFunction &Rhs) {
-  return Lhs.Name == Rhs.Name && Lhs.TaintedArgs == Rhs.TaintedArgs &&
-         Lhs.TaintsReturn == Rhs.TaintsReturn;
-}
-
-template <typename D>
-static inline std::ostream &operator<<(std::ostream &OS,
-                    const typename TaintConfiguration<D>::SinkFunction &SF) {
-  OS << "F: " << SF.Name << " Args: [ ";
-  if (auto pval = std::get_if<TaintConfiguration<D>::All>(&SF.LeakedArgs)) {
-    OS << "All"
-       << " ";
-  } else if (auto pval =
-                 std::get_if<TaintConfiguration<D>::None>(&SF.LeakedArgs)) {
-    OS << "None"
-       << " ";
-  } else if (auto pval = std::get_if<std::vector<unsigned>>(&SF.LeakedArgs)) {
-    for (auto Arg : *pval)
-      OS << Arg << " ";
-  } else {
-    throw std::runtime_error("Something went wrong, unexpected type");
-  }
-
-  return OS << "]\n";
-}
-
-template <typename D>
-static inline bool operator==(const typename TaintConfiguration<D>::SinkFunction &Lhs,
-                const typename TaintConfiguration<D>::SinkFunction &Rhs) {
-  return Lhs.Name == Rhs.Name && Lhs.LeakedArgs == Rhs.LeakedArgs;
-}
 
 // clang-format off
 /**
@@ -205,7 +124,8 @@ private:
             }
           }
         } else {
-          std::cout << "No Source Functions found. Using default sink functions!\n";
+          std::cout
+              << "No Source Functions found. Using default sink functions!\n";
         }
         if (SSFunctions.find(SinkJSONId) != SSFunctions.end()) {
           // Discarding default sink functions
@@ -223,7 +143,8 @@ private:
             }
           }
         } else {
-          std::cout << "No sink functions found. Using default sink functions!\n";
+          std::cout
+              << "No sink functions found. Using default sink functions!\n";
         }
       } else {
         throw std::ios_base::failure("Could not open file");
@@ -235,10 +156,10 @@ private:
 
 public:
   struct All {
-    friend bool operator==(const All &Lhs, const All &Rhs);
+    friend bool operator==(const All &Lhs, const All &Rhs) { return true; }
   };
   struct None {
-    friend bool operator==(const None &Lhs, const None &Rhs);
+    friend bool operator==(const None &Lhs, const None &Rhs) { return true; }
   };
   /**
    * Encapsulates all taint-relevant information of a source function.
@@ -268,14 +189,35 @@ public:
         return false;
       } else if (auto pval = std::get_if<std::vector<unsigned>>(&TaintedArgs)) {
         return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
-      } else {
-        throw std::runtime_error("Something went wrong, unexpected type");
       }
+      assert("Something went wrong, unexpected type");
+      return false;
     }
     friend std::ostream &operator<<(std::ostream &OS,
-                                      const SourceFunction &SF);
-    friend bool operator==
-        (const SourceFunction &Lhs, const SourceFunction &Rhs);
+                                    const SourceFunction &SF) {
+      OS << "F: " << SF.Name << " Args: [ ";
+      if (auto pval =
+              std::get_if<TaintConfiguration<D>::All>(&SF.TaintedArgs)) {
+        OS << "All"
+           << " ";
+      } else if (auto pval = std::get_if<TaintConfiguration<D>::None>(
+                     &SF.TaintedArgs)) {
+        OS << "None"
+           << " ";
+      } else if (auto pval =
+                     std::get_if<std::vector<unsigned>>(&SF.TaintedArgs)) {
+        for (auto Arg : *pval)
+          OS << Arg << " ";
+      } else {
+        assert("Something went wrong, unexpected type");
+      }
+      return OS << "] Return: " << std::boolalpha << SF.TaintsReturn << "\n";
+    }
+    friend bool operator==(const SourceFunction &Lhs,
+                           const SourceFunction &Rhs) {
+      return Lhs.Name == Rhs.Name && Lhs.TaintedArgs == Rhs.TaintedArgs &&
+             Lhs.TaintsReturn == Rhs.TaintsReturn;
+    }
   };
 
   /**
@@ -306,8 +248,27 @@ public:
         throw std::runtime_error("Something went wrong, unexpected type");
       }
     }
-    friend std::ostream &operator<<(std::ostream &OS, const SinkFunction &SF);
-    friend bool operator==(const SinkFunction &Lhs, const SinkFunction &Rhs);
+    friend std::ostream &operator<<(std::ostream &OS, const SinkFunction &SF) {
+      OS << "F: " << SF.Name << " Args: [ ";
+      if (auto pval = std::get_if<TaintConfiguration<D>::All>(&SF.LeakedArgs)) {
+        OS << "All"
+           << " ";
+      } else if (auto pval =
+                     std::get_if<TaintConfiguration<D>::None>(&SF.LeakedArgs)) {
+        OS << "None"
+           << " ";
+      } else if (auto pval =
+                     std::get_if<std::vector<unsigned>>(&SF.LeakedArgs)) {
+        for (auto Arg : *pval)
+          OS << Arg << " ";
+      } else {
+        throw std::runtime_error("Something went wrong, unexpected type");
+      }
+      return OS << "]\n";
+    }
+    friend bool operator==(const SinkFunction &Lhs, const SinkFunction &Rhs) {
+      return Lhs.Name == Rhs.Name && Lhs.LeakedArgs == Rhs.LeakedArgs;
+    }
   };
 
   /**
@@ -325,7 +286,7 @@ public:
   /**
    * @brief Specify functions as sources and sinks
    */
-  //clang-format off
+  // clang-format off
   TaintConfiguration(
       std::initializer_list<SourceFunction> SourceFunctions =
           {TaintConfiguration<D>::SourceFunction("fgetc", true),
@@ -362,7 +323,7 @@ public:
       Sinks.insert(make_pair(elem.Name, elem));
     }
   }
-  //clang-format on
+  // clang-format on
   /**
    * @brief Specify instructions as sources and sinks
    */
@@ -408,7 +369,16 @@ public:
   }
 
   friend std::ostream &operator<<(std::ostream &OS,
-                                    const TaintConfiguration<D> &TSF);
+                                  const TaintConfiguration<D> &TSF) {
+    OS << "Source Functions:\n";
+    for (auto SF : TSF.Sources) {
+      OS << SF.second << "\n";
+    }
+    OS << "Sink Functions:\n";
+    for (auto SF : TSF.Sinks)
+      OS << SF.second << "\n";
+    return OS;
+  }
 };
 
 } // namespace psr

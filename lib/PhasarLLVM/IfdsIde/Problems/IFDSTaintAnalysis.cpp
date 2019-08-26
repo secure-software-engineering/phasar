@@ -33,10 +33,9 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                                     const ProjectIRDB &irdb,
-                                     TaintConfiguration<IFDSTaintAnalysis::d_t> TSF,
-                                     vector<string> EntryPoints)
+IFDSTaintAnalysis::IFDSTaintAnalysis(
+    i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
+    TaintConfiguration<IFDSTaintAnalysis::d_t> TSF, vector<string> EntryPoints)
     : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
       SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
   IFDSTaintAnalysis::zerovalue = createZeroValue();
@@ -150,7 +149,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
       if (auto pval =
-              std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(&Source.TaintedArgs)) {
+              std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
+                  &Source.TaintedArgs)) {
         for (unsigned i = 0; i < CallSite.getNumArgOperands(); ++i) {
           IFDSTaintAnalysis::d_t V = CallSite.getArgOperand(i);
           // Insert the value V that gets tainted
@@ -161,7 +161,8 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
             ToGenerate.insert(Alias);
           }
         }
-      } else if (auto pval = std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
+      } else if (auto pval = std::get_if<
+                     TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
                      &Source.TaintedArgs)) {
         // don't do anything
       } else if (auto pval =

@@ -33,7 +33,11 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    TSF = new TaintConfiguration<const llvm::Value *>({TaintConfiguration<const llvm::Value *>::SourceFunction("source()",true)},{TaintConfiguration<const llvm::Value *>::SinkFunction("sink(int)",std::vector<unsigned>({0}))});
+    TSF = new TaintConfiguration<const llvm::Value *>(
+        {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
+                                                                 true)},
+        {TaintConfiguration<const llvm::Value *>::SinkFunction(
+            "sink(int)", std::vector<unsigned>({0}))});
     TaintProblem = new IFDSTaintAnalysis(*ICFG, *TH, *IRDB, *TSF, EntryPoints);
   }
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
+#include <llvm/IR/Module.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <llvm/IR/Module.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
