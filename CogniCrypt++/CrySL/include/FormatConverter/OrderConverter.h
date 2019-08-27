@@ -8,7 +8,7 @@
 namespace CCPP {
 
 class OrderConverter {
-  std::string getFunctionName(CrySLParser::EventsOccurence *evt);
+  std::string getFunctionName(CrySLParser::EventsOccurenceContext *evt);
 
 public:
   OrderConverter(CrySLParser::OrderContext *order,
