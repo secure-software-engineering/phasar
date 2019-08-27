@@ -1,1 +1,1 @@
-clang++ -c -I ~/Documents/antlr-runtime/runtime/src/ -I include lib/*.cpp lib/*/*.cpp -std=c++17
+clang++ -c -I /usr/local/include/antlr4-runtime/ -I include lib/*.cpp lib/*/*.cpp -std=c++17
