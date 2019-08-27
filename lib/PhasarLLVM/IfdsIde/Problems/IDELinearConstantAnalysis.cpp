@@ -723,26 +723,26 @@ void IDELinearConstantAnalysis::emitTextReport(
     std::ostream &os, SolverResults<IDELinearConstantAnalysis::n_t,
                                     IDELinearConstantAnalysis::d_t,
                                     IDELinearConstantAnalysis::v_t> &SR) {
-  os << "\n=========== IDE Linear Constant Analysis Results ===========\n";
-  for (auto f : icfg.getAllMethods()) {
-    os << getFunctionNameFromIR(f) << '\n';
-    for (auto stmt : icfg.getAllInstructionsOf(f)) {
-      os << "IR STMT: " << NtoString(stmt) << '\n';
-      auto results = SR.resultsAt(stmt, true);
-      if (results.empty()) {
-        os << "\nNo results available!\n";
-      } else {
-        for (auto res : results) {
-          if (!llvm::isa<llvm::LoadInst>(res.first)) {
-            os << "\nValue: " << VtoString(res.second)
-               << "\nIR  : " << DtoString(res.first) << '\n';
-          }
-        }
-      }
-      os << "---------------------\n";
-    }
-    os << "----------------\n";
-  }
+  // os << "\n=========== IDE Linear Constant Analysis Results ===========\n";
+  // for (auto f : icfg.getAllMethods()) {
+  //   os << getFunctionNameFromIR(f) << '\n';
+  //   for (auto stmt : icfg.getAllInstructionsOf(f)) {
+  //     os << "IR STMT: " << NtoString(stmt) << '\n';
+  //     auto results = SR.resultsAt(stmt, true);
+  //     if (results.empty()) {
+  //       os << "\nNo results available!\n";
+  //     } else {
+  //       for (auto res : results) {
+  //         if (!llvm::isa<llvm::LoadInst>(res.first)) {
+  //           os << "\nValue: " << VtoString(res.second)
+  //              << "\nIR  : " << DtoString(res.first) << '\n';
+  //         }
+  //       }
+  //     }
+  //     os << "---------------------\n";
+  //   }
+  //   os << "----------------\n";
+  // }
 }
 
 } // namespace psr
