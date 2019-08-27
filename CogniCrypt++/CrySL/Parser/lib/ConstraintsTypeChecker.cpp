@@ -13,16 +13,17 @@ struct ConstraintsTypeChecker {
       const unordered_map<string, shared_ptr<Type>> &DefinedObjects)
       : DefinedObjects(DefinedObjects) {}
 
-  shared_ptr<Type> typecheck(CrySLParser::ConstrContext *constr);
-  shared_ptr<Type> typecheckUnary(CrySLParser::ConstrContext *constr,
-                                  CrySLParser::ConstrContext *sub_constr);
-  shared_ptr<Type> typecheckArithCompBinary(CrySLParser::ConstrContext *constr,
-                                            CrySLParser::ConstrContext *lhs,
-                                            CrySLParser::ConstrContext *rhs);
+  shared_ptr<const Type> typecheck(CrySLParser::ConstrContext *constr);
+  shared_ptr<const Type> typecheckUnary(CrySLParser::ConstrContext *constr,
+                                        CrySLParser::ConstrContext *sub_constr);
+  shared_ptr<const Type>
+  typecheckArithCompBinary(CrySLParser::ConstrContext *constr,
+                           CrySLParser::ConstrContext *lhs,
+                           CrySLParser::ConstrContext *rhs);
   bool typecheck(CrySLParser::ConstraintsContext *constr);
 };
 
-shared_ptr<Type>
+shared_ptr<const Type>
 ConstraintsTypeChecker::typecheckUnary(CrySLParser::ConstrContext *constr,
                                        CrySLParser::ConstrContext *sub_constr) {
   if (constr->lnot) {
@@ -39,7 +40,7 @@ ConstraintsTypeChecker::typecheckUnary(CrySLParser::ConstrContext *constr,
   }
 }
 
-shared_ptr<Type> ConstraintsTypeChecker::typecheckArithCompBinary(
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckArithCompBinary(
     CrySLParser::ConstrContext *constr, CrySLParser::ConstrContext *lhs,
     CrySLParser::ConstrContext *rhs) {
   auto lhsTy = typecheck(lhs);
@@ -71,7 +72,7 @@ shared_ptr<Type> ConstraintsTypeChecker::typecheckArithCompBinary(
   }
 }
 
-shared_ptr<Type>
+shared_ptr<const Type>
 ConstraintsTypeChecker::typecheck(CrySLParser::ConstrContext *constr) {
   //  typecheck constraints
   auto sub_constrs = constr->constr();

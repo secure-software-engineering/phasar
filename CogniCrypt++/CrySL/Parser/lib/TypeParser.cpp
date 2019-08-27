@@ -58,7 +58,7 @@ std::shared_ptr<Type> getOrCreateType(CrySLParser::TypeNameContext *ctx,
 }
 
 std::shared_ptr<Types::Type>
-getOrCreatePrimitive(std::string &name, Types::Type::PrimitiveType prim) {
+getOrCreatePrimitive(const std::string &name, Types::Type::PrimitiveType prim) {
   // We have 18 different primitive types (including NONE)
   static std::vector<std::shared_ptr<Types::Type>> primCache(18, nullptr);
   auto ret = primCache[prim];

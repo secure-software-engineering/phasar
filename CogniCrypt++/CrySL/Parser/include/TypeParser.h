@@ -7,5 +7,5 @@ namespace CCPP {
 /// which represents it
 std::shared_ptr<Types::Type> getOrCreateType(CrySLParser::TypeNameContext *ctx);
 std::shared_ptr<Types::Type>
-getOrCreatePrimitive(std::string &name, Types::Type::PrimitiveType prim);
+getOrCreatePrimitive(const std::string &name, Types::Type::PrimitiveType prim);
 } // namespace CCPP
