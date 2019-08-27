@@ -590,6 +590,10 @@ IDETypeStateAnalysis::TSEdgeFunction::joinWith(
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
+  // if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+  //         otherFunction.get())) {
+  //   return this->shared_from_this();
+  // }
   if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
           otherFunction.get())) {
     return this->shared_from_this();

@@ -34,18 +34,18 @@ const std::map<std::string, std::set<int>>
 
 // delta[Token][State] = next State
 // Token: FOPEN = 0, FCLOSE = 1, STAR = 2
-// States: UNINIT = 0, OPENED = 1, CLOSED = 2, ERROR = 3
+// States: UNINIT = 0, OPENED = 1, CLOSED = 2, ERROR = 3, BOT = 4
 const CSTDFILEIOTypeStateDescription::CSTDFILEIOState
-    CSTDFILEIOTypeStateDescription::delta[3][4] = {
+    CSTDFILEIOTypeStateDescription::delta[3][5] = {
         /* FOPEN */
         {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
         /* FCLOSE */
         {CSTDFILEIOState::ERROR, CSTDFILEIOState::CLOSED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
         /* STAR */
         {CSTDFILEIOState::ERROR, CSTDFILEIOState::OPENED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR},
+         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
 };
 
 bool CSTDFILEIOTypeStateDescription::isFactoryFunction(

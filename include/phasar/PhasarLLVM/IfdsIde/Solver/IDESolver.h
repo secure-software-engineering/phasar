@@ -695,13 +695,31 @@ protected:
   }
 
   std::shared_ptr<EdgeFunction<V>> jumpFunction(PathEdge<N, D> edge) {
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "JumpFunctions Forward-Lookup:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "   Source D: "
+                  << ideTabulationProblem.DtoString(edge.factAtSource()));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "   Target N: "
+                  << ideTabulationProblem.NtoString(edge.getTarget()));
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "   Target D: "
+                  << ideTabulationProblem.DtoString(edge.factAtTarget()));
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
              .count(edge.factAtTarget())) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                    << "  => EdgeFn: " << allTop->str());
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
       return allTop;
     }
-    return jumpFn->forwardLookup(edge.factAtSource(),
-                                 edge.getTarget())[edge.factAtTarget()];
+    auto res = jumpFn->forwardLookup(edge.factAtSource(),
+                                     edge.getTarget())[edge.factAtTarget()];
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "  => EdgeFn: " << res->str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    return res;
   }
 
   void addEndSummary(N sP, D d1, N eP, D d2,
