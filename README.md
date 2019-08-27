@@ -57,35 +57,13 @@ the future and give us clues about our user base. Thank you very much!
 
 Installation
 ------------
-The installation of Phasar is not trivial, since it has some library
-dependencies. The libraries needed in order to be able to compile and run
-Phasar successfully are the following.
+Phasar can be installed using the installer scripts as explained in the following.
 
-In the following the authors assume that a Unix-like system is used.
-Installation guides for the libraries can be found here:
+### Installing Phasar on an Ubuntu system
+In the following, we would like to give an complete example of how to install 
+Phasar using an Ubuntu or Unix-like system. 
 
-[LLVM / Clang](http://apt.llvm.org/)
-
-[BOOST](http://www.boost.org/doc/libs/1_66_0/more/getting_started/unix-variants.html)
-
-[SQLITE3](https://www.sqlite.org/download.html)
-
-[PYTHON](https://www.python.org/)
-
-[ZLIB](https://zlib.net/) - a lossless data-compresion library
-
-[LIBCURSES](http://www.gnu.org/software/ncurses/ncurses.html) - a terminal control library for constructing text user interfaces.
-
-[Doxygen](www.doxygen.org) 
-
-[Graphviz](www.graphviz.org)
-
-
-### Brief example using an Ubuntu system
-In the following we would like to give an complete example of how to install 
-Phasar using an Ubuntu (16.04) or Unix-like system. 
-
-For this we provide an installation script. To install phasar, just navigate to the top-level
+Therefore, we provide an installation script. To install Phasar, just navigate to the top-level
 directory of PhASAR and use the following command:
 ```
 $ sudo ./bootstrap.sh
@@ -94,8 +72,8 @@ $ sudo ./bootstrap.sh
 Done!
 
 
-### Brief example using a MacOS system
-Mac OS 10.13.1 or higher only !
+### Installing Phasar a MacOS system
+Mac OS 10.13.1 or higher only!
 To install the framework on a Mac we will rely on Homebrew. (https://brew.sh/)
 
 The needed packages are
@@ -106,7 +84,11 @@ $ brew install python3
 
 **To be continued.**
 
-### Compile Phasar
+### Installing Phasar on a Windows system
+
+**A solution is under implementation.**
+
+### Compiling Phasar (if not already done using the installation scripts)
 Set the system's variables for the C and C++ compiler to clang:
 ```
 $ export CC=/usr/local/bin/clang
@@ -132,10 +114,11 @@ $ mkdir build
 $ cd build/
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ make -j $(nproc) # or use a different number of cores to compile it
+$ sudo make install # if you wish to install Phasar system wide
 ```
 
-When you have used the script `bootstrap.sh` for installing phasar, the above steps are already done.
-Use them as a reference if you want to modify PhASAR and recompile it.
+When you have used the `bootstrap.sh` script to install Phasar, the above steps are already done.
+Use them as a reference if you wish to modify Phasar and recompile it.
 
 Depending on your system, you may get some compiler errors from the json library. If this is the case please change the C++ standard in the top-level CMakeLists.txt:
 
@@ -183,3 +166,7 @@ To test if everything works as expected please run the following command:
 `$ phasar --module test/build_systems_tests/installation_tests/module.ll -D IFDS_SolverTest`
 
 If you obtain output other than a segmentation fault or an exception terminating the program abnormally everything works as expected.
+
+How to use Phasar?
+------------------
+Please consult our [Phasar wiki pages](https://github.com/secure-software-engineering/phasar/wiki).
