@@ -39,7 +39,7 @@ private:
     OPENED = 1,
     CLOSED = 2,
     ERROR = 3,
-    BOT = 13
+    BOT = 4
   };
 
   /**
@@ -51,7 +51,7 @@ private:
 
   static const std::map<std::string, std::set<int>> StdFileIOFuncs;
   // delta matrix to implement the state machine's delta function
-  static const CSTDFILEIOState delta[3][4];
+  static const CSTDFILEIOState delta[3][5];
   CSTDFILEIOToken funcNameToToken(const std::string &F) const;
 
 public:

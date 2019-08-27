@@ -265,7 +265,6 @@ int main(int argc, const char **argv) {
           initializeLogger(VariablesMap["log"].as<bool>());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                         << "Program options have been successfully parsed.");
-          bl::core::get()->flush();
       }
       ifstream ifs(ConfigFile.c_str());
       if (!ifs) {

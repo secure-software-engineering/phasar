@@ -83,18 +83,19 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Edge Function  : " << function->str());
     // we do not store the default function (all-top)
-    if (function->equal_to(allTop))
+    if (function->equal_to(allTop)) {
       return;
+    }
+    // it is important that existing values in JumpFunctions are overwritten
+    // (use operator[] instead of insert)
     std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
-    sourceValToFunc.insert({sourceVal, function});
-    //	printNonEmptyReverseLookup();
+    sourceValToFunc[sourceVal] = function;
     std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
-    targetValToFunc.insert({targetVal, function});
-    //	printNonEmptyForwardLookup();
+    targetValToFunc[targetVal] = function;
+    // V Table::insert(R r, C c, V v) always overrides (see comments above)
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
-    //	printNonEmptyLookupByTargetNode();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
