@@ -10,7 +10,10 @@ set(lca_files_mem2reg
 )
 
 generate_ll_file(FILE while_01.cpp)
+generate_ll_file(FILE while_02.cpp)
+generate_ll_file(FILE while_03.cpp)
 generate_ll_file(FILE branch_03.cpp)
+generate_ll_file(FILE call_10.cpp)
 
 foreach(TEST_SRC ${lca_files})
   get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME)

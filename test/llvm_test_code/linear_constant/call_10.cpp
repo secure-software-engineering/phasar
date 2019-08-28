@@ -1,10 +1,11 @@
-int foo(int a) {
-  return a;
+unsigned fac(unsigned i) {
+  if (i == 0) {
+    return 1;
+  }
+  return i * fac(--i);
 }
 
 int main() {
-  int i;
-  i = foo(2);
-  i = foo(i);
+  unsigned a = fac(5);
   return 0;
 }
