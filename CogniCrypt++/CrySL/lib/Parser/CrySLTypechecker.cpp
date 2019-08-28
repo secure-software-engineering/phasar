@@ -27,7 +27,8 @@ bool CrySLTypechecker::typecheck() {
 CrySLTypechecker::CrySLTypechecker(
     std::vector<CrySLParser::DomainModelContext *> &ASTs)
     : ASTs(ASTs) {}
-
+CrySLTypechecker::CrySLSpec::CrySLSpec(CrySLParser::DomainModelContext *AST)
+    : AST(AST) {}
 // CrySL Spec
 
 bool CrySLTypechecker::CrySLSpec::typecheck() {

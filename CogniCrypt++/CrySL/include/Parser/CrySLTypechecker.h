@@ -53,8 +53,10 @@ class CrySLTypechecker {
     /// \return True, iff the spec is semantically correct
     bool typecheck(CrySLParser::ConstraintsContext *constr);
 
-
+    bool checkPredicate(CrySLParser::ReqPredContext *requ);
     bool checkPredicate(CrySLParser::EnsPredContext *ensu);
+    bool checkPredicate(CrySLParser::PredContext *pred);
+
     /// \brief Helper method for typechecking the REQUIRES section of a CrySL
     /// spec
     ///

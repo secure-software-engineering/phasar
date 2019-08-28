@@ -61,7 +61,7 @@ std::shared_ptr<Types::Type>
 getOrCreatePrimitive(const std::string &name, Types::Type::PrimitiveType prim) {
   // We have 18 different primitive types (including NONE)
   static std::vector<std::shared_ptr<Types::Type>> primCache(18, nullptr);
-  auto ret = primCache[prim];
+  auto &ret = primCache[prim];
   if (!ret) {
     ret = std::shared_ptr<Type>((Type *)new BaseType(name, prim));
   }

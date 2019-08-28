@@ -5,7 +5,21 @@
 
 bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
     CrySLParser::EnsPredContext *ensu) {
+  bool result = true;
   auto predFull = ensu->pred();
+  result &= checkPredicate(predFull);
+  if (ensu->state) {
+    if (!DefinedEvents.count(ensu->Ident()->getText())) {
+      result = false;
+      std::cerr << Position(ensu->Ident())
+                << ": The event is not defined in the EVENTS section"
+                << std::endl;
+    }
+  }
+  return true;
+}
+bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
+    CrySLParser::PredContext *predFull) {
   if (predFull->suParList()) {
     auto parameters = predFull->suParList()->suPar();
     for (auto perP : parameters) {
@@ -25,6 +39,7 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
   }
   return true;
 }
+
 bool CCPP::CrySLTypechecker::CrySLSpec::typecheck(
     CrySLParser::EnsuresContext *ens) {
   bool result = true;

@@ -14,7 +14,8 @@ bool typecheck(
          << "' is already defined" << endl;
     return false;
   } else {
-    DefinedObjects[name] = getOrCreateType(decl->typeName());
+    DefinedObjects[name] =
+        getOrCreateType(decl->typeName(), decl->constModifier != nullptr);
     return true;
   }
 }
