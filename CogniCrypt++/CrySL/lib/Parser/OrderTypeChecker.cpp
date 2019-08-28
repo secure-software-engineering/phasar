@@ -35,13 +35,14 @@ bool checkBound(CrySLParser::UnorderedSymbolsContext *uno) {
 
 bool checkEvent(CrySLParser::PrimaryContext *primaryContext,
                 std::unordered_set<std::string> &DefinedEventsDummy,
-                std::unordered_set<std::string> &DefinedEvents) {
+                const std::unordered_set<std::string> &DefinedEvents) {
 
-  DefinedEventsDummy.erase(primaryContext->eventName->getText());
-
-  if (!DefinedEvents.count(primaryContext->eventName->getText())) {
-    std::cerr << Position(primaryContext)
-              << ": event is not defined in EVENTS section but is called in "
+  const auto name = primaryContext->eventName->getText();
+  DefinedEventsDummy.erase(name);
+  std::cout << ":::Name: " << name << std::endl;
+  if (DefinedEvents.find(name) == DefinedEvents.end()) {
+    std::cerr << Position(primaryContext) << ": event '" << name
+              << "' is not defined in EVENTS section but is called in "
                  "ORDER section"
               << std::endl;
     return false;
@@ -49,8 +50,9 @@ bool checkEvent(CrySLParser::PrimaryContext *primaryContext,
 }
 
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
+
   bool result = true;
-  std::unordered_set<std::string> DefinedEventsDummy = DefinedEvents;
+  std::unordered_set<std::string> DefinedEventsDummy(DefinedEvents);
   for (auto simpleOrder : order->orderSequence()->simpleOrder()) {
     for (auto unorderedSymbolsContext : simpleOrder->unorderedSymbols()) {
       result &= checkBound(unorderedSymbolsContext);

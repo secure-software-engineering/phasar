@@ -15,9 +15,10 @@ CrySLParserEngine::CrySLParserEngine(const vector<string> &CrySL_FileNames)
     : FileNames(CrySL_FileNames) {}
 
 bool CrySLParserEngine::parseAndTypecheck() {
-  vector<future<tuple<CrySLParser::DomainModelContext *, bool>>> procs;
+  // vector<future<tuple<CrySLParser::DomainModelContext *, bool>>> procs;
+  bool succ = true;
   for (auto &filename : FileNames) {
-    procs.push_back(async(launch::async, [filename]() {
+    /*procs.push_back(async(launch::async, [filename]() {
       ifstream fIn(filename);
       ANTLRInputStream input(fIn);
       CrySLLexer lexer(&input);
@@ -25,18 +26,24 @@ bool CrySLParserEngine::parseAndTypecheck() {
       CrySLParser parser(&tokens);
 
       auto ast = parser.domainModel();
+      std::cout << ast->getText()<<std::endl;
 
       return make_tuple(ast, parser.getNumberOfSyntaxErrors() == 0);
-    }));
+    }));*/
+    auto astCtx = std::make_unique<ASTContext>(filename);
+    if (astCtx->parse())
+      ASTs.push_back(std::move(astCtx));
+    else
+      succ = false;
   }
-  bool succ = true;
-  for (auto &fut : procs) {
+
+  /*for (auto &fut : procs) {
     auto result = fut.get();
     if (get<1>(result)) {
       ASTs.push_back(get<0>(result));
     } else
       succ = false;
-  }
+  }*/
   // TODO make typechecking as parallel as possible
   if (succ) {
     CrySLTypechecker ctc(ASTs);

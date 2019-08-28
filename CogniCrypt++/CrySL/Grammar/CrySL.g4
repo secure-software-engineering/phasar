@@ -40,7 +40,8 @@ reqPred:
 	// a clause consisting of a disjunction of alternative prediactes
 	| reqPred alt = '||' reqPred
 	// a more general form of constrained predicate requirement
-	| constr implication = '=>' reqPred;
+	| constr implication = '=>' reqPred
+	| <assoc = right> reqPred implication = '=>' reqPred;
 reqPredLit: pred;
 pred: name = Ident '[' (paramList = suParList)? ']';
 suParList: suPar (',' suPar)*;
@@ -63,7 +64,7 @@ preDefinedPredicate:
 	| name = 'length' '[' obj = memberAccess ']';
 
 ensures: 'ENSURES' (ensPred ';')+;
-ensPred: pred ('after' state = Ident)?;
+ensPred: (constr '=>')? pred ('after' state = Ident)?;
 
 constraints: 'CONSTRAINTS' (constr ';')+;
 constr:
@@ -88,11 +89,16 @@ arrayElements: (el = 'elements' '(' consPred ')') | consPred;
 litList: literal (',' (literal | ellipsis = '...'))*;
 
 //Events section starts
-events: 'EVENTS' eventsOccurence+;
+events: 'EVENTS' (eventsOccurence | eventAggregate)+;
 eventsOccurence:
-	eventName = Ident ':' (returnValue = Ident '=')? methodName = Ident '(' parametersList? ')' ';';
+	eventName = Ident ':' (
+		(returnValue = Ident | returnThis = 'this') '='
+	)? methodName = Ident '(' parametersList? ')' ';';
 parametersList: param (',' param)*;
 param: memberAccess | thisPtr = 'this' | wildCard = '_';
+
+eventAggregate: eventName = Ident ':=' agg ';';
+agg: Ident ('|' Ident)+;
 
 //Events section ends
 
@@ -102,7 +108,11 @@ order: 'ORDER' orderSequence;
 orderSequence: simpleOrder (',' simpleOrder)*;
 simpleOrder: unorderedSymbols ('|' unorderedSymbols)*;
 unorderedSymbols:
-	primary (('~' primary)+ ((lower = Int)? bound='#' (upper = Int)?)?)?;
+	primary (
+		('~' primary)+ (
+			(lower = Int)? bound = '#' (upper = Int)?
+		)?
+	)?;
 primary:
 	eventName = Ident elementop = ('+' | '?' | '*')?
 	| ('(' orderSequence ')' elementop = ('+' | '?' | '*')?);
@@ -118,7 +128,7 @@ negatesOccurence: ensPred;
 
 forbidden: 'FORBIDDEN' forbiddenOccurence+;
 forbiddenOccurence:
-	methodName = fqn ('=>' eventName = Ident) ';';
+	methodName = fqn ('=>' eventName = Ident)? ';';
 fqn: qualifiedName '(' typeNameList? ')';
 typeNameList: typeName (',' typeName)*;
 

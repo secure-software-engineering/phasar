@@ -2,16 +2,16 @@
 
 #include "CrySLParser.h"
 #include "Types/Type.h"
+#include <ASTContext.h>
 #include <memory>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-
 namespace CCPP {
 using namespace Types;
 /// \brief This is the core class for typechecking CrySL specifications
 class CrySLTypechecker {
-  std::vector<CrySLParser::DomainModelContext *> &ASTs;
+  std::vector<std::unique_ptr<ASTContext>> &ASTs;
   /// \brief This is the core class for typechecking the parts of a single CrySL
   /// specification, which are independent from other specifications
   class CrySLSpec {
@@ -106,7 +106,7 @@ class CrySLTypechecker {
                      std::vector<CrySLParser::ReqPredContext *> RequiredPreds);
 
 public:
-  CrySLTypechecker(std::vector<CrySLParser::DomainModelContext *> &ASTs);
+  CrySLTypechecker(std::vector<std::unique_ptr<ASTContext>> &ASTs);
   /// \brief Performs the typechecking for all CrySL specs, which have been
   /// passed to the constructor
   bool typecheck();

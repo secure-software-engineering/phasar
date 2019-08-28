@@ -1,0 +1,14 @@
+{
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "clang++ build active file",
+            "command": "./compile_and_link_dbg.sh",
+            
+            "options": {
+                "cwd": "/media/sf_CCPP/phasar/CogniCrypt++/CrySL"
+            }
+        }
+    ],
+    "version": "2.0.0"
+}

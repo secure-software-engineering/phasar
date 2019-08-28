@@ -1,7 +1,9 @@
 #pragma once
 #include "CrySLParser.h"
 #include "CrySLTypechecker.h"
+#include <ASTContext.h>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -9,7 +11,7 @@ namespace CCPP {
 /// \brief The top-level class for parsing and typechecking one or more CrySL++
 /// files
 class CrySLParserEngine {
-  std::vector<CrySLParser::DomainModelContext *> ASTs;
+  std::vector<std::unique_ptr<ASTContext>> ASTs;
   std::vector<std::string> FileNames;
 
 public:

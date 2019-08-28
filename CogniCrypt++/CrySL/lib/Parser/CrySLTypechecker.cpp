@@ -6,8 +6,8 @@ bool CrySLTypechecker::typecheck() {
   bool succ = true;
   std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
   std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
-  for (auto ast : ASTs) {
-    CrySLSpec spec(ast);
+  for (auto &ast : ASTs) {
+    CrySLSpec spec(ast->getAST());
     if (succ = spec.typecheck()) {
       EnsuredPreds.insert(EnsuredPreds.end(), spec.ensuredPredicates().begin(),
                           spec.ensuredPredicates().end());
@@ -25,13 +25,14 @@ bool CrySLTypechecker::typecheck() {
 }
 
 CrySLTypechecker::CrySLTypechecker(
-    std::vector<CrySLParser::DomainModelContext *> &ASTs)
+    std::vector<std::unique_ptr<ASTContext>> &ASTs)
     : ASTs(ASTs) {}
 CrySLTypechecker::CrySLSpec::CrySLSpec(CrySLParser::DomainModelContext *AST)
     : AST(AST) {}
 // CrySL Spec
 
 bool CrySLTypechecker::CrySLSpec::typecheck() {
+  std::cout << AST->getText() << std::endl;
   bool succ = true;
   succ &= typecheck(AST->objects());
   succ &= typecheck(AST->events());

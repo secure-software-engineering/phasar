@@ -14,15 +14,15 @@ int main(int argc, char *argv[]) {
   }
 
   std::vector<std::string> crysl_filenames;
-  for (auto &entry : std::filesystem::directory_iterator(argv[1])) {
+  for (auto &entry : std::filesystem::directory_iterator(argv[1]) ){
     if (entry.is_regular_file()) {
-      auto ext = ((std::filesystem::path)entry).extension();
+      auto ext = entry.path().extension();
       if (ext == ".cryptosl" || ext == ".cryptsl" || ext == ".crysl") {
-        crysl_filenames.push_back(((std::filesystem::path)entry).string());
+        crysl_filenames.push_back(entry.path().string());
       }
     }
   }
-
+  
   CCPP::CrySLParserEngine engine(std::move(crysl_filenames));
 
   if (engine.parseAndTypecheck()) {
@@ -32,4 +32,5 @@ int main(int argc, char *argv[]) {
     std::cerr << "Finished with errors" << std::endl;
     return 1;
   }
+  
 }

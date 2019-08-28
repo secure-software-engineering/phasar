@@ -1,0 +1,1 @@
+clang++ -I /usr/local/include/antlr4-runtime/ -I include/Parser -I include/FormatConverter -I ../../include lib/*/*.cpp lib/*/*/*.cpp main.cpp -L /usr/local/lib/ -lantlr4-runtime /usr/local/lib/libantlr4-runtime.a -std=c++17 -o cryslparser -lpthread -g -lstdc++fs

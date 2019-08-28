@@ -22,8 +22,8 @@ public:
     T__44 = 45, T__45 = 46, T__46 = 47, T__47 = 48, T__48 = 49, T__49 = 50, 
     T__50 = 51, T__51 = 52, T__52 = 53, T__53 = 54, T__54 = 55, T__55 = 56, 
     T__56 = 57, T__57 = 58, T__58 = 59, T__59 = 60, T__60 = 61, T__61 = 62, 
-    T__62 = 63, Int = 64, Double = 65, Char = 66, Bool = 67, String = 68, 
-    Ident = 69, COMMENT = 70, LINE_COMMENT = 71, WS = 72
+    T__62 = 63, T__63 = 64, Int = 65, Double = 66, Char = 67, Bool = 68, 
+    String = 69, Ident = 70, COMMENT = 71, LINE_COMMENT = 72, WS = 73
   };
 
   enum {
@@ -35,9 +35,10 @@ public:
     RuleEnsures = 20, RuleEnsPred = 21, RuleConstraints = 22, RuleConstr = 23, 
     RuleComparingRelOperator = 24, RuleCons = 25, RuleArrayElements = 26, 
     RuleLitList = 27, RuleEvents = 28, RuleEventsOccurence = 29, RuleParametersList = 30, 
-    RuleParam = 31, RuleOrder = 32, RuleOrderSequence = 33, RuleSimpleOrder = 34, 
-    RuleUnorderedSymbols = 35, RulePrimary = 36, RuleNegates = 37, RuleNegatesOccurence = 38, 
-    RuleForbidden = 39, RuleForbiddenOccurence = 40, RuleFqn = 41, RuleTypeNameList = 42
+    RuleParam = 31, RuleEventAggregate = 32, RuleAgg = 33, RuleOrder = 34, 
+    RuleOrderSequence = 35, RuleSimpleOrder = 36, RuleUnorderedSymbols = 37, 
+    RulePrimary = 38, RuleNegates = 39, RuleNegatesOccurence = 40, RuleForbidden = 41, 
+    RuleForbiddenOccurence = 42, RuleFqn = 43, RuleTypeNameList = 44
   };
 
   CrySLParser(antlr4::TokenStream *input);
@@ -82,6 +83,8 @@ public:
   class EventsOccurenceContext;
   class ParametersListContext;
   class ParamContext;
+  class EventAggregateContext;
+  class AggContext;
   class OrderContext;
   class OrderSequenceContext;
   class SimpleOrderContext;
@@ -393,6 +396,7 @@ public:
     EnsPredContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
     PredContext *pred();
+    ConstrContext *constr();
     antlr4::tree::TerminalNode *Ident();
 
    
@@ -495,6 +499,8 @@ public:
     virtual size_t getRuleIndex() const override;
     std::vector<EventsOccurenceContext *> eventsOccurence();
     EventsOccurenceContext* eventsOccurence(size_t i);
+    std::vector<EventAggregateContext *> eventAggregate();
+    EventAggregateContext* eventAggregate(size_t i);
 
    
   };
@@ -505,6 +511,7 @@ public:
   public:
     antlr4::Token *eventName = nullptr;;
     antlr4::Token *returnValue = nullptr;;
+    antlr4::Token *returnThis = nullptr;;
     antlr4::Token *methodName = nullptr;;
     EventsOccurenceContext(antlr4::ParserRuleContext *parent, size_t invokingState);
     virtual size_t getRuleIndex() const override;
@@ -541,6 +548,31 @@ public:
   };
 
   ParamContext* param();
+
+  class  EventAggregateContext : public antlr4::ParserRuleContext {
+  public:
+    antlr4::Token *eventName = nullptr;;
+    EventAggregateContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    AggContext *agg();
+    antlr4::tree::TerminalNode *Ident();
+
+   
+  };
+
+  EventAggregateContext* eventAggregate();
+
+  class  AggContext : public antlr4::ParserRuleContext {
+  public:
+    AggContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    std::vector<antlr4::tree::TerminalNode *> Ident();
+    antlr4::tree::TerminalNode* Ident(size_t i);
+
+   
+  };
+
+  AggContext* agg();
 
   class  OrderContext : public antlr4::ParserRuleContext {
   public:
