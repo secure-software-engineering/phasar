@@ -8,7 +8,7 @@
             "name": "clang++ build and debug active file",
             "type": "cppdbg",
             "request": "launch",
-            "program": "/media/sf_CCPP/phasar/CogniCrypt++/CrySL/cryslparser",
+            "program": "${workspaceFolder}/cryslparser",
             "args": ["Rules"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
