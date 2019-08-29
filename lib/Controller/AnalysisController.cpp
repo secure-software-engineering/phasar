@@ -114,6 +114,12 @@ AnalysisController::AnalysisController(
   }
   IRDB.preprocessIR();
 
+  // print (shortend) IR with ID annotations
+  if (VariablesMap.count("print-ir")) {
+    std::ofstream irFile("annotated-ir.ll", std::ios::binary);
+    IRDB.printPreprocessedIR(irFile, true);
+    irFile.close();
+  }
   // START_TIMER("DB Start Up", PAMM_SEVERITY_LEVEL::Full);
   // DBConn &db = DBConn::getInstance();
   // STOP_TIMER("DB Start Up", PAMM_SEVERITY_LEVEL::Full);

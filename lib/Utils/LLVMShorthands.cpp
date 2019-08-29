@@ -158,6 +158,26 @@ std::string llvmIRToString(const llvm::Value *V) {
   return IRBuffer;
 }
 
+std::string llvmIRToShortString(const llvm::Value *V) {
+  // WARNING: Expensive function, cause is the V->print(RSO)
+  //         (20ms on a medium size code (phasar without debug)
+  //          80ms on a huge size code (clang without debug),
+  //          can be multiplied by times 3 to 5 if passes are enabled)
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  V->print(RSO);
+  boost::trim_left(IRBuffer);
+  RSO.flush();
+  if (IRBuffer.find(", align") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", align"));
+  } else if (IRBuffer.find(", !") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", !"));
+  } else if (IRBuffer.size() > 30) {
+    IRBuffer.erase(30);
+  }
+  return IRBuffer + " | ID: " + getMetaDataID(V);
+}
+
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
   std::vector<const llvm::Value *> globals_used;

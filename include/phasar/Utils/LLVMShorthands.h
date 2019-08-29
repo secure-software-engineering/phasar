@@ -85,6 +85,12 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 std::string llvmIRToString(const llvm::Value *V);
 
 /**
+ * @brief Same as @link(llvmIRToString) but tries to shorten the
+ *        resulting string
+ */
+std::string llvmIRToShortString(const llvm::Value *V);
+
+/**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
  * Function.
  */
