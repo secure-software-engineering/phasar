@@ -442,14 +442,15 @@ void ProjectIRDB::printPreprocessedIR(std::ostream &os, bool shortenIR) {
   for (auto &entry : modules) {
     os << "\nIR module: " << entry.first << '\n';
     for (auto F : getAllFunctions()) {
-      if (getModuleDefiningFunction(F->getName().str())->getModuleIdentifier() == entry.first) {
+      if (getModuleDefiningFunction(F->getName().str())
+              ->getModuleIdentifier() == entry.first) {
         os << F->getName().str() << " {\n";
         for (auto &BB : *F) {
           // do not print the label of the first BB
           if (BB.getPrevNode()) {
             std::string BBLabel;
             llvm::raw_string_ostream RSO(BBLabel);
-            BB.printAsOperand(RSO,false);
+            BB.printAsOperand(RSO, false);
             RSO.flush();
             os << "\n<label " << BBLabel << ">\n";
           }
