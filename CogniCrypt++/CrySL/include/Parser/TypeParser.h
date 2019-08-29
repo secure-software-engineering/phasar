@@ -9,4 +9,7 @@ std::shared_ptr<Types::Type> getOrCreateType(CrySLParser::TypeNameContext *ctx,
                                              bool isConst);
 std::shared_ptr<Types::Type>
 getOrCreatePrimitive(const std::string &name, Types::Type::PrimitiveType prim);
+std::shared_ptr<Types::Type>
+createPrimitivePointerType(const std::string &name,
+                           Types::Type::PrimitiveType prim);
 } // namespace CCPP

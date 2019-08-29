@@ -12,14 +12,14 @@ bool PointerType::isPointerType() const { return true; }
 const std::shared_ptr<Type> &PointerType::getPointerElementType() const {
   return underlying;
 }
-bool PointerType::equivalent(Type *other) const {
+bool PointerType::equivalent(const Type *other) const {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;
     return underlying->equivalent(ty->underlying.get());
   }
   return false;
 }
-bool PointerType::canBeAssignedTo(Type *other) const {
+bool PointerType::canBeAssignedTo(const Type *other) const {
   if (other->isPointerType()) {
     auto ty = (PointerType *)other;
     // assign every pointer to void*

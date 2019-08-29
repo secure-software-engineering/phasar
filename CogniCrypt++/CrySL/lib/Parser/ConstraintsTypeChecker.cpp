@@ -1,7 +1,11 @@
 #include <CrySLTypechecker.h>
 #include <ErrorHelper.h>
+#include <TokenHelper.h>
 #include <TypeParser.h>
+#include <Types/PointerType.h>
 #include <Types/Type.h>
+#include <climits>
+#include <cmath>
 #include <iostream>
 
 namespace CCPP {
@@ -20,6 +24,21 @@ struct ConstraintsTypeChecker {
   typecheckArithCompBinary(CrySLParser::ConstrContext *constr,
                            CrySLParser::ConstrContext *lhs,
                            CrySLParser::ConstrContext *rhs);
+  shared_ptr<const Type> typecheckCons(CrySLParser::ConsContext *cons);
+  shared_ptr<const Type> typecheckIn(CrySLParser::ArrayElementsContext *elems,
+                                     CrySLParser::LitListContext *litList);
+  shared_ptr<const Type>
+  typecheckLiteralExpr(CrySLParser::LiteralExprContext *litEx);
+  shared_ptr<const Type>
+  typecheckConsPred(CrySLParser::ConsPredContext *consPred);
+  shared_ptr<const Type>
+  typecheckArrayElements(CrySLParser::ArrayElementsContext *arrElems);
+  shared_ptr<const Type> typecheckLiteral(CrySLParser::LiteralContext *lit);
+  shared_ptr<const Type>
+  typecheckMemberAccess(CrySLParser::MemberAccessContext *mem);
+  shared_ptr<const Type>
+  typecheckPredefPred(CrySLParser::PreDefinedPredicateContext *pred);
+
   bool typecheck(CrySLParser::ConstraintsContext *constr);
 };
 
@@ -73,6 +92,139 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckArithCompBinary(
 }
 
 shared_ptr<const Type>
+ConstraintsTypeChecker::typecheckCons(CrySLParser::ConsContext *cons) {
+  if (cons->literalExpr()) {
+    return typecheckLiteralExpr(cons->literalExpr());
+  } else {
+    // arrayElems 'in' '{' litList '}'
+    return typecheckIn(cons->arrayElements(), cons->litList());
+  }
+}
+shared_ptr<const Type>
+ConstraintsTypeChecker::typecheckIn(CrySLParser::ArrayElementsContext *elems,
+                                    CrySLParser::LitListContext *litList) {
+  auto elemsTy = typecheckArrayElements(elems);
+  auto literals = litList->literal();
+  // ignore ellipsis for now ...
+  // literals has at least one element
+  auto joinTy = typecheckLiteral(literals[0]);
+  for (size_t i = 1; i < literals.size(); ++i) {
+    auto ty = typecheckLiteral(literals[i]);
+    if (joinTy)
+      joinTy = joinTy->join(ty);
+  }
+  if (elemsTy && joinTy && elemsTy->canBeAssignedTo(joinTy.get())) {
+    return getOrCreatePrimitive(string("bool"), Type::PrimitiveType::BOOL);
+  }
+  return nullptr;
+}
+
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckConsPred(
+    CrySLParser::ConsPredContext *consPred) {
+  return typecheckLiteralExpr(consPred->literalExpr());
+}
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckLiteralExpr(
+    CrySLParser::LiteralExprContext *litEx) {
+  if (litEx->literal())
+    return typecheckLiteral(litEx->literal());
+  else if (litEx->memberAccess())
+    return typecheckMemberAccess(litEx->memberAccess());
+  else // predefined predicate
+    return typecheckPredefPred(litEx->preDefinedPredicate());
+}
+shared_ptr<const Type> typeofInt(antlr4::tree::TerminalNode *intNode) {
+  auto intVal = parseInt(intNode->getText());
+  // TODO be more precise here
+  if (intVal <= INT_MAX) {
+    return getOrCreatePrimitive(string("int"), Type::PrimitiveType::INT);
+  } else {
+    return getOrCreatePrimitive(string("long long"),
+                                Type::PrimitiveType::LONGLONG);
+  }
+}
+shared_ptr<const Type>
+ConstraintsTypeChecker::typecheckLiteral(CrySLParser::LiteralContext *lit) {
+  auto ints = lit->Int();
+  if (lit->base) {
+    // Int ^ Int
+    auto baseVal = parseInt(ints[0]->getText());
+    auto expVal = parseInt(ints[1]->getText());
+    if (pow(baseVal, expVal) > LONG_LONG_MAX) {
+      std::cerr << Position(lit) << ": Arithmetic overflow at "
+                << lit->getText() << std::endl;
+      return nullptr;
+    }
+    auto baseTy = typeofInt(ints[0]);
+    auto expTy = typeofInt(ints[1]);
+    return baseTy->join(expTy);
+  } else if (ints.size() == 1) {
+    return typeofInt(ints[0]);
+  } else if (lit->Bool()) {
+    return getOrCreatePrimitive(string("bool"), Type::PrimitiveType::BOOL);
+  } else {
+    // String
+    return createPrimitivePointerType("char", Type::PrimitiveType::CHAR);
+  }
+}
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckMemberAccess(
+    CrySLParser::MemberAccessContext *mem) {
+  // TODO implement
+  auto ident = mem->Ident();
+  auto obj = DefinedObjects.find(ident[0]->getText());
+  if (obj == DefinedObjects.end()) {
+    std::cerr << "The object '" << ident[0]->getText()
+              << "' is not defined in the OBJECTS section" << std::endl;
+    return nullptr;
+  }
+  if (ident.size() == 1) {
+    auto ret = obj->second;
+    if (mem->deref) {
+      if (!ret->isPointerType()) {
+        std::cout << Position(mem)
+                  << ": Dereferencing is only possible on pointers. "
+                  << ident[0]->getText() << " is not a pointer" << std::endl;
+        return nullptr;
+      } else {
+        ret = ((Types::PointerType *)ret.get())->getPointerElementType();
+      }
+    }
+    return ret;
+
+  } else {
+    // actual member access: Since we don't have the class-definitions, we need
+    // to assume, that this is ok (if it is no primitive)
+    auto objTy = obj->second;
+    if (mem->dot && objTy->isPointerType()) {
+      std::cerr << "Member-access using the dot (.) is not allowed on pointers."
+                << ident[0]->getText() << " is a pointer" << std::endl;
+      return nullptr;
+    } else if (mem->arrow && !objTy->isPointerType()) {
+      std::cerr
+          << "Member-access using the arrow (->) is only allowed on pointers."
+          << ident[0]->getText() << " is not a pointer" << std::endl;
+      return nullptr;
+    }
+    return getOrCreatePrimitive(string("<top>"), Type::PrimitiveType::TOP);
+  }
+}
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckPredefPred(
+    CrySLParser::PreDefinedPredicateContext *pred) {
+  // TODO implement
+  return getOrCreatePrimitive(string("bool"), Type::PrimitiveType::BOOL);
+}
+shared_ptr<const Type> ConstraintsTypeChecker::typecheckArrayElements(
+    CrySLParser::ArrayElementsContext *arrElems) {
+  if (arrElems->el) {
+    auto arrTy = typecheckConsPred(arrElems->consPred());
+    if (arrTy && arrTy->isPointerType()) {
+      return ((PointerType *)arrTy.get())->getPointerElementType();
+    }
+    return nullptr;
+  } else {
+    return typecheckConsPred(arrElems->consPred());
+  }
+}
+shared_ptr<const Type>
 ConstraintsTypeChecker::typecheck(CrySLParser::ConstrContext *constr) {
   //  typecheck constraints
   auto sub_constrs = constr->constr();
@@ -93,8 +245,12 @@ ConstraintsTypeChecker::typecheck(CrySLParser::ConstrContext *constr) {
     } else {
       return typecheckArithCompBinary(constr, sub_constrs[0], sub_constrs[1]);
     }
-  } else {
+  } else if (sub_constrs.size() == 1) {
+    // not (!)
     return typecheckUnary(constr, sub_constrs[0]);
+  } else {
+    // cons
+    return typecheckCons(constr->cons());
   }
 }
 

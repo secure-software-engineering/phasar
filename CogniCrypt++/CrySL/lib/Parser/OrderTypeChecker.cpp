@@ -40,27 +40,42 @@ bool checkEvent(CrySLParser::PrimaryContext *primaryContext,
   const auto name = primaryContext->eventName->getText();
   DefinedEventsDummy.erase(name);
   std::cout << ":::Name: " << name << std::endl;
-  if (DefinedEvents.find(name) == DefinedEvents.end()) {
+  if (!DefinedEvents.count(name)) {
     std::cerr << Position(primaryContext) << ": event '" << name
               << "' is not defined in EVENTS section but is called in "
                  "ORDER section"
               << std::endl;
     return false;
   }
+  return true;
+}
+
+bool checkOrderSequence(CrySLParser::OrderSequenceContext *seq,
+                        std::unordered_set<std::string> &DefinedEventsDummy,
+                        const std::unordered_set<std::string> &DefinedEvents) {
+  bool result = true;
+  for (auto simpleOrder : seq->simpleOrder()) {
+    for (auto unorderedSymbolsContext : simpleOrder->unorderedSymbols()) {
+      result &= checkBound(unorderedSymbolsContext);
+      for (auto primaryContext : unorderedSymbolsContext->primary()) {
+        if (primaryContext->eventName)
+          result &=
+              checkEvent(primaryContext, DefinedEventsDummy, DefinedEvents);
+        else {
+          result &= checkOrderSequence(primaryContext->orderSequence(),
+                                       DefinedEventsDummy, DefinedEvents);
+        }
+      }
+    }
+  }
+  return result;
 }
 
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
 
-  bool result = true;
   std::unordered_set<std::string> DefinedEventsDummy(DefinedEvents);
-  for (auto simpleOrder : order->orderSequence()->simpleOrder()) {
-    for (auto unorderedSymbolsContext : simpleOrder->unorderedSymbols()) {
-      result &= checkBound(unorderedSymbolsContext);
-      for (auto primaryContext : unorderedSymbolsContext->primary()) {
-        result &= checkEvent(primaryContext, DefinedEventsDummy, DefinedEvents);
-      }
-    }
-  }
+  bool result = checkOrderSequence(order->orderSequence(), DefinedEventsDummy,
+                                   DefinedEvents);
   if (!DefinedEventsDummy.empty()) {
     std::cerr << Position(order)
               << ": event is defined in EVENTS section but not called in ORDER "

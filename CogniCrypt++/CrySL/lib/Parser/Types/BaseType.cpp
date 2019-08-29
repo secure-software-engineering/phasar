@@ -13,7 +13,7 @@ bool CCPP::Types::BaseType::isPrimitiveType() const {
   return prim != PrimitiveType::NONE;
 }
 Type::PrimitiveType BaseType::getPrimitiveType() const { return prim; }
-bool BaseType::equivalent(Type *other) const {
+bool BaseType::equivalent(const Type *other) const {
   if (other->isPrimitiveType()) {
     auto otherPrim = ((BaseType *)other)->getPrimitiveType();
     return otherPrim == prim;
@@ -21,7 +21,7 @@ bool BaseType::equivalent(Type *other) const {
   return getName() == other->getName();
 }
 
-bool BaseType::canBeAssignedTo(Type *other) const {
+bool BaseType::canBeAssignedTo(const Type *other) const {
   if (other->isPrimitiveType()) {
     // TODO be more precise here
     return prim <= ((BaseType *)other)->getPrimitiveType();
@@ -32,7 +32,7 @@ bool BaseType::canBeAssignedTo(Type *other) const {
 
 shared_ptr<const Type>
 BaseType::join(const shared_ptr<const Type> &other) const {
-  if (prim == PrimitiveType::NONE || !other->isPrimitiveType()) {
+  if (prim == PrimitiveType::NONE || !other || !other->isPrimitiveType()) {
     // TODO: report proper error value
     return nullptr;
   }

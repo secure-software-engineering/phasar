@@ -34,7 +34,9 @@ public:
     DOUBLE,
     LONGDOUBLE,
     VOID,
-    NULL_T
+    NULL_T,
+    TOP,
+    BOT
   };
   /// \brief A std::shared_ptr<const Type> holding the this pointer
   const std::shared_ptr<const Type> getShared() const {
@@ -46,9 +48,9 @@ public:
   ///
   /// Does not take real subtype-relationships into account;
   /// only converts between primitives
-  virtual bool canBeAssignedTo(Type *other) const = 0;
+  virtual bool canBeAssignedTo(const Type *other) const = 0;
   /// \brief Type equivalence
-  virtual bool equivalent(Type *other) const { return this == other; }
+  virtual bool equivalent(const Type *other) const { return this == other; }
   /// \brief True, iff this type is a pointer-type
   virtual bool isPointerType() const { return false; }
   /// \brief True, iff this type is a C-style array-type
@@ -65,7 +67,7 @@ public:
   /// Note, that it has the same constraints as Type::canBeAssignedTo(Type*).
   virtual std::shared_ptr<const Type>
   join(const std::shared_ptr<const Type> &other) const {
-    return nullptr;
+    return other && this->equivalent(other.get()) ? other : nullptr;
   }
   /// \brief True, iff the 'const' modifier is used for this type
   bool isConstant() const { return isConst; }

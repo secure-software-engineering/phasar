@@ -67,4 +67,10 @@ getOrCreatePrimitive(const std::string &name, Types::Type::PrimitiveType prim) {
   }
   return ret;
 }
+std::shared_ptr<Types::Type>
+createPrimitivePointerType(const std::string &name,
+                           Types::Type::PrimitiveType prim) {
+  auto ret = getOrCreatePrimitive(name, prim);
+  return std::shared_ptr<Type>((Type *)new PointerType(ret));
+}
 } // namespace CCPP

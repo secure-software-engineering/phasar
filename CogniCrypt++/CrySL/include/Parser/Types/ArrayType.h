@@ -10,7 +10,7 @@ public:
   ArrayType(std::shared_ptr<Type> &underlying, long long length);
   /// \brief The number of elements of arrays of this type
   long long getArrayLength() const;
-  virtual bool equivalent(Type *other) const override;
+  virtual bool equivalent(const Type *other) const override;
   virtual bool isArrayType() const override;
 };
 } // namespace Types
