@@ -7,10 +7,10 @@ using namespace std;
 
 bool typecheck(
     std::unordered_map<std::string, std::shared_ptr<Type>> &DefinedObjects,
-    CrySLParser::ObjectDeclContext *decl) {
+    CrySLParser::ObjectDeclContext *decl, const std::string &filename) {
   auto name = decl->Ident()->getText();
   if (DefinedObjects.count(name)) {
-    cerr << Position(decl) << ": An object with the name '" << name
+    cerr << Position(decl, filename) << ": An object with the name '" << name
          << "' is already defined" << endl;
     return false;
   } else {
@@ -23,7 +23,7 @@ bool typecheck(
 bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::ObjectsContext *objs) {
   bool succ = true;
   for (auto decl : objs->objectDecl()) {
-    succ &= ::CCPP::typecheck(this->DefinedObjects, decl);
+    succ &= ::CCPP::typecheck(this->DefinedObjects, decl, filename);
   }
   return succ;
 }

@@ -22,5 +22,6 @@ public:
 
   bool parse();
   CrySLParser::DomainModelContext *getAST() const;
+  const std::string &getFilename() const;
 };
 } // namespace CCPP

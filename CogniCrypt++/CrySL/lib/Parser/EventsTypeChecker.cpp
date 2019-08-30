@@ -7,7 +7,8 @@ namespace CCPP {
 bool checkEventObjects(
     CrySLParser::ParametersListContext *paramList,
     std::unordered_map<std::string, std::shared_ptr<Types::Type>>
-        &definedObjects) {
+        &definedObjects,
+    const std::string &filename) {
   if (!paramList)
     return true;
   bool result = true;
@@ -17,7 +18,7 @@ bool checkEventObjects(
 
       for (auto pObject : parameters) {
         if (!definedObjects.count(pObject->getText())) {
-          std::cerr << Position(pObject)
+          std::cerr << Position(pObject, filename)
                     << ": object does not exist in the objects section"
                     << std::endl;
           return false;
@@ -39,29 +40,40 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext *evt) {
 
     if (event->returnValue) {
       if (!DefinedObjects.count(event->returnValue->getText())) {
-        std::cerr << Position(event->returnValue)
+        std::cerr << Position(event->returnValue, filename)
                   << ": The return-object is not defined" << std::endl;
         return false;
       }
     }
 
     if (DefinedEvents.count(eventName)) {
-      result = checkEventObjects(event->parametersList(), DefinedObjects);
+      checkEventObjects(event->parametersList(), DefinedObjects, filename);
+      result = false;
+      std::cerr << Position(event, filename) << ": The event '" << eventName
+                << "' is already defined" << std::endl;
     } else {
-      DefinedEvents.insert(eventName);
-      result = checkEventObjects(event->parametersList(), DefinedObjects);
+      // std::cout << "Define event '" << eventName << "'" << std::endl;
+      // DefinedEvents.insert(eventName);
+      DefinedEvents[eventName] = {eventName};
+      result =
+          checkEventObjects(event->parametersList(), DefinedObjects, filename);
     }
-    return result;
   }
   for (auto aggregate : evt->eventAggregate()) {
-    for (auto agg : aggregate->agg()->Ident()) {
+    auto aggs = aggregate->agg()->Ident();
+    std::unordered_set<std::string> aggsSet;
+    for (auto agg : aggs) {
+      aggsSet.insert(agg->getText());
       if (!DefinedEvents.count(agg->getText())) {
         result = false;
-        std::cerr << Position(agg) << ": The event is not defined" << std::endl;
+        std::cerr << Position(agg, filename) << ": The event '"
+                  << agg->getText() << "' is not defined" << std::endl;
       }
     }
-    DefinedEvents.insert(aggregate->eventName->getText());
+    // DefinedEvents.insert(aggregate->eventName->getText());
+    DefinedEvents[aggregate->eventName->getText()] = std::move(aggsSet);
   }
+  return result;
 }
 
 } // namespace CCPP

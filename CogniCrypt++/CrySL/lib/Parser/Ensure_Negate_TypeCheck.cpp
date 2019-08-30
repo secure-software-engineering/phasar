@@ -11,7 +11,7 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
   if (ensu->state) {
     if (!DefinedEvents.count(ensu->Ident()->getText())) {
       result = false;
-      std::cerr << Position(ensu->Ident())
+      std::cerr << Position(ensu->Ident(), filename)
                 << ": The event is not defined in the EVENTS section"
                 << std::endl;
     }
@@ -28,7 +28,7 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
         for (auto idts :
              perP->consPred()->literalExpr()->memberAccess()->Ident()) {
           if (!DefinedObjects.count(idts->getText())) {
-            std::cerr << Position(idts)
+            std::cerr << Position(idts, filename)
                       << ": object is not defined in the OBJECTS section"
                       << std::endl;
             return false;

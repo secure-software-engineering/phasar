@@ -13,9 +13,11 @@ using namespace std;
 using namespace Types;
 struct ConstraintsTypeChecker {
   const unordered_map<string, shared_ptr<Type>> &DefinedObjects;
+  const std::string &filename;
   ConstraintsTypeChecker(
-      const unordered_map<string, shared_ptr<Type>> &DefinedObjects)
-      : DefinedObjects(DefinedObjects) {}
+      const unordered_map<string, shared_ptr<Type>> &DefinedObjects,
+      const std::string &filename)
+      : DefinedObjects(DefinedObjects), filename(filename) {}
 
   shared_ptr<const Type> typecheck(CrySLParser::ConstrContext *constr);
   shared_ptr<const Type> typecheckUnary(CrySLParser::ConstrContext *constr,
@@ -52,7 +54,8 @@ ConstraintsTypeChecker::typecheckUnary(CrySLParser::ConstrContext *constr,
                    : nullptr;
     return reportIfNull(
         constr, ret,
-        "The logical negation can only be applied on a boolean value");
+        "The logical negation can only be applied on a boolean value",
+        filename);
   } else {
     // parens
     return typecheck(sub_constr);
@@ -76,12 +79,14 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckArithCompBinary(
                    : nullptr;
     return reportIfNull(
         constr, ret,
-        "Both operands of logical con/disjunction must be boolean constraints");
+        "Both operands of logical con/disjunction must be boolean constraints",
+        filename);
   } else {
     auto joinTy =
         reportIfNull(constr, lhsTy->join(rhsTy),
                      "The binary operator is not applicable for types " +
-                         lhsTy->getName() + " and " + rhsTy->getName());
+                         lhsTy->getName() + " and " + rhsTy->getName(),
+                     filename);
     if (constr->comparingRelOperator() || constr->equal || constr->unequal) {
       return getOrCreatePrimitive(string("bool"), Type::PrimitiveType::BOOL);
     } else {
@@ -150,7 +155,7 @@ ConstraintsTypeChecker::typecheckLiteral(CrySLParser::LiteralContext *lit) {
     auto baseVal = parseInt(ints[0]->getText());
     auto expVal = parseInt(ints[1]->getText());
     if (pow(baseVal, expVal) > LONG_LONG_MAX) {
-      std::cerr << Position(lit) << ": Arithmetic overflow at "
+      std::cerr << Position(lit, filename) << ": Arithmetic overflow at "
                 << lit->getText() << std::endl;
       return nullptr;
     }
@@ -180,7 +185,7 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckMemberAccess(
     auto ret = obj->second;
     if (mem->deref) {
       if (!ret->isPointerType()) {
-        std::cout << Position(mem)
+        std::cout << Position(mem, filename)
                   << ": Dereferencing is only possible on pointers. "
                   << ident[0]->getText() << " is not a pointer" << std::endl;
         return nullptr;
@@ -241,7 +246,8 @@ ConstraintsTypeChecker::typecheck(CrySLParser::ConstrContext *constr) {
               : nullptr;
       return reportIfNull(constr, ret,
                           "Both premisse and conclusion of an implication "
-                          "must be boolean constraints");
+                          "must be boolean constraints",
+                          filename);
     } else {
       return typecheckArithCompBinary(constr, sub_constrs[0], sub_constrs[1]);
     }
@@ -263,7 +269,8 @@ bool ConstraintsTypeChecker::typecheck(
         ty->getPrimitiveType() != Type::PrimitiveType::BOOL) {
       succ = false;
       if (ty.get()) {
-        cerr << Position(constr) << ": The constraint is not boolean" << endl;
+        cerr << Position(constr, filename) << ": The constraint is not boolean"
+             << endl;
       }
     }
   }
@@ -272,7 +279,7 @@ bool ConstraintsTypeChecker::typecheck(
 
 bool CrySLTypechecker::CrySLSpec::typecheck(
     CrySLParser::ConstraintsContext *constr) {
-  ConstraintsTypeChecker ctc(DefinedObjects);
+  ConstraintsTypeChecker ctc(DefinedObjects, filename);
   return ctc.typecheck(constr);
 }
 } // namespace CCPP

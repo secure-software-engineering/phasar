@@ -16,11 +16,11 @@ EVENTS
     
     encInit1:  EVP_EncryptInit_ex (this, cipher, _   , key, iv);
     encInit2:  EVP_EncryptInit    (this, cipher      , key, iv);
-    encInit := enc1Init1 | enc1Init2;
+    encInit := encInit1 | encInit2;
     
     decInit1:  EVP_DecryptInit_ex (this, cipher, _   , key, iv);
     decInit2:  EVP_DecryptInit    (this, cipher      , key, iv);
-    decInit := dec1Init1 | dec1Init2;
+    decInit := decInit1 | decInit2;
     
     cInit1:    EVP_CipherInit_ex  (this, cipher, _   , key, iv, enc);
     cInit2:    EVP_CipherInit     (this, cipher      , key, iv, enc);
@@ -48,7 +48,7 @@ EVENTS
     cFinalOrUpdate   := cFinal   | cUpdate;
     
 ORDER
-    ctor, ((encInit | dec1Init | cInit)*, ((encInit, encUpdate*, encFinal) | (decInit, decUpdate*, decFinal) | (cInit, cUpdate*, cFinal)))+, dtor
+    ctor, ((encInit | decInit | cInit)*, ((encInit, encUpdate*, encFinal) | (decInit, decUpdate*, decFinal) | (cInit, cUpdate*, cFinal)))+, dtor
 
 CONSTRAINTS
     enc in {0, 1};

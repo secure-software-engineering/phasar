@@ -10,7 +10,7 @@ bool CCPP::CrySLTypechecker::CrySLSpec::typecheck(
   for (auto forbidden : forb->forbiddenOccurence()) {
     if (forbidden->eventName &&
         !DefinedEvents.count(forbidden->eventName->getText())) {
-      std::cerr << Position(forbidden) << ":Forbidden event '"
+      std::cerr << Position(forbidden, filename) << ":Forbidden event '"
                 << forbidden->eventName->getText()
                 << "' does not exist in the event section" << std::endl;
       return false;

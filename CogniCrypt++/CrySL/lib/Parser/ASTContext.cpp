@@ -13,6 +13,7 @@ ASTContext::ASTContext(std::string &&filename)
 CrySLParser::DomainModelContext *ASTContext::getAST() const {
   return parsed ? AST : nullptr;
 }
+const std::string &ASTContext::getFilename() const { return filename; }
 bool ASTContext::parse() {
   if (parsed)
     return parsed == 1;

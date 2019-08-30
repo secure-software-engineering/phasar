@@ -16,12 +16,15 @@ class CrySLTypechecker {
   /// specification, which are independent from other specifications
   class CrySLSpec {
     CrySLParser::DomainModelContext *AST;
+    const std::string &filename;
     std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
     std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
 
     // objects: name -> typename
     std::unordered_map<std::string, std::shared_ptr<Type>> DefinedObjects;
-    std::unordered_set<std::string> DefinedEvents;
+    // eventName -> aggregates (for non-aggregate events: identity)
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        DefinedEvents;
     // TODO other context objects;
 
     /// \brief Helper method for typechecking the OBJECTS section of a CrySL
@@ -77,7 +80,8 @@ class CrySLTypechecker {
     bool typecheck(CrySLParser::NegatesContext *neg);
 
   public:
-    CrySLSpec(CrySLParser::DomainModelContext *AST);
+    CrySLSpec(CrySLParser::DomainModelContext *AST,
+              const std::string &filename);
     /// \brief Performs the typechecking for the CrySL spec, which is passed to
     /// the constructor
     bool typecheck();
