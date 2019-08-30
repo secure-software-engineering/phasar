@@ -114,8 +114,11 @@ AnalysisController::AnalysisController(
   }
   IRDB.preprocessIR();
 
-  // print (shortend) IR with ID annotations
-  if (VariablesMap.count("print-ir")) {
+  // output (shortend) IR with ID annotations
+  if (VariablesMap.count("output-ir")) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+                  << "Output pre-processed and annotated IR module(s) to "
+                     "'annotated-ir.ll'");
     std::ofstream irFile("annotated-ir.ll", std::ios::binary);
     IRDB.printPreprocessedIR(irFile, true);
     irFile.close();

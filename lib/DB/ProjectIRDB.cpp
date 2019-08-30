@@ -438,9 +438,18 @@ void ProjectIRDB::print() {
 }
 
 void ProjectIRDB::printPreprocessedIR(std::ostream &os, bool shortenIR) {
-  os << " === Print pre-processed IR module(s) === \n";
   for (auto &entry : modules) {
-    os << "\nIR module: " << entry.first << '\n';
+    os << "IR module: " << entry.first << '\n';
+    // print globals
+    for (auto &glob : entry.second->globals()) {
+      if (shortenIR) {
+        os << llvmIRToShortString(&glob);
+      } else {
+        os << llvmIRToString(&glob);
+      }
+      os << '\n';
+    }
+    os << '\n';
     for (auto F : getAllFunctions()) {
       if (getModuleDefiningFunction(F->getName().str())
               ->getModuleIdentifier() == entry.first) {
@@ -454,6 +463,7 @@ void ProjectIRDB::printPreprocessedIR(std::ostream &os, bool shortenIR) {
             RSO.flush();
             os << "\n<label " << BBLabel << ">\n";
           }
+          // print all instructions
           for (auto &I : BB) {
             os << "  ";
             if (shortenIR) {

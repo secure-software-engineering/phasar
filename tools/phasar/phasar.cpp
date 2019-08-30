@@ -244,7 +244,7 @@ int main(int argc, const char **argv) {
 			("mem2reg", "Promote memory to register pass")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       ("log,L", "Enable logging")
-      ("print-ir", "Print preprocessed IR")
+      ("output-ir", "Output preprocessed and annotated IR")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
