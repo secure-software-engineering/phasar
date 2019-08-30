@@ -99,12 +99,12 @@ globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
- * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore, 
+ * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,
  * a formal arguments ID will look like this:
  *    <function_name>.<#argument>
  *
  * ZeroValue will have -1 as ID by default.
- * 
+ *
  * @brief Returns the ID of a given LLVM Value.
  * @return Meta data ID as a string or -1, if it's not
  * an Instruction, GlobalVariable or Argument.
@@ -113,9 +113,9 @@ std::string getMetaDataID(const llvm::Value *V);
 
 /**
  * @brief Does a '<' comparison of the annotated ID.
- * 
- * This is useful, since Instructions/Globals and Arguments have different underlying 
- * types for their ID's, size_t and string respectively. 
+ *
+ * This is useful, since Instructions/Globals and Arguments have different
+ * underlying types for their ID's, size_t and string respectively.
  */
 bool lessThanOnValueID(const llvm::Value *V1, const llvm::Value *V2);
 
