@@ -33,6 +33,8 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 
+#include <stdlib.h>
+
 using namespace std;
 using namespace psr;
 
@@ -152,7 +154,7 @@ std::string llvmIRToString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
-  RSO << ", ID: " << getMetaDataID(V);
+  RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
   return IRBuffer;
@@ -214,6 +216,24 @@ std::string getMetaDataID(const llvm::Value *V) {
     return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+bool lessThanOnValueID(const llvm::Value *V1, const llvm::Value *V2) {
+  char *endptr1, *endptr2;
+  std::string id1 = getMetaDataID(V1);
+  std::string id2 = getMetaDataID(V2);
+  long val1 = strtol(id1.c_str(),&endptr1,10);
+  long val2 = strtol(id2.c_str(),&endptr2,10);
+  // both values have string ID's, i.e. are of Argument type
+  if (id1.c_str() == endptr1 && id2.c_str() == endptr2) {
+    return id1 < id2;
+  } else if (id1.c_str() == endptr1 && id2.c_str() != endptr2) {
+    return false;
+  } else if (id1.c_str() != endptr1 && id2.c_str() == endptr2) {
+    return true;
+  } else {
+    return val1 < val2;
+  }
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {

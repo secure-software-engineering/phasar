@@ -764,12 +764,12 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
 
 void IDELinearConstantAnalysis::printNode(
     ostream &os, IDELinearConstantAnalysis::n_t n) const {
-  os << llvmIRToString(n);
+  os << llvmIRToShortString(n);
 }
 
 void IDELinearConstantAnalysis::printDataFlowFact(
     ostream &os, IDELinearConstantAnalysis::d_t d) const {
-  os << llvmIRToString(d);
+  os << llvmIRToShortString(d);
 }
 
 void IDELinearConstantAnalysis::printMethod(

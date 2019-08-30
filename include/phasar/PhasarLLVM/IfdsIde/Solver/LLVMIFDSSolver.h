@@ -78,37 +78,41 @@ public:
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IFDS Result Dumping", PAMM_SEVERITY_LEVEL::Full);
     std::cout << "### DUMP LLVMIFDSSolver results\n";
-    auto results = this->valtab.cellSet();
-    if (results.empty()) {
+    auto cells = this->valtab.cellVec();
+    if (cells.empty()) {
       std::cout << "EMPTY\n";
     } else {
-      std::vector<
-          typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell>
-          cells;
-      for (auto cell : results) {
-        cells.push_back(cell);
-      }
       sort(
           cells.begin(), cells.end(),
           [](typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell a,
              typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell
-                 b) { return a.r < b.r; });
+                 b) {
+            if (!lessThanOnValueID(a.r, b.r) && !lessThanOnValueID(b.r, a.r)) {
+              if constexpr (std::is_same<D, const llvm::Value *>::value) {
+                return lessThanOnValueID(a.c, b.c);
+              } else {
+                // If D is user defined we should use the user defined
+                // less-than comparison
+                return a.c < b.c;
+              }
+            }
+            return lessThanOnValueID(a.r, b.r);
+          });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
         if (prev != curr) {
           prev = curr;
-          std::cout << "--- IFDS START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r)
-                    << " in function: ";
+          std::cout << "\n--- IFDS START RESULT RECORD ---\n";
+          std::cout << "N: " << Problem.NtoString(cells[i].r) << " | Fn: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
             std::cout << inst->getFunction()->getName().str() << "\n";
           }
         }
-        std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-                  << "\tV:  " << cells[i].v << "\n";
+        std::cout << "\tD: " << Problem.DtoString(cells[i].c)
+                  << " | V: " << cells[i].v << '\n';
       }
     }
     std::cout << '\n';

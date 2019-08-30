@@ -78,18 +78,24 @@ public:
     // for the following line have a look at:
     // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
     // https://isocpp.org/wiki/faq/templates#nondependent-name-lookup-members
-    auto results = this->valtab.cellSet();
-    if (results.empty()) {
+    auto cells = this->valtab.cellVec();
+    if (cells.empty()) {
       std::cout << "EMPTY" << std::endl;
     } else {
-      std::vector<typename Table<const llvm::Instruction *, D, V>::Cell> cells;
-      for (auto cell : results) {
-        cells.push_back(cell);
-      }
       std::sort(cells.begin(), cells.end(),
                 [](typename Table<const llvm::Instruction *, D, V>::Cell a,
                    typename Table<const llvm::Instruction *, D, V>::Cell b) {
-                  return a.r < b.r;
+                  if (!lessThanOnValueID(a.r, b.r) &&
+                      !lessThanOnValueID(b.r, a.r)) {
+                    if constexpr (std::is_same<D, const llvm::Value *>::value) {
+                      return lessThanOnValueID(a.c, b.c);
+                    } else {
+                      // If D is user defined we should use the user defined
+                      // less-than comparison
+                      return a.c < b.c;
+                    }
+                  }
+                  return lessThanOnValueID(a.r, b.r);
                 });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
@@ -98,15 +104,14 @@ public:
         if (prev != curr) {
           prev = curr;
           std::cout << "\n--- IDE START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r)
-                    << " in function: ";
+          std::cout << "N: " << Problem.NtoString(cells[i].r) << " | Fn: ";
           if (const llvm::Instruction *inst =
                   llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            std::cout << inst->getFunction()->getName().str() << "\n";
+            std::cout << inst->getFunction()->getName().str() << '\n';
           }
         }
-        std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-                  << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
+        std::cout << "\tD: " << Problem.DtoString(cells[i].c)
+                  << " | V: " << Problem.VtoString(cells[i].v) << '\n';
       }
     }
     std::cout << '\n';

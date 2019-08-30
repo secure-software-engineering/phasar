@@ -259,7 +259,7 @@ AnalysisController::AnalysisController(
         IFDSUninitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
                                                            EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem, false);
+            uninitializedvarproblem, true);
         cout << "IFDS UninitVar Analysis ..." << endl;
         llvmunivsolver.solve();
         cout << "IFDS UninitVar Analysis ended" << endl;
