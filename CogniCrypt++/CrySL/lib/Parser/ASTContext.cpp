@@ -1,8 +1,8 @@
 #include <ASTContext.h>
 #include <CrySLParserEngine.h>
+
 #include <antlr4-runtime.h>
 #include <fstream>
-
 namespace CCPP {
 
 using namespace antlr4;
@@ -23,6 +23,9 @@ bool ASTContext::parse() {
   lexer = std::make_unique<CrySLLexer>(input.get());
   tokens = std::make_unique<CommonTokenStream>(lexer.get());
   parser = std::make_unique<CrySLParser>(tokens.get());
+  err = std::make_unique<FileSpecificErrorListener>(filename);
+  parser->removeErrorListeners();
+  parser->addErrorListener(err.get());
 
   AST = parser->domainModel();
   parsed = 1 + parser->getNumberOfSyntaxErrors();
