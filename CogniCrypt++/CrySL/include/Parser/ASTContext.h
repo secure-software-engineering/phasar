@@ -8,7 +8,7 @@
 
 namespace CCPP {
 class ASTContext {
-  std::unique_ptr<std::ifstream> fIn;
+  // std::unique_ptr<std::ifstream> fIn;
   std::unique_ptr<antlr4::ANTLRInputStream> input;
   std::unique_ptr<CrySLLexer> lexer;
   std::unique_ptr<antlr4::CommonTokenStream> tokens;

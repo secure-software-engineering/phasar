@@ -18,8 +18,9 @@ bool ASTContext::parse() {
   if (parsed)
     return parsed == 1;
 
-  fIn = std::make_unique<std::ifstream>(filename);
-  input = std::make_unique<ANTLRInputStream>(*fIn.get());
+  // fIn = std::make_unique<std::ifstream>(filename);
+  std::ifstream fIn(filename);
+  input = std::make_unique<ANTLRInputStream>(fIn);
   lexer = std::make_unique<CrySLLexer>(input.get());
   tokens = std::make_unique<CommonTokenStream>(lexer.get());
   parser = std::make_unique<CrySLParser>(tokens.get());
