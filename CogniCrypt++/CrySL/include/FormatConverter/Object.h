@@ -8,12 +8,12 @@
 
 namespace CCPP {
 
-class ObjectConverter {
+class Object {
 private:
   llvm::Value *val;
 
 public:
   CCPP::Types::Type getType();
-  bool operator==(const ObjectConverter &oc);
+  bool operator==(const Object &oc);
 };
 } // namespace CCPP
