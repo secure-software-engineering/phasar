@@ -8,7 +8,7 @@ bool CrySLTypechecker::typecheck() {
   std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
   for (auto &ast : ASTs) {
     CrySLSpec spec(ast->getAST(), ast->getFilename());
-    if (succ = spec.typecheck()) {
+    if (spec.typecheck()) {
       EnsuredPreds.insert(EnsuredPreds.end(), spec.ensuredPredicates().begin(),
                           spec.ensuredPredicates().end());
       NegatedPreds.insert(NegatedPreds.end(), spec.negatedPredicates().begin(),
@@ -16,18 +16,35 @@ bool CrySLTypechecker::typecheck() {
       RequiredPreds.insert(RequiredPreds.end(),
                            spec.requiredPredicates().begin(),
                            spec.requiredPredicates().end());
-    }
+    } else
+      succ = false;
     errors |= spec.getErrors();
-    if (succ) {
-      succ &= typecheckEnsNegReq(EnsuredPreds, NegatedPreds, RequiredPreds);
-    }
+  }
+  if (succ) {
+    succ &= typecheckEnsNegReq(EnsuredPreds, NegatedPreds, RequiredPreds);
   }
   return succ;
 }
-
+bool CrySLTypechecker::interSpecificationTypecheck() {
+  std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
+  std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
+  for (auto &spec : specs) {
+    EnsuredPreds.insert(EnsuredPreds.end(), spec.ensuredPredicates().begin(),
+                        spec.ensuredPredicates().end());
+    NegatedPreds.insert(NegatedPreds.end(), spec.negatedPredicates().begin(),
+                        spec.negatedPredicates().end());
+    RequiredPreds.insert(RequiredPreds.end(), spec.requiredPredicates().begin(),
+                         spec.requiredPredicates().end());
+  }
+  return typecheckEnsNegReq(EnsuredPreds, NegatedPreds, RequiredPreds);
+}
 CrySLTypechecker::CrySLTypechecker(
     std::vector<std::unique_ptr<ASTContext>> &ASTs)
     : ASTs(ASTs) {}
+CrySLTypechecker::CrySLTypechecker(
+    std::vector<std::unique_ptr<ASTContext>> &ASTs,
+    std::vector<CrySLSpec> &&specs)
+    : ASTs(ASTs), specs(std::move(specs)) {}
 
 CrySLTypechecker::TypeCheckKind CrySLTypechecker::getErrors() const {
   return (TypeCheckKind)errors;

@@ -3,6 +3,7 @@
 #include <antlr4-runtime.h>
 #include <fstream>
 #include <future>
+#include <optional>
 #include <tuple>
 
 namespace CCPP {
@@ -15,7 +16,9 @@ CrySLParserEngine::CrySLParserEngine(const vector<string> &CrySL_FileNames)
     : FileNames(CrySL_FileNames) {}
 
 bool CrySLParserEngine::parseAndTypecheck() {
-  // vector<future<tuple<CrySLParser::DomainModelContext *, bool>>> procs;
+  vector<future<tuple<unique_ptr<ASTContext>,
+                      optional<CrySLTypechecker::CrySLSpec>, bool>>>
+      procs;
   bool succ = true;
   for (auto &filename : FileNames) {
     /*procs.push_back(async(launch::async, [filename]() {
@@ -30,26 +33,44 @@ bool CrySLParserEngine::parseAndTypecheck() {
 
       return make_tuple(ast, parser.getNumberOfSyntaxErrors() == 0);
     }));*/
-    auto astCtx = std::make_unique<ASTContext>(filename);
+    procs.push_back(async(launch::async, [filename]() {
+      auto ret = std::make_unique<ASTContext>(filename);
+      bool succ = ret->parse();
+      if (succ) {
+        CrySLTypechecker::CrySLSpec spec(ret->getAST(), ret->getFilename());
+        succ = spec.typecheck();
+        return make_tuple(
+            move(ret), optional<CrySLTypechecker::CrySLSpec>(std::move(spec)),
+            succ);
+      }
+      return make_tuple(move(ret), optional<CrySLTypechecker::CrySLSpec>(),
+                        succ);
+    }));
+    /*auto astCtx = std::make_unique<ASTContext>(filename);
     if (astCtx->parse())
       ASTs.push_back(std::move(astCtx));
     else {
       succ = false;
       numSyntaxErrors += astCtx->getNumSyntaxErrors();
-    }
+    }*/
   }
+  std::vector<CrySLTypechecker::CrySLSpec> specs;
 
-  /*for (auto &fut : procs) {
+  for (auto &fut : procs) {
     auto result = fut.get();
-    if (get<1>(result)) {
-      ASTs.push_back(get<0>(result));
+    if (get<2>(result)) {
+      ASTs.push_back(move(get<0>(result)));
+      if (get<1>(result)) {
+        specs.push_back(move(*get<1>(result)));
+      }
     } else
       succ = false;
-  }*/
-  // TODO make typechecking as parallel as possible
+  }
+  // TODO making typechecking as parallel as possible
   if (succ) {
-    CrySLTypechecker ctc(ASTs);
-    succ = ctc.typecheck();
+    CrySLTypechecker ctc(ASTs, move(specs));
+    // succ = ctc.typecheck();
+    succ = ctc.interSpecificationTypecheck();
   }
   return succ;
 }

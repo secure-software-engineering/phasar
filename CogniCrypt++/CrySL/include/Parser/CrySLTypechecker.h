@@ -23,10 +23,6 @@ public:
     FORBIDDEN = 64,
     CONSTRAINTS = 128,
   };
-
-private:
-  int errors = NONE;
-  std::vector<std::unique_ptr<ASTContext>> &ASTs;
   /// \brief This is the core class for typechecking the parts of a single CrySL
   /// specification, which are independent from other specifications
   class CrySLSpec {
@@ -109,6 +105,12 @@ private:
     const std::vector<CrySLParser::EnsPredContext *> &negatedPredicates() const;
     TypeCheckKind getErrors() const;
   };
+
+private:
+  int errors = NONE;
+  std::vector<std::unique_ptr<ASTContext>> &ASTs;
+
+  std::vector<CrySLSpec> specs;
   /// \brief A helper method for "type"checking the parts of the CrySL
   /// specifications, which are dependent of other specs
   ///
@@ -127,9 +129,17 @@ private:
 
 public:
   CrySLTypechecker(std::vector<std::unique_ptr<ASTContext>> &ASTs);
+  CrySLTypechecker(std::vector<std::unique_ptr<ASTContext>> &ASTs,
+                   std::vector<CrySLSpec> &&specs);
   /// \brief Performs the typechecking for all CrySL specs, which have been
   /// passed to the constructor
   bool typecheck();
+  /// \brief Performs only the inter-spec typechecks assuming that the other
+  /// typechecks are already done.
+  ///
+  /// Only use this function, when this object is constructed with the second
+  /// constructor (which also receives the CrySLSpec-vector)
+  bool interSpecificationTypecheck();
   TypeCheckKind getErrors() const;
 };
 } // namespace CCPP
