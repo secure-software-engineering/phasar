@@ -33,8 +33,10 @@ bool CrySLParserEngine::parseAndTypecheck() {
     auto astCtx = std::make_unique<ASTContext>(filename);
     if (astCtx->parse())
       ASTs.push_back(std::move(astCtx));
-    else
+    else {
       succ = false;
+      numSyntaxErrors += astCtx->getNumSyntaxErrors();
+    }
   }
 
   /*for (auto &fut : procs) {
@@ -58,5 +60,35 @@ CrySLParserEngine::CrySLParserEngine::getAllASTs() const {
 decltype(CrySLParserEngine::ASTs) &&
 CrySLParserEngine::CrySLParserEngine::getAllASTs() {
   return std::move(ASTs);
+}
+size_t CrySLParserEngine::getNumberOfSyntaxErrors() const {
+  return numSyntaxErrors;
+}
+bool CrySLParserEngine::orderTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::ORDER);
+}
+bool CrySLParserEngine::objectsTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::OBJECTS);
+}
+bool CrySLParserEngine::eventsTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::EVENTS);
+}
+bool CrySLParserEngine::ensuresTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::ENSURES);
+}
+bool CrySLParserEngine::negatesTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::NEGATES);
+}
+bool CrySLParserEngine::requiresTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::REQUIRES);
+}
+bool CrySLParserEngine::forbiddenTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::FORBIDDEN);
+}
+bool CrySLParserEngine::constraintsTypecheckSucceeded() const {
+  return !(typechecksSucceeded & CrySLTypechecker::CONSTRAINTS);
+}
+bool CrySLParserEngine::typecheckSucceeded() const {
+  return typechecksSucceeded == CrySLTypechecker::NONE;
 }
 } // namespace CCPP

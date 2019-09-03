@@ -16,7 +16,7 @@ class ASTContext {
   std::unique_ptr<FileSpecificErrorListener> err;
   CrySLParser::DomainModelContext *AST;
   std::string filename;
-  int parsed = 0;
+  size_t parsed = 0;
 
 public:
   ASTContext(const std::string &filename);
@@ -25,5 +25,6 @@ public:
   bool parse();
   CrySLParser::DomainModelContext *getAST() const;
   const std::string &getFilename() const;
+  size_t getNumSyntaxErrors() const;
 };
 } // namespace CCPP

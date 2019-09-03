@@ -11,6 +11,21 @@ namespace CCPP {
 using namespace Types;
 /// \brief This is the core class for typechecking CrySL specifications
 class CrySLTypechecker {
+public:
+  enum TypeCheckKind : int {
+    NONE = 0,
+    ORDER = 1,
+    OBJECTS = 2,
+    EVENTS = 4,
+    ENSURES = 8,
+    NEGATES = 16,
+    REQUIRES = 32,
+    FORBIDDEN = 64,
+    CONSTRAINTS = 128,
+  };
+
+private:
+  int errors = NONE;
   std::vector<std::unique_ptr<ASTContext>> &ASTs;
   /// \brief This is the core class for typechecking the parts of a single CrySL
   /// specification, which are independent from other specifications
@@ -19,13 +34,13 @@ class CrySLTypechecker {
     const std::string &filename;
     std::vector<CrySLParser::EnsPredContext *> EnsuredPreds, NegatedPreds;
     std::vector<CrySLParser::ReqPredContext *> RequiredPreds;
+    int errors = NONE;
 
     // objects: name -> typename
     std::unordered_map<std::string, std::shared_ptr<Type>> DefinedObjects;
     // eventName -> aggregates (for non-aggregate events: identity)
     std::unordered_map<std::string, std::unordered_set<std::string>>
         DefinedEvents;
-    // TODO other context objects;
 
     /// \brief Helper method for typechecking the OBJECTS section of a CrySL
     /// spec
@@ -92,6 +107,7 @@ class CrySLTypechecker {
     requiredPredicates() const;
     /// \brief A collection of all negated predicates
     const std::vector<CrySLParser::EnsPredContext *> &negatedPredicates() const;
+    TypeCheckKind getErrors() const;
   };
   /// \brief A helper method for "type"checking the parts of the CrySL
   /// specifications, which are dependent of other specs
@@ -114,5 +130,6 @@ public:
   /// \brief Performs the typechecking for all CrySL specs, which have been
   /// passed to the constructor
   bool typecheck();
+  TypeCheckKind getErrors() const;
 };
 } // namespace CCPP

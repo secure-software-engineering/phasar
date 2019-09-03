@@ -32,4 +32,5 @@ bool ASTContext::parse() {
   parsed = 1 + parser->getNumberOfSyntaxErrors();
   return parsed == 1;
 }
+size_t ASTContext::getNumSyntaxErrors() const { return parsed - 1; }
 } // namespace CCPP
