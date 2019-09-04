@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.17763.0",
+            "compilerPath": "\"C:\\Program Files\\CLANG\\Install\\bin\\clang++.exe\"",
+            "cppStandard": "c++17",
+            "compilerArgs": [
+                "-I",
+                "include/Parser",
+                "-I",
+                "include/FormatConverter"
+            ],
+            "intelliSenseMode": "clang-x64",
+            "cStandard": "c11"
+        }
+    ],
+    "version": 4
+}

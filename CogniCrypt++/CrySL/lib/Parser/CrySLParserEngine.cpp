@@ -66,7 +66,6 @@ bool CrySLParserEngine::parseAndTypecheck() {
     } else
       succ = false;
   }
-  // TODO making typechecking as parallel as possible
   if (succ) {
     CrySLTypechecker ctc(ASTs, move(specs));
     // succ = ctc.typecheck();

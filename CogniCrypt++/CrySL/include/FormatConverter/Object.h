@@ -1,8 +1,8 @@
 #pragma once
 #include "Types/Type.h"
 #include <CrySLParser.h>
+#include <llvm/IR/Instructions.h>
 #include <memory>
-#include<phasar/PhasarLLVM>
 
 #include <string>
 
