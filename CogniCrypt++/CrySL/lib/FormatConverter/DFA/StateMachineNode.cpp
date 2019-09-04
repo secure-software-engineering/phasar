@@ -2,6 +2,7 @@
 
 namespace CCPP {
 namespace DFA {
+using namespace std;
 
 StateMachineNode::StateMachineNode(State state, bool initial, bool accepting)
     : state(state), initial(initial), accepting(accepting) {}
@@ -22,8 +23,9 @@ StateMachineNode::getNextState(const string &label) const {
   return ret;
 }
 bool StateMachineNode::addTransition(const string &evt,
-                                     STateMachineNode &dest) {
-  // TODO implement
+                                     StateMachineNode &dest) {
+  auto ret = next[evt].insert(&dest);
+  return ret.second;
 }
 
 } // namespace DFA
