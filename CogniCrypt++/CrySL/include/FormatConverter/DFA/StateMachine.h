@@ -13,10 +13,13 @@ class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
 public:
+  StateMachine();
   /// \brief Creates a new StateMachineNode which is owned by this NFA
   ///
   /// \returns A reference to the newly created StateMachineNode
   StateMachineNode &addState();
+  StateMachineNode &getInitialState() const;
+  StateMachineNode &getAcceptingState() const;
   /// \brief Creates a new DFA from this NFA which decides exactly the same
   /// language as this NFA.
   ///

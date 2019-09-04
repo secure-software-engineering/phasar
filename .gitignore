@@ -134,3 +134,4 @@ unittests/PhasarLLVM/Pointer/LLVMTypeHierarchyTest
 unittests/Utils/LLVMShorthandsTest
 unittests/Utils/PAMMTest
 CogniCrypt++/CrySL/Grammar/.antlr/
+CogniCrypt++/CrySL/.vscode/

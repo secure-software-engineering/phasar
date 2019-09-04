@@ -1,24 +1,23 @@
 
 #include "CrySLTypechecker.h"
+#include <Event.h>
+#include <EventConverter.h>
 #include <iostream>
-#include<EventConverter.h>
-#include<Event.h>
 
 namespace CCPP {
 
-	void EventConverter::formatConverter(CrySLParser::EventsContext* eventCtx) {
-		  EventConverter eventConverter;
-		  Event eventObj;
-          std::vector<Object> objects;
-          std::vector<Event> events;
+void EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
+  EventConverter eventConverter;
+  Event eventObj;
+  std::vector<Object> objects;
+  std::vector<Event> events;
 
-		  for (auto event : evt->eventsOccurence()) {
-                 eventObj.eventName = event->eventName->getText();
-                 events.insert(eventObj);
+  for (auto event : eventCtx->eventsOccurence()) {
+    eventObj.eventName = event->eventName->getText();
+    events.push_back(eventObj);
 
-                 for (auto param : event->parametersList()->param()) {
-					
-                 }
-		}
-	}
+    for (auto param : event->parametersList()->param()) {
+    }
+  }
 }
+} // namespace CCPP
