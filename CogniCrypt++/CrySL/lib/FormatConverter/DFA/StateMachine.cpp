@@ -21,6 +21,7 @@ StateMachineNode &StateMachine::getInitialState() const { return *states[0]; }
 StateMachineNode &StateMachine::getAcceptingState() const { return *states[1]; }
 unique_ptr<DFA> StateMachine::convertToDFA() const {
   // TODO implement
+  return nullptr;
 }
 } // namespace DFA
 } // namespace CCPP

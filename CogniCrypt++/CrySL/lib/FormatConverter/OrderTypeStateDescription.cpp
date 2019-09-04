@@ -10,10 +10,19 @@ OrderTypeStateDescription::OrderTypeStateDescription(
 bool OrderTypeStateDescription::isAPIFunction(const std::string &F) const {
   return eventStates.count(F);
 }
+psr::TypeStateDescription::State OrderTypeStateDescription::getNextState(std::string Tok, State S) const {
+  auto it = eventStates.find(Tok);
+  if (it == eventStates.end())
+    return error();
+  // TODO set the objects' values (or better do this in the snslysis description
+  // itself? => would require us to create a subclass of
+  // psr::IDETypeStateAnalysis)
+  return dfa->getNextState(S, it->second);
+}
 std::string OrderTypeStateDescription::getTypeNameOfInterest() const {
   return typeName;
 }
-std::string stateToString(State S) {
+std::string OrderTypeStateDescription::stateToString(State S)const {
   if (S == -1)
     return "<ERROR-STATE>";
   for (auto &kvp : eventStates) {
@@ -21,25 +30,25 @@ std::string stateToString(State S) {
       return kvp.first;
     }
   }
-  return "<NO-STATE>";
+  return "<NO-STATE>" ;
 }
-State OrderTypeStateDescription::bottom() const {
+psr::TypeStateDescription::State OrderTypeStateDescription::bottom() const {
   // TODO implement;
   return -1;
 }
-State OrderTypeStateDescription::top() const {
+psr::TypeStateDescription::State OrderTypeStateDescription::top() const {
   // TODO implement;
   return -1;
 }
-State OrderTypeStateDescription::uninit() const {
+psr::TypeStateDescription::State OrderTypeStateDescription::uninit() const {
   return dfa->getInitialState();
 }
-State OrderTypeStateDescription::start() const {
+psr::TypeStateDescription::State OrderTypeStateDescription::start() const {
   // TODO implement
   return 0;
 }
-State OrderTypeStateDescription::error() const { return -1; }
-State OrderTypeStateDescription::accepting() const {
+psr::TypeStateDescription::State OrderTypeStateDescription::error() const { return -1; }
+psr::TypeStateDescription::State OrderTypeStateDescription::accepting() const {
   return dfa->getAcceptingState();
 }
 // TODO implement rest

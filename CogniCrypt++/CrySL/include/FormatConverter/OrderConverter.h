@@ -9,9 +9,9 @@ namespace CCPP {
 
 class OrderConverter {
   std::string getFunctionName(CrySLParser::EventsOccurenceContext *evt);
-
+  std::string specName;
 public:
-  OrderConverter(CrySLParser::OrderContext *order,
+  OrderConverter(const std::string &specName, CrySLParser::OrderContext *order,
                  CrySLParser::EventsContext *evt);
 
   /// \brief Converts the order-regex, which is passed as ctor-argument, to a
