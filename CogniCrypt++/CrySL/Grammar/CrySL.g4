@@ -140,7 +140,7 @@ Int: ([1-9][0-9_]*) | '0';
 Double: Int '.' Int;
 Char: '\'' '\\'? . '\'';
 Bool: 'true' | 'false';
-String: '"' (~["] | '\\"')*? '"';
+String: '"' (~["\\] | '\\"')*? '"';
 Ident: [a-zA-Z_]([a-zA-Z0-9][a-zA-Z0-9_]*)?;
 
 COMMENT: '/*' .*? '*/' -> skip;
