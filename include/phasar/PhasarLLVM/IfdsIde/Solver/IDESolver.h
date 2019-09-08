@@ -23,6 +23,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <tuple>
 #include <type_traits>
 #include <unordered_set>
 #include <utility>
@@ -47,6 +48,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LinkedNode.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
+#include <phasar/PhasarLLVM/Utils/DOTGraph.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -353,6 +355,13 @@ public:
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
+    // TODO: Remove debug output
+    printComputedPathEdges();
+    jumpFn->printJumpFunctions(std::cout);
+    jumpFn->printNonEmptyReverseLookup(std::cout);
+    if (VariablesMap.count("emit-esg-as-dot")) {
+      emitESGasDot();
+    }
   }
 
   /**
@@ -573,10 +582,12 @@ protected:
               cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
                   n, d2, returnSiteN, d3, callees);
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
+          auto fPrime = f->composeWith(edgeFnE);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "Compose: " << edgeFnE->str() << " * " << f->str());
+                        << "Compose: " << edgeFnE->str() << " * " << f->str()
+                        << " = " << fPrime->str());
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-          propagate(d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
+          propagate(d1, returnSiteN, d3, fPrime, n, false);
         }
       }
     }
@@ -611,6 +622,7 @@ protected:
         std::shared_ptr<EdgeFunction<V>> g =
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
         std::shared_ptr<EdgeFunction<V>> fprime = f->composeWith(g);
+        intermediateEdgeFunctions[std::make_tuple(n, m, d2, d3)] = fprime;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Compose: " << g->str() << " * " << f->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -825,6 +837,9 @@ protected:
   std::shared_ptr<EdgeFunction<V>> allTop;
 
   std::shared_ptr<JumpFunctions<N, D, M, V, I>> jumpFn;
+
+  std::map<std::tuple<N, N, D, D>, std::shared_ptr<EdgeFunction<V>>>
+      intermediateEdgeFunctions;
 
   // stores summaries that were queried before they were computed
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
@@ -1339,6 +1354,62 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
+  void printComputedPathEdges() {
+    std::cout << "\n**********************************************************";
+    std::cout << "\n*          Computed intra-procedural path egdes          *";
+    std::cout
+        << "\n**********************************************************\n";
+
+    // Sort intra-procedural path edges
+    auto cells = computedIntraPathEdges.cellVec();
+    sort(cells.begin(), cells.end(),
+         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+    for (auto cell : cells) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+      std::cout << "\nN1: " << ideTabulationProblem.NtoString(Edge.first)
+                << '\n'
+                << "N2: " << n2_label << "\n----"
+                << std::string(n2_label.size(), '-') << '\n';
+      for (auto D1ToD2Set : cell.v) {
+        auto D1Fact = D1ToD2Set.first;
+        std::cout << "D1: " << ideTabulationProblem.DtoString(D1Fact) << '\n';
+        for (auto D2Fact : D1ToD2Set.second) {
+          std::cout << "\tD2: " << ideTabulationProblem.DtoString(D2Fact)
+                    << '\n';
+        }
+        std::cout << '\n';
+      }
+    }
+
+    std::cout << "\n**********************************************************";
+    std::cout << "\n*          Computed inter-procedural path egdes          *";
+    std::cout
+        << "\n**********************************************************\n";
+
+    // Sort intra-procedural path edges
+    cells = computedInterPathEdges.cellVec();
+    sort(cells.begin(), cells.end(),
+         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+    for (auto cell : cells) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+      std::cout << "\nN1: " << ideTabulationProblem.NtoString(Edge.first)
+                << '\n'
+                << "N2: " << n2_label << "\n----"
+                << std::string(n2_label.size(), '-') << '\n';
+      for (auto D1ToD2Set : cell.v) {
+        auto D1Fact = D1ToD2Set.first;
+        std::cout << "D1: " << ideTabulationProblem.DtoString(D1Fact) << '\n';
+        for (auto D2Fact : D1ToD2Set.second) {
+          std::cout << "\tD2: " << ideTabulationProblem.DtoString(D2Fact)
+                    << '\n';
+        }
+        std::cout << '\n';
+      }
+    }
+  }
+
   /**
    * The invariant for computing the number of generated (#gen) and killed
    * (#kill) facts:
@@ -1500,7 +1571,6 @@ protected:
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
     }
-
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "SUMMARY REUSE");
     std::size_t TotalSummaryReuse = 0;
     for (auto entry : fSummaryReuse) {
@@ -1558,6 +1628,173 @@ protected:
                     << "----------------------------------------------");
       cachedFlowEdgeFunctions.print();
     }
+  }
+
+  void emitESGasDot() {
+    auto &lg = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Emit Exploded super-graph (ESG) as DOT graph");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process intra-procedural path egdes");
+    DOTGraph<D> G;
+    DOTFunctionSubGraph *FG = nullptr;
+
+    // Sort intra-procedural path edges
+    auto cells = computedIntraPathEdges.cellVec();
+    sort(cells.begin(), cells.end(),
+         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+    for (auto cell : cells) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
+      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+
+      std::string n1_stmtId = icfg.getStatementId(Edge.first);
+      std::string n2_stmtId = icfg.getStatementId(Edge.second);
+      std::string fnName = icfg.getMethodOf(Edge.first)->getName().str();
+      // Get or create function subgraph
+      if (!FG || FG->id != fnName) {
+        FG = &G.functions[fnName];
+        FG->id = fnName;
+      }
+
+      // Create control flow nodes
+      DOTNode N1(fnName, n1_label, n1_stmtId);
+      DOTNode N2(fnName, n2_label, n2_stmtId);
+      // Add control flow node(s) to function subgraph
+      FG->stmts.insert(N1);
+      if (icfg.isExitStmt(Edge.second)) {
+        FG->stmts.insert(N2);
+      }
+
+      // Set control flow edge
+      FG->intraCFEdges.emplace(N1, N2);
+
+      DOTFactSubGraph *D1_FSG = nullptr;
+      unsigned D1FactId = 0;
+      unsigned D2FactId = 0;
+      for (auto D1ToD2Set : cell.v) {
+        auto D1Fact = D1ToD2Set.first;
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "d1: " << ideTabulationProblem.DtoString(D1Fact));
+
+        DOTNode D1;
+        if (ideTabulationProblem.isZeroValue(D1Fact)) {
+          D1 = {fnName, "Λ", n1_stmtId, 0, false, true};
+        } else {
+          // Get the fact-ID
+          D1FactId = G.getFactID(D1Fact);
+          std::string d1_label = ideTabulationProblem.DtoString(D1Fact);
+
+          // Get or create the fact subgraph
+          D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
+
+          // Insert D1 to fact subgraph
+          D1 = {fnName, d1_label, n1_stmtId, D1FactId, false, true};
+          D1_FSG->nodes.insert(std::make_pair(n1_stmtId, D1));
+        }
+
+        DOTFactSubGraph *D2_FSG = nullptr;
+        for (auto D2Fact : D1ToD2Set.second) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "d2: " << ideTabulationProblem.DtoString(D2Fact));
+          // We do not need to generate any intra-procedural nodes and edges for
+          // the zero value since they will be auto-generated
+          if (!ideTabulationProblem.isZeroValue(D2Fact)) {
+            // Get the fact-ID
+            D2FactId = G.getFactID(D2Fact);
+            std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
+            DOTNode D2 = {fnName, d2_label, n2_stmtId, D2FactId, false, true};
+            auto EF = intermediateEdgeFunctions[std::make_tuple(
+                Edge.first, Edge.second, D1Fact, D2Fact)];
+            std::string EFLabel = EF ? EF->str() : " ";
+            if (D1FactId == D2FactId) {
+              D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
+              D1_FSG->edges.emplace(D1, D2, true, EFLabel);
+            } else {
+              // Get or create the fact subgraph
+              D2_FSG = FG->getOrCreateFactSG(D2FactId, d2_label);
+
+              D2_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
+              FG->crossFactEdges.emplace(D1, D2, true, EFLabel);
+            }
+          }
+        }
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");
+      }
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    }
+
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Process inter-procedural path egdes");
+    cells = computedInterPathEdges.cellVec();
+    sort(cells.begin(), cells.end(),
+         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+    for (auto cell : cells) {
+      auto Edge = std::make_pair(cell.r, cell.c);
+      std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
+      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+      std::string fNameOfN1 = icfg.getMethodOf(Edge.first)->getName().str();
+      std::string fNameOfN2 = icfg.getMethodOf(Edge.second)->getName().str();
+      std::string n1_stmtId = icfg.getStatementId(Edge.first);
+      std::string n2_stmtId = icfg.getStatementId(Edge.second);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N2: " << n2_label);
+
+      // Add inter-procedural control flow edge
+      DOTNode N1(fNameOfN1, n1_label, n1_stmtId);
+      DOTNode N2(fNameOfN2, n2_label, n2_stmtId);
+      // TODO: Handle recursion control flow as intra-procedural control flow
+      // since those eges never leave the function subgraph
+      G.interCFEdges.emplace(N1, N2);
+
+      // Create D1 and D2, if D1 == D2 == lambda then add Edge(D1, D2) to
+      // interLambdaEges otherwise add Edge(D1, D2) to interFactEdges
+      unsigned D1FactId = 0;
+      unsigned D2FactId = 0;
+      for (auto D1ToD2Set : cell.v) {
+        auto D1Fact = D1ToD2Set.first;
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "d1: " << ideTabulationProblem.DtoString(D1Fact));
+        DOTNode D1;
+        if (ideTabulationProblem.isZeroValue(D1Fact)) {
+          D1 = {fNameOfN1, "Λ", n1_stmtId, 0, false, true};
+        } else {
+          // Get the fact-ID
+          D1FactId = G.getFactID(D1Fact);
+          std::string d1_label = ideTabulationProblem.DtoString(D1Fact);
+          D1 = {fNameOfN1, d1_label, n1_stmtId, D1FactId, false, true};
+        }
+
+        auto D2Set = D1ToD2Set.second;
+        for (auto D2Fact : D2Set) {
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "d2: " << ideTabulationProblem.DtoString(D2Fact));
+          DOTNode D2;
+          if (ideTabulationProblem.isZeroValue(D2Fact)) {
+            D2 = {fNameOfN2, "Λ", n2_stmtId, 0, false, true};
+          } else {
+            // Get the fact-ID
+            D2FactId = G.getFactID(D2Fact);
+            std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
+            D2 = {fNameOfN2, d2_label, n2_stmtId, D2FactId, false, true};
+          }
+
+          // TODO: Add recursion edges as intra-procedural edges
+          if (ideTabulationProblem.isZeroValue(D1Fact) &&
+              ideTabulationProblem.isZeroValue(D2Fact)) {
+            G.interLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
+          } else {
+            G.interFactEdges.emplace(D1, D2);
+          }
+        }
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");
+      }
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    }
+
+    std::ofstream dotFile("ESG.dot", std::ios::binary);
+    dotFile << G;
+    dotFile.close();
   }
 };
 
