@@ -202,9 +202,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
       // check if function call can be resolved statically
       if (cs.getCalledFunction() != nullptr) {
         possible_targets.insert(cs.getCalledFunction());
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Found static call-site: ");
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Found static call-site: "
-                      << llvmIRToString(cs.getInstruction()));
+                      << "  " << llvmIRToString(cs.getInstruction()));
       } else {
         // still try to resolve the called function statically
         const llvm::Value *v = cs.getCalledValue();
@@ -217,8 +217,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         } else {
           // the function call must be resolved dynamically
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "Found dynamic call-site: "
-                        << llvmIRToString(cs.getInstruction()));
+                        << "Found dynamic call-site: ");
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "  " << llvmIRToString(cs.getInstruction()));
           // call the resolve routine
           set<string> possible_target_names;
           if (isVirtualFunctionCall(cs)) {

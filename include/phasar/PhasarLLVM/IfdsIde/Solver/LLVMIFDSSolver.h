@@ -41,7 +41,6 @@ class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
 private:
   IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I>
       &Problem;
-  const bool DUMP_RESULTS;
   const bool PRINT_REPORT;
 
 public:
@@ -49,18 +48,17 @@ public:
 
   LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
                                        const llvm::Function *, I> &problem,
-                 bool dumpResults = false, bool printReport = true)
+                 bool printReport = true)
       : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
             problem),
-        Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
-  }
+        Problem(problem), PRINT_REPORT(printReport) {}
 
   void solve() override {
     // Solve the analaysis problem
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) {
+    if (VariablesMap.count("emit-raw-results")) {
       dumpResults();
     }
     if (PRINT_REPORT) {
@@ -77,10 +75,15 @@ public:
   void dumpResults() {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IFDS Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-    std::cout << "### DUMP LLVMIFDSSolver results\n";
+    std::cout
+        << "\n**************************************************************\n"
+        << "*                 Raw LLVMIFDSSolver results                 *\n"
+        << "**************************************************************\n\n"
+        << "========== Raw LLVMIFDSSolver results ==========\n\nThe value of "
+           "all facts is Bottom - Top values are not shown!\n";
     auto cells = this->valtab.cellVec();
     if (cells.empty()) {
-      std::cout << "EMPTY\n";
+      std::cout << "No results computed!\n";
     } else {
       sort(
           cells.begin(), cells.end(),
@@ -100,19 +103,23 @@ public:
           });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
+      const llvm::Function *prevFn = nullptr;
+      const llvm::Function *currFn;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
+        currFn = curr->getFunction();
+        if (prevFn != currFn) {
+          prevFn = currFn;
+          std::cout << "\n\n============ Results for function '" +
+                           currFn->getName().str() + "' ============\n";
+        }
         if (prev != curr) {
           prev = curr;
-          std::cout << "\n--- IFDS START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r) << " | Fn: ";
-          if (const llvm::Instruction *inst =
-                  llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            std::cout << inst->getFunction()->getName().str() << "\n";
-          }
+          std::string NString = Problem.NtoString(curr);
+          std::string line(NString.size(), '-');
+          std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        std::cout << "\tD: " << Problem.DtoString(cells[i].c)
-                  << " | V: " << cells[i].v << '\n';
+        std::cout << "\tD: " << Problem.DtoString(cells[i].c) << '\n';
       }
     }
     std::cout << '\n';

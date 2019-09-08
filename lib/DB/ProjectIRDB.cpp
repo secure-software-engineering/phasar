@@ -437,7 +437,7 @@ void ProjectIRDB::print() {
   }
 }
 
-void ProjectIRDB::printPreprocessedIR(std::ostream &os, bool shortenIR) {
+void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) {
   for (auto &entry : modules) {
     os << "IR module: " << entry.first << '\n';
     // print globals

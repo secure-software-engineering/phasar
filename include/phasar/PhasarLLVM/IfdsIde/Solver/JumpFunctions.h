@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
 #include <memory>
+#include <ostream>
 #include <unordered_map>
 
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
@@ -157,73 +158,65 @@ public:
     nonEmptyLookupByTargetNode.clear();
   }
 
-  void printJumpFunctions() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Jump Functions:");
+  void printJumpFunctions(std::ostream &os) {
+    os << "\n******************************************************";
+    os << "\n*              Print all Jump Functions              *";
+    os << "\n******************************************************\n";
     for (auto &entry : nonEmptyLookupByTargetNode) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "Node: " << problem.NtoString(entry.first));
+      std::string nLabel = problem.NtoString(entry.first);
+      os << "\nN: " << nLabel << "\n---" << std::string(nLabel.size(), '-')
+         << '\n';
       for (auto cell : entry.second.cellSet()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "fact at src: " << problem.DtoString(cell.r));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "fact at dst: " << problem.DtoString(cell.c));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "edge fnct: " << cell.v->str());
+        os << "D1: " << problem.DtoString(cell.r) << '\n'
+           << "\tD2: " << problem.DtoString(cell.c) << '\n'
+           << "\tEF: " << cell.v->str() << "\n\n";
       }
     }
   }
 
-  void printNonEmptyReverseLookup() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyReverseLookup");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Table<N, D, std::unordered_map<D, "
-                     "std::shared_ptr<EdgeFunction<L>>>>");
-    auto cellset = nonEmptyReverseLookup.cellSet();
-    for (auto cell : cellset) {
-      cell.r->dump();
-      cell.c->dump();
-      for (auto edgefunction : cell.v) {
-        edgefunction.first->dump();
-        edgefunction.second->dump();
+  void printNonEmptyReverseLookup(std::ostream &os) {
+    os << "DUMP nonEmptyReverseLookup\nTable<N, D, std::unordered_map<D, "
+          "std::shared_ptr<EdgeFunction<L>>>>\n";
+    auto cellvec = nonEmptyReverseLookup.cellVec();
+    for (auto cell : cellvec) {
+      os << "N : " << problem.NtoString(cell.r)
+         << "\nD1: " << problem.DtoString(cell.c) << '\n';
+      for (auto D2ToEF : cell.v) {
+        os << "D2: " << problem.DtoString(D2ToEF.first)
+           << "\nEF: " << D2ToEF.second->str() << '\n';
       }
+      os << '\n';
     }
   }
 
-  void printNonEmptyForwardLookup() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "DUMP nonEmptyForwardLookup");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Table<D, N, std::unordered_map<D, "
-                     "std::shared_ptr<EdgeFunction<L>>>>");
-    auto cellset = nonEmptyForwardLookup.cellSet();
-    for (auto cell : cellset) {
-      cell.r->dump();
-      cell.c->dump();
-      for (auto edgefunction : cell.v) {
-        edgefunction.first->dump();
-        edgefunction.second->dump();
+  void printNonEmptyForwardLookup(std::ostream &os) {
+    os << "DUMP nonEmptyForwardLookup\nTable<D, N, std::unordered_map<D, "
+          "std::shared_ptr<EdgeFunction<L>>>>\n";
+    auto cellvec = nonEmptyForwardLookup.cellVec();
+    for (auto cell : cellvec) {
+      os << "D1: " << problem.DtoString(cell.r)
+         << "\nN : " << problem.NtoString(cell.c) << '\n';
+      for (auto D2ToEF : cell.v) {
+        os << "D2: " << problem.DtoString(D2ToEF.first)
+           << "\nEF: " << D2ToEF.second->str() << '\n';
       }
+      os << '\n';
     }
   }
 
-  void printNonEmptyLookupByTargetNode() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "DUMP nonEmptyLookupByTargetNode");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "std::unordered_map<N, Table<D, D, "
-                     "std::shared_ptr<EdgeFunction<L>>>>");
+  void printNonEmptyLookupByTargetNode(std::ostream &os) {
+    os << "DUMP nonEmptyLookupByTargetNode\nstd::unordered_map<N, Table<D, D, "
+          "std::shared_ptr<EdgeFunction<L>>>>\n";
     for (auto node : nonEmptyLookupByTargetNode) {
-      node.first->dump();
+      os << "\nN : " << problem.NtoString(node.first) << '\n';
       auto table = nonEmptyLookupByTargetNode[node.first];
-      auto cellset = table.cellSet();
-      for (auto cell : cellset) {
-        cell.r->dump();
-        cell.c->dump();
-        cell.v->dump();
+      auto cellvec = table.cellVec();
+      for (auto cell : cellvec) {
+        os << "D1: " << problem.DtoString(cell.r)
+           << "\nD2: " << problem.DtoString(cell.c) << "\nEF: " << cell.v->str()
+           << '\n';
       }
+      os << '\n';
     }
   }
 };

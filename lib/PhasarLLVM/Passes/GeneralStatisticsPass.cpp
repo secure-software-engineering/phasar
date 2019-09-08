@@ -151,7 +151,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   if (bl::core::get()->get_logging_enabled()) {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "GeneralStatisticsPass summary for module: '"
-                            << M.getName().str() << "'\n";
+                            << M.getName().str() << "'";
     BOOST_LOG_SEV(lg, INFO) << "Allocated Types    : " << allocatedTypes.size();
     BOOST_LOG_SEV(lg, INFO) << "Allocation Sites   : " << allocationsites;
     BOOST_LOG_SEV(lg, INFO) << "Basic Blocks       : " << basicblocks;
