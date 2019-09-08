@@ -30,6 +30,8 @@
 #include <variant>
 #include <vector>
 
+#include "llvm/Support/ErrorHandling.h"
+
 #include <phasar/Config/Configuration.h>
 
 namespace llvm {
@@ -190,7 +192,7 @@ public:
       } else if (auto pval = std::get_if<std::vector<unsigned>>(&TaintedArgs)) {
         return find(pval->begin(), pval->end(), ArgIdx) != pval->end();
       }
-      assert("Something went wrong, unexpected type");
+      llvm_unreachable("Something went wrong, unexpected type");
       return false;
     }
     friend std::ostream &operator<<(std::ostream &OS,
@@ -209,7 +211,7 @@ public:
         for (auto Arg : *pval)
           OS << Arg << " ";
       } else {
-        assert("Something went wrong, unexpected type");
+        llvm_unreachable("Something went wrong, unexpected type");
       }
       return OS << "] Return: " << std::boolalpha << SF.TaintsReturn << "\n";
     }
