@@ -5,9 +5,9 @@
 #include <iostream>
 
 namespace CCPP {
-
-	void EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
-	  EventConverter eventConverter;
+	
+	// this function extracts events from AST node of eventscontext and convert them into Event entity class
+	std::vector<Event> EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
 	  Event eventObj;
 	  std::vector<Object> objects;
 	  std::vector<Event> events;
@@ -19,13 +19,13 @@ namespace CCPP {
                   objects.emplace_back(param);	//creates object of type Object using parameterize constructor with param as a parameter and inserts it in vector
 		}
 
-		checkFactoryConsumerFunc(event, eventObj);
-
+		checkFactoryConsumerFunc(event, eventObj); // checks if the event is factory or consumer funciton and finds it's event
 		events.push_back(eventObj);
 	  }
+          return events;
 	}
 
-	void checkFactoryConsumerFunc(auto event, Event eventObj) {
+	void checkFactoryConsumerFunc(auto event, Event &eventObj) {
 	  if (event->returnValue && event->returnValue->getText() == "this") {
 			eventObj.isFactoryFunction = true;
 			eventObj.factoryParamIdx = {-1};
@@ -34,7 +34,7 @@ namespace CCPP {
             eventObj.isConsumingFunction = true;
 
             int index = 0;
-            std::set<double> consumerParamIdx;
+            std::set<double> consumerParamIdx;		// we need it because this object can occurr nultiple times as a parameter of event
             for (auto param : event->parametersList()->param()) {
 				
              if (param->getText() == "this") {
