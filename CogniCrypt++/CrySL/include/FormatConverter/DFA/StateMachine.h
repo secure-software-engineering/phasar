@@ -13,6 +13,8 @@ class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
 public:
+  /// \brief Creates a new StateMachine with two nodes: the initial and the
+  /// accepting node.
   StateMachine();
   /// \brief Creates a new StateMachineNode which is owned by this NFA
   ///
