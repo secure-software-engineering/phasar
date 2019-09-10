@@ -4,6 +4,7 @@
 #include <TypeParser.h>
 #include <Types/Type.h>
 #include <iostream>
+#include <sstream>
 
 namespace CCPP {
 // using namespace std;
@@ -36,16 +37,26 @@ bool checkBound(CrySLParser::UnorderedSymbolsContext *uno,
     hi = uno->upper ? parseInt(uno->upper->getText()) : max_hi;
 
     if (lo > hi) {
-      std::cerr << Position(uno->bound, filename)
-                << ": The lower bound must not be greater than the upper bound"
-                << std::endl;
+      // std::cerr << Position(uno->bound, filename)
+      //          << ": The lower bound must not be greater than the upper
+      //          bound"
+      //          << std::endl;
+      reportError(Position(uno->bound, filename),
+                  {"The lower bound ", std::to_string(lo),
+                   " must not be larger then the upper bound ",
+                   std::to_string(hi), "."});
       succ = false;
     }
     if (hi > max_hi) {
-      std::cerr << Position(uno->upper, filename)
-                << ": The upper bound must not be greater than the number of "
-                   "primary expressions in the unordered set"
-                << std::endl;
+      // std::cerr << Position(uno->upper, filename)
+      //          << ": The upper bound must not be greater than the number of "
+      //             "primary expressions in the unordered set"
+      //          << std::endl;
+      reportError(Position(uo->upper, filename),
+                  {"The upper bound ", std::to_string(hi),
+                   " must not be larger then the number of primary expressions "
+                   "in the unordered set, which is ",
+                   std::to_string(max_hi)});
       succ = false;
     }
   }
@@ -65,10 +76,13 @@ bool checkEvent(
   markEventAsCalled(name, DefinedEventsDummy);
   // std::cout << ":::Name: " << name << std::endl;
   if (!DefinedEvents.count(name)) {
-    std::cerr << Position(primaryContext, filename) << ": event '" << name
-              << "' is not defined in EVENTS section but is called in "
-                 "ORDER section"
-              << std::endl;
+    // std::cerr << Position(primaryContext, filename) << ": event '" << name
+    //          << "' is not defined in EVENTS section but is called in "
+    //             "ORDER section"
+    //          << std::endl;
+    reportError(
+        Position(primaryContext, filename),
+        {"The event '", name, "' is not defined in the EVENTS section"});
     return false;
   }
   return true;
@@ -107,17 +121,22 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
   bool result = checkOrderSequence(order->orderSequence(), DefinedEventsDummy,
                                    DefinedEvents, filename);
   if (!DefinedEventsDummy.empty()) {
-    std::cerr << "Warning: " << Position(order, filename) << ": events {";
+    // std::cerr << "Warning: " << Position(order, filename) << ": events {";
+    std::stringstream ss;
     bool first = true;
     for (auto &evt : DefinedEventsDummy) {
       if (!first)
-        std::cerr << ", ";
-      std::cerr << evt.first;
+        ss << ", ";
+      ss << evt.first;
       first = false;
     }
-    std::cerr << "} are defined in EVENTS section but not called in ORDER "
-                 "section"
-              << std::endl;
+    // std::cerr << "} are defined in EVENTS section but not called in ORDER "
+    //             "section"
+    //          << std::endl;
+    reportWarning(
+        Position(order, filename),
+        {"The events {", ss.str(),
+         "} are defined in EVENTS section but not called in ORDER section"});
   }
   return result;
 }

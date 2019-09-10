@@ -155,8 +155,10 @@ ConstraintsTypeChecker::typecheckLiteral(CrySLParser::LiteralContext *lit) {
     auto baseVal = parseInt(ints[0]->getText());
     auto expVal = parseInt(ints[1]->getText());
     if (pow(baseVal, expVal) > LONG_LONG_MAX) {
-      std::cerr << Position(lit, filename) << ": Arithmetic overflow at "
-                << lit->getText() << std::endl;
+      // std::cerr << Position(lit, filename) << ": Arithmetic overflow at "
+      //         << lit->getText() << std::endl;
+      reportError(Position(lit, filename),
+                  std::string(": Arithmetic overflow at ") + lit->getText());
       return nullptr;
     }
     auto baseTy = typeofInt(ints[0]);
@@ -177,17 +179,23 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckMemberAccess(
   auto ident = mem->Ident();
   auto obj = DefinedObjects.find(ident[0]->getText());
   if (obj == DefinedObjects.end()) {
-    std::cerr << "The object '" << ident[0]->getText()
-              << "' is not defined in the OBJECTS section" << std::endl;
+    // std::cerr << "The object '" << ident[0]->getText()
+    //          << "' is not defined in the OBJECTS section" << std::endl;
+    reportError(Position(mem, filename),
+                std::string("The object '") + ident[0]->getText() +
+                    "' is not defined in the OBJECTS section");
     return nullptr;
   }
   if (ident.size() == 1) {
     auto ret = obj->second;
     if (mem->deref) {
       if (!ret->isPointerType()) {
-        std::cout << Position(mem, filename)
-                  << ": Dereferencing is only possible on pointers. "
-                  << ident[0]->getText() << " is not a pointer" << std::endl;
+        // std::cout << Position(mem, filename)
+        //          << ": Dereferencing is only possible on pointers. "
+        //          << ident[0]->getText() << " is not a pointer" << std::endl;
+        reportError(Position(mam, filename),
+                    std::string("Dereferencing is only possible on pointers. " +
+                                ident[0]->getText() + " is not a pointer. "));
         return nullptr;
       } else {
         ret = ((Types::PointerType *)ret.get())->getPointerElementType();
@@ -200,13 +208,22 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckMemberAccess(
     // to assume, that this is ok (if it is no primitive)
     auto objTy = obj->second;
     if (mem->dot && objTy->isPointerType()) {
-      std::cerr << "Member-access using the dot (.) is not allowed on pointers."
-                << ident[0]->getText() << " is a pointer" << std::endl;
+      // std::cerr << "Member-access using the dot (.) is not allowed on
+      // pointers."
+      //          << ident[0]->getText() << " is a pointer" << std::endl;
+      reportError(
+          Position(mem, filename),
+          {"Member-access using the dot (.) is not allowed on pointers.",
+           ident[0]->getText(), " is a pointer"});
       return nullptr;
     } else if (mem->arrow && !objTy->isPointerType()) {
-      std::cerr
-          << "Member-access using the arrow (->) is only allowed on pointers."
-          << ident[0]->getText() << " is not a pointer" << std::endl;
+      // std::cerr
+      //    << "Member-access using the arrow (->) is only allowed on pointers."
+      //    << ident[0]->getText() << " is not a pointer" << std::endl;
+      reportError(
+          Position(mem, filename),
+          {"Member-access using the arrow (->) is only allowed on pointers.",
+           ident[0]->getText(), " is not a pointer"});
       return nullptr;
     }
     return getOrCreatePrimitive(string("<top>"), Type::PrimitiveType::TOP);
@@ -269,8 +286,11 @@ bool ConstraintsTypeChecker::typecheck(
         ty->getPrimitiveType() != Type::PrimitiveType::BOOL) {
       succ = false;
       if (ty.get()) {
-        cerr << Position(constr, filename) << ": The constraint is not boolean"
-             << endl;
+        // cerr << Position(constr, filename) << ": The constraint is not
+        // boolean"
+        //     << endl;
+        reportError(Position(constr, filename),
+                    "The constraint is not boolean");
       }
     }
   }

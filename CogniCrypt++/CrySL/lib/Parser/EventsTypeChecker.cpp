@@ -2,7 +2,9 @@
 #include "CrySLTypechecker.h"
 #include "PositionHelper.h"
 #include "Types/Type.h"
+#include <ErrorHelper.h>
 #include <iostream>
+
 namespace CCPP {
 bool checkEventObjects(
     CrySLParser::ParametersListContext *paramList,
@@ -18,9 +20,12 @@ bool checkEventObjects(
 
       for (auto pObject : parameters) {
         if (!definedObjects.count(pObject->getText())) {
-          std::cerr << Position(pObject, filename)
-                    << ": object does not exist in the objects section"
-                    << std::endl;
+          // std::cerr << Position(pObject, filename)
+          //          << ": object does not exist in the objects section"
+          //          << std::endl;
+          reportError(Position(pObject, filename),
+                      {"The object '", pObject->getText(),
+                       "' is not defined in the OBJECTS section"});
           return false;
         }
       }
@@ -40,8 +45,11 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext *evt) {
 
     if (event->returnValue) {
       if (!DefinedObjects.count(event->returnValue->getText())) {
-        std::cerr << Position(event->returnValue, filename)
-                  << ": The return-object is not defined" << std::endl;
+        // std::cerr << Position(event->returnValue, filename)
+        //          << ": The return-object is not defined" << std::endl;
+        reportError(Position(event->returnValue, filename),
+                    {"The return-object '" event->returnValue->getText(),
+                     "' is not defined in the OBJECTS section"});
         return false;
       }
     }
@@ -49,8 +57,10 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext *evt) {
     if (DefinedEvents.count(eventName)) {
       checkEventObjects(event->parametersList(), DefinedObjects, filename);
       result = false;
-      std::cerr << Position(event, filename) << ": The event '" << eventName
-                << "' is already defined" << std::endl;
+      // std::cerr << Position(event, filename) << ": The event '" << eventName
+      //          << "' is already defined" << std::endl;
+      reportError(Position(event, filename),
+                  {"The event '", eventName, "' is already defined"});
     } else {
       // std::cout << "Define event '" << eventName << "'" << std::endl;
       // DefinedEvents.insert(eventName);
@@ -66,8 +76,10 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext *evt) {
       aggsSet.insert(agg->getText());
       if (!DefinedEvents.count(agg->getText())) {
         result = false;
-        std::cerr << Position(agg, filename) << ": The event '"
-                  << agg->getText() << "' is not defined" << std::endl;
+        // std::cerr << Position(agg, filename) << ": The event '"
+        //          << agg->getText() << "' is not defined" << std::endl;
+        reportError(Position(agg, filename),
+                    {"The event '", agg->getText(), "' is not defined"});
       }
     }
     // DefinedEvents.insert(aggregate->eventName->getText());
