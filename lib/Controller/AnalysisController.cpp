@@ -49,6 +49,7 @@
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 using namespace std;
 using namespace psr;
@@ -303,7 +304,8 @@ AnalysisController::AnalysisController(
         break;
       }
       case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
-        IFDSEnvironmentVariableTracing variableTracing(ICFG, EntryPoints);
+        TaintConfiguration<ExtendedValue> TaintConfig;
+        IFDSEnvironmentVariableTracing variableTracing(ICFG, TaintConfig, EntryPoints);
         LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
             variableTracing, true);
         cout << "IFDS EnvironmentVariableTracing ..." << endl;

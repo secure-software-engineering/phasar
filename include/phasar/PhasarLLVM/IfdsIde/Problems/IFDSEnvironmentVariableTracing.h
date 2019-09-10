@@ -30,6 +30,7 @@ class IFDSEnvironmentVariableTracing
                                           LLVMBasedICFG &> {
 public:
   IFDSEnvironmentVariableTracing(LLVMBasedICFG &ICFG,
+                                 const TaintConfiguration<ExtendedValue> &TaintConfig,
                                  std::vector<std::string> EntryPoints);
   ~IFDSEnvironmentVariableTracing() override = default;
 
