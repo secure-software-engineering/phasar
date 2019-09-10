@@ -1,16 +1,16 @@
-//Unit Test suite
+// Unit Test suite
+#include <Parser/CrySLParserEngine.h>
 #include <gtest/gtest.h>
 #include <iostream>
-#include <Parser/CrySLParserEngine.h>
 
 using namespace CCPP;
 
 /* ============== TEST FIXTURE ============== */
 
-class TypeCheckTest: public :: testing::Test {
+class TypeCheckTest : public ::testing::Test {
 
-    protected:
-    const std::string pathToCrySLFiles =
+protected:
+  const std::string pathToCrySLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/CogniCrypt++_tests/";
   const std::vector<std::string> EntryPoints = {"main"};
@@ -21,48 +21,44 @@ class TypeCheckTest: public :: testing::Test {
   virtual ~TypeCheckTest() {}
 
   void Initialize(const std::vector<std::string> &CrySLFiles) {
-    
+
     cryslparserengine = new CrySLParserEngine(CrySLFiles);
   }
 
-  void SetUp() override {
-    bl::core::get()->set_logging_enabled(false);
-  }
+  void SetUp() override { bl::core::get()->set_logging_enabled(false); }
 
-  void TearDown() override {
-    delete cryslparserengine;
-  }
+  void TearDown() override { delete cryslparserengine; }
 
-  void compareResults(bool groundTruth){
+  void compareResults(bool groundTruth, size_t groundValue) {
 
-    bool typeCheckResult=true;
-    size_t numErrors= cryslparserengine.getNumberOfSyntaxErrors();
+    size_t numErrors = cryslparserengine.getNumberOfSyntaxErrors();
+    bool typeCheckResult = cryslparserengine.typecheckSucceeded();
 
-    if(numErrors>0){
-      typeCheckResult=false;
-    }
-
+    EXPECT_EQ(numErrors, groundValue);
     EXPECT_EQ(typeCheckResult, groundTruth);
   }
 
-}; //class Fixture
+}; // class Fixture
 
 TEST_F(TypeCheckTest, TypeCheck_Cipher_CTX) {
   Initialize({pathToCrySLFiles + "EVP_CIPHER_CTX.cryptosl"});
-  bool groundTruth = cryslparserengine.typecheckSucceeded();
-  compareResults(groundTruth);
+  bool groundTruth = true;
+  size_t groundValue = 0;
+  compareResults(groundTruth, groundValue);
 }
 
 TEST_F(TypeCheckTest, TypeCheck_Cipher) {
   Initialize({pathToCrySLFiles + "EVP_CIPHER.cryptosl"});
-  bool groundTruth = cryslparserengine.typecheckSucceeded();
-  compareResults(groundTruth);
+  bool groundTruth = true;
+  size_t groundValue = 0;
+  compareResults(groundTruth, groundValue);
 }
 
 TEST_F(TypeCheckTest, TypeCheck_MD_CTX) {
   Initialize({pathToCrySLFiles + "EVP_MC_CTX.cryptosl"});
-  bool groundTruth = cryslparserengine.typecheckSucceeded();
-  compareResults(groundTruth);
+  bool groundTruth = true;
+  size_t groundValue = 0;
+  compareResults(groundTruth, groundValue);
 }
 
 int main(int argc, char **argv) {
