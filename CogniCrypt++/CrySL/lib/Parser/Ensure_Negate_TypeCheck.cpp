@@ -1,6 +1,7 @@
 #include "CrySLTypechecker.h"
 #include "PositionHelper.h"
 #include "Types/Type.h"
+#include <ErrorHelper.h>
 #include <iostream>
 
 bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
@@ -11,9 +12,11 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
   if (ensu->state) {
     if (!DefinedEvents.count(ensu->Ident()->getText())) {
       result = false;
-      std::cerr << Position(ensu->Ident(), filename)
-                << ": The event is not defined in the EVENTS section"
-                << std::endl;
+      // std::cerr << Position(ensu->Ident(), filename)
+      //          << ": The event is not defined in the EVENTS section"
+      //          << std::endl;
+      reportError(Position(ensu->Ident(),
+                           "The event is not defined in the EVENTS section"));
     }
   }
   return true;
@@ -28,9 +31,12 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
         for (auto idts :
              perP->consPred()->literalExpr()->memberAccess()->Ident()) {
           if (!DefinedObjects.count(idts->getText())) {
-            std::cerr << Position(idts, filename)
-                      << ": object is not defined in the OBJECTS section"
-                      << std::endl;
+            // std::cerr << Position(idts, filename)
+            //          << ": object is not defined in the OBJECTS section"
+            //          << std::endl;
+            reportError(Position(idts, filename),
+                        {"The object '", idts->getText(),
+                         "' is not defined in the OBJECTS section"});
             return false;
           }
         }

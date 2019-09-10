@@ -1,6 +1,8 @@
 #include <CrySLTypechecker.h>
+#include <ErrorHelper.h>
 #include <PositionHelper.h>
 #include <TypeParser.h>
+
 
 namespace CCPP {
 using namespace std;
@@ -10,8 +12,10 @@ bool typecheck(
     CrySLParser::ObjectDeclContext *decl, const std::string &filename) {
   auto name = decl->Ident()->getText();
   if (DefinedObjects.count(name)) {
-    cerr << Position(decl, filename) << ": An object with the name '" << name
-         << "' is already defined" << endl;
+    // cerr << Position(decl, filename) << ": An object with the name '" << name
+    //    << "' is already defined" << endl;
+    reportError(Position(decl, filename),
+                {"The object '", name, "' is already defined"});
     return false;
   } else {
     DefinedObjects[name] =
