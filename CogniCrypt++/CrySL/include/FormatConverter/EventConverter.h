@@ -1,15 +1,16 @@
 #pragma once
-#include "Types/Type.h"
-#include "Object.h"
 #include "Event.h"
+#include "Object.h"
+#include "Types/Type.h"
+
 
 namespace CCPP {
 
-	class EventConverter {
-        std::vector<Object> objects;
-        Event event;
+class EventConverter {
+  std::vector<Object> objects;
+  Event event;
 
-		void formatConverter(CrySLParser::EventsContext* eventCtx);
-     };
+  std::vector<Event> formatConverter(CrySLParser::EventsContext *eventCtx);
+};
 
-}
+} // namespace CCPP

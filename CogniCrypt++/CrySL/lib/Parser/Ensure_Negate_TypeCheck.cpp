@@ -15,8 +15,8 @@ bool CCPP::CrySLTypechecker::CrySLSpec::checkPredicate(
       // std::cerr << Position(ensu->Ident(), filename)
       //          << ": The event is not defined in the EVENTS section"
       //          << std::endl;
-      reportError(Position(ensu->Ident(),
-                           "The event is not defined in the EVENTS section"));
+      reportError(Position(ensu->Ident()),
+                           "The event is not defined in the EVENTS section");
     }
   }
   return true;

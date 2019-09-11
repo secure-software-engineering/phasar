@@ -52,7 +52,7 @@ bool checkBound(CrySLParser::UnorderedSymbolsContext *uno,
       //          << ": The upper bound must not be greater than the number of "
       //             "primary expressions in the unordered set"
       //          << std::endl;
-      reportError(Position(uo->upper, filename),
+      reportError(Position(uno->upper, filename),
                   {"The upper bound ", std::to_string(hi),
                    " must not be larger then the number of primary expressions "
                    "in the unordered set, which is ",

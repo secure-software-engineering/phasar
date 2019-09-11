@@ -14,8 +14,8 @@ bool CCPP::CrySLTypechecker::CrySLSpec::typecheck(
       // std::cerr << Position(forbidden, filename) << ":Forbidden event '"
       //          << forbidden->eventName->getText()
       //          << "' does not exist in the event section" << std::endl;
-      reportError(Position(forbidden->eventName->getText(), filename),
-                  {"The forbidden event '", forbidden->eventname->getText(),
+      reportError(Position(forbidden, filename),
+                  {"The forbidden event '", forbidden->eventName->getText(),
                    "' is not defined in the EVENTS section"});
       return false;
     }

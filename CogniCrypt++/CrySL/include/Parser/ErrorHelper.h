@@ -11,7 +11,7 @@ void reportError(const Position &pos, const std::string &msg);
 void reportWarning(const Position &pos, const std::string &msg);
 void reportError(const Position &pos,
                  std::initializer_list<std::string> &&ilist);
-void reportError(const Position &pos,
+void reportWarning(const Position &pos,
                  std::initializer_list<std::string> &&ilist);
 
 template <typename T, typename Msg = const char *>
@@ -34,7 +34,7 @@ std::shared_ptr<T> &reportIfNull(antlr4::tree::TerminalNode *t,
     return toCheck;
   } else {
     // std::cerr << Position(t, filename) << ": " << errMsg << std::endl;
-    reportError(Position(p, filename), errMsg);
+    reportError(Position(t, filename), errMsg);
     return toCheck;
   }
 }
@@ -58,7 +58,7 @@ std::shared_ptr<T> &&reportIfNull(antlr4::tree::TerminalNode *t,
     return std::move(toCheck);
   } else {
     // std::cerr << Position(t, filename) << ": " << errMsg << std::endl;
-    reportError(Position(p, filename), errMsg);
+    reportError(Position(t, filename), errMsg);
     return std::move(toCheck);
   }
 }

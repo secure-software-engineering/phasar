@@ -4,25 +4,25 @@
 namespace CCPP {
 
 void reportError(const Position &pos, const std::string &msg) {
-  std::errs << "Error: " << pos << ": " << msg << std::endl;
+  std::cerr << "Error: " << pos << ": " << msg << std::endl;
 }
 void reportWarning(const Position &pos, const std::string &msg) {
-  std::errs << "Warning: " << pos << ": " << msg << std::endl;
+  std::cerr << "Warning: " << pos << ": " << msg << std::endl;
 }
 void reportError(const Position &pos,
                  std::initializer_list<std::string> &&ilist) {
-  std::errs << "Error: " << pos << ": ";
+  std::cerr << "Error: " << pos << ": ";
   for (const auto &str : ilist) {
-    std::errs << str;
+    std::cerr << str;
   }
-  std::endl;
+  std::cerr << std::endl;
 }
-void reportError(const Position &pos,
-                 std::initializer_list<std::string> &&ilist) {
-  std::errs << "Warning: " << pos << ": ";
+void reportWarning(const Position &pos,
+                   std::initializer_list<std::string> &&ilist) {
+  std::cerr << "Warning: " << pos << ": ";
   for (const auto &str : ilist) {
-    std::errs << str;
+    std::cerr << str;
   }
-  std::endl;
+  std::cerr << std::endl;
 }
 } // namespace CCPP

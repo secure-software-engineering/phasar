@@ -48,7 +48,7 @@ bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::EventsContext *evt) {
         // std::cerr << Position(event->returnValue, filename)
         //          << ": The return-object is not defined" << std::endl;
         reportError(Position(event->returnValue, filename),
-                    {"The return-object '" event->returnValue->getText(),
+                    {"The return-object '", event->returnValue->getText(),
                      "' is not defined in the OBJECTS section"});
         return false;
       }

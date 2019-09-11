@@ -193,7 +193,7 @@ shared_ptr<const Type> ConstraintsTypeChecker::typecheckMemberAccess(
         // std::cout << Position(mem, filename)
         //          << ": Dereferencing is only possible on pointers. "
         //          << ident[0]->getText() << " is not a pointer" << std::endl;
-        reportError(Position(mam, filename),
+        reportError(Position(mem, filename),
                     std::string("Dereferencing is only possible on pointers. " +
                                 ident[0]->getText() + " is not a pointer. "));
         return nullptr;
