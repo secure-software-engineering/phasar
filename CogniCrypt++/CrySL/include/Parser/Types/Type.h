@@ -15,6 +15,7 @@ protected:
   Type(const std::string &name, bool isConst) : Name(name), isConst(isConst) {}
 
 public:
+  virtual ~Type() = default;
   /// \brief Kinds of primitive types
   enum PrimitiveType {
     NONE,

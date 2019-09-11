@@ -6,6 +6,7 @@ namespace DFA {
 /// machine
 class DFA {
 public:
+  virtual ~DFA() = default;
   using State = int;
   using Input = int;
   virtual State getNextState(State src, Input inp) const = 0;

@@ -4,13 +4,14 @@ namespace CCPP {
 OrderTypeStateDescription::OrderTypeStateDescription(
     const std::string &typeName, std::unique_ptr<DFA::DFA> &&dfs,
     std::unordered_map<std::string, int> &&eventStates)
-    : dfa(std::move(dfa)), eventStates(std::move(eventStates)),
+    : dfa(std::move(dfs)), eventStates(std::move(eventStates)),
       typeName(typeName) {}
 
 bool OrderTypeStateDescription::isAPIFunction(const std::string &F) const {
   return eventStates.count(F);
 }
-psr::TypeStateDescription::State OrderTypeStateDescription::getNextState(std::string Tok, State S) const {
+psr::TypeStateDescription::State
+OrderTypeStateDescription::getNextState(std::string Tok, State S) const {
   auto it = eventStates.find(Tok);
   if (it == eventStates.end())
     return error();
@@ -22,7 +23,7 @@ psr::TypeStateDescription::State OrderTypeStateDescription::getNextState(std::st
 std::string OrderTypeStateDescription::getTypeNameOfInterest() const {
   return typeName;
 }
-std::string OrderTypeStateDescription::stateToString(State S)const {
+std::string OrderTypeStateDescription::stateToString(State S) const {
   if (S == -1)
     return "<ERROR-STATE>";
   for (auto &kvp : eventStates) {
@@ -30,7 +31,7 @@ std::string OrderTypeStateDescription::stateToString(State S)const {
       return kvp.first;
     }
   }
-  return "<NO-STATE>" ;
+  return "<NO-STATE>";
 }
 psr::TypeStateDescription::State OrderTypeStateDescription::bottom() const {
   // TODO implement;
@@ -47,7 +48,9 @@ psr::TypeStateDescription::State OrderTypeStateDescription::start() const {
   // TODO implement
   return 0;
 }
-psr::TypeStateDescription::State OrderTypeStateDescription::error() const { return -1; }
+psr::TypeStateDescription::State OrderTypeStateDescription::error() const {
+  return -1;
+}
 psr::TypeStateDescription::State OrderTypeStateDescription::accepting() const {
   return dfa->getAcceptingState();
 }
