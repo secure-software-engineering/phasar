@@ -18,9 +18,10 @@ private:
   std::string value;
 
 public:
+    using TypeT = llvm::Type*;
 	Object(CrySLParser::ParamContext *);
-  Object();
-	llvm::Type* getType();
+    Object();
+	TypeT getType();
 	bool operator==(const Object &oc);
 };
 } // namespace CCPP

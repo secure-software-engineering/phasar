@@ -2,22 +2,22 @@
 #include "CrySLTypechecker.h"
 #include "TypeParser.h"
 #include "PositionHelper.h"
+#include <Object.h>
+#include <memory>
 
 namespace CCPP {
-	using namespace std;
 
-	class public Expression
+	class Expression
 	{
 	public:
-		virtual objectconverter calculate();
-		virtual  types getType();
-
-
-
+        virtual ~Expression() = default;
+		virtual std::unique_ptr<Object> evaluate() = 0;
+		virtual Object::TypeT getType() = 0
 	};
-	class  public DerefExpression : Expression
+	class DerefExpression : public Expression
 	{
-
+        virtual std::unique_ptr<Object> evaluate()override;
+		virtual Object::TypeT getType()override;
 	};
 
 }

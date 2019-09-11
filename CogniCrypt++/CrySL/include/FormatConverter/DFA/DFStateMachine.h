@@ -4,7 +4,7 @@
 
 namespace CCPP {
 namespace DFA {
-/// \brief A concrete implementation of the DFA interface, which priotizes
+/// \brief A concrete implementation of the DFA interface, which prioritizes 
 /// performance over memory usage
 class DFStateMachine : public DFA {
   std::vector<std::vector<State>> delta;
