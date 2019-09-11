@@ -63,8 +63,12 @@ bool CrySLParserEngine::parseAndTypecheck() {
       if (get<1>(result)) {
         specs.push_back(move(*get<1>(result)));
       }
-    } else
+    } else {
       succ = false;
+    }
+    numSyntaxErrors += get<0>(result)->getNumSyntaxErrors();
+    typechecksSucceeded = (CrySLTypechecker::TypeCheckKind)(
+        typechecksSucceeded | get<1>(result)->getErrors());
   }
   if (succ) {
     CrySLTypechecker ctc(ASTs, move(specs));
