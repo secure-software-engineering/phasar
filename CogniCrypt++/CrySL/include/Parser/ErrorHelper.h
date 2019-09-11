@@ -5,15 +5,27 @@
 #include <memory>
 #include <string>
 
+// Use this unified interface for reporting typechecking-errors/warnings
+
 namespace CCPP {
 
+/// \brief Report an error which occurred at CrySL-position pos and attach the
+/// error-message msg to it
 void reportError(const Position &pos, const std::string &msg);
+/// \brief Report a warning which occurred at CrySL-position pos and attach the
+/// warning-message msg to it
 void reportWarning(const Position &pos, const std::string &msg);
+/// \brief Report an error which occurred at CrySL-position pos and attach the
+/// error-message ilist to it
 void reportError(const Position &pos,
                  std::initializer_list<std::string> &&ilist);
+/// \brief Report a warning which occurred at CrySL-position pos and attach the
+/// warning-message ilist to it
 void reportWarning(const Position &pos,
-                 std::initializer_list<std::string> &&ilist);
+                   std::initializer_list<std::string> &&ilist);
 
+/// \brief Report an error with the message errMsg at the CrySL-position defined
+/// by p and filename, iff toCheck is nullptr
 template <typename T, typename Msg = const char *>
 std::shared_ptr<T> &reportIfNull(antlr4::ParserRuleContext *p,
                                  std::shared_ptr<T> &toCheck, Msg errMsg,
@@ -26,6 +38,8 @@ std::shared_ptr<T> &reportIfNull(antlr4::ParserRuleContext *p,
     return toCheck;
   }
 }
+/// \brief Report an error with the message errMsg at the CrySL-position defined
+/// by t and filename, iff toCheck is nullptr
 template <typename T, typename Msg = const char *>
 std::shared_ptr<T> &reportIfNull(antlr4::tree::TerminalNode *t,
                                  std::shared_ptr<T> &toCheck, Msg errMsg,
@@ -38,6 +52,8 @@ std::shared_ptr<T> &reportIfNull(antlr4::tree::TerminalNode *t,
     return toCheck;
   }
 }
+/// \brief Report an error with the message errMsg at the CrySL-position defined
+/// by p and filename, iff toCheck is nullptr
 template <typename T, typename Msg = const char *>
 std::shared_ptr<T> &&reportIfNull(antlr4::ParserRuleContext *p,
                                   std::shared_ptr<T> &&toCheck, Msg errMsg,
@@ -50,6 +66,8 @@ std::shared_ptr<T> &&reportIfNull(antlr4::ParserRuleContext *p,
     return std::move(toCheck);
   }
 }
+/// \brief Report an error with the message errMsg at the CrySL-position defined
+/// by t and filename, iff toCheck is nullptr
 template <typename T, typename Msg = const char *>
 std::shared_ptr<T> &&reportIfNull(antlr4::tree::TerminalNode *t,
                                   std::shared_ptr<T> &&toCheck, Msg errMsg,

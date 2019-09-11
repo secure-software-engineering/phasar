@@ -1,17 +1,18 @@
 #include "DFA.h"
-#include <array>
+#include <vector>
 #include <memory>
 
 namespace CCPP {
 namespace DFA {
-template <size_t NumStates, size_t NumInputs>
+/// \brief A concrete implementation of the DFA interface, which priotizes
+/// performance over memory usage
 class DFStateMachine : public DFA {
-  std::array<std::array<State, NumInputs>, NumStates> delta;
+  std::vector<std::vector<State>> delta;
   State initial, accepting;
 
 public:
   DFStateMachine(State initial, State accepting,
-                 std::array<std::array<State, NumInputs>, NumStates> &&delta)
+                 std::vector<std::vector<State>> &&delta)
       : initial(initial), accepting(accepting), delta(std::move(delta)) {}
   State getNextState(State src, Input inp) const override {
     return delta.at(src).at(inp);
