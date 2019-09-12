@@ -1,5 +1,5 @@
-#include <CrySLLexer.h>
-#include <CrySLParserEngine.h>
+#include <Parser/CrySLLexer.h>
+#include <Parser/CrySLParserEngine.h>
 #include <antlr4-runtime.h>
 #include <fstream>
 #include <future>

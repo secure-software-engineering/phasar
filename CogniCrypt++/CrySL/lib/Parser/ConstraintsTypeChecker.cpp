@@ -1,9 +1,9 @@
-#include <CrySLTypechecker.h>
-#include <ErrorHelper.h>
-#include <TokenHelper.h>
-#include <TypeParser.h>
-#include <Types/PointerType.h>
-#include <Types/Type.h>
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/ErrorHelper.h>
+#include <Parser/TokenHelper.h>
+#include <Parser/TypeParser.h>
+#include <Parser/Types/PointerType.h>
+#include <Parser/Types/Type.h>
 #include <climits>
 #include <cmath>
 #include <iostream>

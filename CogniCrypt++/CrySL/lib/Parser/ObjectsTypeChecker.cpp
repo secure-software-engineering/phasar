@@ -1,7 +1,7 @@
-#include <CrySLTypechecker.h>
-#include <ErrorHelper.h>
-#include <PositionHelper.h>
-#include <TypeParser.h>
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/ErrorHelper.h>
+#include <Parser/PositionHelper.h>
+#include <Parser/TypeParser.h>
 
 
 namespace CCPP {

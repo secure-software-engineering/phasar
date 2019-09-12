@@ -1,5 +1,5 @@
 #pragma once
-#include <DFA/DFA.h>
+#include <FormatConverter/DFA/DFA.h>
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 #include <string>

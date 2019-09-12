@@ -1,5 +1,5 @@
-#include "CrySLParser.h"
-#include "Types/Type.h"
+#include <Parser/CrySLParser.h>
+#include <Parser/Types/Type.h>
 #include <memory>
 
 namespace CCPP {

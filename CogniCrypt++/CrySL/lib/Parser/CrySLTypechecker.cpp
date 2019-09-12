@@ -1,4 +1,5 @@
-#include <CrySLTypechecker.h>
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/ErrorHelper.h>
 namespace CCPP {
 // CrySL Typechecker
 
@@ -67,7 +68,10 @@ bool CrySLTypechecker::CrySLSpec::typecheck() {
   if (!typecheck(AST->events()))
     errors |= EVENTS;
 
-  if (!typecheck(AST->order()))
+  std::unordered_map<std::string, std::unordered_set<std::string>> UnusedEvents(
+      DefinedEvents);
+
+  if (!typecheck(AST->order(), UnusedEvents))
     errors |= ORDER;
 
   if (AST->forbidden() && !typecheck(AST->forbidden()))
@@ -76,11 +80,29 @@ bool CrySLTypechecker::CrySLSpec::typecheck() {
     errors |= CONSTRAINTS;
   if (AST->requiresBlock() && !typecheck(AST->requiresBlock()))
     errors |= REQUIRES;
-  if (AST->ensures() && !typecheck(AST->ensures()))
+  if (AST->ensures() && !typecheck(AST->ensures(), UnusedEvents))
     errors |= ENSURES;
-  if (AST->negates() && !typecheck(AST->negates()))
+  if (AST->negates() && !typecheck(AST->negates(), UnusedEvents))
     errors |= NEGATES;
 
+  if (!UnusedEvents.empty()) {
+    // std::cerr << "Warning: " << Position(order, filename) << ": events {";
+    std::stringstream ss;
+    bool first = true;
+    for (auto &evt : UnusedEvents) {
+      if (!first)
+        ss << ", ";
+      ss << evt.first;
+      first = false;
+    }
+    // std::cerr << "} are defined in EVENTS section but not called in ORDER "
+    //             "section"
+    //          << std::endl;
+    reportWarning(
+        Position(AST->events(), filename),
+        {"The events {", ss.str(),
+         "} are defined in EVENTS section but not called in ORDER section"});
+  }
   return errors == NONE;
 }
 

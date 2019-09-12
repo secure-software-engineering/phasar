@@ -1,5 +1,4 @@
 #pragma once
-#include <Event.h>
 #include <functional>
 #include <string>
 #include <unordered_map>

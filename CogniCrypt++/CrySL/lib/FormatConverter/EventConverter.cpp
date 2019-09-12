@@ -1,7 +1,6 @@
 
-#include "CrySLTypechecker.h"
-#include <Event.h>
-#include <EventConverter.h>
+#include <FormatConverter/Event.h>
+#include <FormatConverter/EventConverter.h>
 #include <iostream>
 
 namespace CCPP {

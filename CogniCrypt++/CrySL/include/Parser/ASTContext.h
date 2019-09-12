@@ -1,7 +1,7 @@
 #pragma once
-#include <CrySLLexer.h>
-#include <CrySLParser.h>
-#include <FileSpecificErrorListener.h>
+#include <Parser/CrySLLexer.h>
+#include <Parser/CrySLParser.h>
+#include <Parser/FileSpecificErrorListener.h>
 #include <fstream>
 #include <memory>
 #include <string>

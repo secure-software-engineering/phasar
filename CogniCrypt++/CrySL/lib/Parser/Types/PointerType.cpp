@@ -1,5 +1,5 @@
-#include <Types/BaseType.h>
-#include <Types/PointerType.h>
+#include <Parser/Types/BaseType.h>
+#include <Parser/Types/PointerType.h>
 
 namespace CCPP {
 namespace Types {

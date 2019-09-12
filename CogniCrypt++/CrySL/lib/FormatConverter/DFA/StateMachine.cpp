@@ -1,5 +1,5 @@
-#include <DFA/DFA.h>
-#include <DFA/StateMachine.h>
+#include <FormatConverter/DFA/DFA.h>
+#include <FormatConverter/DFA/StateMachine.h>
 
 
 namespace CCPP {

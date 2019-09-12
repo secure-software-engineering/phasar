@@ -1,28 +1,28 @@
-#include <CrySLTypechecker.h>
-#include <ErrorHelper.h>
-#include <TokenHelper.h>
-#include <TypeParser.h>
-#include <Types/Type.h>
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/ErrorHelper.h>
+#include <Parser/TokenHelper.h>
+#include <Parser/TypeParser.h>
+#include <Parser/Types/Type.h>
 #include <iostream>
 #include <sstream>
 
 namespace CCPP {
 // using namespace std;
 
-void markEventAsCalled(
+void CrySLTypechecker::CrySLSpec::markEventAsCalled(
     const std::string &evt,
     std::unordered_map<std::string, std::unordered_set<std::string>>
-        &DefinedEventsDummy) {
-  auto found = DefinedEventsDummy.find(evt);
-  if (found != DefinedEventsDummy.end()) {
+        &UnusedEvents) {
+  auto found = UnusedEvents.find(evt);
+  if (found != UnusedEvents.end()) {
     if (found->second.size() > 1) {
       auto aggregates = std::move(found->second);
-      DefinedEventsDummy.erase(evt);
+      UnusedEvents.erase(evt);
       for (auto &agg : aggregates) {
-        markEventAsCalled(agg, DefinedEventsDummy);
+        markEventAsCalled(agg, UnusedEvents);
       }
     } else {
-      DefinedEventsDummy.erase(evt);
+      UnusedEvents.erase(evt);
     }
   }
 }
@@ -66,14 +66,14 @@ bool checkBound(CrySLParser::UnorderedSymbolsContext *uno,
 bool checkEvent(
     CrySLParser::PrimaryContext *primaryContext,
     std::unordered_map<std::string, std::unordered_set<std::string>>
-        &DefinedEventsDummy,
+        &UnusedEvents,
     const std::unordered_map<std::string, std::unordered_set<std::string>>
         &DefinedEvents,
     const std::string &filename) {
 
   const auto name = primaryContext->eventName->getText();
-  // DefinedEventsDummy.erase(name);
-  markEventAsCalled(name, DefinedEventsDummy);
+  // UnusedEvents.erase(name);
+  CrySLTypechecker::CrySLSpec::markEventAsCalled(name, UnusedEvents);
   // std::cout << ":::Name: " << name << std::endl;
   if (!DefinedEvents.count(name)) {
     // std::cerr << Position(primaryContext, filename) << ": event '" << name
@@ -91,7 +91,7 @@ bool checkEvent(
 bool checkOrderSequence(
     CrySLParser::OrderSequenceContext *seq,
     std::unordered_map<std::string, std::unordered_set<std::string>>
-        &DefinedEventsDummy,
+        &UnusedEvents,
     const std::unordered_map<std::string, std::unordered_set<std::string>>
         &DefinedEvents,
     const std::string &filename) {
@@ -101,12 +101,11 @@ bool checkOrderSequence(
       result &= checkBound(unorderedSymbolsContext, filename);
       for (auto primaryContext : unorderedSymbolsContext->primary()) {
         if (primaryContext->eventName)
-          result &= checkEvent(primaryContext, DefinedEventsDummy,
-                               DefinedEvents, filename);
-        else {
           result &=
-              checkOrderSequence(primaryContext->orderSequence(),
-                                 DefinedEventsDummy, DefinedEvents, filename);
+              checkEvent(primaryContext, UnusedEvents, DefinedEvents, filename);
+        else {
+          result &= checkOrderSequence(primaryContext->orderSequence(),
+                                       UnusedEvents, DefinedEvents, filename);
         }
       }
     }
@@ -114,30 +113,14 @@ bool checkOrderSequence(
   return result;
 }
 
-bool CrySLTypechecker::CrySLSpec::typecheck(CrySLParser::OrderContext *order) {
+bool CrySLTypechecker::CrySLSpec::typecheck(
+    CrySLParser::OrderContext *order,
+    std::unordered_map<std::string, std::unordered_set<std::string>>
+        &UnusedEvents) {
 
-  std::unordered_map<std::string, std::unordered_set<std::string>>
-      DefinedEventsDummy(DefinedEvents);
-  bool result = checkOrderSequence(order->orderSequence(), DefinedEventsDummy,
+  bool result = checkOrderSequence(order->orderSequence(), UnusedEvents,
                                    DefinedEvents, filename);
-  if (!DefinedEventsDummy.empty()) {
-    // std::cerr << "Warning: " << Position(order, filename) << ": events {";
-    std::stringstream ss;
-    bool first = true;
-    for (auto &evt : DefinedEventsDummy) {
-      if (!first)
-        ss << ", ";
-      ss << evt.first;
-      first = false;
-    }
-    // std::cerr << "} are defined in EVENTS section but not called in ORDER "
-    //             "section"
-    //          << std::endl;
-    reportWarning(
-        Position(order, filename),
-        {"The events {", ss.str(),
-         "} are defined in EVENTS section but not called in ORDER section"});
-  }
+
   return result;
 }
 

@@ -1,6 +1,5 @@
 #pragma once
-#include "Types/Type.h"
-#include <CrySLParser.h>
+#include <Parser/CrySLParser.h>
 #include <llvm/IR/Value.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Constants.h>

@@ -1,7 +1,7 @@
 #pragma once
-#include "CrySLParser.h"
-#include "CrySLTypechecker.h"
-#include <ASTContext.h>
+#include <Parser/CrySLParser.h>
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/ASTContext.h>
 #include <array>
 #include <iostream>
 #include <memory>

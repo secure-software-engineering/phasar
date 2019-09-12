@@ -1,5 +1,5 @@
-#include <NFACreator.h>
-#include <TokenHelper.h>
+#include <FormatConverter/NFACreator.h>
+#include <Parser/TokenHelper.h>
 #include <algorithm>
 #include <array>
 #include <functional>

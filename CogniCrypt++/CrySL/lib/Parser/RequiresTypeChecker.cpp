@@ -1,6 +1,6 @@
-#include "CrySLTypechecker.h"
-#include "PositionHelper.h"
-#include "Types/Type.h"
+#include <Parser/CrySLTypechecker.h>
+#include <Parser/PositionHelper.h>
+#include <Parser/Types/Type.h>
 #include <iostream>
 namespace CCPP {
 

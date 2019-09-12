@@ -1,11 +1,11 @@
 #pragma once
-#include <CrySLParser.h>
+#include <Parser/CrySLParser.h>
 #include <memory>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 #include <unordered_set>
 #include <string>
-#include <CrySLTypechecker.h>
-#include <DFA/StateMachine.h>
+#include <Parser/CrySLTypechecker.h>
+#include <FormatConverter/DFA/StateMachine.h>
 
 
 namespace CCPP {

@@ -1,9 +1,8 @@
 #pagma once
-#include "Types/Type.h"
-#include <CrySLParser.h>
+#include <Parser/CrySLParser.h>
 #include <memory>
 #include <phasar/PhasarLLVM>
-#include <ObjectConverter.h>
+#include <FormatConverter/ObjectConverter.h>
 
 #include <string>
 

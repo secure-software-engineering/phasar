@@ -1,8 +1,6 @@
 #pragma once
-#include "CrySLTypechecker.h"
-#include "TypeParser.h"
-#include "PositionHelper.h"
-#include <Object.h>
+//#include <Parser/CrySLTypechecker.h>
+#include "Object.h"
 #include <memory>
 
 namespace CCPP {

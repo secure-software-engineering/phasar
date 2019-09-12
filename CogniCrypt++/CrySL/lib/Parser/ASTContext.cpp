@@ -1,5 +1,5 @@
-#include <ASTContext.h>
-#include <CrySLParserEngine.h>
+#include <Parser/ASTContext.h>
+#include <Parser/CrySLParserEngine.h>
 
 #include <antlr4-runtime.h>
 #include <fstream>

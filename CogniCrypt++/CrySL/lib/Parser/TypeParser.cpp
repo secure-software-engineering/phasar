@@ -1,6 +1,6 @@
-#include "TypeParser.h"
-#include <Types/BaseType.h>
-#include <Types/PointerType.h>
+#include <Parser/TypeParser.h>
+#include <Parser/Types/BaseType.h>
+#include <Parser/Types/PointerType.h>
 #include <vector>
 
 namespace CCPP {
