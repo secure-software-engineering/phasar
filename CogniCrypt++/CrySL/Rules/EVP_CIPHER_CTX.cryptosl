@@ -47,8 +47,8 @@ EVENTS
     encFinalOrUpdate := encFinal | encUpdate;
     cFinalOrUpdate   := cFinal   | cUpdate;
     
-ORDE
-    ctor, ((encInt | decInit | cInit)*, ((encInit, encUpdate*, encFinal) | (decInit, decUpdate*, decFinal) | (cInit, cUpdate*, cFinal)))+, dtor
+ORDER
+    ctor, ((encInit | decInit | cInit)*, ((encInit, encUpdate*, encFinal) | (decInit, decUpdate*, decFinal) | (cInit, cUpdate*, cFinal)))+, dtor
 
 CONSTRAINTS
     enc in {0, 1};
