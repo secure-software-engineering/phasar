@@ -206,14 +206,16 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
 std::map<const llvm::Instruction *, std::set<ExtendedValue>>
 IFDSEnvironmentVariableTracing::initialSeeds() {
   std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
-
   for (const auto &entryPoint : this->EntryPoints) {
     if (taintConfig.isSink(entryPoint)) continue;
-
     seedMap.insert(std::make_pair(&icfg.getMethod(entryPoint)->front().front(),
                                   std::set<ExtendedValue>({zeroValue()})));
   }
-
+  // additionally, add initial seeds if there are any
+  auto taintConfigSeeds = taintConfig.getInitialSeeds();
+  for (auto &seed : taintConfigSeeds) {
+    seedMap[seed.first].insert(seed.second.begin(), seed.second.end());
+  }
   return seedMap;
 }
 
