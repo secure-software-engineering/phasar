@@ -58,18 +58,23 @@ bool CrySLParserEngine::parseAndTypecheck() {
 
   for (auto &fut : procs) {
     auto result = fut.get();
+
+    numSyntaxErrors += get<0>(result)->getNumSyntaxErrors();
+
     if (get<2>(result)) {
       ASTs.push_back(move(get<0>(result)));
       if (get<1>(result)) {
         specs.push_back(move(*get<1>(result)));
+        typechecksSucceeded = (CrySLTypechecker::TypeCheckKind)(
+            typechecksSucceeded | get<1>(result)->getErrors());
       }
     } else {
       succ = false;
     }
-    numSyntaxErrors += get<0>(result)->getNumSyntaxErrors();
-    typechecksSucceeded = (CrySLTypechecker::TypeCheckKind)(
-        typechecksSucceeded | get<1>(result)->getErrors());
+    
+    
   }
+
   if (succ) {
     CrySLTypechecker ctc(ASTs, move(specs));
     // succ = ctc.typecheck();
