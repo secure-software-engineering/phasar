@@ -21,8 +21,6 @@
 #include <phasar/Config/Configuration.h>
 #include <phasar/Config/Version.h>
 
-namespace bpo = boost::program_options;
-
 using namespace psr;
 
 namespace psr {
