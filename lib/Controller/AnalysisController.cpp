@@ -76,9 +76,10 @@ AnalysisController::AnalysisController(
   // Check if the chosen entry points are valid
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
   vector<string> EntryPoints = {"main"};
-  if (VariablesMap.count("entry-points")) {
+  if (PhasarConfig::VariablesMap().count("entry-points")) {
     std::vector<std::string> invalidEntryPoints;
-    for (auto &entryPoint : VariablesMap["entry-points"].as<vector<string>>()) {
+    for (auto &entryPoint :
+         PhasarConfig::VariablesMap()["entry-points"].as<vector<string>>()) {
       if (IRDB.getFunction(entryPoint) == nullptr) {
         invalidEntryPoints.push_back(entryPoint);
       }
@@ -91,8 +92,11 @@ AnalysisController::AnalysisController(
       }
       throw logic_error("invalid entry points");
     }
-    if (VariablesMap["entry-points"].as<vector<string>>().size()) {
-      EntryPoints = VariablesMap["entry-points"].as<vector<string>>();
+    if (PhasarConfig::VariablesMap()["entry-points"]
+            .as<vector<string>>()
+            .size()) {
+      EntryPoints =
+          PhasarConfig::VariablesMap()["entry-points"].as<vector<string>>();
     }
   }
   if (WPA_MODE) {
@@ -155,9 +159,9 @@ AnalysisController::AnalysisController(
 
   // Call graph construction stategy
   CallGraphAnalysisType CGType(
-      (VariablesMap.count("callgraph-analysis"))
+      (PhasarConfig::VariablesMap().count("callgraph-analysis"))
           ? wise_enum::from_string<CallGraphAnalysisType>(
-                VariablesMap["callgraph-analysis"].as<string>())
+                PhasarConfig::VariablesMap()["callgraph-analysis"].as<string>())
                 .value()
           : CallGraphAnalysisType::OTF);
   // Perform whole program analysis (WPA) analysis
@@ -165,7 +169,7 @@ AnalysisController::AnalysisController(
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
     LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
 
-    if (VariablesMap.count("callgraph-plugin")) {
+    if (PhasarConfig::VariablesMap().count("callgraph-plugin")) {
       throw runtime_error("callgraph plugin not found");
     }
     STOP_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
@@ -363,7 +367,8 @@ AnalysisController::AnalysisController(
       }
       case DataFlowAnalysisType::Plugin: {
         vector<string> AnalysisPlugins =
-            VariablesMap["analysis-plugin"].as<vector<string>>();
+            PhasarConfig::VariablesMap()["analysis-plugin"]
+                .as<vector<string>>();
 #ifdef PHASAR_PLUGINS_ENABLED
         AnalysisPluginController PluginController(
             AnalysisPlugins, ICFG, EntryPoints, FinalResultsJson);

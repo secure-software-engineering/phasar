@@ -27,8 +27,6 @@ using namespace psr;
 
 namespace psr {
 
-bpo::variables_map VariablesMap;
-
 PhasarConfig::PhasarConfig() {
   loadGlibcSpecialFunctionNames();
   loadLLVMSpecialFunctionNames();
