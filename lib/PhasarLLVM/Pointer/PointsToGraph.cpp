@@ -196,9 +196,6 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
 
 // points-to graph stuff
 
-const set<string> PointsToGraph::HeapAllocationFunctions = {
-    "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
-
 PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
   PAMM_GET_INSTANCE;
