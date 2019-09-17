@@ -2,6 +2,7 @@
 #include <Parser/CrySLParserEngine.h>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <../../utils/Logger.h>
 
 using namespace CCPP;
 
@@ -29,8 +30,8 @@ protected:
 
   void compareResults(bool groundTruth, size_t groundValue) {
 
-    size_t numErrors = cryslparserengine.getNumberOfSyntaxErrors();
-    bool typeCheckResult = cryslparserengine.typecheckSucceeded();
+    size_t numErrors = cryslparserengine->getNumberOfSyntaxErrors();
+    bool typeCheckResult = cryslparserengine->typecheckSucceeded();
 
     EXPECT_EQ(numErrors, groundValue);
     EXPECT_EQ(typeCheckResult, groundTruth);

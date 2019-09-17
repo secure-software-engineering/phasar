@@ -1,4 +1,4 @@
-# copied from phasar/cmake/phasar_macros.cmake
+# copied from phasar/cmake/phasar_macros.cmake and modified a bit
 function(add_ccpp_unittest test_name)
   message("Set-up unittest: ${test_name}")
   get_filename_component(test ${test_name} NAME_WE)
@@ -12,6 +12,8 @@ function(add_ccpp_unittest test_name)
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     gtest
+    boost_log
+    boost_system
   )
 
   add_test(NAME "${test}"

@@ -7,6 +7,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CCPP_SRC_DIR}/cmake")
 
+
+
 option(CCPP_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
 include_directories(
@@ -26,10 +28,17 @@ else()
 endif()
 find_package(Threads)
 # Googletest
+add_subdirectory(${CCPP_SRC_DIR}/../external/googletest EXCLUDE_FROM_ALL build)
 include_directories(${CCPP_SRC_DIR}/../external/googletest/googletest/include)
 include_directories(${CCPP_SRC_DIR}/../external/googletest/googlemock/include)
 
 #find_package(antlr4-runtime REQUIRED)
+
+# Boost
+
+find_package(Boost COMPONENTS log system REQUIRED)
+include_directories(${BOOST_INCLUDE_DIR})
+add_definitions(-DBOOST_LOG_DYN_LINK)
 
 add_subdirectory(CrySL)
 
@@ -37,6 +46,7 @@ add_subdirectory(CrySL)
 
 if(CCPP_BUILD_UNITTESTS)
     message("CogniCrypt++ Unittests")
+    include("ccpp_macros")
     add_subdirectory(unittests)
 endif()
 
