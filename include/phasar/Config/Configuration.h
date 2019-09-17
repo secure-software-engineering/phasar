@@ -94,6 +94,12 @@ public:
     special_function_names.insert(std::move(SFName));
   }
 
+  /// Variables map of the parsed command-line parameters
+  static boost::program_options::variables_map &VariablesMap() {
+    static boost::program_options::variables_map variables_map;
+    return variables_map;
+  }
+
   ~PhasarConfig() = default;
   PhasarConfig(const PhasarConfig &) = delete;
   PhasarConfig(PhasarConfig &&) = delete;
@@ -124,10 +130,8 @@ private:
 
   /// Log file directory
   const std::string LogFileDirectory = "log/";
-};
 
-/// Variables map of the parsed command-line parameters
-extern boost::program_options::variables_map VariablesMap;
+};
 
 } // namespace psr
 
