@@ -5,11 +5,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS YES)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CCPP_SRC_DIR}/cmake")
+
+option(CCPP_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
 include_directories(
   ${CCPP_SRC_DIR}/CrySL/include
   ${CCPP_SRC_DIR}/CrySL/include/Parser
-  ${CCPP_SRC_DIR}/CrySL/include/FormatConverter
+#  ${CCPP_SRC_DIR}/CrySL/include/FormatConverter
   
 )
 if(EXISTS /usr/local/include/antlr4-runtime)
@@ -22,9 +25,20 @@ else()
     message(FATAL_ERROR "Cannot find antlr4-runtime. Please make sure, this package is installed correctly")
 endif()
 find_package(Threads)
+# Googletest
+include_directories(${CCPP_SRC_DIR}/../external/googletest/googletest/include)
+include_directories(${CCPP_SRC_DIR}/../external/googletest/googlemock/include)
+
 #find_package(antlr4-runtime REQUIRED)
 
 add_subdirectory(CrySL)
+
+# Unit-tests
+
+if(CCPP_BUILD_UNITTESTS)
+    message("CogniCrypt++ Unittests")
+    add_subdirectory(unittests)
+endif()
 
 # Build a standalone parser/typechecker for CrySL
 add_executable(cryslparser

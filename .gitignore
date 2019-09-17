@@ -120,6 +120,7 @@ CMakeFiles
 CMakeCache.txt
 *.cmake
 !cmake/*.cmake
+!CogniCrypt++/cmake/*.cmake
 *.pc
 Makefile
 !test/*/Makefile
