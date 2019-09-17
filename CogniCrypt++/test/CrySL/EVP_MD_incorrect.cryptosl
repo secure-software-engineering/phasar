@@ -1,0 +1,36 @@
+SPEC EVP_MD 
+
+OBJECTS
+
+FORBIDDEN 
+    EVP_sha1();
+    
+EVENTS
+    // SHA1 is insecure
+    //init1: this = EVP_sha1();
+    initSHA2_28: this = EVP_sha224();
+    initSHA2_32: this = EVP_sha256();
+    initSHA2_48: this = EVP_sha384();
+    initSHA2_64: this = EVP_sha512();
+    initSHA3_28: this = EVP_sha3_224();
+    initSHA3_32: this = EVP_sha3_256();
+    initSHA3_48: this = EVP_sha3_384();
+    initSHA3_64: this = EVP_sha3_512();
+    init   := initSHA2_28 | initSHA2_32 | initSHA2_48 | initSHA2_64 | initSHA3_28 | initSHA3_32 | initSHA3_48 | initSHA3_64;
+    //init16 := init1;
+    initSHA2_288 := initSHA2_28 | initSHA3_28;
+    initSHA2_322 := initSHA2_32 | initSHA3_32;
+    initSHA2_488 := initSHA2_48 | initSHA3_48;
+    initSHA3_284 := initSHA2_64 | initSHA3_64;
+
+ORDER
+    init, initNew
+ENSURES
+    digestType[this];
+    // is there a better way to ensure the correct sizes?
+    
+    //digestSize[this, 16] after init16;
+    digestSize[this, 28] after initSHA2_288;
+    digestSize[this, 32] after initSHA2_322;
+    digestSize[this, 48] after initSHA2_488;
+    digestSize[this, 64] after initSHA3_284;

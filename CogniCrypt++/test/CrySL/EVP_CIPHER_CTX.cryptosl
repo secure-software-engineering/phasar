@@ -1,0 +1,69 @@
+SPEC EVP_CIPHER_CTX 
+
+OBJECTS
+    const EVP_CIPHER    * cipher;
+    const unsigned char * key;
+    size_t                key_len;      
+    const unsigned char * iv;
+    int                   enc;
+    unsigned char       * out_data;
+    int                 * out_len;
+    const unsigned char * in_data;
+    int                   in_len;
+
+EVENTS
+    ctor: this = EVP_CIPHER_CTX_new();
+    
+    encInit1:  EVP_EncryptInit_ex (this, cipher, _   , key, iv);
+    encInit2:  EVP_EncryptInit    (this, cipher      , key, iv);
+    encInit := encInit1 | encInit2;
+    
+    decInit1:  EVP_DecryptInit_ex (this, cipher, _   , key, iv);
+    decInit2:  EVP_DecryptInit    (this, cipher      , key, iv);
+    decInit := decInit1 | decInit2;
+    
+    cInit1:    EVP_CipherInit_ex  (this, cipher, _   , key, iv, enc);
+    cInit2:    EVP_CipherInit     (this, cipher      , key, iv, enc);
+    cInit :=   cInit1 | cInit2;
+
+    encUpdate: EVP_EncryptUpdate  (this, out_data, out_len, in_data, in_len);
+    decUpdate: EVP_DecryptUpdate  (this, out_data, out_len, in_data, in_len);
+    cUpdate:   EVP_CipherUpdate   (this, out_data, out_len, in_data, in_len);
+    
+    encFinal1: EVP_EncryptFinal_ex(this, out_data, out_len);
+    encFinal2: EVP_EncryptFinal   (this, out_data, out_len);
+    encFinal:= encFinal1 | encFinal2;
+    
+    decFinal1: EVP_DecryptFinal_ex(this, out_data, out_len);
+    decFinal2: EVP_DecryptFinal   (this, out_data, out_len);
+    decFinal:= decFinal1 | decFinal2;
+    
+    cFinal1:   EVP_CipherFinal_ex (this, out_data, out_len);
+    cFinal2:   EVP_CipherFinal    (this, out_data, out_len);
+    cFinal:=   cFinal1 | cFinal2;
+    
+    dtor:      EVP_Cipher_CTX_free(this);
+    
+    encFinalOrUpdate := encFinal | encUpdate;
+    cFinalOrUpdate   := cFinal   | cUpdate;
+    
+ORDER
+    ctor, ((encInit | decInit | cInit)*, ((encInit, encUpdate*, encFinal) | (decInit, decUpdate*, decFinal) | (cInit, cUpdate*, cFinal)))+, dtor
+
+CONSTRAINTS
+    enc in {0, 1};
+REQUIRES
+    // is this possible?
+    // we have to bind key_len first and do sth. like Prolog-unification
+    generatedKey[key, _];
+    generatedKey[key, key_len] => keyLength[key, key_len];
+    allocated[in_data, in_len];
+    // this is not fully correct. Maybe consider the following:
+    //allocated[out_data, out_alloc_len]
+    // and in CONSTRAINTS:
+    //out_alloc_len >= *out_len;
+    allocated[out_data, *out_len];
+
+ENSURES
+    encrypted[out_data, *out_len] after encFinalOrUpdate;
+    enc == 1 => encrypted[out_data, *out_len] after cFinalOrUpdate;

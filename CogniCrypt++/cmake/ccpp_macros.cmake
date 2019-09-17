@@ -14,6 +14,7 @@ function(add_ccpp_unittest test_name)
     gtest
     boost_log
     boost_system
+    stdc++fs
   )
 
   add_test(NAME "${test}"

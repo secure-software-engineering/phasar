@@ -63,18 +63,17 @@ bool CrySLParserEngine::parseAndTypecheck() {
 
     if (get<2>(result)) {
       ASTs.push_back(move(get<0>(result)));
-      if (get<1>(result)) {
-        specs.push_back(move(*get<1>(result)));
-        typechecksSucceeded = (CrySLTypechecker::TypeCheckKind)(
-            typechecksSucceeded | get<1>(result)->getErrors());
-      }
+
     } else {
       succ = false;
     }
-    
-    
+    if (get<1>(result)) {
+      specs.push_back(move(*get<1>(result)));
+      typechecksSucceeded = (CrySLTypechecker::TypeCheckKind)(
+          typechecksSucceeded | get<1>(result)->getErrors());
+    }
   }
-
+  //std::cout << "Error flag: " << (int)typechecksSucceeded << std::endl;
   if (succ) {
     CrySLTypechecker ctc(ASTs, move(specs));
     // succ = ctc.typecheck();
