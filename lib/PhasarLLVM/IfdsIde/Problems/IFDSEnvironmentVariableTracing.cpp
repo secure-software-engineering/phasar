@@ -40,10 +40,9 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG &>(
           ICFG),
-      EntryPoints(EntryPoints),
-      taintConfig(TaintConfig) {
+      EntryPoints(EntryPoints), taintConfig(TaintConfig) {
   DefaultIFDSTabulationProblem::zerovalue = createZeroValue();
-  this->solver_config.computeValues = true;  // do not touch
+  this->solver_config.computeValues = true; // do not touch
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
@@ -207,7 +206,8 @@ std::map<const llvm::Instruction *, std::set<ExtendedValue>>
 IFDSEnvironmentVariableTracing::initialSeeds() {
   std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
   for (const auto &entryPoint : this->EntryPoints) {
-    if (taintConfig.isSink(entryPoint)) continue;
+    if (taintConfig.isSink(entryPoint))
+      continue;
     seedMap.insert(std::make_pair(&icfg.getMethod(entryPoint)->front().front(),
                                   std::set<ExtendedValue>({zeroValue()})));
   }
@@ -244,4 +244,4 @@ void IFDSEnvironmentVariableTracing::printIFDSReport(
   lcovRetValWriter.write();
 }
 
-}  // namespace psr
+} // namespace psr

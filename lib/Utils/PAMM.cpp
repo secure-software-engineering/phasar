@@ -304,15 +304,18 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add analysis/project/source file information if available
   json jInfo;
-  if (VariablesMap.count("project-id")) {
-    jInfo["Project-ID"] = VariablesMap["project-id"].as<std::string>();
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    jInfo["Project-ID"] =
+        PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
-  if (VariablesMap.count("module")) {
-    jInfo["Module(s)"] = VariablesMap["module"].as<std::vector<std::string>>();
+  if (PhasarConfig::VariablesMap().count("module")) {
+    jInfo["Module(s)"] =
+        PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>();
   }
-  if (VariablesMap.count("data-flow-analysis")) {
+  if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     jInfo["Data-flow analysis"] =
-        VariablesMap["data-flow-analysis"].as<std::vector<std::string>>();
+        PhasarConfig::VariablesMap()["data-flow-analysis"]
+            .as<std::vector<std::string>>();
   }
   if (!jInfo.is_null()) {
     jsonData["Info"] = jInfo;

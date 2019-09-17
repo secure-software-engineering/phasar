@@ -141,7 +141,6 @@ private:
 
   /// Log file directory
   const std::string LogFileDirectory = "log/";
-
 };
 
 } // namespace psr

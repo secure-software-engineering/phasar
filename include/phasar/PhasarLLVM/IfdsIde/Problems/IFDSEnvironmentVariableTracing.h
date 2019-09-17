@@ -29,9 +29,9 @@ class IFDSEnvironmentVariableTracing
                                           ExtendedValue, const llvm::Function *,
                                           LLVMBasedICFG &> {
 public:
-  IFDSEnvironmentVariableTracing(LLVMBasedICFG &ICFG,
-                                 const TaintConfiguration<ExtendedValue> &TaintConfig,
-                                 std::vector<std::string> EntryPoints);
+  IFDSEnvironmentVariableTracing(
+      LLVMBasedICFG &ICFG, const TaintConfiguration<ExtendedValue> &TaintConfig,
+      std::vector<std::string> EntryPoints);
   ~IFDSEnvironmentVariableTracing() override = default;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
