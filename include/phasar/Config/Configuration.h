@@ -115,7 +115,18 @@ private:
 
   /// Specifies the directory in which important configuration files are
   /// located.
-  static const std::string configuration_directory;
+  inline static const std::string configuration_directory = []() {
+    char *env_home = std::getenv("HOME");
+    std::string config_folder = "config/";
+    if (env_home) { // Check if HOME was defined in the environment
+      std::string phasar_config = std::string(env_home) + "/.config/phasar/";
+      if (boost::filesystem::exists(phasar_config) &&
+          boost::filesystem::is_directory(phasar_config)) {
+        config_folder = phasar_config;
+      }
+    }
+    return config_folder;
+  }();
 
   /// Specifies the directory in which Phasar is located.
   static const std::string phasar_directory;
