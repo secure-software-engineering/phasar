@@ -10,18 +10,18 @@ void checkFactoryConsumerFunc(CrySLParser::EventsOccurenceContext*  event, Event
 std::vector<Event>
 EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
   Event eventObj;
-  std::vector<Object> objects;
+  std::vector<ObjectWithOutLLVM> params;
   std::vector<Event> events;
 
   for (auto event : eventCtx->eventsOccurence()) {
     eventObj.setEventName(event->eventName->getText());
 
     for (auto param : event->parametersList()->param()) {
-      objects.emplace_back(param); // creates object of type Object using
+      params.emplace_back(param); // creates object of type ObjectWithOutLLVM using
                                    // parameterize constructor with param as a
                                    // parameter and inserts it in vector
     }
-
+    eventObj.setParams(params);
     checkFactoryConsumerFunc(
         event, eventObj); // checks if the event is factory or consumer funciton
                           // and finds it's event

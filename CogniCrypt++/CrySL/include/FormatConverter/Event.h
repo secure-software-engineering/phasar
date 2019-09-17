@@ -1,6 +1,8 @@
 #pragma once
 #include <set>
 #include <string>
+#include <vector>
+#include <FormatConverter/ObjectWithOutLLVM.h>
 
 namespace CCPP {
 
@@ -11,22 +13,26 @@ private:
   std::set<int> consumerParamIdx;
   bool isFactoryFunction;
   bool isConsumingFunction;
+  std::vector<ObjectWithOutLLVM> params;
 
 public:
   void setEventName(const std::string &eventName) { this->eventName = eventName; }
-  const std::string & getEventName() { return eventName; }
+  const std::string &getEventName() const { return eventName; }
 
   void setFactoryParamIdx(const std::set<int> &factoryParamIdx) { this->factoryParamIdx = factoryParamIdx; }
-  const std::set<int> & getFactoryParamIdx() { return factoryParamIdx; }
+  const std::set<int> &getFactoryParamIdx() const { return factoryParamIdx; }
 
   void setConsumerParamIdx(const std::set<int> &consumerParamIdx) { this->consumerParamIdx = consumerParamIdx; }
-  const std::set<int> & getConsumerParamIdx() { return factoryParamIdx; }
+  const std::set<int> &getConsumerParamIdx() const { return factoryParamIdx; }
 
-  void setIsFactoryFunction(const bool &isFactoryFunction) { this->isFactoryFunction = isFactoryFunction; }
-  const std::string & getIsFactoryFunction() { return isFactoryFunction; }
+  void setIsFactoryFunction(bool isFactoryFunction) { this->isFactoryFunction = isFactoryFunction; }
+  bool getIsFactoryFunction() const { return isFactoryFunction; }
 
-  void setIsConsumingFunction(const bool &isConsumingFunction) { this->isConsumingFunction = isConsumingFunction; }
-  const std::string &getIsConsumingFunction() { return isConsumingFunction; }
+  void setIsConsumingFunction(bool isConsumingFunction) { this->isConsumingFunction = isConsumingFunction; }
+  bool getIsConsumingFunction() const { return isConsumingFunction; }
+
+  void setParams(const std::vector<ObjectWithOutLLVM> &params) { this->params = params; }
+  const std::vector<ObjectWithOutLLVM> &getParams() const { return params; }
 
 };
 
