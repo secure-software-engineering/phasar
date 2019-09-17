@@ -246,14 +246,9 @@ target_link_libraries(phasar
   phasar_db
   phasar_experimental
   phasar_clang
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
   phasar_passes
   ${PHASAR_PLUGINS_LIB}
   phasar_pointer
-  phasar_phasarllvm_utils
-  phasar_utils
   boost_program_options
   boost_filesystem
   boost_graph
@@ -265,7 +260,6 @@ target_link_libraries(phasar
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
-  ${llvm_libs}
   curl
   gtest
 )
