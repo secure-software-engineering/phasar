@@ -9,18 +9,16 @@
 
 namespace CCPP {
 
-class Object {
-private:
-  llvm::Value *val;
-  llvm::Type *type;
-  std::string name;
-  std::string value;
+  class ObjectWithLLVM {
+  private:
+    llvm::Value *val;
+    llvm::Type *type;
 
-public:
+  public:
     using TypeT = llvm::Type*;
-	Object(CrySLParser::ParamContext *);
-    Object();
-	TypeT getType();
-	bool operator==(const Object &oc);
-};
+    ObjectWithLLVM();
+    ObjectWithLLVM(llvm::Value *);
+    TypeT getType();
+    bool operator==(const ObjectWithLLVM &oc);
+  };
 } // namespace CCPP
