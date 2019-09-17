@@ -154,7 +154,8 @@ public:
   typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
 
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
-  const static std::set<std::string> HeapAllocationFunctions;
+  inline const static std::set<std::string> HeapAllocationFunctions = {
+      "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
 
 private:
   struct allocation_site_dfs_visitor;
