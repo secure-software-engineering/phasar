@@ -73,7 +73,8 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   for (const auto &File : IRFiles) {
     source_files.insert(File);
     // if we have a file that is already compiled to llvm ir
-    if (File.find(".ll") != File.npos && boost::filesystem::exists(File)) {
+    if ((File.find(".ll") != File.npos || File.find(".bc") != File.npos) &&
+        boost::filesystem::exists(File)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);
