@@ -43,23 +43,36 @@ unique_ptr<DFA> StateMachine::convertToDFA() const {
   DFA::State initial = 0;
   unordered_set<DFA::State> accepting;
   vector<vector<DFA::State>> delta; // DFA::State is int
-  unordered_map<string, unordered_set<DFA::State>> stateTransition;
-  /*
-    for (auto &ref : states) {
-      for (auto varMap :
-           ref->getMap()) { // map for each state machine node key= transition
-                            // value set= possible destinations nodes
-        if (int(varMap.first == i1)) { // casting map key to int
-             delta.at(i1).push_back();
-            }
-          }
-          auto it = delta.begin();
-        
-
-      // nested pushback for delta
-      // ith index means transition i for certain state
+  unordered_map<set<StateMachineNode *>, StateMachineNode *> dsmMap;
+  StateMachine stateMachine;
+  for (auto &ref : states) {
+    set<StateMachineNode *> smNodeSet;
+    StateMachineNode *smNode;
+    for (auto var2 : ref->getNextState("")) {
+      smNodeSet.insert(&var2.get());
+      if (ref->isInitial()) {
+        smNode = &stateMachine.getInitialState();
+      } else if (ref->isAccepting()) {
+        smNode = &stateMachine.addState(true);
+      } else {
+        smNode = &stateMachine.addState();
+      }
     }
-  */
+    dsmMap.insert({smNodeSet, smNode});
+
+    for (auto var :
+         ref->getMap()) { // map for each state machine node key= transition
+                          // value set= possible destinations nodes
+      for (auto setVar : var.second) {
+        smNode->addTransition(var.first, *setVar);
+      }
+    }
+  }
+
+  //TODO : add more nodes in dsmMap after updating the smNode and smNodeSet
+
+  // nested pushback for delta
+  // ith index means transition i for certain state
   return make_unique<DFStateMachine>(initial, accepting, move(delta));
 }
 bool StateMachine::isDeterministic() const {
