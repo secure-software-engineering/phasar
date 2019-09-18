@@ -1,0 +1,54 @@
+SPEC EVP_CIPHER 
+OBJECTS
+    int i;
+FORBIDDEN
+    EVP_aes_128_ecb();
+    EVP_aes_192_ecb();
+    EVL_aes_256_ecb();
+EVENTS
+    init16_1:       this = EVP_aes_128_cbc();
+    init16_2:       this = EVP_aes_128_ctr();
+    init16aead_1:   this = EVP_aes_128_ccm();
+    init16aead_2:   this = EVP_aes_128_gcm();
+    
+    init16e     := init16_1     | init16_2;
+    init16aead  := init16aead_1 | init16aead_2;
+    init16      := init16e      | init16aead;
+    
+    
+    init24_1:       this = EVP_aes_192_cbc();
+    init24_2:       this = EVP_aes_192_ctr();
+    init24aead_1:   this = EVP_aes_192_ccm();
+    init24aead_2:   this = EVP_aes_192_gcm();
+    
+    init24e     := init24_1     | init24_2;
+    init24aead  := init24aead_1 | init24aead_2;
+    init24      := init24e      | init24aead;
+    
+    
+    init32_1:       this = EVP_aes_256_cbc();
+    init32_2:       this = EVP_aes_256_ctr();
+    init32aead_1:   this = EVP_aes_256_ccm();
+    init32aead_2:   this = EVP_aes_256_gcm();
+    
+    init32e     := init32_1     | init32_2;
+    init32aead  := init32aead_1 | init32aead_2;
+    init32      := init32e      | init32aead;
+    
+    
+    initAead    := init16aead   | init24aead | init32aead;
+    init        := init16       | init24     | init32;
+    
+    //TODO: support other block-ciphers than AES
+
+ORDER
+    init | initAead
+    
+
+ENSURES
+    blockLength[this, 16];
+    keyLength[this, 16] after init16;
+    keyLength[this, 24] after init24;
+    keyLength[this, 32] after init32;
+    
+    authenticatedEncryption[this] after initAead;

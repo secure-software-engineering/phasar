@@ -10,18 +10,18 @@ void checkFactoryConsumerFunc(CrySLParser::EventsOccurenceContext*  event, Event
 std::vector<Event>
 EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
   Event eventObj;
-  std::vector<Object> objects;
+  std::vector<ObjectWithOutLLVM> params;
   std::vector<Event> events;
 
   for (auto event : eventCtx->eventsOccurence()) {
-    eventObj.eventName = event->eventName->getText();
+    eventObj.setEventName(event->eventName->getText());
 
     for (auto param : event->parametersList()->param()) {
-      objects.emplace_back(param); // creates object of type Object using
+      params.emplace_back(param); // creates object of type ObjectWithOutLLVM using
                                    // parameterize constructor with param as a
                                    // parameter and inserts it in vector
     }
-
+    eventObj.setParams(params);
     checkFactoryConsumerFunc(
         event, eventObj); // checks if the event is factory or consumer funciton
                           // and finds it's event
@@ -32,14 +32,14 @@ EventConverter::formatConverter(CrySLParser::EventsContext *eventCtx) {
 
 void checkFactoryConsumerFunc(CrySLParser::EventsOccurenceContext* event, Event &eventObj) {
   if (event->returnValue && event->returnValue->getText() == "this") {
-    eventObj.isFactoryFunction = true;
-    eventObj.factoryParamIdx = {-1};
+    eventObj.setIsFactoryFunction(true);
+    eventObj.setFactoryParamIdx({-1});
   } else {
-    eventObj.isConsumingFunction = true;
+    eventObj.setIsConsumingFunction(true);
 
     int index = 0;
     std::set<int>
-        consumerParamIdx; // we need it because this object can occurr nultiple
+        consumerParamIdx; // we need it because this object can occurr multiple
                           // times as a parameter of event
     for (auto param : event->parametersList()->param()) {
 
@@ -48,7 +48,7 @@ void checkFactoryConsumerFunc(CrySLParser::EventsOccurenceContext* event, Event 
       }
       index++;
     }
-    eventObj.consumerParamIdx = consumerParamIdx;
+    eventObj.setConsumerParamIdx(consumerParamIdx);
   }
 }
 
