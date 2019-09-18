@@ -24,12 +24,26 @@ StateMachineNode::getNextState(const string &label) const {
 }
 bool StateMachineNode::addTransition(const string &evt,
                                      StateMachineNode &dest) {
-  auto ret = next[evt].insert(&dest);
+  auto &nxtSet = next[evt];
+  auto ret = nxtSet.insert(&dest);
+  if (nxtSet.size() > 1)
+    isDet = false;
   return ret.second;
 }
-const std::unordered_map<std::string, std::unordered_set<StateMachineNode*>> &StateMachineNode::getMap() const {
+bool StateMachineNode::isDeterministic() const { return isDet; }
+const unordered_map<string, unordered_set<StateMachineNode *>> &
+StateMachineNode::getMap() const {
   return next;
-
+}
+const unordered_map<string, StateMachineNode *>
+StateMachineNode::getDeterministicMap() const {
+  unordered_map<string, StateMachineNode *> ret;
+  for (const auto &kvp : next) {
+    if (!kvp.second.empty()) {
+      ret[kvp.first] = *kvp.second.begin();
+    }
+  }
+  return ret;
 }
 } // namespace DFA
 } // namespace CCPP

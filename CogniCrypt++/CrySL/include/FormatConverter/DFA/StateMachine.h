@@ -12,6 +12,8 @@ class DFA;
 class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
+  std::vector<std::vector<DFA::State>> createAdjacenceMatrix() const;
+
 public:
   /// \brief Creates a new StateMachine with two states: the initial and the
   /// accepting state.
@@ -29,6 +31,8 @@ public:
   ///
   /// \returns An owning pointer to the newly created DFA
   std::unique_ptr<DFA> convertToDFA() const;
+
+  bool isDeterministic() const;
 };
 } // namespace DFA
 } // namespace CCPP

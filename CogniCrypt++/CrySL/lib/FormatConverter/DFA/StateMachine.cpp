@@ -2,6 +2,18 @@
 #include <FormatConverter/DFA/DFStateMachine.h>
 #include <FormatConverter/DFA/StateMachine.h>
 #include <FormatConverter/DFA/StateMachineNode.h>
+#include <set>
+
+namespace std {
+template <typename T> struct hash<set<T *>> {
+  size_t operator(const unordered_set<T *> &s) {
+    size_t sum = 17;
+    for (auto e : s)
+      sum += 31 * (size_t)s + 97;
+    return std::hash(sum);
+  }
+};
+} // namespace std
 
 namespace CCPP {
 namespace DFA {
@@ -26,28 +38,35 @@ unique_ptr<DFA> StateMachine::convertToDFA() const {
   unordered_set<DFA::State> accepting;
   vector<vector<DFA::State>> delta; // DFA::State is int
   unordered_map<string, unordered_set<DFA::State>> stateTransition;
-
-
-
-
-/*
-  for (auto &ref : states) {
-    for (auto varMap :
-         ref->getMap()) { // map for each state machine node key= transition
-                          // value set= possible destinations nodes
-      if (int(varMap.first == i1)) { // casting map key to int
-           delta.at(i1).push_back();
+  /*
+    for (auto &ref : states) {
+      for (auto varMap :
+           ref->getMap()) { // map for each state machine node key= transition
+                            // value set= possible destinations nodes
+        if (int(varMap.first == i1)) { // casting map key to int
+             delta.at(i1).push_back();
+            }
           }
-        }
-        auto it = delta.begin();
-      
+          auto it = delta.begin();
+        
 
-    // nested pushback for delta
-    // ith index means transition i for certain state
-  }
-*/
+      // nested pushback for delta
+      // ith index means transition i for certain state
+    }
+  */
   return make_unique<DFStateMachine>(initial, accepting, move(delta));
 }
+bool StateMachine::isDeterministic() const {
+  for (auto &stat : states) {
+    if (!stat->isDeterministic())
+      return false;
+  }
+  return true;
 }
- // namespace DFA
+std::vector<std::vector<DFA::State>>
+StateMachine::createAdjacenceMatrix() const {
+  // TODO implement
+}
+} // namespace DFA
+  // namespace DFA
 } // namespace CCPP
