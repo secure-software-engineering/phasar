@@ -27,6 +27,9 @@ bool StateMachineNode::addTransition(const string &evt,
   auto ret = next[evt].insert(&dest);
   return ret.second;
 }
+const std::unordered_map<std::string, std::unordered_set<StateMachineNode*>> &StateMachineNode::getMap() const {
+  return next;
 
+}
 } // namespace DFA
 } // namespace CCPP

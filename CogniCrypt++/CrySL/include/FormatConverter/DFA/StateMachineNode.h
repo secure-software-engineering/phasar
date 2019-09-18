@@ -45,6 +45,8 @@ public:
   /// may be empty
   std::vector<std::reference_wrapper<StateMachineNode>>
   getNextState(const std::string &label) const;
+
+  const std::unordered_map<std::string, std::unordered_set<StateMachineNode*>> &getMap() const;
 };
 
 } // namespace DFA
