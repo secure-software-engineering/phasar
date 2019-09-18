@@ -11,16 +11,21 @@
 namespace CCPP {
 using namespace std;
 using namespace DFA;
+/// \brief A helper-class, which is able to create a nondeterministic state
+/// machine from a CrySLParser::OrderContext *
 class NFACreator {
   CrySLParser::OrderContext *order;
   CrySLParser::EventsContext *events;
   StateMachine &NFA;
   OrderConverter &orc;
+  /// \brief Executes the callBack for each permutation of the vector vec
   template <typename T>
   void forEachPermutation(vector<T> &&vec,
                           function<void(vector<T> &)> &&callBack) {
     _forEachPermutationImpl(vec, callBack, 0);
   }
+  /// \brief Do not call this method manually! This is only used by void
+  /// forEachPermutation(vector<T>&&, function<void(vector<T> &)> &&)
   template <typename T>
   void _forEachPermutationImpl(vector<T> &vec,
                                function<void(vector<T> &)> &callBack,
@@ -37,24 +42,32 @@ class NFACreator {
   }
 
 public:
+  /// \brief The start- and end-state of a regex-element
   using FSM_range = array<reference_wrapper<StateMachineNode>, 2>;
+  /// \brief Initializes a new NFACreator, which is able to fill the
+  /// StateMachine NFA with the information gained from the other parameters
   NFACreator(StateMachine &NFA, CrySLParser::OrderContext *order,
              CrySLParser::EventsContext *events, OrderConverter &orc)
       : order(order), events(events), NFA(NFA), orc(orc) {}
+  /// \brief Creates a consecutive sequence of regex-elements in the NFA
   FSM_range createSequence(StateMachineNode &curr,
                            CrySLParser::OrderSequenceContext *seq);
+  /// \brief the regex-element should occur zero, or one time
   void makeOptional(const FSM_range &rng) {
     rng[0].get().addTransition("", rng[1].get());
   }
+  /// \brief the regex-element should occur zero, or more times
   void makeStar(FSM_range &&rng) {
     auto &last = NFA.addState();
     rng[1].get().addTransition("", rng[0].get());
     rng[0].get().addTransition("", last);
     rng[1] = last;
   }
+  /// \brief the regex-element should occur one, or more times
   void makePlus(FSM_range &&rng) {
     rng[1].get().addTransition("", rng[0].get());
   }
+  /// \brief apply the given unary operation (?, +, *) on the regex-element
   void makeUnary(FSM_range &&rng, char unary) {
     switch (unary) {
     case '?':
@@ -69,6 +82,8 @@ public:
     }
     throw logic_error("Invalid unary operation");
   }
+  /// \brief Create a primary regex-element (event, or unary operation) in the
+  /// NFA
   FSM_range createPrimary(StateMachineNode &curr,
                           CrySLParser::PrimaryContext *prim) {
     StateMachineNode *last;
@@ -99,6 +114,10 @@ public:
     }
     return {curr, *last};
   }
+  /// \brief Creates an unordered sequence of regex-elements in the NFA
+  ///
+  /// Note: currently this consists of creating n! alternatives (one for each
+  /// permutation of the sequence). This may change in the future.
   FSM_range createUnordered(StateMachineNode &curr,
                             CrySLParser::UnorderedSymbolsContext *uno) {
     auto prim = uno->primary();
@@ -140,6 +159,8 @@ public:
         });
     return {curr, last};
   }
+  /// \brief Create alternative regex-elements in the NFA. One of them must
+  /// occur
   FSM_range createAlternative(StateMachineNode &curr,
                               CrySLParser::SimpleOrderContext *alts) {
     auto &last = NFA.addState();
@@ -149,7 +170,7 @@ public:
     }
     return {curr, last};
   }
-
+  /// \brief Performs the NFA-creation process
   void create() {
     auto firstlast =
         createSequence(NFA.getInitialState(), order->orderSequence());
