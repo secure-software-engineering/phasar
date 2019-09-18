@@ -22,8 +22,16 @@ public:
   ///
   /// \returns A reference to the newly created StateMachineNode
   StateMachineNode &addState();
+  /// \brief Creates a new StateMachineNode which is owned by this NFA
+  ///
+  /// \param accepting True, iff the new state should be an accepting state
+  /// \returns A reference to the newly created StateMachineNode
+  StateMachineNode &addState(bool accepting);
   /// \brief Retrieves the initial starting state
   StateMachineNode &getInitialState() const;
+  /// \brief Makes the initial state accepting (by default the initial state is
+  /// not accepting)
+  void makeInitialStateAccepting();
   /// \brief Retrieves the final accepting state
   StateMachineNode &getAcceptingState() const;
   /// \brief Creates a new DFA from this NFA which decides exactly the same

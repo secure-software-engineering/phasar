@@ -30,6 +30,12 @@ StateMachineNode &StateMachine::addState() {
   states.push_back(make_unique<StateMachineNode>((int)states.size()));
   return *states.back();
 }
+StateMachineNode &StateMachine::addState(bool accepting) {
+  states.push_back(
+      make_unique<StateMachineNode>((int)states.size(), false, accepting));
+  return *states.back();
+}
+void StateMachine::makeInitialStateAccepting() { states[0]->initial = true; }
 StateMachineNode &StateMachine::getInitialState() const { return *states[0]; }
 StateMachineNode &StateMachine::getAcceptingState() const { return *states[1]; }
 unique_ptr<DFA> StateMachine::convertToDFA() const {

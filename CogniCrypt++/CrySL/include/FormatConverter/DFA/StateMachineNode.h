@@ -7,6 +7,7 @@
 
 namespace CCPP {
 namespace DFA {
+class StateMachine;
 /// \brief A state-node of a (finite) state machine
 ///
 /// Each state-node has an ID (retrieved by getState()), which is unique wrt.
@@ -51,6 +52,7 @@ public:
       &getMap() const;
   const std::unordered_map<std::string, StateMachineNode *>
   getDeterministicMap() const;
+  friend class StateMachine;
 };
 
 } // namespace DFA
