@@ -297,8 +297,6 @@ target_link_libraries(wpdstest
   phasar_config
   phasar_controller
   phasar_db
-  phasar_experimental
-  phasar_clang
   phasar_controlflow
   phasar_ifdside
   phasar_mono
