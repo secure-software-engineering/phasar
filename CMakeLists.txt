@@ -204,24 +204,24 @@ add_subdirectory(include)
 add_subdirectory(lib)
 
 # Build a stand-alone executable
-add_executable(phasar
+add_phasar_executable(phasar
   tools/phasar/phasar.cpp
 )
 
 # Build a small test tool to show how phasar may be used
-add_executable(myphasartool
+add_phasar_executable(myphasartool
   tools/phasar/myphasartool.cpp
 )
 
-add_executable(syncpdstest
+add_phasar_executable(syncpdstest
   tools/phasar/syncpdstest.cpp
 )
 
-add_executable(boomerangtest
+add_phasar_executable(boomerangtest
   tools/phasar/boomerangtest.cpp
 )
 
-add_executable(wpdstest
+add_phasar_executable(wpdstest
   tools/phasar/wpdstest.cpp
 )
 
@@ -243,8 +243,10 @@ endif()
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar
+  LINK_PUBLIC
   phasar_config
   phasar_controller
+  phasar_mono
   phasar_db
   phasar_experimental
   phasar_clang
@@ -263,10 +265,10 @@ target_link_libraries(phasar
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
   curl
-  gtest
 )
 
 target_link_libraries(myphasartool
+  LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_db
@@ -296,6 +298,7 @@ target_link_libraries(myphasartool
 )
 
 target_link_libraries(wpdstest
+  LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_db
@@ -325,6 +328,7 @@ target_link_libraries(wpdstest
 )
 
 target_link_libraries(syncpdstest
+  LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_db
@@ -353,6 +357,7 @@ target_link_libraries(syncpdstest
 )
 
 target_link_libraries(boomerangtest
+  LINK_PUBLIC
   phasar_config
   phasar_controller
   phasar_db
