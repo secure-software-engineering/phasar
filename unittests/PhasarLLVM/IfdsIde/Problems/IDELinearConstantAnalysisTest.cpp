@@ -144,7 +144,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
   LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
       *LCAProblem);
   llvmlcasolver.solve();
-  const std::map<std::string, int64_t> gt = {{"1", 0}, {"2", 10}};
+  const std::map<std::string, int64_t> gt = {{"1", 0}, {"2", LCAProblem->bottomElement()}};
   compareResults(gt, llvmlcasolver);
 }
 

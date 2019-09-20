@@ -70,8 +70,10 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t curr, IDELinearConstantAnalysis::n_t succ) {
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-    return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
-                                                            zeroValue());
+    if (Alloca->getAllocatedType()->isIntegerTy()) {
+      return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
+                                                              zeroValue());
+    }
   }
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).

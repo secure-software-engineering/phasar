@@ -75,8 +75,8 @@ TEST(EdgeFunctionComposerTest, HandleEFIDs) {
   auto EFC1 = std::make_shared<MyEFC>(EF1, EF2);
   auto EFC2 = std::make_shared<MyEFC>(EF2, EdgeIdentity<int>::getInstance());
   std::cout << "My EFC: " << EFC1->str() << " " << EFC2->str() << '\n';
-  EXPECT_EQ("EFComposer_1[ AddTwoEF_1 , AddTwoEF_2 ]", EFC1->str());
-  EXPECT_EQ("EFComposer_2[ AddTwoEF_2 , EdgeIdentity ]", EFC2->str());
+  EXPECT_EQ("Comp_1[ AddTwoEF_1 , AddTwoEF_2 ]", EFC1->str());
+  EXPECT_EQ("Comp_2[ AddTwoEF_2 , EdgeId ]", EFC2->str());
   // Reset ID's for next test
   CurrAddTwoEF_Id = 0;
 }
