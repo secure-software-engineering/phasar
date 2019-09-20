@@ -38,7 +38,8 @@ StateMachineNode &StateMachine::addState(bool accepting) {
 void StateMachine::makeInitialStateAccepting() { states[0]->initial = true; }
 StateMachineNode &StateMachine::getInitialState() const { return *states[0]; }
 StateMachineNode &StateMachine::getAcceptingState() const { return *states[1]; }
-unique_ptr<DFA> StateMachine::convertToDFA() const {
+unique_ptr<DFA>
+StateMachine::convertToDFA(unordered_map<string, int> &eventTransitions) const {
 
   DFA::State initial = 0;
   unordered_set<DFA::State> accepting;
@@ -69,7 +70,7 @@ unique_ptr<DFA> StateMachine::convertToDFA() const {
     }
   }
 
-  //TODO : add more nodes in dsmMap after updating the smNode and smNodeSet
+  // TODO : add more nodes in dsmMap after updating the smNode and smNodeSet
 
   // nested pushback for delta
   // ith index means transition i for certain state

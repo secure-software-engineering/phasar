@@ -1,19 +1,27 @@
 #include <FormatConverter/OrderConverter.h>
+#include <FormatConverter/OrderTypeStateDescription.h>
 
 namespace CCPP {
 OrderConverter::OrderConverter(const std::string &specName,
                                CrySLParser::OrderContext *order,
                                CrySLParser::EventsContext *evt)
-    : specName(specName) {
+    : specName(specName), order(order), evt(evt) {
   // TODO store order and evt (and preprocess them)
 }
-std::unique_ptr<psr::TypeStateDescription> OrderConverter::convert(const CrySLTypechecker& ctc) {
-  // TODO create a DFA::StateMachine;
-  // TODO create a DFA::DFStateMachine from the DFA::StateMachine
-  // TODO create a OrderTypeStateDescription and feed the DFA::DFStateMachine
-  // and the "eventName to state-id" map to it
+std::unique_ptr<psr::TypeStateDescription>
+OrderConverter::convert(const CrySLTypechecker &ctc) {
+  //  create a DFA::StateMachine;
+  std::unique_ptr<DFA::DFA> DFA;
+  std::unordered_map<std::string, int> eventTransitions;
+  {
+    auto NFA = createFromContext(order, evt);
+    // create a DFA::DFStateMachine from the DFA::StateMachine
+    DFA = NFA->convertToDFA(eventTransitions);
+  }
+  //  create a OrderTypeStateDescription and feed the DFA::DFStateMachine
+  // and the "eventName to trn-id" map to it
 
-  //return std::make_unique<OrderTypeStateDescription>(...);
-  return nullptr;
+  return std::make_unique<OrderTypeStateDescription>(
+      specName, std::move(DFA), std::move(eventTransitions));
 }
 } // namespace CCPP

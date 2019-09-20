@@ -3,21 +3,22 @@
 namespace CCPP {
 OrderTypeStateDescription::OrderTypeStateDescription(
     const std::string &typeName, std::unique_ptr<DFA::DFA> &&dfs,
-    std::unordered_map<std::string, int> &&eventStates)
-    : dfa(std::move(dfs)), eventStates(std::move(eventStates)),
-      typeName(typeName) {}
+    std::unordered_map<std::string, int> &&eventTransitions)
+    : dfa(std::move(dfs)), eventTransitions(std::move(eventTransitions)),
+      typeName(typeName) {
+  // TODO: mangle typeName
+}
 
 bool OrderTypeStateDescription::isAPIFunction(const std::string &F) const {
-  return eventStates.count(F);
+  return eventTransitions.count(F);
 }
 psr::TypeStateDescription::State
 OrderTypeStateDescription::getNextState(std::string Tok, State S) const {
-  auto it = eventStates.find(Tok);
-  if (it == eventStates.end())
+  if (S == error())
+    return S;
+  auto it = eventTransitions.find(Tok);
+  if (it == eventTransitions.end())
     return error();
-  // TODO set the objects' values (or better do this in the snslysis description
-  // itself? => would require us to create a subclass of
-  // psr::IDETypeStateAnalysis)
   return dfa->getNextState(S, it->second);
 }
 std::string OrderTypeStateDescription::getTypeNameOfInterest() const {
@@ -26,7 +27,7 @@ std::string OrderTypeStateDescription::getTypeNameOfInterest() const {
 std::string OrderTypeStateDescription::stateToString(State S) const {
   if (S == -1)
     return "<ERROR-STATE>";
-  for (auto &kvp : eventStates) {
+  for (auto &kvp : eventTransitions) {
     if (kvp.second == S) {
       return kvp.first;
     }

@@ -1,7 +1,10 @@
 #pragma once
 #include "StateMachineNode.h"
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
+
 
 namespace CCPP {
 namespace DFA {
@@ -38,7 +41,8 @@ public:
   /// language as this NFA.
   ///
   /// \returns An owning pointer to the newly created DFA
-  std::unique_ptr<DFA> convertToDFA() const;
+  std::unique_ptr<DFA>
+  convertToDFA(std::unordered_map<std::string, int> &eventTransitions) const;
 
   bool isDeterministic() const;
 };
