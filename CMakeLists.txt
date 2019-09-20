@@ -252,6 +252,10 @@ target_link_libraries(phasar
   phasar_experimental
   phasar_clang
   phasar_passes
+
+  LLVMCore
+  LLVMSupport
+
   ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   boost_program_options

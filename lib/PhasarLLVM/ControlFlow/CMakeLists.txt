@@ -3,6 +3,12 @@ file(GLOB_RECURSE CONTROLFLOW_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
   phasar_pointer
   phasar_db
+  phasar_utils
+)
+
+set(LLVM_LINK_COMPONENTS
+  Core
+  Support
 )
 
 if(BUILD_SHARED_LIBS)

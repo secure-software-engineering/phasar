@@ -24,6 +24,7 @@ set(LLVM_LINK_COMPONENTS
   IRReader
   InstCombine
   Linker
+  BitWriter
 )
 
 if(BUILD_SHARED_LIBS)
@@ -40,14 +41,12 @@ endif()
 
 target_link_libraries(phasar_db
   LINK_PUBLIC
-
-
   ${Boost_LIBRARIES}
   ${SQLITE3_LIBRARY}
 )
 
 set_target_properties(phasar_db
-	PROPERTIES
-	LINKER_LANGUAGE CXX
-	PREFIX "lib"
+  PROPERTIES
+  LINKER_LANGUAGE CXX
+  PREFIX "lib"
 )

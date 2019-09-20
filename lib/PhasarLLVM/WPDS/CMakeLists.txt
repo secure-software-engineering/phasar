@@ -1,26 +1,34 @@
 file(GLOB_RECURSE WPDS_SRC *.h *.cpp)
 
+set(PHASAR_LINK_LIBS
+  phasar_utils
+  phasar_ifdside
+)
+
+set(LLVM_LINK_COMPONENTS
+  Core
+  Support
+)
+
 if(BUILD_SHARED_LIBS)
-	add_phasar_library(phasar_wpds
-		SHARED
-		${WPDS_SRC}
-	)
+  add_phasar_library(phasar_wpds
+    SHARED
+    ${WPDS_SRC}
+  )
 else()
-	add_phasar_library(phasar_wpds
-		STATIC
-		${WPDS_SRC}
-	)
+  add_phasar_library(phasar_wpds
+    STATIC
+    ${WPDS_SRC}
+  )
 endif()
 
 target_link_libraries(phasar_wpds
-  phasar_utils
-  phasar_ifdside
-
-  LLVMCore
+  LINK_PUBLIC
+  boost_filesystem
 )
 
 set_target_properties(phasar_wpds
-	PROPERTIES
-	LINKER_LANGUAGE CXX
-	PREFIX "lib"
+  PROPERTIES
+  LINKER_LANGUAGE CXX
+  PREFIX "lib"
 )
