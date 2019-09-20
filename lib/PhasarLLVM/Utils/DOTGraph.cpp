@@ -17,27 +17,10 @@
 #include <algorithm>
 #include <iterator>
 #include <ostream>
-#include <stdlib.h>
 
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>
 
 namespace psr {
-
-bool cmpStmtIdByValue::operator()(const std::string &lhs,
-                                  const std::string &rhs) const {
-  char *endptr1, *endptr2;
-  long lhs_val = strtol(lhs.c_str(), &endptr1, 10);
-  long rhs_val = strtol(rhs.c_str(), &endptr2, 10);
-  if (lhs.c_str() == endptr1 && lhs.c_str() == endptr2) {
-    return lhs < rhs;
-  } else if (lhs.c_str() == endptr1 && rhs.c_str() != endptr2) {
-    return false;
-  } else if (lhs.c_str() != endptr1 && rhs.c_str() == endptr2) {
-    return true;
-  } else {
-    return lhs_val < rhs_val;
-  }
-}
 
 DOTNode::DOTNode(std::string fName, std::string l, std::string sId,
                  unsigned fId, bool isStmt, bool isv)
@@ -213,10 +196,17 @@ void DOTFunctionSubGraph::createLayoutFactEdges() {
 }
 
 bool operator<(const DOTNode &lhs, const DOTNode &rhs) {
-  char *endptr1, *endptr2;
-  long lhs_sId = strtol(lhs.stmtId.c_str(), &endptr1, 10);
-  long rhs_sId = strtol(rhs.stmtId.c_str(), &endptr2, 10);
-  return lhs_sId < rhs_sId;
+  stringIDLess strLess;
+  // comparing control flow nodes
+  if (lhs.factId == 0 && rhs.factId == 0) {
+    return strLess(lhs.stmtId, rhs.stmtId);
+  } else { // comparing fact nodes
+    if (lhs.factId == rhs.factId) {
+      return strLess(lhs.stmtId, rhs.stmtId);
+    } else {
+      return lhs.factId < rhs.factId;
+}
+  }
 }
 
 bool operator==(const DOTNode &lhs, const DOTNode &rhs) {
@@ -246,10 +236,6 @@ std::ostream &operator<<(std::ostream &os,
                          const DOTFunctionSubGraph &functionSG) {
   return os << functionSG.str();
 }
-
-// std::ostream &operator<<(std::ostream &os, const DOTGraph &graph) {
-//   return os << graph.str();
-// }
 
 DOTConfig &DOTConfig::getDOTConfig() {
   static DOTConfig DC;

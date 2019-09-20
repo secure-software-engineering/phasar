@@ -1362,8 +1362,9 @@ protected:
 
     // Sort intra-procedural path edges
     auto cells = computedIntraPathEdges.cellVec();
+    StmtLess stmtless(icfg);
     sort(cells.begin(), cells.end(),
-         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
       std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
@@ -1390,7 +1391,7 @@ protected:
     // Sort intra-procedural path edges
     cells = computedInterPathEdges.cellVec();
     sort(cells.begin(), cells.end(),
-         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
       std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
@@ -1641,8 +1642,9 @@ protected:
 
     // Sort intra-procedural path edges
     auto cells = computedIntraPathEdges.cellVec();
+    StmtLess stmtless(icfg);
     sort(cells.begin(), cells.end(),
-         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
       std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
@@ -1728,7 +1730,7 @@ protected:
                   << "Process inter-procedural path egdes");
     cells = computedInterPathEdges.cellVec();
     sort(cells.begin(), cells.end(),
-         [](auto a, auto b) { return lessThanOnValueID(a.r, b.r); });
+         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
       std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
@@ -1796,6 +1798,16 @@ protected:
     dotFile << G;
     dotFile.close();
   }
+
+  /// @brief: Allows less-than comparison based on the statement ID.
+  struct StmtLess {
+    I &icfg;
+    stringIDLess strIDLess;
+    StmtLess(I &icfg) : icfg(icfg), strIDLess(stringIDLess()) {}
+    bool operator()(N lhs, N rhs) {
+      return strIDLess(icfg.getStatementId(lhs), icfg.getStatementId(rhs));
+    }
+  };
 };
 
 } // namespace psr

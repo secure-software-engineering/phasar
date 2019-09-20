@@ -218,22 +218,13 @@ std::string getMetaDataID(const llvm::Value *V) {
   return "-1";
 }
 
-bool lessThanOnValueID(const llvm::Value *V1, const llvm::Value *V2) {
-  char *endptr1, *endptr2;
-  std::string id1 = getMetaDataID(V1);
-  std::string id2 = getMetaDataID(V2);
-  long val1 = strtol(id1.c_str(), &endptr1, 10);
-  long val2 = strtol(id2.c_str(), &endptr2, 10);
-  // both values have string ID's, i.e. are of Argument type
-  if (id1.c_str() == endptr1 && id2.c_str() == endptr2) {
-    return id1 < id2;
-  } else if (id1.c_str() == endptr1 && id2.c_str() != endptr2) {
-    return false;
-  } else if (id1.c_str() != endptr1 && id2.c_str() == endptr2) {
-    return true;
-  } else {
-    return val1 < val2;
-  }
+llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
+
+bool llvmValueIDLess::operator()(const llvm::Value *lhs,
+                                 const llvm::Value *rhs) const {
+  std::string lhs_id = getMetaDataID(lhs);
+  std::string rhs_id = getMetaDataID(rhs);
+  return sless(lhs_id, rhs_id);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {

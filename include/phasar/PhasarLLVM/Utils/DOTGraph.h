@@ -21,12 +21,9 @@
 #include <map>
 #include <set>
 #include <string>
+#include <phasar/Utils/Macros.h>
 
 namespace psr {
-
-struct cmpStmtIdByValue {
-  bool operator()(const std::string &lhs, const std::string &rhs) const;
-};
 
 class DOTConfig {
 public:
@@ -110,7 +107,7 @@ struct DOTFactSubGraph {
   unsigned factId;
   std::string label;
   // stmt-id -> fact-node
-  std::map<std::string, DOTNode, cmpStmtIdByValue> nodes;
+  std::map<std::string, DOTNode, stringIDLess> nodes;
   std::set<DOTEdge> edges;
 
   std::string str(std::string indent = "") const;

@@ -80,20 +80,21 @@ public:
     if (cells.empty()) {
       std::cout << "No results computed!" << std::endl;
     } else {
+      llvmValueIDLess llvmIDLess;
       std::sort(cells.begin(), cells.end(),
-                [](typename Table<const llvm::Instruction *, D, V>::Cell a,
-                   typename Table<const llvm::Instruction *, D, V>::Cell b) {
-                  if (!lessThanOnValueID(a.r, b.r) &&
-                      !lessThanOnValueID(b.r, a.r)) {
+                [&llvmIDLess](
+                    typename Table<const llvm::Instruction *, D, V>::Cell a,
+                    typename Table<const llvm::Instruction *, D, V>::Cell b) {
+                  if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
                     if constexpr (std::is_same<D, const llvm::Value *>::value) {
-                      return lessThanOnValueID(a.c, b.c);
+                      return llvmIDLess(a.c, b.c);
                     } else {
                       // If D is user defined we should use the user defined
                       // less-than comparison
                       return a.c < b.c;
                     }
                   }
-                  return lessThanOnValueID(a.r, b.r);
+                  return llvmIDLess(a.r, b.r);
                 });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;

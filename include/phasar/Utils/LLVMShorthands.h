@@ -17,6 +17,7 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
+#include <phasar/Utils/Macros.h>
 #include <string>
 #include <vector>
 
@@ -112,12 +113,16 @@ globalValuesUsedinFunction(const llvm::Function *F);
 std::string getMetaDataID(const llvm::Value *V);
 
 /**
- * @brief Does a '<' comparison of the annotated ID.
+ * @brief Does less-than comparison based on the annotated ID.
  *
  * This is useful, since Instructions/Globals and Arguments have different
  * underlying types for their ID's, size_t and string respectively.
  */
-bool lessThanOnValueID(const llvm::Value *V1, const llvm::Value *V2);
+struct llvmValueIDLess {
+  stringIDLess sless;
+  llvmValueIDLess();
+  bool operator()(const llvm::Value *lhs, const llvm::Value *rhs) const;
+};
 
 /**
  * @brief Returns position of a formal function argument.

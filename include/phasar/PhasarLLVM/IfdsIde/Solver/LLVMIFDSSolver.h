@@ -85,22 +85,24 @@ public:
     if (cells.empty()) {
       std::cout << "No results computed!\n";
     } else {
-      sort(
-          cells.begin(), cells.end(),
-          [](typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell a,
-             typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell
-                 b) {
-            if (!lessThanOnValueID(a.r, b.r) && !lessThanOnValueID(b.r, a.r)) {
-              if constexpr (std::is_same<D, const llvm::Value *>::value) {
-                return lessThanOnValueID(a.c, b.c);
-              } else {
-                // If D is user defined we should use the user defined
-                // less-than comparison
-                return a.c < b.c;
-              }
-            }
-            return lessThanOnValueID(a.r, b.r);
-          });
+      llvmValueIDLess llvmIDLess;
+      sort(cells.begin(), cells.end(),
+           [&llvmIDLess](
+               typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell
+                   a,
+               typename Table<const llvm::Instruction *, D, BinaryDomain>::Cell
+                   b) {
+             if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
+               if constexpr (std::is_same<D, const llvm::Value *>::value) {
+                 return llvmIDLess(a.c, b.c);
+               } else {
+                 // If D is user defined we should use the user defined
+                 // less-than comparison
+                 return a.c < b.c;
+               }
+             }
+             return llvmIDLess(a.r, b.r);
+           });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
       const llvm::Function *prevFn = nullptr;
