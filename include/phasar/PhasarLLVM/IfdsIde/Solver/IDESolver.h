@@ -393,6 +393,76 @@ protected:
   // have a shared point to allow for a copy constructor of IDESolver
   std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, I>> transformedProblem;
   IDETabulationProblem<N, D, M, V, I> &ideTabulationProblem;
+  D zeroValue;
+  I icfg;
+  bool computevalues;
+  bool autoAddZero;
+  bool followReturnPastSeeds;
+  bool computePersistedSummaries;
+  bool recordEdges;
+  bool emitESG = VariablesMap.count("emit-esg-as-dot");
+  unsigned PathEdgeCount;
+
+  FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
+
+  Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
+
+  Table<N, N, std::map<D, std::set<D>>> computedInterPathEdges;
+
+  std::shared_ptr<EdgeFunction<V>> allTop;
+
+  std::shared_ptr<JumpFunctions<N, D, M, V, I>> jumpFn;
+
+  std::map<std::tuple<N, D, N, D>,
+           std::vector<std::shared_ptr<EdgeFunction<V>>>>
+      intermediateEdgeFunctions;
+
+  // stores summaries that were queried before they were computed
+  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
+  Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> endsummarytab;
+
+  // edges going along calls
+  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
+  Table<N, D, std::map<N, std::set<D>>> incomingtab;
+
+  // stores the return sites (inside callers) to which we have unbalanced
+  // returns if followReturnPastSeeds is enabled
+  std::set<N> unbalancedRetSites;
+
+  std::map<N, std::set<D>> initialSeeds;
+
+  Table<N, D, V> valtab;
+
+  std::map<std::pair<N, D>, size_t> fSummaryReuse;
+
+  // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
+  // we need to allocate dynamically, otherwise the objects lifetime runs out -
+  // as a modifiable r-value reference created here that should be stored in a
+  // modifiable l-value reference within the IDESolver implementation leads to
+  // (massive) undefined behavior (and nightmares):
+  // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
+  IDESolver(IFDSTabulationProblem<N, D, M, I> &tabulationProblem)
+      : transformedProblem(
+            std::make_unique<IFDSToIDETabulationProblem<N, D, M, I>>(
+                tabulationProblem)),
+        ideTabulationProblem(*transformedProblem),
+        zeroValue(ideTabulationProblem.zeroValue()),
+        icfg(ideTabulationProblem.interproceduralCFG()),
+        computevalues(ideTabulationProblem.solver_config.computeValues),
+        autoAddZero(ideTabulationProblem.solver_config.autoAddZero),
+        followReturnPastSeeds(
+            ideTabulationProblem.solver_config.followReturnsPastSeeds),
+        computePersistedSummaries(
+            ideTabulationProblem.solver_config.computePersistedSummaries),
+        recordEdges(ideTabulationProblem.solver_config.recordEdges),
+        PathEdgeCount(0), cachedFlowEdgeFunctions(ideTabulationProblem),
+        allTop(ideTabulationProblem.allTopFunction()),
+        jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
+            allTop, ideTabulationProblem)),
+        initialSeeds(ideTabulationProblem.initialSeeds()) {
+    // std::cout << "called IDESolver::IDESolver() ctor with IFDSProblem" <<
+    // std::endl;
+  }
 
   /**
    * Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -435,6 +505,7 @@ protected:
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "  " << ideTabulationProblem.NtoString(ret));
     }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
@@ -456,6 +527,9 @@ protected:
             std::shared_ptr<EdgeFunction<V>> sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Queried Summary Edge Function: "
+                          << sumEdgFnE->str());
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -480,6 +554,7 @@ protected:
                         << "Start points of '" +
                                icfg.getMethodName(sCalledProcN) +
                                "' currently not available!");
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         }
         // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
@@ -535,10 +610,15 @@ protected:
                   std::shared_ptr<EdgeFunction<V>> f4 =
                       cachedFlowEdgeFunctions.getCallEdgeFunction(
                           n, d2, sCalledProcN, d3);
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "Queried Call Edge Function: " << f4->str());
                   // get return edge function
                   std::shared_ptr<EdgeFunction<V>> f5 =
                       cachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, sCalledProcN, eP, d4, retSiteN, d5);
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                                << "Queried Return Edge Function: "
+                                << f5->str());
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -581,6 +661,9 @@ protected:
           std::shared_ptr<EdgeFunction<V>> edgeFnE =
               cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
                   n, d2, returnSiteN, d3, callees);
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                        << "Queried Call-to-Return Edge Function: "
+                        << edgeFnE->str());
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           auto fPrime = f->composeWith(edgeFnE);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -621,10 +704,13 @@ protected:
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<V>> g =
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Queried Normal Edge Function: " << g->str());
         std::shared_ptr<EdgeFunction<V>> fprime = f->composeWith(g);
         intermediateEdgeFunctions[std::make_tuple(n, m, d2, d3)] = fprime;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Compose: " << g->str() << " * " << f->str());
+                      << "Compose: " << g->str() << " * " << f->str() << " = "
+                      << fprime->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         propagate(d1, m, d3, fprime, nullptr, false);
@@ -650,6 +736,7 @@ protected:
 
   void propagateValueAtCall(std::pair<N, D> nAndD, N n) {
     PAMM_GET_INSTANCE;
+    auto &lg = lg::get();
     D d = nAndD.second;
     for (M q : icfg.getCalleesOfCallAt(n)) {
       std::shared_ptr<FlowFunction<D>> callFlowFunction =
@@ -658,6 +745,8 @@ protected:
       for (D dPrime : callFlowFunction->computeTargets(d)) {
         std::shared_ptr<EdgeFunction<V>> edgeFn =
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "Queried Call Edge Function: " << edgeFn->str());
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         for (N startPoint : icfg.getStartPointsOf(q)) {
           INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -818,76 +907,6 @@ protected:
     }
   }
 
-protected:
-  D zeroValue;
-  I icfg;
-  bool computevalues;
-  bool autoAddZero;
-  bool followReturnPastSeeds;
-  bool computePersistedSummaries;
-  bool recordEdges;
-  unsigned PathEdgeCount;
-
-  FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;
-
-  Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
-
-  Table<N, N, std::map<D, std::set<D>>> computedInterPathEdges;
-
-  std::shared_ptr<EdgeFunction<V>> allTop;
-
-  std::shared_ptr<JumpFunctions<N, D, M, V, I>> jumpFn;
-
-  std::map<std::tuple<N, N, D, D>, std::shared_ptr<EdgeFunction<V>>>
-      intermediateEdgeFunctions;
-
-  // stores summaries that were queried before they were computed
-  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> endsummarytab;
-
-  // edges going along calls
-  // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<N, D, std::map<N, std::set<D>>> incomingtab;
-
-  // stores the return sites (inside callers) to which we have unbalanced
-  // returns if followReturnPastSeeds is enabled
-  std::set<N> unbalancedRetSites;
-
-  std::map<N, std::set<D>> initialSeeds;
-
-  Table<N, D, V> valtab;
-
-  std::map<std::pair<N, D>, size_t> fSummaryReuse;
-
-  // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
-  // we need to allocate dynamically, otherwise the objects lifetime runs out -
-  // as a modifiable r-value reference created here that should be stored in a
-  // modifiable l-value reference within the IDESolver implementation leads to
-  // (massive) undefined behavior (and nightmares):
-  // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
-  IDESolver(IFDSTabulationProblem<N, D, M, I> &tabulationProblem)
-      : transformedProblem(
-            std::make_unique<IFDSToIDETabulationProblem<N, D, M, I>>(
-                tabulationProblem)),
-        ideTabulationProblem(*transformedProblem),
-        zeroValue(ideTabulationProblem.zeroValue()),
-        icfg(ideTabulationProblem.interproceduralCFG()),
-        computevalues(ideTabulationProblem.solver_config.computeValues),
-        autoAddZero(ideTabulationProblem.solver_config.autoAddZero),
-        followReturnPastSeeds(
-            ideTabulationProblem.solver_config.followReturnsPastSeeds),
-        computePersistedSummaries(
-            ideTabulationProblem.solver_config.computePersistedSummaries),
-        recordEdges(ideTabulationProblem.solver_config.recordEdges),
-        PathEdgeCount(0), cachedFlowEdgeFunctions(ideTabulationProblem),
-        allTop(ideTabulationProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<N, D, M, V, I>>(
-            allTop, ideTabulationProblem)),
-        initialSeeds(ideTabulationProblem.initialSeeds()) {
-    // std::cout << "called IDESolver::IDESolver() ctor with IFDSProblem" <<
-    // std::endl;
-  }
-
   virtual void saveEdges(N sourceNode, N sinkStmt, D sourceVal,
                          std::set<D> destVals, bool interP) {
     if (!recordEdges)
@@ -1023,10 +1042,14 @@ protected:
             std::shared_ptr<EdgeFunction<V>> f4 =
                 cachedFlowEdgeFunctions.getCallEdgeFunction(
                     c, d4, icfg.getMethodOf(n), d1);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Queried Call Edge Function: " << f4->str());
             // get return edge function
             std::shared_ptr<EdgeFunction<V>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Queried Return Edge Function: " << f5->str());
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -1081,6 +1104,8 @@ protected:
             std::shared_ptr<EdgeFunction<V>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Queried Return Edge Function: " << f5->str());
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
@@ -1265,13 +1290,15 @@ protected:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "EDGE: <F: " << target->getFunction()->getName().str()
                       << ", D: " << ideTabulationProblem.DtoString(sourceVal)
-                      << ">");
+                      << '>');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << " ---> <N: " << ideTabulationProblem.NtoString(target)
-                      << ",");
+                      << ',');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "       D: "
-                      << ideTabulationProblem.DtoString(targetVal) << ">");
+                      << ideTabulationProblem.DtoString(targetVal) << ',');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "      EF: " << fPrime->str() << '>');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       }
     } else {
@@ -1637,6 +1664,8 @@ protected:
                   << "Emit Exploded super-graph (ESG) as DOT graph");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process intra-procedural path egdes");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "=============================================");
     DOTGraph<D> G;
     DOTFunctionSubGraph *FG = nullptr;
 
@@ -1649,7 +1678,8 @@ protected:
       auto Edge = std::make_pair(cell.r, cell.c);
       std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
       std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
-
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N2: " << n2_label);
       std::string n1_stmtId = icfg.getStatementId(Edge.first);
       std::string n2_stmtId = icfg.getStatementId(Edge.second);
       std::string fnName = icfg.getMethodOf(Edge.first)->getName().str();
@@ -1727,7 +1757,11 @@ protected:
     }
 
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "=============================================");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process inter-procedural path egdes");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "=============================================");
     cells = computedInterPathEdges.cellVec();
     sort(cells.begin(), cells.end(),
          [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
