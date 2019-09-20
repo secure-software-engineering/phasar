@@ -13,9 +13,8 @@ class TypeCheckTest : public ::testing::Test {
 
 protected:
   const std::string pathToCrySLFiles = "../../../test/CrySL/";
-  const std::vector<std::string> EntryPoints = {"main"};
 
-  CrySLParserEngine *cryslparserengine;
+  CrySLParserEngine *cryslparserengine = 0;
 
   TypeCheckTest() {}
   virtual ~TypeCheckTest() {}
@@ -44,7 +43,6 @@ protected:
         << "CrySLParserEngine is null";
     size_t numErrors = cryslparserengine->getNumberOfSyntaxErrors();
     bool typeCheckResult = cryslparserengine->typecheckSucceeded();
-    
 
     EXPECT_EQ(numErrors, groundValue);
     EXPECT_EQ(typeCheckResult, groundTruth);
