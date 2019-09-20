@@ -14,6 +14,7 @@ else()
 endif()
 
 target_link_libraries(phasar_phasarllvm_utils
+  LINK_PUBLIC
   boost_filesystem
   boost_system
 )
