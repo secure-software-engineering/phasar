@@ -10,12 +10,15 @@ class OrderTypeStateDescription : public psr::TypeStateDescription {
   std::unique_ptr<DFA::DFA> dfa;
   std::unordered_map<std::string, int> eventStates;
   std::string typeName;
+  std::unordered_set<State> acceptingStates;
+
 public:
   /// \brief Construct a OrderTypeStateDescription
   /// TODO: parameters
   OrderTypeStateDescription(const std::string &typeName,
                             std::unique_ptr<DFA::DFA> &&dfa,
-                            std::unordered_map<std::string, int> &&eventStates);
+                            std::unordered_map<std::string, int> &&eventStates,
+                            std::unordered_set<State> &&acceptingStates);
   /// \brief True, iff F is a function, which returns an object of the
   /// getTypeNameOfInterest() type
   virtual bool isFactoryFunction(const std::string &F) const override;
@@ -49,6 +52,6 @@ public:
   /// \brief The error-state
   virtual State error() const override;
   /// \brief the accepting final state
-  State accepting() const;
+  bool isAccepting(State S) const;
 };
 } // namespace CCPP

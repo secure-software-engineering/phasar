@@ -3,11 +3,10 @@
 namespace CCPP {
 OrderTypeStateDescription::OrderTypeStateDescription(
     const std::string &typeName, std::unique_ptr<DFA::DFA> &&dfs,
-    std::unordered_map<std::string, int> &&eventTransitions)
+    std::unordered_map<std::string, int> &&eventTransitions,
+    std::unordered_set<int> &&acceptingStates)
     : dfa(std::move(dfs)), eventTransitions(std::move(eventTransitions)),
-      typeName(typeName) {
-  // TODO: mangle typeName
-}
+      acceptingStates(std::move(acceptingStates)), typeName(typeName) {}
 
 bool OrderTypeStateDescription::isAPIFunction(const std::string &F) const {
   return eventTransitions.count(F);
@@ -25,14 +24,20 @@ std::string OrderTypeStateDescription::getTypeNameOfInterest() const {
   return typeName;
 }
 std::string OrderTypeStateDescription::stateToString(State S) const {
-  if (S == -1)
+  if (S == error())
     return "<ERROR-STATE>";
-  for (auto &kvp : eventTransitions) {
-    if (kvp.second == S) {
-      return kvp.first;
-    }
-  }
-  return "<NO-STATE>";
+  else if (S == bottom())
+    return "<BOTTOM-STATE>";
+  else if (S == top())
+    return "<TOP-STATE>";
+  else if (S == start())
+    return "<INITIALIZED-STATE>";
+  else if (S == uninit())
+    return "<INITIAL-STATE>";
+  else if (isAccepting(S))
+    return "<ACCEPTING-STATE>";
+  else
+    return "<INTERMEDIATE-STATE>";
 }
 psr::TypeStateDescription::State OrderTypeStateDescription::bottom() const {
   // TODO implement;
@@ -52,8 +57,8 @@ psr::TypeStateDescription::State OrderTypeStateDescription::start() const {
 psr::TypeStateDescription::State OrderTypeStateDescription::error() const {
   return -1;
 }
-psr::TypeStateDescription::State OrderTypeStateDescription::accepting() const {
-  return dfa->getAcceptingState();
+bool OrderTypeStateDescription::isAccepting(
+    psr::TypeStateDescription::State S) const {
+  return acceptingStates.count(S);
 }
-// TODO implement rest
 } // namespace CCPP

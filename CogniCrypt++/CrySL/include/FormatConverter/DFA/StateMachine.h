@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace CCPP {
@@ -40,9 +41,17 @@ public:
   /// \brief Creates a new DFA from this NFA which decides exactly the same
   /// language as this NFA.
   ///
+  /// \param eventTransitions A map from the string-representation to the
+  /// integer-id of all used transitions. This map  will be filled by this
+  /// method
+  ///
+  /// \param acceptingStates A set of final accepting states. This set will be
+  /// filled by this method
+  ///
   /// \returns An owning pointer to the newly created DFA
   std::unique_ptr<DFA>
-  convertToDFA(std::unordered_map<std::string, int> &eventTransitions) const;
+  convertToDFA(std::unordered_map<std::string, int> &eventTransitions,
+               std::unordered_set<int> &acceptingStates) const;
 
   bool isDeterministic() const;
 };
