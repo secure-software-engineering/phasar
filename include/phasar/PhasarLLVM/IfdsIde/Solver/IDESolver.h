@@ -356,10 +356,10 @@ public:
       computeAndPrintStatistics();
     }
     // TODO: Remove debug output
-    printComputedPathEdges();
-    jumpFn->printJumpFunctions(std::cout);
-    jumpFn->printNonEmptyReverseLookup(std::cout);
-    if (VariablesMap.count("emit-esg-as-dot")) {
+    // printComputedPathEdges();
+    // jumpFn->printJumpFunctions(std::cout);
+    // jumpFn->printNonEmptyReverseLookup(std::cout);
+    if (emitESG) {
       emitESGasDot();
     }
   }
@@ -619,6 +619,15 @@ protected:
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "Queried Return Edge Function: "
                                 << f5->str());
+                  if (emitESG) {
+                    for (auto sP : icfg.getStartPointsOf(sCalledProcN)) {
+                      intermediateEdgeFunctions[std::make_tuple(n, d2, sP, d3)]
+                          .push_back(f4);
+                    }
+                    intermediateEdgeFunctions[std::make_tuple(eP, d4, retSiteN,
+                                                              d5)]
+                        .push_back(f5);
+                  }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -664,6 +673,10 @@ protected:
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Queried Call-to-Return Edge Function: "
                         << edgeFnE->str());
+          if (emitESG) {
+            intermediateEdgeFunctions[std::make_tuple(n, d2, returnSiteN, d3)]
+                .push_back(edgeFnE);
+          }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           auto fPrime = f->composeWith(edgeFnE);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -707,7 +720,10 @@ protected:
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
         std::shared_ptr<EdgeFunction<V>> fprime = f->composeWith(g);
-        intermediateEdgeFunctions[std::make_tuple(n, m, d2, d3)] = fprime;
+        if (emitESG) {
+          intermediateEdgeFunctions[std::make_tuple(n, d2, m, d3)].push_back(
+              fprime);
+        }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Compose: " << g->str() << " * " << f->str() << " = "
                       << fprime->str());
@@ -747,6 +763,12 @@ protected:
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Call Edge Function: " << edgeFn->str());
+        if (emitESG) {
+          for (auto sP : icfg.getStartPointsOf(q)) {
+            intermediateEdgeFunctions[std::make_tuple(n, d, sP, dPrime)]
+                .push_back(edgeFn);
+          }
+        }
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         for (N startPoint : icfg.getStartPointsOf(q)) {
           INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1050,6 +1072,14 @@ protected:
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
+            if (emitESG) {
+              for (auto sP : icfg.getStartPointsOf(icfg.getMethodOf(n))) {
+                intermediateEdgeFunctions[std::make_tuple(c, d4, sP, d1)]
+                    .push_back(f4);
+              }
+              intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
+                  .push_back(f5);
+            }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -1106,6 +1136,10 @@ protected:
                     c, icfg.getMethodOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
+            if (emitESG) {
+              intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
+                  .push_back(f5);
+            }
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
@@ -1713,6 +1747,7 @@ protected:
         DOTNode D1;
         if (ideTabulationProblem.isZeroValue(D1Fact)) {
           D1 = {fnName, "Λ", n1_stmtId, 0, false, true};
+          D1FactId = 0;
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
@@ -1737,10 +1772,15 @@ protected:
             D2FactId = G.getFactID(D2Fact);
             std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
             DOTNode D2 = {fnName, d2_label, n2_stmtId, D2FactId, false, true};
-            auto EF = intermediateEdgeFunctions[std::make_tuple(
-                Edge.first, Edge.second, D1Fact, D2Fact)];
-            std::string EFLabel = EF ? EF->str() : " ";
-            if (D1FactId == D2FactId) {
+            std::string EFLabel;
+            auto EFVec = intermediateEdgeFunctions[std::make_tuple(
+                Edge.first, D1Fact, Edge.second, D2Fact)];
+            for (auto EF : EFVec) {
+              EFLabel += EF->str() + ", ";
+            }
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
+            if (D1FactId == D2FactId &&
+                !ideTabulationProblem.isZeroValue(D1Fact)) {
               D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
               D1_FSG->edges.emplace(D1, D2, true, EFLabel);
             } else {
@@ -1780,9 +1820,29 @@ protected:
       // Add inter-procedural control flow edge
       DOTNode N1(fNameOfN1, n1_label, n1_stmtId);
       DOTNode N2(fNameOfN2, n2_label, n2_stmtId);
-      // TODO: Handle recursion control flow as intra-procedural control flow
+
+      // Handle recursion control flow as intra-procedural control flow
       // since those eges never leave the function subgraph
-      G.interCFEdges.emplace(N1, N2);
+      FG = nullptr;
+      if (fNameOfN1 == fNameOfN2) {
+        // This function subgraph is guaranteed to exist
+        FG = &G.functions[fNameOfN1];
+        FG->intraCFEdges.emplace(N1, N2);
+      } else {
+        // Check the case where the callee is a single statement function, thus
+        // does not contain intra-procedural path edges. We have to generate
+        // the function sub graph here!
+        if (!G.functions.count(fNameOfN1)) {
+          FG = &G.functions[fNameOfN1];
+          FG->id = fNameOfN1;
+          FG->stmts.insert(N1);
+        } else if (!G.functions.count(fNameOfN2)) {
+          FG = &G.functions[fNameOfN2];
+          FG->id = fNameOfN2;
+          FG->stmts.insert(N2);
+        }
+        G.interCFEdges.emplace(N1, N2);
+      }
 
       // Create D1 and D2, if D1 == D2 == lambda then add Edge(D1, D2) to
       // interLambdaEges otherwise add Edge(D1, D2) to interFactEdges
@@ -1800,6 +1860,12 @@ protected:
           D1FactId = G.getFactID(D1Fact);
           std::string d1_label = ideTabulationProblem.DtoString(D1Fact);
           D1 = {fNameOfN1, d1_label, n1_stmtId, D1FactId, false, true};
+          // FG should already exist even for single statement functions
+          if (!G.containsFactSG(fNameOfN1, D1FactId)) {
+            FG = &G.functions[fNameOfN1];
+            auto D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
+            D1_FSG->nodes.insert(std::make_pair(n1_stmtId, D1));
+          }
         }
 
         auto D2Set = D1ToD2Set.second;
@@ -1814,13 +1880,29 @@ protected:
             D2FactId = G.getFactID(D2Fact);
             std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
             D2 = {fNameOfN2, d2_label, n2_stmtId, D2FactId, false, true};
+            // FG should already exist even for single statement functions
+            if (!G.containsFactSG(fNameOfN2, D2FactId)) {
+              FG = &G.functions[fNameOfN2];
+              auto D2_FSG = FG->getOrCreateFactSG(D2FactId, d2_label);
+              D2_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
+            }
           }
 
-          // TODO: Add recursion edges as intra-procedural edges
           if (ideTabulationProblem.isZeroValue(D1Fact) &&
               ideTabulationProblem.isZeroValue(D2Fact)) {
-            G.interLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
+            // Do not add lambda recursion edges as inter-procedural edges
+            if (D1.funcName != D2.funcName) {
+              G.interLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");
+            }
           } else {
+            // std::string EFLabel = EF ? EF->str() : " ";
+            std::string EFLabel;
+            auto EFVec = intermediateEdgeFunctions[std::make_tuple(
+                Edge.first, D1Fact, Edge.second, D2Fact)];
+            for (auto EF : EFVec) {
+              EFLabel += EF->str() + ", ";
+            }
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
             G.interFactEdges.emplace(D1, D2);
           }
         }

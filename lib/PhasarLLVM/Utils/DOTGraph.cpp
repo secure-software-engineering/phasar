@@ -183,17 +183,14 @@ void DOTFunctionSubGraph::createLayoutFactNodes() {
   }
 }
 
-// TODO: this seems to be buggy
 void DOTFunctionSubGraph::createLayoutFactEdges() {
   for (auto &[key, factSG] : facts) {
-    auto last = factSG.nodes.empty() ? factSG.nodes.end()
-                                     : std::prev(factSG.nodes.end());
-    // Check cf edges not only nodes!
-    for (auto firstIt = factSG.nodes.begin(); firstIt != last; ++firstIt) {
-      auto secondIt = std::next(firstIt);
-      DOTNode n1 = firstIt->second;
-      DOTNode n2 = secondIt->second;
-      factSG.edges.emplace(n1, n2, false);
+    for (auto iCFE : intraCFEdges) {
+      DOTNode d1 = {iCFE.source.funcName, factSG.label, iCFE.source.stmtId,
+                    factSG.factId, false};
+      DOTNode d2 = {iCFE.target.funcName, factSG.label, iCFE.target.stmtId,
+                    factSG.factId, false};
+      factSG.edges.emplace(d1, d2, false);
     }
   }
 }
@@ -208,7 +205,7 @@ bool operator<(const DOTNode &lhs, const DOTNode &rhs) {
       return strLess(lhs.stmtId, rhs.stmtId);
     } else {
       return lhs.factId < rhs.factId;
-}
+    }
   }
 }
 

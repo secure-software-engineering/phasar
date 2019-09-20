@@ -19,9 +19,9 @@
 
 #include <iosfwd>
 #include <map>
+#include <phasar/Utils/Macros.h>
 #include <set>
 #include <string>
-#include <phasar/Utils/Macros.h>
 
 namespace psr {
 
@@ -139,6 +139,7 @@ struct DOTFunctionSubGraph {
 
   std::string str(std::string indent = "") const;
   DOTFactSubGraph *getOrCreateFactSG(unsigned factID, std::string &label);
+  // TODO: pass the actual lambda EF name and value as parameter from DOTGraph
   std::string generateLambdaSG(std::string indent = "") const;
   void createLayoutCFNodes();
   void createLayoutFactNodes();
@@ -166,6 +167,15 @@ template <typename D> struct DOTGraph {
       DtoFactId[fact] = factIDCount++;
     }
     return id;
+  }
+
+  bool containsFactSG(std::string fName, unsigned factID) {
+    if (functions.count(fName)) {
+      if (functions[fName].facts.count(factID)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   std::string str() const {
