@@ -3,23 +3,28 @@ file(GLOB_RECURSE PLUGINS_SO *.cxx)
 
 # Handle the library files
 if(BUILD_SHARED_LIBS)
-	add_phasar_library(phasar_plugins
-		SHARED
-		${PLUGINS_SRC}
-	)
+  add_phasar_library(phasar_plugins
+    SHARED
+    ${PLUGINS_SRC}
+  )
 else()
-	add_phasar_library(phasar_plugins
-		STATIC
-		${PLUGINS_SRC}
-	)
+  add_phasar_library(phasar_plugins
+    STATIC
+    ${PLUGINS_SRC}
+  )
 endif()
 
 target_link_libraries(phasar_plugins
   phasar_ifdside
+  phasar_phasarllvm_utils
+
   boost_system
   boost_filesystem
   boost_log
   ${CMAKE_DL_LIBS}
+
+  LLVMCore
+  LLVMSupport
 )
 
 # Handle all plugins
@@ -37,7 +42,7 @@ foreach(plugin ${PLUGINS_SO})
 endforeach()
 
 set_target_properties(phasar_plugins
-	PROPERTIES
-	LINKER_LANGUAGE CXX
-	PREFIX "lib"
+  PROPERTIES
+  LINKER_LANGUAGE CXX
+  PREFIX "lib"
 )

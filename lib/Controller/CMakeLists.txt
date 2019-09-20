@@ -4,6 +4,9 @@ set(PHASAR_LINK_LIBS
   phasar_ifdside
   phasar_mono
   phasar_plugins
+  phasar_db
+  phasar_pointer
+  phasar_controlflow
 )
 
 set(LLVM_LINK_COMPONENTS

@@ -246,6 +246,7 @@ target_link_libraries(phasar
   LINK_PUBLIC
   phasar_config
   phasar_controller
+  phasar_controlflow
   phasar_mono
   phasar_db
   phasar_experimental
