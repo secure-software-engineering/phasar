@@ -208,6 +208,10 @@ IFDSEnvironmentVariableTracing::initialSeeds() {
   for (const auto &entryPoint : this->EntryPoints) {
     if (taintConfig.isSink(entryPoint))
       continue;
+<<<<<<< HEAD
+=======
+
+>>>>>>> Revise solver output
     seedMap.insert(std::make_pair(&icfg.getMethod(entryPoint)->front().front(),
                                   std::set<ExtendedValue>({zeroValue()})));
   }

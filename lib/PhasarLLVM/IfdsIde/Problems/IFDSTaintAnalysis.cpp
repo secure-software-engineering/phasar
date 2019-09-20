@@ -44,9 +44,6 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
                                          IFDSTaintAnalysis::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSTaintAnalysis::getNormalFlowFunction()");
   // If a tainted value is stored, the store location must be tainted too
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
@@ -89,9 +86,6 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                        IFDSTaintAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSTaintAnalysis::getCallFlowFunction()");
   string FunctionName = cxx_demangle(destMthd->getName().str());
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
@@ -116,9 +110,6 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
                                       IFDSTaintAnalysis::m_t calleeMthd,
                                       IFDSTaintAnalysis::n_t exitStmt,
                                       IFDSTaintAnalysis::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSTaintAnalysis::getRetFlowFunction()");
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
@@ -135,8 +126,6 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
     set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSTaintAnalysis::getCallToRetFlowFunction()");
   // Process the effects of source or sink functions that are called
   for (auto *Callee : icfg.getCalleesOfCallAt(callSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
