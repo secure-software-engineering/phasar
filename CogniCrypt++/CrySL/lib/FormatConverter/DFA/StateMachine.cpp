@@ -3,6 +3,7 @@
 #include <FormatConverter/DFA/StateMachine.h>
 #include <FormatConverter/DFA/StateMachineNode.h>
 #include <set>
+#include <string>
 #include <unordered_map>
 
 namespace std {
@@ -50,24 +51,33 @@ StateMachine::convertToDFA(unordered_map<string, int> &eventTransitions) const {
   for (auto &ref : states) {
     set<StateMachineNode *> smNodeSet;
     StateMachineNode *smNode;
-    for (auto var2 : ref->getNextState("")) {
-      smNodeSet.insert(&var2.get());
-      if (ref->isInitial()) {
-        smNode = &stateMachine.getInitialState();
-      } else if (ref->isAccepting()) {
-        smNode = &stateMachine.addState(true);
-      } else {
-        smNode = &stateMachine.addState();
+
+    if (ref->isInitial()) {
+      smNode = &stateMachine.getInitialState();
+    } else if (ref->isAccepting()) {
+      smNode = &stateMachine.addState(true);
+    } else {
+      smNode = &stateMachine.addState();
+    }
+
+    for (auto var : ref->getMap()) {
+
+      if (var.first == "") // check for all nodes with epsilon transitions
+      {
+        smNodeSet.insert(ref.get());
+      }
+
+      for (auto var2 : var.second) {
+        smNodeSet.insert(var2);
       }
     }
     dsmMap.insert({smNodeSet, smNode});
+  }
 
-    for (auto var :
-         ref->getMap()) { // map for each state machine node key= transition
-                          // value set= possible destinations nodes
-      for (auto setVar : var.second) {
-        smNode->addTransition(var.first, *setVar);
-      }
+  for (auto &ref : states) {
+    for (auto mapVar : dsmMap) {
+      StateMachineNode *smNode;
+      mapVar.first.find(ref.get());
     }
   }
 
@@ -76,7 +86,7 @@ StateMachine::convertToDFA(unordered_map<string, int> &eventTransitions) const {
   // nested pushback for delta
   // ith index means transition i for certain state
   return make_unique<DFStateMachine>(initial, accepting, move(delta));
-}
+} // namespace DFA
 bool StateMachine::isDeterministic() const {
   for (auto &stat : states) {
     if (!stat->isDeterministic())
