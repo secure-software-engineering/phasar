@@ -437,6 +437,50 @@ void ProjectIRDB::print() {
   }
 }
 
+void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) {
+  for (auto &entry : modules) {
+    os << "IR module: " << entry.first << '\n';
+    // print globals
+    for (auto &glob : entry.second->globals()) {
+      if (shortenIR) {
+        os << llvmIRToShortString(&glob);
+      } else {
+        os << llvmIRToString(&glob);
+      }
+      os << '\n';
+    }
+    os << '\n';
+    for (auto F : getAllFunctions()) {
+      if (getModuleDefiningFunction(F->getName().str())
+              ->getModuleIdentifier() == entry.first) {
+        os << F->getName().str() << " {\n";
+        for (auto &BB : *F) {
+          // do not print the label of the first BB
+          if (BB.getPrevNode()) {
+            std::string BBLabel;
+            llvm::raw_string_ostream RSO(BBLabel);
+            BB.printAsOperand(RSO, false);
+            RSO.flush();
+            os << "\n<label " << BBLabel << ">\n";
+          }
+          // print all instructions
+          for (auto &I : BB) {
+            os << "  ";
+            if (shortenIR) {
+              os << llvmIRToShortString(&I);
+            } else {
+              os << llvmIRToString(&I);
+            }
+            os << '\n';
+          }
+        }
+        os << "}\n\n";
+      }
+    }
+    os << '\n';
+  }
+}
+
 void ProjectIRDB::exportPATBCJSON() {
   std::cout << "ProjectIRDB::exportPATBCJSON\n";
 }

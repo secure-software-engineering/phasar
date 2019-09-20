@@ -18,7 +18,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_LLVMIDESOLVER_H_
 
 #include <algorithm>
-// #include <iostream>
+#include <iostream>
 #include <vector>
 
 #include <llvm/IR/Function.h>
@@ -39,17 +39,15 @@ class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
 private:
   IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *, V,
                        I> &Problem;
-  const bool DUMP_RESULTS;
   const bool PRINT_REPORT;
 
 public:
   LLVMIDESolver(IDETabulationProblem<const llvm::Instruction *, D,
                                      const llvm::Function *, V, I> &problem,
-                bool dumpResults = false, bool printReport = true)
+                bool printReport = true)
       : IDESolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
             problem),
-        Problem(problem), DUMP_RESULTS(dumpResults), PRINT_REPORT(printReport) {
-  }
+        Problem(problem), PRINT_REPORT(printReport) {}
 
   ~LLVMIDESolver() override = default;
 
@@ -57,7 +55,7 @@ public:
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::solve();
     bl::core::get()->flush();
-    if (DUMP_RESULTS) {
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }
     if (PRINT_REPORT) {
@@ -74,39 +72,50 @@ public:
   void dumpResults() {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-    std::cout << "### DUMP LLVMIDESolver results\n";
-    // for the following line have a look at:
-    // http://stackoverflow.com/questions/1120833/derived-template-class-access-to-base-class-member-data
-    // https://isocpp.org/wiki/faq/templates#nondependent-name-lookup-members
-    auto results = this->valtab.cellSet();
-    if (results.empty()) {
-      std::cout << "EMPTY" << std::endl;
+    std::cout
+        << "\n***************************************************************\n"
+        << "*                  Raw LLVMIDESolver results                  *\n"
+        << "***************************************************************\n";
+    auto cells = this->valtab.cellVec();
+    if (cells.empty()) {
+      std::cout << "No results computed!" << std::endl;
     } else {
-      std::vector<typename Table<const llvm::Instruction *, D, V>::Cell> cells;
-      for (auto cell : results) {
-        cells.push_back(cell);
-      }
+      llvmValueIDLess llvmIDLess;
       std::sort(cells.begin(), cells.end(),
-                [](typename Table<const llvm::Instruction *, D, V>::Cell a,
-                   typename Table<const llvm::Instruction *, D, V>::Cell b) {
-                  return a.r < b.r;
+                [&llvmIDLess](
+                    typename Table<const llvm::Instruction *, D, V>::Cell a,
+                    typename Table<const llvm::Instruction *, D, V>::Cell b) {
+                  if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
+                    if constexpr (std::is_same<D, const llvm::Value *>::value) {
+                      return llvmIDLess(a.c, b.c);
+                    } else {
+                      // If D is user defined we should use the user defined
+                      // less-than comparison
+                      return a.c < b.c;
+                    }
+                  }
+                  return llvmIDLess(a.r, b.r);
                 });
       const llvm::Instruction *prev = nullptr;
       const llvm::Instruction *curr;
+      const llvm::Function *prevFn = nullptr;
+      const llvm::Function *currFn;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
+        currFn = curr->getFunction();
+        if (prevFn != currFn) {
+          prevFn = currFn;
+          std::cout << "\n\n============ Results for function '" +
+                           currFn->getName().str() + "' ============\n";
+        }
         if (prev != curr) {
           prev = curr;
-          std::cout << "\n--- IDE START RESULT RECORD ---\n";
-          std::cout << "N: " << Problem.NtoString(cells[i].r)
-                    << " in function: ";
-          if (const llvm::Instruction *inst =
-                  llvm::dyn_cast<llvm::Instruction>(cells[i].r)) {
-            std::cout << inst->getFunction()->getName().str() << "\n";
-          }
+          std::string NString = Problem.NtoString(curr);
+          std::string line(NString.size(), '-');
+          std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        std::cout << "D:\t" << Problem.DtoString(cells[i].c) << " "
-                  << "\tV:  " << Problem.VtoString(cells[i].v) << "\n";
+        std::cout << "\tD: " << Problem.DtoString(cells[i].c)
+                  << " | V: " << Problem.VtoString(cells[i].v) << '\n';
       }
     }
     std::cout << '\n';

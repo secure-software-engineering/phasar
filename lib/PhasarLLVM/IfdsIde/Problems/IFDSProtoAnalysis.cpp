@@ -37,7 +37,6 @@ IFDSProtoAnalysis::IFDSProtoAnalysis(IFDSProtoAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
                                          IFDSProtoAnalysis::n_t succ) {
-  cout << "IFDSProtoAnalysis::getNormalFlowFunction()\n";
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     return make_shared<Gen<IFDSProtoAnalysis::d_t>>(
         Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
@@ -48,7 +47,6 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                        IFDSProtoAnalysis::m_t destMthd) {
-  cout << "IFDSProtoAnalysis::getCallFlowFunction()\n";
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
@@ -57,7 +55,6 @@ IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
                                       IFDSProtoAnalysis::m_t calleeMthd,
                                       IFDSProtoAnalysis::n_t exitStmt,
                                       IFDSProtoAnalysis::n_t retSite) {
-  cout << "IFDSProtoAnalysis::getRetFlowFunction()\n";
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
@@ -65,14 +62,12 @@ shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t callSite, IFDSProtoAnalysis::n_t retSite,
     set<IFDSProtoAnalysis::m_t> callees) {
-  cout << "IFDSProtoAnalysis::getCallToRetFlowFunction()\n";
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                           IFDSProtoAnalysis::m_t destMthd) {
-  cout << "IFDSProtoAnalysis::getSummaryFlowFunction()\n";
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 

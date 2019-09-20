@@ -46,12 +46,14 @@ int main(int argc, const char **argv) {
     I.printAsDot("call_graph.dot");
     // IFDS template parametrization test
 		IFDSLinearConstantAnalysis L(I,H,DB, {"main"});
-    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L, true);
+    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L);
     S.solve();
+    S.dumpResults();
 		// IDE template parametrization test
 		IDELinearConstantAnalysis M(I,H,DB, {"main"});
-		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M, true);
+		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M);
 		T.solve();
+    T.dumpResults();
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
   }

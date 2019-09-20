@@ -6,6 +6,7 @@ set(NoMem2RegSources
   ctor_default.cpp
   dyn_mem.cpp
   exception.cpp
+  while_uninit_1.cpp
   first_inst_call.cpp
   global_variable.cpp
   growing_example.cpp

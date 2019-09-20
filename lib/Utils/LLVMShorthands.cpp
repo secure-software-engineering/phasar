@@ -33,6 +33,8 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 
+#include <stdlib.h>
+
 using namespace std;
 using namespace psr;
 
@@ -152,10 +154,30 @@ std::string llvmIRToString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
-  RSO << ", ID: " << getMetaDataID(V);
+  RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
   return IRBuffer;
+}
+
+std::string llvmIRToShortString(const llvm::Value *V) {
+  // WARNING: Expensive function, cause is the V->print(RSO)
+  //         (20ms on a medium size code (phasar without debug)
+  //          80ms on a huge size code (clang without debug),
+  //          can be multiplied by times 3 to 5 if passes are enabled)
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  V->print(RSO);
+  boost::trim_left(IRBuffer);
+  RSO.flush();
+  if (IRBuffer.find(", align") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", align"));
+  } else if (IRBuffer.find(", !") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", !"));
+  } else if (IRBuffer.size() > 30) {
+    IRBuffer.erase(30);
+  }
+  return IRBuffer + " | ID: " + getMetaDataID(V);
 }
 
 std::vector<const llvm::Value *>
@@ -194,6 +216,15 @@ std::string getMetaDataID(const llvm::Value *V) {
     return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
+
+bool llvmValueIDLess::operator()(const llvm::Value *lhs,
+                                 const llvm::Value *rhs) const {
+  std::string lhs_id = getMetaDataID(lhs);
+  std::string rhs_id = getMetaDataID(rhs);
+  return sless(lhs_id, rhs_id);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {

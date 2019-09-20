@@ -244,6 +244,9 @@ int main(int argc, const char **argv) {
 			("mem2reg", "Promote memory to register pass")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       ("log,L", "Enable logging")
+      ("emit-ir", "Emit preprocessed and annotated IR of analysis target")
+      ("emit-raw-results", "Emit unprocessed/raw solver results")
+      ("emit-esg-as-dot", "Emit the Exploded super-graph (ESG) as DOT graph")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", bpo::value<std::vector<std::string>>()->notifier(validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", bpo::value<std::string>()->notifier(validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
@@ -566,6 +569,6 @@ int main(int argc, const char **argv) {
   bl::core::get()->flush();
   STOP_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // PRINT_MEASURED_DATA(std::cout);
-  EXPORT_MEASURED_DATA(VariablesMap["pamm-out"].as<std::string>());
+  EXPORT_MEASURED_DATA(PhasarConfig::VariablesMap()["pamm-out"].as<std::string>());
   return 0;
 }

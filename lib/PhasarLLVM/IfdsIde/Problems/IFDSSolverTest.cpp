@@ -36,18 +36,12 @@ IFDSSolverTest::IFDSSolverTest(IFDSSolverTest::i_t icfg,
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t curr,
                                       IFDSSolverTest::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSSolverTest::getNormalFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t callStmt,
                                     IFDSSolverTest::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSSolverTest::getCallFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -56,9 +50,6 @@ IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t callSite,
                                    IFDSSolverTest::m_t calleeMthd,
                                    IFDSSolverTest::n_t exitStmt,
                                    IFDSSolverTest::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSSolverTest::getRetFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
@@ -66,9 +57,6 @@ shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t callSite,
                                          IFDSSolverTest::n_t retSite,
                                          set<IFDSSolverTest::m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSSolverTest::getCallToRetFlowFunction()");
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 

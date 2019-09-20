@@ -31,16 +31,11 @@ template <typename D, typename I, unsigned K>
 class LLVMInterMonoSolver
     : public InterMonoSolver<const llvm::Instruction *, D,
                              const llvm::Function *, I, K> {
-protected:
-  bool DUMP_RESULTS;
-
 public:
   LLVMInterMonoSolver(InterMonoProblem<const llvm::Instruction *, D,
-                                       const llvm::Function *, I> &problem,
-                      bool dumpResults = false)
+                                       const llvm::Function *, I> &problem)
       : InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
-                        K>(problem),
-        DUMP_RESULTS(dumpResults) {}
+                        K>(problem) {}
 
   ~LLVMInterMonoSolver() override = default;
 
@@ -53,8 +48,9 @@ public:
     // do the solving of the analaysis problem
     InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
                     K>::solve();
-    if (DUMP_RESULTS)
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
+    }
   }
 
   /**

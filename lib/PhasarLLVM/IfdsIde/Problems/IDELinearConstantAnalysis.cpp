@@ -69,9 +69,12 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t curr, IDELinearConstantAnalysis::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getNormalFlowFunction()");
+  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+    if (Alloca->getAllocatedType()->isIntegerTy()) {
+      return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
+                                                              zeroValue());
+    }
+  }
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
@@ -149,10 +152,6 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getCallFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
@@ -227,10 +226,6 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::m_t calleeMthd,
     IDELinearConstantAnalysis::n_t exitStmt,
     IDELinearConstantAnalysis::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getRetFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   // Handle the case: %x = call i32 ...
   if (callSite->getType()->isIntegerTy()) {
     auto Return = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
@@ -266,10 +261,6 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::n_t retSite, set<m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getCallToRetFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -277,10 +268,6 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getSummaryFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return nullptr;
 }
 
@@ -329,20 +316,6 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t succ,
     IDELinearConstantAnalysis::d_t succNode) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Curr Inst : "
-                << IDELinearConstantAnalysis::NtoString(curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Curr Node :   "
-                << IDELinearConstantAnalysis::DtoString(currNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Succ Inst : "
-                << IDELinearConstantAnalysis::NtoString(succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Succ Node :   "
-                << IDELinearConstantAnalysis::DtoString(succNode));
   // All_Bottom for zero value
   if (isZeroValue(currNode) && isZeroValue(succNode)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
@@ -467,7 +440,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       }
 
       void print(ostream &OS, bool isForDebug = false) const override {
-        OS << "Binary_" << EdgeFunctionID;
+        OS << "Bin_" << EdgeFunctionID;
       }
     };
     return make_shared<LCAEF>(OP, lop, rop, currNode);
@@ -483,21 +456,6 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::d_t srcNode,
     IDELinearConstantAnalysis::m_t destinationMethod,
     IDELinearConstantAnalysis::d_t destNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getCallEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Call Stmt   : "
-                << IDELinearConstantAnalysis::NtoString(callStmt));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Src Node    :   "
-                << IDELinearConstantAnalysis::DtoString(srcNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(M) Dest Method : "
-                << IDELinearConstantAnalysis::MtoString(destinationMethod));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Dest Node   :   "
-                << IDELinearConstantAnalysis::DtoString(destNode));
   // Case: Passing constant integer as parameter
   if (isZeroValue(srcNode) && !isZeroValue(destNode)) {
     if (auto A = llvm::dyn_cast<llvm::Argument>(destNode)) {
@@ -520,27 +478,6 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t exitNode,
     IDELinearConstantAnalysis::n_t reSite,
     IDELinearConstantAnalysis::d_t retNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getReturnEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Call Site : "
-                << IDELinearConstantAnalysis::NtoString(callSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(M) Callee    : "
-                << IDELinearConstantAnalysis::MtoString(calleeMethod));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Exit Stmt : "
-                << IDELinearConstantAnalysis::NtoString(exitStmt));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Exit Node :   "
-                << IDELinearConstantAnalysis::DtoString(exitNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Ret Site  : "
-                << IDELinearConstantAnalysis::NtoString(reSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Ret Node  :   "
-                << IDELinearConstantAnalysis::DtoString(retNode));
   // Case: Returning constant integer
   if (isZeroValue(exitNode) && !isZeroValue(retNode)) {
     auto Return = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
@@ -560,9 +497,6 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode,
     set<IDELinearConstantAnalysis::m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getCallToRetEdgeFunction()");
   return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
@@ -572,9 +506,6 @@ IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDELinearConstantAnalysis::getSummaryEdgeFunction()");
   return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
 }
 
@@ -680,7 +611,7 @@ bool IDELinearConstantAnalysis::GenConstant::equal_to(
 
 void IDELinearConstantAnalysis::GenConstant::print(ostream &OS,
                                                    bool isForDebug) const {
-  OS << "GenConstant_" << GenConstant_Id;
+  OS << "Const_" << GenConstant_Id;
 }
 
 IDELinearConstantAnalysis::LCAIdentity::LCAIdentity()
@@ -720,7 +651,7 @@ bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
 
 void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
                                                    bool isForDebug) const {
-  OS << "LCAIdentity_" << LCAID_Id;
+  OS << "LCAID_" << LCAID_Id;
 }
 
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
@@ -764,12 +695,12 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
 
 void IDELinearConstantAnalysis::printNode(
     ostream &os, IDELinearConstantAnalysis::n_t n) const {
-  os << llvmIRToString(n);
+  os << llvmIRToShortString(n);
 }
 
 void IDELinearConstantAnalysis::printDataFlowFact(
     ostream &os, IDELinearConstantAnalysis::d_t d) const {
-  os << llvmIRToString(d);
+  os << llvmIRToShortString(d);
 }
 
 void IDELinearConstantAnalysis::printMethod(

@@ -51,14 +51,12 @@ IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getNormalFlowFunction(
     const llvm::Instruction *curr, const llvm::Instruction *succ) {
-  cout << "IFDSTabulationProblemTestPlugin::getNormalFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  cout << "IFDSTabulationProblemTestPlugin::getCallFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
@@ -66,7 +64,6 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
-  cout << "IFDSTabulationProblemTestPlugin::getRetFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
@@ -74,14 +71,12 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     set<const llvm::Function *> callees) {
-  cout << "IFDSTabulationProblemTestPlugin::getCallToRetFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  cout << "IFDSTabulationProblemTestPlugin::getSummaryFlowFunction()\n";
   return nullptr;
 }
 

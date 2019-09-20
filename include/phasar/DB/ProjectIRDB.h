@@ -144,6 +144,7 @@ public:
   PointsToGraph *getPointsToGraph(const std::string &FunctionName) const;
   void insertPointsToGraph(const std::string &FunctionName, PointsToGraph *ptg);
   void print();
+  void emitPreprocessedIR(std::ostream &os, bool shortendIR);
   void exportPATBCJSON();
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and

@@ -48,8 +48,11 @@ protected:
     LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
     LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-        TaintProblem, printDump);
+        TaintProblem);
     TaintSolver.solve();
+    if (printDump) {
+      TaintSolver.dumpResults();
+    }
     return TaintProblem.getAllLeaks();
   }
   void compareResults(

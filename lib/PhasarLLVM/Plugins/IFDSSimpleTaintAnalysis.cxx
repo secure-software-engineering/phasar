@@ -54,7 +54,6 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(LLVMBasedICFG &I,
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                                                const llvm::Instruction *succ) {
-  cout << "IFDSSimpleTaintAnalysis::getNormalFlowFunction()\n";
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     struct STA : FlowFunction<const llvm::Value *> {
       const llvm::StoreInst *Store;
@@ -75,7 +74,6 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                              const llvm::Function *destMthd) {
-  cout << "IFDSSimpleTaintAnalysis::getCallFlowFunction()\n";
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
     if (destMthd->getName().str() == "taint") {
       return make_shared<Gen<const llvm::Value *>>(Call, zeroValue());
@@ -91,7 +89,6 @@ IFDSSimpleTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                             const llvm::Function *calleeMthd,
                                             const llvm::Instruction *exitStmt,
                                             const llvm::Instruction *retSite) {
-  cout << "IFDSSimpleTaintAnalysis::getRetFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
@@ -99,14 +96,12 @@ shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     set<const llvm::Function *> callees) {
-  cout << "IFDSSimpleTaintAnalysis::getCallToRetFlowFunction()\n";
   return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  cout << "IFDSSimpleTaintAnalysis::getSummaryFlowFunction()\n";
   return nullptr;
 }
 

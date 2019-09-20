@@ -52,8 +52,6 @@ shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                                          IFDSConstAnalysis::n_t succ) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::getNormalFlowFunction()");
   // Check all store instructions.
   if (const llvm::StoreInst *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     // If the store instruction sets up or updates the vtable, i.e. value
@@ -131,8 +129,6 @@ shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                        IFDSConstAnalysis::m_t destMthd) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::getCallFlowFunction()");
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
   if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -165,20 +161,6 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
                                       IFDSConstAnalysis::n_t exitStmt,
                                       IFDSConstAnalysis::n_t retSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::getRetFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Call site: " << llvmIRToString(callSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Caller context: "
-                << callSite->getFunction()->getName().str());
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Retrun site: " << llvmIRToString(retSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Callee method: " << calleeMthd->getName().str());
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Callee exit statement: " << llvmIRToString(exitStmt));
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller>(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
@@ -196,12 +178,6 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::n_t retSite,
     set<IFDSConstAnalysis::m_t> callees) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::getCallToRetFlowFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Call site: " << llvmIRToString(callSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Return site: " << llvmIRToString(retSite));
   // Process the effects of a llvm memory intrinsic function.
   if (llvm::isa<llvm::MemIntrinsic>(callSite)) {
     IFDSConstAnalysis::d_t pointerOp = callSite->getOperand(0);
@@ -233,18 +209,11 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                           IFDSConstAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::getSummaryFlowFunction()");
-
   return nullptr;
 }
 
 map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSConstAnalysis::initialSeeds()");
   // just start in main()
   map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {

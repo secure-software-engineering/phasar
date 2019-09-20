@@ -54,9 +54,6 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getNormalFlowFunction()");
   // Check if Alloca's type matches the target type. If so, generate from zero
   // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
@@ -128,9 +125,6 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
                                           IDETypeStateAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getCallFlowFunction()");
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
   if (TSD.isAPIFunction(cxx_demangle(destMthd->getName().str()))) {
@@ -151,10 +145,6 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
                                          IDETypeStateAnalysis::m_t calleeMthd,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getRetFlowFunction()");
-
   // Besides mapping the formal parameter back into the actual parameter and
   // propagating the return value into the caller context, we also propagate
   // all related alloca's of the formal parameter and the return value.
@@ -247,9 +237,6 @@ shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
     set<IDETypeStateAnalysis::m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getCallToRetFlowFunction()");
   const llvm::ImmutableCallSite CS(callSite);
   for (auto Callee : callees) {
     std::string demangledFname = cxx_demangle(Callee->getName().str());
@@ -303,9 +290,6 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getSummaryFlowFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getSummaryFlowFunction()");
   return nullptr;
 }
 
@@ -335,19 +319,6 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getNormalEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Curr Inst : " << IDETypeStateAnalysis::NtoString(curr));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Curr Node :   "
-                << IDETypeStateAnalysis::DtoString(currNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Succ Inst : " << IDETypeStateAnalysis::NtoString(succ));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Succ Node :   "
-                << IDETypeStateAnalysis::DtoString(succNode));
   // Set alloca instructions of target type to uninitialized.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
@@ -363,7 +334,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
           }
 
           void print(std::ostream &OS, bool isForDebug = false) const override {
-            OS << "TSAllocaEF(" << TSD.stateToString(CurrentState) << ")";
+            OS << "Alloca(" << TSD.stateToString(CurrentState) << ")";
           }
         };
         return make_shared<TSAllocaEF>(TSD, "alloca instruction");
@@ -378,21 +349,6 @@ IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destinationMethod,
     IDETypeStateAnalysis::d_t destNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getCallEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Call Stmt : "
-                << IDETypeStateAnalysis::NtoString(callStmt));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Src Node  :   "
-                << IDETypeStateAnalysis::DtoString(srcNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(M) Callee    : "
-                << IDETypeStateAnalysis::MtoString(destinationMethod));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Dest Node :   "
-                << IDETypeStateAnalysis::DtoString(destNode));
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -401,27 +357,6 @@ IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getReturnEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Call Site : "
-                << IDETypeStateAnalysis::NtoString(callSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(M) Callee    : "
-                << IDETypeStateAnalysis::MtoString(calleeMethod));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Exit Stmt : "
-                << IDETypeStateAnalysis::NtoString(exitStmt));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Exit Node :   "
-                << IDETypeStateAnalysis::DtoString(exitNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Ret Site  : "
-                << IDETypeStateAnalysis::NtoString(reSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Ret Node  :   "
-                << IDETypeStateAnalysis::DtoString(retNode));
   return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
 }
 
@@ -431,25 +366,6 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
     std::set<IDETypeStateAnalysis::m_t> callees) {
   auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IDETypeStateAnalysis::getCallToRetEdgeFunction()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Call Site : "
-                << IDETypeStateAnalysis::NtoString(callSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Call Node :   "
-                << IDETypeStateAnalysis::DtoString(callNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(N) Ret Site  : "
-                << IDETypeStateAnalysis::NtoString(retSite));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "(D) Ret Node  :   "
-                << IDETypeStateAnalysis::DtoString(retSiteNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callees   : ");
-  for (auto Callee : callees) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "  " << IDETypeStateAnalysis::MtoString(Callee));
-  }
   const llvm::ImmutableCallSite CS(callSite);
   for (auto Callee : callees) {
     std::string demangledFname = cxx_demangle(Callee->getName().str());
@@ -470,7 +386,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
           }
 
           void print(std::ostream &OS, bool isForDebug = false) const override {
-            OS << "TSFactoryEF(" << TSD.stateToString(CurrentState) << ")";
+            OS << "Factory(" << TSD.stateToString(CurrentState) << ")";
           }
         };
         return make_shared<TSFactoryEF>(TSD, demangledFname);
@@ -612,7 +528,7 @@ bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
 
 void IDETypeStateAnalysis::TSEdgeFunction::print(ostream &OS,
                                                  bool isForDebug) const {
-  OS << "TSEdgeFunc(" << TSD.stateToString(CurrentState) << ")";
+  OS << "TSEF(" << TSD.stateToString(CurrentState) << ")";
 }
 
 std::set<IDETypeStateAnalysis::d_t>

@@ -58,8 +58,9 @@ AnalysisPluginController::AnalysisPluginController(
             Problem.second(ICFG, EntryPoints));
         cout << "DONE" << endl;
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            *plugin, true);
+            *plugin);
         llvmifdstestsolver.solve();
+        llvmifdstestsolver.dumpResults();
         FinalResultsJson += llvmifdstestsolver.getAsJson();
       }
     }

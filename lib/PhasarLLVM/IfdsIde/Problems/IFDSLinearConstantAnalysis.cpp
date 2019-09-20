@@ -57,9 +57,6 @@ shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getNormalFlowFunction(
     IFDSLinearConstantAnalysis::n_t curr,
     IFDSLinearConstantAnalysis::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSLinearConstantAnalysis::getNormalFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -67,9 +64,6 @@ shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
     IFDSLinearConstantAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSLinearConstantAnalysis::getCallFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -79,9 +73,6 @@ IFDSLinearConstantAnalysis::getRetFlowFunction(
     IFDSLinearConstantAnalysis::m_t calleeMthd,
     IFDSLinearConstantAnalysis::n_t exitStmt,
     IFDSLinearConstantAnalysis::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSLinearConstantAnalysis::getRetFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -90,9 +81,6 @@ IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
     IFDSLinearConstantAnalysis::n_t retSite,
     set<IFDSLinearConstantAnalysis::m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSLinearConstantAnalysis::getCallToRetFlowFunction()");
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -100,9 +88,6 @@ shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
     IFDSLinearConstantAnalysis::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSLinearConstantAnalysis::getSummaryFlowFunction()");
   return nullptr;
 }
 

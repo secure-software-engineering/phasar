@@ -44,9 +44,6 @@ shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getNormalFlowFunction(
     IFDSUninitializedVariables::n_t curr,
     IFDSUninitializedVariables::n_t succ) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSUninitializedVariables::getNormalFlowFunction()");
   //----------------------------------------------------------------------------------
   // Why do we need this case?
   // Every alloca is reached eventually by this function
@@ -237,9 +234,6 @@ shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::n_t callStmt,
     IFDSUninitializedVariables::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSUninitializedVariables::getCallFlowFunction()");
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     llvm::ImmutableCallSite callSite(callStmt);
@@ -324,9 +318,6 @@ IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::m_t calleeMthd,
     IFDSUninitializedVariables::n_t exitStmt,
     IFDSUninitializedVariables::n_t retSite) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSUninitializedVariables::getRetFlowFunction()");
   if (llvm::isa<llvm::CallInst>(callSite) ||
       llvm::isa<llvm::InvokeInst>(callSite)) {
     llvm::ImmutableCallSite CS(callSite);
@@ -371,9 +362,6 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
     IFDSUninitializedVariables::n_t callSite,
     IFDSUninitializedVariables::n_t retSite,
     set<IFDSUninitializedVariables::m_t> callees) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSUninitializedVariables::getCallToRetFlowFunction()");
   //----------------------------------------------------------------------
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
@@ -402,9 +390,6 @@ shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getSummaryFlowFunction(
     IFDSUninitializedVariables::n_t callStmt,
     IFDSUninitializedVariables::m_t destMthd) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "IFDSUninitializedVariables::getSummaryFlowFunction()");
   return nullptr;
 }
 
@@ -438,12 +423,12 @@ bool IFDSUninitializedVariables::isZeroValue(
 
 void IFDSUninitializedVariables::printNode(
     ostream &os, IFDSUninitializedVariables::n_t n) const {
-  os << llvmIRToString(n);
+  os << llvmIRToShortString(n);
 }
 
 void IFDSUninitializedVariables::printDataFlowFact(
     ostream &os, IFDSUninitializedVariables::d_t d) const {
-  os << llvmIRToString(d);
+  os << llvmIRToShortString(d);
 }
 
 void IFDSUninitializedVariables::printMethod(

@@ -45,6 +45,8 @@ include("phasar_macros")
 
 option(PHASAR_BUILD_UNITTESTS "Build all tests (default is OFF)" OFF)
 
+option(PHASAR_BUILD_IR "Build IR test code (default is OFF)" OFF)
+
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
@@ -378,11 +380,16 @@ target_link_libraries(boomerangtest
   ${llvm_libs}
 )
 
-# Add Phasar unittests and .ll file generation
+# Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
   message("Phasar unittests")
   add_subdirectory(unittests)
-  message("Generation of .ll files")
+  set(PHASAR_BUILD_IR ON)
+endif()
+
+# Build all IR test code
+if (PHASAR_BUILD_IR)
+  message("Building IR test code")
   add_subdirectory(test)
 endif()
 

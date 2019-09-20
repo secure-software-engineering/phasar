@@ -86,7 +86,7 @@ public:
   }
 
   void print(std::ostream &OS, bool isForDebug = false) const override {
-    OS << "EFComposer_" << EFComposer_Id << "[ " << F.get()->str() << " , "
+    OS << "Comp_" << EFComposer_Id << "[ " << F.get()->str() << " , "
        << G.get()->str() << " ]";
   }
 };

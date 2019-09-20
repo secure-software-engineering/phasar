@@ -30,26 +30,22 @@ namespace psr {
 template <typename D, typename C>
 class LLVMIntraMonoSolver : public IntraMonoSolver<const llvm::Instruction *, D,
                                                    const llvm::Function *, C> {
-protected:
-  bool DUMP_RESULTS;
-
 public:
   LLVMIntraMonoSolver();
   ~LLVMIntraMonoSolver() override = default;
 
   LLVMIntraMonoSolver(IntraMonoProblem<const llvm::Instruction *, D,
-                                       const llvm::Function *, C> &problem,
-                      bool dumpResults = false)
+                                       const llvm::Function *, C> &problem)
       : IntraMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
-                        C>(problem),
-        DUMP_RESULTS(dumpResults) {}
+                        C>(problem) {}
 
   void solve() override {
     // do the solving of the analaysis problem
     IntraMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
                     C>::solve();
-    if (DUMP_RESULTS)
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
+    }
   }
 
   void dumpResults() {
