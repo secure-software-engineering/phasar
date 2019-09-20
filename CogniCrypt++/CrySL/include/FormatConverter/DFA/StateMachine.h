@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <vector>
 
-
 namespace CCPP {
 namespace DFA {
 class DFA;
@@ -15,7 +14,8 @@ class DFA;
 class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
-  std::vector<std::vector<DFA::State>> createAdjacenceMatrix() const;
+  std::vector<std::vector<DFA::State>>
+  createAdjacenceMatrix(std::unordered_map<string, int> &evtTrn) const;
 
 public:
   /// \brief Creates a new StateMachine with two states: the initial and the

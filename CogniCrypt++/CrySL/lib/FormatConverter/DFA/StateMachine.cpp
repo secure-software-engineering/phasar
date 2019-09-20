@@ -3,6 +3,7 @@
 #include <FormatConverter/DFA/StateMachine.h>
 #include <FormatConverter/DFA/StateMachineNode.h>
 #include <set>
+#include <unordered_map>
 
 namespace std {
 template <typename T> struct hash<set<T *>> {
@@ -83,10 +84,9 @@ bool StateMachine::isDeterministic() const {
   }
   return true;
 }
-std::vector<std::vector<DFA::State>>
-StateMachine::createAdjacenceMatrix() const {
-  // TODO implement
-}
+
 } // namespace DFA
-  // namespace DFA
 } // namespace CCPP
+
+// create the delta-matrix
+#include "AdjacenceMatrixCreator.h"

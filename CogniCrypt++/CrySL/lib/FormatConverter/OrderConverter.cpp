@@ -5,9 +5,7 @@ namespace CCPP {
 OrderConverter::OrderConverter(const std::string &specName,
                                CrySLParser::OrderContext *order,
                                CrySLParser::EventsContext *evt)
-    : specName(specName), order(order), evt(evt) {
-  // TODO store order and evt (and preprocess them)
-}
+    : specName(specName), order(order), evt(evt) {}
 std::unique_ptr<psr::TypeStateDescription>
 OrderConverter::convert(const CrySLTypechecker &ctc) {
   //  create a DFA::StateMachine;
