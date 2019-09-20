@@ -116,7 +116,7 @@ AnalysisController::AnalysisController(
   IRDB.preprocessIR();
 
   // output (shortend) IR with ID annotations
-  if (VariablesMap.count("emit-ir")) {
+  if (PhasarConfig::VariablesMap().count("emit-ir")) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                   << "Emit pre-processed and annotated IR module(s) as "
                      "'annotated-ir.ll'");
@@ -162,7 +162,7 @@ AnalysisController::AnalysisController(
   //
   // ofs_ch << CHJson.dump();
   // WARNING
-  // if (VariablesMap.count("classhierarchy_analysis")) {
+  // if (PhasarConfig::VariablesMap().count("classhierarchy_analysis")) {
   //   CH.print();
   //   CH.printAsDot("ch.dot");
   // }
@@ -187,12 +187,12 @@ AnalysisController::AnalysisController(
     // Add the ICFG to final results
 
     // FinalResultsJson += ICFG.getAsJson();
-    // if (VariablesMap.count("callgraph-analysis")) {
+    // if (PhasarConfig::VariablesMap().count("callgraph-analysis")) {
     //   ICFG.print();
     //   ICFG.printAsDot("icfg.dot");
     // }
     // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    // if (VariablesMap.count("pointer-analysis")) {
+    // if (PhasarConfig::VariablesMap().count("pointer-analysis")) {
     //   ICFG.getWholeModulePTG().print();
     //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
     // }

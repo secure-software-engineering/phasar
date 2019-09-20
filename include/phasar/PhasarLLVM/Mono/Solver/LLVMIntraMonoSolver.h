@@ -43,7 +43,7 @@ public:
     // do the solving of the analaysis problem
     IntraMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
                     C>::solve();
-    if (VariablesMap.count("emit-raw-results")) {
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }
   }

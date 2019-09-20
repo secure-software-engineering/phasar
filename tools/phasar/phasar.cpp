@@ -569,6 +569,6 @@ int main(int argc, const char **argv) {
   bl::core::get()->flush();
   STOP_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // PRINT_MEASURED_DATA(std::cout);
-  EXPORT_MEASURED_DATA(VariablesMap["pamm-out"].as<std::string>());
+  EXPORT_MEASURED_DATA(PhasarConfig::VariablesMap()["pamm-out"].as<std::string>());
   return 0;
 }

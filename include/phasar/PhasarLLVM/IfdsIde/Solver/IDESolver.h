@@ -400,7 +400,7 @@ protected:
   bool followReturnPastSeeds;
   bool computePersistedSummaries;
   bool recordEdges;
-  bool emitESG = VariablesMap.count("emit-esg-as-dot");
+  bool emitESG = PhasarConfig::VariablesMap().count("emit-esg-as-dot");
   unsigned PathEdgeCount;
 
   FlowEdgeFunctionCache<N, D, M, V, I> cachedFlowEdgeFunctions;

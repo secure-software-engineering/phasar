@@ -31,11 +31,11 @@ namespace psr {
  * @brief Implements a set that only requires minimal space.
  */
 template <typename T> class BitVectorSet {
- private:
+private:
   inline static std::map<T, size_t> Position;
   std::vector<bool> Bits;
 
- public:
+public:
   BitVectorSet() = default;
 
   BitVectorSet(std::initializer_list<T> Ilist) {
@@ -44,9 +44,9 @@ template <typename T> class BitVectorSet {
     }
   }
 
-	BitVectorSet(const BitVectorSet&) = default;
+  BitVectorSet(const BitVectorSet &) = default;
 
-	BitVectorSet(BitVectorSet&&) = default;
+  BitVectorSet(BitVectorSet &&) = default;
 
   ~BitVectorSet() = default;
 

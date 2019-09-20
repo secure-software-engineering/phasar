@@ -58,7 +58,7 @@ public:
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();
     bl::core::get()->flush();
-    if (VariablesMap.count("emit-raw-results")) {
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }
     if (PRINT_REPORT) {

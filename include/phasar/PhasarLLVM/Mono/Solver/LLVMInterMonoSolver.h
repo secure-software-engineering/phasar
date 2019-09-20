@@ -48,7 +48,7 @@ public:
     // do the solving of the analaysis problem
     InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
                     K>::solve();
-    if (VariablesMap.count("emit-raw-results")) {
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }
   }
