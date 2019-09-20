@@ -15,9 +15,12 @@
  */
 
 #include <algorithm>
+#include <boost/filesystem.hpp>
 #include <iterator>
+#include <json.hpp>
 #include <ostream>
 
+#include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>
 
 namespace psr {
@@ -33,8 +36,7 @@ DOTNode::DOTNode(std::string fName, std::string l, std::string sId,
 }
 
 std::string DOTNode::str(std::string indent) const {
-  std::string str =
-      indent + id + " [label=\"" + label; // + " | SID: " + stmtId + "\"";
+  std::string str = indent + id + " [label=\"" + label;
   if (factId) {
     str += " | SID: " + stmtId;
   }
@@ -79,7 +81,7 @@ std::string DOTFactSubGraph::str(std::string indent) const {
   }
   // Print id edges
   str += '\n' + innerIndent + "// Identity edges for this fact\n" +
-         innerIndent + DOTConfig::FactIdentityEdgeAttr() + '\n';
+         innerIndent + DOTConfig::FactIDEdgeAttr() + '\n';
   for (DOTEdge e : edges) {
     str += e.str(innerIndent) + '\n';
   }
@@ -138,14 +140,15 @@ std::string DOTFunctionSubGraph::generateLambdaSG(std::string indent) const {
   std::string str = indent + "// Auto-generated lambda nodes and edges\n" +
                     indent + "subgraph cluster_" + id + "_lambda {\n" +
                     innerIndent + "style=invis\n" + innerIndent +
-                    "label=\"Λ\"\n" + innerIndent + DOTConfig::FactNodeAttr() +
-                    '\n';
+                    "label=\"Λ\"\n" + innerIndent +
+                    DOTConfig::LambdaNodeAttr() + '\n';
   // Print lambda nodes
   for (DOTNode stmt : stmts) {
-    str += innerIndent + id + "_0_" + stmt.stmtId + " [label=\"Λ\"]\n";
+    str += innerIndent + id + "_0_" + stmt.stmtId +
+           " [label=\"Λ|SID: " + stmt.stmtId + "\"]\n";
   }
   // Print lambda edges
-  str += '\n' + innerIndent + DOTConfig::FactIdentityEdgeAttr() + '\n';
+  str += '\n' + innerIndent + DOTConfig::LambdaIDEdgeAttr() + '\n';
   for (DOTEdge e : intraCFEdges) {
     str += innerIndent + id + "_0_" + e.source.stmtId + " -> " + id + "_0_" +
            e.target.stmtId;
@@ -240,6 +243,66 @@ std::ostream &operator<<(std::ostream &os,
 DOTConfig &DOTConfig::getDOTConfig() {
   static DOTConfig DC;
   return DC;
+}
+
+void DOTConfig::importDOTConfig() {
+  boost::filesystem::path FilePath(PhasarConfig::PhasarDirectory());
+  FilePath /= boost::filesystem::path("config/DOTGraphConfig.json");
+  if (boost::filesystem::exists(FilePath) &&
+      !boost::filesystem::is_directory(FilePath)) {
+    std::ifstream ifs(FilePath.string());
+    if (ifs.is_open()) {
+      std::stringstream iss;
+      iss << ifs.rdbuf();
+      ifs.close();
+      nlohmann::json jDOTConfig;
+      iss >> jDOTConfig;
+      for (auto &el : jDOTConfig.items()) {
+        std::stringstream attr_str;
+        if (el.key().find("Node") != std::string::npos) {
+          attr_str << "node [";
+        } else {
+          attr_str << "edge [";
+        }
+        for (nlohmann::json::iterator it = el.value().begin();
+             it != el.value().end(); ++it) {
+          // using it.value() directly with the << operator adds unnecessary
+          // quotes
+          std::string val = it.value();
+          attr_str << it.key() << "=" << val;
+          if (std::next(it) != el.value().end()) {
+            attr_str << ", ";
+          }
+        }
+        attr_str << ']';
+        if (el.key() == "CFNode") {
+          DOTConfig::CFNode = attr_str.str();
+        } else if (el.key() == "CFIntraEdge") {
+          DOTConfig::CFIntraEdge = attr_str.str();
+        } else if (el.key() == "CFInterEdge") {
+          DOTConfig::CFInterEdge = attr_str.str();
+        } else if (el.key() == "FactNode") {
+          DOTConfig::FactNode = attr_str.str();
+        } else if (el.key() == "FactIDEdge") {
+          DOTConfig::FactIDEdge = attr_str.str();
+        } else if (el.key() == "FactCrossEdge") {
+          DOTConfig::FactCrossEdge = attr_str.str();
+        } else if (el.key() == "FactInterEdge") {
+          DOTConfig::FactInterEdge = attr_str.str();
+        } else if (el.key() == "LambdaNode") {
+          DOTConfig::LambdaNode = attr_str.str();
+        } else if (el.key() == "LambdaIDEdge") {
+          DOTConfig::LambdaIDEdge = attr_str.str();
+        } else if (el.key() == "LambdaInterEdge") {
+          DOTConfig::LambdaInterEdge = attr_str.str();
+        }
+      }
+    } else {
+      throw std::ios_base::failure("Could not open file");
+    }
+  } else {
+    throw std::ios_base::failure(FilePath.string() + " is not a valid path");
+  }
 }
 
 } // namespace psr

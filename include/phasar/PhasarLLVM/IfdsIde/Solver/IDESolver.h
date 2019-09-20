@@ -1667,6 +1667,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "=============================================");
     DOTGraph<D> G;
+    DOTConfig::importDOTConfig();
     DOTFunctionSubGraph *FG = nullptr;
 
     // Sort intra-procedural path edges

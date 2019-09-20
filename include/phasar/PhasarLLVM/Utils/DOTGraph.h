@@ -27,27 +27,20 @@ namespace psr {
 
 class DOTConfig {
 public:
-  static const std::string CFNodeAttr() {
-    return "node [style=filled, shape=record]";
-  }
-  static const std::string CFIntraEdgeAttr() { return "edge []"; }
-  static const std::string CFInterEdgeAttr() { return "edge [weight=0.1]"; }
-  static const std::string FactNodeAttr() { return "node [style=rounded]"; }
-  static const std::string FactIdentityEdgeAttr() {
-    return "edge [style=dotted, arrowhead=normal, " + fontSize + ", " +
-           arrowSize + ']';
-  }
-  static const std::string FactCrossEdgeAttr() {
-    return FactIdentityEdgeAttr();
-  }
-  static const std::string LambdaInterEdgeAttr() {
-    return "edge[weight=0.1, style=dotted, " + fontSize + ", " + arrowSize +
-           ']';
-  }
-  static const std::string FactInterEdgeAttr() {
-    return "edge [weight=0.1, style=dashed, " + fontSize + ", " + arrowSize +
-           ']';
-  }
+  static const std::string CFNodeAttr() { return CFNode; }
+  static const std::string CFIntraEdgeAttr() { return CFIntraEdge; }
+  static const std::string CFInterEdgeAttr() { return CFInterEdge; }
+
+  static const std::string FactNodeAttr() { return FactNode; }
+  static const std::string FactIDEdgeAttr() { return FactIDEdge; }
+  static const std::string FactCrossEdgeAttr() { return FactCrossEdge; }
+  static const std::string FactInterEdgeAttr() { return FactInterEdge; }
+
+  static const std::string LambdaNodeAttr() { return LambdaNode; }
+  static const std::string LambdaIDEdgeAttr() { return LambdaIDEdge; }
+  static const std::string LambdaInterEdgeAttr() { return LambdaInterEdge; }
+
+  static void importDOTConfig();
 
   static DOTConfig &getDOTConfig();
   ~DOTConfig() = default;
@@ -58,6 +51,25 @@ private:
   DOTConfig() = default;
   inline static const std::string fontSize = "fontsize=11";
   inline static const std::string arrowSize = "arrowsize=0.7";
+
+  inline static std::string CFNode = "node [style=filled, shape=record]";
+  inline static std::string CFIntraEdge = "edge []";
+  inline static std::string CFInterEdge = "edge [weight=0.1]";
+  inline static std::string FactNode = "node [style=rounded]";
+  inline static std::string FactIDEdge =
+      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      ']';
+  inline static std::string FactCrossEdge =
+      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      ']';
+  inline static std::string FactInterEdge =
+      "edge [weight=0.1, style=dashed, " + fontSize + ", " + arrowSize + ']';
+  inline static std::string LambdaNode = "node [style=rounded]";
+  inline static std::string LambdaIDEdge =
+      "edge [style=dotted, arrowhead=normal, " + fontSize + ", " + arrowSize +
+      ']';
+  inline static std::string LambdaInterEdge =
+      "edge [weight=0.1, style=dashed, " + fontSize + ", " + arrowSize + ']';
 };
 
 struct DOTNode {
