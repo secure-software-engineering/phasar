@@ -4,12 +4,6 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
-  # Fix boost_thread dependency for MacOS
-  if(APPLE)
-    set(BOOST_THREAD boost_thread-mt)
-  else()
-    set(BOOST_THREAD boost_thread)
-  endif()
   # Workaround: Remove Plugins for MacOS for now
   if(APPLE)
     set(PHASAR_PLUGINS_LIB )
@@ -31,14 +25,7 @@ function(add_phasar_unittest test_name)
     phasar_pointer
     phasar_phasarllvm_utils
     phasar_utils
-    boost_program_options
-    boost_filesystem
-    boost_graph
-    boost_system
-    boost_log
-    ${BOOST_THREAD}
     ${SQLITE3_LIBRARY}
-    ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
     ${CLANG_LIBRARIES}
@@ -46,7 +33,7 @@ function(add_phasar_unittest test_name)
     curl
     gtest
   )
-
+  
   add_test(NAME "${test}"
     COMMAND ${test} ${CATCH_TEST_FILTER}
   )

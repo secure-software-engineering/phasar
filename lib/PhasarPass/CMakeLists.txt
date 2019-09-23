@@ -5,12 +5,15 @@ add_phasar_library(phasar_pass
   ${PHASARPASS_SRC}
 )
 
+find_package(Boost COMPONENTS 
+  filesystem
+  graph
+  log
+  program_options
+  REQUIRED)
+  
 target_link_libraries(phasar_pass
-  boost_filesystem
-  boost_graph
-  boost_log
-  boost_program_options
-  boost_system
+ ${Boost_LIBRARIES}
 
   phasar_config
   phasar_controlflow

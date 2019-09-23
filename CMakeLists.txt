@@ -89,6 +89,18 @@ include_directories(
 # Threads
 find_package(Threads)
 
+# Boost
+# Fix boost_thread dependency for MacOS
+if(APPLE)
+  set(BOOST_THREAD thread-mt)
+else()
+  set(BOOST_THREAD thread)
+endif()
+# Require boost 1.66.0 or newer.
+find_package(Boost 1.66.0 COMPONENTS graph program_options ${BOOST_THREAD} REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(-DBOOST_LOG_DYN_LINK)
+
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
@@ -112,11 +124,6 @@ include_directories(external/WALi-OpenNWA/Source/wali/include)
 # wise enum
 add_subdirectory(external/wise_enum)
 include_directories(external/wise_enum)
-
-# Boost
-find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
-include_directories(${BOOST_INCLUDE_DIR})
-add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # Curl
 find_package(CURL REQUIRED)
@@ -223,12 +230,6 @@ add_executable(wpdstest
   tools/phasar/wpdstest.cpp
 )
 
-# Fix boost_thread dependency for MacOS
-if(APPLE)
-  set(BOOST_THREAD boost_thread-mt)
-else()
-  set(BOOST_THREAD boost_thread)
-endif()
 
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
@@ -254,12 +255,6 @@ target_link_libraries(phasar
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
@@ -284,12 +279,6 @@ target_link_libraries(myphasartool
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -316,12 +305,6 @@ target_link_libraries(wpdstest
   phasar_phasarllvm_utils
   phasar_utils
   curl
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
@@ -346,12 +329,6 @@ target_link_libraries(syncpdstest
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
@@ -374,12 +351,6 @@ target_link_libraries(boomerangtest
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}

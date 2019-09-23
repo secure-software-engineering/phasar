@@ -12,6 +12,7 @@ else()
 	)
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_controller
   phasar_ifdside
   phasar_mono
@@ -20,7 +21,7 @@ target_link_libraries(phasar_controller
   LLVMCore
 
   curl
-  boost_log
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_controller

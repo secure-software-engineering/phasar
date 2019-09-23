@@ -14,11 +14,11 @@ else()
 	)
 endif()
 
+find_package(Boost COMPONENTS filesystem log REQUIRED)
+
 target_link_libraries(phasar_plugins
   phasar_ifdside
-  boost_system
-  boost_filesystem
-  boost_log
+  ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
 )
 

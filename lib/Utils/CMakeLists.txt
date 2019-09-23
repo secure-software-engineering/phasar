@@ -18,6 +18,7 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_utils
   phasar_config
 
@@ -25,7 +26,7 @@ target_link_libraries(phasar_utils
   LLVMSupport
   LLVMBitWriter
 
-  boost_log
+  ${Boost_LIBRARIES}
 
   ${CMAKE_DL_LIBS}
 )

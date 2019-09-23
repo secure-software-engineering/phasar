@@ -14,6 +14,7 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_clang
   clangTooling
   clangFrontendTool
@@ -38,9 +39,8 @@ target_link_libraries(phasar_clang
 
   LLVMSupport
   LLVMCore
-
-  boost_log
-  boost_system
+  
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_clang

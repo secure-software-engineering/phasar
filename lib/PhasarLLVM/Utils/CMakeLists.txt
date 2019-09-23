@@ -13,10 +13,8 @@ else()
 	)
 endif()
 
-target_link_libraries(phasar_phasarllvm_utils
-  boost_filesystem
-  boost_system
-)
+find_package(Boost COMPONENTS filesystem REQUIRED)
+target_link_libraries(phasar_phasarllvm_utils ${Boost_LIBRARIES})
 
 set_target_properties(phasar_phasarllvm_utils
 	PROPERTIES

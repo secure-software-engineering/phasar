@@ -12,11 +12,13 @@ else()
 	)
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
+
 target_link_libraries(phasar_passes
   phasar_utils
-
-  boost_log
-
+  
+  ${Boost_LIBRARIES}
+  
   LLVMCore
   LLVMSupport
   LLVMAnalysis
