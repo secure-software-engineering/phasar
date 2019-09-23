@@ -1,12 +1,12 @@
 #pragma once
-#include "Event.h"
-#include "Object.h"
-
+#include <FormatConverter/Event.h>
+//#include <FormatConverter/ObjectWithLLVM.h>
+#include <FormatConverter/ObjectWithOutLLVM.h>
 
 namespace CCPP {
 
 class EventConverter {
-  std::vector<Object> objects;
+  std::vector<ObjectWithOutLLVM> objects;
   Event event;
 
   std::vector<Event> formatConverter(CrySLParser::EventsContext *eventCtx);

@@ -8,15 +8,15 @@
 namespace CCPP {
 class OrderTypeStateDescription : public psr::TypeStateDescription {
   std::unique_ptr<DFA::DFA> dfa;
-  std::unordered_map<std::string, int> eventStates;
+  std::unordered_map<std::string, int> eventTransitions;
   std::string typeName;
 
 public:
   /// \brief Construct a OrderTypeStateDescription
   /// TODO: parameters
-  OrderTypeStateDescription(const std::string &typeName,
-                            std::unique_ptr<DFA::DFA> &&dfa,
-                            std::unordered_map<std::string, int> &&eventStates);
+  OrderTypeStateDescription(
+      const std::string &typeName, std::unique_ptr<DFA::DFA> &&dfa,
+      std::unordered_map<std::string, int> &&eventTransitions);
   /// \brief True, iff F is a function, which returns an object of the
   /// getTypeNameOfInterest() type
   virtual bool isFactoryFunction(const std::string &F) const override;

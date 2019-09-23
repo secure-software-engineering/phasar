@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_set>
 
 namespace CCPP {
 namespace DFA {
@@ -21,7 +22,7 @@ public:
   /// \brief Retrieves the initial starting state
   virtual State getInitialState() const = 0;
   /// \brief Retrieves the final accepting state
-  virtual std::unordered_set<State> getAcceptingState() const = 0;
+  virtual const std::unordered_set<State> &getAcceptingState() const = 0;
   /// \brief Retrieves the final error state
   ///
   /// This is defaulted to -1

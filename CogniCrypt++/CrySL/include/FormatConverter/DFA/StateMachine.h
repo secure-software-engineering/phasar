@@ -15,9 +15,9 @@ class DFA;
 class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
-  std::vector<std::vector<DFA::State>>
-  createAdjacenceMatrix(std::unordered_map<string, int> &evtTrn,
-                        std::unordered_set<DFA::State> &acceptingStates) const;
+  std::vector<std::vector<int>>
+  createAdjacenceMatrix(std::unordered_map<std::string, int> &evtTrn,
+                        std::unordered_set<int> &acceptingStates) const;
   void eliminateEpsilonTransitions();
 
 public:

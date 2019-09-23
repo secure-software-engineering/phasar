@@ -1,3 +1,4 @@
+#pragma once
 #include "DFA.h"
 #include <memory>
 #include <unordered_set>
@@ -25,7 +26,7 @@ public:
   }
   bool isInitialState(State stat) const override { return stat == initial; }
   State getInitialState() const override { return initial; }
-  std::unordered_set<State> getAcceptingState() const override {
+  const std::unordered_set<State> &getAcceptingState() const override {
     return accepting;
   }
 };

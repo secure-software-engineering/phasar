@@ -11,16 +11,38 @@
 #include <unordered_map>
 
 namespace std {
-template <typename T> struct hash<set<T *>> {
-  size_t operator(const unordered_set<T *> &s) {
+/*template <typename T> struct hash<set<T *>> {
+  typedef T argument_type;
+  typedef size_t result_type;
+  size_t operator()(const set<T *> &s) const {
     size_t sum = 17;
     for (auto e : s)
       sum += 31 * (size_t)s + 97;
-    return std::hash(sum);
+    return std::hash<size_t>()(sum);
   }
 };
 template <typename T> struct hash<reference_wrapper<T>> {
-  size_t operator(const reference_wrapper<T> &r) { return std::hash(r.get()); }
+  typedef reference_wrapper<T> argument_type;
+  typedef size_t result_type;
+  size_t operator()(const reference_wrapper<T> &r) const {
+    return std::hash()(r.get());
+  }
+};*/
+template <typename T> struct hash<reference_wrapper<set<T *>>> {
+  typedef T argument_type;
+  typedef size_t result_type;
+  size_t operator()(const reference_wrapper<set<T *>> &s) const {
+    size_t sum = 17;
+    for (auto e : s.get())
+      sum += 31 * (size_t)e + 97;
+    return std::hash<size_t>()(sum);
+  }
+};
+template <typename T> struct equal_to<reference_wrapper<T>> {
+  bool operator()(const reference_wrapper<T> &r1,
+                  const reference_wrapper<T> &r2) const {
+    return r1.get() == r2.get();
+  }
 };
 } // namespace std
 

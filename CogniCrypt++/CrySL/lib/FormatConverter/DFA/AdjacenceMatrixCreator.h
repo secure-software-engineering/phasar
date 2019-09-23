@@ -4,6 +4,7 @@
 #include <FormatConverter/DFA/StateMachine.h>
 #include <FormatConverter/DFA/StateMachineNode.h>
 #include <unordered_map>
+#include <FormatConverter/DFA/DFA.h>
 
 namespace CCPP {
 namespace DFA {
