@@ -3,10 +3,9 @@
 namespace CCPP {
 OrderTypeStateDescription::OrderTypeStateDescription(
     const std::string &typeName, std::unique_ptr<DFA::DFA> &&dfs,
-    std::unordered_map<std::string, int> &&eventTransitions,
-    std::unordered_set<int> &&acceptingStates)
+    std::unordered_map<std::string, int> &&eventTransitions)
     : dfa(std::move(dfs)), eventTransitions(std::move(eventTransitions)),
-      acceptingStates(std::move(acceptingStates)), typeName(typeName) {}
+      typeName(typeName) {}
 
 bool OrderTypeStateDescription::isAPIFunction(const std::string &F) const {
   return eventTransitions.count(F);
@@ -59,6 +58,7 @@ psr::TypeStateDescription::State OrderTypeStateDescription::error() const {
 }
 bool OrderTypeStateDescription::isAccepting(
     psr::TypeStateDescription::State S) const {
-  return acceptingStates.count(S);
+  // return acceptingStates.count(S);
+  return dfa->isAcceptingState(S);
 }
 } // namespace CCPP

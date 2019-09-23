@@ -13,18 +13,15 @@ OrderConverter::convert(const CrySLTypechecker &ctc) {
   //  create a DFA::StateMachine;
   std::unique_ptr<DFA::DFA> DFA;
   std::unordered_map<std::string, int> eventTransitions;
-  std::unordered_set<int> acceptingStates;
   {
     auto NFA = createFromContext(order, evt);
     // create a DFA::DFStateMachine from the DFA::StateMachine
-    // TODO pass the acceptingStates set to convertToDFA
     DFA = NFA->convertToDFA(eventTransitions);
   }
   //  create a OrderTypeStateDescription and feed the DFA::DFStateMachine
   // and the "eventName to trn-id" map to it
 
   return std::make_unique<OrderTypeStateDescription>(
-      specName, std::move(DFA), std::move(eventTransitions),
-      std::move(acceptingStates));
+      specName, std::move(DFA), std::move(eventTransitions));
 }
 } // namespace CCPP

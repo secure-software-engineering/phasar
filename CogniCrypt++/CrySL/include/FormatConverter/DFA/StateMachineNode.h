@@ -15,6 +15,13 @@ class StateMachine;
 class StateMachineNode {
 public:
   using State = int;
+  class Marker {
+    StateMachineNode *nod;
+
+  public:
+    Marker(StateMachineNode &nod);
+    ~Marker();
+  };
 
 private:
   State state;
@@ -22,6 +29,7 @@ private:
   std::unordered_map<std::string, std::unordered_set<StateMachineNode *>> next;
   bool initial, accepting;
   bool isDet = true;
+  bool marked = false;
 
 public:
   /// \brief Initializes a new state-node. Do not call it yourself! Instead use
@@ -29,6 +37,10 @@ public:
   StateMachineNode(State state, bool initial = false, bool accepting = false);
   StateMachineNode(const StateMachineNode &) = delete;
   StateMachineNode(StateMachineNode &&) = delete;
+
+  /// \brief Makes this an accepting state
+  void makeAccepting();
+
   /// \brief The unique state-ID
   State getState() const;
   /// \brief Adds a new transition from this state to dest for the consumed
@@ -36,11 +48,17 @@ public:
   ///
   /// \returns True, iff this transition was successfully added
   bool addTransition(const std::string &evt, StateMachineNode &dest);
+  void addTransitions(const std::string &evt,
+                      const std::unordered_set<StateMachineNode*> &dest);
+  bool removeAllTransitions(const std::string &evt);
   /// \brief True, iff this is the starting state
   bool isInitial() const;
   /// \brief True, iff this is the final accepting state
   bool isAccepting() const;
+  /// \brief True, iff for each transition-label there is at most one successor
+  /// state
   bool isDeterministic() const;
+  bool isMarked() const;
   /// \brief Performs a state-transition with input label
   ///
   /// \returns All possible successor states under the input label. This vector

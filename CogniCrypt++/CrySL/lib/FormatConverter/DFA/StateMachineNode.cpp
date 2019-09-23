@@ -7,6 +7,8 @@ using namespace std;
 StateMachineNode::StateMachineNode(State state, bool initial, bool accepting)
     : state(state), initial(initial), accepting(accepting) {}
 
+void StateMachineNode::makeAccepting() { accepting = true; }
+
 StateMachineNode::State StateMachineNode::getState() const { return state; }
 bool StateMachineNode::isInitial() const { return initial; }
 bool StateMachineNode::isAccepting() const { return accepting; }
@@ -30,6 +32,18 @@ bool StateMachineNode::addTransition(const string &evt,
     isDet = false;
   return ret.second;
 }
+void StateMachineNode::addTransitions(
+    const std::string &evt,
+    const std::unordered_set<StateMachineNode *> &dests) {
+  auto &nxtStat = next[evt];
+  nxtStat.insert(dests.begin(), dests.end());
+  if (nxtStat.size() > 1)
+    isDet = false;
+}
+bool StateMachineNode::removeAllTransitions(const std::string &evt) {
+  return next.erase(evt);
+}
+
 bool StateMachineNode::isDeterministic() const { return isDet; }
 const unordered_map<string, unordered_set<StateMachineNode *>> &
 StateMachineNode::getMap() const {
@@ -45,5 +59,19 @@ StateMachineNode::getDeterministicMap() const {
   }
   return ret;
 }
+
+// Marker
+StateMachineNode::Marker::Marker(StateMachineNode &nod) : nod(&nod) {
+  nod.marked = true;
+}
+
+StateMachineNode::Marker::~Marker() {
+  if (nod) {
+    nod->marked = false;
+    nod = nullptr;
+  }
+}
+bool StateMachineNode::isMarked() const { return marked; }
+
 } // namespace DFA
 } // namespace CCPP

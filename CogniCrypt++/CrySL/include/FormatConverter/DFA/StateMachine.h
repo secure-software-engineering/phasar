@@ -16,7 +16,9 @@ class StateMachine {
   std::vector<std::unique_ptr<StateMachineNode>> states;
 
   std::vector<std::vector<DFA::State>>
-  createAdjacenceMatrix(std::unordered_map<string, int> &evtTrn) const;
+  createAdjacenceMatrix(std::unordered_map<string, int> &evtTrn,
+                        std::unordered_set<DFA::State> &acceptingStates) const;
+  void eliminateEpsilonTransitions();
 
 public:
   /// \brief Creates a new StateMachine with two states: the initial and the
@@ -45,13 +47,9 @@ public:
   /// integer-id of all used transitions. This map  will be filled by this
   /// method
   ///
-  /// \param acceptingStates A set of final accepting states. This set will be
-  /// filled by this method
-  ///
   /// \returns An owning pointer to the newly created DFA
   std::unique_ptr<DFA>
-  convertToDFA(std::unordered_map<std::string, int> &eventTransitions,
-               std::unordered_set<int> &acceptingStates) const;
+  convertToDFA(std::unordered_map<std::string, int> &eventTransitions);
 
   bool isDeterministic() const;
 };

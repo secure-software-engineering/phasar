@@ -10,15 +10,13 @@ class OrderTypeStateDescription : public psr::TypeStateDescription {
   std::unique_ptr<DFA::DFA> dfa;
   std::unordered_map<std::string, int> eventStates;
   std::string typeName;
-  std::unordered_set<State> acceptingStates;
 
 public:
   /// \brief Construct a OrderTypeStateDescription
   /// TODO: parameters
   OrderTypeStateDescription(const std::string &typeName,
                             std::unique_ptr<DFA::DFA> &&dfa,
-                            std::unordered_map<std::string, int> &&eventStates,
-                            std::unordered_set<State> &&acceptingStates);
+                            std::unordered_map<std::string, int> &&eventStates);
   /// \brief True, iff F is a function, which returns an object of the
   /// getTypeNameOfInterest() type
   virtual bool isFactoryFunction(const std::string &F) const override;

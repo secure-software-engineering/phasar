@@ -2,8 +2,12 @@
 #include <FormatConverter/DFA/DFStateMachine.h>
 #include <FormatConverter/DFA/StateMachine.h>
 #include <FormatConverter/DFA/StateMachineNode.h>
+#include <functional>
+#include <list>
+#include <queue>
 #include <set>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 
 namespace std {
@@ -14,6 +18,9 @@ template <typename T> struct hash<set<T *>> {
       sum += 31 * (size_t)s + 97;
     return std::hash(sum);
   }
+};
+template <typename T> struct hash<reference_wrapper<T>> {
+  size_t operator(const reference_wrapper<T> &r) { return std::hash(r.get()); }
 };
 } // namespace std
 
@@ -41,51 +48,72 @@ void StateMachine::makeInitialStateAccepting() { states[0]->initial = true; }
 StateMachineNode &StateMachine::getInitialState() const { return *states[0]; }
 StateMachineNode &StateMachine::getAcceptingState() const { return *states[1]; }
 unique_ptr<DFA>
-StateMachine::convertToDFA(unordered_map<string, int> &eventTransitions) const {
+StateMachine::convertToDFA(unordered_map<string, int> &eventTransitions) {
+  this->eliminateEpsilonTransitions();
 
-  DFA::State initial = 0;
-  unordered_set<DFA::State> accepting;
-  vector<vector<DFA::State>> delta; // DFA::State is int
-  unordered_map<set<StateMachineNode *>, StateMachineNode *> dsmMap;
-  StateMachine stateMachine;
-  for (auto &ref : states) {
-    set<StateMachineNode *> smNodeSet;
-    StateMachineNode *smNode;
+  StateMachine dfsm;
+  // use list instead of vector for pointer stability
+  std::list<std::set<StateMachineNode *>> setStateOwner = {
+      {&this->getInitialState()}};
+  std::unordered_map<std::reference_wrapper<std::set<StateMachineNode *>>,
+                     StateMachineNode *>
+      setStates = {{std::ref(setStateOwner.front()), &dfsm.getInitialState()}};
 
-    if (ref->isInitial()) {
-      smNode = &stateMachine.getInitialState();
-    } else if (ref->isAccepting()) {
-      smNode = &stateMachine.addState(true);
-    } else {
-      smNode = &stateMachine.addState();
+  auto getOrCreateSetState = [&](std::set<StateMachineNode *> &&q)
+      -> std::tuple<StateMachineNode *,
+                    std::reference_wrapper<std::set<StateMachineNode *>>> {
+    auto it = setStates.find(q);
+    if (it != setStates.end())
+      return {it->second, q};
+
+    bool acc = false;
+    for (auto stat : q) {
+      if (stat->isAccepting())
+        acc = true;
     }
+    setStateOwner.push_back(std::move(q));
+    return {setStates[setStateOwner.back()] = &dfsm.addState(acc),
+            setStateOwner.back()};
+  };
 
-    for (auto var : ref->getMap()) {
+  std::unordered_set<std::reference_wrapper<std::set<StateMachineNode *>>>
+      finished;
+  std::queue<std::reference_wrapper<std::set<StateMachineNode *>>>
+      processingStates;
+  processingStates.push(setStateOwner.front());
+  while (!processingStates.empty()) {
+    // merge indistinguishable states (powerset-construction)
+    auto &currStat = processingStates.front().get();
+    auto detState = setStates[currStat];
+    processingStates.pop();
+    if (finished.count(currStat))
+      continue;
 
-      if (var.first == "") // check for all nodes with epsilon transitions
-      {
-        smNodeSet.insert(ref.get());
+    std::unordered_map<std::string, std::set<StateMachineNode *>> combinedTrn;
+    for (auto q : currStat) {
+      for (auto &kvp : q->getMap()) {
+        auto &dest = combinedTrn[kvp.first];
+        dest.insert(kvp.second.begin(), kvp.second.end());
       }
-
-      for (auto var2 : var.second) {
-        smNodeSet.insert(var2);
-      }
     }
-    dsmMap.insert({smNodeSet, smNode});
-  }
 
-  for (auto &ref : states) {
-    for (auto mapVar : dsmMap) {
-      StateMachineNode *smNode;
-      mapVar.first.find(ref.get());
+    for (auto &kvp : combinedTrn) {
+      auto succ = getOrCreateSetState(std::move(kvp.second));
+      auto succStat = std::get<0>(succ);
+      detState->addTransition(kvp.first, *succStat);
+      processingStates.push(std::get<1>(succ));
     }
+
+    finished.emplace(currStat);
   }
+  // TODO: Maybe minimize the dfsm after powerset-construction
 
-  // TODO : add more nodes in dsmMap after updating the smNode and smNodeSet
+  // create delta-matrix and instantiate DFStateMachine
+  std::unordered_set<int> acceptingStates;
+  auto delta = dfsm.createAdjacenceMatrix(eventTransitions, acceptingStates);
 
-  // nested pushback for delta
-  // ith index means transition i for certain state
-  return make_unique<DFStateMachine>(initial, accepting, move(delta));
+  return std::make_unique<DFStateMachine>(0, std::move(acceptingStates),
+                                          std::move(delta));
 } // namespace DFA
 bool StateMachine::isDeterministic() const {
   for (auto &stat : states) {
@@ -93,6 +121,81 @@ bool StateMachine::isDeterministic() const {
       return false;
   }
   return true;
+}
+
+/// \brief traverses the induces sub-NFA, which only uses epsilon-transitions
+/// and creates the transitive closure of it (not reflexive)
+std::tuple<std::reference_wrapper<std::unordered_set<StateMachineNode *>>, bool>
+traverseRec(StateMachineNode *q,
+            std::unordered_map<StateMachineNode *,
+                               std::unordered_set<StateMachineNode *>> &closure,
+            std::unordered_set<StateMachineNode *> &closure_finished) {
+
+  if (closure_finished.count(q)) {
+    // prevent recomputation
+    return {std::ref(closure[q]), true};
+  } else if (q->isMarked()) {
+    // prevent endless loops
+    return {std::ref(closure[q]), false};
+  }
+
+  StateMachineNode::Marker m(*q);
+  auto &clos = closure[q];
+  bool noLoops = true;
+
+  for (auto &succ : q->getNextState("")) {
+    clos.insert(&succ.get());
+    auto succ_res = traverseRec(&succ.get(), closure, closure_finished);
+    if (succ.get().isAccepting())
+      q->makeAccepting();
+    auto &succ_clos = std::get<0>(succ_res).get();
+    noLoops &= std::get<1>(succ_res);
+    clos.insert(succ_clos.begin(), succ_clos.end());
+  }
+  if (noLoops)
+    // else, we might only have a subset of the closure
+    closure_finished.insert(q);
+
+  return {std::ref(clos), noLoops};
+}
+
+void StateMachine::eliminateEpsilonTransitions() {
+  // 1. for each state q: create the epsilon-closure C[q] (we don't include q in
+  // C[q] here)
+  // 2. for each state q: add each non-epsilon transition from C[q] to q
+  // 3. simply remove all epsilon-transitions
+
+  // 1.)
+
+  std::unordered_map<StateMachineNode *, std::unordered_set<StateMachineNode *>>
+      closure;
+  std::unordered_set<StateMachineNode *> closure_finished;
+  bool hasEpsilons = false;
+
+  const auto traverse = [&](StateMachineNode *q) {
+    return traverseRec(q, closure, closure_finished);
+  };
+  for (auto &stat : states) {
+    if (!closure_finished.count(stat.get())) {
+      traverse(stat.get());
+      closure_finished.insert(stat.get());
+      hasEpsilons |= !closure[stat.get()].empty();
+    }
+  }
+  if (!hasEpsilons)
+    return;
+  // 2.), 3.)
+
+  for (auto &stat_clos : closure) {
+    stat_clos.first->removeAllTransitions("");
+    for (auto stat : stat_clos.second) {
+      for (auto trn : stat->getMap()) {
+        if (!trn.first.empty()) {
+          stat_clos.first->addTransitions(trn.first, trn.second);
+        }
+      }
+    }
+  }
 }
 
 } // namespace DFA
