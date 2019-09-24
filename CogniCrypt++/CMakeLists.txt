@@ -17,7 +17,7 @@ include_directories(
   ${CCPP_SRC_DIR}/CrySL/include
   ${CCPP_SRC_DIR}/CrySL/include/Parser
 #  ${CCPP_SRC_DIR}/CrySL/include/FormatConverter
-  
+  ${CCPP_SRC_DIR}/../include
 )
 if(EXISTS /usr/local/include/antlr4-runtime)
     include_directories(SYSTEM /usr/local/include/antlr4-runtime)
