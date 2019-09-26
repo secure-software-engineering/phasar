@@ -39,13 +39,13 @@ private:
   struct UninitResult {
     UninitResult() = default;
     unsigned int line = 0;
-    std::string func_name = "";
-    std::string file_path = "";
-    std::string src_code = "";
-    std::vector<std::string> var_names{};
+    std::string func_name;
+    std::string file_path;
+    std::string src_code;
+    std::vector<std::string> var_names;
     std::map<IFDSUninitializedVariables::n_t,
              std::set<IFDSUninitializedVariables::d_t>>
-        ir_trace{};
+        ir_trace;
     bool empty();
     void print(std::ostream &os);
   };
