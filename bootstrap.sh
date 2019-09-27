@@ -107,5 +107,9 @@ echo "Installing PhASAR..."
 PHASAR_INSTALL_DIR="/usr/local/phasar"
 sudo cmake -DCMAKE_INSTALL_PREFIX=${PHASAR_INSTALL_DIR} -P cmake_install.cmake
 cd ..
+
+echo "${PHASAR_INSTALL_DIR}/lib" | sudo tee /etc/ld.so.conf.d/phasar.conf > /dev/null
+sudo ldconfig
+
 echo "PhASAR installed successfully to ${PHASAR_INSTALL_DIR}"
 

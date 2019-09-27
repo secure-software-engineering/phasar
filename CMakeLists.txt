@@ -262,7 +262,7 @@ target_link_libraries(phasar
   ${CLANG_LIBRARIES}
   ${llvm_libs}
   curl
-  gtest
+#  gtest
 )
 
 target_link_libraries(myphasartool
@@ -285,7 +285,7 @@ target_link_libraries(myphasartool
   ${CLANG_LIBRARIES}
   ${llvm_libs}
   curl
-  gtest
+#  gtest
 )
 
 target_link_libraries(wpdstest
@@ -385,6 +385,9 @@ install(DIRECTORY external/json/single_include/nlohmann/
 install(DIRECTORY external/googletest/googletest/include/gtest/
   DESTINATION include/gtest
 )
+# If we link against gtest we need to install the dynamic library: libgtest.so
+#install(TARGETS gtest
+#        LIBRARY DESTINATION lib)
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
