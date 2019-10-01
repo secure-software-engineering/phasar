@@ -50,32 +50,127 @@ protected:
 
 }; // class Fixture
 
-TEST_F(TypeCheckTest, TypeCheck_Cipher_CTX) {
+TEST_F(TypeCheckTest, TypeCheck_EVP_Cipher_CTX) {
   Initialize({pathToCrySLFiles + "EVP_CIPHER_CTX.cryptosl"});
+  ASSERT_EQ(cryslparserengine == nullptr, false) << "CrySLParserEngine is null";
   bool groundTruth = true;
-  size_t groundValue = 0;
-  compareResults(groundTruth, groundValue);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  size_t expectedErrors = 0;
+  size_t actualErrors = cryslparserengine->getNumberOfSyntaxErrors();
+  EXPECT_EQ(actualErrors, expectedErrors);
+  EXPECT_EQ(typeCheckResult, groundTruth);
 }
 
-TEST_F(TypeCheckTest, TypeCheck_Cipher) {
+TEST_F(TypeCheckTest, TypeCheck_EVP_Cipher) {
   Initialize({pathToCrySLFiles + "EVP_CIPHER.cryptosl"});
+  ASSERT_EQ(cryslparserengine == nullptr, false) << "CrySLParserEngine is null";
   bool groundTruth = true;
-  size_t groundValue = 0;
-  compareResults(groundTruth, groundValue);
+  bool constraintErrors = cryslparserengine->constraintsTypecheckSucceeded();
+  EXPECT_EQ(constraintErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
 }
 
-TEST_F(TypeCheckTest, TypeCheck_MD_CTX) {
+TEST_F(TypeCheckTest, TypeCheck_EVP_MD_CTX) {
   Initialize({pathToCrySLFiles + "EVP_MD.cryptosl"});
   bool groundTruth = true;
-  size_t groundValue = 0;
-  compareResults(groundTruth, groundValue);
+  bool eventErrors = cryslparserengine->eventsTypecheckSucceeded();
+  bool ensuresErrors = cryslparserengine->constraintsTypecheckSucceeded();
+  EXPECT_EQ(eventErrors, groundTruth);
+  EXPECT_EQ(ensuresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
 }
 
-TEST_F(TypeCheckTest, TypeCheck_MD_CTX_incorrect) {
+TEST_F(TypeCheckTest, TypeCheck_EVP_MD_incorrect) {
   Initialize({pathToCrySLFiles + "EVP_MD_incorrect.cryptosl"});
-  bool groundTruth = false;
-  size_t groundValue = 0;
-  compareResults(groundTruth, groundValue);
+  bool groundTruth = true;
+  bool orderErrors = cryslparserengine->orderTypecheckSucceeded();
+  EXPECT_EQ(orderErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_EVP_KDF_CTX) {
+  Initialize({pathToCrySLFiles + "EVP_KDF_CTX.cryptosl"});
+  bool groundTruth = true;
+  bool objectErrors = cryslparserengine->objectsTypecheckSucceeded();
+  EXPECT_EQ(objectErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_EVP_Seal) {
+  Initialize({pathToCrySLFiles + "EVP_Seal.cryptosl"});
+  bool groundTruth = true;
+  bool objectErrors = cryslparserengine->objectsTypecheckSucceeded();
+  EXPECT_EQ(objectErrors, groundTruth);
+  bool orderErrors = cryslparserengine->orderTypecheckSucceeded();
+  EXPECT_EQ(orderErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_EVP_Calculate_HMAC) {
+  Initialize({pathToCrySLFiles + "EVP_Calculate_HMAC.cryptosl"});
+  bool groundTruth = true;
+  bool eventsErrors = cryslparserengine->eventsTypecheckSucceeded();
+  EXPECT_EQ(eventsErrors, groundTruth);
+  bool ensuresErrors = cryslparserengine->ensuresTypecheckSucceeded();
+  EXPECT_EQ(ensuresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_EVP_Calculate_HMAC) {
+  Initialize({pathToCrySLFiles + "EVP_Calculate_HMAC.cryptosl"});
+  bool groundTruth = true;
+  bool eventsErrors = cryslparserengine->eventsTypecheckSucceeded();
+  EXPECT_EQ(eventsErrors, groundTruth);
+  bool ensuresErrors = cryslparserengine->ensuresTypecheckSucceeded();
+  EXPECT_EQ(ensuresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_LBS_KeyPairGeneration) {
+  Initialize({pathToCrySLFiles + "KeyPairGeneration.cryptosl"});
+  bool groundTruth = true;
+  bool requiresErrors = cryslparserengine->requiresTypecheckSucceeded();
+  EXPECT_EQ(requiresErrors, groundTruth);
+  bool ensuresErrors = cryslparserengine->ensuresTypecheckSucceeded();
+  EXPECT_EQ(ensuresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_LBS_PublicKey_Signature) {
+  Initialize({pathToCrySLFiles + "PublicKey_Signature.cryptosl"});
+  bool groundTruth = true;
+  bool orderErrors = cryslparserengine->orderTypecheckSucceeded();
+  EXPECT_EQ(orderErrors, groundTruth);
+  bool requiresErrors = cryslparserengine->requiresTypecheckSucceeded();
+  EXPECT_EQ(requiresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_LBS_Stream_Decryption) {
+  Initialize({pathToCrySLFiles + "Stream_Decryption.cryptosl"});
+  bool groundTruth = true;
+  bool requiresErrors = cryslparserengine->requiresTypecheckSucceeded();
+  EXPECT_EQ(requiresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
+}
+
+TEST_F(TypeCheckTest, TypeCheck_LBS_PublicKey_Encryption) {
+  Initialize({pathToCrySLFiles + "PublicKeyEncryption.cryptosl"});
+  bool groundTruth = true;
+  bool requiresErrors = cryslparserengine->requiresTypecheckSucceeded();
+  EXPECT_EQ(requiresErrors, groundTruth);
+  bool typeCheckResult = cryslparserengine->typecheckSucceeded();
+  EXPECT_EQ(typeCheckResult, groundTruth);
 }
 
 int main(int argc, char **argv) {
