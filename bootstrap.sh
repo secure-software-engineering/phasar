@@ -40,7 +40,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 echo "installing phasar dependencies..."
 
 sudo apt-get update
-sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
+sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev -y
 sudo pip install Pygments
 sudo pip install pyyaml
 # installing boost
@@ -59,10 +59,10 @@ BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc 
 
 if [ -z $BOOST_VERSION ] ;then
     if [ -z $DESIRED_BOOST_VERSION ] ;then
-        sudo apt-get install libboost-all-dev
+        sudo apt-get install libboost-all-dev -y
     else
         # DESIRED_BOOST_VERSION in form d.d, i.e. 1.65 (this is the latest version I found in the apt repo)
-        sudo apt-get install "libboost${DESIRED_BOOST_VERSION}-all-dev"
+        sudo apt-get install "libboost${DESIRED_BOOST_VERSION}-all-dev" -y
     fi
     #verify installation
     BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"') 
@@ -99,5 +99,6 @@ make -j $NUM_THREADS
 echo "phasar successfully built"
 echo "install phasar..."
 sudo make install
+sudo ldconfig
 cd ..
 echo "phasar successfully installed"
