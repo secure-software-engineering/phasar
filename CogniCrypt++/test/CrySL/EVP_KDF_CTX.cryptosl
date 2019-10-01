@@ -1,0 +1,61 @@
+SPEC 
+	EVP_KDF_CTX*
+	
+OBJECTS
+	const EVP_MD *md;
+	const EVP_MAC *mac;
+	const EVP_KDF *kdf;
+	const unsigned char *derived;
+	//unsigned char * out_data;
+	const unsigned char *pass;
+	const unsigned char *salt;
+	const unsigned char *info;
+	const unsigned char *key;
+	const unsigned char *iv;
+	size_t nid;
+	size_t saltlen;
+	size_t infolen;
+	size_t keylen;
+	size_t ivlen;
+	size_t cmd;
+	size_t itrval;
+	va_list args;
+	
+	
+EVENTS 
+	ctor1: 		this = EVP_KDF_CTX_new(kdf);
+	ctor2:		this = EVP_KDF_CTX_new_id(nid);
+	ctor: = 	ctor1 | ctor2;
+	calcsize: 	size = EVP_KDF_size();
+	vctrl:  	EVP_KDF_vctrl(this, cmd, args);
+	cntr1: 		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_PASS, pass, passlen);
+	cntr2: 		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_SALT, salt, saltlen);
+	cntr3: 		EVP_KDF_ctrl(mac);
+	cntr4: 		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_MD, md);
+	cntr5: 		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_KEY, key, keylen);
+	cntr6: 		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_MAC_SIZE, key, keylen);
+	cntr7:		EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_ITER, itrval);
+	cntr_pbkdf2:EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_PBKDF2_PKCS5_MODE);
+	cntr_scr1:	EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_SCRYPT_N);
+	cntr_scr2:	EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_SCRYPT_R);
+	cntr_scr3:	EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_SCRYPT_P);
+	cntr_hkdf1:	EVP_KDF_ctrl(this, EVP_KDF_CTRL_ADD_HKDF_INFO, info, infolen);
+	cntr_hkdf2: EVP_KDF_ctrl(this, EVP_KDF_CTRL_SET_HKDF_MODE) ;
+	derive: 	EVP_KDF_derive(this, derived, size);
+	dtor: 		EVP_KDF_CTX_free(this);
+	//EVP_KDF_ctrl_str() implementation incomplete
+	
+	
+ORDER
+	ctor, calcsize, ( vctrl ~ cntr1 ~ cntr2 ~ cntr3 ~ cntr4 ~ cntr5 ~ cntr6 ~ cntr7 )3#+, dtor
+
+CONSTRAINTS
+	kdf in { EVP_KDF_HKDF, EVP_KDF_PBKDF2, EVP_KDF_SCRYPT}
+	kdf in {EVP_KDF_PBKDF2} => callTo [cntr7] && itrval >=10000 && noCallTo [cntr5] && callTo[cntr_pbkdf2]
+	kdf in {EVP_KDF_SCRYPT} => callTo [cntr_scr1] && callTo [cntr_scr2] && callTo [cntr_scr3] && noCallTo [cntr5]
+	kdf in {EVP_KDF_HKDF} => noCallTo [cntr4] && noCallTo[cntr3] && callTo [cntr_hkdf1] && callTo[cntr_hkdf2]
+	size <= SIZE_MAX 
+	//should we use noCallTo for all those reqd methods? Any efficient solution?
+	
+ENSURES 
+	derivedKey[derive, size] after derive;

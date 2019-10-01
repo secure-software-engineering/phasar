@@ -1,0 +1,28 @@
+SPEC LBS_KeyPairGeneration
+
+OBJECTS
+    unsigned char       * publicKey;
+    unsigned char       * privateKey;
+    const unsigned char * seed;
+    
+EVENTS
+    create1: crypto_box_keypair(publicKey, privateKey);
+    create2: crypto_box_seed_keypair(publicKey, privateKey, seed);
+    create := create1 | create2;
+    
+    derive : crypto_scalarmult_base(publicKey, privateKey);
+    
+ORDER
+    create | derive
+    
+REQUIRES
+    allocated[publicKey, crypto_box_PUBLICKEYBYTES];
+    allocated[privateKey, crypto_box_SECRETKEYBYTES];
+    
+    callTo[create2] => allocated[seed, crypto_box_SEEDBYTES];
+    
+    callTo[derive] => publicKey[publicKey];
+    initialized[];
+ENSURES
+    privateKey[privateKey];
+    callTo[create] => publicKey[publicKey]

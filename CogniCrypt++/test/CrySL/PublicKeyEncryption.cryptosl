@@ -1,0 +1,28 @@
+SPEC LBS_PublicKeyEncryption
+
+OBJECTS
+    const unsigned char   their_pub_key[crypto_box_PUBLICKEYBYTES];
+    const unsigned char   my_priv_key[crypto_box_PRIVATEKEYBYTES]
+    const unsigned char * message;
+    size_t                message_len;
+    unsigned char         nonce[crypto_box_NONCEBYTES];
+    unsigned char       * ciphertext;
+    size_t                ciphertext_len;
+    unsigned char       * mac;
+
+EVENTS
+    encrypt: crypto_box_easy(ciphertext, message, message_len, nonce, their_pub_key, my_priv_key);
+    encrypt_detached: crypto_box_detached(ciphertext, mac, message, message_len, nonce, their_pub_key, my_priv_key);
+ORDER
+    encrypt | encrypt_detached
+
+REQUIRES
+    allocated[message, message_len];
+    callTo[encrypt] => allocated[ciphertext, ciphertext_len], ciphertext_len >= crypto_box_MACBYTES + message_len;
+    randomized[nonce];
+    publicKey[their_pub_key];
+    privateKey[my_priv_key];
+    allocated[mac, crypto_box_MACBYTES];
+    initialized[];
+ENSURES
+    encrypted[ciphertext, crypto_box_MACBYTES + message_len];

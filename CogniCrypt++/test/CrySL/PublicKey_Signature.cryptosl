@@ -1,0 +1,47 @@
+SPEC PublicKey_Signature
+
+OBJECTS
+    unsigned char 		*pk;
+    unsigned char 		*sk;
+	unsigned char 		*seed;
+	unsigned char 		*sig
+	unsigned char 		*signed_message;
+	unsigned char 		*unsigned_message;
+	unsigned long long 	*signed_message_len;
+	unsigned long long	unsigned_message_len;
+	const unsigned char *message;
+	unsigned long long 	message_len;
+	crypto_sign_state 	*state;
+	
+EVENTS
+	gen_nonseed:		crypto_sign_keypair(pk, sk);
+	gen_seed:	 		crypto_sign_seed_keypair(pk, sk, seed);
+	gen :=		 		gen_nonseed | gen_seed
+	sign_combied:		crypto_sign(signed_message, signed_message_len, message, message_len, sk);
+	sign_detached:		crypto_sign_detached(sig, NULL, message, message_len, sk);
+	
+	//for multi-part messages
+	
+	init: 			crypto_sign_init(state)
+	update: 		crypto_sign_update(state, message, message_len);
+	create: 		crypto_sign_final_create(state, sig, NULL, sk);
+	
+	//Extracting the seed and the public key from the secret key
+	
+	sk_to_seed: 	crypto_sign_ed25519_sk_to_seed(seed, sk);
+	sk_to_pk:		crypto_sign_ed25519_sk_to_pk(pk, sk);
+	
+ORDER
+	gen, sign_combied | sign_detached | (init, update+, create)
+	
+REQUIRES
+	allocated[pk, crypto_sign_PUBLICKEYBYTES];
+	allocated[sk, crypto_sign_SECRETKEYBYTES];
+	allocated[seed, crypto_sign_SEEDBYTES];
+	allocated[sig, crypto_sign_BYTES];
+	allocate[signed_message, crypto_sign_BYTES + message_len];
+	initialized[];
+	
+ENSURES
+	Signed[message, message_len];
+	

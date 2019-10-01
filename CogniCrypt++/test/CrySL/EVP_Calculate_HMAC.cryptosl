@@ -1,0 +1,33 @@
+SPEC calculate_hmac
+
+OBJECTS
+	 unsigned char * msg;
+	 size_t * mlen;
+	 unsigned char * val;
+	 EVP_PKEY * pkey;
+	 size_t * vlen;
+	 EVP_MD_CTX * ctx;
+	 EVP_MD * md;
+	 int * rc;
+	 size_t * req;
+	 const char * algoName
+
+EVENTS
+	 createCtx : ctx = EVP_MD_CTX_create();
+	 getDigest : md = EVP_get_digestbyname(algoName);
+	 initDigest : rc = EVP_DigestInit_ex(ctx, md, NULL);
+	 signDigest : rc = EVP_DigestSignInit(ctx, NULL, md, NULL, pkey);
+	 updateDigest : rc = EVP_DigestSignUpdate(ctx, msg, mlen);
+	 signDigestFinal : rc = EVP_DigestSignFinal(ctx, NULL, &req);
+	 allocateMem : val = OPENSSL_malloc(req);
+	 signDigestFinal : rc = EVP_DigestSignFinal(ctx, val, vlen);
+	 destroyCtx : EVP_MD_CTX_destroy(ctx);
+ 
+ORDER
+	createCtx, getDigest, initDigest, signDigest, updateDigest+, signDigestFinal, allocateMem, signDigestFinal, destroyCtx
+
+ENSURES
+	hmac[val, vlen];
+	
+REQUIRES
+	privatekey[pkey]

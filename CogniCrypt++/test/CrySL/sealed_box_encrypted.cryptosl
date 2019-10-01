@@ -1,0 +1,18 @@
+SPEC Sealed_Box_Encryptcrypt
+
+OBJECTS
+unsigned char *recipient_pk
+unsigned char *ciphertext
+unsigned long long    message_len
+unsigned char *message
+
+EVENTS 
+ encrypt: crypto_box_seal(ciphertext, MESSAGE, MESSAGE_LEN, recipient_pk)
+ 
+ REQUIRES 
+ allocated[message, message_len]
+ allocated[recipent_pk, crypto_box_PUBLICKEYBYTES]
+ 
+ ENSURES 
+  encrypted message
+  

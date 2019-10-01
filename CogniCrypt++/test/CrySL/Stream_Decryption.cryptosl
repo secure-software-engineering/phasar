@@ -1,0 +1,24 @@
+SPEC Stream_Encryption
+
+OBJECTS
+    crypto_secretstream_xchacha20poly1305_state *state;
+    unsigned char       * message;
+    unsigned char         key[crypto_secretstream_xchacha20poly1305_KEYBYTES];
+    unsigned char         header[crypto_secretstream_xchacha20poly1305_HEADERBYTES];
+    unsigned char       * ciphertext;
+    unsigned long long    ciphertext_len;
+    unsigned long long  * message_len;
+    unsigned char       * tag;
+    unsigned char       * aad;
+    unsigned long long    aad_len;
+EVENTS
+    init: crypto_secretstream_xchacha20poly1305_init_pull(state, header, key);
+    pull: crypto_secretstream_xchacha20poly1305_pull(state, message, message_len, tag, ciphertext, ciphertext_len, aad, aad_len);
+    rekey: crypto_secretstream_xchacha20poly1305_rekey(state);
+ORDER
+    init, rekey?, (pull | rekey)*
+REQUIRES
+    allocated[message, ciphertext_len - crypto_secretstream_xchacha20poly1305_ABYTES];
+    allocated[ciphertext, ciphertext_len];
+    aad_len > 0 => allocated[aad, aad_len];
+    initialized[];

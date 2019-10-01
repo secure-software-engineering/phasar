@@ -1,0 +1,33 @@
+SPEC EVP_Seal
+
+OBJECTS
+	int ciphertext_len;
+	unsigned char **encrypted_key;
+	int *encrypted_key_len;
+	unsigned char *iv;
+	EVP_PKEY **pub_key;
+	unsigned char *ciphertext;
+	int len;
+	unsigned char *plaintext;
+	int plaintext_len;
+	const EVP_CIPHER *cipher;
+	EVP_CIPHER_CTX *ctx;
+	
+	
+EVENTS
+	f1 : ctx = EVP_CIPHER_CTX_new();
+	f3 : EVP_SealInit(ctx, cipher, encrypted_key, encrypted_key_len, iv, pub_key, 1));
+	f4 : EVP_SealUpdate(ctx, ciphertext, &len, plaintext, plaintext_len);
+	f5 : EVP_SealFinal(ctx, ciphertext + len, &len);
+	f6 : EVP_CIPHER_CTX_free(ctx);
+	
+ORDER
+	f1, (f3+, f4*, f5)+, f6
+	
+CONSTRAINTS
+	
+REQUIRES
+	generatedKey[pub_key];
+
+ENSURES
+	envelope_seal[ciphertext, ciphertext_len];

@@ -1,0 +1,19 @@
+SPEC Onetime_Authentication_Verification
+
+OBJECTS
+const unsigned char *message
+unsigned long long message_len
+unsigned char *out
+unsigned char *key
+
+EVENTS
+verification : crypto_onetimeauth_verify(out, message, message_len, key);
+
+ORDER
+verification
+
+REQUIRES
+authenticated[message];
+
+ENSURES
+verifed[message];
