@@ -1,4 +1,3 @@
-#include "Expressions.h"
 #include <FormatConverter/Expressions.h>
 #include <FormatConverter/ConstraintsTypeChecker.h>
 #include <iostream>
