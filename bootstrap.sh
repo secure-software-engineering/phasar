@@ -40,7 +40,7 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 echo "installing phasar dependencies..."
 
 sudo apt-get update
-sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
+sudo apt-get install dpkg zlib1g-dev sqlite3 libsqlite3-dev libmysqlcppconn-dev bear python3 doxygen graphviz python python-dev python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-4 z3 libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev
 sudo pip install Pygments
 sudo pip install pyyaml
 # installing boost
@@ -53,7 +53,7 @@ sudo pip install pyyaml
 
 # New way of installing boost:
 
-#TODO: Use DESIRED_BOOST_VERSION  as boost-version when installing boost 
+#TODO: Check whether we have the required boost packages installed
 
 BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"') 
 
@@ -74,6 +74,20 @@ if [ -z $BOOST_VERSION ] ;then
     fi
 else
     echo "Already installed boost version ${BOOST_VERSION//_/.}"
+    DESIRED_BOOST_VERSION=${BOOST_VERSION//_/.}
+    #TODO: install missing packages if necessary
+    boostlibnames=("libboost-system" "libboost-filesystem" 
+               "libboost-graph" "libboost-program-options"
+               "libboost-log" "libboost-thread")
+    additional_boost_libs=()
+
+    for boost_lib in ${boostlibnames[@]}; do
+        dpkg -s "$boost_lib${DESIRED_BOOST_VERSION}" >/dev/null 2>&1 || additional_boost_libs+=("$boost_lib${DESIRED_BOOST_VERSION}")
+    done
+    if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
+        echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[@]}"
+        sudo apt-get install ${additional_boost_libs[@]} -y
+    fi 
 fi
 
 
