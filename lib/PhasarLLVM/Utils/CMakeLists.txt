@@ -1,5 +1,10 @@
 file(GLOB_RECURSE UTILS_SRC *.h *.cpp)
 
+set(PHASAR_LINK_LIBS
+  phasar_config
+  phasar_utils
+)
+
 # Handle the library files
 if(BUILD_SHARED_LIBS)
   add_phasar_library(phasar_phasarllvm_utils

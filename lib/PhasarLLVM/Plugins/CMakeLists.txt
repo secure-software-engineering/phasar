@@ -4,6 +4,7 @@ file(GLOB_RECURSE PLUGINS_SO *.cxx)
 set(PHASAR_LINK_LIBS
   phasar_ifdside
   phasar_phasarllvm_utils
+  phasar_utils
 )
 
 set(LLVM_LINK_COMPONENTS
@@ -26,9 +27,10 @@ endif()
 
 target_link_libraries(phasar_plugins
   LINK_PUBLIC
-  boost_system
   boost_filesystem
   boost_log
+  boost_program_options
+  boost_system
   ${CMAKE_DL_LIBS}
 )
 
