@@ -8,12 +8,12 @@
 namespace CCPP {
 class Predicate {
   private:
-  bool operator == ( const Predicate &pc );
-  std::string getFunctionName();
   //std::vector<Object> params;
   std::vector<ObjectWithOutLLVM> params;
 
   public:
+  bool operator == (const Predicate &pc);
+  std::string getFunctionName();
   void setParams(const std::vector<ObjectWithOutLLVM> &params) {
     this->params = params;
   }
