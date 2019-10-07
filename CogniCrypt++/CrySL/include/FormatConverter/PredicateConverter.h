@@ -6,9 +6,9 @@ namespace CCPP {
 	class PredicateConverter {
 	private:
         Predicate predicate;
-		CrySLParser::EnsPredContext *ensCtx; //not sure, will be used here or not..
+		CrySLParser::EnsPredContext *ensCtx; 
         CrySLParser::PredContext *predCtx;
-        CrySLParser::ReqPredContext *reqCtx; //not sure will be used here or not
+        CrySLParser::ReqPredContext *reqCtx; 
 
 	public:
         PredicateConverter(CrySLParser::PredContext *predicateCtxObj);
