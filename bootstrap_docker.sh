@@ -3,17 +3,14 @@ set -e
 
 NUM_THREADS=$(nproc)
 
+./utils/InitializeEnvironment.sh
+./utils/InstallAptDependencies.sh
 
 sudo pip install Pygments
 sudo pip install pyyaml
-# installing boost
-#wget https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.gz
-#tar xvf boost_1_66_0.tar.gz
-#cd boost_1_66_0/
-#./bootstrap.sh
-#sudo ./b2 install
-#cd ..
 
+# installint boost
+sudo apt-get install libboost-all-dev -y
 
 # installing LLVM
 ./utils/install-llvm-8.0.0.sh $NUM_THREADS ./utils/
@@ -22,9 +19,6 @@ sudo pip3 install wllvm
 
 echo "dependencies successfully installed"
 echo "build phasar..."
-
-#git submodule init
-#git submodule update
 
 export CC=/usr/local/bin/clang
 export CXX=/usr/local/bin/clang++
