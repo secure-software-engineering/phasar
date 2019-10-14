@@ -1,5 +1,5 @@
 #pragma once
-#include <FormatConverter/ObjectWithOutLLVM.h>
+#include <FormatConverter/DefinedObject.h>
 #include <FormatConverter/Predicate.h>
 
 namespace CCPP {
@@ -7,11 +7,11 @@ namespace CCPP {
 	private:
         Predicate predicate;
 		CrySLParser::EnsPredContext *ensCtx; 
-        CrySLParser::PredContext *predCtx;
+       // CrySLParser::PredContext *predCtx;
         CrySLParser::ReqPredContext *reqCtx; 
 
 	public:
-        PredicateConverter(CrySLParser::PredContext *predicateCtxObj);
+        //PredicateConverter(CrySLParser::PredContext *predicateCtxObj);
         PredicateConverter(CrySLParser::EnsPredContext *ensCtxObj);
 		PredicateConverter(CrySLParser::ReqPredContext *reqCtxObj);
         std::vector<Predicate> formatConverter();
