@@ -120,10 +120,6 @@ find_package(Boost COMPONENTS filesystem graph system program_options log thread
 include_directories(${BOOST_INCLUDE_DIR})
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
-# Curl
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIR})
-
 # SQL
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
@@ -297,7 +293,6 @@ target_link_libraries(phasar
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
-  curl
 )
 
 if(NOT PHASAR_IN_TREE)
@@ -336,7 +331,6 @@ target_link_libraries(myphasartool
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
   ${llvm_libs}
-  curl
   gtest
 )
 
@@ -355,7 +349,6 @@ target_link_libraries(wpdstest
   phasar_pointer
   phasar_phasarllvm_utils
   phasar_utils
-  curl
   boost_program_options
   boost_filesystem
   boost_graph
@@ -382,7 +375,6 @@ target_link_libraries(syncpdstest
   phasar_syncpds
   ${PHASAR_PLUGINS_LIB}
   wali
-  curl
   phasar_passes
   phasar_pointer
   phasar_phasarllvm_utils
@@ -411,7 +403,6 @@ target_link_libraries(boomerangtest
   phasar_syncpds
   ${PHASAR_PLUGINS_LIB}
   wali
-  curl
   phasar_passes
   phasar_pointer
   phasar_phasarllvm_utils
@@ -526,7 +517,6 @@ set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 #                                   libsqlite3 (>= 4.5.0),
 #                                   libpthread (>= 4.5.0),
 #                                   libdl (>= 4.5.0),
-#                                   libcurl-gnutls (>= 4.5.0),
 #                                   librt (>= 4.5.0),
 #                                   libtinfo (>= 4.5.0),
 #                                   libz (>= 4.5.0),

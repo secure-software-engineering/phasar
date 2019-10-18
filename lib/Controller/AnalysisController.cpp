@@ -216,9 +216,6 @@ AnalysisController::AnalysisController(
         LLVMTaintSolver.solve();
         cout << "IFDS Taint Analysis ended" << endl;
         // FinalResultsJson += LLVMTaintSolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          LLVMTaintSolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IDE_TaintAnalysis: {
@@ -227,9 +224,6 @@ AnalysisController::AnalysisController(
             llvmtaintsolver(taintanalysisproblem);
         llvmtaintsolver.solve();
         FinalResultsJson += llvmtaintsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmtaintsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
@@ -240,9 +234,6 @@ AnalysisController::AnalysisController(
             llvmtypestatesolver(typestateproblem);
         llvmtypestatesolver.solve();
         FinalResultsJson += llvmtypestatesolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmtypestatesolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_TypeAnalysis: {
@@ -251,9 +242,6 @@ AnalysisController::AnalysisController(
             typeanalysisproblem);
         llvmtypesolver.solve();
         FinalResultsJson += llvmtypesolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmtypesolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_UninitializedVariables: {
@@ -265,9 +253,6 @@ AnalysisController::AnalysisController(
         llvmunivsolver.solve();
         cout << "IFDS UninitVar Analysis ended" << endl;
         // FinalResultsJson += llvmunivsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmunivsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_LinearConstantAnalysis: {
@@ -275,9 +260,6 @@ AnalysisController::AnalysisController(
         LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem);
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmlcasolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
@@ -286,9 +268,6 @@ AnalysisController::AnalysisController(
             llvmlcasolver(lcaproblem);
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmlcasolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_ConstAnalysis: {
@@ -298,9 +277,6 @@ AnalysisController::AnalysisController(
             constproblem);
         llvmconstsolver.solve();
         FinalResultsJson += llvmconstsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmconstsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_SolverTest: {
@@ -311,9 +287,6 @@ AnalysisController::AnalysisController(
         llvmifdstestsolver.solve();
         cout << "IFDS Solvertest ended" << endl;
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmifdstestsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
@@ -326,9 +299,6 @@ AnalysisController::AnalysisController(
         llvmifdsenvsolver.solve();
         cout << "IFDS EnvironmentVariableTracing ended" << endl;
         FinalResultsJson += llvmifdsenvsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmifdsenvsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::IDE_SolverTest: {
@@ -337,9 +307,6 @@ AnalysisController::AnalysisController(
             llvmidetestsolver(idetest);
         llvmidetestsolver.solve();
         FinalResultsJson += llvmidetestsolver.getAsJson();
-        if (PrintEdgeRecorder) {
-          llvmidetestsolver.exportJson(graph_id);
-        }
         break;
       }
       case DataFlowAnalysisType::Intra_Mono_FullConstantPropagation: {
