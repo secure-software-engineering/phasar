@@ -15,8 +15,6 @@
 #include <set>
 #include <string>
 
-#include <clang/Tooling/CompilationDatabase.h>
-
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
 
@@ -86,10 +84,6 @@ public:
   /// Constructs a ProjectIRDB from a bunch of llvm IR files
   ProjectIRDB(const std::vector<std::string> &IRFiles,
               enum IRDBOptions Opt = IRDBOptions::NONE);
-  /// Constructs a ProjectIRDB from a CompilationDatabase (only for simple
-  /// projects)
-  ProjectIRDB(const clang::tooling::CompilationDatabase &CompileDB,
-              enum IRDBOptions Opt);
   /// Constructs a ProjectIRDB from files which may have to be compiled to llvm
   /// IR
   ProjectIRDB(const std::vector<std::string> &Files,
