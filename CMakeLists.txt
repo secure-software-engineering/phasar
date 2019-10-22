@@ -128,7 +128,7 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 # LLVM
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
-  find_package(LLVM REQUIRED CONFIG 8)
+  find_package(LLVM 9 REQUIRED CONFIG)
   find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
