@@ -55,15 +55,57 @@ protected:
     ASSERT_EQ(this->predicates.size(), expectedFunctionNames.size());
     for (const auto &predicate : this->predicates) {
       functionName = predicate.getFunctionName();
-      EXPECT_EQ(1,expectedFunctionNames.count(functionName));
+      EXPECT_EQ(1, expectedFunctionNames.count(functionName));
     }
     std::cout << "Compare results end" << std::endl;
   }
 
-}; //class fixture
+}; // class fixture
 
+TEST_F(PredicateTest, PredicateConverter_EVP_Cipher_FunctionName) {
+  Initialize({pathToCrySLFiles + "EVP_CIPHER.cryptosl"});
+  std::set<std::string> expectedFunctionNames = {
+      "blockLength", "keyLength", "authenticatedEncryption", "init16", "init24",
+      "init32",      "initAead"
+  };
+  compareResults(expectedFunctionNames);
+}
 
-  int main(int argc, char **argv) {
+TEST_F(PredicateTest, PredicateConverter_EVP_Cipher_Ctx_FunctionName) {
+  Initialize({pathToCrySLFiles + "EVP_CIPHER_CTX.cryptosl"});
+  std::set<std::string> expectedFunctionNames = {"generatedKey", "keyLength",        "allocated", "encrypted",
+      "encFinalOrUpdate", "enc",       "cFinalOrUpdate"
+  };
+  compareResults(expectedFunctionNames);
+}
+
+TEST_F(PredicateTest, PredicateConverter_EVP_MD_FunctionName) {
+  Initialize({pathToCrySLFiles + "EVP_MD.cryptosl"});
+  std::set<std::string> expectedFunctionNames = {
+      "digestType",     "digestSize", "initSHA2_288",     "initSHA2_322",
+      "initSHA2_488", "initSHA3_284"
+  };
+  compareResults(expectedFunctionNames);
+}
+
+TEST_F(PredicateTest, PredicateConverter_EVP_Key_Pair_Generation_FunctionName) {
+  Initialize({pathToCrySLFiles + "KeyPairGeneration.cryptosl"});
+  std::set<std::string> expectedFunctionNames = {
+      "allocated",   "callTo",   "publicKey",
+      "initialized", "privateKey"
+  };
+  compareResults(expectedFunctionNames);
+}
+
+TEST_F(PredicateTest, PredicateConverter_EVP_Seal_FunctionName) {
+  Initialize({pathToCrySLFiles + "EVP_Seal.cryptosl"});
+  std::set<std::string> expectedFunctionNames = {
+      "generatedKey", "envelope_seal"
+  };
+  compareResults(expectedFunctionNames);
+}
+
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
