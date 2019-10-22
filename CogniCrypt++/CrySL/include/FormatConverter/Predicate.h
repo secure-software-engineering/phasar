@@ -8,19 +8,29 @@
 namespace CCPP {
 class Predicate {
 private:
-  std::vector<DefinedObject> params;
+  std::vector<std::unique_ptr<DefinedObject>> params;
   std::string functionName;
 
 public:
-  bool operator == (const Predicate &pc);
+  bool operator==(const Predicate &pc);
 
-  void setFunctionName(const std::string &functionName) {this->functionName = functionName;  }
+  void setFunctionName(const std::string &functionName) {
+    this->functionName = functionName;
+  }
   const std::string &getFunctionName() const { return functionName; }
 
-  void setParams(const std::vector<DefinedObject> &params) {
+  /*void setParams(const std::vector<DefinedObject> &params) {
     this->params = params
+  }*/
+
+  void setParams(std::vector<std::unique_ptr<DefinedObject>> &&params) {
+    this->params = std::move(params);
   }
-  const std::vector<DefinedObject> &getparams() const { return params; }
+
+  // const std::vector<DefinedObject> &getparams() const { return params; }
+  const std::vector<std::unique_ptr<DefinedObject>> &getParams() const {
+    return params;
+  }
 };
 
 } // namespace CCPP

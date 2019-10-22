@@ -1,5 +1,6 @@
 #include <FormatConverter/Predicate.h>
 #include <FormatConverter/PredicateConverter.h>
+#include <FormatConverter/FactoryObject.h>
 #include <isotream>
 
 namespace CCPP {
@@ -9,20 +10,26 @@ namespace CCPP {
   this->predCtx = predicateCtxObj;
 }*/
 
-PredicateConverter::PredicateConverter(CrySLParser::EnsPredContext *ensCtxObj) {
+PredicateConverter::PredicateConverter(CrySLParser::EnsPredContext *ensCtxObj,
+                                       CrySLParser::ObjectsContext *objCtx,
+                                       const std::string &specName) : specName(specName){
   this->ensCtx = ensCtxObj;
+  this->objCtx = objCtx;
 }
 
-PredicateConverter::PredicateConverter(CrySLParser::ReqPredContext *reqCtxObj) {
+PredicateConverter::PredicateConverter(CrySLParser::ReqPredContext *reqCtxObj,
+                                       CrySLParser::ObjectsContext *objCtx,
+                                       const std::string &specName) : specName(specName) {
   this->reqCtx = reqCtxObj;
+  this->objCtx = objCtx;
 }
 
 std::vector<Predicate> PredicateConverter::formatConverter() {
   Predicate predicateObj;
-  std::vector<DefinedObject> params;
+  std::vector<std::unique_ptr<DefinedObject>> params;
   std::vector<Predicate> predicates;
+  FactoryObject facObj(objCtx, specName);
   std::initializer_list<reqCtx *> reqList;
-  //std::list<reqCtx *> reqList;
   auto init = this->reqCtx->reqPred();
 
   for (auto reqPreds : reqList) {//this->reqCtx->reqPred()) 
@@ -31,7 +38,14 @@ std::vector<Predicate> PredicateConverter::formatConverter() {
     // predicateObj.setFunctionName(reqPreds->reqPredLit);
     if (reqPreds->reqPredLit()) {
       for (auto param : reqPreds->reqPredLit()->pred()->suParList()->suPar()) {
-        params.emplace_back(param->value->literalExpr()->memberAccess());
+        //params.emplace_back(param->value->literalExpr()->memberAccess());
+        if (param->value->literalExpr()->memberAccess()) {// creates unique pointer of type DefinedObject using factory
+          params.push_back(std::move(facObj.createObject(  //  and inserts it in vector of params
+              param->value->literalExpr()->memberAccess())));
+        } 
+		else { // we need to handle this ptr separately b/c in memberAccess it is null
+          params.push_back(std::move(facObj.createThisObject()));
+        }
       }
     }
 
@@ -46,8 +60,8 @@ std::vector<Predicate> PredicateConverter::formatConverter() {
        }
      }*/
 
-    predicateObj.setParams(params);
-    predicates.push_back(predicateObj);
+    predicateObj.setParams(std::move(params));
+    predicates.push_back(std::move(predicateObj));
   }
 
   for (auto ensPreds : this->ensCtx->pred()) {
