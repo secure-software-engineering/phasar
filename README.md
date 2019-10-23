@@ -21,7 +21,7 @@ Secure Software Engineering Group
 
 Currently supported version of LLVM
 -----------------------------------
-Phasar is currently set up to support LLVM-8.0.0.
+Phasar is currently set up to support LLVM-9.0.0. However, LLVM-8.0.0 still works fine with Phasar (`find_package(LLVM 9 REQUIRED CONFIG)` in the top-level CMakeLists.txt needs to be adjusted).
 
 What is Phasar?
 ---------------
