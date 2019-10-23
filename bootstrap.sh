@@ -2,6 +2,7 @@
 set -e
 
 NUM_THREADS=$(nproc)
+LLVM_RELEASE=llvmorg-9.0.0
 
 # Parsing command-line-parameters
 # See "https://stackoverflow.com/questions/192249/how-do-i-parse-command-line-arguments-in-bash" as a reference
@@ -93,7 +94,7 @@ fi
 
 
 # installing LLVM
-./utils/install-llvm-8.0.0.sh $NUM_THREADS ./utils/
+./utils/install-llvm.sh $NUM_THREADS ./utils/ $LLVM_RELEASE
 # installing wllvm
 sudo pip3 install wllvm
 
