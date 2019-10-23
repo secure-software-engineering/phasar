@@ -2,6 +2,7 @@
 set -e
 
 NUM_THREADS=$(nproc)
+LLVM_RELEASE=llvmorg-9.0.0
 
 ./utils/InitializeEnvironment.sh
 ./utils/InstallAptDependencies.sh
@@ -9,11 +10,11 @@ NUM_THREADS=$(nproc)
 sudo pip install Pygments
 sudo pip install pyyaml
 
-# installint boost
+# installing boost
 sudo apt-get install libboost-all-dev -y
 
 # installing LLVM
-./utils/install-llvm-8.0.0.sh $NUM_THREADS ./utils/
+./utils/install-llvm.sh $NUM_THREADS . $LLVM_RELEASE
 # installing wllvm
 sudo pip3 install wllvm
 

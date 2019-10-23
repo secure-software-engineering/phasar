@@ -20,9 +20,9 @@ echo "Getting the LLVM source code..."
 if [ ! -d "${target_dir}/llvm-project" ]; then
     echo "Getting the complete LLVM source code"
 	git clone https://github.com/llvm/llvm-project.git ${target_dir}/llvm-project
-    git checkout llvmorg-8.0.0
+    git checkout ${llvm_release}
 elif ["$3" -eq "-checkout"]; then
-    git checkout llvmorg-8.0.0
+    git checkout ${llvm_release}
 fi
 echo "Building LLVM..."
 cd ${target_dir}/llvm-project/

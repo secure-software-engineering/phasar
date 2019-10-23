@@ -94,7 +94,7 @@ fi
 
 
 # installing LLVM
-./utils/install-llvm.sh $NUM_THREADS ./utils/ $LLVM_RELEASE
+./utils/install-llvm.sh $NUM_THREADS . $LLVM_RELEASE
 # installing wllvm
 sudo pip3 install wllvm
 
