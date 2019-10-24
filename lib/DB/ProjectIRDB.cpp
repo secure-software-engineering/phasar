@@ -660,15 +660,17 @@ bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
 }
 
 bool ProjectIRDB::debugInfoAvailable() const {
-  if (modules.size() > 1) {
+  if (WPAMOD) {
+    return wasCompiledWithDebugInfo(WPAMOD);
+  } 
+  // During unittests WPAMOD might not be set
+  else if (modules.size() >= 1) {
     for (auto module : getAllModules()) {
       if (!wasCompiledWithDebugInfo(module)) {
         return false;
       }
     }
     return true;
-  } else if (modules.size() == 1) {
-    return wasCompiledWithDebugInfo(WPAMOD);
   }
   return false;
 }
