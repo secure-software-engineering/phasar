@@ -12,7 +12,7 @@ private:
   std::string functionName;
 
 public:
-  bool operator==(const Predicate &pc);
+  bool operator==(const Predicate &pc) const;
 
   void setFunctionName(const std::string &functionName) {
     this->functionName = functionName;
