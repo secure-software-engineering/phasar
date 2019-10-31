@@ -16,7 +16,7 @@ Intra_Mono_SolverTest - intra MONOTONE solver test                   - MONO
 Inter_Mono_SolverTest - inter MONOTONE solver test (context-based)   - MONO
 
 === The actual analyses ===
-IFDS_EnvironmentVariableTracing    - static environment variable tracing               - IFDS
+IFDS_FieldSensTaintAnalysis    - static environment variable tracing               - IFDS
 IFDS_ConstAnalysis                 - an immutability analysis                          - IFDS
 IFDS_LinearConstantAnalysis        - linear constant propagation                       - IFDS
 IFDS_TaintAnalysis                 - a taint analysis tracking IO                      - IFDS

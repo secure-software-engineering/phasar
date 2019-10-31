@@ -30,7 +30,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
@@ -289,15 +289,15 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_EnvironmentVariableTracing: {
+      case DataFlowAnalysisType::IFDS_FieldSensTaintAnalysis: {
         TaintConfiguration<ExtendedValue> TaintConfig;
-        IFDSEnvironmentVariableTracing variableTracing(ICFG, TaintConfig,
+        IFDSFieldSensTaintAnalysis variableTracing(ICFG, TaintConfig,
                                                        EntryPoints);
         LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
             variableTracing);
-        cout << "IFDS EnvironmentVariableTracing ..." << endl;
+        cout << "IFDS FieldSensTaintAnalysis ..." << endl;
         llvmifdsenvsolver.solve();
-        cout << "IFDS EnvironmentVariableTracing ended" << endl;
+        cout << "IFDS FieldSensTaintAnalysis ended" << endl;
         FinalResultsJson += llvmifdsenvsolver.getAsJson();
         break;
       }
