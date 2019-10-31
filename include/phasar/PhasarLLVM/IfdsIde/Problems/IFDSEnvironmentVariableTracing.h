@@ -2,8 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#ifndef IFDSENVIRONMENTVARIABLETRACING_H
-#define IFDSENVIRONMENTVARIABLETRACING_H
+#ifndef IFDSFIELDSENSTAINTANALYSIS_H
+#define IFDSFIELDSENSTAINTANALYSIS_H
 
 #include <map>
 #include <memory>
@@ -17,22 +17,22 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
-class IFDSEnvironmentVariableTracing
+class IFDSFieldSensTaintAnalysis
     : public DefaultIFDSTabulationProblem<const llvm::Instruction *,
                                           ExtendedValue, const llvm::Function *,
                                           LLVMBasedICFG &> {
 public:
-  IFDSEnvironmentVariableTracing(
+  IFDSFieldSensTaintAnalysis(
       LLVMBasedICFG &ICFG, const TaintConfiguration<ExtendedValue> &TaintConfig,
       std::vector<std::string> EntryPoints);
-  ~IFDSEnvironmentVariableTracing() override = default;
+  ~IFDSFieldSensTaintAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getNormalFlowFunction(const llvm::Instruction *curr,
@@ -110,4 +110,4 @@ private:
 
 } // namespace psr
 
-#endif // IFDSENVIRONMENTVARIABLETRACING_H
+#endif // IFDSFIELDSENSTAINTANALYSIS_H

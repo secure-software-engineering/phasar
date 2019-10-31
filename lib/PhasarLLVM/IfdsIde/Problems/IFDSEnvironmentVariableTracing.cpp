@@ -9,32 +9,32 @@
 
 #include <llvm/IR/IntrinsicInst.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/BranchSwitchInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CallToRetFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/CheckOperandsFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GEPInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/GenerateFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/IdentityFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCallee.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MapTaintedValuesToCaller.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MemSetInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/MemTransferInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/PHINodeFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/ReturnInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/StoreInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAEndInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/FlowFunctions/VAStartInstFlowFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovRetValWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LcovWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/LineNumberWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStats.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Stats/TraceStatsWriter.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSEnvironmentVariableTracing/Utils/DataFlowUtils.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSEnvironmentVariableTracing.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/BranchSwitchInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CallToRetFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CheckOperandsFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/GEPInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/GenerateFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/IdentityFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MapTaintedValuesToCallee.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MapTaintedValuesToCaller.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MemSetInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MemTransferInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/PHINodeFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/ReturnInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/StoreInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/VAEndInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/VAStartInstFlowFunction.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LcovRetValWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LcovWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LineNumberWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStatsWriter.h>
+#include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h>
+#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
 
 namespace psr {
 
-IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
+IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     LLVMBasedICFG &ICFG, const TaintConfiguration<ExtendedValue> &TaintConfig,
     std::vector<std::string> EntryPoints = {"main"})
     : DefaultIFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
@@ -46,7 +46,7 @@ IFDSEnvironmentVariableTracing::IFDSEnvironmentVariableTracing(
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
-IFDSEnvironmentVariableTracing::getNormalFlowFunction(
+IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
     const llvm::Instruction *currentInst,
     const llvm::Instruction *successorInst) {
   if (taintConfig.isSource(currentInst)) {
@@ -87,14 +87,14 @@ IFDSEnvironmentVariableTracing::getNormalFlowFunction(
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
-IFDSEnvironmentVariableTracing::getCallFlowFunction(
+IFDSFieldSensTaintAnalysis::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return std::make_shared<MapTaintedValuesToCallee>(
       llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats, zeroValue());
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
-IFDSEnvironmentVariableTracing::getRetFlowFunction(
+IFDSFieldSensTaintAnalysis::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   return std::make_shared<MapTaintedValuesToCaller>(
@@ -109,7 +109,7 @@ IFDSEnvironmentVariableTracing::getRetFlowFunction(
  * handled in getRetFlowFunction.
  */
 std::shared_ptr<FlowFunction<ExtendedValue>>
-IFDSEnvironmentVariableTracing::getCallToRetFlowFunction(
+IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     std::set<const llvm::Function *> callees) {
   /*
@@ -140,7 +140,7 @@ IFDSEnvironmentVariableTracing::getCallToRetFlowFunction(
  * account.
  */
 std::shared_ptr<FlowFunction<ExtendedValue>>
-IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
+IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   const auto destMthdName = destMthd->getName();
 
@@ -203,7 +203,7 @@ IFDSEnvironmentVariableTracing::getSummaryFlowFunction(
 }
 
 std::map<const llvm::Instruction *, std::set<ExtendedValue>>
-IFDSEnvironmentVariableTracing::initialSeeds() {
+IFDSFieldSensTaintAnalysis::initialSeeds() {
   std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
   for (const auto &entryPoint : this->EntryPoints) {
     if (taintConfig.isSink(entryPoint))
@@ -219,7 +219,7 @@ IFDSEnvironmentVariableTracing::initialSeeds() {
   return seedMap;
 }
 
-void IFDSEnvironmentVariableTracing::printIFDSReport(
+void IFDSFieldSensTaintAnalysis::printIFDSReport(
     std::ostream &os,
     SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
         &solverResults) {
