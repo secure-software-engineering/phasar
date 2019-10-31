@@ -19,11 +19,12 @@
 namespace psr {
 
 /**
- * A type state description for OpenSSL's EVP Key Derivation functions. The finite state machine
- * is encoded by a two-dimensional array with rows as function tokens and
- * columns as states.
+ * A type state description for OpenSSL's EVP Key Derivation functions. The
+ * finite state machine is encoded by a two-dimensional array with rows as
+ * function tokens and columns as states.
  */
-class OpenSSLEVPKeyDerivationTypeStateDescription : public TypeStateDescription {
+class OpenSSLEVPKeyDerivationTypeStateDescription
+    : public TypeStateDescription {
 private:
   /**
    * We use the following lattice
@@ -45,12 +46,21 @@ private:
   };
 
   /**
-   * The STAR token represents all functions besides EVP_KDF_fetch(), 
-   * EVP_KDF_CTX_new(), EVP_KDF_CTX_set_params() ,derive() and EVP_KDF_CTX_free().
+   * The STAR token represents all functions besides EVP_KDF_fetch(),
+   * EVP_KDF_CTX_new(), EVP_KDF_CTX_set_params() ,derive() and
+   * EVP_KDF_CTX_free().
    */
-  enum class OpenSSLEVPKeyDerivationToken { EVP_KDF_FETCH = 0, EVP_KDF_CTX_NEW = 1, EVP_KDF_CTX_SET_PARAMS = 2, DERIVE = 3, EVP_KDF_CTX_FREE = 4, STAR = 5 };
+  enum class OpenSSLEVPKeyDerivationToken {
+    EVP_KDF_FETCH = 0,
+    EVP_KDF_CTX_NEW = 1,
+    EVP_KDF_CTX_SET_PARAMS = 2,
+    DERIVE = 3,
+    EVP_KDF_CTX_FREE = 4,
+    STAR = 5
+  };
 
-  static const std::map<std::string, std::set<int>> OpenSSLEVPKeyDerivationFuncs;
+  static const std::map<std::string, std::set<int>>
+      OpenSSLEVPKeyDerivationFuncs;
   // delta matrix to implement the state machine's delta function
   static const OpenSSLEVPKeyDerivationState delta[6][7];
   OpenSSLEVPKeyDerivationToken funcNameToToken(const std::string &F) const;

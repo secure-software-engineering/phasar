@@ -292,7 +292,7 @@ AnalysisController::AnalysisController(
       case DataFlowAnalysisType::IFDS_FieldSensTaintAnalysis: {
         TaintConfiguration<ExtendedValue> TaintConfig;
         IFDSFieldSensTaintAnalysis variableTracing(ICFG, TaintConfig,
-                                                       EntryPoints);
+                                                   EntryPoints);
         LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
             variableTracing);
         cout << "IFDS FieldSensTaintAnalysis ..." << endl;

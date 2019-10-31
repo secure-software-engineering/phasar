@@ -566,7 +566,7 @@ int main(int argc, const char **argv) {
   // free all resources handled by llvm
   llvm::llvm_shutdown();
   // flush the log core at last (performs flush() on all registered sinks)
-  bl::core::get()->flush();
+  boost::log::core::get()->flush();
   STOP_TIMER("Phasar Runtime", PAMM_SEVERITY_LEVEL::Core);
   // PRINT_MEASURED_DATA(std::cout);
   EXPORT_MEASURED_DATA(PhasarConfig::VariablesMap()["pamm-out"].as<std::string>());

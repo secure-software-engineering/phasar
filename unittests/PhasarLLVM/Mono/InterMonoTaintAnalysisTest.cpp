@@ -30,7 +30,7 @@ protected:
 
 #pragma region Environment for leak checking
   ProjectIRDB *IRDB = nullptr;
-  void SetUp() override { bl::core::get()->set_logging_enabled(false); }
+  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
   void TearDown() override {
     if (IRDB) {
       delete IRDB;
@@ -273,7 +273,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02_v2) {
   compareResults(Leaks, GroundTruth);
 }
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
-  // bl::core::get()->set_logging_enabled(true);
+  // boost::log::core::get()->set_logging_enabled(true);
   auto Leaks = doAnalysis("taint_11_c.ll");
   // 35 => {34}
   // 37 => {36} due to overapproximation (limitation of call string)
@@ -395,7 +395,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
  * segmentation fault
  **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
-  // bl::core::get()->set_logging_enabled(true);
+  // boost::log::core::get()->set_logging_enabled(true);
   auto Leaks = doAnalysis("virtual_calls_cpp.ll");
   // 20 => {19};
   map<int, set<string>> GroundTruth;

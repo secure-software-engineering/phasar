@@ -54,7 +54,7 @@ public:
   void solve() override {
     IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
               I>::solve();
-    bl::core::get()->flush();
+    boost::log::core::get()->flush();
     if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }

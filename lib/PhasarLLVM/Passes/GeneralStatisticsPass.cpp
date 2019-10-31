@@ -148,7 +148,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
               PAMM_SEVERITY_LEVEL::Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
-  if (bl::core::get()->get_logging_enabled()) {
+  if (boost::log::core::get()->get_logging_enabled()) {
     auto &lg = lg::get();
     BOOST_LOG_SEV(lg, INFO) << "GeneralStatisticsPass summary for module: '"
                             << M.getName().str() << "'";

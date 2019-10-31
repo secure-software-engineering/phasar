@@ -56,7 +56,7 @@ public:
     // Solve the analaysis problem
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
                I>::solve();
-    bl::core::get()->flush();
+    boost::log::core::get()->flush();
     if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }

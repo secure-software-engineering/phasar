@@ -7,7 +7,6 @@
 
 #include <phasar/PhasarLLVM/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/FlowFunctionBase.h>
 
-
 namespace psr {
 
 class CallToRetFlowFunction : public FlowFunctionBase {

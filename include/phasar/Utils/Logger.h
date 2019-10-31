@@ -29,8 +29,6 @@
 
 namespace psr {
 
-namespace bl = boost::log;
-namespace bfs = boost::filesystem;
 // Additionally consult:
 //  - https://theboostcpplibraries.com/boost.log
 //  - http://www.boost.org/doc/libs/1_64_0/libs/log/doc/html/log/tutorial.html
@@ -50,17 +48,17 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 // This macro does just that
 
 #define LOG_IF_ENABLE(computation)                                             \
-  if (bl::core::get()->get_logging_enabled()) {                                \
+  if (boost::log::core::get()->get_logging_enabled()) {                        \
     computation;                                                               \
   }
 
 // Register the logger and use it a singleton then, get the logger with:
-// bl::sources::severity_logger<severity_level>& lg = lg::get();
+// boost::log::sources::severity_logger<severity_level>& lg = lg::get();
 BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-    lg, bl::sources::severity_logger<severity_level>)
+    lg, boost::log::sources::severity_logger<severity_level>)
 // The logger can also be used as a global variable, which is not recommended.
 // In such a case a global variable would be created like in the following
-// bl::sources::severity_logger<int> lg;
+// boost::log::sources::severity_logger<int> lg;
 
 // A few attributes that we want to use in our logger
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", severity_level)
@@ -70,7 +68,7 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
 /**
  * A filter function.
  */
-bool logFilter(const bl::attribute_value_set &set);
+bool logFilter(const boost::log::attribute_value_set &set);
 
 /**
  * Set the filter level.
@@ -80,7 +78,8 @@ void setLoggerFilterLevel(severity_level level);
 /**
  * A formatter function.
  */
-void logFormatter(const bl::record_view &view, bl::formatting_ostream &os);
+void logFormatter(const boost::log::record_view &view,
+                  boost::log::formatting_ostream &os);
 
 /**
  * An exception handler for the logger.

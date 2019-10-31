@@ -21,6 +21,7 @@
 
 using namespace std;
 using namespace psr;
+namespace bfs = boost::filesystem;
 
 int main(int argc, char **argv) {
   initializeLogger(false);

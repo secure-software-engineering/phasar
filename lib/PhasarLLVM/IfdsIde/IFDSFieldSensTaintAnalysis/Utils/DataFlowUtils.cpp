@@ -840,7 +840,7 @@ bool DataFlowUtils::isAutoIdentity(const llvm::Instruction *currentInst,
         getMemoryLocationFrameFromMatr(srcMemLocationMatr);
 
     bool isArgumentPatch =
-        srcMemLocationFrame && llvm::isa<llvm::Argument>(srcMemLocationFrame);
+        isa_and_nonnullm::isa<llvm::Argument>(srcMemLocationFrame);
     if (isArgumentPatch)
       return false;
 

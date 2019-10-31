@@ -42,7 +42,7 @@ protected:
   }
 
   void SetUp() override {
-    bl::core::get()->set_logging_enabled(false);
+    boost::log::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 
