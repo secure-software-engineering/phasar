@@ -45,26 +45,6 @@ using namespace std;
 
 namespace psr {
 
-const std::set<std::string> ProjectIRDB::unknown_flags = {
-    "-g",
-    "-g3",
-    "-pipe",
-    "-fomit-frame-pointer",
-    "-fstrict-aliasing",
-    "-march=core2",
-    "-fPIC",
-    "-msse2",
-    "-fvisibility=hidden",
-    "-fno-strict-overflow",
-    "-fstack-protector-all",
-    "--param",
-    "-fPIE",
-    "-fno-default-inline"
-    "-MF",
-    "-fno-exceptions",
-    "-fdiagnostics-color",
-};
-
 ProjectIRDB::ProjectIRDB(enum IRDBOptions Opt) : Options(Opt) {}
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
@@ -101,6 +81,12 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   cout << "All modules loaded\n";
 }
 
+  ProjectIRDB::ProjectIRDB(std::vector<llvm::Module *> &Modules) {
+    for (auto M : Modules) {
+      insertModule(M);
+    }
+  }
+
 ProjectIRDB::~ProjectIRDB() {
   // if the IRDB doesn't own the given pointers, they have to be released before
   // destruction
@@ -114,16 +100,6 @@ ProjectIRDB::~ProjectIRDB() {
     for (auto &elem : modules) {
       elem.second.release();
     }
-  }
-}
-
-void ProjectIRDB::setupHeaderSearchPaths() {
-  header_search_paths =
-      splitString(readFile(PhasarConfig::ConfigurationDirectory() +
-                           PhasarConfig::HeaderSearchPathsFileName()),
-                  "\n");
-  for (auto &path : header_search_paths) {
-    path = std::string("-I") + path;
   }
 }
 
@@ -601,7 +577,7 @@ std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
 
 bool ProjectIRDB::empty() { return modules.empty(); }
 
-void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
+void ProjectIRDB::insertModule(llvm::Module *M) {
   source_files.insert(M->getModuleIdentifier());
   for (auto &F : *M) {
     functionToModuleMap.insert(
@@ -610,9 +586,9 @@ void ProjectIRDB::insertModule(std::unique_ptr<llvm::Module> M) {
   for (auto &G : M->globals()) {
     globals.insert(std::make_pair(G.getName().str(), M->getModuleIdentifier()));
   }
-  buildFunctionModuleMapping(M.get());
-  buildGlobalModuleMapping(M.get());
-  buildIDModuleMapping(M.get());
+  buildFunctionModuleMapping(M);
+  buildGlobalModuleMapping(M);
+  buildIDModuleMapping(M);
   contexts.insert(
       std::make_pair(M->getModuleIdentifier(),
                      std::unique_ptr<llvm::LLVMContext>(&M->getContext())));

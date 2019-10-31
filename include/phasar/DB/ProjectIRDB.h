@@ -14,6 +14,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <initializer_list>
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>
@@ -47,10 +48,6 @@ class ProjectIRDB {
 private:
   llvm::Module *WPAMOD = nullptr;
   IRDBOptions Options;
-  void compileAndAddToDB(std::vector<const char *> CompileCommand);
-  std::vector<std::string> header_search_paths;
-  static const std::set<std::string> unknown_flags;
-  void setupHeaderSearchPaths();
   // Stores all source files that have been examined
   std::set<std::string> source_files;
   // Stores all allocation instructions
@@ -81,13 +78,12 @@ private:
 public:
   /// Constructs an empty ProjectIRDB
   ProjectIRDB(enum IRDBOptions Opt);
-  /// Constructs a ProjectIRDB from a bunch of llvm IR files
+  /// Constructs a ProjectIRDB from a bunch of LLVM IR files
   ProjectIRDB(const std::vector<std::string> &IRFiles,
               enum IRDBOptions Opt = IRDBOptions::NONE);
-  /// Constructs a ProjectIRDB from files which may have to be compiled to llvm
-  /// IR
-  ProjectIRDB(const std::vector<std::string> &Files,
-              std::vector<const char *> CompileArgs, enum IRDBOptions Opt);
+  /// Constructs a ProjecIRDB from a bunch of LLVM Modules
+  ProjectIRDB(std::vector<llvm::Module *> &Modules);
+
   ProjectIRDB(ProjectIRDB &&) = default;
   ProjectIRDB &operator=(ProjectIRDB &&) = delete;
 
@@ -105,7 +101,7 @@ public:
   bool containsSourceFile(const std::string &src);
   bool empty();
   llvm::LLVMContext *getLLVMContext(const std::string &ModuleName);
-  void insertModule(std::unique_ptr<llvm::Module> M);
+  void insertModule(llvm::Module *M);
   llvm::Module *getModule(const std::string &ModuleName);
   inline std::set<llvm::Module *> getAllModules() const {
     std::set<llvm::Module *> ModuleSet;
