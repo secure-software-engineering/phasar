@@ -33,8 +33,9 @@ std::vector<Predicate> PredicateConverter::formatConverter() {
   std::vector<Predicate> predicates;
   FactoryObject facObj(objCtx, specName);
   std::list<reqCtx *> reqList;
+  
   auto init = this->reqCtx->reqPred();
-
+  reqList.push_back(init);                                                 //need to check for correct initialization for this list to work
   for (auto reqPreds : reqList) { // this->reqCtx->reqPred())
     predicateObj.setFunctionName(reqPreds->reqPredLit()->pred()->name);
     reqList.insert(reqList.end(), init.begin(), init.end());
