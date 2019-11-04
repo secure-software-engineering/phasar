@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
@@ -29,28 +30,28 @@ InterMonoSolverTest::InterMonoSolverTest(LLVMBasedICFG &Icfg,
                        const llvm::Function *, LLVMBasedICFG &>(Icfg),
       EntryPoints(EntryPoints) {}
 
-MonoSet<const llvm::Value *>
-InterMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
-                          const MonoSet<const llvm::Value *> &Rhs) {
+BitVectorSet<const llvm::Value *>
+InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
+                          const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
-  MonoSet<const llvm::Value *> Result;
+  BitVectorSet<const llvm::Value *> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
   return Result;
 }
 
 bool InterMonoSolverTest::sqSubSetEqual(
-    const MonoSet<const llvm::Value *> &Lhs,
-    const MonoSet<const llvm::Value *> &Rhs) {
+    const BitVectorSet<const llvm::Value *> &Lhs,
+    const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::sqSubSetEqual()\n";
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<const llvm::Value *>
+BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
-                                const MonoSet<const llvm::Value *> &In) {
+                                const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
-  MonoSet<const llvm::Value *> Result;
+  BitVectorSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
   if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
@@ -58,12 +59,12 @@ InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
   return In;
 }
 
-MonoSet<const llvm::Value *>
+BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
                               const llvm::Function *Callee,
-                              const MonoSet<const llvm::Value *> &In) {
+                              const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
-  MonoSet<const llvm::Value *> Result;
+  BitVectorSet<const llvm::Value *> Result;
   Result.insert(In.begin(), In.end());
   if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
@@ -71,30 +72,30 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   return In;
 }
 
-MonoSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
+BitVectorSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
-    const MonoSet<const llvm::Value *> &In) {
+    const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::returnFlow()\n";
   return In;
 }
 
-MonoSet<const llvm::Value *>
+BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
                                    const llvm::Instruction *RetSite,
-                                   MonoSet<const llvm::Function *> Callees,
-                                   const MonoSet<const llvm::Value *> &In) {
+                                   BitVectorSet<const llvm::Function *> Callees,
+                                   const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
 
-MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
+unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
   const llvm::Function *main = ICFG.getMethod("main");
-  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
+  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>> Seeds;
   Seeds.insert(
-      make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));
+      make_pair(&main->front().front(), BitVectorSet<const llvm::Value *>()));
   return Seeds;
 }
 

@@ -16,6 +16,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 
@@ -29,34 +30,34 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                        std::pair<const llvm::Value *, unsigned>,
                        const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
 
-MonoSet<std::pair<const llvm::Value *, unsigned>>
+BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(
-    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
-  MonoSet<std::pair<const llvm::Value *, unsigned>> Result;
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
+  BitVectorSet<std::pair<const llvm::Value *, unsigned>> Result;
   set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
             inserter(Result, Result.begin()));
   return Result;
 }
 
 bool IntraMonoFullConstantPropagation::sqSubSetEqual(
-    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-    const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-MonoSet<std::pair<const llvm::Value *, unsigned>>
+BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::normalFlow(
     const llvm::Instruction *S,
-    const MonoSet<std::pair<const llvm::Value *, unsigned>> &In) {
-  return MonoSet<std::pair<const llvm::Value *, unsigned>>();
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &In) {
+  return BitVectorSet<std::pair<const llvm::Value *, unsigned>>();
 }
 
-MonoMap<const llvm::Instruction *,
-        MonoSet<std::pair<const llvm::Value *, unsigned>>>
+unordered_map<const llvm::Instruction *,
+        BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return MonoMap<const llvm::Instruction *,
-                 MonoSet<std::pair<const llvm::Value *, unsigned>>>();
+  return unordered_map<const llvm::Instruction *,
+                 BitVectorSet<std::pair<const llvm::Value *, unsigned>>>();
 }
 
 void IntraMonoFullConstantPropagation::printNode(

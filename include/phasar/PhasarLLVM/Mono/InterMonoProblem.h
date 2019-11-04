@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
 #include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -41,11 +42,11 @@ public:
 
   I getICFG() noexcept { return ICFG; }
 
-  virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> returnFlow(N CallSite, M Callee, N ExitStmt, N RetSite,
-                                const MonoSet<D> &In) = 0;
-  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite, MonoSet<M> Callees,
-                                   const MonoSet<D> &In) = 0;
+  virtual BitVectorSet<D> callFlow(N CallSite, M Callee, const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt, N RetSite,
+                                const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite, BitVectorSet<M> Callees,
+                                   const BitVectorSet<D> &In) = 0;
 };
 
 } // namespace psr

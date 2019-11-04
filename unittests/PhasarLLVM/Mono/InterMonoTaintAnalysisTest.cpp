@@ -71,10 +71,10 @@ protected:
 #pragma endregion
 
   int computeCounterResult(
-      MonoMap<const llvm::Instruction *,
-              MonoMap<CallStringCTX<const llvm::Value *,
+      unordered_map<const llvm::Instruction *,
+              unordered_map<CallStringCTX<const llvm::Value *,
                                     const llvm::Instruction *, 3>,
-                      MonoSet<const llvm::Value *>>> &Analysis,
+                      BitVectorSet<const llvm::Value *>>> &Analysis,
       ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
     const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
@@ -97,10 +97,10 @@ protected:
   }
 
   void
-  compareResults(MonoMap<const llvm::Instruction *,
-                         MonoMap<CallStringCTX<const llvm::Value *,
+  compareResults(unordered_map<const llvm::Instruction *,
+                         unordered_map<CallStringCTX<const llvm::Value *,
                                                const llvm::Instruction *, 3>,
-                                 MonoSet<const llvm::Value *>>> &Analysis,
+                                 BitVectorSet<const llvm::Value *>>> &Analysis,
                  set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
     set<string> FoundLeaks;
@@ -138,10 +138,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
       TaintProblem);
   TaintSolver.solve();
 
-  MonoMap<
+  unordered_map<
       const llvm::Instruction *,
-      MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
-              MonoSet<const llvm::Value *>>>
+      unordered_map<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
+              BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
@@ -163,10 +163,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
   TaintSolver.solve();
-  MonoMap<
+  unordered_map<
       const llvm::Instruction *,
-      MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
-              MonoSet<const llvm::Value *>>>
+      unordered_map<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
+              BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
@@ -188,10 +188,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
   TaintSolver.solve();
-  MonoMap<
+  unordered_map<
       const llvm::Instruction *,
-      MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
-              MonoSet<const llvm::Value *>>>
+      unordered_map<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
+              BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
@@ -214,10 +214,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
   TaintSolver.solve();
-  MonoMap<
+  unordered_map<
       const llvm::Instruction *,
-      MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
-              MonoSet<const llvm::Value *>>>
+      unordered_map<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
+              BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);
@@ -239,10 +239,10 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
   TaintSolver.solve();
-  MonoMap<
+  unordered_map<
       const llvm::Instruction *,
-      MonoMap<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
-              MonoSet<const llvm::Value *>>>
+      unordered_map<CallStringCTX<const llvm::Value *, const llvm::Instruction *, 3>,
+              BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
   int counter = computeCounterResult(Analysis, IRDB, InstNum);

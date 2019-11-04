@@ -22,11 +22,12 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <unordered_map>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -35,8 +36,8 @@ class InterMonoSolver {
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> Analysis;
-  MonoSet<M> AddedFunctions;
+  unordered_map<N, unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>> Analysis;
+  BitVectorSet<M> AddedFunctions;
   I ICFG;
 
   void initialize() {
@@ -80,7 +81,7 @@ protected:
     std::cout << "-----------------" << std::endl;
   }
 
-  void printMonoSet(const MonoSet<D> &S) {
+  void printBitVectorSet(const BitVectorSet<D> &S) {
     std::cout << "SET CONTENTS:\n{ ";
     for (auto Entry : S) {
       std::cout << llvmIRToString(Entry) << ", ";
@@ -159,7 +160,7 @@ public:
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
+  unordered_map<N, unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>> getAnalysis() {
     return Analysis;
   }
 
@@ -174,7 +175,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      MonoMap<CallStringCTX<D, N, K>, MonoSet<D>> Out;
+      unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>> Out;
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -257,8 +258,8 @@ public:
     }
   }
 
-  MonoSet<D> getResultsAt(N n) {
-    MonoSet<D> Result;
+  BitVectorSet<D> getResultsAt(N n) {
+    BitVectorSet<D> Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
       Result.insert(Facts.begin(), Facts.end());
     }
