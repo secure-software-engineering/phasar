@@ -27,7 +27,7 @@
 #include <boost/graph/graphviz.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/LLVMShorthands.h>

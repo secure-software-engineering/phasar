@@ -216,7 +216,7 @@ endif()
 
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
-  set(PHASAR_PLUGINS_LIB )
+  set(PHASAR_PLUGINS_LIB)
   message(WARNING "Plugins are currently not supported on MacOS platforms")
 else()
   set(PHASAR_PLUGINS_LIB phasar_plugins)

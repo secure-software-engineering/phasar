@@ -45,7 +45,7 @@ using namespace std;
 
 namespace psr {
 
-using json = LLVMTypeHierarchy::json;
+using json = nlohmann::json;
 
 LLVMTypeHierarchy::VertexProperties::VertexProperties(llvm::StructType *Type,
                                                       std::string TypeName)

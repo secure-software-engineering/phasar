@@ -51,10 +51,6 @@ class ProjectIRDB;
  */
 class LLVMTypeHierarchy {
 public:
-  /// necessary for storing/loading the LLVMTypeHierarchy to/from database
-  // friend class DBConn;
-  using json = nlohmann::json;
-
   struct VertexProperties {
     VertexProperties() = default;
     VertexProperties(llvm::StructType *Type, std::string TypeName);
@@ -104,13 +100,6 @@ protected:
   void pruneTypeHierarchyWithVtable(const llvm::Function *constructor);
 
 public:
-  /**
-   * 	@brief Creates an empty LLVMStructTypeHierarchy.
-   *
-   * 	Is used, when re-storing type hierarchy from database.
-   */
-  LLVMTypeHierarchy() = default;
-
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
    *         given ProjectIRCompiledDB.
@@ -232,28 +221,6 @@ public:
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
-
-  // these are defined in the DBConn class
-  /**
-   * 	@brief %LLVMStructTypeHierarchy store operator.
-   * 	@param db SQLite3 database to store the class hierarchy in.
-   * 	@param STH %LLVMStructTypeHierarchy object that is stored.
-   *
-   * 	By storing the class hierarchy in the database, a repeated
-   * 	reconstruction of the class hierarchy graph as well as the
-   * 	VTables from the corresponding LLVM module(s) is unnecessary.
-   *
-   * 	To store the class hierarchy graph itself, a %Hexastore data
-   * 	structure is used.
-   */
-  // friend void operator<<(DBConn& db, const LLVMTypeHierarchy& STH);
-
-  /**
-   * 	@brief %LLVMStructTypeHierarchy load operator.
-   * 	@param db SQLite3 database the class hierarchy is stored in.
-   * 	@param STH %LLVMStructTypeHierarchy object that is restored.
-   */
-  // friend void operator>>(DBConn& db, LLVMTypeHierarchy& STH);
 };
 
 } // namespace psr

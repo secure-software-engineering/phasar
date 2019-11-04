@@ -12,7 +12,7 @@ function(add_phasar_unittest test_name)
   endif()
   # Workaround: Remove Plugins for MacOS for now
   if(APPLE)
-    set(PHASAR_PLUGINS_LIB )
+    set(PHASAR_PLUGINS_LIB)
   else()
     set(PHASAR_PLUGINS_LIB phasar_plugins)
   endif()
@@ -29,6 +29,7 @@ function(add_phasar_unittest test_name)
     phasar_passes
     ${PHASAR_PLUGINS_LIB}
     phasar_pointer
+    phasar_typehierarchy
     phasar_phasarllvm_utils
     phasar_utils
     boost_program_options

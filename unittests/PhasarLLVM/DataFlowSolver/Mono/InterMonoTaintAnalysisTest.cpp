@@ -2,11 +2,11 @@
 #include <llvm/Support/raw_ostream.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Mono/CallString.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 

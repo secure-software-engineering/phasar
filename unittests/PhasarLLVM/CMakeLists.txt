@@ -1,6 +1,5 @@
 add_subdirectory(ControlFlow)
-add_subdirectory(IfdsIde)
-add_subdirectory(Mono)
+add_subdirectory(DataFlowSolver)
 add_subdirectory(Utils)
 add_subdirectory(WPDS)
 # add_subdirectory(Passes)

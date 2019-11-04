@@ -37,6 +37,7 @@ private:
   std::unique_ptr<typename Setup::PointerAnalysisTy> PointerInfo;
   // ProblemDescription ProblemDesc;
   // Solver DataFlowSolver;
+  std::vector<std::string> EntryPoints;
 
 public:
   WholeProgramAnalysis(ProjectIRDB &IRDB,
@@ -44,7 +45,7 @@ public:
                        typename Setup::PointerAnalysisTy *PointerInfo = nullptr,
                        typename Setup::CallGraphAnalysisTy *CallGraph = nullptr,
                        typename Setup::TypeHierarchyTy *TypeHierarchy = nullptr)
-      : IRDB(IRDB) {}
+      : IRDB(IRDB), EntryPoints(EntryPoints) {}
   // : IRDB(IRDB),
   //   PointerInfo((PointerInfo == nullptr
   //                    ? std::make_unique<typename Setup::PointerAnalysisTy>()
