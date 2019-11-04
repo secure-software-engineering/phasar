@@ -20,9 +20,9 @@
 #include <memory>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 namespace psr {
 

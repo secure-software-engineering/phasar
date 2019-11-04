@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
 using namespace psr;
 using namespace std;
 

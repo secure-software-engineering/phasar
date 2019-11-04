@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
-#include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
 namespace psr {
 

@@ -17,7 +17,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
 
 using namespace std;
 using namespace psr;

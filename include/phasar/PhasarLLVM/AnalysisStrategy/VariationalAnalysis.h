@@ -13,7 +13,7 @@
 #include <type_traits>
 
 #include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
-#include <phasar/PhasarLLVM/Mono/Solver/IntraMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
 
 namespace psr {
 

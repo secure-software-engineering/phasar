@@ -23,7 +23,7 @@
 #include <vector>
 
 #include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
 namespace psr {
 

@@ -18,9 +18,9 @@
 #include <type_traits>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 
 namespace llvm {
 class Instruction;

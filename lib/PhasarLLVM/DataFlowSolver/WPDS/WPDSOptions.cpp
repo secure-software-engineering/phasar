@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
 
 using namespace std;
 using namespace psr;

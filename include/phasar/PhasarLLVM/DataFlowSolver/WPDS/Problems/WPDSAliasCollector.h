@@ -14,8 +14,8 @@
 
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/LLVMDefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Instruction;

@@ -13,10 +13,10 @@
 #include <boost/filesystem.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonoProblemPlugin.h>

@@ -11,8 +11,8 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/SyncPDS/Solver/SyncPDSSolver.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/SyncPDS/Solver/SyncPDSSolver.h>
 #include <phasar/Utils/Logger.h>
 
 #include <llvm/Support/raw_ostream.h>

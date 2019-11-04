@@ -11,8 +11,8 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Value.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 

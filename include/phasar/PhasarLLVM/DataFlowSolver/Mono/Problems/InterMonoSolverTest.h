@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 
 namespace llvm {
 class Instruction;

@@ -7,4 +7,4 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/WPDS/WPDSGenKillProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSGenKillProblem.h>

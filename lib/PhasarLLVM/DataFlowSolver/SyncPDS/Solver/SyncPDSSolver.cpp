@@ -9,8 +9,8 @@
 
 // #include <phasar/PhasarLLVM/SPDS/Solver/SyncPDSSolver.h>
 // #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-// #include <phasar/PhasarLLVM/WPDS/Solver/LLVMWPDSSolver.h>
-// #include <phasar/PhasarLLVM/WPDS/Problems/WPDSAliasCollector.h>
+// #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/LLVMWPDSSolver.h>
+// #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h>
 // #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 
 // namespace psr {

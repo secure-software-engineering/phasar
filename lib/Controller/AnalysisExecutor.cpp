@@ -16,9 +16,9 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h>
-#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
 
 using namespace std;
 

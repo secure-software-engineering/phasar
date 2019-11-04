@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 namespace llvm {

@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
 
 namespace psr {
 

@@ -11,11 +11,11 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
-#include <phasar/PhasarLLVM/WPDS/Solver/LLVMWPDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/LLVMWPDSSolver.h>
 #include <phasar/Utils/Logger.h>
 
 #include <llvm/Support/raw_ostream.h>

@@ -12,9 +12,9 @@
 
 #include <gtest/gtest_prod.h>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 
 namespace psr {
 

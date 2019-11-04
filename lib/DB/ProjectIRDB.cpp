@@ -30,7 +30,7 @@
 #include <boost/filesystem.hpp>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/Utils/EnumFlags.h>

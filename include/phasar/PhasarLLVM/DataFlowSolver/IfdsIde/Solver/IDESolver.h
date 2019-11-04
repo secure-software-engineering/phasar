@@ -34,19 +34,19 @@
 
 #include <llvm/Support/raw_ostream.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowEdgeFunctionCache.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/JoinHandlingNode.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/JumpFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LinkedNode.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
-#include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionCache.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JoinHandlingNode.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LinkedNode.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>
 
 #include <phasar/Utils/LLVMShorthands.h>

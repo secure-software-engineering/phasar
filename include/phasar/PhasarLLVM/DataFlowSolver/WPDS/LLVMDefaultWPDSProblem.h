@@ -12,7 +12,7 @@
 
 #include <vector>
 
-#include <phasar/PhasarLLVM/WPDS/DefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/DefaultWPDSProblem.h>
 
 namespace llvm {
 class Instruction;

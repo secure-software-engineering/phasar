@@ -8,7 +8,7 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 
 using namespace std;
 using namespace psr;

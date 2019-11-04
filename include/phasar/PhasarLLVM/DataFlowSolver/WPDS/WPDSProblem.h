@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 #define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
 
 namespace psr {
 

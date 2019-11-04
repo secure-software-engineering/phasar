@@ -16,8 +16,8 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;

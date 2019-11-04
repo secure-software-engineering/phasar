@@ -11,7 +11,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
 
 #include <functional>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <set>
 
 namespace psr {

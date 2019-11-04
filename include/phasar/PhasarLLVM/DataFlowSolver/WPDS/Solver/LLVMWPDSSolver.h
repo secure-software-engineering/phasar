@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_SOLVER_LLVMWPDSSOLVER_H_
 #define PHASAR_PHASARLLVM_WPDS_SOLVER_LLVMWPDSSOLVER_H_
 
-#include <phasar/PhasarLLVM/WPDS/Solver/WPDSSolver.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
 
 namespace llvm {
 class Instruction;

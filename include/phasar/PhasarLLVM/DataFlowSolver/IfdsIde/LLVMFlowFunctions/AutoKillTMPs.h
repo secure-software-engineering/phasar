@@ -13,7 +13,7 @@
 #include <memory>
 #include <set>
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 
 #include <llvm/IR/Instructions.h>
 

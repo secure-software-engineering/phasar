@@ -6,6 +6,7 @@ set(PHASAR_LINK_LIBS
   phasar_plugins
   phasar_db
   phasar_pointer
+  phasar_typehierarchy
   phasar_controlflow
   phasar_phasarllvm_utils
   phasar_utils

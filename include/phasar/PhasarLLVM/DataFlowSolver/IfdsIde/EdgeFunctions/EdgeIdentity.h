@@ -19,11 +19,11 @@
 
 #include <iostream>
 #include <memory>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllTop.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h>
 
 namespace psr {
 

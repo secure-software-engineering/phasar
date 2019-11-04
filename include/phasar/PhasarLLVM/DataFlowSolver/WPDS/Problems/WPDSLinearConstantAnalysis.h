@@ -13,9 +13,9 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/WPDS/LLVMDefaultWPDSProblem.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/LLVMDefaultWPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Value;

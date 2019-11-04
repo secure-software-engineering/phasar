@@ -22,7 +22,7 @@
 #include <ostream>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/Utils/Macros.h>
 
 namespace psr {

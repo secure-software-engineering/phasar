@@ -20,7 +20,7 @@
 #include <memory>
 #include <set>
 
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 
 namespace psr {

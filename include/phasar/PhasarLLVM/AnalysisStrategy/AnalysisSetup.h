@@ -11,8 +11,8 @@
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_ANALYSISSETUP_H_
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 
 namespace psr {
 

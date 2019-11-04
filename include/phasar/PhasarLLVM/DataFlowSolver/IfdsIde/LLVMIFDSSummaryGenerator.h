@@ -24,10 +24,10 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
 
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSummaryGenerator.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSummaryGenerator.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {

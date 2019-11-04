@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_PROPAGATESTORE_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_PROPAGATESTORE_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 
 #include <llvm/IR/Instructions.h>
 

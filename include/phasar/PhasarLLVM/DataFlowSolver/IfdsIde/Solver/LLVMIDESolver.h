@@ -26,8 +26,8 @@
 #include <llvm/Support/Casting.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 
 using json = nlohmann::json;
 

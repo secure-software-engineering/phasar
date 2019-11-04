@@ -14,7 +14,7 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
 

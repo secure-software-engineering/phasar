@@ -15,9 +15,9 @@
 
 #include <wali/SemElem.hpp>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
 
 namespace psr {
 /**

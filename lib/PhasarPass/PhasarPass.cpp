@@ -17,29 +17,29 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSTypeAnalysis.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMInterMonoSolver.h>
-#include <phasar/PhasarLLVM/Mono/Solver/LLVMIntraMonoSolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
 #include <phasar/PhasarPass/Options.h>
 #include <phasar/PhasarPass/PhasarPass.h>
 #include <phasar/Utils/EnumFlags.h>
@@ -58,7 +58,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   Opt |= IRDBOptions::WPA;
   Opt |= IRDBOptions::OWNSNOT;
   ProjectIRDB DB(Opt);
-  DB.insertModule(std::unique_ptr<llvm::Module>(&M));
+  DB.insertModule(&M);
   DB.preprocessIR();
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {

@@ -15,7 +15,7 @@
 
 #include <llvm/IR/CallSite.h> // llvm::ImmutableCallSite
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 
 namespace llvm {
 class Function;

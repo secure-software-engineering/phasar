@@ -22,8 +22,8 @@
 
 #include <llvm/IR/Instruction.h>
 
-#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/Mono/Solver/InterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
 
 namespace psr {
 

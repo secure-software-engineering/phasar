@@ -19,8 +19,8 @@
 
 #include <memory>
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 
 namespace psr {
 

@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_DEFAULTIDETABULATIONPROBLEM_H_
 
-#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 
 namespace psr {
 

@@ -21,9 +21,9 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
-#include <phasar/PhasarLLVM/IfdsIde/SolverConfiguration.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SolverConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
 
 namespace psr {

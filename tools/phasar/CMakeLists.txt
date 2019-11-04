@@ -69,6 +69,7 @@ target_link_libraries(phasar
 
   ${PHASAR_PLUGINS_LIB}
   phasar_pointer
+  phasar_typehierarchy
   boost_program_options
   boost_filesystem
   boost_graph
@@ -105,6 +106,7 @@ target_link_libraries(myphasartool
   phasar_passes
   ${PHASAR_PLUGINS_LIB}
   phasar_pointer
+  phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
   boost_program_options
@@ -134,6 +136,7 @@ target_link_libraries(wpdstest
   phasar_passes
   ${PHASAR_PLUGINS_LIB}
   phasar_pointer
+  phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
   boost_program_options
@@ -164,6 +167,7 @@ target_link_libraries(syncpdstest
   wali
   phasar_passes
   phasar_pointer
+  phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
   boost_program_options
@@ -192,6 +196,7 @@ target_link_libraries(boomerangtest
   wali
   phasar_passes
   phasar_pointer
+  phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
   boost_program_options
@@ -220,6 +225,7 @@ target_link_libraries(phasarae
   wali
   phasar_passes
   phasar_pointer
+  phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
   boost_program_options

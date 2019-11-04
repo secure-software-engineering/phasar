@@ -24,9 +24,9 @@
 #include <json.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h>
 #include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 

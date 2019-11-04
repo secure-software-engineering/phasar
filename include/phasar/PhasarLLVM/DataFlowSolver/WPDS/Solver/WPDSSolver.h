@@ -32,12 +32,12 @@
 #include <wali/wpds/fwpds/FWPDS.hpp>
 #include <wali/wpds/fwpds/SWPDS.hpp>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
-#include <phasar/PhasarLLVM/WPDS/JoinLatticeToSemiRingElem.h>
-#include <phasar/PhasarLLVM/WPDS/WPDSProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Table.h>

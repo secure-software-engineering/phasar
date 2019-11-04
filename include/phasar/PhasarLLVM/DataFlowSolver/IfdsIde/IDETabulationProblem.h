@@ -20,9 +20,9 @@
 #include <memory>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions.h>
-#include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/IfdsIde/JoinLattice.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
 
 namespace psr {
 

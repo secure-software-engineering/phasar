@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;

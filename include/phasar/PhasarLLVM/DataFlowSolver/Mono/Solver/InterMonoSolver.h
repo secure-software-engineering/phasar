@@ -24,8 +24,8 @@
 #include <vector>
 
 #include <phasar/Config/ContainerConfiguration.h>
-#include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
-#include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {

@@ -20,7 +20,7 @@
 #include <string>
 #include <utility> // std::pair
 
-#include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
 namespace llvm {
 class Value;

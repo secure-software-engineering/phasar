@@ -18,8 +18,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_LLVMDEFAULTIDETABULATIONPROBLEM_H_
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/IfdsIde/DefaultIDETabulationProblem.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 namespace psr {
 

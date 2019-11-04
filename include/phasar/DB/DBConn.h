@@ -26,7 +26,7 @@
 #include <llvm/IR/Module.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 // If ProjectIRDB is no more returned, forward declare it and remove this
