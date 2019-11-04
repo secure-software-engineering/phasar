@@ -1,5 +1,5 @@
 /******************************************************************************
- * Copyright (c) 2017 Philipp Schubert.
+ * Copyright (c) 2019 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
@@ -7,23 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * ICFG.cpp
- *
- *  Created on: 17.08.2016
- *      Author: pdschbrt
- */
-
-#include <iostream>
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-
-using namespace psr;
-using namespace std;
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 namespace psr {
-
-ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
-  return os << wise_enum::to_string(CGA);
-}
-
+LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {}
 } // namespace psr

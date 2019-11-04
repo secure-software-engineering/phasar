@@ -23,11 +23,12 @@ using namespace psr;
 
 namespace psr {
 
-InterMonoSolverTest::InterMonoSolverTest(LLVMBasedICFG &Icfg,
-                                         vector<string> EntryPoints)
+InterMonoSolverTest::InterMonoSolverTest(
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
+    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
     : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                       const llvm::Function *, LLVMBasedICFG &>(Icfg),
-      EntryPoints(EntryPoints) {}
+                       const llvm::Function *, LLVMBasedICFG>(IRDB, TH, ICF, PT,
+                                                              EntryPoints) {}
 
 MonoSet<const llvm::Value *>
 InterMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
@@ -91,7 +92,7 @@ InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICFG.getMethod("main");
+  const llvm::Function *main = ICF->getMethod("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
   Seeds.insert(
       make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));

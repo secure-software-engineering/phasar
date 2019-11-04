@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H_
 
 #include <string>
+#include <initializer_list>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
@@ -33,9 +34,11 @@ class LLVMBasedCFG;
 
 class IntraMonoSolverTest
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedCFG &> {
+                              const llvm::Function *, LLVMBasedCFG> {
 public:
-  IntraMonoSolverTest(LLVMBasedCFG &Cfg, const llvm::Function *F);
+  IntraMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                      const LLVMBasedCFG *CF, const PointsToInfo *PT,
+                      std::initializer_list<std::string> EntryPoints = {});
   ~IntraMonoSolverTest() override = default;
 
   MonoSet<const llvm::Value *>

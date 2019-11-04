@@ -17,8 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 
+#include <initializer_list>
 #include <string>
-#include <utility> // std::pair
+#include <utility>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
@@ -35,9 +36,12 @@ class LLVMBasedCFG;
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<const llvm::Instruction *,
                               std::pair<const llvm::Value *, unsigned>,
-                              const llvm::Function *, LLVMBasedCFG &> {
+                              const llvm::Function *, LLVMBasedCFG> {
 public:
-  IntraMonoFullConstantPropagation(LLVMBasedCFG &Cfg, const llvm::Function *F);
+  IntraMonoFullConstantPropagation(
+      const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
+      const PointsToInfo *PT,
+      std::initializer_list<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 
   MonoSet<std::pair<const llvm::Value *, unsigned>>

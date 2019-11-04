@@ -17,7 +17,6 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
 
 namespace psr {
 
@@ -29,40 +28,48 @@ class WholeProgramAnalysis {
       "Problem description does not match solver type!");
   static_assert(std::is_base_of_v<psr::AnalysisSetup, Setup>,
                 "Setup is not a valid analysis setup!");
-
 private:
+  using TypeHierarchyTy = typename Setup::TypeHierarchyTy;
+  using PointerAnalysisTy = typename Setup::PointerAnalysisTy;
+  using CallGraphAnalysisTy = typename Setup::CallGraphAnalysisTy;
+
   ProjectIRDB &IRDB;
-  std::unique_ptr<typename Setup::TypeHierarchyTy> TypeHierarchy;
-  std::unique_ptr<typename Setup::CallGraphAnalysisTy> CallGraph;
-  std::unique_ptr<typename Setup::PointerAnalysisTy> PointerInfo;
-  // ProblemDescription ProblemDesc;
-  // Solver DataFlowSolver;
+  std::unique_ptr<TypeHierarchyTy> TypeHierarchy;
+  std::unique_ptr<PointerAnalysisTy> PointerInfo;
+  std::unique_ptr<CallGraphAnalysisTy> CallGraph;
+  ProblemDescription ProblemDesc;
+  Solver DataFlowSolver;
   std::vector<std::string> EntryPoints;
 
 public:
   WholeProgramAnalysis(ProjectIRDB &IRDB,
                        std::initializer_list<std::string> EntryPoints = {},
-                       typename Setup::PointerAnalysisTy *PointerInfo = nullptr,
-                       typename Setup::CallGraphAnalysisTy *CallGraph = nullptr,
-                       typename Setup::TypeHierarchyTy *TypeHierarchy = nullptr)
-      : IRDB(IRDB), EntryPoints(EntryPoints) {}
-  // : IRDB(IRDB),
-  //   PointerInfo((PointerInfo == nullptr
-  //                    ? std::make_unique<typename Setup::PointerAnalysisTy>()
-  //                    : PointerInfo)),
-  //   TypeHierarchy(TypeHierarchy == nullptr
-  //                     ? std::make_unique<typename
-  //                     Setup::TypeHierarchyTy>(IRDB) : TypeHierarchy),
-  //   CallGraph(CallGraph == nullptr
-  //                 ? std::make_unique<typename
-  //                 Setup::CallGraphAnalysisTy>(TypeHierarchy, IRDB) :
-  //                 CallGraph) {}
-  // ProblemDesc()
-  //, DataFlowSolver(ProblemDesc)
-  // {}
+                       PointerAnalysisTy *PointerInfo = nullptr,
+                       CallGraphAnalysisTy *CallGraph = nullptr,
+                       TypeHierarchyTy *TypeHierarchy = nullptr)
+      : IRDB(IRDB),
+        TypeHierarchy(
+            TypeHierarchy == nullptr
+                ? std::make_unique<TypeHierarchyTy>(IRDB)
+                : std::unique_ptr<TypeHierarchyTy>(
+                      TypeHierarchy)),
+        PointerInfo(
+            PointerInfo == nullptr
+                ? std::make_unique<PointerAnalysisTy>(IRDB)
+                : std::unique_ptr<PointerAnalysisTy>(
+                      PointerInfo)),
+        CallGraph(CallGraph == nullptr
+                      ? std::make_unique<CallGraphAnalysisTy>(
+                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
+                            EntryPoints)
+                      : std::unique_ptr<CallGraphAnalysisTy>(
+                            CallGraph)),
+        ProblemDesc(*CallGraph),
+        DataFlowSolver(ProblemDesc),
+        EntryPoints(EntryPoints) {}
 
   void solve() {
-    // DataFlowSolver.solve();
+    DataFlowSolver.solve();
   }
 
   void operator()() { solve(); }
@@ -73,7 +80,7 @@ public:
 
   void emitGraphicalReport() {}
 
-  void releaseAllHelperAnalysis() {
+  void releaseAllHelperAnalyses() {
     releasePointerInformation();
     releaseCallGraph();
     releaseTypeHierarchy();

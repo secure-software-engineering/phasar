@@ -39,25 +39,29 @@ template <typename N, typename M> class ICFG : public virtual CFG<N, M> {
 public:
   ~ICFG() override = default;
 
-  virtual bool isCallStmt(N stmt) = 0;
+  virtual M getMethod(const std::string &fun) const = 0;
 
-  virtual M getMethod(const std::string &fun) = 0;
+  virtual bool isCallStmt(N stmt) const = 0;
 
-  virtual std::set<N> allNonCallStartNodes() = 0;
+  virtual bool isIndirectFunctionCall(N stmt) const = 0;
 
-  virtual std::set<M> getCalleesOfCallAt(N stmt) = 0;
+  virtual bool isVirtualFunctionCall(N stmt) const = 0;
 
-  virtual std::set<N> getCallersOf(M fun) = 0;
+  virtual std::set<N> allNonCallStartNodes() const = 0;
 
-  virtual std::set<N> getCallsFromWithin(M fun) = 0;
+  virtual std::set<M> getCalleesOfCallAt(N stmt) const = 0;
 
-  virtual std::set<N> getStartPointsOf(M fun) = 0;
+  virtual std::set<N> getCallersOf(M fun) const = 0;
 
-  virtual std::set<N> getExitPointsOf(M fun) = 0;
+  virtual std::set<N> getCallsFromWithin(M fun) const = 0;
 
-  virtual std::set<N> getReturnSitesOfCallAt(N stmt) = 0;
+  virtual std::set<N> getStartPointsOf(M fun) const = 0;
 
-  virtual json getAsJson() = 0;
+  virtual std::set<N> getExitPointsOf(M fun) const = 0;
+
+  virtual std::set<N> getReturnSitesOfCallAt(N stmt) const = 0;
+
+  virtual json getAsJson() const = 0;
 };
 
 } // namespace psr

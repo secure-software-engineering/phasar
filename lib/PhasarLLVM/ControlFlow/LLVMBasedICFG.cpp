@@ -42,8 +42,8 @@
 #include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace psr;
 using namespace std;
@@ -222,7 +222,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                         << "  " << llvmIRToString(cs.getInstruction()));
           // call the resolve routine
           set<string> possible_target_names;
-          if (isVirtualFunctionCall(cs)) {
+          if (isVirtualFunctionCall(cs.getInstruction())) {
             possible_target_names = resolver->resolveVirtualCall(cs);
           } else {
             possible_target_names = resolver->resolveFunctionPointer(cs);
@@ -268,7 +268,14 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   }
 }
 
-bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
+bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *n) const {
+  llvm::ImmutableCallSite CS(n);
+  return CS.isIndirectCall();
+}
+
+bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
+  llvm::ImmutableCallSite CS(n);
+  if (!CS.isCall()) { return false; }
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *V = CS.getArgOperand(0);
     if (V->getType()->isPointerTy() &&
@@ -300,7 +307,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
   return false;
 }
 
-const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) {
+const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) const {
   return IRDB.getFunction(fun);
 }
 
@@ -312,7 +319,7 @@ set<const llvm::Function *> LLVMBasedICFG::getAllMethods() {
  * Returns all callee methods for a given call that might be called.
  */
 set<const llvm::Function *>
-LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
+LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   auto &lg = lg::get();
   if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
     llvm::ImmutableCallSite CS(n);
@@ -350,7 +357,7 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
  * Returns all caller statements/nodes of a given method.
  */
 set<const llvm::Instruction *>
-LLVMBasedICFG::getCallersOf(const llvm::Function *m) {
+LLVMBasedICFG::getCallersOf(const llvm::Function *m) const {
   set<const llvm::Instruction *> CallersOf;
   in_edge_iterator ei, ei_end;
   for (boost::tie(ei, ei_end) =
@@ -368,7 +375,7 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *m) {
  * Returns all call sites within a given method.
  */
 set<const llvm::Instruction *>
-LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) {
+LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) const {
   set<const llvm::Instruction *> CallSites;
   for (llvm::const_inst_iterator I = llvm::inst_begin(f), E = llvm::inst_end(f);
        I != E; ++I) {
@@ -384,7 +391,7 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) {
  * more than one start point in case of a backward analysis.
  */
 set<const llvm::Instruction *>
-LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
+LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) const {
   if (!m) {
     return {};
   }
@@ -402,7 +409,7 @@ LLVMBasedICFG::getStartPointsOf(const llvm::Function *m) {
 }
 
 set<const llvm::Instruction *>
-LLVMBasedICFG::getExitPointsOf(const llvm::Function *fun) {
+LLVMBasedICFG::getExitPointsOf(const llvm::Function *fun) const {
   if (!fun->isDeclaration()) {
     return {&fun->back().back()};
   } else {
@@ -421,7 +428,7 @@ LLVMBasedICFG::getExitPointsOf(const llvm::Function *fun) {
  * there can be many in case of exceptional flow.
  */
 set<const llvm::Instruction *>
-LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
+LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) const {
   set<const llvm::Instruction *> ReturnSites;
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
     ReturnSites.insert(Call->getNextNode());
@@ -433,14 +440,15 @@ LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
   return ReturnSites;
 }
 
-bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *stmt) {
-  return llvm::isa<llvm::CallInst>(stmt) || llvm::isa<llvm::InvokeInst>(stmt);
+bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *stmt) const {
+  llvm::ImmutableCallSite CS(stmt);
+  return CS.isCall();
 }
 
 /**
  * Returns the set of all nodes that are neither call nor start nodes.
  */
-set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() {
+set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
   set<const llvm::Instruction *> NonCallStartNodes;
   for (auto M : IRDB.getAllModules()) {
     for (auto &F : *M) {
@@ -566,7 +574,7 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
           &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
 }
 
-json LLVMBasedICFG::getAsJson() {
+json LLVMBasedICFG::getAsJson() const {
   json J;
   vertex_iterator vi_v, vi_v_end;
   out_edge_iterator ei, ei_end;

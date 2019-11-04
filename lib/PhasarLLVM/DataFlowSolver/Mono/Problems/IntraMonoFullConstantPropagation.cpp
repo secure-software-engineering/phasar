@@ -24,10 +24,12 @@ using namespace psr;
 namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
-    LLVMBasedCFG &Cfg, const llvm::Function *F)
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
+    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
     : IntraMonoProblem<const llvm::Instruction *,
                        std::pair<const llvm::Value *, unsigned>,
-                       const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
+                       const llvm::Function *, LLVMBasedCFG>(IRDB, TH, CF, PT,
+                                                             EntryPoints) {}
 
 MonoSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(

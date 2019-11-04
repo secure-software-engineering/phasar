@@ -121,31 +121,33 @@ public:
 
   std::set<const llvm::Function *> getAllMethods();
 
-  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
+  bool isIndirectFunctionCall(const llvm::Instruction *n) const override;
 
-  const llvm::Function *getMethod(const std::string &fun) override;
+  bool isVirtualFunctionCall(const llvm::Instruction *n) const override;
+
+  const llvm::Function *getMethod(const std::string &fun) const override;
 
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *n) override;
+  getCalleesOfCallAt(const llvm::Instruction *n) const override;
 
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *m) override;
+  getCallersOf(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *m) override;
+  getCallsFromWithin(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) override;
+  getStartPointsOf(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) override;
+  getExitPointsOf(const llvm::Function *fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *n) override;
+  getReturnSitesOfCallAt(const llvm::Instruction *n) const override;
 
-  bool isCallStmt(const llvm::Instruction *stmt) override;
+  bool isCallStmt(const llvm::Instruction *stmt) const override;
 
-  std::set<const llvm::Instruction *> allNonCallStartNodes() override;
+  std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
   const llvm::Instruction *getLastInstructionOf(const std::string &name);
 
@@ -162,7 +164,7 @@ public:
 
   void printInternalPTGAsDot(const std::string &filename);
 
-  json getAsJson() override;
+  json getAsJson() const override;
 
   unsigned getNumOfVertices();
 

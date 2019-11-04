@@ -30,10 +30,12 @@ using namespace psr;
 
 namespace psr {
 
-IntraMonoSolverTest::IntraMonoSolverTest(LLVMBasedCFG &Cfg,
-                                         const llvm::Function *F)
+IntraMonoSolverTest::IntraMonoSolverTest(
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
+    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
     : IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                       const llvm::Function *, LLVMBasedCFG &>(Cfg, F) {}
+                       const llvm::Function *, LLVMBasedCFG>(IRDB, TH, CF, PT,
+                                                               EntryPoints) {}
 
 MonoSet<const llvm::Value *>
 IntraMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,

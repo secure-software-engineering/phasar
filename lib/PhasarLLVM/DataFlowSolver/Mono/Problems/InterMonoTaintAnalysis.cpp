@@ -26,11 +26,13 @@ using namespace psr;
 
 namespace psr {
 
-InterMonoTaintAnalysis::InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
-                                               vector<string> EntryPoints)
+InterMonoTaintAnalysis::InterMonoTaintAnalysis(
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
+    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
     : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                       const llvm::Function *, LLVMBasedICFG &>(Icfg),
-      TSF(), EntryPoints(EntryPoints) {}
+                       const llvm::Function *, LLVMBasedICFG>(IRDB, TH, ICF, PT,
+                                                              EntryPoints),
+      TSF() {}
 
 MonoSet<const llvm::Value *>
 InterMonoTaintAnalysis::join(const MonoSet<const llvm::Value *> &Lhs,
@@ -194,7 +196,7 @@ InterMonoTaintAnalysis::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::initialSeeds()");
   // cout << "InterMonoTaintAnalysis::initialSeeds()\n";
-  const llvm::Function *main = ICFG.getMethod("main");
+  const llvm::Function *main = ICF->getMethod("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
   MonoSet<const llvm::Value *> Facts;
   for (unsigned idx = 0; idx < main->arg_size(); ++idx) {

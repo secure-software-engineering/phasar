@@ -17,10 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 
+#include <initializer_list>
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
@@ -37,15 +37,15 @@ class LLVMBasedICFG;
 
 class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG &> {
+                              const llvm::Function *, LLVMBasedICFG> {
 private:
   TaintConfiguration<const llvm::Value *> TSF;
-  std::vector<std::string> EntryPoints;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 
 public:
-  InterMonoTaintAnalysis(LLVMBasedICFG &Icfg,
-                         std::vector<std::string> EntryPoints = {"main"});
+  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                         const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                         std::initializer_list<std::string> EntryPoints = {});
   ~InterMonoTaintAnalysis() override = default;
 
   MonoSet<const llvm::Value *>

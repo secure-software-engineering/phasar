@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <initializer_list>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 
@@ -34,13 +35,11 @@ class LLVMBasedICFG;
 
 class InterMonoSolverTest
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG &> {
-protected:
-  std::vector<std::string> EntryPoints;
-
+                              const llvm::Function *, LLVMBasedICFG> {
 public:
-  InterMonoSolverTest(LLVMBasedICFG &Icfg,
-                      std::vector<std::string> EntryPoints = {"main"});
+  InterMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                      const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                      std::initializer_list<std::string> EntryPoints = {});
   ~InterMonoSolverTest() override = default;
 
   MonoSet<const llvm::Value *>

@@ -26,12 +26,12 @@ using namespace psr;
 
 namespace psr {
 
-const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) {
+const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) const {
   return stmt->getFunction();
 }
 
 vector<const llvm::Instruction *>
-LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) {
+LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   vector<const llvm::Instruction *> Preds;
   if (I->getPrevNode()) {
     Preds.push_back(I->getPrevNode());
@@ -55,7 +55,7 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) {
 }
 
 vector<const llvm::Instruction *>
-LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) {
+LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
   vector<const llvm::Instruction *> Successors;
   if (I->getNextNode()) {
     Successors.push_back(I->getNextNode());
@@ -69,7 +69,7 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) {
 }
 
 vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
-LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *fun) {
+LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
   for (auto &BB : *fun) {
     for (auto &I : BB) {
@@ -83,7 +83,7 @@ LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *fun) {
 }
 
 vector<const llvm::Instruction *>
-LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *fun) {
+LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *fun) const {
   vector<const llvm::Instruction *> Instructions;
   for (auto &BB : *fun) {
     for (auto &I : BB) {
@@ -93,15 +93,15 @@ LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *fun) {
   return Instructions;
 }
 
-bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *stmt) {
+bool LLVMBasedCFG::isExitStmt(const llvm::Instruction *stmt) const {
   return llvm::isa<llvm::ReturnInst>(stmt);
 }
 
-bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *stmt) {
+bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *stmt) const {
   return (stmt == &stmt->getFunction()->front().front());
 }
 
-bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *stmt) {
+bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *stmt) const {
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(stmt)) {
     if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Load->getPointerOperand())) {
@@ -111,7 +111,7 @@ bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *stmt) {
   return false;
 }
 
-bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) {
+bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) const {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(stmt)) {
     if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Store->getPointerOperand())) {
@@ -122,7 +122,7 @@ bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *stmt) {
 }
 
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
-                                          const llvm::Instruction *succ) {
+                                          const llvm::Instruction *succ) const {
   // assert(false && "FallThrough not valid in LLVM IR");
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
     if (B->isConditional()) {
@@ -135,7 +135,7 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *stmt,
 }
 
 bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *stmt,
-                                  const llvm::Instruction *succ) {
+                                  const llvm::Instruction *succ) const {
   if (stmt->isTerminator()) {
     for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
       if (&*stmt->getSuccessor(i)->begin() == succ) {
@@ -146,14 +146,14 @@ bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *stmt,
   return false;
 }
 
-string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) {
+string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) const {
   return llvm::cast<llvm::MDString>(
              stmt->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
       ->getString()
       .str();
 }
 
-string LLVMBasedCFG::getMethodName(const llvm::Function *fun) {
+string LLVMBasedCFG::getMethodName(const llvm::Function *fun) const {
   return fun->getName().str();
 }
 } // namespace psr
