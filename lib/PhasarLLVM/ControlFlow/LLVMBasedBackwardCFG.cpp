@@ -31,12 +31,12 @@ namespace psr {
 
 // same as LLVMBasedCFG
 const llvm::Function *
-LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) {
+LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) const {
   return stmt->getParent()->getParent();
 }
 
 std::vector<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
+LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) const {
   vector<const llvm::Instruction *> preds;
   if (stmt->getNextNode())
     preds.push_back(stmt->getNextNode());
@@ -49,7 +49,7 @@ LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *stmt) {
 }
 
 std::vector<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
+LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) const {
   vector<const llvm::Instruction *> Preds;
   if (stmt->getPrevNode()) {
     Preds.push_back(stmt->getPrevNode());
@@ -61,7 +61,7 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *stmt) {
 }
 
 std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
-LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *fun) {
+LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
   for (auto &BB : *fun) {
     for (auto &I : BB) {
@@ -75,7 +75,7 @@ LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *fun) {
 }
 
 std::vector<const llvm::Instruction *>
-LLVMBasedBackwardCFG::getAllInstructionsOf(const llvm::Function *fun) {
+LLVMBasedBackwardCFG::getAllInstructionsOf(const llvm::Function *fun) const {
   vector<const llvm::Instruction *> Instructions;
   for (auto &BB : *fun) {
     for (auto &I : BB) {
@@ -86,31 +86,31 @@ LLVMBasedBackwardCFG::getAllInstructionsOf(const llvm::Function *fun) {
 }
 
 // LLVMBasedCFG::isStartPoint
-bool LLVMBasedBackwardCFG::isExitStmt(const llvm::Instruction *stmt) {
+bool LLVMBasedBackwardCFG::isExitStmt(const llvm::Instruction *stmt) const {
   return (stmt == &stmt->getFunction()->front().front());
 }
 
 // LLVMBasedCFG::isExitStmt
-bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *stmt) {
+bool LLVMBasedBackwardCFG::isStartPoint(const llvm::Instruction *stmt) const {
   return llvm::isa<llvm::ReturnInst>(stmt);
 }
 
-bool LLVMBasedBackwardCFG::isFieldLoad(const llvm::Instruction *stmt) {
+bool LLVMBasedBackwardCFG::isFieldLoad(const llvm::Instruction *stmt) const {
   return ForwardCFG.isFieldLoad(stmt);
 }
 
-bool LLVMBasedBackwardCFG::isFieldStore(const llvm::Instruction *stmt) {
+bool LLVMBasedBackwardCFG::isFieldStore(const llvm::Instruction *stmt) const {
   return ForwardCFG.isFieldStore(stmt);
 }
 
 bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
-    const llvm::Instruction *stmt, const llvm::Instruction *succ) {
+    const llvm::Instruction *stmt, const llvm::Instruction *succ) const {
   assert(false && "FallThrough not valid in LLVM IR");
   return false;
 }
 
 bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
-                                          const llvm::Instruction *succ) {
+                                          const llvm::Instruction *succ) const {
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(succ)) {
     for (auto BB : B->successors()) {
       if (stmt == &(BB->front())) {
@@ -122,12 +122,13 @@ bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
 }
 
 // same as LLVMBasedCFG
-std::string LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) {
+std::string
+LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) const {
   return fun->getName().str();
 }
 
 std::string
-LLVMBasedBackwardCFG::getStatementId(const llvm::Instruction *stmt) {
+LLVMBasedBackwardCFG::getStatementId(const llvm::Instruction *stmt) const {
   return llvm::cast<llvm::MDString>(
              stmt->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
       ->getString()

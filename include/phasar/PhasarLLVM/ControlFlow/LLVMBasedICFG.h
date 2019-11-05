@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include <functional>
 #include <iosfwd>
 #include <map>
 #include <string>

@@ -35,8 +35,8 @@
 #include <phasar/Utils/PAMM.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h>
 
@@ -73,8 +73,18 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
 };
 
-bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(llvm::ImmutableCallSite CS) {
-  return ForwardICFG.isVirtualFunctionCall(CS);
+bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) const {
+  return ForwardICFG.isCallStmt(stmt);
+}
+
+bool LLVMBasedBackwardsICFG::isIndirectFunctionCall(
+    const llvm::Instruction *stmt) const {
+  return ForwardICFG.isIndirectFunctionCall(stmt);
+}
+
+bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(
+    const llvm::Instruction *stmt) const {
+  return ForwardICFG.isVirtualFunctionCall(stmt);
 }
 
 std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllMethods() {
@@ -82,37 +92,38 @@ std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllMethods() {
 }
 
 const llvm::Function *
-LLVMBasedBackwardsICFG::getMethod(const std::string &fun) {
+LLVMBasedBackwardsICFG::getMethod(const std::string &fun) const {
   return ForwardICFG.getMethod(fun);
 }
 
 std::set<const llvm::Function *>
-LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *n) {
+LLVMBasedBackwardsICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   return ForwardICFG.getCalleesOfCallAt(n);
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *m) {
+LLVMBasedBackwardsICFG::getCallersOf(const llvm::Function *m) const {
   return ForwardICFG.getCallersOf(m);
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) {
+LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) const {
   return ForwardICFG.getCallsFromWithin(m);
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) {
+LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) const {
   return ForwardICFG.getExitPointsOf(m);
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) {
+LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) const {
   return ForwardICFG.getStartPointsOf(fun);
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
+LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
+    const llvm::Instruction *n) const {
   std::set<const llvm::Instruction *> ReturnSites;
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(n)) {
     if (auto Prev = Call->getPrevNode())
@@ -125,12 +136,8 @@ LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(const llvm::Instruction *n) {
   return ReturnSites;
 }
 
-bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) {
-  return ForwardICFG.isCallStmt(stmt);
-}
-
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::allNonCallStartNodes() {
+LLVMBasedBackwardsICFG::allNonCallStartNodes() const {
   return ForwardICFG.allNonCallStartNodes();
 }
 
@@ -163,7 +170,9 @@ void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
   ForwardICFG.printInternalPTGAsDot(filename);
 }
 
-json LLVMBasedBackwardsICFG::getAsJson() { return ForwardICFG.getAsJson(); }
+json LLVMBasedBackwardsICFG::getAsJson() const {
+  return ForwardICFG.getAsJson();
+}
 
 unsigned LLVMBasedBackwardsICFG::getNumOfVertices() {
   return ForwardICFG.getNumOfVertices();

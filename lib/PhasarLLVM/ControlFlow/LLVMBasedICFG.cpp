@@ -327,7 +327,7 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
     string CallerName = CS->getFunction()->getName().str();
     out_edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) =
-             boost::out_edges(function_vertex_map[CallerName], cg);
+             boost::out_edges(function_vertex_map.at(CallerName), cg);
          ei != ei_end; ++ei) {
       auto source = boost::source(*ei, cg);
       auto edge = cg[*ei];
@@ -361,7 +361,7 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *m) const {
   set<const llvm::Instruction *> CallersOf;
   in_edge_iterator ei, ei_end;
   for (boost::tie(ei, ei_end) =
-           boost::in_edges(function_vertex_map[m->getName().str()], cg);
+           boost::in_edges(function_vertex_map.at(m->getName().str()), cg);
        ei != ei_end; ++ei) {
     auto source = boost::source(*ei, cg);
     auto edge = cg[*ei];

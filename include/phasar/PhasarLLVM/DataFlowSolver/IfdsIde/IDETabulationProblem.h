@@ -31,7 +31,14 @@ class IDETabulationProblem : public virtual IFDSTabulationProblem<N, D, M, I>,
                              public virtual EdgeFunctions<N, D, M, V>,
                              public virtual JoinLattice<V>,
                              public virtual ValuePrinter<V> {
+  static_assert(std::is_base_of_v<ICFG<N, M>, I>,
+                "I must implement the ICFG interface!");
+
 public:
+  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                       const C *CF, const PointsToInfo *PT,
+                       std::initializer_list<std::string> EntryPoints = {})
+      : IFDSTabulationProblem<N, D, M, I>(IRDB, TH, CF, PT, EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
   virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
