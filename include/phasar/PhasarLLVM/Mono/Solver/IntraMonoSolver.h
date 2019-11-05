@@ -19,10 +19,9 @@
 
 #include <deque>
 #include <map>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
-
 
 #include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
 #include <phasar/Utils/BitVectorSet.h>
@@ -34,7 +33,7 @@ class IntraMonoSolver {
 protected:
   IntraMonoProblem<N, D, M, C> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  unordered_map<N, BitVectorSet<D>> Analysis;
+  std::unordered_map<N, BitVectorSet<D>> Analysis;
   C CFG;
 
   void initialize() {

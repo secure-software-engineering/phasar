@@ -121,6 +121,37 @@ TEST(BitVectorSet, clear) {
   EXPECT_EQ(C.size(), 0);
 }
 
+TEST(BitVectorSet, setUnion) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({5, 6, 42});
+
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
+  BitVectorSet<int> D;
+
+  A.setUnion(B);
+
+  EXPECT_TRUE(A == C);
+  A.setUnion(D);
+  EXPECT_TRUE(A == C);
+}
+
+TEST(BitVectorSet, setIntercept) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({5, 6, 42});
+
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
+  BitVectorSet<int> D({5, 6});
+
+  BitVectorSet<int> A2 = A.setIntercept(B);
+
+  EXPECT_TRUE(A2 != C);
+  EXPECT_TRUE(A2 == D);
+  BitVectorSet<int> A3 = A2.setIntercept(D);
+  EXPECT_TRUE(A3 == D);
+  BitVectorSet<int> A4 = A3.setIntercept(BitVectorSet<int>());
+  EXPECT_TRUE(A4.empty);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

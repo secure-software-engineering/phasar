@@ -39,9 +39,8 @@ InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
-  BitVectorSet<const llvm::Value *> Result;
-  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-            inserter(Result, Result.begin()));
+  BitVectorSet<const llvm::Value *> Result(Lhs);
+  Result.setUnion(Rhs);
   return Result;
 }
 
@@ -55,9 +54,9 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoTaintAnalysis::normalFlow(const llvm::Instruction *Stmt,
-                                   const BitVectorSet<const llvm::Value *> &In) {
+BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
+    const llvm::Instruction *Stmt,
+    const BitVectorSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
@@ -138,11 +137,10 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   return Out;
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoTaintAnalysis::callToRetFlow(const llvm::Instruction *CallSite,
-                                      const llvm::Instruction *RetSite,
-                                      BitVectorSet<const llvm::Function *> Callees,
-                                      const BitVectorSet<const llvm::Value *> &In) {
+BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
+    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
+    BitVectorSet<const llvm::Function *> Callees,
+    const BitVectorSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
@@ -196,7 +194,8 @@ InterMonoTaintAnalysis::initialSeeds() {
                 << "InterMonoTaintAnalysis::initialSeeds()");
   // cout << "InterMonoTaintAnalysis::initialSeeds()\n";
   const llvm::Function *main = ICFG.getMethod("main");
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>> Seeds;
+  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+      Seeds;
   BitVectorSet<const llvm::Value *> Facts;
   for (unsigned idx = 0; idx < main->arg_size(); ++idx) {
     Facts.insert(getNthFunctionArgument(main, idx));

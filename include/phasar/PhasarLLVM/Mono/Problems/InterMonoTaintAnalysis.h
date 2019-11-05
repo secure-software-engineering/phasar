@@ -18,9 +18,9 @@
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 
 #include <map>
-#include <unordered_map>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
@@ -77,7 +77,8 @@ public:
                 BitVectorSet<const llvm::Function *> Callees,
                 const BitVectorSet<const llvm::Value *> &In) override;
 
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+  std::unordered_map<const llvm::Instruction *,
+                     BitVectorSet<const llvm::Value *>>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;

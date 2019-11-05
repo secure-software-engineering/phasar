@@ -15,8 +15,8 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 #include <phasar/PhasarLLVM/Mono/Problems/IntraMonoFullConstantPropagation.h>
 
@@ -34,9 +34,8 @@ BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>> Result;
-  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-            inserter(Result, Result.begin()));
+  BitVectorSet<std::pair<const llvm::Value *, unsigned>> Result(Lhs);
+  Result.setUnion(Rhs);
   return Result;
 }
 
@@ -54,10 +53,11 @@ IntraMonoFullConstantPropagation::normalFlow(
 }
 
 unordered_map<const llvm::Instruction *,
-        BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
+              BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return unordered_map<const llvm::Instruction *,
-                 BitVectorSet<std::pair<const llvm::Value *, unsigned>>>();
+  return unordered_map<
+      const llvm::Instruction *,
+      BitVectorSet<std::pair<const llvm::Value *, unsigned>>>();
 }
 
 void IntraMonoFullConstantPropagation::printNode(

@@ -50,6 +50,21 @@ public:
 
   ~BitVectorSet() = default;
 
+  void setUnion(const BitVectorSet<T> &other) {
+    for (auto elem : other.Position) {
+      insert(elem.first);
+    }
+  }
+
+  BitVectorSet<T> setIntercept(const BitVectorSet<T> &other) {
+    BitVectorSet<T> ret;
+    for (auto elem : other.Position) {
+      if (find(elem.first)) {
+        ret.insert(elem->first);
+      }
+    }
+  }
+
   void insert(const T &Data) {
     auto Search = Position.find(Data);
     // Data already known

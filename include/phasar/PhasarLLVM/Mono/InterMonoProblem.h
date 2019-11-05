@@ -42,11 +42,13 @@ public:
 
   I getICFG() noexcept { return ICFG; }
 
-  virtual BitVectorSet<D> callFlow(N CallSite, M Callee, const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt, N RetSite,
-                                const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite, BitVectorSet<M> Callees,
+  virtual BitVectorSet<D> callFlow(N CallSite, M Callee,
                                    const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt,
+                                     N RetSite, const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
+                                        BitVectorSet<M> Callees,
+                                        const BitVectorSet<D> &In) = 0;
 };
 
 } // namespace psr

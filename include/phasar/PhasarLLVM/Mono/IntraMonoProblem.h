@@ -39,8 +39,10 @@ public:
   ~IntraMonoProblem() override = default;
   C getCFG() { return CFG; }
   M getFunction() { return Function; }
-  virtual BitVectorSet<D> join(const BitVectorSet<D> &Lhs, const BitVectorSet<D> &Rhs) = 0;
-  virtual bool sqSubSetEqual(const BitVectorSet<D> &Lhs, const BitVectorSet<D> &Rhs) = 0;
+  virtual BitVectorSet<D> join(const BitVectorSet<D> &Lhs,
+                               const BitVectorSet<D> &Rhs) = 0;
+  virtual bool sqSubSetEqual(const BitVectorSet<D> &Lhs,
+                             const BitVectorSet<D> &Rhs) = 0;
   virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
   virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;
 };

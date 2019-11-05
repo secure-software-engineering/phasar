@@ -9,7 +9,6 @@
 
 #include <iostream>
 
-
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
@@ -34,9 +33,8 @@ BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
-  BitVectorSet<const llvm::Value *> Result;
-  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-            inserter(Result, Result.begin()));
+  BitVectorSet<const llvm::Value *> Result(Lhs);
+  Result.setUnion(Rhs);
   return Result;
 }
 
@@ -52,7 +50,7 @@ InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
                                 const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
+  Result.setUnion(In);
   if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
   }
@@ -65,7 +63,7 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
                               const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
+  Result.setUnion(In);
   if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
@@ -80,11 +78,10 @@ BitVectorSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
   return In;
 }
 
-BitVectorSet<const llvm::Value *>
-InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
-                                   const llvm::Instruction *RetSite,
-                                   BitVectorSet<const llvm::Function *> Callees,
-                                   const BitVectorSet<const llvm::Value *> &In) {
+BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
+    const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
+    BitVectorSet<const llvm::Function *> Callees,
+    const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;
 }
@@ -93,7 +90,8 @@ unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
   const llvm::Function *main = ICFG.getMethod("main");
-  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>> Seeds;
+  unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+      Seeds;
   Seeds.insert(
       make_pair(&main->front().front(), BitVectorSet<const llvm::Value *>()));
   return Seeds;

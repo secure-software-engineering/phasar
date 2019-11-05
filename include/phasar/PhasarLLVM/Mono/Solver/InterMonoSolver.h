@@ -20,14 +20,14 @@
 #include <deque>
 #include <iosfwd>
 #include <iostream>
+#include <unordered_map>
 #include <utility>
 #include <vector>
-#include <unordered_map>
 
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
@@ -36,7 +36,9 @@ class InterMonoSolver {
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  unordered_map<N, unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>> Analysis;
+  std::unordered_map<
+      N, std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>>
+      Analysis;
   BitVectorSet<M> AddedFunctions;
   I ICFG;
 
@@ -160,7 +162,9 @@ public:
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  unordered_map<N, unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>> getAnalysis() {
+  std::unordered_map<
+      N, std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>>
+  getAnalysis() {
     return Analysis;
   }
 
@@ -175,7 +179,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>> Out;
+      std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>> Out;
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
