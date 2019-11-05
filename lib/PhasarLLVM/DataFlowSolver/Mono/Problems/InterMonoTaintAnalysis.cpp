@@ -196,7 +196,7 @@ InterMonoTaintAnalysis::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::initialSeeds()");
   // cout << "InterMonoTaintAnalysis::initialSeeds()\n";
-  const llvm::Function *main = ICF->getMethod("main");
+  const llvm::Function *main = ICF->getFunction("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
   MonoSet<const llvm::Value *> Facts;
   for (unsigned idx = 0; idx < main->arg_size(); ++idx) {

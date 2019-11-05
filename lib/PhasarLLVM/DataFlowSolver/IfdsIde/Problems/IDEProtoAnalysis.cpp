@@ -14,7 +14,6 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultSeeds.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
@@ -29,13 +28,13 @@ using namespace std;
 
 namespace psr {
 
-IDEProtoAnalysis::IDEProtoAnalysis(IDEProtoAnalysis::i_t icfg,
-                                   const LLVMTypeHierarchy &th,
-                                   const ProjectIRDB &irdb,
-                                   vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
+IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                            const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                            std::initializer_list<std::string> EntryPoints)
+    : IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *, LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 // start formulating our analysis by specifying the parts required for IFDS
@@ -78,13 +77,13 @@ IDEProtoAnalysis::initialSeeds() {
   cout << "IDEProtoAnalysis::initialSeeds()\n";
   map<IDEProtoAnalysis::n_t, set<IDEProtoAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IDEProtoAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IDEProtoAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() {
+IDEProtoAnalysis::d_t IDEProtoAnalysis::createZeroValue() const {
   cout << "IDEProtoAnalysis::createZeroValue()\n";
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();

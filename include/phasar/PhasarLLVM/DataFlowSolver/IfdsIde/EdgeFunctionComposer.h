@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
-#include <gtest/gtest_prod.h>
 #include <memory>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h>

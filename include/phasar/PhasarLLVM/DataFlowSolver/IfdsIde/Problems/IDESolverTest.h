@@ -15,8 +15,9 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <initializer_list>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -28,8 +29,9 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDESolverTest
-    : public LLVMDefaultIDETabulationProblem<
-          const llvm::Value *, const llvm::Value *, LLVMBasedICFG &> {
+    : public IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *, LLVMBasedICFG> {
 private:
   std::vector<std::string> EntryPoints;
 
@@ -40,8 +42,9 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG &i_t;
 
-  IDESolverTest(i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
-                std::vector<std::string> EntryPoints = {"main"});
+  IDESolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::initializer_list<std::string> EntryPoints = {"main"});
 
   ~IDESolverTest() override = default;
 
@@ -67,7 +70,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

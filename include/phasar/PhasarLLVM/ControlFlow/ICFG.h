@@ -39,7 +39,9 @@ template <typename N, typename M> class ICFG : public virtual CFG<N, M> {
 public:
   ~ICFG() override = default;
 
-  virtual M getMethod(const std::string &fun) const = 0;
+  virtual std::set<M> getAllFunctions() const = 0;
+
+  virtual M getFunction(const std::string &fun) const = 0;
 
   virtual bool isCallStmt(N stmt) const = 0;
 

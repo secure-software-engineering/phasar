@@ -307,11 +307,11 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
   return false;
 }
 
-const llvm::Function *LLVMBasedICFG::getMethod(const string &fun) const {
+const llvm::Function *LLVMBasedICFG::getFunction(const string &fun) const {
   return IRDB.getFunction(fun);
 }
 
-set<const llvm::Function *> LLVMBasedICFG::getAllMethods() {
+set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
 

@@ -24,13 +24,13 @@ using namespace psr;
 
 namespace psr {
 
-IFDSSolverTest::IFDSSolverTest(IFDSSolverTest::i_t icfg,
-                               const LLVMTypeHierarchy &th,
-                               const ProjectIRDB &irdb,
-                               vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  IFDSSolverTest::zerovalue = createZeroValue();
+IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                               std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IFDSSolverTest::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
@@ -72,13 +72,13 @@ IFDSSolverTest::initialSeeds() {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::initialSeeds()");
   map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IFDSSolverTest::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IFDSSolverTest::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() {
+IFDSSolverTest::d_t IFDSSolverTest::createZeroValue() const {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

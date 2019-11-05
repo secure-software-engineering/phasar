@@ -29,6 +29,10 @@
 
 namespace psr {
 
+class ProjectIRDB;
+class TypeHierarchy;
+class PointsToInfo;
+
 template <typename N, typename D, typename M, typename I>
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
@@ -43,21 +47,31 @@ protected:
   const TypeHierarchy *TH;
   const I *ICF;
   const PointsToInfo *PT;
+  D ZeroValue;
   std::set<std::string> EntryPoints;
 
 public:
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                        const C *CF, const PointsToInfo *PT,
+                        const I *ICF, const PointsToInfo *PT,
                         std::initializer_list<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
+
   ~IFDSTabulationProblem() override = default;
-  virtual D zeroValue() const = 0;
+
+  virtual D createZeroValue() const = 0;
+
   virtual bool isZeroValue(D d) const = 0;
+
   virtual std::map<N, std::set<D>> initialSeeds() = 0;
+
+  virtual D getZeroValue() const { return ZeroValue; }
+
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;
   }
+
   IFDSIDESolverConfig getIFDSIDESolverConfig() { return SolverConfig; }
+
   virtual void printIFDSReport(std::ostream &os,
                                SolverResults<N, D, BinaryDomain> &SR) {
     os << "No IFDS report available!\n";

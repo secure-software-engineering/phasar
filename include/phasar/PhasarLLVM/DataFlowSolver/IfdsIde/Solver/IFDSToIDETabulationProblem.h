@@ -70,13 +70,9 @@ public:
     return problem.getSummaryFlowFunction(callStmt, destMthd);
   }
 
-  I interproceduralCFG() override { return problem.interproceduralCFG(); }
-
   std::map<N, std::set<D>> initialSeeds() override {
     return problem.initialSeeds();
   }
-
-  D zeroValue() override { return problem.zeroValue(); }
 
   bool isZeroValue(D d) const override { return problem.isZeroValue(d); }
 

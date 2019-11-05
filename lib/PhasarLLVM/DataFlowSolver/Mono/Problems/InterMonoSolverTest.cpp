@@ -92,7 +92,7 @@ InterMonoSolverTest::callToRetFlow(const llvm::Instruction *CallSite,
 MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICF->getMethod("main");
+  const llvm::Function *main = ICF->getFunction("main");
   MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>> Seeds;
   Seeds.insert(
       make_pair(&main->front().front(), MonoSet<const llvm::Value *>()));

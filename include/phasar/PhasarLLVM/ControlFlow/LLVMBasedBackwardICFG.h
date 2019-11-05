@@ -58,7 +58,7 @@ public:
 
   ~LLVMBasedBackwardsICFG() override = default;
 
-  std::set<const llvm::Function *> getAllMethods();
+  std::set<const llvm::Function *> getAllFunctions() const override;
 
   bool isCallStmt(const llvm::Instruction *stmt) const override;
 
@@ -66,7 +66,7 @@ public:
 
   bool isVirtualFunctionCall(const llvm::Instruction * stmt) const override;
 
-  const llvm::Function *getMethod(const std::string &fun) const override;
+  const llvm::Function *getFunction(const std::string &fun) const override;
 
   std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *n) const override;

@@ -28,13 +28,11 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-IDESolverTest::IDESolverTest(IDESolverTest::i_t icfg,
-                             const LLVMTypeHierarchy &th,
-                             const ProjectIRDB &irdb,
-                             vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  DefaultIDETabulationProblem::zerovalue = createZeroValue();
+IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::initializer_list<std::string> EntryPoints )
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 // start formulating our analysis by specifying the parts required for IFDS
@@ -74,13 +72,13 @@ map<IDESolverTest::n_t, set<IDESolverTest::d_t>> IDESolverTest::initialSeeds() {
   cout << "IDESolverTest::initialSeeds()\n";
   map<IDESolverTest::n_t, set<IDESolverTest::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IDESolverTest::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IDESolverTest::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IDESolverTest::d_t IDESolverTest::createZeroValue() {
+IDESolverTest::d_t IDESolverTest::createZeroValue() const {
   cout << "IDESolverTest::createZeroValue()\n";
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();

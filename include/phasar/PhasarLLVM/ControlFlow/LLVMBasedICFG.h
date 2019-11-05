@@ -118,13 +118,13 @@ public:
 
   ~LLVMBasedICFG() override = default;
 
-  std::set<const llvm::Function *> getAllMethods();
+  std::set<const llvm::Function *> getAllFunctions() const override;
 
   bool isIndirectFunctionCall(const llvm::Instruction *n) const override;
 
   bool isVirtualFunctionCall(const llvm::Instruction *n) const override;
 
-  const llvm::Function *getMethod(const std::string &fun) const override;
+  const llvm::Function *getFunction(const std::string &fun) const override;
 
   std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *n) const override;

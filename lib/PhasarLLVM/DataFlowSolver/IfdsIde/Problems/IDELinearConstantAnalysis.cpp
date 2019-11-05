@@ -51,11 +51,12 @@ const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
     numeric_limits<IDELinearConstantAnalysis::v_t>::max();
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    IDELinearConstantAnalysis::i_t &icfg, const LLVMTypeHierarchy &th,
-    const ProjectIRDB &irdb, vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
+    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
+    : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                           const llvm::Function *, int64_t, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
@@ -72,7 +73,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
       return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
-                                                              zeroValue());
+                                                              getZeroValue());
     }
   }
   // Check store instructions. Store instructions override previous value
@@ -98,7 +99,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
           }
         }
       };
-      return make_shared<LCAFF>(PointerOp, zeroValue());
+      return make_shared<LCAFF>(PointerOp, getZeroValue());
     }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
@@ -126,7 +127,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     // only consider i32 load
     if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
       return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
-          Load, zeroValue(), [Load](IDELinearConstantAnalysis::d_t source) {
+          Load, getZeroValue(), [Load](IDELinearConstantAnalysis::d_t source) {
             return source == Load->getPointerOperand();
           });
     }
@@ -136,12 +137,12 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     auto lop = curr->getOperand(0);
     auto rop = curr->getOperand(1);
     return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
-        curr, zeroValue(),
+        curr, getZeroValue(),
         [this, lop, rop](IDELinearConstantAnalysis::d_t source) {
-          return (source != zerovalue &&
+          return (source != ZeroValue &&
                   ((lop == source && llvm::isa<llvm::ConstantInt>(rop)) ||
                    (rop == source && llvm::isa<llvm::ConstantInt>(lop)))) ||
-                 (source == zerovalue && llvm::isa<llvm::ConstantInt>(lop) &&
+                 (source == ZeroValue && llvm::isa<llvm::ConstantInt>(lop) &&
                   llvm::isa<llvm::ConstantInt>(rop));
         });
   }
@@ -280,24 +281,25 @@ IDELinearConstantAnalysis::initialSeeds() {
   for (auto &EntryPoint : EntryPoints) {
     if (EntryPoint == "main") {
       set<IDELinearConstantAnalysis::d_t> CmdArgs;
-      for (auto &Arg : icfg.getMethod(EntryPoint)->args()) {
+      for (auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         if (Arg.getType()->isIntegerTy()) {
           CmdArgs.insert(&Arg);
         }
       }
-      CmdArgs.insert(zeroValue());
+      CmdArgs.insert(getZeroValue());
       SeedMap.insert(
-          make_pair(&icfg.getMethod(EntryPoint)->front().front(), CmdArgs));
+          make_pair(&ICF->getFunction(EntryPoint)->front().front(), CmdArgs));
     } else {
       SeedMap.insert(
-          make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                    set<IDELinearConstantAnalysis::d_t>({zeroValue()})));
+          make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                    set<IDELinearConstantAnalysis::d_t>({getZeroValue()})));
     }
   }
   return SeedMap;
 }
 
-IDELinearConstantAnalysis::d_t IDELinearConstantAnalysis::createZeroValue() {
+IDELinearConstantAnalysis::d_t
+IDELinearConstantAnalysis::createZeroValue() const {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
@@ -724,9 +726,9 @@ void IDELinearConstantAnalysis::printIDEReport(
                                     IDELinearConstantAnalysis::d_t,
                                     IDELinearConstantAnalysis::v_t> &SR) {
   os << "\n======= LCA RESULTS =======\n";
-  for (auto f : icfg.getAllMethods()) {
+  for (auto f : this->ICF->getAllFunctions()) {
     os << llvmFunctionToSrc(f) << '\n';
-    for (auto exit : icfg.getExitPointsOf(f)) {
+    for (auto exit : this->ICF->getExitPointsOf(f)) {
       auto results = SR.resultsAt(exit, true);
       if (results.empty()) {
         os << "\nNo results available!\n";

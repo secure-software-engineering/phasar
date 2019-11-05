@@ -10,14 +10,14 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -30,11 +30,10 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDELinearConstantAnalysis
-    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, int64_t,
-                                             LLVMBasedICFG &> {
+    : public IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  int64_t, LLVMBasedICFG> {
 private:
-  std::vector<std::string> EntryPoints;
-
   // For debug purpose only
   static unsigned CurrGenConstant_Id;
   static unsigned CurrLCAID_Id;
@@ -46,14 +45,14 @@ public:
   typedef const llvm::Function *m_t;
   // int64_t corresponds to llvm's type of constant integer
   typedef int64_t v_t;
-  typedef LLVMBasedICFG &i_t;
 
   static const v_t TOP;
   static const v_t BOTTOM;
 
-  IDELinearConstantAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                            const ProjectIRDB &irdb,
-                            std::vector<std::string> EntryPoints = {"main"});
+  IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                            const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                            std::initializer_list<std::string> EntryPoints = {
+                                "main"});
 
   ~IDELinearConstantAnalysis() override;
 
@@ -79,7 +78,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
