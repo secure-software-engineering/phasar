@@ -392,88 +392,17 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     unsigned OP = curr->getOpcode();
     auto lop = curr->getOperand(0);
     auto rop = curr->getOperand(1);
-    struct LCAEF : EdgeFunction<IDELinearConstantAnalysis::v_t>,
-                   enable_shared_from_this<LCAEF> {
-      const unsigned EdgeFunctionID, Op;
-      IDELinearConstantAnalysis::d_t lop, rop, currNode;
-      LCAEF(const unsigned Op, IDELinearConstantAnalysis::d_t lop,
-            IDELinearConstantAnalysis::d_t rop,
-            IDELinearConstantAnalysis::d_t currNode)
-          : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id), Op(Op),
-            lop(lop), rop(rop), currNode(currNode) {}
-
-      IDELinearConstantAnalysis::v_t
-      computeTarget(IDELinearConstantAnalysis::v_t source) override {
-        auto &lg = lg::get();
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Left Op   : " << llvmIRToString(lop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Right Op  : " << llvmIRToString(rop));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Curr Node : " << llvmIRToString(currNode));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-        if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
-          auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
-          return IDELinearConstantAnalysis::executeBinOperation(
-              Op, source, ric->getSExtValue());
-        } else if (rop == currNode && llvm::isa<llvm::ConstantInt>(lop)) {
-          auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
-          return IDELinearConstantAnalysis::executeBinOperation(
-              Op, lic->getSExtValue(), source);
-        } else if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
-                   llvm::isa<llvm::ConstantInt>(lop) &&
-                   llvm::isa<llvm::ConstantInt>(rop)) {
-          auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
-          auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
-          return IDELinearConstantAnalysis::executeBinOperation(
-              Op, lic->getSExtValue(), ric->getSExtValue());
-        }
-        throw runtime_error(
-            "Only linear constant propagation can be specified!");
-      }
-
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-      composeWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-                      secondFunction) override {
-        if (auto *EI =
-                dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
-                    secondFunction.get())) {
-          return this->shared_from_this();
-        }
-        if (auto *LSVI = dynamic_cast<LCAIdentity *>(secondFunction.get())) {
-          return this->shared_from_this();
-        }
-        return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
-            this->shared_from_this(), secondFunction);
-      }
-
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-      joinWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-                   otherFunction) override {
-        if (otherFunction.get() == this ||
-            otherFunction->equal_to(this->shared_from_this())) {
-          return this->shared_from_this();
-        }
-        if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
-                otherFunction.get())) {
-          return this->shared_from_this();
-        }
+    // For non linear constant computation we propagate bottom
+    if (currNode == zerovalue && !llvm::isa<llvm::ConstantInt>(lop) &&
+        !llvm::isa<llvm::ConstantInt>(rop)) {
         return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
             IDELinearConstantAnalysis::BOTTOM);
+    } else {
+      return make_shared<IDELinearConstantAnalysis::BinOp>(OP, lop, rop,
+                                                           currNode);
+      }
       }
 
-      bool equal_to(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-                        other) const override {
-        // could be more precise - compare op,lop and rop?
-        return this == other.get();
-      }
-
-      void print(ostream &OS, bool isForDebug = false) const override {
-        OS << "Bin_" << EdgeFunctionID;
-      }
-    };
-    return make_shared<LCAEF>(OP, lop, rop, currNode);
-  }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Edge identity.");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
@@ -681,6 +610,99 @@ bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
 void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
                                                    bool isForDebug) const {
   OS << "Id (EF:" << LCAID_Id << ')';
+}
+
+IDELinearConstantAnalysis::BinOp::BinOp(const unsigned Op,
+                                        IDELinearConstantAnalysis::d_t lop,
+                                        IDELinearConstantAnalysis::d_t rop,
+                                        IDELinearConstantAnalysis::d_t currNode)
+    : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id), Op(Op),
+      lop(lop), rop(rop), currNode(currNode) {}
+
+IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BinOp::computeTarget(
+    IDELinearConstantAnalysis::v_t source) {
+  auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Left Op   : " << llvmIRToString(lop));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Right Op  : " << llvmIRToString(rop));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                << "Curr Node : " << llvmIRToString(currNode));
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
+      llvm::isa<llvm::ConstantInt>(lop) && llvm::isa<llvm::ConstantInt>(rop)) {
+    auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+    auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+    return IDELinearConstantAnalysis::executeBinOperation(
+        Op, lic->getSExtValue(), ric->getSExtValue());
+  } else if (source == BOTTOM) {
+    return BOTTOM;
+  } else if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
+    auto ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+    return IDELinearConstantAnalysis::executeBinOperation(Op, source,
+                                                          ric->getSExtValue());
+  } else if (rop == currNode && llvm::isa<llvm::ConstantInt>(lop)) {
+    auto lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+    return IDELinearConstantAnalysis::executeBinOperation(
+        Op, lic->getSExtValue(), source);
+  }
+  throw runtime_error("Only linear constant propagation can be specified!");
+}
+
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+IDELinearConstantAnalysis::BinOp::composeWith(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
+  if (auto *LSVI = dynamic_cast<IDELinearConstantAnalysis::LCAIdentity *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
+  return make_shared<IDELinearConstantAnalysis::LCAEdgeFunctionComposer>(
+      this->shared_from_this(), secondFunction);
+}
+
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+IDELinearConstantAnalysis::BinOp::joinWith(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
+  if (otherFunction.get() == this ||
+      otherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
+          otherFunction.get())) {
+    return this->shared_from_this();
+  }
+  return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+      IDELinearConstantAnalysis::BOTTOM);
+}
+
+bool IDELinearConstantAnalysis::BinOp::equal_to(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
+  if (auto *BOP =
+          dynamic_cast<IDELinearConstantAnalysis::BinOp *>(other.get())) {
+    return BOP->Op == this->Op && BOP->lop == this->lop &&
+           BOP->rop == this->rop;
+  }
+  return this == other.get();
+}
+
+void IDELinearConstantAnalysis::BinOp::print(ostream &OS,
+                                             bool isForDebug) const {
+  if (auto LIC = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
+    OS << LIC->getSExtValue();
+  } else {
+    OS << "ID:" << getMetaDataID(lop);
+  }
+  OS << ' ' << opToChar(Op) << ' ';
+  if (auto RIC = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
+    OS << RIC->getSExtValue();
+  } else {
+    OS << "ID:" << getMetaDataID(rop);
+  }
 }
 
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(

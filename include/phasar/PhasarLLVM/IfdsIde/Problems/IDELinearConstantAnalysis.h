@@ -172,6 +172,28 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
+  class BinOp : public EdgeFunction<v_t>,
+                public std::enable_shared_from_this<BinOp> {
+  private:
+    const unsigned EdgeFunctionID, Op;
+    d_t lop, rop, currNode;
+
+  public:
+    BinOp(const unsigned Op, d_t lop, d_t rop, d_t currNode);
+
+    v_t computeTarget(v_t source) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
   // Helper functions
 
   /**
