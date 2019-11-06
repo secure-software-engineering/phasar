@@ -88,15 +88,15 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
           Store, [this](IDELinearConstantAnalysis::d_t source) {
             return source == zeroValue();
           });
-          }
+    }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
       return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
           Store, [Store](IDELinearConstantAnalysis::d_t source) {
             return source == Store->getValueOperand();
           });
-          }
-        }
+    }
+  }
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     // only consider i32 load
@@ -254,8 +254,8 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
                    llvm::isa<llvm::GlobalVariable>(source);
           });
     } else {
-  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
-}
+      return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
+    }
   }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
@@ -395,13 +395,13 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     // For non linear constant computation we propagate bottom
     if (currNode == zerovalue && !llvm::isa<llvm::ConstantInt>(lop) &&
         !llvm::isa<llvm::ConstantInt>(rop)) {
-        return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
-            IDELinearConstantAnalysis::BOTTOM);
+      return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+          IDELinearConstantAnalysis::BOTTOM);
     } else {
       return make_shared<IDELinearConstantAnalysis::BinOp>(OP, lop, rop,
                                                            currNode);
-      }
-      }
+    }
+  }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Edge identity.");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -705,6 +705,38 @@ void IDELinearConstantAnalysis::BinOp::print(ostream &OS,
   }
 }
 
+char IDELinearConstantAnalysis::opToChar(const unsigned op) {
+  char opAsChar;
+  switch (op) {
+  case llvm::Instruction::Add:
+    opAsChar = '+';
+    break;
+  case llvm::Instruction::Sub:
+    opAsChar = '-';
+    break;
+  case llvm::Instruction::Mul:
+    opAsChar = '*';
+    break;
+  case llvm::Instruction::UDiv:
+  case llvm::Instruction::SDiv:
+    opAsChar = '/';
+    break;
+  case llvm::Instruction::URem:
+  case llvm::Instruction::SRem:
+    opAsChar = '%';
+    break;
+  default:
+    opAsChar = ' ';
+    break;
+  }
+  return opAsChar;
+}
+
+bool IDELinearConstantAnalysis::isEntryPoint(std::string FunctionName) const {
+  return std::find(EntryPoints.begin(), EntryPoints.end(), FunctionName) !=
+         EntryPoints.end();
+}
+
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned op, IDELinearConstantAnalysis::v_t lop,
     IDELinearConstantAnalysis::v_t rop) {
@@ -774,22 +806,167 @@ void IDELinearConstantAnalysis::emitTextReport(
                                     IDELinearConstantAnalysis::d_t,
                                     IDELinearConstantAnalysis::v_t>
                           SR) {
-  for (auto f : icfg.getAllMethods()) {
-    os << getFunctionNameFromIR(f) << '\n';
-    for (auto stmt : icfg.getAllInstructionsOf(f)) {
-      auto results = SR.resultsAt(stmt, true);
-      if (!results.empty()) {
-        os << "At IR statement: " << NtoString(stmt) << '\n';
-        for (auto res : results) {
-          if (res.second != IDELinearConstantAnalysis::BOTTOM) {
-            os << "  IR: " << DtoString(res.first)
-               << " ==> V: " << VtoString(res.second) << '\n';
+  os << "\n====================== IDE-Linear-Constant-Analysis Report "
+        "======================\n";
+  if (!irdb.debugInfoAvailable()) {
+    // Emit only IR code, function name and module info
+    os << "\nWARNING: No Debug Info available - emiting results without "
+          "source code mapping!\n";
+    for (auto f : icfg.getAllMethods()) {
+      std::string fName = getFunctionNameFromIR(f);
+      os << "\nFunction: " << fName << "\n----------"
+         << std::string(fName.size(), '-') << '\n';
+      for (auto stmt : icfg.getAllInstructionsOf(f)) {
+        auto results = SR.resultsAt(stmt, true);
+        stripBottomResults(results);
+        if (!results.empty()) {
+          os << "At IR statement: " << NtoString(stmt) << '\n';
+          for (auto res : results) {
+            if (res.second != IDELinearConstantAnalysis::BOTTOM) {
+              os << "   Fact: " << DtoString(res.first)
+                 << "\n  Value: " << VtoString(res.second) << '\n';
+            }
           }
+          os << '\n';
         }
       }
       os << '\n';
     }
-    os << "----------------\n";
+  } else {
+    auto lcaResults = getLCAResults(SR);
+    for (auto entry : lcaResults) {
+      os << "\nFunction: " << entry.first
+         << "\n==========" << std::string(entry.first.size(), '=') << '\n';
+      for (auto fResult : entry.second) {
+        fResult.second.print(os);
+        os << "--------------------------------------\n\n";
+      }
+      os << '\n';
+    }
+  }
+}
+
+void IDELinearConstantAnalysis::stripBottomResults(
+    std::unordered_map<IDELinearConstantAnalysis::d_t,
+                       IDELinearConstantAnalysis::v_t> &res) {
+  for (auto it = res.begin(); it != res.end();) {
+    if (it->second == IDELinearConstantAnalysis::BOTTOM) {
+      it = res.erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+IDELinearConstantAnalysis::lca_restults_t
+IDELinearConstantAnalysis::getLCAResults(
+    SolverResults<IDELinearConstantAnalysis::n_t,
+                  IDELinearConstantAnalysis::d_t,
+                  IDELinearConstantAnalysis::v_t>
+        SR) {
+  std::map<std::string, std::map<unsigned, LCAResult>> aggResults;
+  std::cout << "\n==== Computing LCA Results ====\n";
+  for (auto f : icfg.getAllMethods()) {
+    std::string fName = getFunctionNameFromIR(f);
+    std::cout << "\n-- Function: " << fName << " --\n";
+    std::map<unsigned, LCAResult> fResults;
+    std::set<std::string> allocatedVars;
+    for (auto stmt : icfg.getAllInstructionsOf(f)) {
+      unsigned lnr = getLineFromIR(stmt);
+      std::cout << "\nIR : " << NtoString(stmt) << "\nLNR: " << lnr << '\n';
+      // We skip statements with no source code mapping
+      if (lnr == 0) {
+        std::cout << "Skipping this stmt!\n";
+        continue;
+      }
+      LCAResult *lcaRes = &fResults[lnr];
+      // Check if it is a new result
+      if (lcaRes->src_code.empty()) {
+        std::string sourceCode = getSrcCodeFromIR(stmt);
+        // Skip results for line containing only closed braces which is the
+        // case for functions with void return value
+        if (sourceCode == "}") {
+          fResults.erase(lnr);
+          continue;
+        }
+        lcaRes->src_code = sourceCode;
+        lcaRes->line_nr = lnr;
+      }
+      lcaRes->ir_trace.push_back(stmt);
+      if (stmt->isTerminator() && !icfg.isExitStmt(stmt)) {
+        std::cout << "Delete result since stmt is Terminator or Exit!\n";
+        fResults.erase(lnr);
+      } else {
+        // check results of succ(stmt)
+        std::unordered_map<d_t, v_t> results;
+        if (icfg.isExitStmt(stmt)) {
+          results = SR.resultsAt(stmt, true);
+        } else {
+          // It's not a terminator inst, hence it has only a single successor
+          auto succ = icfg.getSuccsOf(stmt)[0];
+          std::cout << "Succ stmt: " << NtoString(succ) << '\n';
+          results = SR.resultsAt(succ, true);
+        }
+        stripBottomResults(results);
+        std::set<std::string> validVarsAtStmt;
+        for (auto res : results) {
+          auto varName = getVarNameFromIR(res.first);
+          std::cout << "  D: " << DtoString(res.first)
+                    << " | V: " << VtoString(res.second)
+                    << " | Var: " << varName << '\n';
+          if (!varName.empty()) {
+            // Only store/overwrite values of variables from allocas or globals
+            // unless there is no value stored for a variable
+            if (llvm::isa<llvm::AllocaInst>(res.first) ||
+                llvm::isa<llvm::GlobalVariable>(res.first)) {
+              // lcaRes->variableToValue.find(varName) ==
+              // lcaRes->variableToValue.end()) {
+              validVarsAtStmt.insert(varName);
+              allocatedVars.insert(varName);
+              lcaRes->variableToValue[varName] = res.second;
+            } else if (allocatedVars.find(varName) == allocatedVars.end()) {
+              validVarsAtStmt.insert(varName);
+              lcaRes->variableToValue[varName] = res.second;
+            }
+          }
+        }
+        // remove no longer valid variables at current IR stmt
+        for (auto it = lcaRes->variableToValue.begin();
+             it != lcaRes->variableToValue.end();) {
+          if (validVarsAtStmt.find(it->first) == validVarsAtStmt.end()) {
+            std::cout << "Erase var: " << it->first << '\n';
+            it = lcaRes->variableToValue.erase(it);
+          } else {
+            ++it;
+          }
+        }
+      }
+    }
+    // delete entries with no result
+    for (auto it = fResults.begin(); it != fResults.end();) {
+      if (it->second.variableToValue.empty()) {
+        it = fResults.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    aggResults[fName] = fResults;
+  }
+  return aggResults;
+}
+
+void IDELinearConstantAnalysis::LCAResult::print(std::ostream &os) {
+  os << "Line " << line_nr << ": " << src_code << '\n';
+  os << "Var(s): ";
+  for (auto it = variableToValue.begin(); it != variableToValue.end(); ++it) {
+    if (it != variableToValue.begin()) {
+      os << ", ";
+    }
+    os << it->first << " = " << it->second;
+  }
+  os << "\nCorresponding IR Instructions:\n";
+  for (auto ir : ir_trace) {
+    os << "  " << llvmIRToString(ir) << '\n';
   }
 }
 
