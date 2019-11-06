@@ -28,6 +28,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/StrongUpdateStore.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
@@ -184,6 +185,10 @@ IDELinearConstantAnalysis::getCallFlowFunction(
             res.insert(formals[idx]); // corresponding formal
           }
         }
+        if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
+            llvm::isa<llvm::GlobalVariable>(source)) {
+          res.insert(source);
+        }
         return res;
       }
     };
@@ -221,19 +226,37 @@ IDELinearConstantAnalysis::getRetFlowFunction(
             llvm::isa<llvm::ConstantInt>(ReturnValue)) {
           res.insert(callSite);
         }
+        if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
+            llvm::isa<llvm::GlobalVariable>(source)) {
+          res.insert(source);
+        }
         return res;
       }
     };
     return make_shared<LCAFF>(callSite, ReturnValue);
   }
-  // All other facts are killed at this point
-  return KillAll<IDELinearConstantAnalysis::d_t>::getInstance();
+  // All other facts except GlobalVariables are killed at this point
+  return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
+      [](IDELinearConstantAnalysis::d_t source) {
+        return !llvm::isa<llvm::GlobalVariable>(source);
+      });
 }
 
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::n_t retSite, set<m_t> callees) {
+  for (auto callee : callees) {
+    if (!icfg.getStartPointsOf(callee).empty()) {
+      return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
+          [this](IDELinearConstantAnalysis::d_t source) {
+            return !isZeroValue(source) &&
+                   llvm::isa<llvm::GlobalVariable>(source);
+          });
+    } else {
+  return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
+}
+  }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
@@ -250,7 +273,24 @@ IDELinearConstantAnalysis::initialSeeds() {
   // typed arguments.
   map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
       SeedMap;
+  // Collect global variables of integer type
   for (auto &EntryPoint : EntryPoints) {
+    set<IDELinearConstantAnalysis::d_t> Globals;
+    for (const auto &G :
+         irdb.getModuleDefiningFunction(EntryPoint)->globals()) {
+      if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+        if (GV->hasInitializer() &&
+            llvm::isa<llvm::ConstantInt>(GV->getInitializer())) {
+          Globals.insert(GV);
+        }
+      }
+    }
+    Globals.insert(zeroValue());
+    if (!Globals.empty()) {
+      SeedMap.insert(
+          make_pair(&icfg.getMethod(EntryPoint)->front().front(), Globals));
+    }
+    // Collect commandline arguments of integer type
     if (EntryPoint == "main") {
       set<IDELinearConstantAnalysis::d_t> CmdArgs;
       for (auto &Arg : icfg.getMethod(EntryPoint)->args()) {
@@ -289,6 +329,19 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t succ,
     IDELinearConstantAnalysis::d_t succNode) {
   auto &lg = lg::get();
+  // Initialize global variables at entry point
+  if (!isZeroValue(currNode) && icfg.isStartPoint(curr) &&
+      isEntryPoint(icfg.getMethodOf(curr)->getName().str()) &&
+      llvm::isa<llvm::GlobalVariable>(currNode) && currNode == succNode) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  << "Case: Intialize global variable at entry point.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    auto GV = llvm::dyn_cast<llvm::GlobalVariable>(currNode);
+    auto CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
+    auto IntConst = CI->getSExtValue();
+    return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
+  }
+
   // All_Bottom for zero value
   if ((isZeroValue(currNode) && isZeroValue(succNode)) ||
       (llvm::isa<llvm::AllocaInst>(curr) && isZeroValue(currNode))) {
