@@ -23,7 +23,7 @@ protected:
       std::tuple<std::string, std::size_t, std::string, int64_t>;
   ProjectIRDB *IRDB = nullptr;
 
-  void SetUp() override { bl::core::get()->set_logging_enabled(false); }
+  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
   void TearDown() override { delete IRDB; }
 
   IDELinearConstantAnalysis::lca_restults_t
