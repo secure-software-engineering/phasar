@@ -126,7 +126,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     // only consider i32 load
     if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
       return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
-          Load, zeroValue(), [Load](IDELinearConstantAnalysis::d_t source) {
+          Load, [Load](IDELinearConstantAnalysis::d_t source) {
             return source == Load->getPointerOperand();
           });
     }
@@ -136,13 +136,11 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     auto lop = curr->getOperand(0);
     auto rop = curr->getOperand(1);
     return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
-        curr, zeroValue(),
-        [this, lop, rop](IDELinearConstantAnalysis::d_t source) {
-          return (source != zerovalue &&
-                  ((lop == source && llvm::isa<llvm::ConstantInt>(rop)) ||
-                   (rop == source && llvm::isa<llvm::ConstantInt>(lop)))) ||
-                 (source == zerovalue && llvm::isa<llvm::ConstantInt>(lop) &&
-                  llvm::isa<llvm::ConstantInt>(rop));
+        curr, [this, lop, rop](IDELinearConstantAnalysis::d_t source) {
+          return (lop == source && llvm::isa<llvm::ConstantInt>(rop)) ||
+                 (rop == source && llvm::isa<llvm::ConstantInt>(lop)) ||
+                 (source == zeroValue() && !llvm::isa<llvm::ConstantInt>(lop) &&
+                  !llvm::isa<llvm::ConstantInt>(rop));
         });
   }
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();

@@ -67,7 +67,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // If a tainted value is loaded, the loaded value is of course tainted
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        Load, zeroValue(), [Load](IFDSTaintAnalysis::d_t source) {
+        Load, [Load](IFDSTaintAnalysis::d_t source) {
           return source == Load->getPointerOperand();
         });
   }
@@ -75,7 +75,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // aggregated object
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        GEP, zeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
+        GEP, [GEP](IFDSTaintAnalysis::d_t source) {
           return source == GEP->getPointerOperand();
         });
   }

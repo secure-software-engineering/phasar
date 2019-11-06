@@ -24,12 +24,11 @@ namespace psr {
 template <typename D> class GenIf : public FlowFunction<D> {
 protected:
   D genValue;
-  D zeroValue;
   std::function<bool(D)> Predicate;
 
 public:
-  GenIf(D genValue, D zeroValue, std::function<bool(D)> Predicate)
-      : genValue(genValue), zeroValue(zeroValue), Predicate(Predicate) {}
+  GenIf(D genValue, std::function<bool(D)> Predicate)
+      : genValue(genValue), Predicate(Predicate) {}
   virtual ~GenIf() = default;
   std::set<D> computeTargets(D source) override {
     if (Predicate(source))
