@@ -390,6 +390,9 @@ protected:
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Create initial self-loop with D: "
+                          << ideTabulationProblem.DtoString(d3));
             propagate(d3, sP, d3, EdgeIdentity<V>::getInstance(), n,
                       false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
@@ -1731,7 +1734,7 @@ protected:
               EFLabel += EF->str() + ", ";
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
-            G.interFactEdges.emplace(D1, D2);
+            G.interFactEdges.emplace(D1, D2, true, EFLabel);
           }
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");
