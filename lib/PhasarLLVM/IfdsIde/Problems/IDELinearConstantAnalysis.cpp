@@ -28,6 +28,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/IfdsIde/LLVMFlowFunctions/StrongUpdateStore.h>
 #include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/Utils/LLVMIRToSrc.h>
@@ -82,45 +83,19 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
     if (llvm::isa<llvm::ConstantInt>(ValueOp)) {
-      struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
-        IDELinearConstantAnalysis::d_t PointerOp, ZeroValue;
-        LCAFF(IDELinearConstantAnalysis::d_t PointerOperand,
-              IDELinearConstantAnalysis::d_t ZeroValue)
-            : PointerOp(PointerOperand), ZeroValue(ZeroValue) {}
-        set<IDELinearConstantAnalysis::d_t>
-        computeTargets(IDELinearConstantAnalysis::d_t source) override {
-          if (source == PointerOp) {
-            return {};
-          } else if (source == ZeroValue) {
-            return {source, PointerOp};
-          } else {
-            return {source};
+      return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
+          Store, [this](IDELinearConstantAnalysis::d_t source) {
+            return source == zeroValue();
+          });
           }
-        }
-      };
-      return make_shared<LCAFF>(PointerOp, zeroValue());
-    }
     // Case II: Storing an integer typed value.
     if (ValueOp->getType()->isIntegerTy()) {
-      struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
-        IDELinearConstantAnalysis::d_t PointerOp, ValueOp;
-        LCAFF(IDELinearConstantAnalysis::d_t PointerOperand,
-              IDELinearConstantAnalysis::d_t ValueOperand)
-            : PointerOp(PointerOperand), ValueOp(ValueOperand) {}
-        set<IDELinearConstantAnalysis::d_t>
-        computeTargets(IDELinearConstantAnalysis::d_t source) override {
-          if (source == PointerOp) {
-            return {};
-          } else if (source == ValueOp) {
-            return {source, PointerOp};
-          } else {
-            return {source};
+      return make_shared<StrongUpdateStore<IDELinearConstantAnalysis::d_t>>(
+          Store, [Store](IDELinearConstantAnalysis::d_t source) {
+            return source == Store->getValueOperand();
+          });
           }
         }
-      };
-      return make_shared<LCAFF>(PointerOp, ValueOp);
-    }
-  }
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     // only consider i32 load
