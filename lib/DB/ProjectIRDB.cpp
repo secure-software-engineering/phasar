@@ -376,9 +376,14 @@ llvm::Module *ProjectIRDB::getModule(const std::string &name) {
 
 std::size_t ProjectIRDB::getNumberOfModules() { return modules.size(); }
 
-llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &name) {
-  if (functionToModuleMap.count(name)) {
-    return modules[functionToModuleMap[name]].get();
+llvm::Module *
+ProjectIRDB::getModuleDefiningFunction(const std::string &name) const {
+  auto it = functionToModuleMap.find(name);
+  if (it != functionToModuleMap.end()) {
+    auto mod_it = modules.find(it->second);
+    if (mod_it != modules.end()) {
+      return mod_it->second.get();
+    }
   }
   return nullptr;
 }
@@ -662,7 +667,7 @@ bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
 bool ProjectIRDB::debugInfoAvailable() const {
   if (WPAMOD) {
     return wasCompiledWithDebugInfo(WPAMOD);
-  } 
+  }
   // During unittests WPAMOD might not be set
   else if (modules.size() >= 1) {
     for (auto module : getAllModules()) {
