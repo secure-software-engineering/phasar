@@ -135,20 +135,20 @@ TEST(BitVectorSet, setUnion) {
   EXPECT_TRUE(A == C);
 }
 
-TEST(BitVectorSet, setIntercept) {
+TEST(BitVectorSet, setIntersect) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({5, 6, 42});
 
   BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
   BitVectorSet<int> D({5, 6});
 
-  BitVectorSet<int> A2 = A.setIntercept(B);
+  BitVectorSet<int> A2 = A.setIntersect(B);
 
   EXPECT_TRUE(A2 != C);
   EXPECT_TRUE(A2 == D);
-  BitVectorSet<int> A3 = A2.setIntercept(D);
+  BitVectorSet<int> A3 = A2.setIntersect(D);
   EXPECT_TRUE(A3 == D);
-  BitVectorSet<int> A4 = A3.setIntercept(BitVectorSet<int>());
+  BitVectorSet<int> A4 = A3.setIntersect(BitVectorSet<int>());
   EXPECT_TRUE(A4.empty);
 }
 

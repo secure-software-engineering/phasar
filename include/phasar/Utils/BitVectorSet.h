@@ -56,13 +56,23 @@ public:
     }
   }
 
-  BitVectorSet<T> setIntercept(const BitVectorSet<T> &other) {
+  BitVectorSet<T> setIntersect(const BitVectorSet<T> &other) {
     BitVectorSet<T> ret;
-    for (auto elem : other.Position) {
-      if (find(elem.first)) {
-        ret.insert(elem->first);
+    if (other.Bits.size() <= Bits.size()){
+      for (auto elem : other.Position) {
+        if (find(elem.first)) {
+          ret.insert(elem.first);
+        }
       }
     }
+    else {
+      for (auto elem : Position) {
+        if (other.find(elem.first)) {
+          ret.insert(elem.first);
+        }
+      }
+    }
+    return ret;
   }
 
   void insert(const T &Data) {
