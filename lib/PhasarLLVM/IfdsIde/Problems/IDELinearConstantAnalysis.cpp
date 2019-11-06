@@ -290,12 +290,14 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t succNode) {
   auto &lg = lg::get();
   // All_Bottom for zero value
-  if (isZeroValue(currNode) && isZeroValue(succNode)) {
+  if ((isZeroValue(currNode) && isZeroValue(succNode)) ||
+      (llvm::isa<llvm::AllocaInst>(curr) && isZeroValue(currNode))) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
         IDELinearConstantAnalysis::BOTTOM);
   }
+
   // Check store instruction
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     IDELinearConstantAnalysis::d_t pointerOperand = Store->getPointerOperand();
@@ -329,6 +331,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       return make_shared<IDELinearConstantAnalysis::LCAIdentity>();
     }
   }
+
   // Check for binary operations add, sub, mul, udiv/sdiv and urem/srem
   if (curr == succNode && llvm::isa<llvm::BinaryOperator>(curr)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Binary operation.");
@@ -516,7 +519,7 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
           secondFunction.get())) {
     return this->shared_from_this();
   }
-  if (auto *LSVI = dynamic_cast<LCAIdentity *>(secondFunction.get())) {
+  if (auto *LCAID = dynamic_cast<LCAIdentity *>(secondFunction.get())) {
     return this->shared_from_this();
   }
   return F->composeWith(G->composeWith(secondFunction));
@@ -575,16 +578,16 @@ IDELinearConstantAnalysis::GenConstant::joinWith(
 
 bool IDELinearConstantAnalysis::GenConstant::equal_to(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
-  if (auto *StC =
+  if (auto *GC =
           dynamic_cast<IDELinearConstantAnalysis::GenConstant *>(other.get())) {
-    return (StC->IntConst == this->IntConst);
+    return (GC->IntConst == this->IntConst);
   }
   return this == other.get();
 }
 
 void IDELinearConstantAnalysis::GenConstant::print(ostream &OS,
                                                    bool isForDebug) const {
-  OS << "Const_" << GenConstant_Id;
+  OS << IntConst << " (EF:" << GenConstant_Id << ')';
 }
 
 IDELinearConstantAnalysis::LCAIdentity::LCAIdentity()
@@ -624,15 +627,14 @@ bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
 
 void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
                                                    bool isForDebug) const {
-  OS << "LCAID_" << LCAID_Id;
+  OS << "Id (EF:" << LCAID_Id << ')';
 }
 
 IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
     const unsigned op, IDELinearConstantAnalysis::v_t lop,
     IDELinearConstantAnalysis::v_t rop) {
   // default initialize with BOTTOM (all information)
-  IDELinearConstantAnalysis::v_t res =
-      numeric_limits<IDELinearConstantAnalysis::v_t>::max();
+  IDELinearConstantAnalysis::v_t res = BOTTOM;
   switch (op) {
   case llvm::Instruction::Add:
     res = lop + rop;
