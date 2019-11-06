@@ -199,7 +199,7 @@ public:
   void printValue(std::ostream &os, v_t v) const override;
 
   void emitTextReport(std::ostream &os,
-                      SolverResults<n_t, d_t, v_t> &SR) override;
+                      SolverResults<n_t, d_t, v_t> SR) override;
 };
 
 } // namespace psr

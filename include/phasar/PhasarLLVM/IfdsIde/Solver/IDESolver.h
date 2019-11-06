@@ -46,6 +46,7 @@
 #include <phasar/PhasarLLVM/IfdsIde/Solver/JumpFunctions.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/LinkedNode.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/PathEdge.h>
+#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
 #include <phasar/PhasarLLVM/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>
 
@@ -209,6 +210,11 @@ public:
       }
     }
     return result;
+  }
+
+  SolverResults<N, D, V> getSolverResults() {
+    SolverResults<N, D, V> SR(this->valtab, ideTabulationProblem.zeroValue());
+    return SR;
   }
 
 protected:

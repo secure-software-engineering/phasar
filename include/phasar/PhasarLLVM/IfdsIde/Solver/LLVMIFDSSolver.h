@@ -26,7 +26,6 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/PhasarLLVM/IfdsIde/Solver/SolverResults.h>
 #include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 
@@ -66,9 +65,9 @@ public:
   }
 
   void printReport() {
-    SolverResults<const llvm::Instruction *, D, BinaryDomain> SR(
-        this->valtab, Problem.zeroValue());
-    Problem.emitTextReport(std::cout, SR);
+    Problem.emitTextReport(
+        std::cout, IFDSSolver<const llvm::Instruction *, D,
+                              const llvm::Function *, I>::getSolverResults());
   }
 
   void dumpResults() {

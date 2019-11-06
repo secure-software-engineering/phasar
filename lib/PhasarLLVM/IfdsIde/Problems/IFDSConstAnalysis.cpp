@@ -320,7 +320,7 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
 void IFDSConstAnalysis::emitTextReport(
     ostream &os,
     SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t, BinaryDomain>
-        &SR) {
+        SR) {
   // 1) Remove all mutable memory locations
   for (auto f : icfg.getAllMethods()) {
     for (auto exit : icfg.getExitPointsOf(f)) {

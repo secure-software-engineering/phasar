@@ -722,8 +722,8 @@ void IDELinearConstantAnalysis::printValue(
 void IDELinearConstantAnalysis::emitTextReport(
     std::ostream &os, SolverResults<IDELinearConstantAnalysis::n_t,
                                     IDELinearConstantAnalysis::d_t,
-                                    IDELinearConstantAnalysis::v_t> &SR) {
-  os << "\n=========== IDE Linear Constant Analysis Results ===========\n";
+                                    IDELinearConstantAnalysis::v_t>
+                          SR) {
   for (auto f : icfg.getAllMethods()) {
     os << getFunctionNameFromIR(f) << '\n';
     for (auto stmt : icfg.getAllInstructionsOf(f)) {

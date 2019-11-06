@@ -678,7 +678,8 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
 void IDETypeStateAnalysis::emitTextReport(
     std::ostream &os,
     SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                  IDETypeStateAnalysis::v_t> &SR) {
+                  IDETypeStateAnalysis::v_t>
+        SR) {
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : icfg.getAllMethods()) {
     os << '\n' << getFunctionNameFromIR(f) << '\n';
