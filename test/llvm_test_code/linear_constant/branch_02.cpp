@@ -1,4 +1,4 @@
-// i non-constant or bad example?
+// i non-constant
 extern bool cond;
 int main() {
 	int i;

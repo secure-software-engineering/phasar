@@ -1,11 +1,11 @@
-unsigned fac(unsigned i) {
-  if (i == 0) {
-    return 1;
-  }
-  return i * fac(--i);
+void bar(int b) {}
+
+void foo(int a) {
+  bar(a);
 }
 
 int main() {
-  unsigned a = fac(5);
+  int i;
+  foo(2);
   return 0;
 }

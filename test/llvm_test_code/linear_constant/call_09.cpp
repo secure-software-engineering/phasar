@@ -1,10 +1,9 @@
-int increment(int i) { return ++i; }
+int increment(int a) { 
+  return ++a; 
+}
 
 int main() {
-  int i = 42;
-  while(i > 0) {
-    i = increment(i);
-  }
-  int a = i;
+  int i = increment(42);
+  int j = increment(42);
   return 0;
 }

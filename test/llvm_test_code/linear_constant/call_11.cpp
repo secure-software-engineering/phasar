@@ -1,10 +1,13 @@
+int bar(int b) {
+  return b;
+}
+
 int foo(int a) {
-  return 42;
+  return bar(a);
 }
 
 int main() {
   int i;
   i = foo(2);
-  i = foo(i);
   return 0;
 }

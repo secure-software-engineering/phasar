@@ -1,4 +1,6 @@
-int increment(int i) { return ++i; }
+int increment(int a) { 
+  return ++a; 
+}
 
 int main() {
   int i = 42;
