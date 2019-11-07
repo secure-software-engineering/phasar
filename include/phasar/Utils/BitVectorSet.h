@@ -57,8 +57,7 @@ public:
       Shorter = &Other.Bits;
       Longer = &Bits;
     }
-    BitVectorSet<T> Res;
-    Res.reserve(Longer->size());
+    BitVectorSet<T> Res(Longer->size());
     for (size_t idx = 0; idx < Shorter->size(); ++idx) {
       Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
     }
@@ -77,8 +76,7 @@ public:
       Shorter = &Other.Bits;
       Longer = &Bits;
     }
-    BitVectorSet<T> Res;
-    Res.reserve(Shorter->size());
+    BitVectorSet<T> Res(Shorter->size());
     for (size_t idx = 0; idx < Shorter->size(); ++idx) {
       Res.Bits[idx] = ((*Shorter)[idx] && (*Longer)[idx]);
     }
