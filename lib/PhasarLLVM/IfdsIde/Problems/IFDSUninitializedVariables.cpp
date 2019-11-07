@@ -436,30 +436,113 @@ void IFDSUninitializedVariables::printMethod(
   os << m->getName().str();
 }
 
-void IFDSUninitializedVariables::printIFDSReport(
-    ostream &os,
-    SolverResults<IFDSUninitializedVariables::n_t,
-                  IFDSUninitializedVariables::d_t, BinaryDomain> &SR) {
-  os << "=========== IFDS Uninitialized Analysis Results ===========\n";
+void IFDSUninitializedVariables::emitTextReport(
+    ostream &os, SolverResults<IFDSUninitializedVariables::n_t,
+                               IFDSUninitializedVariables::d_t, BinaryDomain>
+                     SR) {
+  os << "====================== IFDS-Uninitialized-Analysis Report "
+        "======================\n";
   if (UndefValueUses.empty()) {
-    os << "No uninitialized variables were used!\n";
+    os << "No uses of uninitialized variables found by the analysis!\n";
   } else {
-    for (auto User : UndefValueUses) {
-      os << "At instruction\nIR  : ";
-      printNode(os, User.first);
-      os << '\n';
-      // os << llvmValueToSrc(User.first)
-      //  << "\n\nUsed uninitialized variable(s):\n";
-      for (auto UndefV : User.second) {
-        os << "IR  : ";
-        printDataFlowFact(os, UndefV);
-        os << '\n';
-        //  os << llvmValueToSrc(UndefV) << '\n';
+    if (!irdb.debugInfoAvailable()) {
+      // Emit only IR code, function name and module info
+      os << "\nWARNING: No Debug Info available - emiting results without "
+            "source code mapping!\n";
+      os << "\nTotal uses of uninitialized IR Value's: "
+         << UndefValueUses.size() << '\n';
+      size_t count = 0;
+      for (auto User : UndefValueUses) {
+        os << "\n---------------------------------  " << ++count
+           << ". Use  ---------------------------------\n\n";
+        os << "At IR statement: ";
+        printNode(os, User.first);
+        os << "\n    in function: " << getFunctionNameFromIR(User.first);
+        os << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
+        for (auto UndefV : User.second) {
+          os << "   Uninit Value: ";
+          printDataFlowFact(os, UndefV);
+          os << '\n';
+        }
       }
-      os << "-----------------------------------------------------------\n\n";
+      os << '\n';
+    } else {
+      auto uninit_results = aggregateResults();
+      os << "\nTotal uses of uninitialized variables: " << uninit_results.size()
+         << '\n';
+      size_t count = 0;
+      for (auto res : uninit_results) {
+        os << "\n---------------------------------  " << ++count
+           << ". Use  ---------------------------------\n\n";
+        res.print(os);
+      }
     }
   }
 }
+
+std::vector<IFDSUninitializedVariables::UninitResult>
+IFDSUninitializedVariables::aggregateResults() {
+  std::vector<IFDSUninitializedVariables::UninitResult> results;
+  unsigned int line_nr = 0, curr_line_nr = 0;
+  size_t count;
+  UninitResult UR;
+  for (auto User : UndefValueUses) {
+    // new line nr idicates a new uninit use on source code level
+    line_nr = getLineFromIR(User.first);
+    if (curr_line_nr != line_nr) {
+      curr_line_nr = line_nr;
+      UninitResult new_UR;
+      new_UR.line = line_nr;
+      new_UR.func_name = getFunctionNameFromIR(User.first);
+      new_UR.file_path = getFilePathFromIR(User.first);
+      new_UR.src_code = getSrcCodeFromIR(User.first);
+      if (!UR.empty())
+        results.push_back(UR);
+      UR = new_UR;
+    }
+    // add current IR trace
+    UR.ir_trace[User.first] = User.second;
+    // add (possibly) new variable names
+    for (auto UndefV : User.second) {
+      auto var_name = getVarNameFromIR(UndefV);
+      if (!var_name.empty()) {
+        UR.var_names.push_back(var_name);
+      }
+    }
+  }
+  if (!UR.empty())
+    results.push_back(UR);
+  return results;
+}
+
+bool IFDSUninitializedVariables::UninitResult::empty() { return line == 0; }
+
+void IFDSUninitializedVariables::UninitResult::print(std::ostream &os) {
+  os << "Variable(s): ";
+  if (!var_names.empty()) {
+    for (size_t i = 0; i < var_names.size(); ++i) {
+      os << var_names[i];
+      if (i < var_names.size() - 1)
+        os << ", ";
+    }
+    os << '\n';
+  }
+  os << "Line       : " << line << '\n';
+  os << "Source code: " << src_code << '\n';
+  os << "Function   : " << func_name << '\n';
+  os << "File       : " << file_path << '\n';
+  os << "\nCorresponding IR Statements and uninit. Values\n";
+  if (!ir_trace.empty()) {
+    for (auto trace : ir_trace) {
+      os << "At IR Statement: " << llvmIRToString(trace.first) << '\n';
+      for (auto IRVal : trace.second) {
+        os << "   Uninit Value: " << llvmIRToString(IRVal) << '\n';
+      }
+      // os << '\n';
+    }
+  }
+}
+
 const std::map<IFDSUninitializedVariables::n_t,
                std::set<IFDSUninitializedVariables::d_t>> &
 IFDSUninitializedVariables::getAllUndefUses() const {

@@ -165,8 +165,8 @@ public:
 
   void printMethod(std::ostream &os, m_t m) const override;
 
-  void printIFDSReport(std::ostream &os,
-                       SolverResults<n_t, d_t, BinaryDomain> &SR) override;
+  void emitTextReport(std::ostream &os,
+                      SolverResults<n_t, d_t, BinaryDomain> SR) override;
 
   /**
    * @note Global Variables are always intialized in llvm IR, and therefore

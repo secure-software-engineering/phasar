@@ -1,10 +1,11 @@
-int foo(int a) {
-  return a;
+void bar(int b) {}
+
+void foo(int a) {
+  bar(a);
 }
 
 int main() {
   int i;
-  i = foo(2);
-  i = foo(i);
+  foo(2);
   return 0;
 }

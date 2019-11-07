@@ -1,6 +1,5 @@
-
 int main() {
-	int i = 2;
-	int j = 42;
-	int k = j + 13;
+	int i = 42;
+	int j = i * 3;
+  return 0;
 }

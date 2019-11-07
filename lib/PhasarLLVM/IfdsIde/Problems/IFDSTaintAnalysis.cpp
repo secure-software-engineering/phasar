@@ -67,7 +67,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // If a tainted value is loaded, the loaded value is of course tainted
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        Load, zeroValue(), [Load](IFDSTaintAnalysis::d_t source) {
+        Load, [Load](IFDSTaintAnalysis::d_t source) {
           return source == Load->getPointerOperand();
         });
   }
@@ -75,7 +75,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // aggregated object
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        GEP, zeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
+        GEP, [GEP](IFDSTaintAnalysis::d_t source) {
           return source == GEP->getPointerOperand();
         });
   }
@@ -286,26 +286,22 @@ void IFDSTaintAnalysis::printMethod(ostream &os,
   os << m->getName().str();
 }
 
-void IFDSTaintAnalysis::printIFDSReport(
-    std::ostream &os, SolverResults<n_t, d_t, BinaryDomain> &SR) {
+void IFDSTaintAnalysis::emitTextReport(
+    std::ostream &os, SolverResults<n_t, d_t, BinaryDomain> SR) {
   os << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     os << "No leaks found!\n";
   } else {
     for (auto Leak : Leaks) {
       os << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
-      os << llvmValueToSrc(Leak.first);
       os << "\n\nLeak(s):\n";
       for (auto LeakedValue : Leak.second) {
         os << "IR  : ";
         // Get the actual leaked alloca instruction if possible
         if (auto Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
-          os << llvmIRToString(Load->getPointerOperand()) << '\n'
-             << llvmValueToSrc(Load->getPointerOperand()) << '\n';
-
+          os << llvmIRToString(Load->getPointerOperand()) << '\n';
         } else {
-          os << llvmIRToString(LeakedValue) << '\n'
-             << llvmValueToSrc(LeakedValue) << '\n';
+          os << llvmIRToString(LeakedValue) << '\n';
         }
       }
       os << "-------------------\n";

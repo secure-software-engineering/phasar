@@ -1,11 +1,11 @@
-int decrement(int i) { 
-	if (i > 0) {
-		return decrement(--i);
-	}
-	return -1;
+int foo(int a, int b) {
+  return a + b;
 }
 
 int main() {
-	int i = 42;
-	int j = decrement(i);
+  int i = 10;
+  int j = 1;
+  int k;
+  k = foo(i, j);
+  return 0;
 }

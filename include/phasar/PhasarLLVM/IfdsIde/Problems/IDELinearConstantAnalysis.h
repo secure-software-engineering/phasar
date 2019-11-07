@@ -32,14 +32,6 @@ class LLVMBasedICFG;
 class IDELinearConstantAnalysis
     : public LLVMDefaultIDETabulationProblem<const llvm::Value *, int64_t,
                                              LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
-  // For debug purpose only
-  static unsigned CurrGenConstant_Id;
-  static unsigned CurrLCAID_Id;
-  static unsigned CurrBinary_Id;
-
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -51,6 +43,27 @@ public:
   static const v_t TOP;
   static const v_t BOTTOM;
 
+  struct LCAResult {
+    LCAResult() = default;
+    unsigned line_nr = 0;
+    std::string src_code;
+    std::map<std::string, v_t> variableToValue;
+    std::vector<n_t> ir_trace;
+    void print(std::ostream &os);
+  };
+
+  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_restults_t;
+
+private:
+  std::vector<std::string> EntryPoints;
+  void stripBottomResults(std::unordered_map<d_t, v_t> &res);
+
+  // For debug purpose only
+  static unsigned CurrGenConstant_Id;
+  static unsigned CurrLCAID_Id;
+  static unsigned CurrBinary_Id;
+
+public:
   IDELinearConstantAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
                             const ProjectIRDB &irdb,
                             std::vector<std::string> EntryPoints = {"main"});
@@ -172,6 +185,28 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
+  class BinOp : public EdgeFunction<v_t>,
+                public std::enable_shared_from_this<BinOp> {
+  private:
+    const unsigned EdgeFunctionID, Op;
+    d_t lop, rop, currNode;
+
+  public:
+    BinOp(const unsigned Op, d_t lop, d_t rop, d_t currNode);
+
+    v_t computeTarget(v_t source) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<v_t>>
+    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
   // Helper functions
 
   /**
@@ -190,6 +225,10 @@ public:
    */
   static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
 
+  static char opToChar(const unsigned op);
+
+  bool isEntryPoint(std::string FunctionName) const;
+
   void printNode(std::ostream &os, n_t n) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
@@ -198,8 +237,10 @@ public:
 
   void printValue(std::ostream &os, v_t v) const override;
 
-  void printIDEReport(std::ostream &os,
-                      SolverResults<n_t, d_t, v_t> &SR) override;
+  lca_restults_t getLCAResults(SolverResults<n_t, d_t, v_t> SR);
+
+  void emitTextReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> SR) override;
 };
 
 } // namespace psr

@@ -64,9 +64,9 @@ public:
   }
 
   void printReport() {
-    SolverResults<const llvm::Instruction *, D, V> SR(this->valtab,
-                                                      Problem.zeroValue());
-    Problem.printIDEReport(std::cout, SR);
+    Problem.emitTextReport(
+        std::cout, IDESolver<const llvm::Instruction *, D,
+                             const llvm::Function *, V, I>::getSolverResults());
   }
 
   void dumpResults() {

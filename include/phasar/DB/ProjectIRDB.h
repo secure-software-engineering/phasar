@@ -77,6 +77,7 @@ private:
   void buildGlobalModuleMapping(llvm::Module *M);
   void buildIDModuleMapping(llvm::Module *M);
   void preprocessModule(llvm::Module *M);
+  bool wasCompiledWithDebugInfo(llvm::Module *M) const;
 
 public:
   /// Constructs an empty ProjectIRDB
@@ -104,6 +105,7 @@ public:
   llvm::Module *getWPAModule();
   bool containsSourceFile(const std::string &src);
   bool empty();
+  bool debugInfoAvailable() const;
   llvm::LLVMContext *getLLVMContext(const std::string &ModuleName);
   void insertModule(std::unique_ptr<llvm::Module> M);
   llvm::Module *getModule(const std::string &ModuleName);
@@ -126,7 +128,8 @@ public:
   std::set<const llvm::Value *> getAllMemoryLocations();
   std::set<std::string> getAllSourceFiles();
   std::size_t getNumberOfModules();
-  llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
+  llvm::Module *
+  getModuleDefiningFunction(const std::string &FunctionName) const;
   llvm::Function *getFunction(const std::string &FunctionName);
   llvm::GlobalVariable *
   getGlobalVariable(const std::string &GlobalVariableName);

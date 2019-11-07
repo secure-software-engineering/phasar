@@ -168,8 +168,8 @@ public:
 
   void printValue(std::ostream &os, v_t v) const override;
 
-  void printIDEReport(std::ostream &os,
-                      SolverResults<n_t, d_t, v_t> &SR) override;
+  void emitTextReport(std::ostream &os,
+                      SolverResults<n_t, d_t, v_t> SR) override;
 
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {

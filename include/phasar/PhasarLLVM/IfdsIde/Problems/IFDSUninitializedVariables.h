@@ -36,6 +36,19 @@ public:
   typedef LLVMBasedICFG &i_t;
 
 private:
+  struct UninitResult {
+    UninitResult() = default;
+    unsigned int line = 0;
+    std::string func_name;
+    std::string file_path;
+    std::string src_code;
+    std::vector<std::string> var_names;
+    std::map<IFDSUninitializedVariables::n_t,
+             std::set<IFDSUninitializedVariables::d_t>>
+        ir_trace;
+    bool empty();
+    void print(std::ostream &os);
+  };
   std::map<n_t, std::set<d_t>> UndefValueUses;
   std::vector<std::string> EntryPoints;
 
@@ -76,10 +89,12 @@ public:
 
   void printMethod(std::ostream &os, m_t m) const override;
 
-  void printIFDSReport(std::ostream &os,
-                       SolverResults<n_t, d_t, BinaryDomain> &SR) override;
+  void emitTextReport(std::ostream &os,
+                      SolverResults<n_t, d_t, BinaryDomain> SR) override;
 
   const std::map<n_t, std::set<d_t>> &getAllUndefUses() const;
+
+  std::vector<UninitResult> aggregateResults();
 };
 
 } // namespace psr

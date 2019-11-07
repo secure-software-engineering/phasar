@@ -34,9 +34,14 @@ class IDETabulationProblem : public virtual IFDSTabulationProblem<N, D, M, I>,
 public:
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
-  virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
-    os << "No IDE report available!\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+  virtual void emitTextReport(std::ostream &os, SolverResults<N, D, V> SR) {
+    os << "No text report available!\n";
   }
+#pragma clang diagnostic pop
+private:
+  using IFDSTabulationProblem<N, D, M, I>::emitTextReport;
 };
 } // namespace psr
 

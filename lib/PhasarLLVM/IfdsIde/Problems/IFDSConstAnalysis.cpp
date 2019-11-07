@@ -317,10 +317,10 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
   return Initialized.size();
 }
 
-void IFDSConstAnalysis::printIFDSReport(
+void IFDSConstAnalysis::emitTextReport(
     ostream &os,
     SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t, BinaryDomain>
-        &SR) {
+        SR) {
   // 1) Remove all mutable memory locations
   for (auto f : icfg.getAllMethods()) {
     for (auto exit : icfg.getExitPointsOf(f)) {
@@ -357,8 +357,7 @@ void IFDSConstAnalysis::printIFDSReport(
   } else {
     os << "Immutable/const stack and/or heap memory locations:\n";
     for (auto memloc : AllMemLocs) {
-      os << "\nIR  : " << llvmIRToString(memloc) << '\n'
-         << llvmValueToSrc(memloc) << "\n";
+      os << "\nIR  : " << llvmIRToString(memloc) << '\n';
     }
   }
   os << "\n===================================================\n";

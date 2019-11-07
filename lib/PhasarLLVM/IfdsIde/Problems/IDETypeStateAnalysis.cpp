@@ -20,7 +20,6 @@
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/GenIf.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
@@ -675,13 +674,14 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   return false;
 }
 
-void IDETypeStateAnalysis::printIDEReport(
+void IDETypeStateAnalysis::emitTextReport(
     std::ostream &os,
     SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                  IDETypeStateAnalysis::v_t> &SR) {
+                  IDETypeStateAnalysis::v_t>
+        SR) {
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : icfg.getAllMethods()) {
-    os << '\n' << llvmFunctionToSrc(f) << '\n';
+    os << '\n' << getFunctionNameFromIR(f) << '\n';
     for (auto &BB : *f) {
       for (auto &I : BB) {
         auto results = SR.resultsAt(&I, true);
@@ -691,11 +691,9 @@ void IDETypeStateAnalysis::printIDEReport(
             if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(res.first)) {
               if (res.second == TSD.error()) {
                 os << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(res.first) << '\n'
-                   << llvmValueToSrc(res.first, false) << '\n';
+                   << DtoString(res.first) << '\n';
                 for (auto Pred : icfg.getPredsOf(&I)) {
-                  os << "\nPredecessor: " << NtoString(Pred) << '\n'
-                     << llvmValueToSrc(Pred, false) << '\n';
+                  os << "\nPredecessor: " << NtoString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
@@ -706,8 +704,7 @@ void IDETypeStateAnalysis::printIDEReport(
                 os << "============================\n";
               } else {
                 os << "\nAlloca : " << DtoString(res.first)
-                   << "\nState  : " << VtoString(res.second) << '\n'
-                   << llvmValueToSrc(res.first, false) << '\n';
+                   << "\nState  : " << VtoString(res.second) << '\n';
               }
             }
           }
@@ -717,12 +714,9 @@ void IDETypeStateAnalysis::printIDEReport(
               if (res.second == TSD.error()) {
                 os << "\n=== ERROR STATE DETECTED ===\nAlloca: "
                    << DtoString(res.first) << '\n'
-                   << llvmValueToSrc(res.first, false)
-                   << "\nAt IR Inst: " << NtoString(&I) << '\n'
-                   << llvmValueToSrc(&I, false) << '\n';
+                   << "\nAt IR Inst: " << NtoString(&I) << '\n';
                 for (auto Pred : icfg.getPredsOf(&I)) {
-                  os << "\nPredecessor: " << NtoString(Pred) << '\n'
-                     << llvmValueToSrc(Pred, false) << '\n';
+                  os << "\nPredecessor: " << NtoString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {

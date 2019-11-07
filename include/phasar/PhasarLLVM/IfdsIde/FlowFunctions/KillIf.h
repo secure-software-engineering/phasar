@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENIF_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_GENIF_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLIF_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_KILLIF_H_
 
 #include <functional>
 #include <set>
@@ -18,21 +18,19 @@
 namespace psr {
 
 /**
- * @brief Generates the given value if the given predicate evaluates to true.
- * @tparam D The type of data-flow facts to be generated.
+ * @brief Kills all facts for which the given predicate evaluates to true.
+ * @tparam D The type of data-flow facts to be killed.
  */
-template <typename D> class GenIf : public FlowFunction<D> {
+template <typename D> class KillIf : public FlowFunction<D> {
 protected:
-  D genValue;
   std::function<bool(D)> Predicate;
 
 public:
-  GenIf(D genValue, std::function<bool(D)> Predicate)
-      : genValue(genValue), Predicate(Predicate) {}
-  virtual ~GenIf() = default;
+  KillIf(std::function<bool(D)> Predicate) : Predicate(Predicate) {}
+  virtual ~KillIf() = default;
   std::set<D> computeTargets(D source) override {
     if (Predicate(source))
-      return {source, genValue};
+      return {};
     else
       return {source};
   }
