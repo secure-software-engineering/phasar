@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <set>
 
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
@@ -42,7 +43,7 @@ bool InterMonoSolverTest::sqSubSetEqual(
     const BitVectorSet<const llvm::Value *> &Lhs,
     const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::sqSubSetEqual()\n";
-  return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
+  return Lhs.includes(Rhs);
 }
 
 BitVectorSet<const llvm::Value *>
@@ -80,7 +81,7 @@ BitVectorSet<const llvm::Value *> InterMonoSolverTest::returnFlow(
 
 BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    BitVectorSet<const llvm::Function *> Callees,
+    set<const llvm::Function *> Callees,
     const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::callToRetFlow()\n";
   return In;

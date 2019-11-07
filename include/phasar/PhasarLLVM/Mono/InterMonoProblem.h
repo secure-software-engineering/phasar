@@ -17,6 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
+#include <set>
+
 #include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
 #include <phasar/Utils/BitVectorSet.h>
 
@@ -47,7 +49,7 @@ public:
   virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt,
                                      N RetSite, const BitVectorSet<D> &In) = 0;
   virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
-                                        BitVectorSet<M> Callees,
+                                        std::set<M> Callees,
                                         const BitVectorSet<D> &In) = 0;
 };
 

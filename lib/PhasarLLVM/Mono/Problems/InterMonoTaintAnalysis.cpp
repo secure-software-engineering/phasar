@@ -51,7 +51,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
   // cout << "InterMonoTaintAnalysis::sqSubSetEqual()\n";
-  return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
+  return Lhs.includes(Rhs);
 }
 
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
@@ -139,7 +139,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
 
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
-    BitVectorSet<const llvm::Function *> Callees,
+    set<const llvm::Function *> Callees,
     const BitVectorSet<const llvm::Value *> &In) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

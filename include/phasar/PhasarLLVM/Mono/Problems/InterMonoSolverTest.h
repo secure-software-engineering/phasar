@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 
 #include <string>
+#include <set>
 #include <unordered_map>
 #include <vector>
 
@@ -69,7 +70,7 @@ public:
   BitVectorSet<const llvm::Value *>
   callToRetFlow(const llvm::Instruction *CallSite,
                 const llvm::Instruction *RetSite,
-                BitVectorSet<const llvm::Function *> Callees,
+                std::set<const llvm::Function *> Callees,
                 const BitVectorSet<const llvm::Value *> &In) override;
 
   std::unordered_map<const llvm::Instruction *,

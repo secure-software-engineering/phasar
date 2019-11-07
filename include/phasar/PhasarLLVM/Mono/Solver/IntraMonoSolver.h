@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
-#include <map>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -47,7 +46,7 @@ protected:
     }
     // insert initial seeds
     for (auto &seed : IMProblem.initialSeeds()) {
-      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
+      Analysis[seed.first].insert(seed.second);
     }
   }
 

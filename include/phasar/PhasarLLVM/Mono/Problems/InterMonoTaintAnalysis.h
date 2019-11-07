@@ -74,7 +74,7 @@ public:
   BitVectorSet<const llvm::Value *>
   callToRetFlow(const llvm::Instruction *CallSite,
                 const llvm::Instruction *RetSite,
-                BitVectorSet<const llvm::Function *> Callees,
+                std::set<const llvm::Function *> Callees,
                 const BitVectorSet<const llvm::Value *> &In) override;
 
   std::unordered_map<const llvm::Instruction *,

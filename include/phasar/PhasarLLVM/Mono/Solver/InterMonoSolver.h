@@ -57,8 +57,7 @@ protected:
         Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
       }
       // Additionally, insert the initial seeds
-      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
-                                                            seed.second.end());
+      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second);
     }
   }
 
@@ -233,7 +232,7 @@ public:
           for (auto callsite : callsites) {
             auto retFactsPerCall = IMProblem.returnFlow(
                 callsite, ICFG.getMethodOf(src), src, dst, Analysis[src][CTX]);
-            Out[CTXRm].insert(retFactsPerCall.begin(), retFactsPerCall.end());
+            Out[CTXRm].insert(retFactsPerCall);
           }
           for (auto retsite : retsites) {
             bool flowfactsstabilized =

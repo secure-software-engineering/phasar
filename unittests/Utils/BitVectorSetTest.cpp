@@ -29,6 +29,29 @@ TEST(BitVectorSetTest, insert) {
   EXPECT_EQ(B.count(666), 0);
 }
 
+TEST(BitVectorSet, insertBitVectorSet) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B;
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6});
+  A.insert(B);
+  EXPECT_EQ(A, C);
+
+  BitVectorSet<int> D({1, 2, 42});
+  BitVectorSet<int> E({1, 2, 3, 4, 5, 6, 42});
+  A.insert(D);
+  EXPECT_EQ(A, E);
+
+  BitVectorSet<int> F({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> G;
+  G.insert(F);
+  EXPECT_EQ(F, G);
+
+  BitVectorSet<int> H;
+  BitVectorSet<int> I;
+  H.insert(I);
+  EXPECT_EQ(H, I);
+}
+
 TEST(BitVectorSet, twoSets) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({5, 6, 42});
@@ -149,7 +172,24 @@ TEST(BitVectorSet, setIntersect) {
   BitVectorSet<int> A3 = A2.setIntersect(D);
   EXPECT_TRUE(A3 == D);
   BitVectorSet<int> A4 = A3.setIntersect(BitVectorSet<int>());
-  EXPECT_TRUE(A4.empty);
+  EXPECT_TRUE(A4.empty());
+}
+
+TEST(BitVectorSet, includes) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({1, 2, 3});
+  BitVectorSet<int> C({1, 2, 42});
+  BitVectorSet<int> D({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> E({1, 2, 3});
+
+  EXPECT_TRUE(A.includes(B));
+  EXPECT_FALSE(B.includes(A));
+  EXPECT_FALSE(A.includes(C));
+  EXPECT_FALSE(B.includes(C));
+  EXPECT_FALSE(A.includes(D));
+  EXPECT_TRUE(D.includes(A));
+  EXPECT_TRUE(B.includes(E));
+  EXPECT_TRUE(E.includes(B));
 }
 
 int main(int argc, char **argv) {

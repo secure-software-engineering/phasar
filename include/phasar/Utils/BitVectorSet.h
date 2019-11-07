@@ -38,41 +38,63 @@ private:
 public:
   BitVectorSet() = default;
 
+  explicit BitVectorSet(size_t Count) : Bits(Count, false) {}
+
   BitVectorSet(std::initializer_list<T> Ilist) {
     for (auto &Item : Ilist) {
       insert(Item);
     }
   }
 
-  BitVectorSet(const BitVectorSet &) = default;
-
-  BitVectorSet(BitVectorSet &&) = default;
-
   ~BitVectorSet() = default;
 
-  void setUnion(const BitVectorSet<T> &other) {
-    for (auto elem : other.Position) {
-      insert(elem.first);
+  BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
+    const std::vector<bool> *Shorter, *Longer;
+    if (Bits.size() < Other.Bits.size()) {
+      Shorter = &Bits;
+      Longer = &Other.Bits;
+    } else {
+      Shorter = &Other.Bits;
+      Longer = &Bits;
     }
+    BitVectorSet<T> Res;
+    Res.reserve(Longer->size());
+    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
+      Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
+    }
+    for (size_t idx = Shorter->size() - 1; idx < Longer->size(); ++idx) {
+      Res.Bits[idx] = (*Longer)[idx];
+    }
+    return Res;
   }
 
-  BitVectorSet<T> setIntersect(const BitVectorSet<T> &other) {
-    BitVectorSet<T> ret;
-    if (other.Bits.size() <= Bits.size()){
-      for (auto elem : other.Position) {
-        if (find(elem.first)) {
-          ret.insert(elem.first);
-        }
+  BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
+    const std::vector<bool> *Shorter, *Longer;
+    if (Bits.size() < Other.Bits.size()) {
+      Shorter = &Bits;
+      Longer = &Other.Bits;
+    } else {
+      Shorter = &Other.Bits;
+      Longer = &Bits;
+    }
+    BitVectorSet<T> Res;
+    Res.reserve(Shorter->size());
+    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
+      Res.Bits[idx] = ((*Shorter)[idx] && (*Longer)[idx]);
+    }
+    return Res;
+  }
+
+  bool includes(const BitVectorSet<T> &Other) const {
+    if (Bits.size() < Other.Bits.size()) {
+      return false;
+    }
+    for (size_t idx = 0; idx < Bits.size(); ++idx) {
+      if (Bits[idx] != Other.Bits[idx]) {
+        return false;
       }
     }
-    else {
-      for (auto elem : Position) {
-        if (other.find(elem.first)) {
-          ret.insert(elem.first);
-        }
-      }
-    }
-    return ret;
+    return true;
   }
 
   void insert(const T &Data) {
@@ -94,6 +116,15 @@ public:
     }
   }
 
+  void insert(const BitVectorSet<T> &Other) {
+    if (Other.Bits.size() > Bits.size()) {
+      Bits.resize(Other.Bits.size());
+    }
+    for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
+      Bits[idx] = (Bits[idx] || Other.Bits[idx]);
+    }
+  }
+
   void erase(const T &Data) noexcept {
     auto Search = Position.find(Data);
     if (Search != Position.end()) {
@@ -108,6 +139,8 @@ public:
   bool empty() const noexcept {
     return std::find(Bits.begin(), Bits.end(), true) == Bits.end();
   }
+
+  void reserve(size_t NewCap) { Bits.reserve(NewCap); }
 
   bool find(const T &Data) const noexcept { return count(Data); }
 

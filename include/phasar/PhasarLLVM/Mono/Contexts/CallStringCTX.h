@@ -2,6 +2,7 @@
 #define _PHASAR_PHASARLLVM_MONO_CALLSTRINGCTX_H_
 
 #include <deque>
+#include <functional>
 #include <initializer_list>
 
 #include <phasar/Utils/LLVMShorthands.h>
@@ -81,5 +82,15 @@ public:
 };
 
 } // namespace psr
+
+namespace std {
+
+template <typename D, typename N, unsigned K>
+struct hash<psr::CallStringCTX<D, N, K>> {
+  // FIXME: add suitable implementation
+  size_t operator() (const psr::CallStringCTX<D, N, K> &CS) const noexcept { return 0; }
+};
+
+} // namespace std
 
 #endif

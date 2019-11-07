@@ -40,8 +40,7 @@ IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::join()\n";
   BitVectorSet<const llvm::Value *> Result;
-  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-            inserter(Result, Result.begin()));
+  Lhs.setUnion(Rhs);
   return Result;
 }
 
@@ -49,7 +48,7 @@ bool IntraMonoSolverTest::sqSubSetEqual(
     const BitVectorSet<const llvm::Value *> &Lhs,
     const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::sqSubSetEqual()\n";
-  return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
+  return Lhs.includes(Rhs);
 }
 
 BitVectorSet<const llvm::Value *>
@@ -57,7 +56,7 @@ IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
                                 const BitVectorSet<const llvm::Value *> &In) {
   cout << "IntraMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
+  Result.insert(In);
   if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
   }
