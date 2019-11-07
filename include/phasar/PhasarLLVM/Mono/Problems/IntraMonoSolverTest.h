@@ -51,7 +51,8 @@ public:
   normalFlow(const llvm::Instruction *S,
              const BitVectorSet<const llvm::Value *> &In) override;
 
-  std::unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
+  std::unordered_map<const llvm::Instruction *,
+                     BitVectorSet<const llvm::Value *>>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;

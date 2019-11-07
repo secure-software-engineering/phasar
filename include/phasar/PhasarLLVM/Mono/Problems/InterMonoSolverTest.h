@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 
-#include <string>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
 

@@ -5,6 +5,7 @@
 #include <functional>
 #include <initializer_list>
 
+#include <boost/functional/hash.hpp>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
@@ -13,6 +14,7 @@ template <typename D, typename N, unsigned K> class CallStringCTX {
 protected:
   std::deque<N> cs;
   static const unsigned k = K;
+  friend struct std::hash<psr::CallStringCTX<D, N, K>>;
 
 public:
   CallStringCTX() {}
@@ -87,8 +89,13 @@ namespace std {
 
 template <typename D, typename N, unsigned K>
 struct hash<psr::CallStringCTX<D, N, K>> {
-  // FIXME: add suitable implementation
-  size_t operator() (const psr::CallStringCTX<D, N, K> &CS) const noexcept { return 0; }
+  size_t operator()(const psr::CallStringCTX<D, N, K> &CS) const noexcept {
+    boost::hash<std::deque<N>> hash_deque;
+    std::hash<unsigned> hash_unsigned;
+    size_t u = hash_unsigned(K);
+    size_t h = hash_deque(CS.cs);
+    return u ^ (h << 1);
+  }
 };
 
 } // namespace std
