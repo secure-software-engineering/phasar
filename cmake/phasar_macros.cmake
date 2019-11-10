@@ -84,8 +84,8 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++14 -emit-llvm -S)
-  set(GEN_C_FLAGS -emit-llvm -S)
+  set(GEN_CXX_FLAGS -std=c++14 -fno-discard-value-names -emit-llvm -S)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
   set(GEN_CMD_COMMENT "compile ${GEN_LL_FILE} to LLVM IR")
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
