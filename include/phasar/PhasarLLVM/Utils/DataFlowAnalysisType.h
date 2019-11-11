@@ -13,19 +13,19 @@
 #include <iosfwd>
 #include <map>
 #include <string>
-#include <wise_enum.h>
 
 namespace psr {
 
-WISE_ENUM_CLASS(DataFlowAnalysisType, (IFDS_UninitializedVariables, 0),
-                IFDS_ConstAnalysis, IFDS_TaintAnalysis, IDE_TaintAnalysis,
-                IDE_TypeStateAnalysis, IFDS_TypeAnalysis, IFDS_SolverTest,
-                IFDS_LinearConstantAnalysis, IFDS_FieldSensTaintAnalysis,
-                IDE_LinearConstantAnalysis, IDE_SolverTest,
-                Intra_Mono_FullConstantPropagation, Intra_Mono_SolverTest,
-                Inter_Mono_SolverTest, Inter_Mono_TaintAnalysis, Plugin, None)
+enum class DataFlowAnalysisType {
+    #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE) TYPE,
+    #include "DataFlowAnalysisType.def"
+};
 
-std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
+std::string to_string(const DataFlowAnalysisType &D);
+
+DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S);
+
+std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 
 } // namespace psr
 

@@ -206,7 +206,7 @@ AnalysisController::AnalysisController(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                     << "Performing analysis: " << analysis);
       switch (analysis) {
-      case DataFlowAnalysisType::IFDS_TaintAnalysis: {
+      case DataFlowAnalysisType::IFDSTaintAnalysis: {
         TaintConfiguration<const llvm::Value *> TSF;
         IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
                                                EntryPoints);
@@ -218,7 +218,7 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += LLVMTaintSolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IDE_TaintAnalysis: {
+      case DataFlowAnalysisType::IDETaintAnalysis: {
         IDETaintAnalysis taintanalysisproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmtaintsolver(taintanalysisproblem);
@@ -226,7 +226,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmtaintsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IDE_TypeStateAnalysis: {
+      case DataFlowAnalysisType::IDETypeStateAnalysis: {
         CSTDFILEIOTypeStateDescription fileIODesc;
         IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, fileIODesc,
                                               EntryPoints);
@@ -236,7 +236,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmtypestatesolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_TypeAnalysis: {
+      case DataFlowAnalysisType::IFDSTypeAnalysis: {
         IFDSTypeAnalysis typeanalysisproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
             typeanalysisproblem);
@@ -244,7 +244,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmtypesolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_UninitializedVariables: {
+      case DataFlowAnalysisType::IFDSUninitializedVariables: {
         IFDSUninitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
                                                            EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
@@ -255,14 +255,14 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += llvmunivsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_LinearConstantAnalysis: {
+      case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
         IFDSLinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem);
         llvmlcasolver.solve();
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IDE_LinearConstantAnalysis: {
+      case DataFlowAnalysisType::IDELinearConstantAnalysis: {
         IDELinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
             llvmlcasolver(lcaproblem);
@@ -270,7 +270,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmlcasolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_ConstAnalysis: {
+      case DataFlowAnalysisType::IFDSConstAnalysis: {
         IFDSConstAnalysis constproblem(
             ICFG, CH, IRDB, IRDB.getAllMemoryLocations(), EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
@@ -279,7 +279,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmconstsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_SolverTest: {
+      case DataFlowAnalysisType::IFDSSolverTest: {
         IFDSSolverTest ifdstest(ICFG, CH, IRDB, EntryPoints);
         LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
             ifdstest);
@@ -289,7 +289,7 @@ AnalysisController::AnalysisController(
         // FinalResultsJson += llvmifdstestsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IFDS_FieldSensTaintAnalysis: {
+      case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
         TaintConfiguration<ExtendedValue> TaintConfig;
         IFDSFieldSensTaintAnalysis variableTracing(ICFG, TaintConfig,
                                                    EntryPoints);
@@ -301,7 +301,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmifdsenvsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::IDE_SolverTest: {
+      case DataFlowAnalysisType::IDESolverTest: {
         IDESolverTest idetest(ICFG, CH, IRDB, EntryPoints);
         LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
             llvmidetestsolver(idetest);
@@ -309,7 +309,7 @@ AnalysisController::AnalysisController(
         FinalResultsJson += llvmidetestsolver.getAsJson();
         break;
       }
-      case DataFlowAnalysisType::Intra_Mono_FullConstantPropagation: {
+      case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         IntraMonoFullConstantPropagation intra(CFG, F);
         LLVMIntraMonoSolver<pair<const llvm::Value *, unsigned>, LLVMBasedCFG &>
@@ -317,21 +317,21 @@ AnalysisController::AnalysisController(
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::Intra_Mono_SolverTest: {
+      case DataFlowAnalysisType::IntraMonoSolverTest: {
         const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
         IntraMonoSolverTest intra(CFG, F);
         LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::Inter_Mono_SolverTest: {
+      case DataFlowAnalysisType::InterMonoSolverTest: {
         InterMonoSolverTest inter(ICFG, EntryPoints);
         LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(
             inter);
         solver.solve();
         break;
       }
-      case DataFlowAnalysisType::Inter_Mono_TaintAnalysis: {
+      case DataFlowAnalysisType::InterMonoTaintAnalysis: {
         InterMonoTaintAnalysis interMonoTaintProblem(ICFG, EntryPoints);
         LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> solver(
             interMonoTaintProblem);
@@ -348,9 +348,6 @@ AnalysisController::AnalysisController(
         AnalysisPluginController PluginController(
             AnalysisPlugins, ICFG, EntryPoints, FinalResultsJson);
 #endif
-        break;
-      }
-      case DataFlowAnalysisType::None: {
         break;
       }
       default:

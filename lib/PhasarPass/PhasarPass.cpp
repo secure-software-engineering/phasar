@@ -193,7 +193,7 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   if (!wise_enum::from_string<CallGraphAnalysisType>(CallGraphAnalysis)) {
     llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
-  if (!wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)) {
+  if (to_DataFlowAnalysisType(DataFlowAnalysis) == DataFlowAnalysisType::None) {
     llvm::report_fatal_error("psr error: data-flow analysis does not exist");
   }
   return false;

@@ -77,7 +77,7 @@ void validateParamProject(const std::string &project) {
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
   for (const auto &analysis : dfa) {
-    if (!wise_enum::from_string<DataFlowAnalysisType>(analysis)) {
+    if (to_DataFlowAnalysisType(analysis) == DataFlowAnalysisType::None) {
       throw bpo::error_with_option_name("'" + analysis +
                                         "' is not a valid data-flow analysis");
     }
@@ -451,11 +451,9 @@ int main(int argc, const char **argv) {
       for (auto &DataFlowAnalysis :
            PhasarConfig::VariablesMap()["data-flow-analysis"]
                .as<std::vector<std::string>>()) {
-        if (wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)) {
+        if (to_DataFlowAnalysisType(DataFlowAnalysis) != DataFlowAnalysis::None) {
           std::cout << "ANALYSIS KNOWN\n";
-          ChosenDataFlowAnalyses.push_back(
-              wise_enum::from_string<DataFlowAnalysisType>(DataFlowAnalysis)
-                  .value());
+          ChosenDataFlowAnalyses.push_back(to_DataFlowAnalysisType(DataFlowAnalysis));
         }
       }
     }
