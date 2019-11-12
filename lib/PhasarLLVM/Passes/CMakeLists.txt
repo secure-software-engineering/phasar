@@ -26,6 +26,7 @@ target_link_libraries(phasar_passes
   LINK_PUBLIC
   boost_log
   boost_filesystem
+  boost_system
 )
 
 set_target_properties(phasar_passes

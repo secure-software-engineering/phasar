@@ -25,6 +25,7 @@ endif()
 target_link_libraries(phasar_wpds
   LINK_PUBLIC
   boost_filesystem
+  boost_system
 )
 
 set_target_properties(phasar_wpds
