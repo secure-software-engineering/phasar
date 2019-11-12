@@ -151,10 +151,10 @@ TEST(BitVectorSet, setUnion) {
   BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
   BitVectorSet<int> D;
 
-  A.setUnion(B);
+  A = A.setUnion(B);
 
   EXPECT_TRUE(A == C);
-  A.setUnion(D);
+  A = A.setUnion(D);
   EXPECT_TRUE(A == C);
 }
 

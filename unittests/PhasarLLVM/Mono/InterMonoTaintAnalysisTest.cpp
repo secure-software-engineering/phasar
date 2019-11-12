@@ -86,7 +86,7 @@ protected:
       if (!entry.second.empty() && Inst == entry.first) {
         for (auto &context : entry.second) {
           if (!context.second.empty()) {
-            for (auto &fact : context.second) {
+            for (auto &fact : context.second.getAsSet()) {
               counter++;
             }
           }
@@ -113,7 +113,7 @@ protected:
       if (Inst == entry.first) {
         for (auto &context : entry.second) {
           if (!context.second.empty()) {
-            for (auto &fact : context.second) {
+            for (auto &fact : context.second.getAsSet()) {
               LeakedValueIds.insert(getMetaDataID(fact));
             }
           }

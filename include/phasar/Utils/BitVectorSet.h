@@ -14,7 +14,12 @@
 #include <cassert>
 #include <initializer_list>
 #include <map>
+#include <set>
 #include <vector>
+
+#include <boost/bimap.hpp>
+//#include <boost/bimap/unordered_set_of.hpp>
+#include <boost/bimap/set_of.hpp>
 
 namespace psr {
 
@@ -32,7 +37,9 @@ namespace psr {
  */
 template <typename T> class BitVectorSet {
 private:
-  inline static std::map<T, size_t> Position;
+  typedef boost::bimap<boost::bimaps::set_of<T>, boost::bimaps::set_of<size_t>>
+      bimap_t;
+  inline static bimap_t Position;
   std::vector<bool> Bits;
 
 public:
@@ -61,8 +68,13 @@ public:
     for (size_t idx = 0; idx < Shorter->size(); ++idx) {
       Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
     }
-    for (size_t idx = Shorter->size() - 1; idx < Longer->size(); ++idx) {
+    size_t idx = 0;
+    if (Shorter->size() != 0) {
+      idx = Shorter->size() - 1;
+    }
+    while (idx < Longer->size()) {
       Res.Bits[idx] = (*Longer)[idx];
+      ++idx;
     }
     return Res;
   }
@@ -87,7 +99,7 @@ public:
     if (Bits.size() < Other.Bits.size()) {
       return false;
     }
-    for (size_t idx = 0; idx < Bits.size(); ++idx) {
+    for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
       if (Bits[idx] != Other.Bits[idx]) {
         return false;
       }
@@ -96,19 +108,19 @@ public:
   }
 
   void insert(const T &Data) {
-    auto Search = Position.find(Data);
+    auto Search = Position.left.find(Data);
     // Data already known
-    if (Search != Position.end()) {
+    if (Search != Position.left.end()) {
       if (Bits.size() <= Search->second) {
         Bits.resize(Search->second + 1);
       }
       Bits[Search->second] = true;
     } else {
       // Data unknown
-      size_t Idx = Position.size();
-      Position[Data] = Position.size();
-      if (Bits.size() <= Position.size()) {
-        Bits.resize(Position.size());
+      size_t Idx = Position.left.size();
+      Position.left.insert(std::make_pair(Data, Position.left.size()));
+      if (Bits.size() <= Position.left.size()) {
+        Bits.resize(Position.left.size());
       }
       Bits[Idx] = true;
     }
@@ -124,8 +136,8 @@ public:
   }
 
   void erase(const T &Data) noexcept {
-    auto Search = Position.find(Data);
-    if (Search != Position.end()) {
+    auto Search = Position.left.find(Data);
+    if (Search != Position.left.end()) {
       if (!(Bits.size() < Search->second - 1)) {
         Bits[Search->second] = false;
       }
@@ -143,8 +155,8 @@ public:
   bool find(const T &Data) const noexcept { return count(Data); }
 
   size_t count(const T &Data) const noexcept {
-    auto Search = Position.find(Data);
-    if (Search != Position.end()) {
+    auto Search = Position.left.find(Data);
+    if (Search != Position.left.end()) {
       if (Bits.size() - 1 >= Search->second) {
         return Bits[Search->second];
       }
@@ -186,13 +198,24 @@ public:
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
     OS << '<';
-    for (auto &Position : B.Position) {
+    for (auto &Position : B.Position.left) {
       if (Position.second < B.Bits.size() && B.Bits[Position.second]) {
         OS << Position.first << ", ";
       }
     }
     OS << '>';
     return OS;
+  }
+
+  std::set<T> getAsSet() {
+    std::set<T> elem;
+    for (size_t idx = 0; idx < Bits.size(); ++idx) {
+      auto e = Position.right.find(idx);
+      if (e != Position.right.end()) {
+        elem.insert(e->second);
+      }
+    }
+    return elem;
   }
 };
 
