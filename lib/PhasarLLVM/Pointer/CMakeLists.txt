@@ -28,6 +28,7 @@ target_link_libraries(phasar_pointer
   boost_log
   boost_filesystem
   boost_graph
+  boost_system
 )
 
 set_target_properties(phasar_pointer
