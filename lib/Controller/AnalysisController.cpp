@@ -47,18 +47,14 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
 #include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 
 using namespace std;
 using namespace psr;
 
 namespace psr {
-
-std::ostream &operator<<(std::ostream &os, const ExportType &E) {
-  return os << wise_enum::to_string(E);
-}
 
 AnalysisController::AnalysisController(
     ProjectIRDB &&IRDB, std::vector<DataFlowAnalysisType> Analyses,
@@ -168,12 +164,7 @@ AnalysisController::AnalysisController(
   // }
 
   // Call graph construction stategy
-  CallGraphAnalysisType CGType(
-      (PhasarConfig::VariablesMap().count("callgraph-analysis"))
-          ? wise_enum::from_string<CallGraphAnalysisType>(
-                PhasarConfig::VariablesMap()["callgraph-analysis"].as<string>())
-                .value()
-          : CallGraphAnalysisType::OTF);
+  CallGraphAnalysisType CGType = to_CallGraphAnalysisType(PhasarConfig::VariablesMap().count("callgraph-analysis"));
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);

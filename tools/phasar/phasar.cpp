@@ -19,8 +19,6 @@
 
 #include <llvm/Support/CommandLine.h>
 
-#include <wise_enum.h>
-
 #include <phasar/Config/Configuration.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
@@ -85,23 +83,16 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &dfa) {
 }
 
 void validateParamPointerAnalysis(const std::string &pta) {
-  if (!wise_enum::from_string<PointerAnalysisType>(pta)) {
+  if (to_PointerAnalysisType(pta) == PointerAnalysisType::Invalid) {
     throw bpo::error_with_option_name("'" + pta +
                                       "' is not a valid pointer analysis");
   }
 }
 
 void validateParamCallGraphAnalysis(const std::string &cga) {
-  if (!wise_enum::from_string<CallGraphAnalysisType>(cga)) {
+  if (to_CallGraphAnalysisType(cga) == CallGraphAnalysisType::Invalid) {
     throw bpo::error_with_option_name("'" + cga +
                                       "' is not a valid call-graph analysis");
-  }
-}
-
-void validateParamExport(const std::string &exp) {
-  if (!wise_enum::from_string<ExportType>(exp)) {
-    throw bpo::error_with_option_name("'" + exp +
-                                      "' is not a valid export parameter");
   }
 }
 
@@ -234,12 +225,11 @@ int main(int argc, const char **argv) {
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
-			("pointer-analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
-      ("callgraph-analysis,C", bpo::value<std::string>()->notifier(validateParamCallGraphAnalysis), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF)")
+			("pointer-analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders (default))")
+      ("callgraph-analysis,C", bpo::value<std::string>()->notifier(validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF (default))")
 			("classhierachy-analysis,H", "Class-hierarchy analysis")
 			("vtable-analysis,V", "Virtual function table analysis")
 			("statistical-analysis,S", "Statistics")
-			//("export,E", bpo::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("mem2reg", "Promote memory to register pass")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
@@ -371,10 +361,6 @@ int main(int argc, const char **argv) {
         std::cout << "Statistical analysis: "
                   << PhasarConfig::VariablesMap().count("statistical-analysis")
                   << '\n';
-        if (PhasarConfig::VariablesMap().count("export")) {
-          std::cout << "Export: "
-                    << PhasarConfig::VariablesMap()["export"].as<std::string>()
-                    << '\n';
         }
         std::cout << "Analysis mode: ";
         if (PhasarConfig::VariablesMap().count("mwa")) {

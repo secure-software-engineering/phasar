@@ -23,10 +23,6 @@ namespace psr {
 
 class ProjectIRDB;
 
-WISE_ENUM_CLASS(ExportType, (JSON, 0))
-
-std::ostream &operator<<(std::ostream &os, const ExportType &e);
-
 class AnalysisController {
 public:
   using json = nlohmann::json;
