@@ -275,7 +275,9 @@ bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *n) const {
 
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
   llvm::ImmutableCallSite CS(n);
-  if (!CS.isCall()) { return false; }
+  if (!CS.isCall()) {
+    return false;
+  }
   if (CS.getNumArgOperands() > 0) {
     const llvm::Value *V = CS.getArgOperand(0);
     if (V->getType()->isPointerTy() &&

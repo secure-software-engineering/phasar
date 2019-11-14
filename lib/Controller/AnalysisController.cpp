@@ -164,7 +164,8 @@ AnalysisController::AnalysisController(
   // }
 
   // Call graph construction stategy
-  CallGraphAnalysisType CGType = to_CallGraphAnalysisType(PhasarConfig::VariablesMap().count("callgraph-analysis"));
+  CallGraphAnalysisType CGType = to_CallGraphAnalysisType(
+      PhasarConfig::VariablesMap().count("callgraph-analysis"));
   // Perform whole program analysis (WPA) analysis
   if (WPA_MODE) {
     START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);

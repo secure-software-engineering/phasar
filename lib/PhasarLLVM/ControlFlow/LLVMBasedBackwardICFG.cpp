@@ -87,7 +87,8 @@ bool LLVMBasedBackwardsICFG::isVirtualFunctionCall(
   return ForwardICFG.isVirtualFunctionCall(stmt);
 }
 
-std::set<const llvm::Function *> LLVMBasedBackwardsICFG::getAllFunctions() const {
+std::set<const llvm::Function *>
+LLVMBasedBackwardsICFG::getAllFunctions() const {
   return ForwardICFG.getAllFunctions();
 }
 

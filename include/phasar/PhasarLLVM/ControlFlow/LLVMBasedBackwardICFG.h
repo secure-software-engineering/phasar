@@ -62,9 +62,9 @@ public:
 
   bool isCallStmt(const llvm::Instruction *stmt) const override;
 
-  bool isIndirectFunctionCall(const llvm::Instruction * stmt) const override;
+  bool isIndirectFunctionCall(const llvm::Instruction *stmt) const override;
 
-  bool isVirtualFunctionCall(const llvm::Instruction * stmt) const override;
+  bool isVirtualFunctionCall(const llvm::Instruction *stmt) const override;
 
   const llvm::Function *getFunction(const std::string &fun) const override;
 

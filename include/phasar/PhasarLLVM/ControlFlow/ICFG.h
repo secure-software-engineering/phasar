@@ -29,8 +29,8 @@
 namespace psr {
 
 enum class CallGraphAnalysisType {
-  #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-  #include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
   Invalid
 };
 

@@ -35,10 +35,10 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarPass/Options.h>
 #include <phasar/PhasarPass/PhasarPass.h>
 #include <phasar/Utils/EnumFlags.h>
@@ -188,7 +188,8 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   if (EntryPoints.empty()) {
     llvm::report_fatal_error("psr error: no entry points provided");
   }
-  if (to_CallGraphAnalysisType(CallGraphAnalysis) == CallGraphAnalysisType::Invalid) {
+  if (to_CallGraphAnalysisType(CallGraphAnalysis) ==
+      CallGraphAnalysisType::Invalid) {
     llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
   if (to_DataFlowAnalysisType(DataFlowAnalysis) == DataFlowAnalysisType::None) {

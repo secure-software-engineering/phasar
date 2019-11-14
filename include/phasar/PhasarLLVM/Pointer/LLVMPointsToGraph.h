@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 
-#include <vector>
 #include <json.hpp>
+#include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
 #include <llvm/IR/CallSite.h>
@@ -70,9 +70,9 @@ inline void PrintLoadStoreResults(const char *Msg, bool P,
                                   const llvm::Value *V1, const llvm::Value *V2,
                                   const llvm::Module *M);
 
-enum class PointerAnalysisType{
-  #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-  #include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+enum class PointerAnalysisType {
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
   Invalid
 };
 
