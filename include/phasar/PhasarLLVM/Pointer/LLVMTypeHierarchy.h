@@ -142,7 +142,8 @@ public:
    * 	@param TypeName Name of the type.
    * 	@return Set of reachable types.
    */
-  std::set<std::string> getTransitivelyReachableTypes(std::string TypeName);
+  std::set<std::string>
+  getTransitivelyReachableTypes(std::string TypeName) const;
 
   /**
    * 	@brief Returns an entry at the given index from the VTable
@@ -161,7 +162,7 @@ public:
    * 	@return True, if the one type is a super-type of the other.
    * 	        False otherwise.
    */
-  bool hasSuperType(std::string TypeName, std::string SuperTypeName);
+  bool hasSuperType(std::string TypeName, std::string SuperTypeName) const;
 
   VTable getVTable(std::string TypeName) const;
 
@@ -173,7 +174,7 @@ public:
    * 	@return True, if the one type is a sub-type of the other.
    * 	        False otherwise.
    */
-  bool hasSubType(std::string TypeName, std::string SubTypeName);
+  bool hasSubType(std::string TypeName, std::string SubTypeName) const;
 
   /**
    *	@brief Checks if the given type has a virtual method table.
@@ -207,17 +208,17 @@ public:
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
-  void printTransitiveClosure();
+  void printTransitiveClosure() const;
 
   /**
    * 	@brief Prints the class hierarchy to the command-line.
    */
-  void print();
+  void print() const;
   /**
    * 	@brief Prints the class hierarchy to a .dot file.
    * 	@param path Path where the .dot file is created.
    */
-  void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
+  void printAsDot(const std::string &path = "struct_type_hierarchy.dot") const;
 
   bool containsType(std::string TypeName) const;
 
@@ -227,11 +228,11 @@ public:
 
   static bidigraph_t loadGraphFormDot(std::istream &in);
 
-  json getAsJson();
+  json getAsJson() const;
 
-  unsigned getNumOfVertices();
+  unsigned getNumOfVertices() const;
 
-  unsigned getNumOfEdges();
+  unsigned getNumOfEdges() const;
 
   // these are defined in the DBConn class
   /**
