@@ -11,29 +11,26 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
-#include <cassert>
 #include <initializer_list>
-#include <map>
 #include <set>
 #include <vector>
 
 #include <boost/bimap.hpp>
-//#include <boost/bimap/unordered_set_of.hpp>
+// FIXME:
+// <llvm/ADT/Hashing.h> and
+// <boost/functional/hash/extensions.hpp>
+// collide in <boost/concept_check.hpp>
+// #include <boost/bimap/unordered_set_of.hpp>
 #include <boost/bimap/set_of.hpp>
 
 namespace psr {
 
-// TODO: under construction
-// BitVectorSet must allow for fast set union/set intersection/insert/lookup
-// while requireing minimal space which, in turn, allows for fast copies to be
-// performed (propagation along the control-flow graph).
-
 /**
- * BitVectorSet implements a set that only requires minimal space. Elements are
+ * BitVectorSet implements a set that requires minimal space. Elements are
  * kept in a static map and the set itself only stores a vector of bits which
  * indicate whether elements are contained in the set.
  *
- * @brief Implements a set that only requires minimal space.
+ * @brief Implements a set that requires minimal space.
  */
 template <typename T> class BitVectorSet {
 private:
