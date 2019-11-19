@@ -205,7 +205,7 @@ public:
     return OS;
   }
 
-  std::set<T> getAsSet() const{
+  std::set<T> getAsSet() const {
     std::set<T> elem;
     for (size_t idx = 0; idx < Bits.size(); ++idx) {
       auto e = Position.right.find(idx);

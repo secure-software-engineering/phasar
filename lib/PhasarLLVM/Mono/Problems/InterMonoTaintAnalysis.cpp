@@ -48,7 +48,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
-  
+
   return Rhs.includes(Lhs);
 }
 

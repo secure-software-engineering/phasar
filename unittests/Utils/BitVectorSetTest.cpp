@@ -193,12 +193,14 @@ TEST(BitVectorSet, includes) {
   EXPECT_TRUE(B.includes(E));
   EXPECT_TRUE(E.includes(B));
 
-  BitVectorSet<std::pair<int,int>> a({{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}});
-  BitVectorSet<std::pair<int,int>> b({{1,1},{2,2},{3,3}});
-  BitVectorSet<std::pair<int,int>> c({{1,1},{2,2},{42,42}});
-  BitVectorSet<std::pair<int,int>> d({{1,1},{2,2},{3,3},{4,4},{5,5},{6,6},{7,7}});
-  BitVectorSet<std::pair<int,int>> e({{1,1},{2,2},{3,3}});
-  BitVectorSet<std::pair<int,int>> f({{1,2},{2,2},{3,3}});
+  BitVectorSet<std::pair<int, int>> a(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}});
+  BitVectorSet<std::pair<int, int>> b({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> c({{1, 1}, {2, 2}, {42, 42}});
+  BitVectorSet<std::pair<int, int>> d(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}});
+  BitVectorSet<std::pair<int, int>> e({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> f({{1, 2}, {2, 2}, {3, 3}});
 
   EXPECT_TRUE(a.includes(b));
   EXPECT_FALSE(b.includes(a));

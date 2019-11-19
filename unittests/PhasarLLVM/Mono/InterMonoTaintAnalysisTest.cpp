@@ -131,7 +131,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   LLVMTypeHierarchy TH(IRDB);
   set<string> Facts;
   unsigned InstNum = 9;
-  
+
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
