@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <utility>
 
 #include <phasar/Utils/BitVectorSet.h>
 
@@ -176,6 +177,7 @@ TEST(BitVectorSet, setIntersect) {
 }
 
 TEST(BitVectorSet, includes) {
+
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   BitVectorSet<int> B({1, 2, 3});
   BitVectorSet<int> C({1, 2, 42});
@@ -190,6 +192,23 @@ TEST(BitVectorSet, includes) {
   EXPECT_TRUE(D.includes(A));
   EXPECT_TRUE(B.includes(E));
   EXPECT_TRUE(E.includes(B));
+
+  BitVectorSet<std::pair<int,int>> a({{1,1},{2,2},{3,3},{4,4},{5,5},{6,6}});
+  BitVectorSet<std::pair<int,int>> b({{1,1},{2,2},{3,3}});
+  BitVectorSet<std::pair<int,int>> c({{1,1},{2,2},{42,42}});
+  BitVectorSet<std::pair<int,int>> d({{1,1},{2,2},{3,3},{4,4},{5,5},{6,6},{7,7}});
+  BitVectorSet<std::pair<int,int>> e({{1,1},{2,2},{3,3}});
+  BitVectorSet<std::pair<int,int>> f({{1,2},{2,2},{3,3}});
+
+  EXPECT_TRUE(a.includes(b));
+  EXPECT_FALSE(b.includes(a));
+  EXPECT_FALSE(a.includes(c));
+  EXPECT_FALSE(b.includes(c));
+  EXPECT_FALSE(a.includes(d));
+  EXPECT_TRUE(d.includes(a));
+  EXPECT_TRUE(b.includes(e));
+  EXPECT_TRUE(e.includes(b));
+  EXPECT_FALSE(f.includes(b));
 }
 
 int main(int argc, char **argv) {

@@ -131,13 +131,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   LLVMTypeHierarchy TH(IRDB);
   set<string> Facts;
   unsigned InstNum = 9;
-
+  
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
   InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
+  std::cout << "test1\n";
   TaintSolver.solve();
-
+  std::cout << "test1\n";
   unordered_map<const llvm::Instruction *,
                 unordered_map<CallStringCTX<const llvm::Value *,
                                             const llvm::Instruction *, 3>,
