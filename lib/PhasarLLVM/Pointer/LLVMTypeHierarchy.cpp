@@ -317,9 +317,10 @@ void LLVMTypeHierarchy::pruneTypeHierarchyWithVtable(
   }
 }
 
-set<string> LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) {
+set<string>
+LLVMTypeHierarchy::getTransitivelyReachableTypes(string TypeName) const {
   TypeName = debasify(TypeName);
-  return g[type_vertex_map[TypeName]].reachableTypes;
+  return g[type_vertex_map.at(TypeName)].reachableTypes;
 }
 
 string LLVMTypeHierarchy::getVTableEntry(string TypeName, unsigned idx) const {
@@ -330,7 +331,8 @@ VTable LLVMTypeHierarchy::getVTable(string TypeName) const {
   return type_vtbl_map.at(TypeName);
 }
 
-bool LLVMTypeHierarchy::hasSuperType(string TypeName, string SuperTypeName) {
+bool LLVMTypeHierarchy::hasSuperType(string TypeName,
+                                     string SuperTypeName) const {
   return hasSubType(SuperTypeName, TypeName);
 }
 
@@ -340,7 +342,7 @@ size_t LLVMTypeHierarchy::getNumVTableEntries(std::string TypeName) const {
   return getVTable(TypeName).size();
 }
 
-bool LLVMTypeHierarchy::hasSubType(string TypeName, string SubTypeName) {
+bool LLVMTypeHierarchy::hasSubType(string TypeName, string SubTypeName) const {
   TypeName = debasify(TypeName);
   SubTypeName = debasify(SubTypeName);
   auto ReachableTypes = getTransitivelyReachableTypes(TypeName);
@@ -409,7 +411,7 @@ void LLVMTypeHierarchy::mergeWith(LLVMTypeHierarchy &Other) {
   }
 }
 
-void LLVMTypeHierarchy::print() {
+void LLVMTypeHierarchy::print() const {
   cout << "LLVMSructTypeHierarchy graph:\n";
   boost::print_graph(g,
                      boost::get(&LLVMTypeHierarchy::VertexProperties::name, g));
@@ -420,7 +422,7 @@ void LLVMTypeHierarchy::print() {
   }
 }
 
-void LLVMTypeHierarchy::printAsDot(const string &path) {
+void LLVMTypeHierarchy::printAsDot(const string &path) const {
   ofstream ofs(path);
   boost::write_graphviz(
       ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
@@ -441,14 +443,14 @@ LLVMTypeHierarchy::loadGraphFormDot(istream &in) {
   return G;
 }
 
-void LLVMTypeHierarchy::printTransitiveClosure() {
+void LLVMTypeHierarchy::printTransitiveClosure() const {
   bidigraph_t tc;
   boost::transitive_closure(g, tc);
   boost::print_graph(tc,
                      boost::get(&LLVMTypeHierarchy::VertexProperties::name, g));
 }
 
-json LLVMTypeHierarchy::getAsJson() {
+json LLVMTypeHierarchy::getAsJson() const {
   json J;
   vertex_iterator_t vi_v, vi_v_end;
   out_edge_iterator_t ei, ei_end;
@@ -466,9 +468,11 @@ json LLVMTypeHierarchy::getAsJson() {
   return J;
 }
 
-unsigned LLVMTypeHierarchy::getNumOfVertices() {
+unsigned LLVMTypeHierarchy::getNumOfVertices() const {
   return boost::num_vertices(g);
 }
 
-unsigned LLVMTypeHierarchy::getNumOfEdges() { return boost::num_edges(g); }
+unsigned LLVMTypeHierarchy::getNumOfEdges() const {
+  return boost::num_edges(g);
+}
 } // namespace psr
