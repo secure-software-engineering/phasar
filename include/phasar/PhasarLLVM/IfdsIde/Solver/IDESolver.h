@@ -213,8 +213,8 @@ public:
   }
 
   SolverResults<N, D, V> getSolverResults() {
-    SolverResults<N, D, V> SR(this->valtab, ideTabulationProblem.zeroValue());
-    return SR;
+    return SolverResults<N, D, V>(this->valtab,
+                                  ideTabulationProblem.zeroValue());
   }
 
 protected:

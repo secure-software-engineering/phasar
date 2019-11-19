@@ -35,9 +35,9 @@ public:
   SolverResults(Table<N, D, V> &res_tab, D zv)
       : results(res_tab), zeroValue(zv) {}
 
-  V valueAt(N stmt, D node) { return results.get(stmt, node); }
+  V valueAt(N stmt, D node) const { return results.get(stmt, node); }
 
-  std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
+  std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) const {
     std::unordered_map<D, V> result = results.row(stmt);
     if (stripZero) {
       for (auto it = result.begin(); it != result.end();) {
@@ -51,7 +51,7 @@ public:
     return result;
   }
 
-  std::set<D> ifdsResultsAt(N stmt) {
+  std::set<D> ifdsResultsAt(N stmt) const {
     std::set<D> keyset;
     std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
     for (auto d : map) {

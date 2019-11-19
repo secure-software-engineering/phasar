@@ -60,10 +60,10 @@ public:
   std::map<const llvm::Instruction *, std::set<ExtendedValue>>
   initialSeeds() override;
 
-  void emitTextReport(
-      std::ostream &os,
-      SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
-          solverResults) override;
+  void
+  emitTextReport(std::ostream &os,
+                 const SolverResults<const llvm::Instruction *, ExtendedValue,
+                                     BinaryDomain> &solverResults) override;
 
   ExtendedValue createZeroValue() override {
     // create a special value to represent the zero value!

@@ -240,7 +240,7 @@ public:
   lca_restults_t getLCAResults(SolverResults<n_t, d_t, v_t> SR);
 
   void emitTextReport(std::ostream &os,
-                      SolverResults<n_t, d_t, v_t> SR) override;
+                      const SolverResults<n_t, d_t, v_t> &SR) override;
 };
 
 } // namespace psr

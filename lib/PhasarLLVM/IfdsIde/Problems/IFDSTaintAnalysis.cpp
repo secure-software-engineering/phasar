@@ -287,7 +287,7 @@ void IFDSTaintAnalysis::printMethod(ostream &os,
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    std::ostream &os, SolverResults<n_t, d_t, BinaryDomain> SR) {
+    std::ostream &os, const SolverResults<n_t, d_t, BinaryDomain> &SR) {
   os << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     os << "No leaks found!\n";

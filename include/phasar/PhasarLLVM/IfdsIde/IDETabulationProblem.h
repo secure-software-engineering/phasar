@@ -36,7 +36,8 @@ public:
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
-  virtual void emitTextReport(std::ostream &os, SolverResults<N, D, V> SR) {
+  virtual void emitTextReport(std::ostream &os,
+                              const SolverResults<N, D, V> &SR) {
     os << "No text report available!\n";
   }
 #pragma clang diagnostic pop

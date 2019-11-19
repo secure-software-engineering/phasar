@@ -45,7 +45,7 @@ public:
   }
   SolverConfiguration getSolverConfiguration() { return solver_config; }
   virtual void emitTextReport(std::ostream &os,
-                              SolverResults<N, D, BinaryDomain> SR) {
+                              const SolverResults<N, D, BinaryDomain> &SR) {
     os << "No text report available!\n";
   }
 };
