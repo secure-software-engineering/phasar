@@ -14,9 +14,8 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -28,17 +27,15 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDETaintAnalysis
-    : public LLVMDefaultIDETabulationProblem<
-          const llvm::Value *, const llvm::Value *, LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
+    : public IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
   typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef LLVMBasedICFG i_t;
 
   std::set<std::string> source_functions = {"fread", "read"};
   // keep in mind that 'char** argv' of main is a source for tainted values as
@@ -46,11 +43,11 @@ public:
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(std::set<std::string> s, std::string str);
 
-  IDETaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                   const ProjectIRDB &irdb,
-                   std::vector<std::string> EntryPoints = {"main"});
+  IDETaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::set<std::string> EntryPoints = {"main"});
 
-  virtual ~IDETaintAnalysis() = default;
+  ~IDETaintAnalysis() override = default;
 
   // start formulating our analysis by specifying the parts required for IFDS
 
@@ -74,7 +71,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

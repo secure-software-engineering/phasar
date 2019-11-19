@@ -36,10 +36,11 @@ public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef LLVMBasedICFG i_t;
 
   IFDSSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                std::initializer_list<std::string> EntryPoints = {"main"});
+                std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;
 

@@ -32,12 +32,18 @@ class Function;
 namespace psr {
 
 class LLVMBasedCFG;
+class LLVMBasedICFG;
 
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<const llvm::Instruction *,
                               std::pair<const llvm::Value *, unsigned>,
                               const llvm::Function *, LLVMBasedCFG> {
 public:
+  typedef const llvm::Instruction *n_t;
+  typedef std::pair<const llvm::Value *, unsigned> d_t;
+  typedef const llvm::Function *m_t;
+  typedef LLVMBasedICFG i_t;
+
   IntraMonoFullConstantPropagation(
       const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
       const PointsToInfo *PT,

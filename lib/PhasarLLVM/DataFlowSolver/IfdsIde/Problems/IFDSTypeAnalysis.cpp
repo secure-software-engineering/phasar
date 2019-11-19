@@ -20,13 +20,13 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(IFDSTypeAnalysis::i_t icfg,
-                                   const LLVMTypeHierarchy &th,
-                                   const ProjectIRDB &irdb,
-                                   vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  IFDSTypeAnalysis::zerovalue = createZeroValue();
+IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                               std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IFDSTypeAnalysis::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
@@ -84,13 +84,13 @@ map<IFDSTypeAnalysis::n_t, set<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::initialSeeds() {
   map<IFDSTypeAnalysis::n_t, set<IFDSTypeAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSTypeAnalysis::d_t>({zeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() {
+IFDSTypeAnalysis::d_t IFDSTypeAnalysis::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
 

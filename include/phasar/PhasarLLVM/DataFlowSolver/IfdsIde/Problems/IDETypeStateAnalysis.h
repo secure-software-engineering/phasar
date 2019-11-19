@@ -16,10 +16,9 @@
 #include <set>
 #include <string>
 #include <type_traits>
-#include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIDETabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 
 namespace llvm {
@@ -32,18 +31,18 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IDETypeStateAnalysis
-    : public LLVMDefaultIDETabulationProblem<const llvm::Value *, int,
-                                             LLVMBasedICFG &> {
+    : public IDETabulationProblem<const llvm::Instruction *,
+                                  const llvm::Value *, const llvm::Function *,
+                                  int, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
   typedef int v_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef LLVMBasedICFG i_t;
 
 private:
   const TypeStateDescription &TSD;
-  std::vector<std::string> EntryPoints;
   std::map<const llvm::Value *, std::set<const llvm::Value *>> PointsToCache;
   std::map<const llvm::Value *, std::set<const llvm::Value *>>
       RelevantAllocaCache;
@@ -89,9 +88,10 @@ public:
   const v_t TOP;
   const v_t BOTTOM;
 
-  IDETypeStateAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                       const ProjectIRDB &irdb, const TypeStateDescription &tsd,
-                       std::vector<std::string> EntryPoints = {"main"});
+  IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                const TypeStateDescription &TDS,
+                std::set<std::string> EntryPoints = {"main"});
 
   ~IDETypeStateAnalysis() override = default;
 
@@ -117,7 +117,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

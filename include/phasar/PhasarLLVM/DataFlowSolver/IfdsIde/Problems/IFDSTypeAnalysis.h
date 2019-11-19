@@ -15,7 +15,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 
 namespace llvm {
 class Instruction;
@@ -27,20 +27,18 @@ namespace psr {
 class LLVMBasedICFG;
 
 class IFDSTypeAnalysis
-    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
-                                              LLVMBasedICFG &> {
-private:
-  std::vector<std::string> EntryPoints;
-
+     : public IFDSTabulationProblem<const llvm::Instruction *,
+                                   const llvm::Value *, const llvm::Function *,
+                                   LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef LLVMBasedICFG i_t;
 
-  IFDSTypeAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                   const ProjectIRDB &irdb,
-                   std::vector<std::string> EntryPoints = {"main"});
+  IFDSTypeAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSTypeAnalysis() override = default;
 
@@ -61,7 +59,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

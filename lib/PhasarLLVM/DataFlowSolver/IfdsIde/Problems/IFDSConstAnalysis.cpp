@@ -33,19 +33,17 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-IFDSConstAnalysis::IFDSConstAnalysis(IFDSConstAnalysis::i_t icfg,
-                                     const LLVMTypeHierarchy &th,
-                                     const ProjectIRDB &irdb,
-                                     set<IFDSConstAnalysis::d_t> AllMemLocs,
-                                     vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      ptg(icfg.getWholeModulePTG()), AllMemLocs(AllMemLocs),
-      EntryPoints(EntryPoints) {
+IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT, std::set<d_t> AllMemLocs,
+                std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints), AllMemLocs(move(AllMemLocs)) {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
               PAMM_SEVERITY_LEVEL::Full);
-  IFDSConstAnalysis::zerovalue = createZeroValue();
+  IFDSTabulationProblem::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
@@ -109,7 +107,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                                             getContextRelevantPointsToSet(
                                                 pointsToSet,
                                                 curr->getFunction()),
-                                            zeroValue());
+                                            getZeroValue());
       }
     }
     // If neither the pointer operand nor one of its alias is initialized,
@@ -194,7 +192,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
                                             getContextRelevantPointsToSet(
                                                 pointsToSet,
                                                 callSite->getFunction()),
-                                            zeroValue());
+                                            getZeroValue());
       }
     }
     markAsInitialized(pointerOp);
@@ -217,13 +215,13 @@ IFDSConstAnalysis::initialSeeds() {
   // just start in main()
   map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IFDSConstAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IFDSConstAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() {
+IFDSConstAnalysis::d_t IFDSConstAnalysis::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSConstAnalysis::createZeroValue()");
@@ -322,8 +320,8 @@ void IFDSConstAnalysis::printIFDSReport(
     SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t, BinaryDomain>
         &SR) {
   // 1) Remove all mutable memory locations
-  for (auto f : icfg.getAllMethods()) {
-    for (auto exit : icfg.getExitPointsOf(f)) {
+  for (auto f : ICF->getAllFunctions()) {
+    for (auto exit : ICF->getExitPointsOf(f)) {
       std::set<const llvm::Value *> facts = SR.ifdsResultsAt(exit);
       // Empty facts means the exit statement is part of a not
       // analyzed function, thus remove all memory locations of that function

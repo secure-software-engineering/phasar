@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
 #include <iosfwd>
-#include <map>
 #include <string>
 
 namespace psr {

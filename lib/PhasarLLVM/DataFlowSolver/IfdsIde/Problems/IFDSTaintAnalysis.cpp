@@ -33,12 +33,15 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(
-    i_t icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
-    TaintConfiguration<IFDSTaintAnalysis::d_t> TSF, vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      SourceSinkFunctions(TSF), EntryPoints(EntryPoints) {
-  IFDSTaintAnalysis::zerovalue = createZeroValue();
+IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                    TaintConfiguration<const llvm::Value *> TSF,
+                    std::vector<std::string> EntryPoints-)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints),
+      SourceSinkFunctions(TSF) {
+  IFDSTaintAnalysis::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
@@ -67,7 +70,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // If a tainted value is loaded, the loaded value is of course tainted
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        Load, zeroValue(), [Load](IFDSTaintAnalysis::d_t source) {
+        Load, getZeroValue(), [Load](IFDSTaintAnalysis::d_t source) {
           return source == Load->getPointerOperand();
         });
   }
@@ -75,7 +78,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   // aggregated object
   if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
-        GEP, zeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
+        GEP, getZeroValue(), [GEP](IFDSTaintAnalysis::d_t source) {
           return source == GEP->getPointerOperand();
         });
   }
@@ -127,7 +130,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     set<IFDSTaintAnalysis::m_t> callees) {
   auto &lg = lg::get();
   // Process the effects of source or sink functions that are called
-  for (auto *Callee : icfg.getCalleesOfCallAt(callSite)) {
+  for (auto *Callee : ICF->getCalleesOfCallAt(callSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "F:" << Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "demangled F:" << FunctionName);
@@ -145,7 +148,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
           for (auto Alias : PTS) {
             ToGenerate.insert(Alias);
           }
@@ -161,7 +164,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
-          auto PTS = icfg.getWholeModulePTG().getPointsToSet(V);
+          auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
           for (auto Alias : PTS) {
             ToGenerate.insert(Alias);
           }
@@ -174,7 +177,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         ToGenerate.insert(callSite);
       }
       return make_shared<GenAll<IFDSTaintAnalysis::d_t>>(ToGenerate,
-                                                         zeroValue());
+                                                         getZeroValue());
     }
     if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
@@ -246,21 +249,21 @@ IFDSTaintAnalysis::initialSeeds() {
   for (auto &EntryPoint : EntryPoints) {
     if (EntryPoint == "main") {
       set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (auto &Arg : icfg.getMethod(EntryPoint)->args()) {
+      for (auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         CmdArgs.insert(&Arg);
       }
-      CmdArgs.insert(zeroValue());
+      CmdArgs.insert(getZeroValue());
       SeedMap.insert(
-          make_pair(&icfg.getMethod(EntryPoint)->front().front(), CmdArgs));
+          make_pair(&ICF->getFunction(EntryPoint)->front().front(), CmdArgs));
     } else {
-      SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                               set<IFDSTaintAnalysis::d_t>({zeroValue()})));
+      SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                               set<IFDSTaintAnalysis::d_t>({getZeroValue()})));
     }
   }
   return SeedMap;
 }
 
-IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() {
+IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSTaintAnalysis::createZeroValue()");

@@ -36,10 +36,11 @@ public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
   typedef const llvm::Value *v_t;
+    typedef LLVMBasedICFG i_t;
 
   IDEProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                    const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                   std::initializer_list<std::string> EntryPoints = {"main"});
+                   std::set<std::string> EntryPoints = {"main"});
 
   virtual ~IDEProtoAnalysis() = default;
 

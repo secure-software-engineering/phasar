@@ -33,11 +33,13 @@ using namespace psr;
 namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
-    IFDSUninitializedVariables::i_t icfg, const LLVMTypeHierarchy &th,
-    const ProjectIRDB &irdb, vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  IFDSUninitializedVariables::zerovalue = createZeroValue();
+    const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IFDSUninitializedVariables::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
@@ -402,13 +404,13 @@ IFDSUninitializedVariables::initialSeeds() {
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
-        make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                  set<IFDSUninitializedVariables::d_t>({zeroValue()})));
+        make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                  set<IFDSUninitializedVariables::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSUninitializedVariables::d_t IFDSUninitializedVariables::createZeroValue() {
+IFDSUninitializedVariables::d_t IFDSUninitializedVariables::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSUninitializedVariables::createZeroValue()");

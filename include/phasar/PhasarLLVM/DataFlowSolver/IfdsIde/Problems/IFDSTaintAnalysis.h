@@ -17,7 +17,6 @@
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <set>
 #include <string>
-#include <vector>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -40,17 +39,17 @@ class LLVMBasedICFG;
  * taint-sensitive source and sink functions.
  */
 class IFDSTaintAnalysis
-    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
-                                              LLVMBasedICFG &> {
+    : public IFDSTabulationProblem<const llvm::Instruction *,
+                                   const llvm::Value *, const llvm::Function *,
+                                   LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef LLVMBasedICFG i_t;
 
 private:
   TaintConfiguration<const llvm::Value *> SourceSinkFunctions;
-  std::vector<std::string> EntryPoints;
 
 public:
   /// Holds all leaks found during the analysis
@@ -62,10 +61,10 @@ public:
    * @param TSF
    * @param EntryPoints
    */
-  IFDSTaintAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                    const ProjectIRDB &irdb,
+  IFDSTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
                     TaintConfiguration<const llvm::Value *> TSF,
-                    std::vector<std::string> EntryPoints = {"main"});
+                    std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;
 
@@ -89,7 +88,7 @@ public:
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 

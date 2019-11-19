@@ -6,9 +6,9 @@
 #define IFDSFIELDSENSTAINTANALYSIS_H
 
 #include <map>
+#include <set>
 #include <memory>
 #include <string>
-#include <vector>
 
 #include <llvm/IR/Function.h>
 #include <llvm/IR/Instruction.h>
@@ -16,7 +16,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
@@ -25,13 +25,20 @@
 namespace psr {
 
 class IFDSFieldSensTaintAnalysis
-    : public DefaultIFDSTabulationProblem<const llvm::Instruction *,
+    : public IFDSTabulationProblem<const llvm::Instruction *,
                                           ExtendedValue, const llvm::Function *,
-                                          LLVMBasedICFG &> {
+                                          LLVMBasedICFG> {
 public:
+  typedef ExtendedValue d_t;
+  typedef const llvm::Instruction *n_t;
+  typedef const llvm::Function *m_t;
+  typedef LLVMBasedICFG i_t;
+
   IFDSFieldSensTaintAnalysis(
-      LLVMBasedICFG &ICFG, const TaintConfiguration<ExtendedValue> &TaintConfig,
-      std::vector<std::string> EntryPoints);
+      const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                const TaintConfiguration<ExtendedValue> &TaintConfig,
+                std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
@@ -64,7 +71,7 @@ public:
                        SolverResults<const llvm::Instruction *, ExtendedValue,
                                      BinaryDomain> &solverResults) override;
 
-  ExtendedValue createZeroValue() override {
+  ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
     return ExtendedValue(LLVMZeroValue::getInstance());
   }
@@ -98,9 +105,6 @@ public:
   void printMethod(std::ostream &os, const llvm::Function *m) const override {
     os << m->getName().str();
   }
-
-protected:
-  std::vector<std::string> EntryPoints;
 
 private:
   TaintConfiguration<ExtendedValue> taintConfig;

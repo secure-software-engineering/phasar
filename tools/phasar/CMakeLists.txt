@@ -1,7 +1,7 @@
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
   add_phasar_executable(phasar
-    phasar.cpp
+    phasar-llvm.cpp
   )
 
   # Build a small test tool to show how phasar may be used
@@ -20,13 +20,9 @@ if(PHASAR_IN_TREE)
   add_phasar_executable(wpdstest
     wpdstest.cpp
   )
-
-  add_phasar_executable(phasarae
-    phasarae.cpp
-  )
 else()
   add_executable(phasar
-    phasar.cpp
+    phasar-llvm.cpp
   )
 
   # Build a small test tool to show how phasar may be used
@@ -44,10 +40,6 @@ else()
 
   add_executable(wpdstest
     wpdstest.cpp
-  )
-
-  add_executable(phasarae
-    phasarae.cpp
   )
 endif()
 
@@ -184,35 +176,6 @@ target_link_libraries(syncpdstest
 )
 
 target_link_libraries(boomerangtest
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_db
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
-  phasar_wpds
-  phasar_syncpds
-  ${PHASAR_PLUGINS_LIB}
-  wali
-  phasar_passes
-  phasar_pointer
-  phasar_typehierarchy
-  phasar_phasarllvm_utils
-  phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${llvm_libs}
-)
-
-target_link_libraries(phasarae
   LINK_PUBLIC
   phasar_config
   phasar_controller

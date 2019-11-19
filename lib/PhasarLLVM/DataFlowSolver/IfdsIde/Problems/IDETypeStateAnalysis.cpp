@@ -39,14 +39,11 @@ using namespace psr;
 
 namespace psr {
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(IDETypeStateAnalysis::i_t icfg,
-                                           const LLVMTypeHierarchy &th,
-                                           const ProjectIRDB &irdb,
-                                           const TypeStateDescription &tsd,
-                                           vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), TSD(tsd),
-      EntryPoints(EntryPoints), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
-  DefaultIDETabulationProblem::zerovalue = createZeroValue();
+IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT, const TypeStateDescription &TDS,
+                std::initializer_list<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TOP(TSD.top()), BOTTOM(TSD.bottom()), TSD(TSD) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 // Start formulating our analysis by specifying the parts required for IFDS
@@ -58,7 +55,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, zeroValue());
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, getZeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -260,7 +257,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
           return {source};
         }
       };
-      return make_shared<TSFlowFunction>(callSite, zeroValue());
+      return make_shared<TSFlowFunction>(callSite, getZeroValue());
     }
 
     // Handle all functions that are not modeld with special semantics.
@@ -298,13 +295,13 @@ IDETypeStateAnalysis::initialSeeds() {
   // just start in main()
   map<IDETypeStateAnalysis::n_t, set<IDETypeStateAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IDETypeStateAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IDETypeStateAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() {
+IDETypeStateAnalysis::d_t IDETypeStateAnalysis::createZeroValue() const {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }
@@ -322,7 +319,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   // Set alloca instructions of target type to uninitialized.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
-      if (currNode == zeroValue() && succNode == Alloca) {
+      if (currNode == getZeroValue() && succNode == Alloca) {
         struct TSAllocaEF : public TSEdgeFunction {
           TSAllocaEF(const TypeStateDescription &tsd, const std::string &tok)
               : TSEdgeFunction(tsd, tok) {}
@@ -584,7 +581,7 @@ IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
   if (PointsToCache.find(V) != PointsToCache.end()) {
     return PointsToCache[V];
   } else {
-    auto PointsToSet = icfg.getWholeModulePTG().getPointsToSet(V);
+    auto PointsToSet = ICF->getWholeModulePTG().getPointsToSet(V);
     for (auto Alias : PointsToSet) {
       if (hasMatchingType(Alias))
         PointsToCache[Alias] = PointsToSet;
@@ -609,7 +606,7 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
   std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
   std::set<IDETypeStateAnalysis::d_t> Aliases =
-      irdb.getPointsToGraph(Fname)->getPointsToSet(V);
+      IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
   for (auto Alias : Aliases) {
     if (hasMatchingType(Alias))
       PointsToAndAllocas.insert(Alias);
@@ -680,12 +677,12 @@ void IDETypeStateAnalysis::printIDEReport(
     SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
                   IDETypeStateAnalysis::v_t> &SR) {
   os << "\n======= TYPE STATE RESULTS =======\n";
-  for (auto &f : icfg.getAllMethods()) {
+  for (auto &f : ICF->getAllFunctions()) {
     os << '\n' << llvmFunctionToSrc(f) << '\n';
     for (auto &BB : *f) {
       for (auto &I : BB) {
         auto results = SR.resultsAt(&I, true);
-        if (icfg.isExitStmt(&I)) {
+        if (ICF->isExitStmt(&I)) {
           os << "\nAt exit stmt: " << NtoString(&I) << '\n';
           for (auto res : results) {
             if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(res.first)) {
@@ -693,7 +690,7 @@ void IDETypeStateAnalysis::printIDEReport(
                 os << "\n=== ERROR STATE DETECTED ===\nAlloca: "
                    << DtoString(res.first) << '\n'
                    << llvmValueToSrc(res.first, false) << '\n';
-                for (auto Pred : icfg.getPredsOf(&I)) {
+                for (auto Pred : ICF->getPredsOf(&I)) {
                   os << "\nPredecessor: " << NtoString(Pred) << '\n'
                      << llvmValueToSrc(Pred, false) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
@@ -720,7 +717,7 @@ void IDETypeStateAnalysis::printIDEReport(
                    << llvmValueToSrc(res.first, false)
                    << "\nAt IR Inst: " << NtoString(&I) << '\n'
                    << llvmValueToSrc(&I, false) << '\n';
-                for (auto Pred : icfg.getPredsOf(&I)) {
+                for (auto Pred : ICF->getPredsOf(&I)) {
                   os << "\nPredecessor: " << NtoString(Pred) << '\n'
                      << llvmValueToSrc(Pred, false) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);

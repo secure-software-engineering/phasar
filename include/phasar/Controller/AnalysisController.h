@@ -11,36 +11,38 @@
 #define PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
 
 #include <iosfwd>
-#include <map>
+#include <set>
 #include <string>
-#include <vector>
 
-#include <json.hpp>
-
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+#include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 
 namespace psr {
 
-class ProjectIRDB;
-
-WISE_ENUM_CLASS(ExportType, (JSON, 0))
-
-std::ostream &operator<<(std::ostream &os, const ExportType &e);
-
 class AnalysisController {
-public:
-  using json = nlohmann::json;
-
 private:
-  json FinalResultsJson;
+  ProjectIRDB IRDB;
+  LLVMTypeHierarchy TH;
+  LLVMPointsToInfo PT;
+  LLVMBasedICFG ICF;
+  std::set<std::string> EntryPoints;
+
+  void executeDemandDriven();
+  void executeIncremental();
+  void executeModuleWise();
+  void executeVariational();
+  void executeWholeProgram();
 
 public:
-  AnalysisController(ProjectIRDB &&IRDB,
-                     std::vector<DataFlowAnalysisType> Analyses,
-                     bool WPA_MODE = true, bool PrintEdgeRecorder = true,
-                     std::string graph_id = "");
+  AnalysisController();
   ~AnalysisController() = default;
-  void writeResults(std::string filename);
+  AnalysisController(const AnalysisController&) = delete;
+  AnalysisController(AnalysisController&&) = delete;
+
+  void executeAs(AnalysisStrategy Strategy);
 };
 
 } // namespace psr

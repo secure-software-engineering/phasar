@@ -53,7 +53,7 @@ protected:
 public:
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                         const I *ICF, const PointsToInfo *PT,
-                        std::initializer_list<std::string> EntryPoints = {})
+                        std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
 
   ~IFDSTabulationProblem() override = default;

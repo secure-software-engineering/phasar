@@ -45,12 +45,13 @@ bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
   return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
 }
 
-IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
-    LLVMBasedICFG &icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
-    vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  IFDSLinearConstantAnalysis::zerovalue = createZeroValue();
+IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                               std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, LCAPair,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IFDSLinearConstantAnalysis::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
@@ -100,13 +101,13 @@ IFDSLinearConstantAnalysis::initialSeeds() {
       SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
-        make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                  set<IFDSLinearConstantAnalysis::d_t>({zeroValue()})));
+        make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                  set<IFDSLinearConstantAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() {
+IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSLinearConstantAnalysis::createZeroValue()");
@@ -116,7 +117,7 @@ IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() {
 
 bool IFDSLinearConstantAnalysis::isZeroValue(
     IFDSLinearConstantAnalysis::d_t d) const {
-  return d == zerovalue;
+  return d == ZeroValue;
 }
 
 void IFDSLinearConstantAnalysis::printNode(

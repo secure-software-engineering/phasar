@@ -7,367 +7,196 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <cassert>
 #include <fstream>
+#include <functional>
 #include <iostream>
+#include <set>
 
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/Support/SMLoc.h>
-#include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
-
+#include <phasar/Config/Configuration.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummaries.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
+#include <phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
-#include <phasar/PhasarLLVM/Plugins/AnalysisPluginController.h>
-#include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
-#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 
 using namespace std;
 using namespace psr;
 
 namespace psr {
 
-std::ostream &operator<<(std::ostream &os, const ExportType &E) {
-  return os << wise_enum::to_string(E);
+template <typename T> static set<T> vectorToSet(const vector<T> &v) {
+  set<T> s;
+  for_each(v.being(), v.end(), [&s](T t) { s.insert(t) });
+  return s;
 }
 
-AnalysisController::AnalysisController(
-    ProjectIRDB &&IRDB, std::vector<DataFlowAnalysisType> Analyses,
-    bool WPA_MODE, bool PrintEdgeRecorder, std::string graph_id)
-    : FinalResultsJson() {
-  PAMM_GET_INSTANCE;
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                << "Constructed the analysis controller.");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                << "Found the following IR files for this project: ");
-  for (auto file : IRDB.getAllSourceFiles()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "\t" << file);
-  }
-  // Check if the chosen entry points are valid
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Check for chosen entry points.");
-  vector<string> EntryPoints = {"main"};
-  if (PhasarConfig::VariablesMap().count("entry-points")) {
-    std::vector<std::string> invalidEntryPoints;
-    for (auto &entryPoint :
-         PhasarConfig::VariablesMap()["entry-points"].as<vector<string>>()) {
-      if (IRDB.getFunction(entryPoint) == nullptr) {
-        invalidEntryPoints.push_back(entryPoint);
-      }
-    }
-    if (invalidEntryPoints.size()) {
-      for (auto &invalidEntryPoint : invalidEntryPoints) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, ERROR)
-                      << "Entry point '" << invalidEntryPoint
-                      << "' is not valid.");
-      }
-      throw logic_error("invalid entry points");
-    }
-    if (PhasarConfig::VariablesMap()["entry-points"]
-            .as<vector<string>>()
-            .size()) {
-      EntryPoints =
-          PhasarConfig::VariablesMap()["entry-points"].as<vector<string>>();
-    }
-  }
-  if (WPA_MODE) {
-    // here we link every llvm module into a single module containing the entire
-    // IR
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "link all llvm modules into a single module for WPA ...");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << " ");
-    START_TIMER("Link to WPA Module", PAMM_SEVERITY_LEVEL::Full);
-    IRDB.linkForWPA();
-    STOP_TIMER("Link to WPA Module", PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(
-        BOOST_LOG_SEV(lg, INFO)
-        << "link all llvm modules into a single module for WPA ended");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << " ");
-  }
-  IRDB.preprocessIR();
+AnalysisController::AnalysisController()
+    : IRDB(PhasarConfig::VariablesMap()["module"]
+               .as<std::vector<std::string>>()),
+      TH(IRDB), PT(IRDB), ICF(TH, IRDB),
+      EntryPoints(vectorToSet(PhasarConfig::VariablesMap()["entry-points"]
+                                  .as<std::vector<std::string>>())) {
+  executeAs(to_AnalysisStrategy(
+      PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>()));
+}
 
-  // output (shortend) IR with ID annotations
-  if (PhasarConfig::VariablesMap().count("emit-ir")) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "Emit pre-processed and annotated IR module(s) as "
-                     "'annotated-ir.ll'");
-    std::ofstream irFile("annotated-ir.ll", std::ios::binary);
-    IRDB.emitPreprocessedIR(irFile, true);
-    irFile.close();
-  }
-  // START_TIMER("DB Start Up", PAMM_SEVERITY_LEVEL::Full);
-  // DBConn &db = DBConn::getInstance();
-  // STOP_TIMER("DB Start Up", PAMM_SEVERITY_LEVEL::Full);
-  // START_TIMER("DB Store IRDB", PAMM_SEVERITY_LEVEL::Full);
-  // db.storeProjectIRDB("myphasarproject", IRDB);
-  // STOP_TIMER("DB Store IRDB", PAMM_SEVERITY_LEVEL::Full);
-  // Reconstruct the inter-modular class hierarchy and virtual function tables
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Reconstruct the class hierarchy.");
-  START_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
-  LLVMTypeHierarchy CH(IRDB);
-  STOP_TIMER("CH Construction", PAMM_SEVERITY_LEVEL::Core);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                << "Reconstruction of class hierarchy completed.");
-
-  // llvm::errs() << "Allocated types\n";
-  // for (auto alloc : IRDB.getAllocatedTypes()) {
-  //   llvm::errs() << "\n";
-  //   alloc->print(llvm::errs());
-  //   llvm::errs() << "\n";
-  // }
-  // llvm::errs() << "End Allocated types\n";
-
-  // START_TIMER("DB Store CH", PAMM_SEVERITY_LEVEL::Full);
-  // db.storeLLVMTypeHierarchy(CH,"myphasarproject");
-  // STOP_TIMER("DB Store CH", PAMM_SEVERITY_LEVEL::Full);
-  // CH.printAsDot();
-  // FinalResultsJson += CH.getAsJson();
-  // START_TIMER("print all-module", PAMM_SEVERITY_LEVEL::Full);
-  // ofstream ofs_module("module.log");
-  // llvm::raw_os_ostream stream_module(ofs_module);
-  // IRDB.getWPAModule()->print(stream_module, nullptr);
-  // STOP_TIMER("print all-module", PAMM_SEVERITY_LEVEL::Full);
-  //
-  // auto CHJson = CH.getAsJson();
-  // ofstream ofs_ch("class_hierarchy.json");
-  //
-  // ofs_ch << CHJson.dump();
-  // WARNING
-  // if (PhasarConfig::VariablesMap().count("classhierarchy_analysis")) {
-  //   CH.print();
-  //   CH.printAsDot("ch.dot");
-  // }
-
-  // Call graph construction stategy
-  CallGraphAnalysisType CGType(
-      (PhasarConfig::VariablesMap().count("callgraph-analysis"))
-          ? wise_enum::from_string<CallGraphAnalysisType>(
-                PhasarConfig::VariablesMap()["callgraph-analysis"].as<string>())
-                .value()
-          : CallGraphAnalysisType::OTF);
-  // Perform whole program analysis (WPA) analysis
-  if (WPA_MODE) {
-    START_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
-    LLVMBasedICFG ICFG(CH, IRDB, CGType, EntryPoints);
-
-    if (PhasarConfig::VariablesMap().count("callgraph-plugin")) {
-      throw runtime_error("callgraph plugin not found");
-    }
-    STOP_TIMER("CG Construction", PAMM_SEVERITY_LEVEL::Core);
-    // ICFG.printAsDot("call_graph.dot");
-    // Add the ICFG to final results
-
-    // FinalResultsJson += ICFG.getAsJson();
-    // if (PhasarConfig::VariablesMap().count("callgraph-analysis")) {
-    //   ICFG.print();
-    //   ICFG.printAsDot("icfg.dot");
-    // }
-    // FinalResultsJson += ICFG.getWholeModulePTG().getAsJson();
-    // if (PhasarConfig::VariablesMap().count("pointer-analysis")) {
-    //   ICFG.getWholeModulePTG().print();
-    //   ICFG.getWholeModulePTG().printAsDot("wptg.dot");
-    // }
-    // CFG is only needed for intra-procedural monotone framework
-    LLVMBasedCFG CFG;
-    START_TIMER("DFA Runtime", PAMM_SEVERITY_LEVEL::Core);
-    /*
-     * Perform all the analysis that the user has chosen.
-     */
-    for (DataFlowAnalysisType analysis : Analyses) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Performing analysis: " << analysis);
-      switch (analysis) {
-      case DataFlowAnalysisType::IFDSTaintAnalysis: {
-        TaintConfiguration<const llvm::Value *> TSF;
-        IFDSTaintAnalysis TaintAnalysisProblem(ICFG, CH, IRDB, TSF,
-                                               EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
-            TaintAnalysisProblem);
-        cout << "IFDS Taint Analysis ..." << endl;
-        LLVMTaintSolver.solve();
-        cout << "IFDS Taint Analysis ended" << endl;
-        // FinalResultsJson += LLVMTaintSolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IDETaintAnalysis: {
-        IDETaintAnalysis taintanalysisproblem(ICFG, CH, IRDB, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
-            llvmtaintsolver(taintanalysisproblem);
-        llvmtaintsolver.solve();
-        FinalResultsJson += llvmtaintsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IDETypeStateAnalysis: {
-        CSTDFILEIOTypeStateDescription fileIODesc;
-        IDETypeStateAnalysis typestateproblem(ICFG, CH, IRDB, fileIODesc,
-                                              EntryPoints);
-        LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
-            llvmtypestatesolver(typestateproblem);
-        llvmtypestatesolver.solve();
-        FinalResultsJson += llvmtypestatesolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSTypeAnalysis: {
-        IFDSTypeAnalysis typeanalysisproblem(ICFG, CH, IRDB, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
-            typeanalysisproblem);
-        llvmtypesolver.solve();
-        FinalResultsJson += llvmtypesolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSUninitializedVariables: {
-        IFDSUninitializedVariables uninitializedvarproblem(ICFG, CH, IRDB,
-                                                           EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-            uninitializedvarproblem);
-        cout << "IFDS UninitVar Analysis ..." << endl;
-        llvmunivsolver.solve();
-        cout << "IFDS UninitVar Analysis ended" << endl;
-        // FinalResultsJson += llvmunivsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
-        IFDSLinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
-        LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem);
-        llvmlcasolver.solve();
-        FinalResultsJson += llvmlcasolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IDELinearConstantAnalysis: {
-        IDELinearConstantAnalysis lcaproblem(ICFG, CH, IRDB, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &>
-            llvmlcasolver(lcaproblem);
-        llvmlcasolver.solve();
-        FinalResultsJson += llvmlcasolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSConstAnalysis: {
-        IFDSConstAnalysis constproblem(
-            ICFG, CH, IRDB, IRDB.getAllMemoryLocations(), EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-            constproblem);
-        llvmconstsolver.solve();
-        FinalResultsJson += llvmconstsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSSolverTest: {
-        IFDSSolverTest ifdstest(ICFG, CH, IRDB, EntryPoints);
-        LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-            ifdstest);
-        cout << "IFDS Solvertest ..." << endl;
-        llvmifdstestsolver.solve();
-        cout << "IFDS Solvertest ended" << endl;
-        // FinalResultsJson += llvmifdstestsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
-        TaintConfiguration<ExtendedValue> TaintConfig;
-        IFDSFieldSensTaintAnalysis variableTracing(ICFG, TaintConfig,
-                                                   EntryPoints);
-        LLVMIFDSSolver<ExtendedValue, LLVMBasedICFG &> llvmifdsenvsolver(
-            variableTracing);
-        cout << "IFDS FieldSensTaintAnalysis ..." << endl;
-        llvmifdsenvsolver.solve();
-        cout << "IFDS FieldSensTaintAnalysis ended" << endl;
-        FinalResultsJson += llvmifdsenvsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IDESolverTest: {
-        IDESolverTest idetest(ICFG, CH, IRDB, EntryPoints);
-        LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
-            llvmidetestsolver(idetest);
-        llvmidetestsolver.solve();
-        FinalResultsJson += llvmidetestsolver.getAsJson();
-        break;
-      }
-      case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
-        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        IntraMonoFullConstantPropagation intra(CFG, F);
-        LLVMIntraMonoSolver<pair<const llvm::Value *, unsigned>, LLVMBasedCFG &>
-            solver(intra);
-        solver.solve();
-        break;
-      }
-      case DataFlowAnalysisType::IntraMonoSolverTest: {
-        const llvm::Function *F = IRDB.getFunction(EntryPoints.front());
-        IntraMonoSolverTest intra(CFG, F);
-        LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra);
-        solver.solve();
-        break;
-      }
-      case DataFlowAnalysisType::InterMonoSolverTest: {
-        InterMonoSolverTest inter(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(
-            inter);
-        solver.solve();
-        break;
-      }
-      case DataFlowAnalysisType::InterMonoTaintAnalysis: {
-        InterMonoTaintAnalysis interMonoTaintProblem(ICFG, EntryPoints);
-        LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> solver(
-            interMonoTaintProblem);
-        cout << "Mono Taint Analysis ..." << endl;
-        solver.solve();
-        cout << "Mono Taint Analysis ended" << endl;
-        break;
-      }
-      case DataFlowAnalysisType::Plugin: {
-        vector<string> AnalysisPlugins =
-            PhasarConfig::VariablesMap()["analysis-plugin"]
-                .as<vector<string>>();
-#ifdef PHASAR_PLUGINS_ENABLED
-        AnalysisPluginController PluginController(
-            AnalysisPlugins, ICFG, EntryPoints, FinalResultsJson);
-#endif
-        break;
-      }
-      default:
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, CRITICAL)
-                      << "The analysis it not valid");
-        break;
-      }
-    }
-    STOP_TIMER("DFA Runtime", PAMM_SEVERITY_LEVEL::Core);
-  }
-  // Perform module-wise (MW) analysis
-  else {
-    throw runtime_error(
-        "This code will follow soon with an accompanying paper!");
+void AnalysisController::executeAs(AnalysisStrategy Strategy) {
+  switch (Strategy) {
+  case AnalysisStrategy::DemandDriven:
+    assert(false && "AnalysisStrategy not supported, yet!");
+    break;
+  case AnalysisStrategy::Incremental:
+    assert(false && "AnalysisStrategy not supported, yet!");
+    break;
+  case AnalysisStrategy::ModuleWise:
+    assert(false && "AnalysisStrategy not supported, yet!");
+    break;
+  case AnalysisStrategy::Variational:
+    assert(false && "AnalysisStrategy not supported, yet!");
+    break;
+  case AnalysisStrategy::WholeProgram:
+    executeWholeProgram();
+    break;
+  default:
+    break;
   }
 }
 
-void AnalysisController::writeResults(std::string filename) {
-  std::ofstream ofs(filename);
-  ofs << FinalResultsJson.dump(1);
-}
+void AnalysisController::executeDemandDriven() {}
 
-} // namespace psr
+void AnalysisController::executeIncremental() {}
+
+void AnalysisController::executeModuleWise() {}
+
+void AnalysisController::executeVariational() {}
+
+void AnalysisController::executeWholeProgram() {
+  for (auto DataFlowAnalysisName :
+       PhasarConfig::VariablesMap()["data-flow-analysis"]
+           .as<std::vector<std::string>>()) {
+    auto DataFlowAnalysis = to_DataFlowAnalysisType(DataFlowAnalysisName);
+    switch (DataFlowAnalysis) {
+    case DataFlowAnalysisType::IFDSUninitializedVariables: {
+      WholeProgramAnalysis<
+          IFDSSolver<
+              IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+              IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::i_t>,
+          IFDSUninitializedVariables>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IFDSConstAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
+                     IFDSConstAnalysis::m_t, IFDSConstAnalysis::i_t>,
+          IFDSConstAnalysis>
+          WPA(IRDB, EntryPoints, PT, ICF, TH);
+    } break;
+    case DataFlowAnalysisType::IFDSTaintAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
+                     IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::i_t>,
+          IFDSTaintAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IDETaintAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
+                     IDETaintAnalysis::m_t, IDETaintAnalysis::v_t,
+                     IDETaintAnalysis::i_t>,
+          IDETaintAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IDETypeStateAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+                     IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::v_t,
+                     IDETypeStateAnalysis::i_t>,
+          IDETypeStateAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IFDSTypeAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
+                     IFDSTypeAnalysis::m_t, IFDSTypeAnalysis::i_t>,
+          IFDSTypeAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      break;
+    case DataFlowAnalysisType::IFDSSolverTest: {
+      WholeProgramAnalysis<IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t,
+                                      IFDSSolverTest::m_t, IFDSSolverTest::i_t>,
+                           IFDSSolverTest>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<
+              IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
+              IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::i_t>,
+          IFDSLinearConstantAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      break;
+    case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<
+              IFDSFieldSensTaintAnalysis::n_t, IFDSFieldSensTaintAnalysis::d_t,
+              IFDSFieldSensTaintAnalysis::m_t, IFDSFieldSensTaintAnalysis::i_t>,
+          IFDSFieldSensTaintAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IDELinearConstantAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<
+              IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::v_t,
+              IDELinearConstantAnalysis::i_t>,
+          IDELinearConstantAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IDESolverTest: {
+      WholeProgramAnalysis<
+          IFDSSolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::m_t,
+                     IDESolverTest::v_t, IDESolverTest::i_t>,
+          IDESolverTest>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
+      WholeProgramAnalysis<IFDSSolver<IntraMonoFullConstantPropagation::n_t,
+                                      IntraMonoFullConstantPropagation::d_t,
+                                      IntraMonoFullConstantPropagation::m_t,
+                                      IntraMonoFullConstantPropagation::i_t>,
+                           IntraMonoFullConstantPropagation>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      break;
+    case DataFlowAnalysisType::IntraMonoSolverTest: {
+      WholeProgramAnalysis<
+          IFDSSolver<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
+                     IntraMonoSolverTest::m_t, IntraMonoSolverTest::i_t>,
+          IntraMonoSolverTest>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::InterMonoSolverTest: {
+      WholeProgramAnalysis<
+          IFDSSolver<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
+                     InterMonoSolverTest::m_t, InterMonoSolverTest::i_t>,
+          InterMonoSolverTest>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::InterMonoTaintAnalysis: {
+      WholeProgramAnalysis<
+          IFDSSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                     InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::i_t>,
+          InterMonoTaintAnalysis>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+    } break;
+    case DataFlowAnalysisType::Plugin:
+      break;
+    default:
+      break;
+    }
+    }
+    }
+
+    } // namespace psr

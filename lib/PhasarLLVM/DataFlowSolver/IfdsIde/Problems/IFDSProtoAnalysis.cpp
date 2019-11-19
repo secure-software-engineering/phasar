@@ -25,13 +25,13 @@ using namespace std;
 
 namespace psr {
 
-IFDSProtoAnalysis::IFDSProtoAnalysis(IFDSProtoAnalysis::i_t icfg,
-                                     const LLVMTypeHierarchy &th,
-                                     const ProjectIRDB &irdb,
-                                     vector<string> EntryPoints)
-    : LLVMDefaultIFDSTabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  IFDSProtoAnalysis::zerovalue = createZeroValue();
+IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                               std::initializer_list<std::string> EntryPoints)
+    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                            const llvm::Function *, LLVMBasedICFG>(
+          IRDB, TH, ICF, PT, EntryPoints) {
+  IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
@@ -39,7 +39,7 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
                                          IFDSProtoAnalysis::n_t succ) {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     return make_shared<Gen<IFDSProtoAnalysis::d_t>>(
-        Store->getPointerOperand(), DefaultIFDSTabulationProblem::zerovalue);
+        Store->getPointerOperand(), getZeroValue());
   }
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
@@ -76,13 +76,13 @@ IFDSProtoAnalysis::initialSeeds() {
   cout << "IFDSProtoAnalysis::initialSeeds()\n";
   map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IFDSProtoAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IFDSProtoAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() {
+IFDSProtoAnalysis::d_t IFDSProtoAnalysis::createZeroValue() const {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

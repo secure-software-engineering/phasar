@@ -29,13 +29,11 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(IDETaintAnalysis::i_t icfg,
-                                   const LLVMTypeHierarchy &th,
-                                   const ProjectIRDB &irdb,
-                                   vector<string> EntryPoints)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb),
-      EntryPoints(EntryPoints) {
-  DefaultIDETabulationProblem::zerovalue = createZeroValue();
+IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+                std::set<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
 // start formulating our analysis by specifying the parts required for IFDS
@@ -78,13 +76,13 @@ IDETaintAnalysis::initialSeeds() {
   // just start in main()
   map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                             set<IDETaintAnalysis::d_t>({zeroValue()})));
+    SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                             set<IDETaintAnalysis::d_t>({getZeroValue()})));
   }
   return SeedMap;
 }
 
-IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() {
+IDETaintAnalysis::d_t IDETaintAnalysis::createZeroValue() const {
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
 }

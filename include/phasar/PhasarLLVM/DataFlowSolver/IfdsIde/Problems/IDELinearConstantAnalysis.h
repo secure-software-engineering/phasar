@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 
-#include <initializer_list>
 #include <map>
 #include <memory>
 #include <set>
@@ -43,6 +42,7 @@ public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+    typedef LLVMBasedICFG i_t;
   // int64_t corresponds to llvm's type of constant integer
   typedef int64_t v_t;
 
@@ -51,7 +51,7 @@ public:
 
   IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                             const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                            std::initializer_list<std::string> EntryPoints = {
+                            std::set<std::string> EntryPoints = {
                                 "main"});
 
   ~IDELinearConstantAnalysis() override;

@@ -26,8 +26,29 @@ namespace psr {
 template <typename N, typename D, typename M, typename V> class EdgeFunctions {
 public:
   virtual ~EdgeFunctions() = default;
+  
+  
   virtual std::shared_ptr<EdgeFunction<V>>
-  getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
+  getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) {
+    if (auto Store = llvm::dyn_cast<llvm::StoreInst*>(curr)) {
+      if (currNode == zerovalue && succNode == zerovalue) {
+        return EdgeIdentity;
+      }
+      if (currnode ==zerovalue && succNode == curr.getleftoperand()) {
+        struct MyEdgeFunction : EdgeFunction<int> {
+          int computeTarget(int i) { return curr.getRightOperand(); }
+        };
+        return make_shared<MyEdgeFunction>(data);
+      }
+    } else if (auto Load = ...) {
+
+    } else {
+      return _Identity;
+    }
+  }
+
+
+
   virtual std::shared_ptr<EdgeFunction<V>>
   getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod,
                       D destNode) = 0;

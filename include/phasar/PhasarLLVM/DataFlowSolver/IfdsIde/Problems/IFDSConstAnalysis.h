@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 
 // Forward declaration of types for which we only use its pointer or ref type
 namespace llvm {
@@ -39,26 +39,26 @@ class PointsToGraph;
  * @brief Computes all possibly mutable memory locations.
  */
 class IFDSConstAnalysis
-    : public LLVMDefaultIFDSTabulationProblem<const llvm::Value *,
-                                              LLVMBasedICFG &> {
+    : public IFDSTabulationProblem<const llvm::Instruction *,
+                                   const llvm::Value *, const llvm::Function *,
+                                   LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef LLVMBasedICFG i_t;
 
 private:
   PointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs;
-  std::vector<std::string> EntryPoints;
   // Holds all initialized variables and objects.
   std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(i_t icfg, const LLVMTypeHierarchy &th,
-                    const ProjectIRDB &irdb, std::set<d_t> AllMemLocs,
-                    std::vector<std::string> EntryPoints = {"main"});
+  IFDSConstAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT, std::set<d_t> AllMemLocs,
+                std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
 
@@ -155,7 +155,7 @@ public:
   /**
    * @brief Returns appropriate zero value.
    */
-  d_t createZeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
