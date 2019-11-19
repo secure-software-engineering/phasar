@@ -39,9 +39,7 @@ BitVectorSet<const llvm::Value *>
 IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::join()\n";
-  BitVectorSet<const llvm::Value *> Result;
-  Lhs.setUnion(Rhs);
-  return Result;
+  return Lhs.setUnion(Rhs);
 }
 
 bool IntraMonoSolverTest::sqSubSetEqual(

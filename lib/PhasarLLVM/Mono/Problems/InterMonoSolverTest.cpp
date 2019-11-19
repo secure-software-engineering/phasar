@@ -34,9 +34,7 @@ BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "InterMonoSolverTest::join()\n";
-  BitVectorSet<const llvm::Value *> Result(Lhs);
-  Result.setUnion(Rhs);
-  return Result;
+  return Lhs.setUnion(Rhs);
 }
 
 bool InterMonoSolverTest::sqSubSetEqual(
@@ -51,7 +49,7 @@ InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
                                 const BitVectorSet<const llvm::Value *> &In) {
   cout << "InterMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
-  Result.setUnion(In);
+  Result = Result.setUnion(In);
   if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
   }

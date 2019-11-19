@@ -34,9 +34,7 @@ BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>> Result(Lhs);
-  Result.setUnion(Rhs);
-  return Result;
+  return Lhs.setUnion(Rhs);
 }
 
 bool IntraMonoFullConstantPropagation::sqSubSetEqual(

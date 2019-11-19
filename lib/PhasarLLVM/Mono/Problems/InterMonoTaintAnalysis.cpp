@@ -39,9 +39,7 @@ InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
-  BitVectorSet<const llvm::Value *> Result(Lhs);
-  Result.setUnion(Rhs);
-  return Result;
+  return Lhs.setUnion(Rhs);
 }
 
 bool InterMonoTaintAnalysis::sqSubSetEqual(
@@ -50,6 +48,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
+  
   return Rhs.includes(Lhs);
 }
 
