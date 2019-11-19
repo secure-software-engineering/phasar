@@ -84,7 +84,7 @@ protected:
 
   void printBitVectorSet(const BitVectorSet<D> &S) {
     std::cout << "SET CONTENTS:\n{ ";
-    for (auto Entry : S) {
+    for (auto Entry : S.getAsSet()) {
       std::cout << llvmIRToString(Entry) << ", ";
     }
     std::cout << "}" << std::endl;
@@ -264,7 +264,7 @@ public:
   BitVectorSet<D> getResultsAt(N n) {
     BitVectorSet<D> Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
-      Result.insert(Facts.begin(), Facts.end());
+      Result.insert(Facts);
     }
     return Result;
   }
