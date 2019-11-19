@@ -11,17 +11,13 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
+#include <functional>
 #include <initializer_list>
 #include <set>
 #include <vector>
 
 #include <boost/bimap.hpp>
-// FIXME:
-// <llvm/ADT/Hashing.h> and
-// <boost/functional/hash/extensions.hpp>
-// collide in <boost/concept_check.hpp>
-// #include <boost/bimap/unordered_set_of.hpp>
-#include <boost/bimap/set_of.hpp>
+#include <boost/bimap/unordered_set_of.hpp>
 
 namespace psr {
 
@@ -34,7 +30,12 @@ namespace psr {
  */
 template <typename T> class BitVectorSet {
 private:
-  typedef boost::bimap<boost::bimaps::set_of<T>, boost::bimaps::set_of<size_t>>
+  // Using boost::hash<T> causes ambiguity for hash_value():
+  //  -<llvm/ADT/Hashing.h>
+  //  -<boost/functional/hash/extensions.hpp>
+  //  -<boost/graph/adjacency_list.hpp>
+  typedef boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
+                       boost::bimaps::unordered_set_of<size_t>>
       bimap_t;
   inline static bimap_t Position;
   std::vector<bool> Bits;
