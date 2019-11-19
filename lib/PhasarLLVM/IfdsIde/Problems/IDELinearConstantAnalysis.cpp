@@ -497,6 +497,10 @@ IDELinearConstantAnalysis::allTopFunction() {
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
+  if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
@@ -536,6 +540,10 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
 IDELinearConstantAnalysis::GenConstant::composeWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
+  if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
@@ -552,6 +560,10 @@ IDELinearConstantAnalysis::GenConstant::joinWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
+    return this->shared_from_this();
+  }
+  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
+          otherFunction.get())) {
     return this->shared_from_this();
   }
   return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
@@ -653,6 +665,10 @@ IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BinOp::computeTarget(
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
 IDELinearConstantAnalysis::BinOp::composeWith(
     shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
+  if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();

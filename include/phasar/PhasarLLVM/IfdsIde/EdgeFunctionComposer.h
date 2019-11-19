@@ -72,6 +72,9 @@ public:
     if (auto *EI = dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
+    if (auto *AB = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
+      return this->shared_from_this();
+    }
     return F->composeWith(G->composeWith(secondFunction));
   }
 

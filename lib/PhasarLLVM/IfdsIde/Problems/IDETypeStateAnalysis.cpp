@@ -17,6 +17,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctionComposer.h>
+#include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/AllBottom.h>
 #include <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
@@ -489,11 +490,14 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
 IDETypeStateAnalysis::TSEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction) {
+  if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::v_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
-  // TODO: Can we reduce the EF if composed with AllTop?
   return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
                                              secondFunction, TSD.bottom());
 }
