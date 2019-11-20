@@ -64,16 +64,12 @@ public:
       Longer = &Bits;
     }
     BitVectorSet<T> Res(Longer->size());
-    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
+    size_t idx = 0;
+    for (; idx < Shorter->size(); ++idx) {
       Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
     }
-    size_t idx = 0;
-    if (Shorter->size() != 0) {
-      idx = Shorter->size() - 1;
-    }
-    while (idx < Longer->size()) {
+    for (; idx < Longer->size(); ++idx) {
       Res.Bits[idx] = (*Longer)[idx];
-      ++idx;
     }
     return Res;
   }
@@ -116,7 +112,6 @@ public:
       // this is longer or they have the same length
       // check if Other contains 1's at positions where this does not 
       for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
-        std::cout << "bv at Other.Bits[" << idx << "]:" << Other.Bits[idx] << " Bits[idx]:" << Bits[idx] << "\n";
         if (Other.Bits[idx] && !Bits[idx]) {
           return false;
         }
