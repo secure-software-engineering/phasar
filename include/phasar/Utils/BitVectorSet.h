@@ -15,6 +15,7 @@
 #include <initializer_list>
 #include <set>
 #include <vector>
+#include <iostream>
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
@@ -94,15 +95,33 @@ public:
   }
 
   bool includes(const BitVectorSet<T> &Other) const {
+    // check if Other contains 1's at positions where this does not 
+    // Other is longer
     if (Bits.size() < Other.Bits.size()) {
-      return false;
-    }
-    for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
-      if (Bits[idx] != Other.Bits[idx]) {
-        return false;
+      size_t idx = 0;
+      for (; idx < Bits.size(); ++idx) {
+        if (Other.Bits[idx] && !Bits[idx]) {
+          return false;
+        }
       }
+      // Check if Other's additional bits are non-zero
+      for (; idx < Other.Bits.size(); ++idx) {
+        if (Other.Bits[idx]) {
+          return false;
+        }
+      }
+      // additional zeros are fine
+      return true;
+    } else {
+      // this is longer or they have the same length
+      // check if Other contains 1's at positions where this does not 
+      for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
+        if (Other.Bits[idx] && !Bits[idx]) {
+          return false;
+        }
+      }
+      return true;
     }
-    return true;
   }
 
   void insert(const T &Data) {
@@ -206,14 +225,16 @@ public:
   }
 
   std::set<T> getAsSet() const {
-    std::set<T> elem;
+    std::set<T> Elements;
     for (size_t idx = 0; idx < Bits.size(); ++idx) {
-      auto e = Position.right.find(idx);
-      if (e != Position.right.end()) {
-        elem.insert(e->second);
+      if (Bits[idx]) {
+        auto e = Position.right.find(idx);
+        if (e != Position.right.end()) {
+          Elements.insert(e->second);
+        }
       }
     }
-    return elem;
+    return Elements;
   }
 };
 

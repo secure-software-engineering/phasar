@@ -18,6 +18,59 @@ TEST(BitVectorSet, ctor) {
   EXPECT_EQ(B.count(666), 0);
 }
 
+TEST(BitVectorSet, copy) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C(B);
+
+  EXPECT_TRUE(B == C);
+
+  B.insert(1);
+  B.insert(42);
+  B.insert(13);
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+}
+
+TEST(BitVectorSet, copyAssign) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C;
+  C = B;
+
+  EXPECT_TRUE(B == C);
+
+  B.insert(1);
+  B.insert(42);
+  B.insert(13);
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+}
+
+TEST(BitVectorSet, move) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C(std::move(B));
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+
+  C.insert(42);
+
+  EXPECT_EQ(C.count(42), 1);
+}
+
 TEST(BitVectorSetTest, insert) {
   BitVectorSet<int> B;
   B.insert(1);
@@ -176,6 +229,17 @@ TEST(BitVectorSet, setIntersect) {
   EXPECT_TRUE(A4.empty());
 }
 
+namespace std {
+
+template<>
+struct hash<pair<int, int>> {
+  size_t operator() (const pair<int, int> &p) const {
+    return std::hash<int>()(p.first + p.second);
+  }
+};
+
+} // namespace std
+
 TEST(BitVectorSet, includes) {
 
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
@@ -211,6 +275,11 @@ TEST(BitVectorSet, includes) {
   EXPECT_TRUE(b.includes(e));
   EXPECT_TRUE(e.includes(b));
   EXPECT_FALSE(f.includes(b));
+
+  BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> Y({7});
+
+  EXPECT_TRUE(X.includes(Y));
 }
 
 int main(int argc, char **argv) {

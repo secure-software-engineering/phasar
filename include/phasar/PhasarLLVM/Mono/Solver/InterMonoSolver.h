@@ -18,9 +18,9 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
 #include <deque>
-#include <iosfwd>
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -39,7 +39,7 @@ protected:
   std::unordered_map<
       N, std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>>
       Analysis;
-  BitVectorSet<M> AddedFunctions;
+  std::unordered_set<M> AddedFunctions;
   I ICFG;
 
   void initialize() {
