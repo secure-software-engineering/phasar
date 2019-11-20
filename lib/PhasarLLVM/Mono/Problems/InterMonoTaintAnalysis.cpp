@@ -48,10 +48,10 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
-  std::cout << "##################################\n";
-  bool res = Rhs.includes(Lhs);
-  std::cout << "Rhs includes Lhs? -> " << res << '\n';
-  std::cout << "with Rhs:\n";
+  //std::cout << "##################################\n";
+  /*bool res = Rhs.includes(Lhs);
+  //std::cout << "Rhs includes Lhs? -> " << res << '\n';
+  //std::cout << "with Rhs:\n";
   auto RSet = Rhs.getAsSet();
   for (auto &Elem : RSet) {
     std::cout << "RElem == 0: " << (Elem == nullptr) << '\n';
@@ -66,9 +66,9 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
     if (Elem != nullptr) {
       std::cout << llvmIRToString(Elem) << '\n';
     }
-  }
-  std::cout << "##################################\n";
-  return true;
+  }*/
+  //std::cout << "##################################\n";
+  return Rhs.includes(Lhs);
 }
 
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(

@@ -116,6 +116,7 @@ public:
       // this is longer or they have the same length
       // check if Other contains 1's at positions where this does not 
       for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
+        std::cout << "bv at Other.Bits[" << idx << "]:" << Other.Bits[idx] << " Bits[idx]:" << Bits[idx] << "\n";
         if (Other.Bits[idx] && !Bits[idx]) {
           return false;
         }
@@ -174,7 +175,7 @@ public:
   size_t count(const T &Data) const noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
-      if (Bits.size() - 1 >= Search->second) {
+      if (Bits.size() > Search->second) {
         return Bits[Search->second];
       }
     }

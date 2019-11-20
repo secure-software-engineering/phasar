@@ -50,11 +50,11 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<D, N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()];
       }
       // Additionally, insert the initial seeds
       Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second);
@@ -109,11 +109,11 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<D, N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<D, N, K>()];
       }
       // Add return edge(s)
       for (auto ret : ICFG.getExitPointsOf(callee)) {
