@@ -18,14 +18,15 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
 #include <deque>
-#include <iosfwd>
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/Mono/InterMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
@@ -35,8 +36,10 @@ class InterMonoSolver {
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> Analysis;
-  MonoSet<M> AddedFunctions;
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+      Analysis;
+  std::unordered_set<M> AddedFunctions;
   I ICFG;
 
   void initialize() {
@@ -47,15 +50,14 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Additionally, insert the initial seeds
-      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
-                                                            seed.second.end());
+      Analysis[seed.first][CallStringCTX<N, K>()].insert(seed.second);
     }
   }
 
@@ -80,9 +82,9 @@ protected:
     std::cout << "-----------------" << std::endl;
   }
 
-  void printMonoSet(const MonoSet<D> &S) {
+  void printBitVectorSet(const BitVectorSet<D> &S) {
     std::cout << "SET CONTENTS:\n{ ";
-    for (auto Entry : S) {
+    for (auto Entry : S.getAsSet()) {
       std::cout << llvmIRToString(Entry) << ", ";
     }
     std::cout << "}" << std::endl;
@@ -107,11 +109,11 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Add return edge(s)
       for (auto ret : ICFG.getExitPointsOf(callee)) {
@@ -159,7 +161,9 @@ public:
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  getAnalysis() {
     return Analysis;
   }
 
@@ -174,7 +178,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      MonoMap<CallStringCTX<D, N, K>, MonoSet<D>> Out;
+      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>> Out;
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -213,6 +217,7 @@ public:
           // we need to use several call- and retsites if the context is empty
           std::set<N> callsites;
           std::set<N> retsites;
+          std::cout << "CTX: " << CTX << '\n';
           // handle empty context
           if (CTX.empty()) {
             callsites = ICFG.getCallersOf(ICFG.getMethodOf(src));
@@ -220,6 +225,7 @@ public:
             // handle context containing at least one element
             callsites.insert(CTXRm.pop_back());
           }
+          std::cout << "CTXRm: " << CTXRm << std::endl;
           // retrieve the possible return sites for each call
           for (auto callsite : callsites) {
             auto retsitesPerCall = ICFG.getReturnSitesOfCallAt(callsite);
@@ -228,7 +234,7 @@ public:
           for (auto callsite : callsites) {
             auto retFactsPerCall = IMProblem.returnFlow(
                 callsite, ICFG.getMethodOf(src), src, dst, Analysis[src][CTX]);
-            Out[CTXRm].insert(retFactsPerCall.begin(), retFactsPerCall.end());
+            Out[CTXRm].insert(retFactsPerCall);
           }
           for (auto retsite : retsites) {
             bool flowfactsstabilized =
@@ -257,10 +263,10 @@ public:
     }
   }
 
-  MonoSet<D> getResultsAt(N n) {
-    MonoSet<D> Result;
+  BitVectorSet<D> getResultsAt(N n) {
+    BitVectorSet<D> Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
-      Result.insert(Facts.begin(), Facts.end());
+      Result.insert(Facts);
     }
     return Result;
   }

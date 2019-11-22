@@ -18,12 +18,12 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Mono/IntraMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -32,7 +32,7 @@ class IntraMonoSolver {
 protected:
   IntraMonoProblem<N, D, M, C> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoSet<D>> Analysis;
+  std::unordered_map<N, BitVectorSet<D>> Analysis;
   C CFG;
 
   void initialize() {
@@ -42,11 +42,11 @@ protected:
     Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
     // set all analysis information to the empty set
     for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
-      Analysis.insert(std::make_pair(s, MonoSet<D>()));
+      Analysis.insert(std::make_pair(s, BitVectorSet<D>()));
     }
     // insert initial seeds
     for (auto &seed : IMProblem.initialSeeds()) {
-      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
+      Analysis[seed.first].insert(seed.second);
     }
   }
 
@@ -64,7 +64,7 @@ public:
       Worklist.pop_front();
       N src = path.first;
       N dst = path.second;
-      MonoSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
+      BitVectorSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         for (auto nprimeprime : CFG.getSuccsOf(dst)) {
@@ -80,7 +80,7 @@ public:
     }
   }
 
-  MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
+  BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
 };
 
 } // namespace psr

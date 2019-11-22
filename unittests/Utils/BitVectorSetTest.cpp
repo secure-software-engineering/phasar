@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <utility>
 
 #include <phasar/Utils/BitVectorSet.h>
 
@@ -17,6 +18,59 @@ TEST(BitVectorSet, ctor) {
   EXPECT_EQ(B.count(666), 0);
 }
 
+TEST(BitVectorSet, copy) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C(B);
+
+  EXPECT_TRUE(B == C);
+
+  B.insert(1);
+  B.insert(42);
+  B.insert(13);
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+}
+
+TEST(BitVectorSet, copyAssign) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C;
+  C = B;
+
+  EXPECT_TRUE(B == C);
+
+  B.insert(1);
+  B.insert(42);
+  B.insert(13);
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+}
+
+TEST(BitVectorSet, move) {
+  BitVectorSet<int> B({10, 20, 30, 40, 50});
+  BitVectorSet<int> C(std::move(B));
+
+  EXPECT_EQ(C.count(10), 1);
+  EXPECT_EQ(C.count(20), 1);
+  EXPECT_EQ(C.count(30), 1);
+  EXPECT_EQ(C.count(40), 1);
+  EXPECT_EQ(C.count(50), 1);
+  EXPECT_EQ(C.count(666), 0);
+
+  C.insert(42);
+
+  EXPECT_EQ(C.count(42), 1);
+}
+
 TEST(BitVectorSetTest, insert) {
   BitVectorSet<int> B;
   B.insert(1);
@@ -27,6 +81,29 @@ TEST(BitVectorSetTest, insert) {
   EXPECT_EQ(B.count(42), 1);
   EXPECT_EQ(B.count(13), 1);
   EXPECT_EQ(B.count(666), 0);
+}
+
+TEST(BitVectorSet, insertBitVectorSet) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B;
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6});
+  A.insert(B);
+  EXPECT_EQ(A, C);
+
+  BitVectorSet<int> D({1, 2, 42});
+  BitVectorSet<int> E({1, 2, 3, 4, 5, 6, 42});
+  A.insert(D);
+  EXPECT_EQ(A, E);
+
+  BitVectorSet<int> F({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> G;
+  G.insert(F);
+  EXPECT_EQ(F, G);
+
+  BitVectorSet<int> H;
+  BitVectorSet<int> I;
+  H.insert(I);
+  EXPECT_EQ(H, I);
 }
 
 TEST(BitVectorSet, twoSets) {
@@ -119,6 +196,89 @@ TEST(BitVectorSet, clear) {
   EXPECT_EQ(B.size(), 0);
   C.clear();
   EXPECT_EQ(C.size(), 0);
+}
+
+TEST(BitVectorSet, setUnion) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({5, 6, 42});
+
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
+  BitVectorSet<int> D;
+
+  A = A.setUnion(B);
+
+  EXPECT_TRUE(A == C);
+  A = A.setUnion(D);
+  EXPECT_TRUE(A == C);
+}
+
+TEST(BitVectorSet, setIntersect) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({5, 6, 42});
+
+  BitVectorSet<int> C({1, 2, 3, 4, 5, 6, 42});
+  BitVectorSet<int> D({5, 6});
+
+  BitVectorSet<int> A2 = A.setIntersect(B);
+
+  EXPECT_TRUE(A2 != C);
+  EXPECT_TRUE(A2 == D);
+  BitVectorSet<int> A3 = A2.setIntersect(D);
+  EXPECT_TRUE(A3 == D);
+  BitVectorSet<int> A4 = A3.setIntersect(BitVectorSet<int>());
+  EXPECT_TRUE(A4.empty());
+}
+
+namespace std {
+
+template <> struct hash<pair<int, int>> {
+  size_t operator()(const pair<int, int> &p) const {
+    return std::hash<int>()(p.first + p.second);
+  }
+};
+
+} // namespace std
+
+TEST(BitVectorSet, includes) {
+
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  BitVectorSet<int> B({1, 2, 3});
+  BitVectorSet<int> C({1, 2, 42});
+  BitVectorSet<int> D({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> E({1, 2, 3});
+
+  EXPECT_TRUE(A.includes(B));
+  EXPECT_FALSE(B.includes(A));
+  EXPECT_FALSE(A.includes(C));
+  EXPECT_FALSE(B.includes(C));
+  EXPECT_FALSE(A.includes(D));
+  EXPECT_TRUE(D.includes(A));
+  EXPECT_TRUE(B.includes(E));
+  EXPECT_TRUE(E.includes(B));
+
+  BitVectorSet<std::pair<int, int>> a(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}});
+  BitVectorSet<std::pair<int, int>> b({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> c({{1, 1}, {2, 2}, {42, 42}});
+  BitVectorSet<std::pair<int, int>> d(
+      {{1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5}, {6, 6}, {7, 7}});
+  BitVectorSet<std::pair<int, int>> e({{1, 1}, {2, 2}, {3, 3}});
+  BitVectorSet<std::pair<int, int>> f({{1, 2}, {2, 2}, {3, 3}});
+
+  EXPECT_TRUE(a.includes(b));
+  EXPECT_FALSE(b.includes(a));
+  EXPECT_FALSE(a.includes(c));
+  EXPECT_FALSE(b.includes(c));
+  EXPECT_FALSE(a.includes(d));
+  EXPECT_TRUE(d.includes(a));
+  EXPECT_TRUE(b.includes(e));
+  EXPECT_TRUE(e.includes(b));
+  EXPECT_FALSE(f.includes(b));
+
+  BitVectorSet<int> X({1, 2, 3, 4, 5, 6, 7});
+  BitVectorSet<int> Y({7});
+
+  EXPECT_TRUE(X.includes(Y));
 }
 
 int main(int argc, char **argv) {

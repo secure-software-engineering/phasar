@@ -8,16 +8,13 @@
  *****************************************************************************/
 
 #include <fstream>
+#include <functional>
 #include <iostream>
 
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/Support/SMLoc.h>
 #include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Transforms/Scalar.h>
 
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
@@ -374,3 +371,17 @@ void AnalysisController::writeResults(std::string filename) {
 }
 
 } // namespace psr
+
+namespace std {
+
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<unsigned> hash_unsigned;
+    size_t hp = hash_ptr(p.first);
+    size_t hu = hash_unsigned(p.second);
+    return hp ^ (hu << 1);
+  }
+};
+
+} // namespace std

@@ -74,7 +74,7 @@ public:
           if (context.second.empty()) {
             std::cout << "\tEMPTY\n";
           } else {
-            for (auto &fact : context.second) {
+            for (auto &fact : context.second.getAsSet()) {
               std::cout << InterMonoSolver<const llvm::Instruction *, D,
                                            const llvm::Function *, I,
                                            K>::IMProblem.DtoString(fact);
