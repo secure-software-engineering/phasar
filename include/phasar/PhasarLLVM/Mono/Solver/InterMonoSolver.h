@@ -36,8 +36,8 @@ class InterMonoSolver {
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<
-      N, std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>>
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
       Analysis;
   std::unordered_set<M> AddedFunctions;
   I ICFG;
@@ -50,14 +50,14 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()];
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()];
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Additionally, insert the initial seeds
-      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second);
+      Analysis[seed.first][CallStringCTX<N, K>()].insert(seed.second);
     }
   }
 
@@ -109,11 +109,11 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()];
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()];
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Add return edge(s)
       for (auto ret : ICFG.getExitPointsOf(callee)) {
@@ -161,8 +161,8 @@ public:
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  std::unordered_map<
-      N, std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>>>
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
   getAnalysis() {
     return Analysis;
   }
@@ -178,7 +178,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      std::unordered_map<CallStringCTX<D, N, K>, BitVectorSet<D>> Out;
+      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>> Out;
       if (ICFG.isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -217,6 +217,7 @@ public:
           // we need to use several call- and retsites if the context is empty
           std::set<N> callsites;
           std::set<N> retsites;
+          std::cout << "CTX: " << CTX << '\n';
           // handle empty context
           if (CTX.empty()) {
             callsites = ICFG.getCallersOf(ICFG.getMethodOf(src));
@@ -224,6 +225,7 @@ public:
             // handle context containing at least one element
             callsites.insert(CTXRm.pop_back());
           }
+          std::cout << "CTXRm: " << CTXRm << std::endl;
           // retrieve the possible return sites for each call
           for (auto callsite : callsites) {
             auto retsitesPerCall = ICFG.getReturnSitesOfCallAt(callsite);

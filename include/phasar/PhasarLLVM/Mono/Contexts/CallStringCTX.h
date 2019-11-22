@@ -10,11 +10,11 @@
 
 namespace psr {
 
-template <typename D, typename N, unsigned K> class CallStringCTX {
+template <typename N, unsigned K> class CallStringCTX {
 protected:
   std::deque<N> cs;
   static const unsigned k = K;
-  friend struct std::hash<psr::CallStringCTX<D, N, K>>;
+  friend struct std::hash<psr::CallStringCTX<N, K>>;
 
 public:
   CallStringCTX() {}
@@ -46,18 +46,18 @@ public:
 
   bool isDifferent(const CallStringCTX &rhs) const { return !isEqual(rhs); }
 
-  friend bool operator==(const CallStringCTX<D, N, K> &Lhs,
-                         const CallStringCTX<D, N, K> &Rhs) {
+  friend bool operator==(const CallStringCTX<N, K> &Lhs,
+                         const CallStringCTX<N, K> &Rhs) {
     return Lhs.isEqual(Rhs);
   }
 
-  friend bool operator!=(const CallStringCTX<D, N, K> &Lhs,
-                         const CallStringCTX<D, N, K> &Rhs) {
+  friend bool operator!=(const CallStringCTX<N, K> &Lhs,
+                         const CallStringCTX<N, K> &Rhs) {
     return !Lhs.isEqual(Rhs);
   }
 
-  friend bool operator<(const CallStringCTX<D, N, K> &Lhs,
-                        const CallStringCTX<D, N, K> &Rhs) {
+  friend bool operator<(const CallStringCTX<N, K> &Lhs,
+                        const CallStringCTX<N, K> &Rhs) {
     return Lhs.cs < Rhs.cs;
   }
 
@@ -73,7 +73,7 @@ public:
   }
 
   friend std::ostream &operator<<(std::ostream &os,
-                                  const CallStringCTX<D, N, K> &c) {
+                                  const CallStringCTX<N, K> &c) {
     c.print(os);
     return os;
   }
@@ -87,9 +87,8 @@ public:
 
 namespace std {
 
-template <typename D, typename N, unsigned K>
-struct hash<psr::CallStringCTX<D, N, K>> {
-  size_t operator()(const psr::CallStringCTX<D, N, K> &CS) const noexcept {
+template <typename N, unsigned K> struct hash<psr::CallStringCTX<N, K>> {
+  size_t operator()(const psr::CallStringCTX<N, K> &CS) const noexcept {
     boost::hash<std::deque<N>> hash_deque;
     std::hash<unsigned> hash_unsigned;
     size_t u = hash_unsigned(K);

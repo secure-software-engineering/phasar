@@ -72,8 +72,7 @@ protected:
 
   int computeCounterResult(
       unordered_map<const llvm::Instruction *,
-                    unordered_map<CallStringCTX<const llvm::Value *,
-                                                const llvm::Instruction *, 3>,
+                    unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                                   BitVectorSet<const llvm::Value *>>> &Analysis,
       ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
@@ -98,8 +97,7 @@ protected:
 
   void compareResults(
       unordered_map<const llvm::Instruction *,
-                    unordered_map<CallStringCTX<const llvm::Value *,
-                                                const llvm::Instruction *, 3>,
+                    unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                                   BitVectorSet<const llvm::Value *>>> &Analysis,
       set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
     llvm::Function *F = IRDB.getFunction("main");
@@ -140,8 +138,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   TaintSolver.solve();
   std::cout << "test1\n";
   unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Value *,
-                                            const llvm::Instruction *, 3>,
+                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                               BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
@@ -165,8 +162,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
       TaintProblem);
   TaintSolver.solve();
   unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Value *,
-                                            const llvm::Instruction *, 3>,
+                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                               BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
@@ -190,8 +186,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
       TaintProblem);
   TaintSolver.solve();
   unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Value *,
-                                            const llvm::Instruction *, 3>,
+                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                               BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
@@ -216,8 +211,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
       TaintProblem);
   TaintSolver.solve();
   unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Value *,
-                                            const llvm::Instruction *, 3>,
+                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                               BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 
@@ -241,8 +235,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
       TaintProblem);
   TaintSolver.solve();
   unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Value *,
-                                            const llvm::Instruction *, 3>,
+                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
                               BitVectorSet<const llvm::Value *>>>
       Analysis = TaintSolver.getAnalysis();
 

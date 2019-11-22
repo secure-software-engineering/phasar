@@ -48,7 +48,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
-  //std::cout << "##################################\n";
+  // std::cout << "##################################\n";
   /*bool res = Rhs.includes(Lhs);
   //std::cout << "Rhs includes Lhs? -> " << res << '\n';
   //std::cout << "with Rhs:\n";
@@ -67,7 +67,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
       std::cout << llvmIRToString(Elem) << '\n';
     }
   }*/
-  //std::cout << "##################################\n";
+  // std::cout << "##################################\n";
   return Rhs.includes(Lhs);
 }
 

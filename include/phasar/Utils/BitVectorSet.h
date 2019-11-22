@@ -13,9 +13,9 @@
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
+#include <iostream>
 #include <set>
 #include <vector>
-#include <iostream>
 
 #include <boost/bimap.hpp>
 #include <boost/bimap/unordered_set_of.hpp>
@@ -91,7 +91,7 @@ public:
   }
 
   bool includes(const BitVectorSet<T> &Other) const {
-    // check if Other contains 1's at positions where this does not 
+    // check if Other contains 1's at positions where this does not
     // Other is longer
     if (Bits.size() < Other.Bits.size()) {
       size_t idx = 0;
@@ -110,7 +110,7 @@ public:
       return true;
     } else {
       // this is longer or they have the same length
-      // check if Other contains 1's at positions where this does not 
+      // check if Other contains 1's at positions where this does not
       for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
         if (Other.Bits[idx] && !Bits[idx]) {
           return false;

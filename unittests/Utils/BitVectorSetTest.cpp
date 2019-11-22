@@ -231,9 +231,8 @@ TEST(BitVectorSet, setIntersect) {
 
 namespace std {
 
-template<>
-struct hash<pair<int, int>> {
-  size_t operator() (const pair<int, int> &p) const {
+template <> struct hash<pair<int, int>> {
+  size_t operator()(const pair<int, int> &p) const {
     return std::hash<int>()(p.first + p.second);
   }
 };
