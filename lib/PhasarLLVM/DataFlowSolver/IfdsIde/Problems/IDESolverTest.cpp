@@ -30,7 +30,7 @@ namespace psr {
 
 IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                std::initializer_list<std::string> EntryPoints )
+                std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }

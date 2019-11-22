@@ -38,7 +38,7 @@ IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const PointsToInfo *PT,
                 const TaintConfiguration<ExtendedValue> &TaintConfig,
-                std::initializer_list<std::string> EntryPoints)
+                std::set<std::string> EntryPoints)
     : IFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
                                    const llvm::Function *, LLVMBasedICFG>(
           IRDB, TH, ICF, PT, EntryPoints), taintConfig(TaintConfig) {

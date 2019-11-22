@@ -22,7 +22,7 @@ namespace psr {
 
 IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                               std::initializer_list<std::string> EntryPoints)
+                               std::set<std::string> EntryPoints)
     : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
                             const llvm::Function *, LLVMBasedICFG>(
           IRDB, TH, ICF, PT, EntryPoints) {

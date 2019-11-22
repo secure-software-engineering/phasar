@@ -52,7 +52,7 @@ const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
-    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
+    const PointsToInfo *PT, std::set<std::string> EntryPoints)
     : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
                            const llvm::Function *, int64_t, LLVMBasedICFG>(
           IRDB, TH, ICF, PT, EntryPoints) {
@@ -717,7 +717,7 @@ void IDELinearConstantAnalysis::printValue(
   } else if (v == TOP) {
     os << "Top";
   } else {
-    os << to_string(v);
+    os << std::to_string(v);
   }
 }
 

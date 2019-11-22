@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <string>
 
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/BasicAliasAnalysis.h>
@@ -468,7 +469,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
                  llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
   } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(V)) {
-    return A->getParent()->getName().str() + ".f" + to_string(A->getArgNo());
+    return A->getParent()->getName().str() + ".f" + std::to_string(A->getArgNo());
   } else if (const llvm::GlobalValue *G =
                  llvm::dyn_cast<llvm::GlobalValue>(V)) {
     std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
@@ -491,7 +492,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
         for (unsigned idx = 0; idx < I->getNumOperands(); ++idx) {
           if (I->getOperand(idx) == V) {
             return I->getFunction()->getName().str() + "." + getMetaDataID(I) +
-                   ".o." + to_string(idx);
+                   ".o." + std::to_string(idx);
           }
         }
       }
@@ -523,7 +524,7 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
     llvm::Function *F = getFunction(S.substr(0, S.find(".")));
     for (auto &BB : *F) {
       for (auto &I : BB) {
-        if (getMetaDataID(&I) == to_string(instID)) {
+        if (getMetaDataID(&I) == std::to_string(instID)) {
           return I.getOperand(opIdx);
         }
       }

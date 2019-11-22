@@ -16,6 +16,7 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
@@ -41,8 +42,8 @@ namespace psr {
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const PointsToInfo *PT, const TypeStateDescription &TDS,
-                std::initializer_list<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TOP(TSD.top()), BOTTOM(TSD.bottom()), TSD(TSD) {
+                std::set<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 

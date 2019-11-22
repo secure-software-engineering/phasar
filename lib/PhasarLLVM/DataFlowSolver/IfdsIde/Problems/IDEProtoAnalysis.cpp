@@ -30,7 +30,7 @@ namespace psr {
 
 IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                             const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                            std::initializer_list<std::string> EntryPoints)
+                            std::set<std::string> EntryPoints)
     : IDETabulationProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
                                   const llvm::Value *, LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {

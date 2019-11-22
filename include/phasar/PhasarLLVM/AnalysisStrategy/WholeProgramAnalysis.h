@@ -13,7 +13,9 @@
 #include <initializer_list>
 #include <iosfwd>
 #include <memory>
+#include <string>
 #include <type_traits>
+#include <utility>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
@@ -30,10 +32,6 @@ class WholeProgramAnalysis {
   // Check if the setup is a valid analysis setup
   static_assert(std::is_base_of_v<psr::AnalysisSetup, Setup>,
                 "Setup is not a valid analysis setup!");
-  // Check if the configuration is a valid for the given problem
-  // static_assert(
-  //     std::is_same_v<typename ProblemDescription::ConfigurationTy, Configuration>,
-  //     "Configuration is not valid for the given problem description!");
 
 private:
   using TypeHierarchyTy = typename Setup::TypeHierarchyTy;
@@ -46,6 +44,7 @@ private:
   std::unique_ptr<PointerAnalysisTy> PointerInfo;
   std::unique_ptr<CallGraphAnalysisTy> CallGraph;
   std::unique_ptr<ConfigurationTy> Config;
+  std::string ConfigPath;
   ProblemDescription ProblemDesc;
   Solver DataFlowSolver;
   std::vector<std::string> EntryPoints;
@@ -68,8 +67,38 @@ public:
                             *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
                             EntryPoints)
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
+        Config(CallGraph == nullptr
+                   ? std::make_unique<CallGraphAnalysisTy>(
+                         *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
+                         EntryPoints)
+                   : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
         ProblemDesc(*CallGraph), DataFlowSolver(ProblemDesc),
         EntryPoints(EntryPoints) {}
+
+  template <typename T = ProblemDescription,
+            typename = typename std::enable_if_t<!std::is_same_v<
+                typename T::ConfigurationTy, InvalidConfigurationType>>>
+  WholeProgramAnalysis(ProjectIRDB &IRDB, ConfigurationTy *Config,
+                       std::initializer_list<std::string> EntryPoints = {},
+                       PointerAnalysisTy *PointerInfo = nullptr,
+                       CallGraphAnalysisTy *CallGraph = nullptr,
+                       TypeHierarchyTy *TypeHierarchy = nullptr)
+      : WholeProgramAnalysis(IRDB, EntryPoints, PointerInfo, CallGraph,
+                             TypeHierarchy),
+        Config(std::unique_ptr<CallGraphAnalysisTy>(Config)) {}
+
+  template <typename T = ProblemDescription,
+            typename = typename std::enable_if_t<!std::is_same_v<
+                typename T::ConfigurationTy, InvalidConfigurationType>>>
+  WholeProgramAnalysis(ProjectIRDB &IRDB, std::string ConfigPath,
+                       std::initializer_list<std::string> EntryPoints = {},
+                       PointerAnalysisTy *PointerInfo = nullptr,
+                       CallGraphAnalysisTy *CallGraph = nullptr,
+                       TypeHierarchyTy *TypeHierarchy = nullptr)
+      : WholeProgramAnalysis(IRDB, EntryPoints, PointerInfo, CallGraph,
+                             TypeHierarchy),
+        Config(std::make_unique<ConfigurationTy>(ConfigPath)),
+        ConfigPath(std::move(ConfigPath)) {}
 
   void solve() { DataFlowSolver.solve(); }
 
@@ -85,6 +114,7 @@ public:
     releasePointerInformation();
     releaseCallGraph();
     releaseTypeHierarchy();
+    releaseConfiguration();
   }
 
   typename Setup::TypeHierarchyTy *releasePointerInformation() {
@@ -97,6 +127,10 @@ public:
 
   typename Setup::TypeHierarchyTy *releaseTypeHierarchy() {
     return TypeHierarchy.release();
+  }
+
+  typename Setup::ConfigurationTy *releaseConfiguration() {
+    return Config.release();
   }
 };
 

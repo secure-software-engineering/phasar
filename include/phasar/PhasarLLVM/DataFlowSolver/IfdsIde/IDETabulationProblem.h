@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 
 #include <memory>
+#include <set>
 #include <string>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
@@ -41,7 +42,7 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
 public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                        const I *ICF, const PointsToInfo *PT,
-                       std::initializer_list<std::string> EntryPoints = {})
+                       std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<N, D, M, I>(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;

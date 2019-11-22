@@ -44,7 +44,7 @@ namespace psr {
 std::string to_string(const PointerAnalysisType &PA) {
   switch (PA) {
   default:
-#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
   case PointerAnalysisType::TYPE:                                              \
     return NAME;                                                               \
     break;

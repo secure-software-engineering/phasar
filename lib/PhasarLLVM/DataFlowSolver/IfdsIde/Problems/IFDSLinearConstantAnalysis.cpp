@@ -47,7 +47,7 @@ bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                               std::initializer_list<std::string> EntryPoints)
+                               std::set<std::string> EntryPoints)
     : IFDSTabulationProblem<const llvm::Instruction *, LCAPair,
                             const llvm::Function *, LLVMBasedICFG>(
           IRDB, TH, ICF, PT, EntryPoints) {

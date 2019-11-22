@@ -594,7 +594,7 @@ json LLVMBasedICFG::getAsJson() const {
   return J;
 }
 
-PointsToGraph &LLVMBasedICFG::getWholeModulePTG() { return WholeModulePTG; }
+PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const { return WholeModulePTG; }
 
 vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
   vector<vertex_t> vertices;
