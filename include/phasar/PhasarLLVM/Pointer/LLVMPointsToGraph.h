@@ -17,14 +17,11 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 
+#include <json.hpp>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
-
 #include <llvm/IR/CallSite.h>
-
-#include <json.hpp>
-#include <wise_enum.h>
 
 #include <phasar/Config/Configuration.h>
 
@@ -73,7 +70,17 @@ inline void PrintLoadStoreResults(const char *Msg, bool P,
                                   const llvm::Value *V1, const llvm::Value *V2,
                                   const llvm::Module *M);
 
-WISE_ENUM_CLASS(PointerAnalysisType, CFLSteens, CFLAnders)
+enum class PointerAnalysisType {
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+  Invalid
+};
+
+std::string to_string(const PointerAnalysisType &PA);
+
+PointerAnalysisType to_PointerAnalysisType(const std::string &S);
+
+std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 
 // TODO: add a more high level description.
 /**

@@ -12,7 +12,6 @@
 #include <llvm/PassAnalysisSupport.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/raw_ostream.h>
-#include <wise_enum.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
@@ -36,10 +35,10 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarPass/Options.h>
 #include <phasar/PhasarPass/PhasarPass.h>
 #include <phasar/Utils/EnumFlags.h>
@@ -68,8 +67,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     }
   }
   // set up the call-graph algorithm to be used
-  CallGraphAnalysisType CGTy =
-      wise_enum::from_string<CallGraphAnalysisType>(CallGraphAnalysis).value();
+  CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(CallGraphAnalysis);
   LLVMTypeHierarchy H(DB);
   LLVMBasedCFG CFG;
   LLVMBasedICFG I(H, DB, CGTy, EntryPoints);
@@ -190,7 +188,8 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   if (EntryPoints.empty()) {
     llvm::report_fatal_error("psr error: no entry points provided");
   }
-  if (!wise_enum::from_string<CallGraphAnalysisType>(CallGraphAnalysis)) {
+  if (to_CallGraphAnalysisType(CallGraphAnalysis) ==
+      CallGraphAnalysisType::Invalid) {
     llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
   if (to_DataFlowAnalysisType(DataFlowAnalysis) == DataFlowAnalysisType::None) {

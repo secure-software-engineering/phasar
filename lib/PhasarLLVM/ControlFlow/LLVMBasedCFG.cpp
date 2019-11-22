@@ -26,7 +26,8 @@ using namespace psr;
 
 namespace psr {
 
-const llvm::Function *LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) const {
+const llvm::Function *
+LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) const {
   return stmt->getFunction();
 }
 

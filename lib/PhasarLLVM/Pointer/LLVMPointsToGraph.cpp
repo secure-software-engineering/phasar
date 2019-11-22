@@ -14,6 +14,7 @@
  *      Author: pdschbrt
  */
 #include <llvm/ADT/SetVector.h>
+#include <llvm/ADT/StringSwitch.h>
 #include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/InstIterator.h>
@@ -39,6 +40,37 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
+
+std::string to_string(const PointerAnalysisType &PA) {
+  switch (PA) {
+  default:
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
+  case PointerAnalysisType::TYPE:                                              \
+    return NAME;                                                               \
+    break;
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+  }
+}
+
+PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
+  PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(NAME, PointerAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+                                 .Default(PointerAnalysisType::Invalid);
+  if (Type == PointerAnalysisType::Invalid) {
+    Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(CMDFLAG, PointerAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+               .Default(PointerAnalysisType::Invalid);
+  }
+  return Type;
+}
+
+ostream &operator<<(ostream &os, const PointerAnalysisType &PA) {
+  return os << to_string(PA);
+}
 
 struct PointsToGraph::allocation_site_dfs_visitor : boost::default_dfs_visitor {
   // collect the allocation sites that are found

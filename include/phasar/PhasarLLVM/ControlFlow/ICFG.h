@@ -23,13 +23,20 @@
 #include <string>
 
 #include <json.hpp>
-#include <wise_enum.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 
 namespace psr {
 
-WISE_ENUM_CLASS(CallGraphAnalysisType, CHA, RTA, DTA, OTF)
+enum class CallGraphAnalysisType {
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+  Invalid
+};
+
+std::string to_string(const CallGraphAnalysisType &CGA);
+
+CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 

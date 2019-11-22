@@ -123,7 +123,7 @@ void AnalysisController::executeWholeProgram() {
                      IFDSTypeAnalysis::m_t, IFDSTypeAnalysis::i_t>,
           IFDSTypeAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      break;
+    } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       WholeProgramAnalysis<IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t,
                                       IFDSSolverTest::m_t, IFDSSolverTest::i_t>,
@@ -137,7 +137,7 @@ void AnalysisController::executeWholeProgram() {
               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::i_t>,
           IFDSLinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      break;
+    } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       WholeProgramAnalysis<
           IFDSSolver<
@@ -169,7 +169,7 @@ void AnalysisController::executeWholeProgram() {
                                       IntraMonoFullConstantPropagation::i_t>,
                            IntraMonoFullConstantPropagation>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
-      break;
+    } break;
     case DataFlowAnalysisType::IntraMonoSolverTest: {
       WholeProgramAnalysis<
           IFDSSolver<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
@@ -196,7 +196,7 @@ void AnalysisController::executeWholeProgram() {
     default:
       break;
     }
-    }
-    }
+  }
+}
 
-    } // namespace psr
+} // namespace psr

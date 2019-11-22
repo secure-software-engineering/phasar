@@ -8,6 +8,3 @@
 [submodule "external/WALi-OpenNWA"]
 	path = external/WALi-OpenNWA
 	url = https://github.com/pdschubert/WALi-OpenNWA.git
-[submodule "external/wise_enum"]
-	path = external/wise_enum
-	url = https://github.com/quicknir/wise_enum.git

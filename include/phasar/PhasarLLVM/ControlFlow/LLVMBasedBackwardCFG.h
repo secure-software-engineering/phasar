@@ -41,7 +41,8 @@ public:
 
   virtual ~LLVMBasedBackwardCFG() = default;
 
-  const llvm::Function *getMethodOf(const llvm::Instruction *stmt) const override;
+  const llvm::Function *
+  getMethodOf(const llvm::Instruction *stmt) const override;
 
   std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *stmt) const override;
