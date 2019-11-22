@@ -48,26 +48,6 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
-  // std::cout << "##################################\n";
-  /*bool res = Rhs.includes(Lhs);
-  //std::cout << "Rhs includes Lhs? -> " << res << '\n';
-  //std::cout << "with Rhs:\n";
-  auto RSet = Rhs.getAsSet();
-  for (auto &Elem : RSet) {
-    std::cout << "RElem == 0: " << (Elem == nullptr) << '\n';
-    if (Elem != nullptr) {
-      std::cout << llvmIRToString(Elem) << '\n';
-    }
-  }
-  std::cout << "with Lhs:\n";
-  auto LSet = Lhs.getAsSet();
-  for (auto &Elem : LSet) {
-    std::cout << "LElem == 0: " << (Elem == nullptr) << '\n';
-    if (Elem != nullptr) {
-      std::cout << llvmIRToString(Elem) << '\n';
-    }
-  }*/
-  // std::cout << "##################################\n";
   return Rhs.includes(Lhs);
 }
 
