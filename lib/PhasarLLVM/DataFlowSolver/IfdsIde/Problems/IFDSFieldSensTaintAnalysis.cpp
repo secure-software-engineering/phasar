@@ -223,11 +223,12 @@ void IFDSFieldSensTaintAnalysis::printIFDSReport(
     std::ostream &os,
     SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
         &solverResults) {
+  std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string lcovTraceFile =
-      DataFlowUtils::getTraceFilenamePrefix(EntryPoints.front()) + "-trace.txt";
+      DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");
   const std::string lcovRetValTraceFile =
-      DataFlowUtils::getTraceFilenamePrefix(EntryPoints.front()) +
-      "-return-value-trace.txt";
+      DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints +
+      "-return-value-trace.txt");
 
 #ifdef DEBUG_BUILD
   // Write line number trace (for tests only)

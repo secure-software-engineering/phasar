@@ -27,7 +27,7 @@ using namespace psr;
 namespace psr {
 
 const llvm::Function *
-LLVMBasedCFG::getMethodOf(const llvm::Instruction *stmt) const {
+LLVMBasedCFG::getFunctionOf(const llvm::Instruction *stmt) const {
   return stmt->getFunction();
 }
 
@@ -154,7 +154,7 @@ string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) const {
       .str();
 }
 
-string LLVMBasedCFG::getMethodName(const llvm::Function *fun) const {
+string LLVMBasedCFG::getFunctionName(const llvm::Function *fun) const {
   return fun->getName().str();
 }
 } // namespace psr

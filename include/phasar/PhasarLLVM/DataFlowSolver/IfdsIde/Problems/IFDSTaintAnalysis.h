@@ -13,7 +13,7 @@
 #include <iosfwd>
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMDefaultIFDSTabulationProblem.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <set>
 #include <string>

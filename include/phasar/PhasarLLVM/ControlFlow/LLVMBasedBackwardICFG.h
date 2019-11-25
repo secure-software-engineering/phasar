@@ -111,7 +111,7 @@ public:
 
   void exportPATBCJSON();
 
-  PointsToGraph &getWholeModulePTG();
+  const PointsToGraph &getWholeModulePTG() const;
 
   std::vector<std::string> getDependencyOrderedFunctions();
 };

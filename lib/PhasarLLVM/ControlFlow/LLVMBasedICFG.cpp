@@ -42,7 +42,7 @@
 #include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace psr;
@@ -221,17 +221,11 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "  " << llvmIRToString(cs.getInstruction()));
           // call the resolve routine
-          set<string> possible_target_names;
+          set<const llvm::Function *> possible_targets;
           if (isVirtualFunctionCall(cs.getInstruction())) {
-            possible_target_names = resolver->resolveVirtualCall(cs);
+            possible_targets = resolver->resolveVirtualCall(cs);
           } else {
-            possible_target_names = resolver->resolveFunctionPointer(cs);
-          }
-
-          for (auto &possible_target_name : possible_target_names) {
-            if (IRDB.getFunction(possible_target_name)) {
-              possible_targets.insert(IRDB.getFunction(possible_target_name));
-            }
+            possible_targets = resolver->resolveFunctionPointer(cs);
           }
         }
       }
@@ -282,12 +276,11 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
     const llvm::Value *V = CS.getArgOperand(0);
     if (V->getType()->isPointerTy() &&
         V->getType()->getPointerElementType()->isStructTy()) {
-      string TypeName = V->getType()->getPointerElementType()->getStructName();
+      const llvm::StructType *T = llvm::dyn_cast<llvm::StructType>(V->getType()->getPointerElementType());
       // get the type name and check if it has a virtual member function
-      if (CH.containsType(TypeName) && CH.containsVTable(TypeName)) {
-        VTable VTBL = CH.getVTable(TypeName);
-        for (const string &Fname : VTBL) {
-          const llvm::Function *F = IRDB.getFunction(Fname);
+      if (CH.hasType(T) && CH.hasVFTable(T)) {
+        LLVMVFTable *VFT = CH.getVFTable(T);
+        for (const llvm::Function *F : *VFT) {
           if (!F) {
             // Is a pure virtual function
             // or there is an error with the function in the module (that can
@@ -594,7 +587,7 @@ json LLVMBasedICFG::getAsJson() const {
   return J;
 }
 
-PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const { return WholeModulePTG; }
+const PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const { return WholeModulePTG; }
 
 vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
   vector<vertex_t> vertices;

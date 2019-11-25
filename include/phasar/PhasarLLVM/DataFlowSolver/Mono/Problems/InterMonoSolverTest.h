@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 
+#include <initializer_list>
 #include <string>
 #include <vector>
-#include <initializer_list>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 
@@ -27,6 +27,7 @@ namespace llvm {
 class Instruction;
 class Value;
 class Function;
+class StructType;
 } // namespace llvm
 
 namespace psr {
@@ -35,15 +36,18 @@ class LLVMBasedICFG;
 
 class InterMonoSolverTest
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG> {
+                              const llvm::Function *, const llvm::StructType *,
+                              const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  InterMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                      const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+  InterMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH,
+                      const LLVMBasedICFG *ICF, const PointsToInfo<v_t> *PT,
                       std::initializer_list<std::string> EntryPoints = {});
   ~InterMonoSolverTest() override = default;
 

@@ -41,7 +41,7 @@ using namespace psr;
 namespace psr {
 
 IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT, const TypeStateDescription &TDS,
+                const LLVMBasedICFG *ICF, const PointsToInfo *PT, const TypeStateDescription &TSD,
                 std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   IDETabulationProblem::ZeroValue = createZeroValue();

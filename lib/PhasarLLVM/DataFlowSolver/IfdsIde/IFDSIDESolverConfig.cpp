@@ -19,9 +19,11 @@ namespace psr {
 IFDSIDESolverConfig::IFDSIDESolverConfig(bool followReturnsPastSeeds,
                                          bool autoAddZero, bool computeValues,
                                          bool recordEdges,
+                                         bool emitESG,
                                          bool computePersistedSummaries)
     : followReturnsPastSeeds(followReturnsPastSeeds), autoAddZero(autoAddZero),
       computeValues(computeValues), recordEdges(recordEdges),
+      emitESG(emitESG),
       computePersistedSummaries(computePersistedSummaries) {}
 
 ostream &operator<<(ostream &os, const IFDSIDESolverConfig &sc) {

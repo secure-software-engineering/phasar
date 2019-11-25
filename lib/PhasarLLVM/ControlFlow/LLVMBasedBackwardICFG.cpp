@@ -35,7 +35,6 @@
 #include <phasar/Utils/PAMM.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardICFG.h>
@@ -187,7 +186,7 @@ void LLVMBasedBackwardsICFG::exportPATBCJSON() {
   return ForwardICFG.exportPATBCJSON();
 }
 
-PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() {
+const PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() const {
   return ForwardICFG.getWholeModulePTG();
 }
 

@@ -29,6 +29,7 @@ namespace llvm {
 class Instruction;
 class Value;
 class Function;
+class StructType;
 } // namespace llvm
 
 namespace psr {
@@ -37,19 +38,23 @@ class LLVMBasedICFG;
 
 class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedICFG> {
+                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
 private:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
   TaintConfiguration<const llvm::Value *> TSF;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
 
 public:
-  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                         const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+  using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
+
+  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH,
+                         const LLVMBasedICFG *ICF, const PointsToInfo<v_t> *PT,
                          std::initializer_list<std::string> EntryPoints = {});
   ~InterMonoTaintAnalysis() override = default;
 
@@ -88,6 +93,7 @@ public:
   void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
 
   void printMethod(std::ostream &os, const llvm::Function *m) const override;
+
   const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
   getAllLeaks() const;
 };

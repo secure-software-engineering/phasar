@@ -74,6 +74,9 @@ void AnalysisController::executeModuleWise() {}
 void AnalysisController::executeVariational() {}
 
 void AnalysisController::executeWholeProgram() {
+  std::vector<std::string> AnalysisConfigs =
+      PhasarConfig::VariablesMap()["analysis-config"]
+          .as<std::vector<std::string>>();
   for (auto DataFlowAnalysisName :
        PhasarConfig::VariablesMap()["data-flow-analysis"]
            .as<std::vector<std::string>>()) {
@@ -95,12 +98,12 @@ void AnalysisController::executeWholeProgram() {
           WPA(IRDB, EntryPoints, PT, ICF, TH);
     } break;
     case DataFlowAnalysisType::IFDSTaintAnalysis: {
-      // TODO needs configuration
       // WholeProgramAnalysis<
       //     IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
       //                IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::i_t>,
       //     IFDSTaintAnalysis>
-      //     WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      //     WPA(IRDB, AnalysisConfigs.front(), EntryPoints, &PT, &ICF, &TH);
+      // AnalysisConfigs.pop_back();
     } break;
     case DataFlowAnalysisType::IDETaintAnalysis: {
       WholeProgramAnalysis<
@@ -111,13 +114,13 @@ void AnalysisController::executeWholeProgram() {
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
     } break;
     case DataFlowAnalysisType::IDETypeStateAnalysis: {
-      // TODO needs configuration
       // WholeProgramAnalysis<
       //     IFDSSolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
       //                IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::v_t,
       //                IDETypeStateAnalysis::i_t>,
       //     IDETypeStateAnalysis>
-      //     WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      //     WPA(IRDB, AnalysisConfigs.front(), EntryPoints, &PT, &ICF, &TH);
+      // AnalysisConfigs.pop_back();
     } break;
     case DataFlowAnalysisType::IFDSTypeAnalysis: {
       WholeProgramAnalysis<
@@ -187,14 +190,12 @@ void AnalysisController::executeWholeProgram() {
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
     } break;
     case DataFlowAnalysisType::InterMonoTaintAnalysis: {
-      // TODO needs configuration
-      // WholeProgramAnalysis<
-      //     IFDSSolver<InterMonoTaintAnalysis::n_t,
-      //     InterMonoTaintAnalysis::d_t,
-      //                InterMonoTaintAnalysis::m_t,
-      //                InterMonoTaintAnalysis::i_t>,
-      //     InterMonoTaintAnalysis>
-      //     WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WholeProgramAnalysis<
+          IFDSSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                     InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::i_t>,
+          InterMonoTaintAnalysis>
+          WPA(IRDB, AnalysisConfigs.front(), EntryPoints, &PT, &ICF, &TH);
+      AnalysisConfigs.pop_back();
     } break;
     case DataFlowAnalysisType::Plugin:
       break;

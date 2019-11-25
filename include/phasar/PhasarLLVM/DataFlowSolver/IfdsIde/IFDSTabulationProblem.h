@@ -22,6 +22,8 @@
 #include <set>
 #include <string>
 
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h>
@@ -30,10 +32,10 @@
 namespace psr {
 
 class ProjectIRDB;
-class TypeHierarchy;
-class PointsToInfo;
+template <typename T, typename M> class TypeHierarchy;
+template <typename V> class PointsToInfo;
 
-template <typename N, typename D, typename M, typename I>
+template <typename N, typename D, typename M, typename T, typename V, typename I>
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,
@@ -44,15 +46,15 @@ class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
 protected:
   IFDSIDESolverConfig SolverConfig;
   const ProjectIRDB *IRDB;
-  const TypeHierarchy *TH;
+  const TypeHierarchy<T, M> *TH;
   const I *ICF;
-  const PointsToInfo *PT;
+  const PointsToInfo<V> *PT;
   D ZeroValue;
   std::set<std::string> EntryPoints;
 
 public:
-  IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                        const I *ICF, const PointsToInfo *PT,
+  IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+                        const I *ICF, const PointsToInfo<V> *PT,
                         std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
 
@@ -64,13 +66,23 @@ public:
 
   virtual std::map<N, std::set<D>> initialSeeds() = 0;
 
-  virtual D getZeroValue() const { return ZeroValue; }
+  D getZeroValue() const { return ZeroValue; }
+
+  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+
+  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+
+  const TypeHierarchy<T, M> *getTypeHierarchy() const { return TH; }
+
+  const I *getICFG() const { return ICF; }
+
+  const PointsToInfo<N> *getPointstoInfo() const { return PT; }
 
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;
   }
 
-  IFDSIDESolverConfig getIFDSIDESolverConfig() { return SolverConfig; }
+  IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
 
   virtual void printIFDSReport(std::ostream &os,
                                SolverResults<N, D, BinaryDomain> &SR) {

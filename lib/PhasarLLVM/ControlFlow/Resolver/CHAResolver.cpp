@@ -33,8 +33,8 @@ using namespace psr;
 CHAResolver::CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
     : Resolver(irdb, ch) {}
 
-set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  set<string> possible_call_targets;
+set<const llvm::Function *> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+  set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -54,14 +54,14 @@ set<string> CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Virtual function table entry is: " << vtable_index);
 
-  auto receiver_type_name = getReceiverTypeName(CS);
+  auto receiver_type = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto fallback_type_names =
-      CH.getTransitivelyReachableTypes(receiver_type_name);
+  auto fallback_types =
+      CH.getReachableSubTypes(receiver_type);
 
-  for (auto &fallback_name : fallback_type_names) {
-    insertVtableIntoResult(possible_call_targets, fallback_name, vtable_index,
+  for (auto &fallback : fallback_types) {
+    insertVtableIntoResult(possible_call_targets, fallback, vtable_index,
                            CS);
   }
 

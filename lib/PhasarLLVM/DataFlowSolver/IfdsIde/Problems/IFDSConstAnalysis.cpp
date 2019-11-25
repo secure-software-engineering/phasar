@@ -38,7 +38,7 @@ IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB, const TypeHierarch
                 std::set<std::string> EntryPoints)
     : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
                             const llvm::Function *, LLVMBasedICFG>(
-          IRDB, TH, ICF, PT, EntryPoints), AllMemLocs(move(AllMemLocs)) {
+          IRDB, TH, ICF, PT, EntryPoints), ptg(ICF->getWholeModulePTG()), AllMemLocs(move(AllMemLocs)) {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,

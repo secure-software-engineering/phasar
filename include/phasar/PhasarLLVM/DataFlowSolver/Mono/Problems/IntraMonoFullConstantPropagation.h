@@ -27,6 +27,7 @@ namespace llvm {
 class Value;
 class Instruction;
 class Function;
+class StructType;
 } // namespace llvm
 
 namespace psr {
@@ -37,16 +38,18 @@ class LLVMBasedICFG;
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<const llvm::Instruction *,
                               std::pair<const llvm::Value *, unsigned>,
-                              const llvm::Function *, LLVMBasedCFG> {
+                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedCFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef std::pair<const llvm::Value *, unsigned> d_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
   IntraMonoFullConstantPropagation(
-      const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
-      const PointsToInfo *PT,
+      const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH, const LLVMBasedCFG *CF,
+      const PointsToInfo<v_t> *PT,
       std::initializer_list<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 

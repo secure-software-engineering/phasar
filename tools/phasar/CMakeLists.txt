@@ -1,6 +1,6 @@
 # Build a stand-alone executable
 if(PHASAR_IN_TREE)
-  add_phasar_executable(phasar
+  add_phasar_executable(phasar-llvm
     phasar-llvm.cpp
   )
 
@@ -21,7 +21,7 @@ if(PHASAR_IN_TREE)
     wpdstest.cpp
   )
 else()
-  add_executable(phasar
+  add_executable(phasar-llvm
     phasar-llvm.cpp
   )
 
@@ -45,7 +45,7 @@ endif()
 
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
-target_link_libraries(phasar
+target_link_libraries(phasar-llvm
   LINK_PUBLIC
   phasar_config
   phasar_controller
@@ -77,7 +77,7 @@ target_link_libraries(phasar
 )
 
 if(NOT PHASAR_IN_TREE)
-target_link_libraries(phasar
+target_link_libraries(phasar-llvm
   LINK_PUBLIC
   ${llvm_libs}
 )

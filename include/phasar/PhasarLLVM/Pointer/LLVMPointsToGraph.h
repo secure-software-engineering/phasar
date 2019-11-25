@@ -269,7 +269,7 @@ public:
   /**
    * @brief Computes the Points-to set for a given pointer.
    */
-  std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V);
+  std::set<const llvm::Value *> getPointsToSet(const llvm::Value *V) const;
 
   // TODO add more detailed description
   inline bool representsSingleFunction();

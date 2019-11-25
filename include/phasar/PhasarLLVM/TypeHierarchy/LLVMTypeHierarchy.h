@@ -14,8 +14,8 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
-#define PHASAR_PHASARLLVM_POINTER_LLVMTYPEHIERARCHY_H_
+#ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
+#define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
 #include <iosfwd>
 #include <set>
@@ -31,7 +31,8 @@
 
 #include <json.hpp>
 
-#include <phasar/PhasarLLVM/Pointer/VTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
 
 namespace llvm {
 class Module;
@@ -49,16 +50,15 @@ class ProjectIRDB;
  * 	hierarchy graph based on the data from the %ProjectIRCompiledDB
  * 	and reconstructing the virtual method tables.
  */
-class LLVMTypeHierarchy {
+class LLVMTypeHierarchy : public TypeHierarchy<const llvm::StructType *, const llvm::Function *> {
 public:
   struct VertexProperties {
     VertexProperties() = default;
-    VertexProperties(llvm::StructType *Type, std::string TypeName);
-    llvm::StructType *llvmtype = nullptr;
-    /// Name of the class/struct the vertex is representing.
-    std::string name;
-    VTable vtbl;
-    std::set<std::string> reachableTypes;
+    VertexProperties(const llvm::StructType *Type);
+    const llvm::StructType *Type = nullptr;
+    std::string TypeName = "";
+    LLVMVFTable VFT;
+    std::set<const llvm::StructType *> ReachableTypes;
   };
 
   /// Edges in the class hierarchy graph doesn't hold any additional
@@ -84,20 +84,20 @@ public:
 
 private:
   bidigraph_t g;
-  std::unordered_map<std::string, vertex_t> type_vertex_map;
+  std::unordered_map<const llvm::StructType *, vertex_t> type_vertex_map;
   // maps type names to the corresponding vtable
-  std::unordered_map<std::string, VTable> type_vtbl_map;
+  std::unordered_map<const llvm::StructType *, LLVMVFTable> type_vtbl_map;
   // holds all modules that are included in the type hierarchy
   std::unordered_set<const llvm::Module *> contained_modules;
 
-  void reconstructVTables(const llvm::Module &M);
+  // void reconstructVTables(const llvm::Module &M);
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 protected:
-  void buildLLVMTypeHierarchy(const llvm::Module &M);
-  void pruneTypeHierarchyWithVtable(const llvm::Function *constructor);
+  // void buildLLVMTypeHierarchy(const llvm::Module &M);
+  // void pruneTypeHierarchyWithVtable(const llvm::Function *constructor);
 
 public:
   /**
@@ -105,14 +105,14 @@ public:
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  LLVMTypeHierarchy(ProjectIRDB &IRDB);
+  // LLVMTypeHierarchy(ProjectIRDB &IRDB);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the
    *         llvm::Module.
    *  @param M A llvm::Module.
    */
-  LLVMTypeHierarchy(const llvm::Module &M);
+  // LLVMTypeHierarchy(const llvm::Module &M);
 
   ~LLVMTypeHierarchy() = default;
 
@@ -125,102 +125,52 @@ public:
    */
   void constructHierarchy(const llvm::Module &M);
 
-  /**
-   * 	@brief Computes all types, which are transitiv reachable from
-   * 	       the given type.
-   * 	@param TypeName Name of the type.
-   * 	@return Set of reachable types.
-   */
-  std::set<std::string> getTransitivelyReachableTypes(std::string TypeName);
+   bool hasType(const llvm::StructType * Type) const override;
 
-  /**
-   * 	@brief Returns an entry at the given index from the VTable
-   * 	       of the given type.
-   * 	@param TypeName Type identifier.
-   * 	@param idx Index in the VTable.
-   * 	@return A function identifier.
-   */
-  std::string getVTableEntry(std::string TypeName, unsigned idx) const;
+   bool isSubType(const llvm::StructType * Type, const llvm::StructType * SubType) override;
 
-  /**
-   * 	@brief Checks if one of the given types is a super-type of the
-   * 	       other given type.
-   * 	@param TypeName Type identifier.
-   * 	@param SubTypeName Type identifier.
-   * 	@return True, if the one type is a super-type of the other.
-   * 	        False otherwise.
-   */
-  bool hasSuperType(std::string TypeName, std::string SuperTypeName);
+   std::set<const llvm::StructType *> getReachableSubTypes(const llvm::StructType * Type) override;
 
-  VTable getVTable(std::string TypeName) const;
+   bool isSuperType(const llvm::StructType * Type, const llvm::StructType * SuperType) override;
 
-  /**
-   * 	@brief Checks if one of the given types is a sub-type of the
-   * 	       other given type.
-   * 	@param TypeName Type identifier.
-   * 	@param SubTypeName Type identifier.
-   * 	@return True, if the one type is a sub-type of the other.
-   * 	        False otherwise.
-   */
-  bool hasSubType(std::string TypeName, std::string SubTypeName);
+   std::set<const llvm::StructType *> getReachableSuperTypes(const llvm::StructType * Type) override;
 
-  /**
-   *	@brief Checks if the given type has a virtual method table.
-   *	@param TypeName Type identifier.
-   *	@return True, if the given type has a virtual method table.
-   *	        False otherwise.
-   */
-  bool containsVTable(std::string TypeName) const;
+   const llvm::StructType * getType(std::string TypeName) const override;
 
-  /**
-   *	@brief Returns the number of types.
-   *	@return Number of user-defined types.
-   */
-  size_t getNumTypes() const;
+   std::set<const llvm::StructType *> getAllTypes() const override;
 
-  /**
-   *	@brief Returns the number of vtable entries for a given type.
-   *	@return Number of vtable entries.
-   */
-  size_t getNumVTableEntries(std::string TypeName) const;
+   std::string getTypeName(const llvm::StructType * Type) const override;
 
-  /**
-   *	@brief Returns a pointer to the llvm struct type.
-   *  @param TypeName Type identifier
-   *	@return Pointer to llvm::StructType.
-   */
-  const llvm::StructType *getType(std::string TypeName) const;
+   bool hasVFTable(const llvm::StructType * Type) const override;
 
-  void mergeWith(LLVMTypeHierarchy &Other);
+   LLVMVFTable *getVFTable(const llvm::StructType * Type) const override;
+
+   size_t size() const override;
+
+   bool empty() const override;
+
+   void print(std::ostream &OS) const override;
+
+   nlohmann::json getAsJson() const override;
+
+
+  // void mergeWith(LLVMTypeHierarchy &Other);
 
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
-  void printTransitiveClosure();
+  // void printTransitiveClosure();
 
-  /**
-   * 	@brief Prints the class hierarchy to the command-line.
-   */
-  void print();
   /**
    * 	@brief Prints the class hierarchy to a .dot file.
    * 	@param path Path where the .dot file is created.
    */
-  void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
+  // void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
 
-  bool containsType(std::string TypeName) const;
+  // void printGraphAsDot(std::ostream &out);
 
-  void addVTableEntry(std::string TypeName, std::string FunctionName);
+  // static bidigraph_t loadGraphFormDot(std::istream &in);
 
-  void printGraphAsDot(std::ostream &out);
-
-  static bidigraph_t loadGraphFormDot(std::istream &in);
-
-  json getAsJson();
-
-  unsigned getNumOfVertices();
-
-  unsigned getNumOfEdges();
 };
 
 } // namespace psr

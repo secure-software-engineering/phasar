@@ -22,6 +22,8 @@
 
 namespace psr {
 
+struct InvalidConfigurationType;
+
 template <typename Solver, typename ProblemDescription,
           typename Setup = psr::DefaultAnalysisSetup>
 class WholeProgramAnalysis {

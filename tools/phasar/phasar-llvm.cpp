@@ -21,7 +21,6 @@
 
 namespace bpo = boost::program_options;
 namespace bfs = boost::filesystem;
-using namespace std;
 using namespace psr;
 
 static constexpr string MORE_PHASAR_LLVM_HELP(
@@ -62,7 +61,8 @@ int main(int argc, const char **argv) {
       ("entry-points,E", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
       ("output,O", bpo::value<std::string>()->notifier(validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(validateParamDataFlowAnalysis), "Set the analysis to be run")
-			("pointer-analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
+			("analysis-config", bpo::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(nullptr), "Set the analysis's configuration (if required)")
+      ("pointer-analysis,P", bpo::value<std::string>()->notifier(validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
       ("callgraph-analysis,C", bpo::value<std::string>()->notifier(validateParamCallGraphAnalysis), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF)")
 			("classhierachy-analysis,H", "Class-hierarchy analysis")
 			("vtable-analysis,V", "Virtual function table analysis")

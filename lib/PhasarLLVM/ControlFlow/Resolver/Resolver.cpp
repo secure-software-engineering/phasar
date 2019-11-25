@@ -78,20 +78,19 @@ bool Resolver::matchVirtualSignature(const llvm::FunctionType *type_call,
   return false;
 }
 
-void Resolver::insertVtableIntoResult(std::set<std::string> &results,
-                                      const std::string &struct_name,
+void Resolver::insertVtableIntoResult(std::set<const llvm::Function *> &results,
+                                      const llvm::StructType *struct_type,
                                       const unsigned vtable_index,
                                       const llvm::ImmutableCallSite &CS) {
-  if (CH.containsVTable(struct_name)) {
-    auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
-    if (vtable_entry != "__cxa_pure_virtual") {
+  if (CH.hasVFTable(struct_type)) {
+    auto vtable_entry = CH.getVFTable(struct_type)->getFunction(vtable_index);
+    if (vtable_entry->getName() != "__cxa_pure_virtual") {
       if (auto call_type = CS.getFunctionType()) {
-        if (auto candidate = IRDB.getFunction(vtable_entry)) {
+          auto candidate = vtable_entry;
           if (auto candidate_type = candidate->getFunctionType()) {
             if (!matchVirtualSignature(call_type, candidate_type)) {
               return;
             }
-          }
         }
       }
       results.insert(vtable_entry);
@@ -107,7 +106,7 @@ void Resolver::postCall(const llvm::Instruction *inst) {}
 void Resolver::OtherInst(const llvm::Instruction *inst) {}
 void Resolver::firstFunction(const llvm::Function *F) {}
 
-set<string>
+set<const llvm::Function *>
 Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {
   // We may want to optimise the time of this function as it is in fact most of
   // the time spent in the ICFG construction and it grows rapidily
@@ -116,7 +115,7 @@ Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
 
-  set<string> possible_call_targets;
+  set<const llvm::Function *> possible_call_targets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
   if (CS.getCalledValue() != nullptr &&
@@ -125,7 +124,7 @@ Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {
             CS.getCalledValue()->getType()->getPointerElementType())) {
       for (auto f : IRDB.getAllFunctions()) {
         if (matchesSignature(f, ftype)) {
-          possible_call_targets.insert(f->getName().str());
+          possible_call_targets.insert(f);
         }
       }
     }

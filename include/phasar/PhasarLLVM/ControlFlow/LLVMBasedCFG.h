@@ -38,7 +38,7 @@ public:
   ~LLVMBasedCFG() override = default;
 
   const llvm::Function *
-  getMethodOf(const llvm::Instruction *stmt) const override;
+  getFunctionOf(const llvm::Instruction *stmt) const override;
 
   std::vector<const llvm::Instruction *>
   getPredsOf(const llvm::Instruction *stmt) const override;
@@ -68,7 +68,7 @@ public:
 
   std::string getStatementId(const llvm::Instruction *stmt) const override;
 
-  std::string getMethodName(const llvm::Function *fun) const override;
+  std::string getFunctionName(const llvm::Function *fun) const override;
 };
 
 } // namespace psr

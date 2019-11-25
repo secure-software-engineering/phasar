@@ -62,8 +62,8 @@ public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
   FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &problem)
-      : problem(problem), autoAddZero(problem.solver_config.autoAddZero),
-        zeroValue(problem.zeroValue()) {
+      : problem(problem), autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
+        zeroValue(problem.getZeroValue()) {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Normal-FF Cache Hit", 0, PAMM_SEVERITY_LEVEL::Full);

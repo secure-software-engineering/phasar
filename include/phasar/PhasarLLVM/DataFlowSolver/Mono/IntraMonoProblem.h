@@ -26,12 +26,13 @@
 
 namespace psr {
 
+struct UnsupportedConfigurationType;
 class ProjectIRDB;
-class TypeHierarchy;
-class PointsToInfo;
+template <typename T, typename M> class TypeHierarchy;
+template <typename V> class PointsToInfo;
 template <typename N, typename M> class CFG;
 
-template <typename N, typename D, typename M, typename C>
+template <typename N, typename D, typename M, typename T, typename V, typename C>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
                          public MethodPrinter<M> {
@@ -40,14 +41,18 @@ class IntraMonoProblem : public NodePrinter<N>,
 
 protected:
   const ProjectIRDB *IRDB;
-  const TypeHierarchy *TH;
+  const TypeHierarchy<T, M> *TH;
   const C *CF;
-  const PointsToInfo *PT;
+  const PointsToInfo<V> *PT;
   std::set<std::string> EntryPoints;
 
 public:
-  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                   const C *CF, const PointsToInfo *PT,
+  // denote that a problem does not require a configuration (type/file)
+  // a user problem can override the type of configuration to be used, if any
+  using ConfigurationTy = UnsupportedConfigurationType;
+
+  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+                   const C *CF, const PointsToInfo<V> *PT,
                    std::initializer_list<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
   ~IntraMonoProblem() override = default;

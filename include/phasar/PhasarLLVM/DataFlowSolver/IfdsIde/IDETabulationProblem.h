@@ -21,6 +21,7 @@
 #include <set>
 #include <string>
 
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
@@ -28,25 +29,25 @@
 namespace psr {
 
 class ProjectIRDB;
-class TypeHierarchy;
-class PointsToInfo;
+template <typename T, typename M> class TypeHierarchy;
+template <typename V> class PointsToInfo;
 
-template <typename N, typename D, typename M, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
 class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
-                             public virtual EdgeFunctions<N, D, M, V>,
-                             public virtual JoinLattice<V>,
-                             public virtual ValuePrinter<V> {
+                             public virtual EdgeFunctions<N, D, M, L>,
+                             public virtual JoinLattice<L>,
+                             public virtual ValuePrinter<L> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 
 public:
-  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                       const I *ICF, const PointsToInfo *PT,
+  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+                       const I *ICF, const PointsToInfo<V> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<N, D, M, I>(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblem() override = default;
-  virtual std::shared_ptr<EdgeFunction<V>> allTopFunction() = 0;
-  virtual void printIDEReport(std::ostream &os, SolverResults<N, D, V> &SR) {
+  virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
+  virtual void printIDEReport(std::ostream &os, SolverResults<N, D, L> &SR) {
     os << "No IDE report available!\n";
   }
 };

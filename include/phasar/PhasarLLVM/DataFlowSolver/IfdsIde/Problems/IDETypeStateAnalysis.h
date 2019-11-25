@@ -90,7 +90,7 @@ public:
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                const TypeStateDescription &TDS,
+                const TypeStateDescription &TSD,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IDETypeStateAnalysis() override = default;

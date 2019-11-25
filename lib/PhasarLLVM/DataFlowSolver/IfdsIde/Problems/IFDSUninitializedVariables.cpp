@@ -170,7 +170,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {source};
       }
     };
-    return make_shared<UVFF>(store, UndefValueUses, zerovalue);
+    return make_shared<UVFF>(store, UndefValueUses, ZeroValue);
   }
   if (auto alloc = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
 
@@ -309,7 +309,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(destMthd, callSite, zerovalue);
+    return make_shared<UVFF>(destMthd, callSite, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }

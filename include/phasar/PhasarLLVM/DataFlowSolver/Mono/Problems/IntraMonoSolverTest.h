@@ -25,6 +25,7 @@
 namespace llvm {
 class Value;
 class Instruction;
+class StructType;
 class Function;
 } // namespace llvm
 
@@ -35,15 +36,17 @@ class LLVMBasedICFG;
 
 class IntraMonoSolverTest
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, LLVMBasedCFG> {
+                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedCFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  IntraMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                      const LLVMBasedCFG *CF, const PointsToInfo *PT,
+  IntraMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH,
+                      const LLVMBasedCFG *CF, const PointsToInfo<v_t> *PT,
                       std::initializer_list<std::string> EntryPoints = {});
   ~IntraMonoSolverTest() override = default;
 

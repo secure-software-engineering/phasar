@@ -437,7 +437,7 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
   return types;
 }
 
-set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
+set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) const {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getPointsToSet", 1, PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);
@@ -445,7 +445,7 @@ set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) {
   reachability_dfs_visitor vis(reachable_vertices);
   vector<boost::default_color_type> color_map(boost::num_vertices(ptg));
   boost::depth_first_visit(
-      ptg, value_vertex_map[V], vis,
+      ptg, value_vertex_map.at(V), vis,
       boost::make_iterator_property_map(color_map.begin(),
                                         boost::get(boost::vertex_index, ptg),
                                         color_map[0]));

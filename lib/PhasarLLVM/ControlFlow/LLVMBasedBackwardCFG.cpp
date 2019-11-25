@@ -31,7 +31,7 @@ namespace psr {
 
 // same as LLVMBasedCFG
 const llvm::Function *
-LLVMBasedBackwardCFG::getMethodOf(const llvm::Instruction *stmt) const {
+LLVMBasedBackwardCFG::getFunctionOf(const llvm::Instruction *stmt) const {
   return stmt->getParent()->getParent();
 }
 
@@ -123,7 +123,7 @@ bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *stmt,
 
 // same as LLVMBasedCFG
 std::string
-LLVMBasedBackwardCFG::getMethodName(const llvm::Function *fun) const {
+LLVMBasedBackwardCFG::getFunctionName(const llvm::Function *fun) const {
   return fun->getName().str();
 }
 

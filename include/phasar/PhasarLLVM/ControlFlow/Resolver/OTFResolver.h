@@ -50,7 +50,7 @@ public:
       std::set<const llvm::Function *> &possible_targets) override;
   virtual void postCall(const llvm::Instruction *Inst) override;
   virtual void OtherInst(const llvm::Instruction *Inst) override;
-  virtual std::set<std::string>
+  virtual std::set<const llvm::Function *>
   resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
 };
 } // namespace psr
