@@ -53,7 +53,7 @@ public:
 
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                    const C *CF, const PointsToInfo<V> *PT,
-                   std::initializer_list<std::string> EntryPoints = {})
+                   std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
   ~IntraMonoProblem() override = default;
   virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;

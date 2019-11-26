@@ -30,10 +30,10 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename I, unsigned K>
+template <typename N, typename D, typename M, typename T, typename V, typename I, unsigned K>
 class InterMonoSolver {
 public:
-  using ProblemTy = InterMonoProblem<N, D, M, I>;
+  using ProblemTy = InterMonoProblem<N, D, M, T, V, I>;
 
 protected:
   InterMonoProblem<N, D, M, I> &IMProblem;

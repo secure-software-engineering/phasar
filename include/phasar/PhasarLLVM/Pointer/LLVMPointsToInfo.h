@@ -14,12 +14,15 @@
 #include <memory>
 #include <string>
 
+#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+
 namespace psr {
 
 class ProjectIRDB;
 class PointstoGraph;
 
-class LLVMPointsToInfo {
+class LLVMPointsToInfo : public PointsToInfo<const llvm::Value *> {
 private:
   std::map<std::string, std::unique_ptr<PointsToGraph>> PointsToGraphs;
 

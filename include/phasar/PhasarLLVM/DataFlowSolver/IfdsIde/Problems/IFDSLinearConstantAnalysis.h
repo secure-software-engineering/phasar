@@ -22,11 +22,15 @@
 namespace llvm {
 class Instruction;
 class Function;
+class StructType;
 class Value;
 } // namespace llvm
 
 namespace psr {
+
 class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 // A small pair data type to encode data flow facts for this LCA
 struct LCAPair {
@@ -53,15 +57,19 @@ namespace psr {
 class IFDSLinearConstantAnalysis
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                    LCAPair, const llvm::Function *,
+                                   const llvm::StructType *,
+                                   const llvm::Value *,
                                    LLVMBasedICFG> {
 public:
   typedef LCAPair d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+  IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSLinearConstantAnalysis() override = default;

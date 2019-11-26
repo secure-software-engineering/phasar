@@ -491,8 +491,8 @@ void PointsToGraph::printAsDot(const string &filename) {
                             &PointsToGraph::EdgeProperties::ir_code, ptg)));
 }
 
-json PointsToGraph::getAsJson() {
-  json J;
+nlohmann::json PointsToGraph::getAsJson() {
+  nlohmann::json J;
   vertex_iterator vi_v, vi_v_end;
   out_edge_iterator ei, ei_end;
   // iterate all graph vertices

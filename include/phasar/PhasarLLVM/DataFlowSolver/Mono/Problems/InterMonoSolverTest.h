@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOSOLVERTEST_H_
 
-#include <initializer_list>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -32,6 +32,8 @@ class StructType;
 
 namespace psr {
 
+class LLVMPointsToInfo;
+class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 
 class InterMonoSolverTest
@@ -46,9 +48,9 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  InterMonoSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH,
-                      const LLVMBasedICFG *ICF, const PointsToInfo<v_t> *PT,
-                      std::initializer_list<std::string> EntryPoints = {});
+  InterMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                      std::set<std::string> EntryPoints = {});
   ~InterMonoSolverTest() override = default;
 
   MonoSet<const llvm::Value *>

@@ -31,14 +31,14 @@ extern const std::shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
  * This class promotes a given IFDSTabulationProblem to an IDETabulationProblem
  * using a binary domain for the edge functions.
  */
-template <typename N, typename D, typename M, typename I>
+template <typename N, typename D, typename M, typename T, typename V, typename I>
 class IFDSToIDETabulationProblem
-    : public IDETabulationProblem<N, D, M, BinaryDomain, I> {
+    : public IDETabulationProblem<N, D, M, T, V, BinaryDomain, I> {
 public:
-  IFDSTabulationProblem<N, D, M, I> &Problem;
+  IFDSTabulationProblem<N, D, M, T, V, I> &Problem;
 
-  IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, I> &IFDSProblem)
-      : IDETabulationProblem<N, D, M, BinaryDomain, I>(
+  IFDSToIDETabulationProblem(IFDSTabulationProblem<N, D, M, T, V, I> &IFDSProblem)
+      : IDETabulationProblem<N, D, M, T, V, BinaryDomain, I>(
             IFDSProblem.getProjectIRDB(), IFDSProblem.getTypeHierarchy(),
             IFDSProblem.getICFG(), IFDSProblem.getPointstoInfo(),
             IFDSProblem.getEntryPoints()),

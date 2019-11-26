@@ -20,6 +20,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -28,9 +30,11 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                std::set<std::string> EntryPoints)
+IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF,
+                             const LLVMPointsToInfo *PT,
+                             std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
@@ -90,90 +94,90 @@ bool IDESolverTest::isZeroValue(IDESolverTest::d_t d) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t curr,
                                      IDESolverTest::d_t currNode,
                                      IDESolverTest::n_t succ,
                                      IDESolverTest::d_t succNode) {
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>> IDESolverTest::getCallEdgeFunction(
+shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
     IDESolverTest::n_t callStmt, IDESolverTest::d_t srcNode,
     IDESolverTest::m_t destinationMethod, IDESolverTest::d_t destNode) {
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t callSite,
                                      IDESolverTest::m_t calleeMethod,
                                      IDESolverTest::n_t exitStmt,
                                      IDESolverTest::d_t exitNode,
                                      IDESolverTest::n_t reSite,
                                      IDESolverTest::d_t retNode) {
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t callSite,
                                         IDESolverTest::d_t callNode,
                                         IDESolverTest::n_t retSite,
                                         IDESolverTest::d_t retSiteNode,
                                         set<IDESolverTest::m_t> callees) {
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getSummaryEdgeFunction(IDESolverTest::n_t callStmt,
                                       IDESolverTest::d_t callNode,
                                       IDESolverTest::n_t retSite,
                                       IDESolverTest::d_t retSiteNode) {
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-IDESolverTest::v_t IDESolverTest::topElement() {
+IDESolverTest::l_t IDESolverTest::topElement() {
   cout << "IDESolverTest::topElement()\n";
   return nullptr;
 }
 
-IDESolverTest::v_t IDESolverTest::bottomElement() {
+IDESolverTest::l_t IDESolverTest::bottomElement() {
   cout << "IDESolverTest::bottomElement()\n";
   return nullptr;
 }
 
-IDESolverTest::v_t IDESolverTest::join(IDESolverTest::v_t lhs,
-                                       IDESolverTest::v_t rhs) {
+IDESolverTest::l_t IDESolverTest::join(IDESolverTest::l_t lhs,
+                                       IDESolverTest::l_t rhs) {
   cout << "IDESolverTest::join()\n";
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>> IDESolverTest::allTopFunction() {
+shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::allTopFunction() {
   cout << "IDESolverTest::allTopFunction()\n";
   return make_shared<IDESolverTestAllTop>();
 }
 
-IDESolverTest::v_t
-IDESolverTest::IDESolverTestAllTop::computeTarget(IDESolverTest::v_t source) {
+IDESolverTest::l_t
+IDESolverTest::IDESolverTestAllTop::computeTarget(IDESolverTest::l_t source) {
   cout << "IDESolverTest::IDESolverTestAllTop::computeTarget()\n";
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::IDESolverTestAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDESolverTest::v_t>> secondFunction) {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> secondFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::composeWith()\n";
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDESolverTest::v_t>>
+shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::IDESolverTestAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDESolverTest::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> otherFunction) {
   cout << "IDESolverTest::IDESolverTestAllTop::joinWith()\n";
-  return EdgeIdentity<IDESolverTest::v_t>::getInstance();
+  return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 bool IDESolverTest::IDESolverTestAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDESolverTest::v_t>> other) const {
+    shared_ptr<EdgeFunction<IDESolverTest::l_t>> other) const {
   cout << "IDESolverTest::IDESolverTestAllTop::equalTo()\n";
   return false;
 }
@@ -190,7 +194,7 @@ void IDESolverTest::printMethod(ostream &os, IDESolverTest::m_t m) const {
   os << m->getName().str();
 }
 
-void IDESolverTest::printValue(ostream &os, IDESolverTest::v_t v) const {
+void IDESolverTest::printValue(ostream &os, IDESolverTest::l_t v) const {
   os << "empty V test";
 }
 

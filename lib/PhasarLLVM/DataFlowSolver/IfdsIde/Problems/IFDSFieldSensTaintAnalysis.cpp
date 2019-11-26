@@ -2,13 +2,15 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <initializer_list>
 #include <set>
 #include <string>
 #include <vector>
 
 #include <llvm/IR/IntrinsicInst.h>
 
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/BranchSwitchInstFlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CallToRetFlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CheckOperandsFlowFunction.h>
@@ -35,12 +37,11 @@
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
-    const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 const TaintConfiguration<ExtendedValue> &TaintConfig,
                 std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem<const llvm::Instruction *, ExtendedValue,
-                                   const llvm::Function *, LLVMBasedICFG>(
+    : IFDSTabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints), taintConfig(TaintConfig) {
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
 }

@@ -19,6 +19,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -28,12 +30,13 @@ using namespace std;
 
 namespace psr {
 
-IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                            std::set<std::string> EntryPoints)
-    : IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::Value *, LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
+                                   const LLVMTypeHierarchy *TH,
+                                   const LLVMBasedICFG *ICF,
+                                   const LLVMPointsToInfo *PT,
+                                   std::set<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, TH, ICF, PT,
+                                                  EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
@@ -95,93 +98,93 @@ bool IDEProtoAnalysis::isZeroValue(IDEProtoAnalysis::d_t d) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t curr,
                                         IDEProtoAnalysis::d_t currNode,
                                         IDEProtoAnalysis::n_t succ,
                                         IDEProtoAnalysis::d_t succNode) {
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t callStmt,
                                       IDEProtoAnalysis::d_t srcNode,
                                       IDEProtoAnalysis::m_t destinationMethod,
                                       IDEProtoAnalysis::d_t destNode) {
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t callSite,
                                         IDEProtoAnalysis::m_t calleeMethod,
                                         IDEProtoAnalysis::n_t exitStmt,
                                         IDEProtoAnalysis::d_t exitNode,
                                         IDEProtoAnalysis::n_t reSite,
                                         IDEProtoAnalysis::d_t retNode) {
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t callSite,
                                            IDEProtoAnalysis::d_t callNode,
                                            IDEProtoAnalysis::n_t retSite,
                                            IDEProtoAnalysis::d_t retSiteNode,
                                            set<IDEProtoAnalysis::m_t> callees) {
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getSummaryEdgeFunction(IDEProtoAnalysis::n_t callSite,
                                          IDEProtoAnalysis::d_t callNode,
                                          IDEProtoAnalysis::n_t retSite,
                                          IDEProtoAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-IDEProtoAnalysis::v_t IDEProtoAnalysis::topElement() {
+IDEProtoAnalysis::l_t IDEProtoAnalysis::topElement() {
   cout << "IDEProtoAnalysis::topElement()\n";
   return nullptr;
 }
 
-IDEProtoAnalysis::v_t IDEProtoAnalysis::bottomElement() {
+IDEProtoAnalysis::l_t IDEProtoAnalysis::bottomElement() {
   cout << "IDEProtoAnalysis::bottomElement()\n";
   return nullptr;
 }
 
-IDEProtoAnalysis::v_t IDEProtoAnalysis::join(IDEProtoAnalysis::v_t lhs,
-                                             IDEProtoAnalysis::v_t rhs) {
+IDEProtoAnalysis::l_t IDEProtoAnalysis::join(IDEProtoAnalysis::l_t lhs,
+                                             IDEProtoAnalysis::l_t rhs) {
   cout << "IDEProtoAnalysis::join()\n";
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::allTopFunction() {
   cout << "IDEProtoAnalysis::allTopFunction()\n";
   return make_shared<IDEProtoAnalysisAllTop>();
 }
 
-IDEProtoAnalysis::v_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
-    IDEProtoAnalysis::v_t source) {
+IDEProtoAnalysis::l_t IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget(
+    IDEProtoAnalysis::l_t source) {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::computeTarget()\n";
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> secondFunction) {
+    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> secondFunction) {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::composeWith()\n";
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> otherFunction) {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::joinWith()\n";
-  return EdgeIdentity<IDEProtoAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 bool IDEProtoAnalysis::IDEProtoAnalysisAllTop::equal_to(
-    shared_ptr<EdgeFunction<IDEProtoAnalysis::v_t>> other) const {
+    shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>> other) const {
   cout << "IDEProtoAnalysis::IDEProtoAnalysisAllTop::equalTo()\n";
   return false;
 }
@@ -199,7 +202,7 @@ void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
-void IDEProtoAnalysis::printValue(ostream &os, IDEProtoAnalysis::v_t v) const {
+void IDEProtoAnalysis::printValue(ostream &os, IDEProtoAnalysis::l_t v) const {
   os << llvmIRToString(v);
 }
 

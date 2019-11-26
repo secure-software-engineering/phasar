@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOFULLCONSTANTPROPAGATION_H_
 
-#include <initializer_list>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -32,6 +32,8 @@ class StructType;
 
 namespace psr {
 
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 class LLVMBasedCFG;
 class LLVMBasedICFG;
 
@@ -45,12 +47,12 @@ public:
   typedef const llvm::Function *m_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
-  typedef LLVMBasedICFG i_t;
+  typedef LLVMBasedCFG i_t;
 
   IntraMonoFullConstantPropagation(
-      const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH, const LLVMBasedCFG *CF,
-      const PointsToInfo<v_t> *PT,
-      std::initializer_list<std::string> EntryPoints = {});
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
+      const LLVMPointsToInfo *PT,
+      std::set<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 
   MonoSet<std::pair<const llvm::Value *, unsigned>>

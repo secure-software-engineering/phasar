@@ -36,8 +36,6 @@ class Type;
 
 namespace psr {
 
-using json = nlohmann::json;
-
 // See the following llvm classes for comprehension
 // http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
 // http://llvm.org/docs/doxygen/html/AliasAnalysisEvaluator_8cpp_source.html
@@ -310,7 +308,7 @@ public:
   /**
    * @brief NOT YET IMPLEMENTED
    */
-  json getAsJson();
+  nlohmann::json getAsJson();
 };
 
 } // namespace psr

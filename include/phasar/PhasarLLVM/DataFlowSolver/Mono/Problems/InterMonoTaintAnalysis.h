@@ -17,7 +17,6 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTERMONOTAINTANALYSIS_H_
 
-#include <initializer_list>
 #include <map>
 #include <set>
 #include <string>
@@ -34,6 +33,8 @@ class StructType;
 
 namespace psr {
 
+class LLVMPointsToInfo;
+class LLVMTypeHierarchy;
 class LLVMBasedICFG;
 
 class InterMonoTaintAnalysis
@@ -53,8 +54,8 @@ private:
 public:
   using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
 
-  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy<t_t, m_t> *TH,
-                         const LLVMBasedICFG *ICF, const PointsToInfo<v_t> *PT,
+  InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                         const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                          std::initializer_list<std::string> EntryPoints = {});
   ~InterMonoTaintAnalysis() override = default;
 

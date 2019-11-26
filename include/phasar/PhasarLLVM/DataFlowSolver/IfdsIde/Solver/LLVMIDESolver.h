@@ -29,31 +29,40 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 
-using json = nlohmann::json;
+namespace llvm {
+class Instruction;
+class Function;
+class StructType;
+class Value;
+} // namespace llvm
 
 namespace psr {
 
-template <typename D, typename V, typename I>
-class LLVMIDESolver : public IDESolver<const llvm::Instruction *, D,
-                                       const llvm::Function *, V, I> {
+template <typename D, typename L, typename I>
+class LLVMIDESolver
+    : public IDESolver<const llvm::Instruction *, D, const llvm::Function *,
+                       const llvm::StructType *, const llvm::Value *, L, I> {
 private:
-  IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *, V,
-                       I> &Problem;
+  IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *,
+                       const llvm::StructType *, const llvm::Value *, L, I>
+      &Problem;
   const bool PRINT_REPORT;
 
 public:
-  LLVMIDESolver(IDETabulationProblem<const llvm::Instruction *, D,
-                                     const llvm::Function *, V, I> &problem,
-                bool printReport = true)
-      : IDESolver<const llvm::Instruction *, D, const llvm::Function *, V, I>(
-            problem),
+  LLVMIDESolver(
+      IDETabulationProblem<const llvm::Instruction *, D, const llvm::Function *,
+                           const llvm::StructType *, const llvm::Value *, L, I>
+          &problem,
+      bool printReport = true)
+      : IDESolver<const llvm::Instruction *, D, const llvm::Function *,
+                       const llvm::StructType *, const llvm::Value *, L, I>(problem),
         Problem(problem), PRINT_REPORT(printReport) {}
 
   ~LLVMIDESolver() override = default;
 
   void solve() override {
-    IDESolver<const llvm::Instruction *, D, const llvm::Function *, V,
-              I>::solve();
+    IDESolver<const llvm::Instruction *, D, const llvm::Function *,
+              const llvm::StructType *, const llvm::Value *, L, I>::solve();
     boost::log::core::get()->flush();
     if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
@@ -64,7 +73,7 @@ public:
   }
 
   void printReport() {
-    SolverResults<const llvm::Instruction *, D, V> SR(this->valtab,
+    SolverResults<const llvm::Instruction *, D, L> SR(this->valtab,
                                                       Problem.zeroValue());
     Problem.printIDEReport(std::cout, SR);
   }
@@ -83,8 +92,8 @@ public:
       llvmValueIDLess llvmIDLess;
       std::sort(cells.begin(), cells.end(),
                 [&llvmIDLess](
-                    typename Table<const llvm::Instruction *, D, V>::Cell a,
-                    typename Table<const llvm::Instruction *, D, V>::Cell b) {
+                    typename Table<const llvm::Instruction *, D, L>::Cell a,
+                    typename Table<const llvm::Instruction *, D, L>::Cell b) {
                   if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
                     if constexpr (std::is_same<D, const llvm::Value *>::value) {
                       return llvmIDLess(a.c, b.c);
@@ -115,7 +124,7 @@ public:
           std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
         }
         std::cout << "\tD: " << Problem.DtoString(cells[i].c)
-                  << " | V: " << Problem.VtoString(cells[i].v) << '\n';
+                  << " | L: " << Problem.VtoString(cells[i].v) << '\n';
       }
     }
     std::cout << '\n';

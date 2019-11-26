@@ -22,12 +22,15 @@
 namespace llvm {
 class Instruction;
 class Function;
+class StructType;
 class Value;
 } // namespace llvm
 
 namespace psr {
+
 class LLVMBasedICFG;
-class PointsToGraph;
+class LLVMPointsToGraph;
+class LLVMTypeHierarchy;
 
 /**
  * This IFDS analysis will compute possibly mutable memory
@@ -41,11 +44,15 @@ class PointsToGraph;
 class IFDSConstAnalysis
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
+                                   const llvm::StructType*,
+                                   const llvm::Value *,
                                    LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
 private:
@@ -56,8 +63,8 @@ private:
   std::set<d_t> Initialized;
 
 public:
-  IFDSConstAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT, std::set<d_t> AllMemLocs,
+  IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT, std::set<d_t> AllMemLocs,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;

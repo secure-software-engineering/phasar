@@ -12,6 +12,8 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
@@ -45,11 +47,10 @@ bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
   return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
 }
 
-IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem<const llvm::Instruction *, LCAPair,
-                            const llvm::Function *, LLVMBasedICFG>(
+    : IFDSTabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints) {
   IFDSLinearConstantAnalysis::ZeroValue = createZeroValue();
 }

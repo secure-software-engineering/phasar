@@ -30,32 +30,40 @@
 #include <phasar/Utils/PAMMMacros.h>
 #include <phasar/Utils/Table.h>
 
-using json = nlohmann::json;
+namespace llvm {
+class Instruction;
+class Function;
+class StructType;
+class Value;
+} // namespace llvm
 
 namespace psr {
 
 template <typename D, typename I>
-class LLVMIFDSSolver : public IFDSSolver<const llvm::Instruction *, D,
-                                         const llvm::Function *, I> {
+class LLVMIFDSSolver
+    : public IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
+                        const llvm::StructType *, const llvm::Value *, I> {
 private:
-  IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *, I>
+  IFDSTabulationProblem<const llvm::Instruction *, D, const llvm::Function *,
+                        const llvm::StructType *, const llvm::Value *, I>
       &Problem;
   const bool PRINT_REPORT;
 
 public:
   ~LLVMIFDSSolver() override = default;
 
-  LLVMIFDSSolver(IFDSTabulationProblem<const llvm::Instruction *, D,
-                                       const llvm::Function *, I> &problem,
+  LLVMIFDSSolver(IFDSTabulationProblem<
+                     const llvm::Instruction *, D, const llvm::Function *,
+                     const llvm::StructType *, const llvm::Value *, I> &problem,
                  bool printReport = true)
-      : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *, I>(
-            problem),
+      : IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
+                   const llvm::StructType *, const llvm::Value *, I>(problem),
         Problem(problem), PRINT_REPORT(printReport) {}
 
   void solve() override {
     // Solve the analaysis problem
     IFDSSolver<const llvm::Instruction *, D, const llvm::Function *,
-               I>::solve();
+               const llvm::StructType *, const llvm::Value *, I>::solve();
     boost::log::core::get()->flush();
     if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();

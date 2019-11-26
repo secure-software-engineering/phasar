@@ -21,16 +21,20 @@
 namespace llvm {
 class Instruction;
 class Function;
+class StructType;
 class Value;
 } // namespace llvm
 
 namespace psr {
 
 class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class IDELinearConstantAnalysis
     : public IDETabulationProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
+                                  const llvm::StructType *, const llvm::Value *,
                                   int64_t, LLVMBasedICFG> {
 private:
   // For debug purpose only
@@ -42,17 +46,20 @@ public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
-    typedef LLVMBasedICFG i_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
+  typedef LLVMBasedICFG i_t;
   // int64_t corresponds to llvm's type of constant integer
-  typedef int64_t v_t;
+  typedef int64_t l_t;
 
-  static const v_t TOP;
-  static const v_t BOTTOM;
+  static const l_t TOP;
+  static const l_t BOTTOM;
 
-  IDELinearConstantAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                            const LLVMBasedICFG *ICF, const PointsToInfo *PT,
-                            std::set<std::string> EntryPoints = {
-                                "main"});
+  IDELinearConstantAnalysis(const ProjectIRDB *IRDB,
+                            const LLVMTypeHierarchy *TH,
+                            const LLVMBasedICFG *ICF,
+                            const LLVMPointsToInfo *PT,
+                            std::set<std::string> EntryPoints = {"main"});
 
   ~IDELinearConstantAnalysis() override;
 
@@ -84,73 +91,73 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
                                                          m_t destinationMethod,
                                                          d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<m_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
-  v_t topElement() override;
+  l_t topElement() override;
 
-  v_t bottomElement() override;
+  l_t bottomElement() override;
 
-  v_t join(v_t lhs, v_t rhs) override;
+  l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   // Custom EdgeFunction declarations
 
-  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<v_t> {
+  class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
   public:
-    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<v_t>> F,
-                            std::shared_ptr<EdgeFunction<v_t>> G)
-        : EdgeFunctionComposer<v_t>(F, G){};
+    LCAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
+                            std::shared_ptr<EdgeFunction<l_t>> G)
+        : EdgeFunctionComposer<l_t>(F, G){};
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
   };
 
-  class GenConstant : public EdgeFunction<v_t>,
+  class GenConstant : public EdgeFunction<l_t>,
                       public std::enable_shared_from_this<GenConstant> {
   private:
     const unsigned GenConstant_Id;
-    const v_t IntConst;
+    const l_t IntConst;
 
   public:
-    explicit GenConstant(v_t IntConst);
+    explicit GenConstant(l_t IntConst);
 
-    v_t computeTarget(v_t source) override;
+    l_t computeTarget(l_t source) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
-  class LCAIdentity : public EdgeFunction<v_t>,
+  class LCAIdentity : public EdgeFunction<l_t>,
                       public std::enable_shared_from_this<LCAIdentity> {
   private:
     const unsigned LCAID_Id;
@@ -158,15 +165,15 @@ public:
   public:
     explicit LCAIdentity();
 
-    v_t computeTarget(v_t source) override;
+    l_t computeTarget(l_t source) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
@@ -187,7 +194,7 @@ public:
    * @param rop right operand
    * @return Result of binary operation
    */
-  static v_t executeBinOperation(const unsigned op, v_t lop, v_t rop);
+  static l_t executeBinOperation(const unsigned op, l_t lop, l_t rop);
 
   void printNode(std::ostream &os, n_t n) const override;
 
@@ -195,10 +202,10 @@ public:
 
   void printMethod(std::ostream &os, m_t m) const override;
 
-  void printValue(std::ostream &os, v_t v) const override;
+  void printValue(std::ostream &os, l_t v) const override;
 
   void printIDEReport(std::ostream &os,
-                      SolverResults<n_t, d_t, v_t> &SR) override;
+                      SolverResults<n_t, d_t, l_t> &SR) override;
 };
 
 } // namespace psr

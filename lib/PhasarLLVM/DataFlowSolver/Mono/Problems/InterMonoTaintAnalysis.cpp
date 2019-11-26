@@ -16,6 +16,8 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -27,11 +29,14 @@ using namespace psr;
 namespace psr {
 
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
-    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
-    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
-    : InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                       const llvm::Function *, LLVMBasedICFG>(IRDB, TH, ICF, PT,
-                                                              EntryPoints),
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::initializer_list<std::string> EntryPoints)
+    : InterMonoProblem<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                       InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                       InterMonoTaintAnalysis::v_t,
+                       InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
+                                                    EntryPoints),
       TSF() {}
 
 MonoSet<const llvm::Value *>

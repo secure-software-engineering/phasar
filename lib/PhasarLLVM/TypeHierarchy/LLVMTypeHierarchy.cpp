@@ -371,7 +371,7 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
 }
 
 nlohmann::json LLVMTypeHierarchy::getAsJson() const {
-  json J;
+  nlohmann::json J;
   vertex_iterator_t vi_v, vi_v_end;
   out_edge_iterator_t ei, ei_end;
   // iterate all graph vertices

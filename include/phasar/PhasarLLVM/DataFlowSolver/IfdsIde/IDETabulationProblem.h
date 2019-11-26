@@ -33,7 +33,7 @@ template <typename T, typename M> class TypeHierarchy;
 template <typename V> class PointsToInfo;
 
 template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
-class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, I>,
+class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, T, V, I>,
                              public virtual EdgeFunctions<N, D, M, L>,
                              public virtual JoinLattice<L>,
                              public virtual ValuePrinter<L> {
@@ -44,7 +44,7 @@ public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                        const I *ICF, const PointsToInfo<V> *PT,
                        std::set<std::string> EntryPoints = {})
-      : IFDSTabulationProblem<N, D, M, I>(IRDB, TH, ICF, PT, EntryPoints) {}
+      : IFDSTabulationProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT, EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
   virtual void printIDEReport(std::ostream &os, SolverResults<N, D, L> &SR) {

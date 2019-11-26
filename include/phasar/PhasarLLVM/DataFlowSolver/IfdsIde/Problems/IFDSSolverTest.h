@@ -21,25 +21,32 @@
 namespace llvm {
 class Instruction;
 class Function;
+class StructType;
 class Value;
 } // namespace llvm
 
 namespace psr {
 
 class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class IFDSSolverTest
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
+                                   const llvm::StructType *,
+                                   const llvm::Value *,
                                    LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  IFDSSolverTest(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+  IFDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSSolverTest() override = default;

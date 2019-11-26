@@ -20,21 +20,29 @@
 namespace llvm {
 class Instruction;
 class Function;
+class StructType;
 class Value;
 } // namespace llvm
 
 namespace psr {
+
 class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class IDETaintAnalysis
     : public IDETabulationProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
+                                  const llvm::StructType*,
+                                  const llvm::Value *,
                                   const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
+  typedef const llvm::Value *l_t;
   typedef LLVMBasedICFG i_t;
 
   std::set<std::string> source_functions = {"fread", "read"};
@@ -43,8 +51,8 @@ public:
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
   bool set_contains_str(std::set<std::string> s, std::string str);
 
-  IDETaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+  IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;
@@ -77,47 +85,47 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
                                                          m_t destinationMethod,
                                                          d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<m_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
-  v_t topElement() override;
+  l_t topElement() override;
 
-  v_t bottomElement() override;
+  l_t bottomElement() override;
 
-  v_t join(v_t lhs, v_t rhs) override;
+  l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   class IDETainAnalysisAllTop
-      : public EdgeFunction<v_t>,
+      : public EdgeFunction<l_t>,
         public std::enable_shared_from_this<IDETainAnalysisAllTop> {
-    v_t computeTarget(v_t source) override;
+    l_t computeTarget(l_t source) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    composeWith(std::shared_ptr<EdgeFunction<v_t>> secondFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
 
-    std::shared_ptr<EdgeFunction<v_t>>
-    joinWith(std::shared_ptr<EdgeFunction<v_t>> otherFunction) override;
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<v_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
   };
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
@@ -126,7 +134,7 @@ public:
 
   void printMethod(std::ostream &os, m_t m) const override;
 
-  void printValue(std::ostream &os, v_t v) const override;
+  void printValue(std::ostream &os, l_t v) const override;
 };
 
 } // namespace psr

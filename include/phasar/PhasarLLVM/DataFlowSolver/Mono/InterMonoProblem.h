@@ -32,7 +32,7 @@ template <typename V> class PointsToInfo;
 template <typename N, typename M> class ICFG;
 
 template <typename N, typename D, typename M, typename T, typename V, typename I>
-class InterMonoProblem : public IntraMonoProblem<N, D, M, I> {
+class InterMonoProblem : public IntraMonoProblem<N, D, M, T, V, I> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 
@@ -42,8 +42,8 @@ protected:
 public:
   InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                    const I *ICF, const PointsToInfo<V> *PT,
-                   std::initializer_list<std::string> EntryPoints = {})
-      : IntraMonoProblem<N, D, M, I>(IRDB, TH, ICF, PT, EntryPoints), ICF(ICF) {
+                   std::set<std::string> EntryPoints = {})
+      : IntraMonoProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT, EntryPoints), ICF(ICF) {
   }
 
   InterMonoProblem(const InterMonoProblem &copy) = delete;

@@ -13,6 +13,8 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h>
@@ -33,12 +35,11 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                     TaintConfiguration<const llvm::Value *> TSF,
                     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                            const llvm::Function *, LLVMBasedICFG>(
+    : IFDSTabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints),
       SourceSinkFunctions(TSF) {
   IFDSTaintAnalysis::ZeroValue = createZeroValue();

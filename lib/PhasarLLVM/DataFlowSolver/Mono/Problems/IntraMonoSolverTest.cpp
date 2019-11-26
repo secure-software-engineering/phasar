@@ -22,6 +22,8 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
@@ -30,12 +32,15 @@ using namespace psr;
 
 namespace psr {
 
-IntraMonoSolverTest::IntraMonoSolverTest(
-    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
-    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
-    : IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                       const llvm::Function *, LLVMBasedCFG>(IRDB, TH, CF, PT,
-                                                               EntryPoints) {}
+IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
+                                         const LLVMTypeHierarchy *TH,
+                                         const LLVMBasedCFG *CF,
+                                         const LLVMPointsToInfo *PT,
+                                         std::set<std::string> EntryPoints)
+    : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
+                       IntraMonoSolverTest::m_t, IntraMonoSolverTest::t_t,
+                       IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
+          IRDB, TH, CF, PT, EntryPoints) {}
 
 MonoSet<const llvm::Value *>
 IntraMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,

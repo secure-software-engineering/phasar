@@ -30,6 +30,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -44,17 +46,17 @@ unsigned IDELinearConstantAnalysis::CurrGenConstant_Id = 0;
 unsigned IDELinearConstantAnalysis::CurrLCAID_Id = 0;
 unsigned IDELinearConstantAnalysis::CurrBinary_Id = 0;
 
-const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::TOP =
-    numeric_limits<IDELinearConstantAnalysis::v_t>::min();
+const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::TOP =
+    numeric_limits<IDELinearConstantAnalysis::l_t>::min();
 
-const IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::BOTTOM =
-    numeric_limits<IDELinearConstantAnalysis::v_t>::max();
+const IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BOTTOM =
+    numeric_limits<IDELinearConstantAnalysis::l_t>::max();
 
 IDELinearConstantAnalysis::IDELinearConstantAnalysis(
-    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedICFG *ICF,
-    const PointsToInfo *PT, std::set<std::string> EntryPoints)
-    : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                           const llvm::Function *, int64_t, LLVMBasedICFG>(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IDETabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
@@ -311,7 +313,7 @@ bool IDELinearConstantAnalysis::isZeroValue(
 
 // In addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t curr,
     IDELinearConstantAnalysis::d_t currNode,
@@ -322,7 +324,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   if (isZeroValue(currNode) && isZeroValue(succNode)) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Zero value.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-    return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+    return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
         IDELinearConstantAnalysis::BOTTOM);
   }
   // Check store instruction
@@ -365,7 +367,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     unsigned OP = curr->getOpcode();
     auto lop = curr->getOperand(0);
     auto rop = curr->getOperand(1);
-    struct LCAEF : EdgeFunction<IDELinearConstantAnalysis::v_t>,
+    struct LCAEF : EdgeFunction<IDELinearConstantAnalysis::l_t>,
                    enable_shared_from_this<LCAEF> {
       const unsigned EdgeFunctionID, Op;
       IDELinearConstantAnalysis::d_t lop, rop, currNode;
@@ -375,8 +377,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
           : EdgeFunctionID(++IDELinearConstantAnalysis::CurrBinary_Id), Op(Op),
             lop(lop), rop(rop), currNode(currNode) {}
 
-      IDELinearConstantAnalysis::v_t
-      computeTarget(IDELinearConstantAnalysis::v_t source) override {
+      IDELinearConstantAnalysis::l_t
+      computeTarget(IDELinearConstantAnalysis::l_t source) override {
         auto &lg = lg::get();
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Left Op   : " << llvmIRToString(lop));
@@ -405,11 +407,11 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
             "Only linear constant propagation can be specified!");
       }
 
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-      composeWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+      composeWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
                       secondFunction) override {
         if (auto *EI =
-                dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
+                dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
                     secondFunction.get())) {
           return this->shared_from_this();
         }
@@ -420,22 +422,22 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
             this->shared_from_this(), secondFunction);
       }
 
-      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
-      joinWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+      shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
+      joinWith(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
                    otherFunction) override {
         if (otherFunction.get() == this ||
             otherFunction->equal_to(this->shared_from_this())) {
           return this->shared_from_this();
         }
-        if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
+        if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
                 otherFunction.get())) {
           return this->shared_from_this();
         }
-        return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+        return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
             IDELinearConstantAnalysis::BOTTOM);
       }
 
-      bool equal_to(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+      bool equal_to(shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
                         other) const override {
         // could be more precise - compare op,lop and rop?
         return this == other.get();
@@ -449,10 +451,10 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Case: Edge identity.");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t srcNode,
@@ -469,10 +471,10 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
       }
     }
   }
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::m_t calleeMethod,
@@ -489,39 +491,39 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
       return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
     }
   }
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode,
     set<IDELinearConstantAnalysis::m_t> callees) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode) {
-  return EdgeIdentity<IDELinearConstantAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::topElement() {
+IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::topElement() {
   return TOP;
 }
 
-IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::bottomElement() {
+IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDELinearConstantAnalysis::v_t
-IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::v_t lhs,
-                                IDELinearConstantAnalysis::v_t rhs) {
+IDELinearConstantAnalysis::l_t
+IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::l_t lhs,
+                                IDELinearConstantAnalysis::l_t rhs) {
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -533,15 +535,15 @@ IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::v_t lhs,
   }
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::allTopFunction() {
-  return make_shared<AllTop<IDELinearConstantAnalysis::v_t>>(TOP);
+  return make_shared<AllTop<IDELinearConstantAnalysis::l_t>>(TOP);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
-  if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
@@ -551,36 +553,36 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
   return F->composeWith(G->composeWith(secondFunction));
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
+  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
           otherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
       IDELinearConstantAnalysis::BOTTOM);
 }
 
 IDELinearConstantAnalysis::GenConstant::GenConstant(
-    IDELinearConstantAnalysis::v_t IntConst)
+    IDELinearConstantAnalysis::l_t IntConst)
     : GenConstant_Id(++IDELinearConstantAnalysis::CurrGenConstant_Id),
       IntConst(IntConst) {}
 
-IDELinearConstantAnalysis::v_t
+IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::GenConstant::computeTarget(
-    IDELinearConstantAnalysis::v_t source) {
+    IDELinearConstantAnalysis::l_t source) {
   return IntConst;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::GenConstant::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
-  if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::v_t> *>(
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDELinearConstantAnalysis::l_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
@@ -591,19 +593,19 @@ IDELinearConstantAnalysis::GenConstant::composeWith(
       this->shared_from_this(), secondFunction);
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::GenConstant::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
       IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::GenConstant::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> other) const {
   if (auto *StC =
           dynamic_cast<IDELinearConstantAnalysis::GenConstant *>(other.get())) {
     return (StC->IntConst == this->IntConst);
@@ -619,35 +621,35 @@ void IDELinearConstantAnalysis::GenConstant::print(ostream &OS,
 IDELinearConstantAnalysis::LCAIdentity::LCAIdentity()
     : LCAID_Id(++IDELinearConstantAnalysis::CurrLCAID_Id) {}
 
-IDELinearConstantAnalysis::v_t
+IDELinearConstantAnalysis::l_t
 IDELinearConstantAnalysis::LCAIdentity::computeTarget(
-    IDELinearConstantAnalysis::v_t source) {
+    IDELinearConstantAnalysis::l_t source) {
   return source;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAIdentity::composeWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> secondFunction) {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> secondFunction) {
   return secondFunction;
 }
 
-shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::LCAIdentity::joinWith(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::v_t> *>(
+  if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
           otherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDELinearConstantAnalysis::v_t>>(
+  return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
       IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
-    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::v_t>> other) const {
+    shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>> other) const {
   return this == other.get();
 }
 
@@ -656,12 +658,12 @@ void IDELinearConstantAnalysis::LCAIdentity::print(ostream &OS,
   OS << "LCAID_" << LCAID_Id;
 }
 
-IDELinearConstantAnalysis::v_t IDELinearConstantAnalysis::executeBinOperation(
-    const unsigned op, IDELinearConstantAnalysis::v_t lop,
-    IDELinearConstantAnalysis::v_t rop) {
+IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
+    const unsigned op, IDELinearConstantAnalysis::l_t lop,
+    IDELinearConstantAnalysis::l_t rop) {
   // default initialize with BOTTOM (all information)
-  IDELinearConstantAnalysis::v_t res =
-      numeric_limits<IDELinearConstantAnalysis::v_t>::max();
+  IDELinearConstantAnalysis::l_t res =
+      numeric_limits<IDELinearConstantAnalysis::l_t>::max();
   switch (op) {
   case llvm::Instruction::Add:
     res = lop + rop;
@@ -711,7 +713,7 @@ void IDELinearConstantAnalysis::printMethod(
 }
 
 void IDELinearConstantAnalysis::printValue(
-    ostream &os, IDELinearConstantAnalysis::v_t v) const {
+    ostream &os, IDELinearConstantAnalysis::l_t v) const {
   if (v == BOTTOM) {
     os << "Bottom";
   } else if (v == TOP) {
@@ -724,7 +726,7 @@ void IDELinearConstantAnalysis::printValue(
 void IDELinearConstantAnalysis::printIDEReport(
     std::ostream &os, SolverResults<IDELinearConstantAnalysis::n_t,
                                     IDELinearConstantAnalysis::d_t,
-                                    IDELinearConstantAnalysis::v_t> &SR) {
+                                    IDELinearConstantAnalysis::l_t> &SR) {
   os << "\n======= LCA RESULTS =======\n";
   for (auto f : this->ICF->getAllFunctions()) {
     os << llvmFunctionToSrc(f) << '\n';

@@ -30,10 +30,10 @@ namespace psr {
  * version is used if existend, otherwise a new one is created and inserted
  * into the cache.
  */
-template <typename N, typename D, typename M, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
 class FlowEdgeFunctionCache {
 private:
-  IDETabulationProblem<N, D, M, V, I> &problem;
+  IDETabulationProblem<N, D, M, T, V, L, I> &problem;
   // Auto add zero
   bool autoAddZero;
   D zeroValue;
@@ -47,21 +47,21 @@ private:
   std::map<std::tuple<N, N, std::set<M>>, std::shared_ptr<FlowFunction<D>>>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, M, D>, std::shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, M, D>, std::shared_ptr<EdgeFunction<L>>>
       CallEdgeFunctionCache;
-  std::map<std::tuple<N, M, N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, M, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       ReturnEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<V>>>
+  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       SummaryEdgeFunctionCache;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, V, I> &problem)
+  FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, T, V, L, I> &problem)
       : problem(problem), autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
         zeroValue(problem.getZeroValue()) {
     PAMM_GET_INSTANCE;
@@ -252,7 +252,7 @@ public:
     return ff;
   }
 
-  std::shared_ptr<EdgeFunction<V>> getNormalEdgeFunction(N curr, D currNode,
+  std::shared_ptr<EdgeFunction<L>> getNormalEdgeFunction(N curr, D currNode,
                                                          N succ, D succNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -283,7 +283,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<L>>
   getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -316,7 +316,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>> getReturnEdgeFunction(N callSite,
+  std::shared_ptr<EdgeFunction<L>> getReturnEdgeFunction(N callSite,
                                                          M calleeMethod,
                                                          N exitStmt, D exitNode,
                                                          N reSite, D retNode) {
@@ -355,7 +355,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<L>>
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
                            std::set<M> callees) {
     PAMM_GET_INSTANCE;
@@ -393,7 +393,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<V>>
+  std::shared_ptr<EdgeFunction<L>>
   getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();

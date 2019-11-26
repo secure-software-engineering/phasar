@@ -22,21 +22,35 @@
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
+namespace llvm {
+class Value;
+class Function;
+class StructType;
+} // namespace llvm
+
 namespace psr {
+
+class LLVMBasedICFG;
+class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class IFDSFieldSensTaintAnalysis
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                           ExtendedValue, const llvm::Function *,
+                                          const llvm::StructType *,
+                                          const llvm::Value *,
                                           LLVMBasedICFG> {
 public:
   typedef ExtendedValue d_t;
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Function *m_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
   IFDSFieldSensTaintAnalysis(
-      const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 const TaintConfiguration<ExtendedValue> &TaintConfig,
                 std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;

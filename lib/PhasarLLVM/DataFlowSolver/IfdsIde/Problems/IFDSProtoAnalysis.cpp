@@ -14,6 +14,8 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
@@ -25,11 +27,10 @@ using namespace std;
 
 namespace psr {
 
-IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const PointsToInfo *PT,
+IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
-                            const llvm::Function *, LLVMBasedICFG>(
+    : IFDSTabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints) {
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }

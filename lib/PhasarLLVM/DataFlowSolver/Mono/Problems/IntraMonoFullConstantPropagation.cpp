@@ -15,6 +15,8 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
@@ -24,11 +26,14 @@ using namespace psr;
 namespace psr {
 
 IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
-    const ProjectIRDB *IRDB, const TypeHierarchy *TH, const LLVMBasedCFG *CF,
-    const PointsToInfo *PT, std::initializer_list<std::string> EntryPoints)
-    : IntraMonoProblem<const llvm::Instruction *,
-                       std::pair<const llvm::Value *, unsigned>,
-                       const llvm::Function *, LLVMBasedCFG>(IRDB, TH, CF, PT,
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
+    const LLVMPointsToInfo *PT, std::set<std::string> EntryPoints)
+    : IntraMonoProblem<IntraMonoFullConstantPropagation::n_t,
+    IntraMonoFullConstantPropagation::d_t,
+    IntraMonoFullConstantPropagation::m_t,
+    IntraMonoFullConstantPropagation::t_t,
+    IntraMonoFullConstantPropagation::v_t,
+    IntraMonoFullConstantPropagation::i_t>(IRDB, TH, CF, PT,
                                                              EntryPoints) {}
 
 MonoSet<std::pair<const llvm::Value *, unsigned>>
@@ -68,7 +73,7 @@ void IntraMonoFullConstantPropagation::printNode(
 
 void IntraMonoFullConstantPropagation::printDataFlowFact(
     ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
-  os << "< " + llvmIRToString(d.first) << ", " + to_string(d.second) + " >";
+  os << "< " + llvmIRToString(d.first) << ", " + std::to_string(d.second) + " >";
 }
 
 void IntraMonoFullConstantPropagation::printMethod(

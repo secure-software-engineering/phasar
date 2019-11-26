@@ -13,6 +13,8 @@
 #include <string>
 #include <set>
 
+#include <json.hpp>
+
 #include <phasar/PhasarLLVM/TypeHierarchy/VFTable.h>
 
 namespace psr {
@@ -48,7 +50,7 @@ public:
 
   virtual void print(std::ostream &OS) const = 0;
 
-  virtual json getAsJson() const = 0;
+  virtual nlohmann::json getAsJson() const = 0;
 };
 
 template<typename T, typename M>

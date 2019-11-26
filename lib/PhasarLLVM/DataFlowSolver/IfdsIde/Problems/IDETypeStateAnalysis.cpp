@@ -16,6 +16,8 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -40,8 +42,8 @@ using namespace psr;
 
 namespace psr {
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const TypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const PointsToInfo *PT, const TypeStateDescription &TSD,
+IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT, const TypeStateDescription &TSD,
                 std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   IDETabulationProblem::ZeroValue = createZeroValue();
@@ -313,7 +315,7 @@ bool IDETypeStateAnalysis::isZeroValue(IDETypeStateAnalysis::d_t d) const {
 
 // in addition provide specifications for the IDE parts
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getNormalEdgeFunction(
     IDETypeStateAnalysis::n_t curr, IDETypeStateAnalysis::d_t currNode,
     IDETypeStateAnalysis::n_t succ, IDETypeStateAnalysis::d_t succNode) {
@@ -325,8 +327,8 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
           TSAllocaEF(const TypeStateDescription &tsd, const std::string &tok)
               : TSEdgeFunction(tsd, tok) {}
 
-          IDETypeStateAnalysis::v_t
-          computeTarget(IDETypeStateAnalysis::v_t source) override {
+          IDETypeStateAnalysis::l_t
+          computeTarget(IDETypeStateAnalysis::l_t source) override {
             CurrentState = TSD.uninit();
             return CurrentState;
           }
@@ -339,26 +341,26 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
       }
     }
   }
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
     IDETypeStateAnalysis::m_t destinationMethod,
     IDETypeStateAnalysis::d_t destNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
@@ -377,8 +379,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
           TSFactoryEF(const TypeStateDescription &tsd, const std::string &tok)
               : TSEdgeFunction(tsd, tok) {}
 
-          IDETypeStateAnalysis::v_t
-          computeTarget(IDETypeStateAnalysis::v_t source) override {
+          IDETypeStateAnalysis::l_t
+          computeTarget(IDETypeStateAnalysis::l_t source) override {
             CurrentState = TSD.start();
             return CurrentState;
           }
@@ -407,25 +409,25 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
       }
     }
   }
-  return EdgeIdentity<IDETypeStateAnalysis::v_t>::getInstance();
+  return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getSummaryEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode) {
   return nullptr;
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::topElement() { return TOP; }
+IDETypeStateAnalysis::l_t IDETypeStateAnalysis::topElement() { return TOP; }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::bottomElement() {
+IDETypeStateAnalysis::l_t IDETypeStateAnalysis::bottomElement() {
   return BOTTOM;
 }
 
-IDETypeStateAnalysis::v_t
-IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
-                           IDETypeStateAnalysis::v_t rhs) {
+IDETypeStateAnalysis::l_t
+IDETypeStateAnalysis::join(IDETypeStateAnalysis::l_t lhs,
+                           IDETypeStateAnalysis::l_t rhs) {
   if (lhs == TOP && rhs != BOTTOM) {
     return rhs;
   } else if (rhs == TOP && lhs != BOTTOM) {
@@ -437,9 +439,9 @@ IDETypeStateAnalysis::join(IDETypeStateAnalysis::v_t lhs,
   }
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::allTopFunction() {
-  return make_shared<AllTop<IDETypeStateAnalysis::v_t>>(TOP);
+  return make_shared<AllTop<IDETypeStateAnalysis::l_t>>(TOP);
 }
 
 void IDETypeStateAnalysis::printNode(std::ostream &os, n_t n) const {
@@ -456,26 +458,26 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
 }
 
 void IDETypeStateAnalysis::printValue(ostream &os,
-                                      IDETypeStateAnalysis::v_t v) const {
+                                      IDETypeStateAnalysis::l_t v) const {
   os << TSD.stateToString(v);
 }
 
-shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
-    shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
+    shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
+  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
           otherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(botElement);
+  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(botElement);
 }
 
-IDETypeStateAnalysis::v_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
-    IDETypeStateAnalysis::v_t source) {
+IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
+    IDETypeStateAnalysis::l_t source) {
   auto &lg = lg::get();
   CurrentState = TSD.getNextState(Token, source);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -485,10 +487,10 @@ IDETypeStateAnalysis::v_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
   return CurrentState;
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::TSEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> secondFunction) {
-  if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
@@ -497,26 +499,26 @@ IDETypeStateAnalysis::TSEdgeFunction::composeWith(
                                              secondFunction, TSD.bottom());
 }
 
-std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>>
+std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::TSEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  // if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::v_t> *>(
+  // if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
   //         otherFunction.get())) {
   //   return this->shared_from_this();
   // }
-  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::v_t> *>(
+  if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
           otherFunction.get())) {
     return this->shared_from_this();
   }
-  return make_shared<AllBottom<IDETypeStateAnalysis::v_t>>(TSD.bottom());
+  return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(TSD.bottom());
 }
 
 bool IDETypeStateAnalysis::TSEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::v_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> other) const {
   if (auto *TSEF =
           dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(other.get())) {
     return this->CurrentState == TSEF->CurrentState;
@@ -676,7 +678,7 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
 void IDETypeStateAnalysis::printIDEReport(
     std::ostream &os,
     SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                  IDETypeStateAnalysis::v_t> &SR) {
+                  IDETypeStateAnalysis::l_t> &SR) {
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : ICF->getAllFunctions()) {
     os << '\n' << llvmFunctionToSrc(f) << '\n';
