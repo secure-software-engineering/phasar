@@ -712,14 +712,14 @@ void IDELinearConstantAnalysis::printMethod(
   os << m->getName().str();
 }
 
-void IDELinearConstantAnalysis::printValue(
-    ostream &os, IDELinearConstantAnalysis::l_t v) const {
-  if (v == BOTTOM) {
+void IDELinearConstantAnalysis::printEdgeFact(
+    ostream &os, IDELinearConstantAnalysis::l_t l) const {
+  if (l == BOTTOM) {
     os << "Bottom";
-  } else if (v == TOP) {
+  } else if (l == TOP) {
     os << "Top";
   } else {
-    os << std::to_string(v);
+    os << std::to_string(l);
   }
 }
 
@@ -737,7 +737,7 @@ void IDELinearConstantAnalysis::printIDEReport(
       } else {
         for (auto res : results) {
           if (!llvm::isa<llvm::LoadInst>(res.first)) {
-            os << "\nValue: " << VtoString(res.second)
+            os << "\nValue: " << LtoString(res.second)
                << "\nIR  : " << DtoString(res.first) << '\n'
                << llvmValueToSrc(res.first, false) << "\n";
           }

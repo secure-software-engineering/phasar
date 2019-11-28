@@ -26,11 +26,11 @@ namespace psr {
 
 void AnalysisExecutor::testExecutor(ProjectIRDB &IRDB) {
   cout << "Testing the novel AnalysisExecutor!\n";
-  WholeProgramAnalysis<
-      LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3>,
-      InterMonoSolverTest>
-      WPA(IRDB);
-  WPA.solve();
+  // WholeProgramAnalysis<
+  //     LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG, 3>,
+  //     InterMonoSolverTest>
+  //     WPA(IRDB);
+  // WPA.solve();
 }
 
 } // namespace psr

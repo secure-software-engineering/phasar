@@ -31,6 +31,8 @@
 
 namespace psr {
 
+struct HasNoConfigurationType;
+
 class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
 template <typename V> class PointsToInfo;
@@ -53,6 +55,8 @@ protected:
   std::set<std::string> EntryPoints;
 
 public:
+  using ConfigurationTy = HasNoConfigurationType;
+
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                         const I *ICF, const PointsToInfo<V> *PT,
                         std::set<std::string> EntryPoints = {})
@@ -76,7 +80,7 @@ public:
 
   const I *getICFG() const { return ICF; }
 
-  const PointsToInfo<N> *getPointstoInfo() const { return PT; }
+  const PointsToInfo<V> *getPointstoInfo() const { return PT; }
 
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;

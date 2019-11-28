@@ -12,6 +12,7 @@
 
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -49,12 +50,12 @@ public:
 
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                          CallGraphAnalysisType CGType,
-                         const std::vector<std::string> &EntryPoints = {
+                         const std::set<std::string> &EntryPoints = {
                              "main"});
 
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                          const llvm::Module &M, CallGraphAnalysisType CGType,
-                         std::vector<std::string> EntryPoints = {});
+                         std::set<std::string> EntryPoints = {});
 
   ~LLVMBasedBackwardsICFG() override = default;
 

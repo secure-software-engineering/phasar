@@ -36,7 +36,7 @@ template <typename N, typename D, typename M, typename T, typename V, typename L
 class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, T, V, I>,
                              public virtual EdgeFunctions<N, D, M, L>,
                              public virtual JoinLattice<L>,
-                             public virtual ValuePrinter<L> {
+                             public virtual EdgeFactPrinter<L> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 

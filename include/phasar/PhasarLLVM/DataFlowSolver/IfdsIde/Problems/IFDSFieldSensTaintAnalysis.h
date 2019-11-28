@@ -47,6 +47,7 @@ public:
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
+  using ConfigurationTy = TaintConfiguration<ExtendedValue>;
 
   IFDSFieldSensTaintAnalysis(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,

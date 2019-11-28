@@ -202,8 +202,8 @@ void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
-void IDEProtoAnalysis::printValue(ostream &os, IDEProtoAnalysis::l_t v) const {
-  os << llvmIRToString(v);
+void IDEProtoAnalysis::printEdgeFact(ostream &os, IDEProtoAnalysis::l_t l) const {
+  os << llvmIRToString(l);
 }
 
 } // namespace psr

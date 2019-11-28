@@ -74,6 +74,40 @@ template <typename V> struct ValuePrinter {
   }
 };
 
+template <typename T> struct TypePrinter {
+  TypePrinter() = default;
+  TypePrinter(const TypePrinter &) = delete;
+  TypePrinter &operator=(const TypePrinter &) = delete;
+  TypePrinter(TypePrinter &&) = delete;
+  TypePrinter &operator=(TypePrinter &&) = delete;
+  virtual ~TypePrinter() = default;
+
+  virtual void printType(std::ostream &os, T t) const = 0;
+
+  virtual std::string TtoString(T t) const {
+    std::stringstream ss;
+    printType(ss, t);
+    return ss.str();
+  }
+};
+
+template <typename L> struct EdgeFactPrinter {
+  EdgeFactPrinter() = default;
+  EdgeFactPrinter(const EdgeFactPrinter &) = delete;
+  EdgeFactPrinter &operator=(const EdgeFactPrinter &) = delete;
+  EdgeFactPrinter(EdgeFactPrinter &&) = delete;
+  EdgeFactPrinter &operator=(EdgeFactPrinter &&) = delete;
+  virtual ~EdgeFactPrinter() = default;
+
+  virtual void printEdgeFact(std::ostream &os, L l) const = 0;
+
+  virtual std::string LtoString(L l) const {
+    std::stringstream ss;
+    printEdgeFact(ss, l);
+    return ss.str();
+  }
+};
+
 template <typename M> struct MethodPrinter {
   MethodPrinter() = default;
   MethodPrinter(const MethodPrinter &) = delete;

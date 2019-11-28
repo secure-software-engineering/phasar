@@ -25,17 +25,28 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
 
+namespace llvm {
+class Instruction;
+class Function;
+class StructType;
+class Value;
+} // namespace llvm
+
 namespace psr {
 
 template <typename D, typename I, unsigned K>
 class LLVMInterMonoSolver
     : public InterMonoSolver<const llvm::Instruction *, D,
-                             const llvm::Function *, I, K> {
+                             const llvm::Function *, const llvm::StructType *,
+                             const llvm::Value *, I, K> {
 public:
-  LLVMInterMonoSolver(InterMonoProblem<const llvm::Instruction *, D,
-                                       const llvm::Function *, I> &problem)
-      : InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
-                        K>(problem) {}
+  LLVMInterMonoSolver(
+      InterMonoProblem<const llvm::Instruction *, D, const llvm::Function *,
+                       const llvm::StructType *, const llvm::Value *, I>
+          &problem)
+      : InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
+                        const llvm::StructType *, const llvm::Value *, I, K>(
+            problem) {}
 
   ~LLVMInterMonoSolver() override = default;
 
@@ -46,8 +57,8 @@ public:
 
   void solve() override {
     // do the solving of the analaysis problem
-    InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
-                    K>::solve();
+    InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
+                    const llvm::StructType *, const llvm::Value *, I, K>::solve();
     if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
       dumpResults();
     }
@@ -59,12 +70,9 @@ public:
   void dumpResults() {
     std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
     for (auto &entry :
-         InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
-                         I, K>::Analysis) {
+         this->Analysis) {
       std::cout << "Instruction:\n"
-                << InterMonoSolver<const llvm::Instruction *, D,
-                                   const llvm::Function *, I, K>::IMProblem
-                       .NtoString(entry.first);
+                << this->IMProblem.NtoString(entry.first);
       std::cout << "\nFacts:\n";
       if (entry.second.empty()) {
         std::cout << "\tEMPTY\n";
@@ -75,9 +83,7 @@ public:
             std::cout << "\tEMPTY\n";
           } else {
             for (auto &fact : context.second) {
-              std::cout << InterMonoSolver<const llvm::Instruction *, D,
-                                           const llvm::Function *, I,
-                                           K>::IMProblem.DtoString(fact);
+              std::cout << this->IMProblem.DtoString(fact);
             }
           }
         }

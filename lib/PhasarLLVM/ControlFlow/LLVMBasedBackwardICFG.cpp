@@ -58,7 +58,7 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH,
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::vector<std::string> &EntryPoints)
+    const std::set<std::string> &EntryPoints)
     : ForwardICFG(STH, IRDB, CGType, EntryPoints) {
   auto cgCopy = ForwardICFG.cg;
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
@@ -66,7 +66,7 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, const llvm::Module &M,
-    CallGraphAnalysisType CGType, std::vector<std::string> EntryPoints)
+    CallGraphAnalysisType CGType, std::set<std::string> EntryPoints)
     : ForwardICFG(STH, IRDB, M, CGType, EntryPoints) {
   auto cgCopy = ForwardICFG.cg;
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);

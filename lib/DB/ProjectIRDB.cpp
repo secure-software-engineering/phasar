@@ -360,9 +360,9 @@ llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &name) {
   return nullptr;
 }
 
-llvm::Function *ProjectIRDB::getFunction(const std::string &name) {
+llvm::Function *ProjectIRDB::getFunction(const std::string &name) const {
   if (functionToModuleMap.count(name))
-    return modules[functionToModuleMap[name]]->getFunction(name);
+    return modules.at(functionToModuleMap.at(name))->getFunction(name);
   return nullptr;
 }
 

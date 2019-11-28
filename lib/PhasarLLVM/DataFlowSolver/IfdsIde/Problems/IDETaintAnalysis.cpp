@@ -187,7 +187,7 @@ void IDETaintAnalysis::printMethod(ostream &os, IDETaintAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
-void IDETaintAnalysis::printValue(ostream &os, IDETaintAnalysis::l_t v) const {
+void IDETaintAnalysis::printEdgeFact(ostream &os, IDETaintAnalysis::l_t v) const {
   os << llvmIRToString(v);
 }
 

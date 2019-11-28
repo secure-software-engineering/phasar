@@ -31,6 +31,7 @@ namespace psr {
 class LLVMBasedICFG;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
+struct HasNoConfigurationType;
 
 /**
  * This analysis tracks data-flows through a program. Data flows from
@@ -45,8 +46,10 @@ class IFDSTaintAnalysis
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
                                    const llvm::StructType *,
-                                   const llvm::Value *,
-                                   LLVMBasedICFG> {
+                                   const llvm::Value *, LLVMBasedICFG> {
+private:
+  const TaintConfiguration<const llvm::Value *> &SourceSinkFunctions;
+
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -54,11 +57,9 @@ public:
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
+  // Setup the configuration type
+  using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
 
-private:
-  TaintConfiguration<const llvm::Value *> SourceSinkFunctions;
-
-public:
   /// Holds all leaks found during the analysis
   std::map<n_t, std::set<d_t>> Leaks;
 
@@ -69,8 +70,8 @@ public:
    * @param EntryPoints
    */
   IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                    TaintConfiguration<const llvm::Value *> TSF,
+                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    const TaintConfiguration<const llvm::Value *> &TSF,
                     std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSTaintAnalysis() override = default;

@@ -147,7 +147,7 @@ public:
     Problem.printMethod(os, m);
   }
 
-  void printValue(std::ostream &os, BinaryDomain v) const override { os << v; }
+  void printEdgeFact(std::ostream &os, BinaryDomain v) const override { os << v; }
 };
 
 } // namespace psr

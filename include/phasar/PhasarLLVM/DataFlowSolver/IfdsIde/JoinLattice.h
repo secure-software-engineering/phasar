@@ -19,12 +19,12 @@
 
 namespace psr {
 
-template <typename V> class JoinLattice {
+template <typename L> class JoinLattice {
 public:
   virtual ~JoinLattice() = default;
-  virtual V topElement() = 0;
-  virtual V bottomElement() = 0;
-  virtual V join(V lhs, V rhs) = 0;
+  virtual L topElement() = 0;
+  virtual L bottomElement() = 0;
+  virtual L join(L lhs, L rhs) = 0;
 };
 } // namespace psr
 

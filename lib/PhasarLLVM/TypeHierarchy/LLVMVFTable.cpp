@@ -25,6 +25,10 @@ const llvm::Function *LLVMVFTable::getFunction(unsigned Idx) const {
   return nullptr;
 }
 
+std::vector<const llvm::Function *> LLVMVFTable::getAllFunctions() const {
+  return VFT;
+}
+
 int LLVMVFTable::getIndex(const llvm::Function *F) const {
   auto It = std::find(VFT.begin(), VFT.end(), F);
   if (It != VFT.end()) {

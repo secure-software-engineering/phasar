@@ -14,8 +14,14 @@
 #include <memory>
 #include <string>
 
-#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+#include <json.hpp>
+
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+
+namespace llvm {
+class Value;
+} // namespace llvm
 
 namespace psr {
 
@@ -28,7 +34,14 @@ private:
 
 public:
   LLVMPointsToInfo(ProjectIRDB &IRDB);
-  ~LLVMPointsToInfo() = default;
+
+  ~LLVMPointsToInfo() override = default;
+
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2) const override;
+
+  std::set<const llvm::Value *> getPointsToSet(const llvm::Value * V1) const override;
+
+  nlohmann::json getAsJson() const override;
 
   PointsToGraph *getPointsToGraph(const std::string &FunctionName) const;
 };

@@ -31,11 +31,10 @@ class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class IFDSTypeAnalysis
-     : public IFDSTabulationProblem<const llvm::Instruction *,
+    : public IFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
                                    const llvm::StructType *,
-                                   const llvm::Value *,
-                                   LLVMBasedICFG> {
+                                   const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -45,8 +44,8 @@ public:
   typedef LLVMBasedICFG i_t;
 
   IFDSTypeAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints = {"main"});
+                   const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                   std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSTypeAnalysis() override = default;
 
@@ -64,6 +63,9 @@ public:
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
+
+  std::shared_ptr<FlowFunction<d_t>>
+  getSummaryFlowFunction(n_t curr, m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 

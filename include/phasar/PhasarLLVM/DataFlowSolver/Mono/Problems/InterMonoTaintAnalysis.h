@@ -39,8 +39,13 @@ class LLVMBasedICFG;
 
 class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
+                              const llvm::Function *, const llvm::StructType *,
+                              const llvm::Value *, LLVMBasedICFG> {
 private:
+  const TaintConfiguration<const llvm::Value *> &TSF;
+  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
+
+public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
@@ -48,15 +53,12 @@ private:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  TaintConfiguration<const llvm::Value *> TSF;
-  std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
-
-public:
   using ConfigurationTy = TaintConfiguration<const llvm::Value *>;
 
   InterMonoTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                         std::initializer_list<std::string> EntryPoints = {});
+                         const TaintConfiguration<const llvm::Value *> &TSF,
+                         std::set<std::string> EntryPoints = {});
   ~InterMonoTaintAnalysis() override = default;
 
   MonoSet<const llvm::Value *>

@@ -8,11 +8,11 @@
  *****************************************************************************/
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -22,11 +22,12 @@ using namespace psr;
 
 namespace psr {
 
-IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                               std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints) {
+IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
+                                   const LLVMTypeHierarchy *TH,
+                                   const LLVMBasedICFG *ICF,
+                                   const LLVMPointsToInfo *PT,
+                                   std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IFDSTypeAnalysis::ZeroValue = createZeroValue();
 }
 
@@ -79,6 +80,12 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
     }
   };
   return make_shared<TAFF>();
+}
+
+shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
+IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t curr,
+                       IFDSTypeAnalysis::m_t destMthd) {
+  return nullptr;
 }
 
 map<IFDSTypeAnalysis::n_t, set<IFDSTypeAnalysis::d_t>>

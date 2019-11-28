@@ -457,9 +457,9 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
   os << m->getName().str();
 }
 
-void IDETypeStateAnalysis::printValue(ostream &os,
-                                      IDETypeStateAnalysis::l_t v) const {
-  os << TSD.stateToString(v);
+void IDETypeStateAnalysis::printEdgeFact(ostream &os,
+                                      IDETypeStateAnalysis::l_t l) const {
+  os << TSD.stateToString(l);
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
@@ -699,14 +699,14 @@ void IDETypeStateAnalysis::printIDEReport(
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
-                      os << "Pred State: " << VtoString(Res.second) << '\n';
+                      os << "Pred State: " << LtoString(Res.second) << '\n';
                     }
                   }
                 }
                 os << "============================\n";
               } else {
                 os << "\nAlloca : " << DtoString(res.first)
-                   << "\nState  : " << VtoString(res.second) << '\n'
+                   << "\nState  : " << LtoString(res.second) << '\n'
                    << llvmValueToSrc(res.first, false) << '\n';
               }
             }
@@ -726,7 +726,7 @@ void IDETypeStateAnalysis::printIDEReport(
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
-                      os << "Pred State: " << VtoString(Res.second) << '\n';
+                      os << "Pred State: " << LtoString(Res.second) << '\n';
                     }
                   }
                 }

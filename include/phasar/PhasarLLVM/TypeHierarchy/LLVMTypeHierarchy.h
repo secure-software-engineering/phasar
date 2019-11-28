@@ -105,7 +105,7 @@ public:
    *         given ProjectIRCompiledDB.
    *  @param IRDB ProjectIRCompiledDB object.
    */
-  // LLVMTypeHierarchy(ProjectIRDB &IRDB);
+  LLVMTypeHierarchy(ProjectIRDB &IRDB);
 
   /**
    *  @brief Creates a LLVMStructTypeHierarchy based on the

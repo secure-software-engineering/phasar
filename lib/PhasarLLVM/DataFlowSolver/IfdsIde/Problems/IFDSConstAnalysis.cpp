@@ -36,10 +36,10 @@ using namespace psr;
 namespace psr {
 
 IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT, std::set<d_t> AllMemLocs,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints), ptg(ICF->getWholeModulePTG()), AllMemLocs(move(AllMemLocs)) {
+          IRDB, TH, ICF, PT, EntryPoints), ptg(ICF->getWholeModulePTG()), AllMemLocs() {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,

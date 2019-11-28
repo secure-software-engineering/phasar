@@ -124,7 +124,7 @@ public:
           std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
         }
         std::cout << "\tD: " << Problem.DtoString(cells[i].c)
-                  << " | L: " << Problem.VtoString(cells[i].v) << '\n';
+                  << " | L: " << Problem.LtoString(cells[i].v) << '\n';
       }
     }
     std::cout << '\n';

@@ -16,6 +16,9 @@
 
 namespace psr {
 
+// Indicates that an analysis does not need a special configuration (file).
+struct HasNoConfigurationType {};
+
 struct AnalysisSetup {
   struct UnsupportedAnalysisType {};
   using PointerAnalysisTy = UnsupportedAnalysisType;

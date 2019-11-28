@@ -74,7 +74,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB)
 
 LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              CallGraphAnalysisType CGType,
-                             const vector<string> &EntryPoints)
+                             const set<string> &EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();
@@ -123,7 +123,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
 LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                              const llvm::Module &M,
                              CallGraphAnalysisType CGType,
-                             vector<string> EntryPoints)
+                             set<string> EntryPoints)
     : CGType(CGType), CH(STH), IRDB(IRDB) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
@@ -131,7 +131,7 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
   if (EntryPoints.empty()) {
     for (auto &F : M) {
-      EntryPoints.push_back(F.getName().str());
+      EntryPoints.insert(F.getName().str());
     }
   }
   unique_ptr<Resolver> resolver(

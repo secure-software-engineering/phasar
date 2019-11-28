@@ -22,7 +22,7 @@ namespace psr {
 template <typename T, typename M>
 class TypeHierarchy {
 public:
-  ~TypeHierarchy() = default;
+  virtual ~TypeHierarchy() = default;
 
   virtual bool hasType(T Type) const = 0;
   

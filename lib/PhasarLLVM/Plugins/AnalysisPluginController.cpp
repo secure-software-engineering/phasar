@@ -33,52 +33,52 @@ AnalysisPluginController::AnalysisPluginController(
     vector<string> AnalysisPlygins, LLVMBasedICFG &ICFG,
     vector<string> EntryPoints, json &Results)
     : FinalResultsJson(Results) {
-  auto &lg = lg::get();
-  for (const auto &AnalysisPlugin : AnalysisPlygins) {
-    // SOL SharedLib(AnalysisPlugin);
-    boost::filesystem::path LibPath(AnalysisPlugin);
-    boost::system::error_code Err;
-    boost::dll::shared_library SharedLib(LibPath,
-                                         boost::dll::load_mode::rtld_lazy, Err);
-    if (Err) {
-      cerr << "error detected while loading shared object library: "
-           << Err.message() << '\n';
-    }
-    if (!IDETabulationProblemPluginFactory.empty()) {
-      for (auto Problem : IDETabulationProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                      << "Solving plugin: " << Problem.first);
-      }
-    }
-    if (!IFDSTabulationProblemPluginFactory.empty()) {
-      for (auto &Problem : IFDSTabulationProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                      << "Solving plugin: " << Problem.first);
-        unique_ptr<IFDSTabulationProblemPlugin> plugin(
-            Problem.second(ICFG, EntryPoints));
-        cout << "DONE" << endl;
-        IFDSSolver<
-          const llvm::Instruction *, const llvm::Value *,
-          const llvm::Function *, LLVMBasedICFG> llvmifdstestsolver(
-            *plugin);
-        llvmifdstestsolver.solve();
-        // llvmifdstestsolver.dumpResults();
-        FinalResultsJson += llvmifdstestsolver.getAsJson();
-      }
-    }
-    if (!InterMonoProblemPluginFactory.empty()) {
-      for (auto Problem : InterMonoProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                      << "Solving plugin: " << Problem.first);
-      }
-    }
-    if (!IntraMonoProblemPluginFactory.empty()) {
-      for (auto Problem : IntraMonoProblemPluginFactory) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                      << "Solving plugin: " << Problem.first);
-      }
-    }
-  }
+  // auto &lg = lg::get();
+  // for (const auto &AnalysisPlugin : AnalysisPlygins) {
+  //   // SOL SharedLib(AnalysisPlugin);
+  //   boost::filesystem::path LibPath(AnalysisPlugin);
+  //   boost::system::error_code Err;
+  //   boost::dll::shared_library SharedLib(LibPath,
+  //                                        boost::dll::load_mode::rtld_lazy, Err);
+  //   if (Err) {
+  //     cerr << "error detected while loading shared object library: "
+  //          << Err.message() << '\n';
+  //   }
+  //   if (!IDETabulationProblemPluginFactory.empty()) {
+  //     for (auto Problem : IDETabulationProblemPluginFactory) {
+  //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+  //                     << "Solving plugin: " << Problem.first);
+  //     }
+  //   }
+  //   if (!IFDSTabulationProblemPluginFactory.empty()) {
+  //     for (auto &Problem : IFDSTabulationProblemPluginFactory) {
+  //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+  //                     << "Solving plugin: " << Problem.first);
+  //       unique_ptr<IFDSTabulationProblemPlugin> plugin(
+  //           Problem.second(ICFG, EntryPoints));
+  //       cout << "DONE" << endl;
+  //       IFDSSolver<
+  //         const llvm::Instruction *, const llvm::Value *,
+  //         const llvm::Function *, LLVMBasedICFG> llvmifdstestsolver(
+  //           *plugin);
+  //       llvmifdstestsolver.solve();
+  //       // llvmifdstestsolver.dumpResults();
+  //       FinalResultsJson += llvmifdstestsolver.getAsJson();
+  //     }
+  //   }
+  //   if (!InterMonoProblemPluginFactory.empty()) {
+  //     for (auto Problem : InterMonoProblemPluginFactory) {
+  //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+  //                     << "Solving plugin: " << Problem.first);
+  //     }
+  //   }
+  //   if (!IntraMonoProblemPluginFactory.empty()) {
+  //     for (auto Problem : IntraMonoProblemPluginFactory) {
+  //       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+  //                     << "Solving plugin: " << Problem.first);
+  //     }
+  //   }
+  // }
 }
 
 } // namespace psr

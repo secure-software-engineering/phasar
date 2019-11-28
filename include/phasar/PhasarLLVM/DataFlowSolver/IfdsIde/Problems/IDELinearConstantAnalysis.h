@@ -202,7 +202,7 @@ public:
 
   void printMethod(std::ostream &os, m_t m) const override;
 
-  void printValue(std::ostream &os, l_t v) const override;
+  void printEdgeFact(std::ostream &os, l_t l) const override;
 
   void printIDEReport(std::ostream &os,
                       SolverResults<n_t, d_t, l_t> &SR) override;

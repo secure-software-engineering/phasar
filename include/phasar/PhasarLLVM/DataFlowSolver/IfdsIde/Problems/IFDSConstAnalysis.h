@@ -58,13 +58,13 @@ public:
 private:
   const PointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
-  std::set<d_t> AllMemLocs;
+  std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.
   std::set<d_t> Initialized;
 
 public:
   IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT, std::set<d_t> AllMemLocs,
+                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
                 std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;

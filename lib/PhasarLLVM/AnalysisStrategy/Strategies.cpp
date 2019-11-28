@@ -22,8 +22,8 @@ namespace psr {
 std::string to_string(const AnalysisStrategy &S) {
   switch (S) {
   default:
-#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                          \
-  case AnalysisStrategyType::TYPE:                                             \
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                           \
+  case AnalysisStrategy::TYPE:                                                 \
     return NAME;                                                               \
     break;
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
@@ -32,16 +32,16 @@ std::string to_string(const AnalysisStrategy &S) {
 
 AnalysisStrategy to_AnalysisStrategy(const std::string &S) {
   AnalysisStrategy Type = llvm::StringSwitch<AnalysisStrategy>(S)
-  #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                          \
-    .Case(NAME, AnalysisStrategyType::TYPE)
-  #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
-    .Default(AnalysisStrategy::None);
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                           \
+  .Case(NAME, AnalysisStrategy::TYPE)
+#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
+                              .Default(AnalysisStrategy::None);
   if (Type == AnalysisStrategy::None) {
     Type = llvm::StringSwitch<AnalysisStrategy>(S)
-  #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                          \
-    .Case(CMDFLAG, AnalysisStrategyType::TYPE)
-  #include  <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
-    .Default(AnalysisStrategy::None);
+#define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                           \
+  .Case(CMDFLAG, AnalysisStrategy::TYPE)
+#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
+               .Default(AnalysisStrategy::None);
   }
   return Type;
 }

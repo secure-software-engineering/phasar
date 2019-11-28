@@ -123,7 +123,7 @@ public:
   std::set<std::string> getAllSourceFiles();
   std::size_t getNumberOfModules();
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
-  llvm::Function *getFunction(const std::string &FunctionName);
+  llvm::Function *getFunction(const std::string &FunctionName) const;
   llvm::GlobalVariable *
   getGlobalVariable(const std::string &GlobalVariableName);
   std::string

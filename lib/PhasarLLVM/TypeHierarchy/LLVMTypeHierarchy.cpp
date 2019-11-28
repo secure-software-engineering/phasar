@@ -49,7 +49,7 @@ LLVMTypeHierarchy::VertexProperties::VertexProperties(
     const llvm::StructType *Type)
     : Type(Type), TypeName(Type->getStructName()), ReachableTypes({Type}) {}
 
-// LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
+LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
 //   PAMM_GET_INSTANCE;
 //   auto &lg = lg::get();
 //   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Construct type hierarchy");
@@ -190,7 +190,7 @@ LLVMTypeHierarchy::VertexProperties::VertexProperties(
 //       }
 //     }
 //   }
-// }
+}
 
 // void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
 //   auto &lg = lg::get();

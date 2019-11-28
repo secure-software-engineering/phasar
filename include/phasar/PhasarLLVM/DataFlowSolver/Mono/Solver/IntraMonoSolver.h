@@ -27,25 +27,30 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename C>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename C>
 class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, M, C>;
+  using ProblemTy = IntraMonoProblem<N, D, M, T, V, C>;
 
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   MonoMap<N, MonoSet<D>> Analysis;
-  C CFG;
+  const C *CFG;
 
   void initialize() {
-    std::vector<std::pair<N, N>> edges =
-        CFG.getAllControlFlowEdges(IMProblem.getFunction());
-    // add all edges to the worklist
-    Worklist.insert(Worklist.begin(), edges.begin(), edges.end());
-    // set all analysis information to the empty set
-    for (auto s : CFG.getAllInstructionsOf(IMProblem.getFunction())) {
-      Analysis.insert(std::make_pair(s, MonoSet<D>()));
+    auto EntryPoints = IMProblem.getEntryPoints();
+    for (const auto &EntryPoint : EntryPoints) {
+      auto Function = IMProblem.getProjectIRDB()->getFunction(EntryPoint);
+      auto ControlFlowEdges = CFG->getAllControlFlowEdges(Function);
+      // add all intra-procedural edges to the worklist
+      Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),
+                      ControlFlowEdges.end());
+      // set all analysis information to the empty set
+      for (auto s : CFG->getAllInstructionsOf(Function)) {
+        Analysis.insert(std::make_pair(s, MonoSet<D>()));
+      }
     }
     // insert initial seeds
     for (auto &seed : IMProblem.initialSeeds()) {
@@ -54,7 +59,7 @@ protected:
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, M, C> &IMP)
+  IntraMonoSolver(IntraMonoProblem<N, D, M, T, V, C> &IMP)
       : IMProblem(IMP), CFG(IMP.getCFG()) {}
   virtual ~IntraMonoSolver() = default;
   virtual void solve() {
@@ -70,7 +75,7 @@ public:
       MonoSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-        for (auto nprimeprime : CFG.getSuccsOf(dst)) {
+        for (auto nprimeprime : CFG->getSuccsOf(dst)) {
           Worklist.push_back({dst, nprimeprime});
         }
       }

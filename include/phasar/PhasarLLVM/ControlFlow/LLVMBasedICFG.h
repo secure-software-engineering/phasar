@@ -19,6 +19,7 @@
 
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -110,11 +111,11 @@ public:
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 CallGraphAnalysisType CGType,
-                const std::vector<std::string> &EntryPoints = {"main"});
+                const std::set<std::string> &EntryPoints = {"main"});
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 const llvm::Module &M, CallGraphAnalysisType CGType,
-                std::vector<std::string> EntryPoints = {});
+                std::set<std::string> EntryPoints = {});
 
   ~LLVMBasedICFG() override = default;
 

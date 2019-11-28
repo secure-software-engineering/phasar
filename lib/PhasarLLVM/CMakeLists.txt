@@ -1,3 +1,4 @@
+add_subdirectory(AnalysisStrategy)
 add_subdirectory(ControlFlow)
 add_subdirectory(DataFlowSolver)
 add_subdirectory(Passes)

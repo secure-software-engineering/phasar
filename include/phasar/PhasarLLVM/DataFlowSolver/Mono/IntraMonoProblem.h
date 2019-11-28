@@ -26,7 +26,8 @@
 
 namespace psr {
 
-struct UnsupportedConfigurationType;
+struct HasNoConfigurationType;
+
 class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
 template <typename V> class PointsToInfo;
@@ -49,17 +50,31 @@ protected:
 public:
   // denote that a problem does not require a configuration (type/file)
   // a user problem can override the type of configuration to be used, if any
-  using ConfigurationTy = UnsupportedConfigurationType;
+  using ConfigurationTy = HasNoConfigurationType;
 
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                    const C *CF, const PointsToInfo<V> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
   ~IntraMonoProblem() override = default;
+
   virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
+
   virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
+
   virtual MonoSet<D> normalFlow(N S, const MonoSet<D> &In) = 0;
+
   virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
+
+  std::set<std::string> getEntryPoints() const { return EntryPoints; }
+
+  const ProjectIRDB *getProjectIRDB() const { return IRDB; }
+
+  const TypeHierarchy<T, M> *getTypeHierarchy() const { return TH; }
+
+  const C *getCFG() const { return CF; }
+
+  const PointsToInfo<V> *getPointstoInfo() const { return PT; }
 };
 
 } // namespace psr

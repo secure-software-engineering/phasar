@@ -24,19 +24,19 @@
 
 namespace psr {
 
-template <typename V> class EdgeFunction {
+template <typename L> class EdgeFunction {
 public:
   virtual ~EdgeFunction() = default;
 
-  virtual V computeTarget(V source) = 0;
+  virtual L computeTarget(L source) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) = 0;
+  virtual std::shared_ptr<EdgeFunction<L>>
+  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<V>>
-  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) = 0;
+  virtual std::shared_ptr<EdgeFunction<L>>
+  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) = 0;
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const = 0;
+  virtual bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const = 0;
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const {
     OS << "EdgeFunction";
@@ -49,15 +49,15 @@ public:
   }
 };
 
-template <typename V>
-static inline bool operator==(const EdgeFunction<V> &F,
-                              const EdgeFunction<V> &G) {
+template <typename L>
+static inline bool operator==(const EdgeFunction<L> &F,
+                              const EdgeFunction<L> &G) {
   return F.equal_to(G);
 }
 
-template <typename V>
+template <typename L>
 static inline std::ostream &operator<<(std::ostream &OS,
-                                       const EdgeFunction<V> &F) {
+                                       const EdgeFunction<L> &F) {
   F.print(OS);
   return OS;
 }

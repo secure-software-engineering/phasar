@@ -77,6 +77,8 @@ class IFDSToIDETabulationProblem;
 template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
 class IDESolver {
 public:
+  using ProblemTy = IDETabulationProblem<N, D, M, T, V, L, I>;
+
   IDESolver(IDETabulationProblem<N, D, M, T, V, L, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
         zeroValue(tabulationProblem.getZeroValue()),
@@ -100,13 +102,13 @@ public:
     if (results.empty()) {
       J[DataFlowID] = "EMPTY";
     } else {
-      std::vector<typename Table<N, D, V>::Cell> cells;
+      std::vector<typename Table<N, D, L>::Cell> cells;
       for (auto cell : results) {
         cells.push_back(cell);
       }
       sort(cells.begin(), cells.end(),
-           [](typename Table<N, D, V>::Cell a,
-              typename Table<N, D, V>::Cell b) { return a.r < b.r; });
+           [](typename Table<N, D, L>::Cell a,
+              typename Table<N, D, L>::Cell b) { return a.r < b.r; });
       N curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
@@ -117,7 +119,7 @@ public:
         J[DataFlowID][node];
         std::string fact = ideTabulationProblem.DtoString(cells[i].c);
         boost::algorithm::trim(fact);
-        std::string value = ideTabulationProblem.VtoString(cells[i].v);
+        std::string value = ideTabulationProblem.LtoString(cells[i].v);
         boost::algorithm::trim(value);
         J[DataFlowID][node]["Facts"] += {fact, value};
       }
@@ -185,15 +187,15 @@ public:
    * Returns the V-type result for the given value at the given statement.
    * TOP values are never returned.
    */
-  virtual V resultAt(N stmt, D value) { return valtab.get(stmt, value); }
+  virtual L resultAt(N stmt, D value) { return valtab.get(stmt, value); }
 
   /**
    * Returns the resulting environment for the given statement.
    * The artificial zero value can be automatically stripped.
    * TOP values are never returned.
    */
-  virtual std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
-    std::unordered_map<D, V> result = valtab.row(stmt);
+  virtual std::unordered_map<D, L> resultsAt(N stmt, bool stripZero = false) {
+    std::unordered_map<D, L> result = valtab.row(stmt);
     if (stripZero) {
       for (auto it = result.begin(); it != result.end();) {
         if (ideTabulationProblem.isZeroValue(it->first)) {
@@ -243,7 +245,7 @@ protected:
 
   std::map<N, std::set<D>> initialSeeds;
 
-  Table<N, D, V> valtab;
+  Table<N, D, L> valtab;
 
   std::map<std::pair<N, D>, size_t> fSummaryReuse;
 
@@ -549,7 +551,7 @@ protected:
         D dPrime = entry.first;
         std::shared_ptr<EdgeFunction<L>> fPrime = entry.second;
         N sP = n;
-        V value = val(sP, d);
+        L value = val(sP, d);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
         propagateValue(c, dPrime, fPrime->computeTarget(value));
       }
@@ -584,16 +586,16 @@ protected:
     }
   }
 
-  void propagateValue(N nHashN, D nHashD, V v) {
-    V valNHash = val(nHashN, nHashD);
-    V vPrime = joinValueAt(nHashN, nHashD, valNHash, v);
-    if (!(vPrime == valNHash)) {
-      setVal(nHashN, nHashD, vPrime);
+  void propagateValue(N nHashN, D nHashD, L l) {
+    L valNHash = val(nHashN, nHashD);
+    L lPrime = joinValueAt(nHashN, nHashD, valNHash, l);
+    if (!(lPrime == valNHash)) {
+      setVal(nHashN, nHashD, lPrime);
       valuePropagationTask(std::pair<N, D>(nHashN, nHashD));
     }
   }
 
-  V val(N nHashN, D nHashD) {
+  L val(N nHashN, D nHashD) {
     if (valtab.contains(nHashN, nHashD)) {
       return valtab.get(nHashN, nHashD);
     } else {
@@ -602,7 +604,7 @@ protected:
     }
   }
 
-  void setVal(N nHashN, D nHashD, V l) {
+  void setVal(N nHashN, D nHashD, L l) {
     auto &lg = lg::get();
     // TOP is the implicit default value which we do not need to store.
     if (l == ideTabulationProblem.topElement()) {
@@ -619,7 +621,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Fact     : " << ideTabulationProblem.DtoString(nHashD));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Value    : " << ideTabulationProblem.VtoString(l));
+                  << "Value    : " << ideTabulationProblem.LtoString(l));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
@@ -725,7 +727,7 @@ protected:
           D d = sourceValTargetValAndFunction.getColumnKey();
           std::shared_ptr<EdgeFunction<L>> fPrime =
               sourceValTargetValAndFunction.getValue();
-          V targetVal = val(sP, dPrime);
+          L targetVal = val(sP, dPrime);
           setVal(n, d,
                  ideTabulationProblem.join(val(n, d),
                                            fPrime->computeTarget(targetVal)));
@@ -1146,7 +1148,7 @@ protected:
     }
   }
 
-  V joinValueAt(N unit, D fact, V curr, V newVal) {
+  L joinValueAt(N unit, D fact, L curr, L newVal) {
     return ideTabulationProblem.join(curr, newVal);
   }
 

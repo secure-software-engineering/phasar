@@ -31,13 +31,14 @@ namespace psr {
 InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    std::initializer_list<std::string> EntryPoints)
+    const TaintConfiguration<const llvm::Value *> &TSF,
+    std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
                        InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
                        InterMonoTaintAnalysis::v_t,
                        InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
                                                     EntryPoints),
-      TSF() {}
+      TSF(TSF) {}
 
 MonoSet<const llvm::Value *>
 InterMonoTaintAnalysis::join(const MonoSet<const llvm::Value *> &Lhs,

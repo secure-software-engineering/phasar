@@ -28,6 +28,8 @@ namespace psr {
 template <typename N, typename D, typename M, typename T, typename V, typename I>
 class IFDSSolver : public IDESolver<N, D, M, T, V, BinaryDomain, I> {
 public:
+  using ProblemTy = IFDSTabulationProblem<N, D, M, T, V, I>;
+
   IFDSSolver(IFDSTabulationProblem<N, D, M, T, V, I> &ifdsProblem)
       : IDESolver<N, D, M, T, V, BinaryDomain, I>(ifdsProblem) {
     // std::cout << "IFDSSolver::IFDSSolver()" << std::endl;

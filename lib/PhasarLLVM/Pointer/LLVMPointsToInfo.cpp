@@ -7,10 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <llvm/IR/Value.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 namespace psr {
+
 LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
 //     // TODO Have a look at this stuff from the future at some point in time
 //   /// PassManagerBuilder - This class is used to set up a standard
@@ -110,4 +113,21 @@ LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
 //     }
 //   }
 }
+
+  AliasResult LLVMPointsToInfo::alias(const llvm::Value *V1, const llvm::Value *V2) const {
+    return AliasResult::MayAlias;
+  }
+
+  std::set<const llvm::Value *> LLVMPointsToInfo::getPointsToSet(const llvm::Value * V1) const {
+    return {};
+  }
+
+  nlohmann::json LLVMPointsToInfo::getAsJson() const {
+      return ""_json;
+  }
+
+  PointsToGraph *LLVMPointsToInfo::getPointsToGraph(const std::string &FunctionName) const {
+      return nullptr;
+  }
+
 } // namespace psr

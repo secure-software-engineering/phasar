@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 #define PHASAR_PHASARLLVM_ANALYSISSTRATEGY_WHOLEPROGRAMANALYSIS_H_
 
-#include <initializer_list>
 #include <iosfwd>
 #include <memory>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -21,8 +21,6 @@
 #include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
 
 namespace psr {
-
-struct InvalidConfigurationType;
 
 template <typename Solver, typename ProblemDescription,
           typename Setup = psr::DefaultAnalysisSetup>
@@ -45,15 +43,15 @@ private:
   std::unique_ptr<TypeHierarchyTy> TypeHierarchy;
   std::unique_ptr<PointerAnalysisTy> PointerInfo;
   std::unique_ptr<CallGraphAnalysisTy> CallGraph;
+  std::set<std::string> EntryPoints;
   std::unique_ptr<ConfigurationTy> Config;
   std::string ConfigPath;
   ProblemDescription ProblemDesc;
   Solver DataFlowSolver;
-  std::vector<std::string> EntryPoints;
 
 public:
   WholeProgramAnalysis(ProjectIRDB &IRDB,
-                       std::initializer_list<std::string> EntryPoints = {},
+                       std::set<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
@@ -69,38 +67,62 @@ public:
                             *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
                             EntryPoints)
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        Config(CallGraph == nullptr
-                   ? std::make_unique<CallGraphAnalysisTy>(
-                         *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
-                         EntryPoints)
-                   : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
-        ProblemDesc(*CallGraph), DataFlowSolver(ProblemDesc),
-        EntryPoints(EntryPoints) {}
+        EntryPoints(std::move(EntryPoints)),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, EntryPoints),
+        DataFlowSolver(ProblemDesc) {}
 
   template <typename T = ProblemDescription,
             typename = typename std::enable_if_t<!std::is_same_v<
-                typename T::ConfigurationTy, InvalidConfigurationType>>>
+                typename T::ConfigurationTy, HasNoConfigurationType>>>
   WholeProgramAnalysis(ProjectIRDB &IRDB, ConfigurationTy *Config,
-                       std::initializer_list<std::string> EntryPoints = {},
+                       std::set<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
-      : WholeProgramAnalysis(IRDB, EntryPoints, PointerInfo, CallGraph,
-                             TypeHierarchy),
-        Config(std::unique_ptr<CallGraphAnalysisTy>(Config)) {}
+      : IRDB(IRDB),
+        TypeHierarchy(TypeHierarchy == nullptr
+                          ? std::make_unique<TypeHierarchyTy>(IRDB)
+                          : std::unique_ptr<TypeHierarchyTy>(TypeHierarchy)),
+        PointerInfo(PointerInfo == nullptr
+                        ? std::make_unique<PointerAnalysisTy>(IRDB)
+                        : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
+        CallGraph(CallGraph == nullptr
+                      ? std::make_unique<CallGraphAnalysisTy>(
+                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
+                            EntryPoints)
+                      : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
+        EntryPoints(std::move(EntryPoints)),
+        Config(std::unique_ptr<ConfigurationTy>(Config)), ConfigPath(""),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
+                    EntryPoints),
+        DataFlowSolver(ProblemDesc) {}
 
   template <typename T = ProblemDescription,
             typename = typename std::enable_if_t<!std::is_same_v<
-                typename T::ConfigurationTy, InvalidConfigurationType>>>
+                typename T::ConfigurationTy, HasNoConfigurationType>>>
   WholeProgramAnalysis(ProjectIRDB &IRDB, std::string ConfigPath,
-                       std::initializer_list<std::string> EntryPoints = {},
+                       std::set<std::string> EntryPoints = {},
                        PointerAnalysisTy *PointerInfo = nullptr,
                        CallGraphAnalysisTy *CallGraph = nullptr,
                        TypeHierarchyTy *TypeHierarchy = nullptr)
-      : WholeProgramAnalysis(IRDB, EntryPoints, PointerInfo, CallGraph,
-                             TypeHierarchy),
+      : IRDB(IRDB),
+        TypeHierarchy(TypeHierarchy == nullptr
+                          ? std::make_unique<TypeHierarchyTy>(IRDB)
+                          : std::unique_ptr<TypeHierarchyTy>(TypeHierarchy)),
+        PointerInfo(PointerInfo == nullptr
+                        ? std::make_unique<PointerAnalysisTy>(IRDB)
+                        : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
+        CallGraph(CallGraph == nullptr
+                      ? std::make_unique<CallGraphAnalysisTy>(
+                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
+                            EntryPoints)
+                      : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
+        EntryPoints(std::move(EntryPoints)),
         Config(std::make_unique<ConfigurationTy>(ConfigPath)),
-        ConfigPath(std::move(ConfigPath)) {}
+        ConfigPath(std::move(ConfigPath)),
+        ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, *Config,
+                    EntryPoints),
+        DataFlowSolver(ProblemDesc) {}
 
   void solve() { DataFlowSolver.solve(); }
 
@@ -116,24 +138,15 @@ public:
     releasePointerInformation();
     releaseCallGraph();
     releaseTypeHierarchy();
-    releaseConfiguration();
   }
 
-  typename Setup::TypeHierarchyTy *releasePointerInformation() {
-    return PointerInfo.release();
-  }
+  TypeHierarchyTy *releasePointerInformation() { return PointerInfo.release(); }
 
-  typename Setup::CallGraphAnalysisTy *releaseCallGraph() {
-    return CallGraph.release();
-  }
+  CallGraphAnalysisTy *releaseCallGraph() { return CallGraph.release(); }
 
-  typename Setup::TypeHierarchyTy *releaseTypeHierarchy() {
-    return TypeHierarchy.release();
-  }
+  TypeHierarchyTy *releaseTypeHierarchy() { return TypeHierarchy.release(); }
 
-  typename Setup::ConfigurationTy *releaseConfiguration() {
-    return Config.release();
-  }
+  ConfigurationTy *releaseConfiguration() { return Config.release(); }
 };
 
 } // namespace psr

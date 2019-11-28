@@ -37,7 +37,7 @@ namespace psr {
 
 IFDSTaintAnalysis::IFDSTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                 const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                    TaintConfiguration<const llvm::Value *> TSF,
+                const TaintConfiguration<const llvm::Value *> &TSF,
                     std::set<std::string> EntryPoints)
     : IFDSTabulationProblem(
           IRDB, TH, ICF, PT, EntryPoints),
