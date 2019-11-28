@@ -187,6 +187,16 @@ size_t GeneralStatisticsPass::getInstructions() { return instructions; }
 
 size_t GeneralStatisticsPass::getGlobalPointers() { return globalPointers; }
 
+size_t GeneralStatisticsPass::getBasicBlocks() { return basicblocks; }
+
+size_t GeneralStatisticsPass::getFunctions() { return functions; }
+
+size_t GeneralStatisticsPass::getGlobals() { return globals; }
+
+size_t GeneralStatisticsPass::getMemoryIntrinsics() { return memIntrinsic; }
+
+size_t GeneralStatisticsPass::getStoreInstructions() { return storeInstructions; }
+
 set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
   return allocatedTypes;
 }
