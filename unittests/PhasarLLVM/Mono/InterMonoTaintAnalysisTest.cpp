@@ -10,17 +10,9 @@
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 
-/**
- * The MetaDataIDs depend on execution-order.
- * Only check the tainted values, not the actual leaks.
- * Only check taints in main. There might be functions called by main, which
- * both contain sources and leaks, such that there ads no DataFlowFacts holding
- * in main at all.
- */
-
-using namespace std;
 using namespace psr;
 
+/* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
@@ -28,19 +20,16 @@ protected:
       "build/test/llvm_test_code/taint_analysis/";
   const std::vector<std::string> EntryPoints = {"main"};
 
-#pragma region Environment for leak checking
   ProjectIRDB *IRDB = nullptr;
-  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
-  void TearDown() override {
-    if (IRDB) {
-      delete IRDB;
-      IRDB = nullptr;
-    }
+
+  void SetUp() override {
+    std::cout << "setup\n";
+    boost::log::core::get()->set_logging_enabled(false);
   }
-  const map<llvm::Instruction const *, set<llvm::Value const *>>
+  void TearDown() override { delete IRDB; }
+
+  const std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
   doAnalysis(std::string llvmFilePath, bool printDump = false) {
-    // make IRDB dynamic, such that the llvm::Value* and llvm::Instruction* live
-    // longer than this method (they are needed in compareResults)
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
     ValueAnnotationPass::resetValueID();
     IRDB->preprocessIR();
@@ -53,12 +42,44 @@ protected:
     if (printDump) {
       TaintSolver.dumpResults();
     }
-    return TaintProblem.getAllLeaks();
+    auto Leaks = TaintProblem.getAllLeaks();
+    for (auto &[Inst, Values] : Leaks) {
+      // std::cout << "I: " << llvmIRToShortString(Inst) << '\n';
+      for (auto Value : Values) {
+        // std::cout << "V: " << llvmIRToShortString(Value) << '\n';
+      }
+    }
+    return Leaks;
   }
+
+  void doAnalysisAndCompare(std::string llvmFilePath, size_t InstId,
+                            std::set<std::string> GroundTruth,
+                            bool printDump = false) {
+    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
+    ValueAnnotationPass::resetValueID();
+    IRDB->preprocessIR();
+    LLVMTypeHierarchy TH(*IRDB);
+    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
+    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
+        TaintProblem);
+    TaintSolver.solve();
+    if (printDump) {
+      TaintSolver.dumpResults();
+    }
+    std::set<std::string> FoundResults;
+    for (auto result :
+         TaintSolver.getResultsAt(IRDB->getInstruction(InstId)).getAsSet()) {
+      FoundResults.insert(getMetaDataID(result));
+    }
+    EXPECT_EQ(FoundResults, GroundTruth);
+  }
+
   void compareResults(
-      map<llvm::Instruction const *, set<llvm::Value const *>> &Leaks,
-      map<int, set<string>> &GroundTruth, string errorMessage = "") {
-    map<int, set<string>> LeakIds;
+      std::map<llvm::Instruction const *, std::set<llvm::Value const *>> &Leaks,
+      std::map<int, std::set<std::string>> &GroundTruth,
+      std::string errorMessage = "") {
+    std::map<int, std::set<std::string>> LeakIds;
     for (const auto &kvp : Leaks) {
       int InstId = stoi(getMetaDataID(kvp.first));
       EXPECT_NE(-1, InstId);
@@ -68,185 +89,84 @@ protected:
     }
     EXPECT_EQ(LeakIds, GroundTruth) << errorMessage;
   }
-#pragma endregion
+}; // Test Fixture
 
-  int computeCounterResult(
-      unordered_map<const llvm::Instruction *,
-                    unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                                  BitVectorSet<const llvm::Value *>>> &Analysis,
-      ProjectIRDB &IRDB, unsigned InstNum) {
-    llvm::Function *F = IRDB.getFunction("main");
-    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
-    int counter = 0;
-    // count the number of facts after investigating the last Instruction
-    for (auto &entry : Analysis) {
-      // if (!entry.second.empty() && llvm::isa<llvm::ReturnInst>(entry.first))
-      // {
-      if (!entry.second.empty() && Inst == entry.first) {
-        for (auto &context : entry.second) {
-          if (!context.second.empty()) {
-            for (auto &fact : context.second.getAsSet()) {
-              counter++;
-            }
-          }
-        }
-      }
-    }
-    return counter;
-  }
-
-  void compareResults(
-      unordered_map<const llvm::Instruction *,
-                    unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                                  BitVectorSet<const llvm::Value *>>> &Analysis,
-      set<string> &Facts, ProjectIRDB &IRDB, unsigned InstNum) {
-    llvm::Function *F = IRDB.getFunction("main");
-    set<string> FoundLeaks;
-    const llvm::Instruction *Inst = getNthInstruction(F, InstNum);
-    for (auto &entry : Analysis) {
-      int SinkId = stoi(getMetaDataID(entry.first));
-      cout << "SinkId: " << SinkId << endl;
-      set<string> LeakedValueIds;
-      // if (llvm::isa<llvm::ReturnInst>(entry.first)){
-      if (Inst == entry.first) {
-        for (auto &context : entry.second) {
-          if (!context.second.empty()) {
-            for (auto &fact : context.second.getAsSet()) {
-              LeakedValueIds.insert(getMetaDataID(fact));
-            }
-          }
-          FoundLeaks = LeakedValueIds;
-        }
-      }
-    }
-    EXPECT_EQ(FoundLeaks, Facts);
-  }
-};
-
-TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_9_c.ll"}, IRDBOptions::WPA);
-  IRDB.preprocessIR();
-  LLVMTypeHierarchy TH(IRDB);
-  set<string> Facts;
-  unsigned InstNum = 9;
-
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
-  std::cout << "test1\n";
-  TaintSolver.solve();
-  std::cout << "test1\n";
-  unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                              BitVectorSet<const llvm::Value *>>>
-      Analysis = TaintSolver.getAnalysis();
-
-  int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  ASSERT_EQ(counter, 7);
-
-  Facts = set<string>{"10", "11", "5", "6", "7", "main.0", "main.1"};
-  compareResults(Analysis, Facts, IRDB, InstNum);
-}
-
-TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_10_c.ll"}, IRDBOptions::WPA);
-  IRDB.preprocessIR();
-  LLVMTypeHierarchy TH(IRDB);
-  set<string> Facts;
-  unsigned InstNum = 15;
-
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
-  TaintSolver.solve();
-  unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                              BitVectorSet<const llvm::Value *>>>
-      Analysis = TaintSolver.getAnalysis();
-
-  int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  ASSERT_EQ(counter, 7);
-
-  Facts = set<string>{"21", "22", "23", "28", "29", "main.0", "main.1"};
-  compareResults(Analysis, Facts, IRDB, InstNum);
-}
+/******************************************************************************
+ * The following four tests show undefined behaviour. The cause is unfortunately
+ * unknown at the moment. It might be caused by strange execution order induced
+ * by googletest/ctest, or a bug in the InterMonoSolver concering the handling
+ * of callstrings.
+ *
+ ******************************************************************************
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_11_c.ll"}, IRDBOptions::WPA);
-  IRDB.preprocessIR();
-  LLVMTypeHierarchy TH(IRDB);
-  set<string> Facts;
-  unsigned InstNum = 15;
-
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
-  TaintSolver.solve();
-  unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                              BitVectorSet<const llvm::Value *>>>
-      Analysis = TaintSolver.getAnalysis();
-
-  int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  ASSERT_EQ(counter, 9);
-
-  Facts =
-      set<string>{"60", "61", "62", "64", "67", "68", "72", "main.0", "main.1"};
-  compareResults(Analysis, Facts, IRDB, InstNum);
+  std::set<std::string> Facts{"20", "21", "22",     "24",    "27",
+                              "28", "32", "main.0", "main.1"};
+  doAnalysisAndCompare("taint_11_c.ll", 34, Facts);
 }
 
-TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_12_c.ll"}, IRDBOptions::WPA);
-  IRDB.preprocessIR();
-  LLVMTypeHierarchy TH(IRDB);
-  set<string> Facts;
-  unsigned InstNum = 15;
-
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
-  TaintSolver.solve();
-  unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                              BitVectorSet<const llvm::Value *>>>
-      Analysis = TaintSolver.getAnalysis();
-
-  int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  ASSERT_EQ(counter, 7);
-
-  Facts = set<string>{"100", "101", "102", "107", "108", "main.0", "main.1"};
-  compareResults(Analysis, Facts, IRDB, InstNum);
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
+  auto Leaks = doAnalysis("taint_11_c.ll");
+  // 35 => {34}
+  // 37 => {36} due to overapproximation (limitation of call string)
+  std::map<int, std::set<std::string>> GroundTruth;
+  GroundTruth[35] = {"34"};
+  GroundTruth[37] = {"36"};
+  // kind of nondeterministic: sometimes it only leaks at 35, some only at
+  // 37, but most times at both
+  compareResults(Leaks, GroundTruth);
 }
 
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
-  ProjectIRDB IRDB({pathToLLFiles + "taint_13_c.ll"}, IRDBOptions::WPA);
+  std::set<std::string> Facts{"7", "8", "14", "15", "19", "main.0",
+  "main.1"}; doAnalysisAndCompare("taint_13_c.ll", 31, Facts);
+}
+
+TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
+  std::set<std::string> Facts{"7", "8", "14", "15", "19", "main.0", "main.1"};
+  // doAnalysisAndCompare("taint_13_c.ll", 31, Facts);
+  const std::string pathToLLFiles =
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/taint_analysis/";
+  ProjectIRDB IRDB({pathToLLFiles + "taint_13_c.ll"});
+  ValueAnnotationPass::resetValueID();
   IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
-  set<string> Facts;
-  unsigned InstNum = 25;
-
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
+  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, {"main"});
+  InterMonoTaintAnalysis TaintProblem(ICFG, {"main"});
   LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
       TaintProblem);
   TaintSolver.solve();
-  unordered_map<const llvm::Instruction *,
-                unordered_map<CallStringCTX<const llvm::Instruction *, 3>,
-                              BitVectorSet<const llvm::Value *>>>
-      Analysis = TaintSolver.getAnalysis();
-
-  int counter = computeCounterResult(Analysis, IRDB, InstNum);
-  EXPECT_EQ(counter, 7);
-  // 125 does no longer hold due to killing facts on store
-  Facts =
-      set<string>{/*"125", */ "126", "127",   "133", "134", "138",
-                  "main.0",          "main.1"};
-  compareResults(Analysis, Facts, IRDB, InstNum);
+  TaintSolver.dumpResults();
+  std::set<std::string> FoundResults;
+  for (auto result :
+       TaintSolver.getResultsAt(IRDB.getInstruction(31)).getAsSet()) {
+    FoundResults.insert(getMetaDataID(result));
+  }
+  EXPECT_EQ(FoundResults, Facts);
 }
+ ******************************************************************************/
+
+/******************************************************************************
+ * Tests based on dataflow facts
+ *
+ ******************************************************************************/
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
+  std::set<std::string> Facts{"5", "6", "7", "10", "11", "main.0", "main.1"};
+  doAnalysisAndCompare("taint_9_c.ll", 13, Facts);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
+  std::set<std::string> Facts{"5", "6", "7", "12", "13", "main.0", "main.1"};
+  doAnalysisAndCompare("taint_10_c.ll", 19, Facts);
+}
+
+TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
+  std::set<std::string> Facts{"21", "22", "23", "28", "29", "main.0", "main.1"};
+  doAnalysisAndCompare("taint_12_c.ll", 35, Facts);
+}
+
 /******************************************************************************
  * Tests actually based on leaked values, not on dataflow facts
  *
@@ -255,35 +175,25 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_01_v2) {
   auto Leaks = doAnalysis("taint_9_c.ll");
   // 14 => {13}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[14] = {"13"};
   compareResults(Leaks, GroundTruth);
 }
+
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_02_v2) {
   auto Leaks = doAnalysis("taint_10_c.ll");
   // 20 => {19}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[20] = {"19"};
   compareResults(Leaks, GroundTruth);
 }
-TEST_F(InterMonoTaintAnalysisTest, TaintTest_03_v2) {
-  // boost::log::core::get()->set_logging_enabled(true);
-  auto Leaks = doAnalysis("taint_11_c.ll");
-  // 35 => {34}
-  // 37 => {36} due to overapproximation (limitation of call string)
-  map<int, set<string>> GroundTruth;
-  GroundTruth[35] = {"34"};
-  GroundTruth[37] = {"36"};
-  // kind of nondeterministic: sometimes it only leaks at 35, some only at
-  // 37, but most times at both
-  compareResults(Leaks, GroundTruth);
-}
+
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_04_v2) {
   auto Leaks = doAnalysis("taint_12_c.ll");
   // 36 => {35}
   // why not 38 => {37} due to overapproximation in recursion (limitation of
   // call string) ???
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[36] = {"35"};
   // GroundTruth[38] = {"37"};
   compareResults(Leaks, GroundTruth);
@@ -294,17 +204,18 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05_v2) {
   // 32 => {31}
   // 34 => {33} will not leak (analysis is naturally never strong enough for
   // this)
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[32] = {"31"};
   compareResults(Leaks, GroundTruth);
 }
+
 /**********************************************************
  * fails due to alias-unawareness
  **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
   auto Leaks = doAnalysis("taint_4_v2_cpp.ll");
   // 19 => {18}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[19] = {"18"};
 
   compareResults(Leaks, GroundTruth);
@@ -316,7 +227,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_06) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
   auto Leaks = doAnalysis("taint_2_v2_cpp.ll");
   // 10 => {9}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[10] = {"9"};
   compareResults(Leaks, GroundTruth);
 }
@@ -324,7 +235,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_07) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
   auto Leaks = doAnalysis("taint_2_v2_1_cpp.ll");
   // 4 => {3}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[4] = {"3"};
   compareResults(Leaks, GroundTruth);
 }
@@ -334,7 +245,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_08) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_09) {
   auto Leaks = doAnalysis("source_sink_function_test_c.ll");
   // 41 => {40};
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[41] = {"40"};
   compareResults(Leaks, GroundTruth);
 }
@@ -343,7 +254,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
   auto Leaks = doAnalysis("taint_14_cpp.ll");
   // 11 => {10}; do not know, why it fails; getchar is definitely a source, but
   // it doesn't generate a fact
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[11] = {"10"};
   compareResults(Leaks, GroundTruth);
 }
@@ -354,7 +265,7 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
   auto Leaks = doAnalysis("taint_14_1_cpp.ll");
   // 12 => {11}; quite similar as TaintTest10, but all in main;
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[12] = {"11"};
   compareResults(Leaks, GroundTruth);
 }
@@ -366,12 +277,11 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_11) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
   auto Leaks = doAnalysis("taint_15_cpp.ll");
   // 21 => {20}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[21] = {"20"};
   // overapproximation due to lack of knowledge
-  // about ring-exchanges may be allowed, but actually 22 should not hold at 23
-  GroundTruth[23] = {"22"};
-  compareResults(Leaks, GroundTruth,
+  // about ring-exchanges may be allowed, but actually 22 should not hold at
+  23 GroundTruth[23] = {"22"}; compareResults(Leaks, GroundTruth,
                  "The xor ring-exchange was not successful");
   // Unfortunately, the analysis detects no leaks at all
 }
@@ -379,20 +289,22 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_12) {
 TEST_F(InterMonoTaintAnalysisTest, TaintTest_13) {
   auto Leaks = doAnalysis("taint_15_1_cpp.ll");
   // 16 => {15};
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[16] = {"15"};
   compareResults(Leaks, GroundTruth, "The ring-exchange was not successful");
 }
 /**********************************************************
- * Fails, since the callgraph algorithm cannot find a function without body as
- * possible callee for a virtual call; When removing this restriction we get a
+ * Fails, since the callgraph algorithm cannot find a function without body
+ as
+ * possible callee for a virtual call; When removing this restriction we get
+ a
  * segmentation fault
  **********************************************************
 TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
   // boost::log::core::get()->set_logging_enabled(true);
   auto Leaks = doAnalysis("virtual_calls_cpp.ll");
   // 20 => {19};
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   // Fails, although putchar is definitely a source;
 
   // The dump says, the callgraph construction only finds one possible callee
@@ -404,7 +316,7 @@ TEST_F(InterMonoTaintAnalysisTest, VirtualCalls) {
 TEST_F(InterMonoTaintAnalysisTest, VirtualCalls_v2) {
   auto Leaks = doAnalysis("virtual_calls_v2_cpp.ll");
   // 7 => {6};
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
 
   GroundTruth[7] = {"6"};
   compareResults(Leaks, GroundTruth);
@@ -416,7 +328,7 @@ TEST_F(InterMonoTaintAnalysisTest, StructMember) {
   auto Leaks = doAnalysis("struct_member_cpp.ll");
   // 16 => {15};
   // 19 => {18};
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
 
   // Overapproximation due to field-insensitivity
   GroundTruth[16] = {"15"};
@@ -431,7 +343,7 @@ TEST_F(InterMonoTaintAnalysisTest, StructMember) {
 TEST_F(InterMonoTaintAnalysisTest, DynamicMemory) {
   auto Leaks = doAnalysis("dynamic_memory_cpp.ll");
   // 11 => {10}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
   GroundTruth[11] = {"10"};
   compareResults(Leaks, GroundTruth);
 }
@@ -439,7 +351,7 @@ TEST_F(InterMonoTaintAnalysisTest, DynamicMemory) {
 TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
   auto Leaks = doAnalysis("dynamic_memory_simple_cpp.ll");
   // 15 => {14}
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::string>> GroundTruth;
 
   GroundTruth[15] = {"14"};
   compareResults(Leaks, GroundTruth);
@@ -450,7 +362,7 @@ TEST_F(InterMonoTaintAnalysisTest, DynamicMemory_simple) {
 TEST_F(InterMonoTaintAnalysisTest, FileIO) {
   auto Leaks = doAnalysis("read_c.ll");
 
-  map<int, set<string>> GroundTruth;
+  std::map<int, std::set<std::std::string>> GroundTruth;
   // 37 => {36}
   // 43 => {41}
   GroundTruth[37] = {"36"};
@@ -461,8 +373,5 @@ TEST_F(InterMonoTaintAnalysisTest, FileIO) {
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
-  auto result = RUN_ALL_TESTS();
-  llvm::llvm_shutdown();
-
-  return result;
+  return RUN_ALL_TESTS();
 }

@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTERMONOSOLVER_H_
 #define PHASAR_PHASARLLVM_MONO_SOLVER_LLVMINTERMONOSOLVER_H_
 
+#include <algorithm>
 #include <iosfwd>
 #include <memory>
 
@@ -57,10 +58,26 @@ public:
    * Dumps monotone solver results to the commandline.
    */
   void dumpResults() {
-    std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
-    for (auto &entry :
-         InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *,
-                         I, K>::Analysis) {
+    std::cout
+        << "\n**************************************************************\n"
+        << "*             Raw LLVM-Inter-Mono-Solver results             *\n"
+        << "**************************************************************\n";
+    typedef std::pair<
+        const llvm::Instruction *,
+        std::unordered_map<CallStringCTX<const llvm::Instruction *, K>,
+                           BitVectorSet<D>>>
+        NtoDTy;
+    std::vector<NtoDTy> sortedRes(
+        InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
+                        K>::Analysis.begin(),
+        InterMonoSolver<const llvm::Instruction *, D, const llvm::Function *, I,
+                        K>::Analysis.end());
+    llvmValueIDLess llvmIDLess;
+    std::sort(sortedRes.begin(), sortedRes.end(),
+              [&llvmIDLess](NtoDTy a, NtoDTy b) {
+                return llvmIDLess(a.first, b.first);
+              });
+    for (auto &entry : sortedRes) {
       std::cout << "Instruction:\n"
                 << InterMonoSolver<const llvm::Instruction *, D,
                                    const llvm::Function *, I, K>::IMProblem
@@ -75,7 +92,8 @@ public:
             std::cout << "\tEMPTY\n";
           } else {
             for (auto &fact : context.second.getAsSet()) {
-              std::cout << InterMonoSolver<const llvm::Instruction *, D,
+              std::cout << "D: "
+                        << InterMonoSolver<const llvm::Instruction *, D,
                                            const llvm::Function *, I,
                                            K>::IMProblem.DtoString(fact);
             }
