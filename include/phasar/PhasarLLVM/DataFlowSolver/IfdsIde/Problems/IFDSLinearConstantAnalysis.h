@@ -55,11 +55,9 @@ template <> struct hash<psr::LCAPair> {
 namespace psr {
 
 class IFDSLinearConstantAnalysis
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                   LCAPair, const llvm::Function *,
-                                   const llvm::StructType *,
-                                   const llvm::Value *,
-                                   LLVMBasedICFG> {
+    : public IFDSTabulationProblem<
+          const llvm::Instruction *, LCAPair, const llvm::Function *,
+          const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef LCAPair d_t;
   typedef const llvm::Instruction *n_t;
@@ -68,9 +66,11 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
 
-  IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints = {"main"});
+  IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF,
+                             const LLVMPointsToInfo *PT,
+                             std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSLinearConstantAnalysis() override = default;
 

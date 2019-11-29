@@ -27,11 +27,12 @@ using namespace psr;
 
 namespace psr {
 
-unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
-                                    vector<string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin> makeIFDSTabulationProblemTestPlugin(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSTabulationProblemTestPlugin(I, EntryPoints));
+      new IFDSTabulationProblemTestPlugin(IRDB, TH, ICF, PT, EntryPoints));
 }
 
 __attribute__((constructor)) void init() {
@@ -45,8 +46,10 @@ __attribute__((destructor)) void fini() {
 }
 
 IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
-    LLVMBasedICFG &I, vector<string> EntryPoints)
-    : IFDSTabulationProblemPlugin(I, EntryPoints) {}
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getNormalFlowFunction(
@@ -85,8 +88,9 @@ IFDSTabulationProblemTestPlugin::initialSeeds() {
   cout << "IFDSTabulationProblemTestPlugin::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+    SeedMap.insert(
+        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                       set<const llvm::Value *>({getZeroValue()})));
   }
   return SeedMap;
 }

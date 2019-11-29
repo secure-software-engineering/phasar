@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H_
 #define PHASAR_PHASARLLVM_MONO_PROBLEMS_INTRAMONOSOLVERTEST_H_
 
-#include <string>
 #include <set>
+#include <string>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 
@@ -38,7 +38,8 @@ class LLVMPointsToInfo;
 
 class IntraMonoSolverTest
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
-                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedCFG> {
+                              const llvm::Function *, const llvm::StructType *,
+                              const llvm::Value *, LLVMBasedCFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;

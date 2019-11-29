@@ -14,8 +14,6 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h>
@@ -24,6 +22,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/SpecialSummaries.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -36,10 +36,9 @@ namespace psr {
 
 IFDSUninitializedVariables::IFDSUninitializedVariables(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints) {
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IFDSUninitializedVariables::ZeroValue = createZeroValue();
 }
 
@@ -411,7 +410,8 @@ IFDSUninitializedVariables::initialSeeds() {
   return SeedMap;
 }
 
-IFDSUninitializedVariables::d_t IFDSUninitializedVariables::createZeroValue() const {
+IFDSUninitializedVariables::d_t
+IFDSUninitializedVariables::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSUninitializedVariables::createZeroValue()");

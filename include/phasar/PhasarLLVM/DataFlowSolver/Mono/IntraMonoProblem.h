@@ -33,7 +33,8 @@ template <typename T, typename M> class TypeHierarchy;
 template <typename V> class PointsToInfo;
 template <typename N, typename M> class CFG;
 
-template <typename N, typename D, typename M, typename T, typename V, typename C>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename C>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
                          public MethodPrinter<M> {

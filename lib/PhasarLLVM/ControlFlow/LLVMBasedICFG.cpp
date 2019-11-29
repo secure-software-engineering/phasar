@@ -42,8 +42,8 @@
 #include <phasar/Utils/PAMMMacros.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
 
 using namespace psr;
 using namespace std;
@@ -276,7 +276,8 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
     const llvm::Value *V = CS.getArgOperand(0);
     if (V->getType()->isPointerTy() &&
         V->getType()->getPointerElementType()->isStructTy()) {
-      const llvm::StructType *T = llvm::dyn_cast<llvm::StructType>(V->getType()->getPointerElementType());
+      const llvm::StructType *T = llvm::dyn_cast<llvm::StructType>(
+          V->getType()->getPointerElementType());
       // get the type name and check if it has a virtual member function
       if (CH.hasType(T) && CH.hasVFTable(T)) {
         LLVMVFTable *VFT = CH.getVFTable(T);
@@ -569,8 +570,8 @@ void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
           &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
 }
 
-json LLVMBasedICFG::getAsJson() const {
-  json J;
+nlohmann::json LLVMBasedICFG::getAsJson() const {
+  nlohmann::json J;
   vertex_iterator vi_v, vi_v_end;
   out_edge_iterator ei, ei_end;
   // iterate all graph vertices
@@ -587,7 +588,9 @@ json LLVMBasedICFG::getAsJson() const {
   return J;
 }
 
-const PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const { return WholeModulePTG; }
+const PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const {
+  return WholeModulePTG;
+}
 
 vector<string> LLVMBasedICFG::getDependencyOrderedFunctions() {
   vector<vertex_t> vertices;

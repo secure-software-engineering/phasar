@@ -15,7 +15,6 @@
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 
 using namespace psr;
-using namespace std;
 
 namespace psr {
 

@@ -13,10 +13,8 @@
 #include <boost/filesystem.hpp>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IDETabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 #include <phasar/PhasarLLVM/Plugins/Interfaces/Mono/InterMonoProblemPlugin.h>
@@ -39,7 +37,8 @@ AnalysisPluginController::AnalysisPluginController(
   //   boost::filesystem::path LibPath(AnalysisPlugin);
   //   boost::system::error_code Err;
   //   boost::dll::shared_library SharedLib(LibPath,
-  //                                        boost::dll::load_mode::rtld_lazy, Err);
+  //                                        boost::dll::load_mode::rtld_lazy,
+  //                                        Err);
   //   if (Err) {
   //     cerr << "error detected while loading shared object library: "
   //          << Err.message() << '\n';

@@ -13,36 +13,40 @@
 #include <memory>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/LLVMDefaultWPDSProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
 
 namespace llvm {
 class Instruction;
 class Value;
+class StructType;
 class Function;
 } // namespace llvm
 
 namespace psr {
 
+class LLVMBasedICFG;
+class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
 class WPDSSolverTest
-    : public LLVMDefaultWPDSProblem<const llvm::Value *, BinaryDomain,
-                                    LLVMBasedICFG &> {
+    : public WPDSProblem<const llvm::Instruction *, const llvm::Value *,
+                         const llvm::Function *, const llvm::StructType *,
+                         const llvm::Value *, BinaryDomain, LLVMBasedICFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
   typedef const llvm::Function *m_t;
-  typedef BinaryDomain v_t;
-  typedef LLVMBasedICFG &i_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
+  typedef BinaryDomain l_t;
+  typedef LLVMBasedICFG i_t;
 
-  WPDSSolverTest(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
-                 const ProjectIRDB &IRDB, WPDSType WPDS,
-                 SearchDirection Direction, std::vector<n_t> Stack = {},
-                 bool Witnesses = false);
+  WPDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                 const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                 std::set<std::string> EntryPoints = {"main"});
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
@@ -58,39 +62,39 @@ public:
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t curr, m_t destMthd) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
-  std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
                                                          m_t destinationMethod,
                                                          d_t destNode) override;
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<m_t> callees) override;
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t curr, d_t currNode, n_t succ,
                          d_t succNode) override;
 
-  v_t topElement() override;
-  v_t bottomElement() override;
-  v_t join(v_t lhs, v_t rhs) override;
+  l_t topElement() override;
+  l_t bottomElement() override;
+  l_t join(l_t lhs, l_t rhs) override;
 
-  d_t zeroValue() override;
+  d_t createZeroValue() const override;
 
   bool isZeroValue(d_t d) const override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
-  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   void printNode(std::ostream &os, n_t n) const override;
   void printDataFlowFact(std::ostream &os, d_t d) const override;
   void printMethod(std::ostream &os, m_t m) const override;
-  void printValue(std::ostream &os, v_t v) const override;
+  void printEdgeFact(std::ostream &os, l_t v) const override;
 };
 
 } // namespace psr

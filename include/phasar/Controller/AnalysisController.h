@@ -15,10 +15,10 @@
 #include <string>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 namespace psr {
 
@@ -39,8 +39,8 @@ private:
 public:
   AnalysisController();
   ~AnalysisController() = default;
-  AnalysisController(const AnalysisController&) = delete;
-  AnalysisController(AnalysisController&&) = delete;
+  AnalysisController(const AnalysisController &) = delete;
+  AnalysisController(AnalysisController &&) = delete;
 
   void executeAs(AnalysisStrategy Strategy);
 };

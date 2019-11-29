@@ -36,8 +36,7 @@ class LLVMPointsToInfo;
 class IDETypeStateAnalysis
     : public IDETabulationProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *,
-                                  const llvm::Value *,
+                                  const llvm::StructType *, const llvm::Value *,
                                   int, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
@@ -97,9 +96,9 @@ public:
   const l_t BOTTOM;
 
   IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                const TypeStateDescription &TSD,
-                std::set<std::string> EntryPoints = {"main"});
+                       const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                       const TypeStateDescription &TSD,
+                       std::set<std::string> EntryPoints = {"main"});
 
   ~IDETypeStateAnalysis() override = default;
 

@@ -9,8 +9,6 @@
 #include <llvm/IR/IntrinsicInst.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/BranchSwitchInstFlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CallToRetFlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/CheckOperandsFlowFunction.h>
@@ -33,16 +31,18 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStatsWriter.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/DataFlowUtils.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 namespace psr {
 
 IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                const TaintConfiguration<ExtendedValue> &TaintConfig,
-                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints), taintConfig(TaintConfig) {
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    const TaintConfiguration<ExtendedValue> &TaintConfig,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints),
+      taintConfig(TaintConfig) {
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
 }
 
@@ -91,7 +91,8 @@ std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return std::make_shared<MapTaintedValuesToCallee>(
-      llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats, getZeroValue());
+      llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats,
+      getZeroValue());
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
@@ -209,8 +210,9 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
   for (const auto &entryPoint : this->EntryPoints) {
     if (taintConfig.isSink(entryPoint))
       continue;
-    seedMap.insert(std::make_pair(&ICF->getFunction(entryPoint)->front().front(),
-                                  std::set<ExtendedValue>({getZeroValue()})));
+    seedMap.insert(
+        std::make_pair(&ICF->getFunction(entryPoint)->front().front(),
+                       std::set<ExtendedValue>({getZeroValue()})));
   }
   // additionally, add initial seeds if there are any
   auto taintConfigSeeds = taintConfig.getInitialSeeds();
@@ -227,9 +229,8 @@ void IFDSFieldSensTaintAnalysis::printIFDSReport(
   std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string lcovTraceFile =
       DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");
-  const std::string lcovRetValTraceFile =
-      DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints +
-      "-return-value-trace.txt");
+  const std::string lcovRetValTraceFile = DataFlowUtils::getTraceFilenamePrefix(
+      FirstEntryPoints + "-return-value-trace.txt");
 
 #ifdef DEBUG_BUILD
   // Write line number trace (for tests only)

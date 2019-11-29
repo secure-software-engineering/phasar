@@ -37,7 +37,8 @@ class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
 template <typename V> class PointsToInfo;
 
-template <typename N, typename D, typename M, typename T, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename I>
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,

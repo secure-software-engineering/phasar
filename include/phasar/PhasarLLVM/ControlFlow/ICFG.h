@@ -40,8 +40,6 @@ CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 
-using json = nlohmann::json;
-
 template <typename N, typename M> class ICFG : public virtual CFG<N, M> {
 public:
   ~ICFG() override = default;
@@ -70,7 +68,7 @@ public:
 
   virtual std::set<N> getReturnSitesOfCallAt(N stmt) const = 0;
 
-  virtual json getAsJson() const = 0;
+  virtual nlohmann::json getAsJson() const = 0;
 };
 
 } // namespace psr

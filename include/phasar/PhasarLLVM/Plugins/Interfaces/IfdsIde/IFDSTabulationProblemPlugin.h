@@ -23,11 +23,11 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace llvm {
@@ -53,7 +53,7 @@ public:
                               const LLVMTypeHierarchy *TH,
                               const LLVMBasedICFG *ICF,
                               const LLVMPointsToInfo *PT,
-                              std::set<std::string> EntryPoints = {"main"})
+                              std::set<std::string> EntryPoints)
       : IFDSTabulationProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
                               const llvm::Value *, LLVMBasedICFG>(
@@ -87,7 +87,9 @@ public:
 
 extern std::map<std::string,
                 std::unique_ptr<IFDSTabulationProblemPlugin> (*)(
-                    LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    std::set<std::string> EntryPoints)>
     IFDSTabulationProblemPluginFactory;
 
 } // namespace psr

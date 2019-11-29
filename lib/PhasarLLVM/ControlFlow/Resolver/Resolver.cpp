@@ -86,11 +86,11 @@ void Resolver::insertVtableIntoResult(std::set<const llvm::Function *> &results,
     auto vtable_entry = CH.getVFTable(struct_type)->getFunction(vtable_index);
     if (vtable_entry->getName() != "__cxa_pure_virtual") {
       if (auto call_type = CS.getFunctionType()) {
-          auto candidate = vtable_entry;
-          if (auto candidate_type = candidate->getFunctionType()) {
-            if (!matchVirtualSignature(call_type, candidate_type)) {
-              return;
-            }
+        auto candidate = vtable_entry;
+        if (auto candidate_type = candidate->getFunctionType()) {
+          if (!matchVirtualSignature(call_type, candidate_type)) {
+            return;
+          }
         }
       }
       results.insert(vtable_entry);

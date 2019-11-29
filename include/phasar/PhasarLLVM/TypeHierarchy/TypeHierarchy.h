@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_TYPEHIERARCHY_H_
 
-#include <string>
 #include <set>
+#include <string>
 
 #include <json.hpp>
 
@@ -19,13 +19,12 @@
 
 namespace psr {
 
-template <typename T, typename M>
-class TypeHierarchy {
+template <typename T, typename M> class TypeHierarchy {
 public:
   virtual ~TypeHierarchy() = default;
 
   virtual bool hasType(T Type) const = 0;
-  
+
   virtual bool isSubType(T Type, T SubType) = 0;
 
   virtual std::set<T> getReachableSubTypes(T Type) = 0;
@@ -53,10 +52,11 @@ public:
   virtual nlohmann::json getAsJson() const = 0;
 };
 
-template<typename T, typename M>
-static inline std::ostream &operator<< (std::ostream &OS, const TypeHierarchy<T, M> &TH) {
-    TH.print(OS);
-    return OS;
+template <typename T, typename M>
+static inline std::ostream &operator<<(std::ostream &OS,
+                                       const TypeHierarchy<T, M> &TH) {
+  TH.print(OS);
+  return OS;
 }
 
 } // namespace psr

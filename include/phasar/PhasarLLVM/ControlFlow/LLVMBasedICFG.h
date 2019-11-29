@@ -164,7 +164,7 @@ public:
 
   void printInternalPTGAsDot(const std::string &filename);
 
-  json getAsJson() const override;
+  nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();
 

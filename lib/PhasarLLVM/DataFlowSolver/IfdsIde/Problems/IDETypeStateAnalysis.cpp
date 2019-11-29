@@ -15,10 +15,8 @@
 #include <llvm/IR/Value.h>
 #include <llvm/Support/raw_ostream.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
@@ -33,6 +31,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/PropagateLoad.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -42,10 +42,14 @@ using namespace psr;
 
 namespace psr {
 
-IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT, const TypeStateDescription &TSD,
-                std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD), TOP(TSD.top()), BOTTOM(TSD.bottom()) {
+IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
+                                           const LLVMTypeHierarchy *TH,
+                                           const LLVMBasedICFG *ICF,
+                                           const LLVMPointsToInfo *PT,
+                                           const TypeStateDescription &TSD,
+                                           std::set<std::string> EntryPoints)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD),
+      TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
@@ -58,7 +62,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
-      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca, getZeroValue());
+      return make_shared<Gen<IDETypeStateAnalysis::d_t>>(Alloca,
+                                                         getZeroValue());
     }
   }
   // Check load instructions for target type. Generate from the loaded value and
@@ -458,7 +463,7 @@ void IDETypeStateAnalysis::printMethod(ostream &os,
 }
 
 void IDETypeStateAnalysis::printEdgeFact(ostream &os,
-                                      IDETypeStateAnalysis::l_t l) const {
+                                         IDETypeStateAnalysis::l_t l) const {
   os << TSD.stateToString(l);
 }
 

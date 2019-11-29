@@ -24,7 +24,7 @@
 namespace llvm {
 class ImmutableCallSite;
 class Function;
-}
+} // namespace llvm
 
 namespace psr {
 struct CHAResolver : public Resolver {

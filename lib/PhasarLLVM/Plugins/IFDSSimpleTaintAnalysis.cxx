@@ -31,10 +31,12 @@ using namespace psr;
 
 namespace psr {
 
-unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSSimpleTaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSimpleTaintAnalysis(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSSimpleTaintAnalysis(I, EntryPoints));
+      new IFDSSimpleTaintAnalysis(IRDB, TH, ICF, PT, EntryPoints));
 }
 
 __attribute__((constructor)) void init() {
@@ -47,9 +49,11 @@ __attribute__((destructor)) void fini() {
   cout << "fini - IFDSSimpleTaintAnalysis\n";
 }
 
-IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(LLVMBasedICFG &I,
-                                                 vector<string> EntryPoints)
-    : IFDSTabulationProblemPlugin(I, EntryPoints) {}
+IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
@@ -76,7 +80,7 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                              const llvm::Function *destMthd) {
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
     if (destMthd->getName().str() == "taint") {
-      return make_shared<Gen<const llvm::Value *>>(Call, zeroValue());
+      return make_shared<Gen<const llvm::Value *>>(Call, getZeroValue());
     } else if (destMthd->getName().str() == "leak") {
     } else {
     }
@@ -110,8 +114,9 @@ IFDSSimpleTaintAnalysis::initialSeeds() {
   cout << "IFDSSimpleTaintAnalysis::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+    SeedMap.insert(
+        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                       set<const llvm::Value *>({getZeroValue()})));
   }
   return SeedMap;
 }

@@ -7,18 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_CONTROLLER_ANALYSIS_EXECUTOR_H_
-#define PHASAR_CONTROLLER_ANALYSIS_EXECUTOR_H_
-
-namespace psr {
-
-class ProjectIRDB;
-
-class AnalysisExecutor {
-public:
-  void testExecutor(ProjectIRDB &IRDB);
-};
-
-} // namespace psr
-
+#ifndef WPDS_TYPES
+#define WPDS_TYPES(NAME, TYPE)
 #endif
+
+WPDS_TYPES("WPDS", WPDS)
+WPDS_TYPES("EWPDS", EWPDS)
+WPDS_TYPES("FWPDS", FWPDS)
+WPDS_TYPES("SWPDS", SWPDS)
+WPDS_TYPES("SYNCPDS", SYNCPDS)
+WPDS_TYPES("None", None)
+
+#undef WPDS_TYPES

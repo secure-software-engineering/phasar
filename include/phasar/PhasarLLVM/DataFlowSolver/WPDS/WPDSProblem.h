@@ -10,18 +10,38 @@
 #ifndef PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 #define PHASAR_PHASARLLVM_WPDS_WPDSPROBLEM_H_
 
+#include <set>
+#include <string>
+
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h>
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename V, typename I>
-class WPDSProblem : public virtual IDETabulationProblem<N, D, M, V, I> {
+class ProjectIRDB;
+template <typename T, typename M> class TypeHierarchy;
+template <typename V> class PointsToInfo;
+
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
+class WPDSProblem : public IDETabulationProblem<N, D, M, T, V, L, I> {
+  static_assert(std::is_base_of_v<ICFG<N, M>, I>,
+                "I must implement the ICFG interface!");
+
 public:
-  ~WPDSProblem() override = default;
-  virtual SearchDirection getSearchDirection() = 0;
-  virtual WPDSType getWPDSTy() = 0;
-  virtual bool recordWitnesses() = 0;
+  WPDSProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+              const I *ICF, const PointsToInfo<V> *PT,
+              std::set<std::string> EntryPoints = {})
+      : IDETabulationProblem<N, D, M, T, V, L, I>(IRDB, TH, ICF, PT,
+                                                  EntryPoints) {}
+
+  virtual ~WPDSProblem() override = default;
+
+  WPDSSolverConfig SolverConf;
+
+  void setWPDSSolverConfig(WPDSSolverConfig Config) { SolverConf = Config; }
+
+  WPDSSolverConfig getWPDSSolverConfig() const { return SolverConf; }
 };
 
 } // namespace psr

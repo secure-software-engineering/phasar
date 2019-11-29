@@ -37,9 +37,11 @@ public:
 
   ~LLVMPointsToInfo() override = default;
 
-  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2) const override;
+  AliasResult alias(const llvm::Value *V1,
+                    const llvm::Value *V2) const override;
 
-  std::set<const llvm::Value *> getPointsToSet(const llvm::Value * V1) const override;
+  std::set<const llvm::Value *>
+  getPointsToSet(const llvm::Value *V1) const override;
 
   nlohmann::json getAsJson() const override;
 

@@ -14,13 +14,13 @@
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
@@ -31,9 +31,11 @@ bool IDETaintAnalysis::set_contains_str(set<string> s, string str) {
   return s.find(str) != s.end();
 }
 
-IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints)
+IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
+                                   const LLVMTypeHierarchy *TH,
+                                   const LLVMBasedICFG *ICF,
+                                   const LLVMPointsToInfo *PT,
+                                   std::set<std::string> EntryPoints)
     : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
@@ -187,7 +189,8 @@ void IDETaintAnalysis::printMethod(ostream &os, IDETaintAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
-void IDETaintAnalysis::printEdgeFact(ostream &os, IDETaintAnalysis::l_t v) const {
+void IDETaintAnalysis::printEdgeFact(ostream &os,
+                                     IDETaintAnalysis::l_t v) const {
   os << llvmIRToString(v);
 }
 

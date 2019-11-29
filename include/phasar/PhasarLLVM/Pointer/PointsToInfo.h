@@ -16,18 +16,13 @@
 
 namespace psr {
 
-enum class AliasResult {
-    NoAlias,
-    MayAlias,
-    MustAlias
-};
+enum class AliasResult { NoAlias, MayAlias, MustAlias };
 
 std::string to_string(AliasResult AR);
 
 AliasResult to_AliasResult(const std::string &S);
 
-template <typename V>
-class PointsToInfo {
+template <typename V> class PointsToInfo {
 public:
   virtual ~PointsToInfo() = default;
 

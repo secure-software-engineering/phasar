@@ -31,8 +31,8 @@
 
 #include <json.hpp>
 
-#include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>
 
 namespace llvm {
 class Module;
@@ -50,7 +50,8 @@ class ProjectIRDB;
  * 	hierarchy graph based on the data from the %ProjectIRCompiledDB
  * 	and reconstructing the virtual method tables.
  */
-class LLVMTypeHierarchy : public TypeHierarchy<const llvm::StructType *, const llvm::Function *> {
+class LLVMTypeHierarchy
+    : public TypeHierarchy<const llvm::StructType *, const llvm::Function *> {
 public:
   struct VertexProperties {
     VertexProperties() = default;
@@ -125,34 +126,37 @@ public:
    */
   void constructHierarchy(const llvm::Module &M);
 
-   bool hasType(const llvm::StructType * Type) const override;
+  bool hasType(const llvm::StructType *Type) const override;
 
-   bool isSubType(const llvm::StructType * Type, const llvm::StructType * SubType) override;
+  bool isSubType(const llvm::StructType *Type,
+                 const llvm::StructType *SubType) override;
 
-   std::set<const llvm::StructType *> getReachableSubTypes(const llvm::StructType * Type) override;
+  std::set<const llvm::StructType *>
+  getReachableSubTypes(const llvm::StructType *Type) override;
 
-   bool isSuperType(const llvm::StructType * Type, const llvm::StructType * SuperType) override;
+  bool isSuperType(const llvm::StructType *Type,
+                   const llvm::StructType *SuperType) override;
 
-   std::set<const llvm::StructType *> getReachableSuperTypes(const llvm::StructType * Type) override;
+  std::set<const llvm::StructType *>
+  getReachableSuperTypes(const llvm::StructType *Type) override;
 
-   const llvm::StructType * getType(std::string TypeName) const override;
+  const llvm::StructType *getType(std::string TypeName) const override;
 
-   std::set<const llvm::StructType *> getAllTypes() const override;
+  std::set<const llvm::StructType *> getAllTypes() const override;
 
-   std::string getTypeName(const llvm::StructType * Type) const override;
+  std::string getTypeName(const llvm::StructType *Type) const override;
 
-   bool hasVFTable(const llvm::StructType * Type) const override;
+  bool hasVFTable(const llvm::StructType *Type) const override;
 
-   LLVMVFTable *getVFTable(const llvm::StructType * Type) const override;
+  LLVMVFTable *getVFTable(const llvm::StructType *Type) const override;
 
-   size_t size() const override;
+  size_t size() const override;
 
-   bool empty() const override;
+  bool empty() const override;
 
-   void print(std::ostream &OS) const override;
+  void print(std::ostream &OS) const override;
 
-   nlohmann::json getAsJson() const override;
-
+  nlohmann::json getAsJson() const override;
 
   // void mergeWith(LLVMTypeHierarchy &Other);
 
@@ -170,7 +174,6 @@ public:
   // void printGraphAsDot(std::ostream &out);
 
   // static bidigraph_t loadGraphFormDot(std::istream &in);
-
 };
 
 } // namespace psr

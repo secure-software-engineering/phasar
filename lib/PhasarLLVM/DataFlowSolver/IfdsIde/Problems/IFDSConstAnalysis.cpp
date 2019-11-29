@@ -14,8 +14,6 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenAll.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
@@ -24,6 +22,8 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -35,11 +35,13 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints), ptg(ICF->getWholeModulePTG()), AllMemLocs() {
+IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
+                                     const LLVMTypeHierarchy *TH,
+                                     const LLVMBasedICFG *ICF,
+                                     const LLVMPointsToInfo *PT,
+                                     std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints),
+      ptg(ICF->getWholeModulePTG()), AllMemLocs() {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,

@@ -159,7 +159,8 @@ void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
   }
 }
 
-set<const llvm::Function *> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+set<const llvm::Function *>
+DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -196,8 +197,8 @@ set<const llvm::Function *> DTAResolver::resolveVirtualCall(const llvm::Immutabl
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      insertVtableIntoResult(possible_call_targets, possible_type_struct, vtable_index,
-                             CS);
+      insertVtableIntoResult(possible_call_targets, possible_type_struct,
+                             vtable_index, CS);
     }
   }
 

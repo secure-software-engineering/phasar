@@ -35,8 +35,7 @@ IDEProtoAnalysis::IDEProtoAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMBasedICFG *ICF,
                                    const LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT,
-                                                  EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
@@ -202,7 +201,8 @@ void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
-void IDEProtoAnalysis::printEdgeFact(ostream &os, IDEProtoAnalysis::l_t l) const {
+void IDEProtoAnalysis::printEdgeFact(ostream &os,
+                                     IDEProtoAnalysis::l_t l) const {
   os << llvmIRToString(l);
 }
 

@@ -30,10 +30,12 @@ namespace psr {
 
 // Forward declare the IDETabulationProblem as we require its toString
 // functionality.
-template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
 class IDETabulationProblem;
 
-template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
 class JumpFunctions {
 private:
   std::shared_ptr<EdgeFunction<L>> allTop;

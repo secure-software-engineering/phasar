@@ -17,8 +17,7 @@
 
 namespace psr {
 
-template <typename M>
-class VFTable {
+template <typename M> class VFTable {
 public:
   ~VFTable() = default;
 
@@ -38,7 +37,8 @@ public:
 };
 
 template <typename T, typename M>
-static inline std::ostream &operator<<(std::ostream &OS, const VFTable<M> &Table) {
+static inline std::ostream &operator<<(std::ostream &OS,
+                                       const VFTable<M> &Table) {
   Table.print(OS);
   return OS;
 }

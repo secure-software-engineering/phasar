@@ -29,7 +29,7 @@ class Value;
 namespace psr {
 
 class LLVMBasedICFG;
-class LLVMPointsToGraph;
+class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 
 /**
@@ -44,9 +44,8 @@ class LLVMTypeHierarchy;
 class IFDSConstAnalysis
     : public IFDSTabulationProblem<const llvm::Instruction *,
                                    const llvm::Value *, const llvm::Function *,
-                                   const llvm::StructType*,
-                                   const llvm::Value *,
-                                   LLVMBasedICFG> {
+                                   const llvm::StructType *,
+                                   const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
@@ -64,8 +63,8 @@ private:
 
 public:
   IFDSConstAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints = {"main"});
+                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    std::set<std::string> EntryPoints = {"main"});
 
   ~IFDSConstAnalysis() override = default;
 

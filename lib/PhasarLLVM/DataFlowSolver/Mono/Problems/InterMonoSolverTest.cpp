@@ -25,10 +25,11 @@ using namespace psr;
 
 namespace psr {
 
-InterMonoSolverTest::InterMonoSolverTest(
-    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-    std::set<std::string> EntryPoints)
+InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
+                                         const LLVMTypeHierarchy *TH,
+                                         const LLVMBasedICFG *ICF,
+                                         const LLVMPointsToInfo *PT,
+                                         std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
                        InterMonoSolverTest::m_t, InterMonoSolverTest::t_t,
                        InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(

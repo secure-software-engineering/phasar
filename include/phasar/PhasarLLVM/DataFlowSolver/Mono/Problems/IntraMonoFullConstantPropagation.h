@@ -40,7 +40,8 @@ class LLVMBasedICFG;
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<const llvm::Instruction *,
                               std::pair<const llvm::Value *, unsigned>,
-                              const llvm::Function *, const llvm::StructType *, const llvm::Value *, LLVMBasedCFG> {
+                              const llvm::Function *, const llvm::StructType *,
+                              const llvm::Value *, LLVMBasedCFG> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef std::pair<const llvm::Value *, unsigned> d_t;
@@ -49,10 +50,11 @@ public:
   typedef const llvm::Value *v_t;
   typedef LLVMBasedCFG i_t;
 
-  IntraMonoFullConstantPropagation(
-      const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH, const LLVMBasedCFG *CF,
-      const LLVMPointsToInfo *PT,
-      std::set<std::string> EntryPoints = {});
+  IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
+                                   const LLVMTypeHierarchy *TH,
+                                   const LLVMBasedCFG *CF,
+                                   const LLVMPointsToInfo *PT,
+                                   std::set<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 
   MonoSet<std::pair<const llvm::Value *, unsigned>>

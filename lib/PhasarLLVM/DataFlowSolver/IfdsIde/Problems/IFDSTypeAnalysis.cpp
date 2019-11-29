@@ -84,7 +84,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t curr,
-                       IFDSTypeAnalysis::m_t destMthd) {
+                                         IFDSTypeAnalysis::m_t destMthd) {
   return nullptr;
 }
 

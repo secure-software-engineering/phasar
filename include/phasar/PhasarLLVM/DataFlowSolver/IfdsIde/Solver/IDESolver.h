@@ -57,7 +57,8 @@
 namespace psr {
 
 // Forward declare the Transformation
-template <typename N, typename D, typename M, typename T, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename I>
 class IFDSToIDETabulationProblem;
 
 /**
@@ -74,7 +75,8 @@ class IFDSToIDETabulationProblem;
  * @param <L> The type of values to be computed along flow edges.
  * @param <I> The type of inter-procedural control-flow graph being used.
  */
-template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
 class IDESolver {
 public:
   using ProblemTy = IDETabulationProblem<N, D, M, T, V, L, I>;
@@ -88,10 +90,7 @@ public:
         allTop(tabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
-        initialSeeds(tabulationProblem.initialSeeds()) {
-    // std::cout << "called IDESolver::IDESolver() ctor with IDEProblem"
-    //           << std::endl;
-  }
+        initialSeeds(tabulationProblem.initialSeeds()) {}
   IDESolver &operator=(IDESolver &&) = delete;
   virtual ~IDESolver() = default;
 
@@ -174,10 +173,9 @@ public:
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
-    // TODO: Remove debug output
-    // printComputedPathEdges();
-    // jumpFn->printJumpFunctions(std::cout);
-    // jumpFn->printNonEmptyReverseLookup(std::cout);
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
+      dumpResults();
+    }
     if (SolverConfig.emitESG) {
       emitESGasDot();
     }
@@ -208,9 +206,111 @@ public:
     return result;
   }
 
+  virtual void printReport() {
+    // ideTabulationProblem.emitTextReport(std::cout, getSolverResults());
+  }
+
+  virtual void dumpResults() {
+    PAMM_GET_INSTANCE;
+    START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+    std::cout
+        << "\n***************************************************************\n"
+        << "*                  Raw IDESolver results                      *\n"
+        << "***************************************************************\n";
+    auto cells = this->valtab.cellVec();
+    if (cells.empty()) {
+      std::cout << "No results computed!" << std::endl;
+    } else {
+      // FIXME
+      // llvmValueIDLess llvmIDLess;
+      // std::sort(cells.begin(), cells.end(),
+      //           [&llvmIDLess](
+      //               typename Table<const llvm::Instruction *, D, V>::Cell a,
+      //               typename Table<const llvm::Instruction *, D, V>::Cell b)
+      //               {
+      //             if (!llvmIDLess(a.r, b.r) && !llvmIDLess(b.r, a.r)) {
+      //               if constexpr (std::is_same<D, const llvm::Value
+      //               *>::value) {
+      //                 return llvmIDLess(a.c, b.c);
+      //               } else {
+      //                 // If D is user defined we should use the user defined
+      //                 // less-than comparison
+      //                 return a.c < b.c;
+      //               }
+      //             }
+      //             return llvmIDLess(a.r, b.r);
+      //           });
+      N prev = N{};
+      N curr = N{};
+      M prevFn = M{};
+      M currFn = M{};
+      for (unsigned i = 0; i < cells.size(); ++i) {
+        curr = cells[i].r;
+        currFn = ICF->getFunctionOf(curr);
+        if (prevFn != currFn) {
+          prevFn = currFn;
+          std::cout << "\n\n============ Results for function '" +
+                           ICF->getFunctionName(currFn) + "' ============\n";
+        }
+        if (prev != curr) {
+          prev = curr;
+          std::string NString = ideTabulationProblem.NtoString(curr);
+          std::string line(NString.size(), '-');
+          std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
+        }
+        std::cout << "\tD: " << ideTabulationProblem.DtoString(cells[i].c)
+                  << " | V: " << ideTabulationProblem.LtoString(cells[i].v)
+                  << '\n';
+      }
+    }
+    std::cout << '\n';
+    STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
+  }
+
+  void dumpAllInterPathEdges() {
+    std::cout << "COMPUTED INTER PATH EDGES" << std::endl;
+    auto interpe = this->computedInterPathEdges.cellSet();
+    for (auto &cell : interpe) {
+      std::cout << "FROM" << std::endl;
+      ideTabulationProblem.printNode(std::cout, cell.r);
+      std::cout << "TO" << std::endl;
+      ideTabulationProblem.printNode(std::cout, cell.c);
+      std::cout << "FACTS" << std::endl;
+      for (auto &fact : cell.v) {
+        std::cout << "fact" << std::endl;
+        ideTabulationProblem.printFlowFact(std::cout, fact.first);
+        std::cout << "produces" << std::endl;
+        for (auto &out : fact.second) {
+          ideTabulationProblem.printFlowFact(std::cout, out);
+        }
+      }
+    }
+  }
+
+  void dumpAllIntraPathEdges() {
+    std::cout << "COMPUTED INTRA PATH EDGES" << std::endl;
+    auto intrape = this->computedIntraPathEdges.cellSet();
+    for (auto &cell : intrape) {
+      std::cout << "FROM" << std::endl;
+      ideTabulationProblem.printNode(std::cout, cell.r);
+      std::cout << "TO" << std::endl;
+      ideTabulationProblem.printNode(std::cout, cell.c);
+      std::cout << "FACTS" << std::endl;
+      for (auto &fact : cell.v) {
+        std::cout << "fact" << std::endl;
+        ideTabulationProblem.printFlowFact(std::cout, fact.first);
+        std::cout << "produces" << std::endl;
+        for (auto &out : fact.second) {
+          ideTabulationProblem.printFlowFact(std::cout, out);
+        }
+      }
+    }
+  }
+
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
-  std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>> transformedProblem;
+  std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>>
+      transformedProblem;
   IDETabulationProblem<N, D, M, T, V, L, I> &ideTabulationProblem;
   D zeroValue;
   const I *ICF;

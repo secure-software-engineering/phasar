@@ -170,7 +170,7 @@ void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
   ForwardICFG.printInternalPTGAsDot(filename);
 }
 
-json LLVMBasedBackwardsICFG::getAsJson() const {
+nlohmann::json LLVMBasedBackwardsICFG::getAsJson() const {
   return ForwardICFG.getAsJson();
 }
 

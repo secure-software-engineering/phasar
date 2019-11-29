@@ -23,9 +23,14 @@ namespace psr {
 
 class IFDSTabulationProblemTestPlugin : public IFDSTabulationProblemPlugin {
 public:
-  IFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
-                                  std::vector<std::string> EntryPoints);
+  IFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
+                                  const LLVMTypeHierarchy *TH,
+                                  const LLVMBasedICFG *ICF,
+                                  const LLVMPointsToInfo *PT,
+                                  std::set<std::string> EntryPoints);
+
   ~IFDSTabulationProblemTestPlugin() = default;
+
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
@@ -54,8 +59,11 @@ public:
 };
 
 extern "C" std::unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSTabulationProblemTestPlugin(LLVMBasedICFG &I,
-                                    std::vector<std::string> EntryPoints);
+makeIFDSTabulationProblemTestPlugin(const ProjectIRDB *IRDB,
+                                    const LLVMTypeHierarchy *TH,
+                                    const LLVMBasedICFG *ICF,
+                                    const LLVMPointsToInfo *PT,
+                                    std::set<std::string> EntryPoints);
 
 } // namespace psr
 

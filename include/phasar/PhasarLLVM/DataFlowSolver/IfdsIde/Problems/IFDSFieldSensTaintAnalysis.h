@@ -6,8 +6,8 @@
 #define IFDSFIELDSENSTAINTANALYSIS_H
 
 #include <map>
-#include <set>
 #include <memory>
+#include <set>
 #include <string>
 
 #include <llvm/IR/Function.h>
@@ -15,10 +15,10 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/Domain/ExtendedValue.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
@@ -35,11 +35,9 @@ class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class IFDSFieldSensTaintAnalysis
-    : public IFDSTabulationProblem<const llvm::Instruction *,
-                                          ExtendedValue, const llvm::Function *,
-                                          const llvm::StructType *,
-                                          const llvm::Value *,
-                                          LLVMBasedICFG> {
+    : public IFDSTabulationProblem<
+          const llvm::Instruction *, ExtendedValue, const llvm::Function *,
+          const llvm::StructType *, const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef ExtendedValue d_t;
   typedef const llvm::Instruction *n_t;
@@ -51,9 +49,9 @@ public:
 
   IFDSFieldSensTaintAnalysis(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                const TaintConfiguration<ExtendedValue> &TaintConfig,
-                std::set<std::string> EntryPoints = {"main"});
+      const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+      const TaintConfiguration<ExtendedValue> &TaintConfig,
+      std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>

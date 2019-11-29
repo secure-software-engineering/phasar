@@ -9,20 +9,21 @@
 
 #include <iostream>
 
-#include <llvm/IR/Value.h>
+#include <boost/filesystem/operations.hpp>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
-#include <boost/filesystem/operations.hpp>
 
-namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
+namespace llvm {
+class Value;
+} // namespace llvm
 
 using namespace std;
 using namespace psr;
@@ -30,7 +31,8 @@ using namespace psr;
 int main(int argc, const char **argv) {
   initializeLogger(false);
   auto &lg = lg::get();
-  if (argc < 2 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
+  if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
+      boost::filesystem::is_directory(argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     return 1;
   }
@@ -39,20 +41,27 @@ int main(int argc, const char **argv) {
   DB.preprocessIR();
   if (DB.getFunction("main")) {
     LLVMTypeHierarchy H(DB);
-    LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF,
-                    {"main"});
+    LLVMPointsToInfo PT(DB);
+    LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
     std::cout << "=== Call graph ===\n";
     I.print();
     I.printAsDot("call_graph.dot");
     // IFDS template parametrization test
-		IFDSLinearConstantAnalysis L(I,H,DB, {"main"});
-    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> S(L);
+    IFDSLinearConstantAnalysis L(&DB, &H, &I, &PT, {"main"});
+    IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
+               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
+        S(L);
     S.solve();
     S.dumpResults();
-		// IDE template parametrization test
-		IDELinearConstantAnalysis M(I,H,DB, {"main"});
-		LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> T(M);
-		T.solve();
+    // IDE template parametrization test
+    IDELinearConstantAnalysis M(&DB, &H, &I, &PT, {"main"});
+    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+              IDELinearConstantAnalysis::i_t>
+        T(M);
+    T.solve();
     T.dumpResults();
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";

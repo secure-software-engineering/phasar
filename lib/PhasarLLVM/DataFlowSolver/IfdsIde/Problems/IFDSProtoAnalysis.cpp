@@ -14,12 +14,12 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace psr;
@@ -27,11 +27,12 @@ using namespace std;
 
 namespace psr {
 
-IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                               std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints) {
+IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
+                                     const LLVMTypeHierarchy *TH,
+                                     const LLVMBasedICFG *ICF,
+                                     const LLVMPointsToInfo *PT,
+                                     std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 
@@ -39,8 +40,8 @@ shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
                                          IFDSProtoAnalysis::n_t succ) {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
-    return make_shared<Gen<IFDSProtoAnalysis::d_t>>(
-        Store->getPointerOperand(), getZeroValue());
+    return make_shared<Gen<IFDSProtoAnalysis::d_t>>(Store->getPointerOperand(),
+                                                    getZeroValue());
   }
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }

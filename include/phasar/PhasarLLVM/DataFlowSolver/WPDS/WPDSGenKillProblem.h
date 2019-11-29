@@ -20,20 +20,11 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
 class WPDSGenKillProblem {
-private:
-  I ICFG;
-  WPDSType WPDSTy;
-  SearchDirection Direction;
-  std::vector<N> Stack;
-  bool Witnesses;
-
 public:
-  WPDSGenKillProblem(I ICFG, WPDSType WPDS, SearchDirection Direction,
-                     std::vector<N> Stack = {}, bool Witnesses = false)
-      : ICFG(ICFG), WPDSTy(WPDS), Direction(Direction), Stack(move(Stack)),
-        Witnesses(Witnesses) {}
+  WPDSGenKillProblem() {}
   virtual ~WPDSGenKillProblem() = default;
 };
 

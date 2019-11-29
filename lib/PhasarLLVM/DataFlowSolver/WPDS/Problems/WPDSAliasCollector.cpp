@@ -12,9 +12,10 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
@@ -22,12 +23,15 @@ using namespace psr;
 
 namespace psr {
 
-WPDSAliasCollector::WPDSAliasCollector(LLVMBasedICFG &I,
-                                       const LLVMTypeHierarchy &TH,
-                                       const ProjectIRDB &DB, WPDSType WPDS,
-                                       SearchDirection Direction,
-                                       std::vector<n_t> Stack, bool Witnesses)
-    : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses) {}
+WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
+                                       const LLVMTypeHierarchy *TH,
+                                       const LLVMBasedICFG *ICF,
+                                       const LLVMPointsToInfo *PT,
+                                       std::set<std::string> EntryPoints)
+    : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
+                  WPDSAliasCollector::m_t, WPDSAliasCollector::t_t,
+                  WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
+                  WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t curr,
@@ -62,41 +66,41 @@ WPDSAliasCollector::getSummaryFlowFunction(WPDSAliasCollector::n_t curr,
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t curr,
                                           WPDSAliasCollector::d_t currNode,
                                           WPDSAliasCollector::n_t succ,
                                           WPDSAliasCollector::d_t succNode) {
-  return EdgeIdentity<WPDSAliasCollector::v_t>::getInstance();
+  return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallEdgeFunction(
     WPDSAliasCollector::n_t callStmt, WPDSAliasCollector::d_t srcNode,
     WPDSAliasCollector::m_t destinationMethod,
     WPDSAliasCollector::d_t destNode) {
-  return EdgeIdentity<WPDSAliasCollector::v_t>::getInstance();
+  return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getReturnEdgeFunction(WPDSAliasCollector::n_t callSite,
                                           WPDSAliasCollector::m_t calleeMethod,
                                           WPDSAliasCollector::n_t exitStmt,
                                           WPDSAliasCollector::d_t exitNode,
                                           WPDSAliasCollector::n_t reSite,
                                           WPDSAliasCollector::d_t retNode) {
-  return EdgeIdentity<WPDSAliasCollector::v_t>::getInstance();
+  return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallToRetEdgeFunction(
     WPDSAliasCollector::n_t callSite, WPDSAliasCollector::d_t callNode,
     WPDSAliasCollector::n_t retSite, WPDSAliasCollector::d_t retSiteNode,
     set<WPDSAliasCollector::m_t> callees) {
-  return EdgeIdentity<WPDSAliasCollector::v_t>::getInstance();
+  return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getSummaryEdgeFunction(WPDSAliasCollector::n_t curr,
                                            WPDSAliasCollector::d_t currNode,
                                            WPDSAliasCollector::n_t succ,
@@ -104,21 +108,17 @@ WPDSAliasCollector::getSummaryEdgeFunction(WPDSAliasCollector::n_t curr,
   return nullptr;
 }
 
-WPDSAliasCollector::v_t WPDSAliasCollector::topElement() {
+WPDSAliasCollector::l_t WPDSAliasCollector::topElement() {
   return BinaryDomain::TOP;
 }
-WPDSAliasCollector::v_t WPDSAliasCollector::bottomElement() {
+WPDSAliasCollector::l_t WPDSAliasCollector::bottomElement() {
   return BinaryDomain::BOTTOM;
 }
-WPDSAliasCollector::v_t WPDSAliasCollector::join(WPDSAliasCollector::v_t lhs,
-                                                 WPDSAliasCollector::v_t rhs) {
+WPDSAliasCollector::l_t WPDSAliasCollector::join(WPDSAliasCollector::l_t lhs,
+                                                 WPDSAliasCollector::l_t rhs) {
   return (lhs == BinaryDomain::BOTTOM || rhs == BinaryDomain::BOTTOM)
              ? BinaryDomain::BOTTOM
              : BinaryDomain::TOP;
-}
-
-WPDSAliasCollector::d_t WPDSAliasCollector::zeroValue() {
-  return LLVMZeroValue::getInstance();
 }
 
 bool WPDSAliasCollector::isZeroValue(WPDSAliasCollector::d_t d) const {
@@ -129,9 +129,9 @@ WPDSAliasCollector::initialSeeds() {
   return {};
 }
 
-std::shared_ptr<EdgeFunction<WPDSAliasCollector::v_t>>
+std::shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::allTopFunction() {
-  return make_shared<AllTop<WPDSAliasCollector::v_t>>(BinaryDomain::TOP);
+  return make_shared<AllTop<WPDSAliasCollector::l_t>>(BinaryDomain::TOP);
 }
 
 void WPDSAliasCollector::printNode(std::ostream &os,
@@ -149,8 +149,8 @@ void WPDSAliasCollector::printMethod(std::ostream &os,
   os << m->getName().str();
 }
 
-void WPDSAliasCollector::printValue(std::ostream &os,
-                                    WPDSAliasCollector::v_t v) const {
+void WPDSAliasCollector::printEdgeFact(std::ostream &os,
+                                       WPDSAliasCollector::l_t v) const {
   if (v == BinaryDomain::TOP) {
     os << "TOP";
   } else {

@@ -9,6 +9,8 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace std;
 using namespace psr;
@@ -16,15 +18,14 @@ using namespace psr;
 namespace psr {
 
 WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
-    LLVMBasedICFG &I, const LLVMTypeHierarchy &TH, const ProjectIRDB &DB,
-    WPDSType WPDS, SearchDirection Direction,
-    std::vector<std::string> EntryPoints, std::vector<n_t> Stack,
-    bool Witnesses)
-    : LLVMDefaultWPDSProblem(I, TH, DB, WPDS, Direction, Stack, Witnesses),
-      IDELinearConstantAnalysis(I, TH, DB, EntryPoints) {}
-
-LLVMBasedICFG &WPDSLinearConstantAnalysis::interproceduralCFG() {
-  return this->icfg;
-}
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : WPDSProblem<
+          WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,
+          WPDSLinearConstantAnalysis::m_t, WPDSLinearConstantAnalysis::t_t,
+          WPDSLinearConstantAnalysis::v_t, WPDSLinearConstantAnalysis::l_t,
+          WPDSLinearConstantAnalysis::i_t>(IRDB, TH, ICF, PT, EntryPoints),
+      IDELinearConstantAnalysis(IRDB, TH, ICF, PT, EntryPoints) {}
 
 } // namespace psr

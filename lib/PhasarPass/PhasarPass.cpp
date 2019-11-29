@@ -27,16 +27,17 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMIntraMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/PhasarPass/Options.h>
@@ -59,102 +60,130 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   ProjectIRDB DB(Opt);
   DB.insertModule(&M);
   DB.preprocessIR();
+  std::set<std::string> EntryPointsSet;
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {
     if (!DB.getFunction(EP)) {
       llvm::report_fatal_error("psr error: entry point does not exist '" + EP +
                                "'");
     }
+    EntryPointsSet.insert(EP);
   }
   // set up the call-graph algorithm to be used
   CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(CallGraphAnalysis);
   LLVMTypeHierarchy H(DB);
+  LLVMPointsToInfo PT(DB);
   LLVMBasedCFG CFG;
-  LLVMBasedICFG I(H, DB, CGTy, EntryPoints);
+  LLVMBasedICFG I(H, DB, CGTy, EntryPointsSet);
   if (DataFlowAnalysis == "ifds-solvertest") {
-    IFDSSolverTest ifdstest(I, H, DB, EntryPoints);
-    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmifdstestsolver(
-        ifdstest);
+    IFDSSolverTest ifdstest(&DB, &H, &I, &PT, EntryPointsSet);
+    IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::m_t,
+               IFDSSolverTest::t_t, IFDSSolverTest::v_t, IFDSSolverTest::i_t>
+        llvmifdstestsolver(ifdstest);
     llvmifdstestsolver.solve();
     if (DumpResults) {
       llvmifdstestsolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-solvertest") {
-    IDESolverTest idetest(I, H, DB, EntryPoints);
-    LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+    IDESolverTest idetest(&DB, &H, &I, &PT, EntryPointsSet);
+    IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::m_t,
+              IDESolverTest::t_t, IDESolverTest::v_t, IDESolverTest::l_t,
+              IDESolverTest::i_t>
         llvmidetestsolver(idetest);
     llvmidetestsolver.solve();
     if (DumpResults) {
       llvmidetestsolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
-    const llvm::Function *F = DB.getFunction(EntryPoints.front());
-    IntraMonoSolverTest intra(CFG, F);
-    LLVMIntraMonoSolver<const llvm::Value *, LLVMBasedCFG &> solver(intra);
+    IntraMonoSolverTest intra(&DB, &H, &I, &PT, EntryPointsSet);
+    IntraMonoSolver<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
+                    IntraMonoSolverTest::m_t, IntraMonoSolverTest::t_t,
+                    IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>
+        solver(intra);
     solver.solve();
     if (DumpResults) {
       solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
-    const llvm::Function *F = DB.getFunction(EntryPoints.front());
-    InterMonoSolverTest inter(I, EntryPoints);
-    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 0> solver(inter);
+    InterMonoSolverTest inter(&DB, &H, &I, &PT, EntryPointsSet);
+    InterMonoSolver<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
+                    InterMonoSolverTest::m_t, InterMonoSolverTest::t_t,
+                    InterMonoSolverTest::v_t, InterMonoSolverTest::i_t, 3>
+        solver(inter);
     solver.solve();
     if (DumpResults) {
       solver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-const") {
-    IFDSConstAnalysis constproblem(I, H, DB, DB.getAllMemoryLocations(),
-                                   EntryPoints);
-    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmconstsolver(
-        constproblem);
+    IFDSConstAnalysis constproblem(&DB, &H, &I, &PT, EntryPointsSet);
+    IFDSSolver<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
+               IFDSConstAnalysis::m_t, IFDSConstAnalysis::t_t,
+               IFDSConstAnalysis::v_t, IFDSConstAnalysis::i_t>
+        llvmconstsolver(constproblem);
     llvmconstsolver.solve();
     if (DumpResults) {
       llvmconstsolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-lca") {
-    IFDSLinearConstantAnalysis lcaproblem(I, H, DB, EntryPoints);
-    LLVMIFDSSolver<LCAPair, LLVMBasedICFG &> llvmlcasolver(lcaproblem);
+    IFDSLinearConstantAnalysis lcaproblem(&DB, &H, &I, &PT, EntryPointsSet);
+    IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
+               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
+        llvmlcasolver(lcaproblem);
     llvmlcasolver.solve();
     if (DumpResults) {
       llvmlcasolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-taint") {
     TaintConfiguration<const llvm::Value *> TSF;
-    IFDSTaintAnalysis TaintAnalysisProblem(I, H, DB, TSF, EntryPoints);
-    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> LLVMTaintSolver(
-        TaintAnalysisProblem);
+    IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, TSF,
+                                           EntryPointsSet);
+    IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
+               IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+               IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
+        LLVMTaintSolver(TaintAnalysisProblem);
     LLVMTaintSolver.solve();
     if (DumpResults) {
       LLVMTaintSolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-type") {
-    IFDSTypeAnalysis typeanalysisproblem(I, H, DB, EntryPoints);
-    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmtypesolver(
-        typeanalysisproblem);
+    IFDSTypeAnalysis typeanalysisproblem(&DB, &H, &I, &PT, EntryPointsSet);
+    IFDSSolver<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
+               IFDSTypeAnalysis::m_t, IFDSTypeAnalysis::t_t,
+               IFDSTypeAnalysis::v_t, IFDSTypeAnalysis::i_t>
+        llvmtypesolver(typeanalysisproblem);
     llvmtypesolver.solve();
     if (DumpResults) {
       llvmtypesolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ifds-uninit") {
-    IFDSUninitializedVariables uninitializedvarproblem(I, H, DB, EntryPoints);
-    LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> llvmunivsolver(
-        uninitializedvarproblem);
+    IFDSUninitializedVariables uninitializedvarproblem(&DB, &H, &I, &PT,
+                                                       EntryPointsSet);
+    IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+               IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+               IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+        llvmunivsolver(uninitializedvarproblem);
     llvmunivsolver.solve();
     if (DumpResults) {
       llvmunivsolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-lca") {
-    IDELinearConstantAnalysis lcaproblem(I, H, DB, EntryPoints);
-    LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-        lcaproblem);
+    IDELinearConstantAnalysis lcaproblem(&DB, &H, &I, &PT, EntryPointsSet);
+    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+              IDELinearConstantAnalysis::i_t>
+        llvmlcasolver(lcaproblem);
     llvmlcasolver.solve();
     if (DumpResults) {
       llvmlcasolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "ide-taint") {
-    IDETaintAnalysis taintanalysisproblem(I, H, DB, EntryPoints);
-    LLVMIDESolver<const llvm::Value *, const llvm::Value *, LLVMBasedICFG &>
+    IDETaintAnalysis taintanalysisproblem(&DB, &H, &I, &PT, EntryPointsSet);
+    IDESolver<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
+              IDETaintAnalysis::m_t, IDETaintAnalysis::t_t,
+              IDETaintAnalysis::v_t, IDETaintAnalysis::l_t,
+              IDETaintAnalysis::i_t>
         llvmtaintsolver(taintanalysisproblem);
     llvmtaintsolver.solve();
     if (DumpResults) {
@@ -162,8 +191,12 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     }
   } else if (DataFlowAnalysis == "ide-typestate") {
     CSTDFILEIOTypeStateDescription fileIODesc;
-    IDETypeStateAnalysis typestateproblem(I, H, DB, fileIODesc, EntryPoints);
-    LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &>
+    IDETypeStateAnalysis typestateproblem(&DB, &H, &I, &PT, fileIODesc,
+                                          EntryPointsSet);
+    IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+              IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+              IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
+              IDETypeStateAnalysis::i_t>
         llvmtypestatesolver(typestateproblem);
     llvmtypestatesolver.solve();
     if (DumpResults) {

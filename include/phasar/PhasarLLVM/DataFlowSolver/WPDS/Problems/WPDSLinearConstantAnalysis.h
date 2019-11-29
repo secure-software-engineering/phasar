@@ -14,37 +14,36 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/LLVMDefaultWPDSProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
 
 namespace llvm {
 class Value;
 class Instruction;
+class StructType;
 class Function;
 } // namespace llvm
 
 namespace psr {
 
 class LLVMBasedICFG;
+class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
 class ProjectIRDB;
 
 class WPDSLinearConstantAnalysis
-    : public LLVMDefaultWPDSProblem<const llvm::Value *, int64_t,
-                                    LLVMBasedICFG &>,
-      public IDELinearConstantAnalysis {
-
+    : public virtual WPDSProblem<const llvm::Instruction *, const llvm::Value *,
+                                 const llvm::Function *,
+                                 const llvm::StructType *, const llvm::Value *,
+                                 int64_t, LLVMBasedICFG>,
+      public virtual IDELinearConstantAnalysis {
 public:
-  WPDSLinearConstantAnalysis(LLVMBasedICFG &I, const LLVMTypeHierarchy &TH,
-                             const ProjectIRDB &DB, WPDSType WPDS,
-                             SearchDirection Direction,
-                             std::vector<std::string> EntryPoints = {"main"},
-                             std::vector<n_t> Stack = {},
-                             bool Witnesses = false);
+  WPDSLinearConstantAnalysis(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF,
+                             const LLVMPointsToInfo *PT,
+                             std::set<std::string> EntryPoints = {"main"});
 
   ~WPDSLinearConstantAnalysis() override = default;
-
-  LLVMBasedICFG &interproceduralCFG() override;
 };
 
 } // namespace psr

@@ -76,7 +76,8 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 
 void OTFResolver::OtherInst(const llvm::Instruction *Inst) {}
 
-set<const llvm::Function *> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+set<const llvm::Function *>
+OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -116,7 +117,8 @@ set<const llvm::Function *> OTFResolver::resolveVirtualCall(const llvm::Immutabl
   }
 
   for (auto possible_type_struct : possible_types) {
-    insertVtableIntoResult(possible_call_targets, possible_type_struct, vtable_index, CS);
+    insertVtableIntoResult(possible_call_targets, possible_type_struct,
+                           vtable_index, CS);
   }
 
   if (possible_call_targets.empty())

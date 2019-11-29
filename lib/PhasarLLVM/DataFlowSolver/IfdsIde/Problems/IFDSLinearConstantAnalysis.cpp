@@ -12,12 +12,12 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -47,11 +47,11 @@ bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
   return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
 }
 
-IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                               std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints) {
+IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IFDSLinearConstantAnalysis::ZeroValue = createZeroValue();
 }
 
@@ -108,7 +108,8 @@ IFDSLinearConstantAnalysis::initialSeeds() {
   return SeedMap;
 }
 
-IFDSLinearConstantAnalysis::d_t IFDSLinearConstantAnalysis::createZeroValue() const {
+IFDSLinearConstantAnalysis::d_t
+IFDSLinearConstantAnalysis::createZeroValue() const {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IFDSLinearConstantAnalysis::createZeroValue()");

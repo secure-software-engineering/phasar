@@ -25,28 +25,24 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename I>
 class IFDSSolver : public IDESolver<N, D, M, T, V, BinaryDomain, I> {
 public:
   using ProblemTy = IFDSTabulationProblem<N, D, M, T, V, I>;
 
   IFDSSolver(IFDSTabulationProblem<N, D, M, T, V, I> &ifdsProblem)
-      : IDESolver<N, D, M, T, V, BinaryDomain, I>(ifdsProblem) {
-    // std::cout << "IFDSSolver::IFDSSolver()" << std::endl;
-    // std::cout << ifdsProblem.NtoString(getNthInstruction(
-    // ifdsProblem.interproceduralCFG().getMethod("main"), 1))
-    //  << std::endl;
-  }
+      : IDESolver<N, D, M, T, V, BinaryDomain, I>(ifdsProblem) {}
 
   ~IFDSSolver() override = default;
 
   std::set<D> ifdsResultsAt(N stmt) {
-    std::set<D> keyset;
-    std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
-    for (auto d : map) {
-      keyset.insert(d.first);
+    std::set<D> KeySet;
+    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(stmt);
+    for (auto FlowFact : ResultMap) {
+      KeySet.insert(FlowFact.first);
     }
-    return keyset;
+    return KeySet;
   }
 };
 

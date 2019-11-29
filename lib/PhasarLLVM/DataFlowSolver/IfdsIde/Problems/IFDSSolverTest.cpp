@@ -12,11 +12,11 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -26,11 +26,12 @@ using namespace psr;
 
 namespace psr {
 
-IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                               const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+IFDSSolverTest::IFDSSolverTest(const ProjectIRDB *IRDB,
+                               const LLVMTypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF,
+                               const LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(
-          IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
   IFDSSolverTest::ZeroValue = createZeroValue();
 }
 

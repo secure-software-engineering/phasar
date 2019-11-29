@@ -86,9 +86,29 @@ public:
     for (auto entry : Analysis) {
       entry.second = IMProblem.normalFlow(entry.first, entry.second);
     }
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
+      dumpResults();
+    }
   }
 
-  MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
+  virtual MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
+
+  virtual void dumpResults() {
+    std::cout << "Intra-Monotone solver results:\n"
+                 "------------------------------\n";
+    for (auto &entry : this->Analysis) {
+      std::cout << "Instruction:\n" << this->IMProblem.NtoString(entry.first);
+      std::cout << "\nFacts:\n";
+      if (entry.second.empty()) {
+        std::cout << "\tEMPTY\n";
+      } else {
+        for (auto fact : entry.second) {
+          std::cout << this->IMProblem.DtoString(fact) << '\n';
+        }
+      }
+      std::cout << "\n\n";
+    }
+  }
 };
 
 } // namespace psr

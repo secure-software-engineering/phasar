@@ -10,11 +10,11 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
+#include <initializer_list>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
-#include <initializer_list>
 
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Module.h>

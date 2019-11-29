@@ -82,11 +82,11 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
   cout << "All modules loaded\n";
 }
 
-  ProjectIRDB::ProjectIRDB(std::vector<llvm::Module *> &Modules) {
-    for (auto M : Modules) {
-      insertModule(M);
-    }
+ProjectIRDB::ProjectIRDB(std::vector<llvm::Module *> &Modules) {
+  for (auto M : Modules) {
+    insertModule(M);
   }
+}
 
 ProjectIRDB::~ProjectIRDB() {
   // if the IRDB doesn't own the given pointers, they have to be released before
@@ -469,7 +469,8 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
                  llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
   } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(V)) {
-    return A->getParent()->getName().str() + ".f" + std::to_string(A->getArgNo());
+    return A->getParent()->getName().str() + ".f" +
+           std::to_string(A->getArgNo());
   } else if (const llvm::GlobalValue *G =
                  llvm::dyn_cast<llvm::GlobalValue>(V)) {
     std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";

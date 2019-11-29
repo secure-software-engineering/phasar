@@ -26,10 +26,12 @@ using namespace psr;
 
 namespace psr {
 
-unique_ptr<IFDSTabulationProblemPlugin>
-makeIFDSSFB901TaintAnalysis(LLVMBasedICFG &I, vector<string> EntryPoints) {
+unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSFB901TaintAnalysis(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSSFB901TaintAnalysis(I, EntryPoints));
+      new IFDSSFB901TaintAnalysis(IRDB, TH, ICF, PT, EntryPoints));
 }
 
 __attribute__((constructor)) void init() {
@@ -42,9 +44,11 @@ __attribute__((destructor)) void fini() {
   cout << "fini - IFDSSFB901TaintAnalysis\n";
 }
 
-IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(LLVMBasedICFG &I,
-                                                 vector<string> EntryPoints)
-    : IFDSTabulationProblemPlugin(I, EntryPoints) {}
+IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
+    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+    std::set<std::string> EntryPoints)
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
@@ -84,8 +88,8 @@ IFDSSFB901TaintAnalysis::initialSeeds() {
   cout << "IFDSSFB901TaintAnalysis::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   SeedMap.insert(std::make_pair(
-      &icfg.getMethod("run_service_contrast_cpu")->front().front(),
-      set<const llvm::Value *>({zeroValue()})));
+      &ICF->getFunction("run_service_contrast_cpu")->front().front(),
+      set<const llvm::Value *>({getZeroValue()})));
   return SeedMap;
 }
 

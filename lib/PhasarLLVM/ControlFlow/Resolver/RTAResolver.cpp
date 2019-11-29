@@ -47,7 +47,8 @@ void RTAResolver::firstFunction(const llvm::Function *F) {
   }
 }
 
-set<const llvm::Function *> RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+set<const llvm::Function *>
+RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
@@ -78,8 +79,7 @@ set<const llvm::Function *> RTAResolver::resolveVirtualCall(const llvm::Immutabl
   }
 
   // also insert all possible subtypes vtable entries
-  auto reachable_types =
-      CH.getReachableSubTypes(receiver_type);
+  auto reachable_types = CH.getReachableSubTypes(receiver_type);
 
   // also insert all possible subtypes vtable entries
   auto possible_types = IRDB.getAllocatedTypes();
@@ -89,8 +89,8 @@ set<const llvm::Function *> RTAResolver::resolveVirtualCall(const llvm::Immutabl
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       if (reachable_types.find(possible_type_struct) != end_it) {
-        insertVtableIntoResult(possible_call_targets, possible_type_struct, vtable_index,
-                               CS);
+        insertVtableIntoResult(possible_call_targets, possible_type_struct,
+                               vtable_index, CS);
       }
     }
   }

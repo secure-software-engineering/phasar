@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/LLVMWPDSSolver.h>
+#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMMMacros.h>
 

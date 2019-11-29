@@ -33,8 +33,7 @@ class LLVMPointsToInfo;
 class IDETaintAnalysis
     : public IDETabulationProblem<const llvm::Instruction *,
                                   const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType*,
-                                  const llvm::Value *,
+                                  const llvm::StructType *, const llvm::Value *,
                                   const llvm::Value *, LLVMBasedICFG> {
 public:
   typedef const llvm::Value *d_t;
@@ -52,8 +51,8 @@ public:
   bool set_contains_str(std::set<std::string> s, std::string str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
-                const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                std::set<std::string> EntryPoints = {"main"});
+                   const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                   std::set<std::string> EntryPoints = {"main"});
 
   ~IDETaintAnalysis() override = default;
 

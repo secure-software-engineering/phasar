@@ -30,7 +30,8 @@ namespace psr {
  * version is used if existend, otherwise a new one is created and inserted
  * into the cache.
  */
-template <typename N, typename D, typename M, typename T, typename V, typename L, typename I>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename L, typename I>
 class FlowEdgeFunctionCache {
 private:
   IDETabulationProblem<N, D, M, T, V, L, I> &problem;
@@ -62,7 +63,8 @@ public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
   FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, T, V, L, I> &problem)
-      : problem(problem), autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
+      : problem(problem),
+        autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
         zeroValue(problem.getZeroValue()) {
     PAMM_GET_INSTANCE;
     REG_COUNTER("Normal-FF Construction", 0, PAMM_SEVERITY_LEVEL::Full);

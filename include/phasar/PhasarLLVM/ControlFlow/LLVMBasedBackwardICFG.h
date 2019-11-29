@@ -50,8 +50,7 @@ public:
 
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                          CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {
-                             "main"});
+                         const std::set<std::string> &EntryPoints = {"main"});
 
   LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                          const llvm::Module &M, CallGraphAnalysisType CGType,
@@ -104,7 +103,7 @@ public:
 
   void printInternalPTGAsDot(const std::string &filename);
 
-  json getAsJson() const override;
+  nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();
 

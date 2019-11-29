@@ -30,7 +30,8 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V, typename I, unsigned K>
+template <typename N, typename D, typename M, typename T, typename V,
+          typename I, unsigned K>
 class InterMonoSolver {
 public:
   using ProblemTy = InterMonoProblem<N, D, M, T, V, I>;
@@ -229,8 +230,9 @@ public:
             retsites.insert(retsitesPerCall.begin(), retsitesPerCall.end());
           }
           for (auto callsite : callsites) {
-            auto retFactsPerCall = IMProblem.returnFlow(
-                callsite, ICF->getFunctionOf(src), src, dst, Analysis[src][CTX]);
+            auto retFactsPerCall =
+                IMProblem.returnFlow(callsite, ICF->getFunctionOf(src), src,
+                                     dst, Analysis[src][CTX]);
             Out[CTXRm].insert(retFactsPerCall.begin(), retFactsPerCall.end());
           }
           for (auto retsite : retsites) {
@@ -258,6 +260,9 @@ public:
         }
       }
     }
+    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
+      dumpResults();
+    }
   }
 
   MonoSet<D> getResultsAt(N n) {
@@ -266,6 +271,29 @@ public:
       Result.insert(Facts.begin(), Facts.end());
     }
     return Result;
+  }
+
+  void dumpResults() {
+    std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
+    for (auto &entry : this->Analysis) {
+      std::cout << "Instruction:\n" << this->IMProblem.NtoString(entry.first);
+      std::cout << "\nFacts:\n";
+      if (entry.second.empty()) {
+        std::cout << "\tEMPTY\n";
+      } else {
+        for (auto &context : entry.second) {
+          std::cout << context.first << '\n';
+          if (context.second.empty()) {
+            std::cout << "\tEMPTY\n";
+          } else {
+            for (auto &fact : context.second) {
+              std::cout << this->IMProblem.DtoString(fact);
+            }
+          }
+        }
+      }
+      std::cout << '\n';
+    }
   }
 };
 

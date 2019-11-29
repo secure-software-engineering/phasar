@@ -437,7 +437,8 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
   return types;
 }
 
-set<const llvm::Value *> PointsToGraph::getPointsToSet(const llvm::Value *V) const {
+set<const llvm::Value *>
+PointsToGraph::getPointsToSet(const llvm::Value *V) const {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getPointsToSet", 1, PAMM_SEVERITY_LEVEL::Full);
   START_TIMER("PointsTo-Set Computation", PAMM_SEVERITY_LEVEL::Full);

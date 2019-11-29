@@ -11,26 +11,28 @@
 #define PHASAR_PHASARLLVM_WPDS_WPDSOPTIONS_H_
 
 #include <iosfwd>
-#include <map>
 #include <string>
 
 namespace psr {
 
-enum class WPDSType { WPDS, EWPDS, FWPDS, SWPDS };
+enum class WPDSType {
+#define WPDS_TYPES(NAME, TYPE) TYPE,
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def>
+};
 
-std::ostream &operator<<(std::ostream &os, const WPDSType &s);
+WPDSType to_WPDSType(const std::string &S);
 
-extern const std::map<std::string, WPDSType> StringToWPDSType;
+std::string to_string(const WPDSType &T);
 
-extern const std::map<WPDSType, std::string> WPDSTypeToString;
+std::ostream &operator<<(std::ostream &OS, const WPDSType &T);
 
-enum class SearchDirection { FORWARD, BACKWARD };
+enum class WPDSSearchDirection { FORWARD, BACKWARD };
 
-std::ostream &operator<<(std::ostream &os, const SearchDirection &s);
+WPDSSearchDirection to_WPDSSearchDirection(const std::string &S);
 
-extern const std::map<std::string, SearchDirection> StringToSearchDirection;
+std::string to_string(const WPDSSearchDirection &S);
 
-extern const std::map<SearchDirection, std::string> SearchDirectionToString;
+std::ostream &operator<<(std::ostream &OS, const WPDSSearchDirection &S);
 
 } // namespace psr
 
