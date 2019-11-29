@@ -121,6 +121,31 @@ public:
    */
   size_t getGlobalPointers();
 
+ /**
+   * @brief Returns the number of basic blocks.
+   */
+  size_t getBasicBlocks();
+
+  /**
+   * @brief Returns the number of functions.
+   */
+  size_t getFunctions();
+
+  /**
+   * @brief Returns the number of globals.
+   */
+  size_t getGlobals();
+
+  /**
+   * @brief Returns the number of memory intrinsics.
+   */
+  size_t getMemoryIntrinsics();
+
+  /**
+   * @brief Returns the number of store instructions.
+   */
+  size_t getStoreInstructions();
+
   /**
    * @brief Returns all possible Types.
    */

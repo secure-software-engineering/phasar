@@ -37,7 +37,6 @@
 #include <phasar/Utils/PAMMMacros.h>
 
 namespace bpo = boost::program_options;
-namespace bfs = boost::filesystem;
 using namespace std;
 using namespace psr;
 
