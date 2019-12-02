@@ -2,9 +2,10 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 using namespace std;
 using namespace psr;
@@ -16,11 +17,12 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/taint_analysis/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
+  LLVMPointsToInfo *PT;
   IFDSTaintAnalysis *TaintProblem;
   TaintConfiguration<const llvm::Value *> *TSF;
 
@@ -33,12 +35,13 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    PT = new LLVMPointsToInfo(*IRDB);
     TSF = new TaintConfiguration<const llvm::Value *>(
         {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
                                                                  true)},
         {TaintConfiguration<const llvm::Value *>::SinkFunction(
             "sink(int)", std::vector<unsigned>({0}))});
-    TaintProblem = new IFDSTaintAnalysis(*ICFG, *TH, *IRDB, *TSF, EntryPoints);
+    TaintProblem = new IFDSTaintAnalysis(IRDB, TH, ICFG, PT, *TSF, EntryPoints);
   }
 
   void SetUp() override {
@@ -71,7 +74,7 @@ protected:
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -81,7 +84,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -91,7 +94,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -101,7 +104,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -111,7 +114,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -122,7 +125,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;
@@ -132,7 +135,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
 
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> TaintSolver(
+  IFDSSolver<IFDSTaintAnalysis::n_t,IFDSTaintAnalysis::d_t,IFDSTaintAnalysis::m_t,IFDSTaintAnalysis::t_t,IFDSTaintAnalysis::v_t,IFDSTaintAnalysis::i_t> TaintSolver(
       *TaintProblem);
   TaintSolver.solve();
   map<int, set<string>> GroundTruth;

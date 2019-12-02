@@ -3,9 +3,10 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 using namespace psr;
 
@@ -15,11 +16,12 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/typestate_analysis/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
+  LLVMPointsToInfo* PT;
   CSTDFILEIOTypeStateDescription *CSTDFILEIODesc;
   IDETypeStateAnalysis *TSProblem;
   enum IOSTATE {
@@ -38,10 +40,11 @@ protected:
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
+    PT = new LLVMPointsToInfo(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
-    TSProblem = new IDETypeStateAnalysis(*ICFG, *TH, *IRDB, *CSTDFILEIODesc,
+    TSProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *CSTDFILEIODesc,
                                          EntryPoints);
   }
 
@@ -65,7 +68,7 @@ protected:
    */
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &groundTruth,
-      LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> &solver) {
+      IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> &solver) {
     for (auto InstToGroundTruth : groundTruth) {
       auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
@@ -83,7 +86,7 @@ protected:
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_01) {
   Initialize({pathToLLFiles + "typestate_01_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -96,7 +99,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_01) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_02) {
   Initialize({pathToLLFiles + "typestate_02_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -107,7 +110,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_02) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_03) {
   Initialize({pathToLLFiles + "typestate_03_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -130,7 +133,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_03) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_04) {
   Initialize({pathToLLFiles + "typestate_04_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -144,7 +147,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_04) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_05) {
   Initialize({pathToLLFiles + "typestate_05_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -167,7 +170,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_05) {
 TEST_F(IDETypeStateAnalysisTest, DISABLED_HandleTypeState_06) {
   // This test fails due to imprecise points-to information
   Initialize({pathToLLFiles + "typestate_06_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -203,7 +206,7 @@ TEST_F(IDETypeStateAnalysisTest, DISABLED_HandleTypeState_06) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_07) {
   Initialize({pathToLLFiles + "typestate_07_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -234,7 +237,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_07) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_08) {
   Initialize({pathToLLFiles + "typestate_08_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -248,7 +251,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_08) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_09) {
   Initialize({pathToLLFiles + "typestate_09_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -262,7 +265,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_09) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_10) {
   Initialize({pathToLLFiles + "typestate_10_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -284,7 +287,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_10) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_11) {
   Initialize({pathToLLFiles + "typestate_11_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -309,7 +312,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_11) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_12) {
   Initialize({pathToLLFiles + "typestate_12_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -325,7 +328,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_12) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_13) {
   Initialize({pathToLLFiles + "typestate_13_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -341,7 +344,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_13) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_14) {
   Initialize({pathToLLFiles + "typestate_14_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -365,7 +368,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_14) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_15) {
   Initialize({pathToLLFiles + "typestate_15_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -410,7 +413,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_15) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_16) {
   Initialize({pathToLLFiles + "typestate_16_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -425,7 +428,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_16) {
 // TODO: Check this case again!
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_17) {
   Initialize({pathToLLFiles + "typestate_17_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -453,7 +456,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_17) {
 
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_18) {
   Initialize({pathToLLFiles + "typestate_18_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
@@ -468,7 +471,7 @@ TEST_F(IDETypeStateAnalysisTest, HandleTypeState_18) {
 // TODO: Check this case again!
 TEST_F(IDETypeStateAnalysisTest, HandleTypeState_19) {
   Initialize({pathToLLFiles + "typestate_19_c.ll"});
-  LLVMIDESolver<const llvm::Value *, int, LLVMBasedICFG &> llvmtssolver(
+  IDESolver<IDETypeStateAnalysis::n_t,IDETypeStateAnalysis::d_t, IDETypeStateAnalysis::m_t,IDETypeStateAnalysis::t_t, IDETypeStateAnalysis::v_t,IDETypeStateAnalysis::l_t,IDETypeStateAnalysis::i_t> llvmtssolver(
       *TSProblem);
 
   llvmtssolver.solve();
