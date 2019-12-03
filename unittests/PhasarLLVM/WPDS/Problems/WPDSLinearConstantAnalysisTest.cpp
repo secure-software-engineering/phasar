@@ -32,7 +32,7 @@ protected:
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    //LCAProblem = new WPDSLinearConstantAnalysis(
+    // LCAProblem = new WPDSLinearConstantAnalysis(
     //    *ICFG, *TH, *IRDB, WPDSType::FWPDS, WPDSSearchDirection::BACKWARD);
   }
 
