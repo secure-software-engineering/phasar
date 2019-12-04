@@ -4,8 +4,9 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/CallString.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/LLVMInterMonoSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -26,7 +27,7 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/taint_analysis/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
 #pragma region Environment for leak checking
   ProjectIRDB *IRDB = nullptr;
@@ -46,9 +47,13 @@ protected:
     IRDB->preprocessIR();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-    LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-        TaintProblem);
+    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+    InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+    InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                    InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+        TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (printDump) {
       TaintSolver.dumpResults();
@@ -132,10 +137,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_01) {
   set<string> Facts;
   unsigned InstNum = 9;
 
+  LLVMPointsToInfo *PT = new LLVMPointsToInfo(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
+  TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+  InterMonoTaintAnalysis TaintProblem(&IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+  InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                  InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                  InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+      TaintSolver(TaintProblem);
   TaintSolver.solve();
 
   MonoMap<
@@ -158,10 +167,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_02) {
   set<string> Facts;
   unsigned InstNum = 15;
 
+  LLVMPointsToInfo *PT = new LLVMPointsToInfo(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
+  TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+  InterMonoTaintAnalysis TaintProblem(&IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+  InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                  InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                  InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+      TaintSolver(TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -183,10 +196,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_03) {
   set<string> Facts;
   unsigned InstNum = 15;
 
+  LLVMPointsToInfo *PT = new LLVMPointsToInfo(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
+  TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+  InterMonoTaintAnalysis TaintProblem(&IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+  InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                  InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                  InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+      TaintSolver(TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -209,10 +226,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
   set<string> Facts;
   unsigned InstNum = 15;
 
+  LLVMPointsToInfo *PT = new LLVMPointsToInfo(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
+  TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+  InterMonoTaintAnalysis TaintProblem(&IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+  InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                  InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                  InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+      TaintSolver(TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,
@@ -234,10 +255,14 @@ TEST_F(InterMonoTaintAnalysisTest, TaintTest_05) {
   set<string> Facts;
   unsigned InstNum = 25;
 
+  LLVMPointsToInfo *PT = new LLVMPointsToInfo(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-  InterMonoTaintAnalysis TaintProblem(ICFG, EntryPoints);
-  LLVMInterMonoSolver<const llvm::Value *, LLVMBasedICFG &, 3> TaintSolver(
-      TaintProblem);
+  TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
+  InterMonoTaintAnalysis TaintProblem(&IRDB, &TH, &ICFG, PT, TC, EntryPoints);
+  InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
+                  InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                  InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
+      TaintSolver(TaintProblem);
   TaintSolver.solve();
   MonoMap<
       const llvm::Instruction *,

@@ -3,8 +3,9 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIFDSSolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace std;
@@ -17,11 +18,12 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/uninitialized_variables/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
+  LLVMPointsToInfo *PT;
   IFDSUninitializedVariables *UninitProblem;
 
   IFDSUninitializedVariablesTest() {}
@@ -31,11 +33,12 @@ protected:
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
+    PT = new LLVMPointsToInfo(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     // TSF = new TaintSensitiveFunctions(true);
     UninitProblem =
-        new IFDSUninitializedVariables(*ICFG, *TH, *IRDB, EntryPoints);
+        new IFDSUninitializedVariables(IRDB, TH, ICFG, PT, EntryPoints);
   }
 
   void SetUp() override {
@@ -68,8 +71,10 @@ protected:
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "all_uninit_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // all_uninit.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -78,8 +83,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_01_SHOULD_NOT_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "binop_uninit_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
 
   // binop_uninit uses uninitialized variable i in 'int j = i + 10;'
@@ -93,8 +100,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_02_SHOULD_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "callnoret_c_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
 
   // callnoret uses uninitialized variable a in 'return a + 10;' of addTen(int)
@@ -116,8 +125,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_03_SHOULD_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "ctor_default_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // ctor.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -126,8 +137,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_04_SHOULD_NOT_LEAK) {
 
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "struct_member_init_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // struct_member_init.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -135,8 +148,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_05_SHOULD_NOT_LEAK) {
 }
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "struct_member_uninit_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // struct_member_uninit.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -148,9 +163,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_06_SHOULD_NOT_LEAK) {
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "struct_member_uninit2_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve();
   // struct_member_uninit2.cpp contains a use of the uninitialized field _x.b
   map<int, set<string>> GroundTruth;
   // %5 = load i16, i16* %4; %4 is the uninitialized struct-member _x.b
@@ -163,8 +178,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_07_SHOULD_LEAK) {
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
   Initialize({pathToLLFiles + "global_variable_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // global_variable.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
@@ -177,9 +194,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_08_SHOULD_NOT_LEAK) {
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "global_variable_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve();
   // global_variable.cpp does not contain undef-uses
   map<int, set<string>> GroundTruth;
   // load i32, i32* @i
@@ -189,8 +206,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_09_SHOULD_LEAK) {
 *****************************************************************************************/
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "return_uninit_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   map<int, set<string>> GroundTruth;
   //%2 = load i32, i32 %1
@@ -204,8 +223,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "sanitizer_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   map<int, set<string>> GroundTruth;
   // all undef-uses are sanitized;
@@ -222,9 +243,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 /* TEST_F(IFDSUninitializedVariablesTest, UninitTest_12_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "sanitizer_uninit_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              true);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, true); Solver.solve();
   // The sanitized value is not used always => the phi-node is "tainted"
   map<int, set<string>> GroundTruth;
   GroundTruth[6] = {"2"};
@@ -235,8 +256,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_11_SHOULD_NOT_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "sanitizer2_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   // The undef-uses do not affect the program behaviour, but are of course still
   // found and reported
@@ -247,8 +270,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_13_SHOULD_NOT_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "uninit_c_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
   map<int, set<string>> GroundTruth;
   GroundTruth[14] = {"1"};
@@ -262,10 +287,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_14_SHOULD_LEAK) {
 *****************************************************************************************
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
   Initialize({pathToLLFiles + "dyn_mem_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
-  map<int, set<string>> GroundTruth;
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve(); map<int, set<string>>
+GroundTruth;
   // TODO remove GT[14] and GT[13]
   GroundTruth[14] = {"3"};
   GroundTruth[13] = {"2"};
@@ -292,8 +317,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_15_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "growing_example_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -316,9 +343,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_16_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "struct_test_cpp.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve();
 
   map<int, set<string>> GroundTruth;
   // printf should leak both parameters => fails
@@ -334,9 +361,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_17_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_cpp.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve();
 
   map<int, set<string>> GroundTruth;
   //
@@ -352,9 +379,9 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_18_SHOULD_NOT_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 
   Initialize({pathToLLFiles + "array_init_simple_cpp.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
-  Solver.solve();
+  IFDSSolver<IFDSUninitializedVariables::n_t,
+IFDSUninitializedVariables::d_t,IFDSUninitializedVariables::m_t,IFDSUninitializedVariables::t_t,IFDSUninitializedVariables::v_t,IFDSUninitializedVariables::i_t>
+Solver(*UninitProblem, false); Solver.solve();
 
   map<int, set<string>> GroundTruth;
   compareResults(GroundTruth);
@@ -363,8 +390,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_19_SHOULD_NOT_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "recursion_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
 
   map<int, set<string>> GroundTruth;
@@ -385,8 +414,10 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_20_SHOULD_LEAK) {
 TEST_F(IFDSUninitializedVariablesTest, UninitTest_21_SHOULD_LEAK) {
 
   Initialize({pathToLLFiles + "virtual_call_cpp_dbg.ll"});
-  LLVMIFDSSolver<const llvm::Value *, LLVMBasedICFG &> Solver(*UninitProblem,
-                                                              false);
+  IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
+             IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+             IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
+      Solver(*UninitProblem);
   Solver.solve();
 
   map<int, set<string>> GroundTruth = {

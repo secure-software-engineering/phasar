@@ -2,8 +2,9 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LLVMIDESolver.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace psr;
@@ -14,11 +15,12 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/linear_constant/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
+  LLVMPointsToInfo *PT;
   IDELinearConstantAnalysis *LCAProblem;
 
   IDELinearConstantAnalysisTest() = default;
@@ -28,9 +30,10 @@ protected:
     IRDB = new ProjectIRDB(IRFiles);
     IRDB->preprocessIR();
     TH = new LLVMTypeHierarchy(*IRDB);
+    PT = new LLVMPointsToInfo(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    LCAProblem = new IDELinearConstantAnalysis(*ICFG, *TH, *IRDB, EntryPoints);
+    LCAProblem = new IDELinearConstantAnalysis(IRDB, TH, ICFG, PT, EntryPoints);
   }
 
   void SetUp() override {
@@ -53,7 +56,10 @@ protected:
    */
   void compareResults(
       const std::map<std::string, int64_t> &groundTruth,
-      LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> &solver) {
+      IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+                IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+                IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+                IDELinearConstantAnalysis::i_t> &solver) {
     std::map<std::string, int64_t> results;
     for (auto M : IRDB->getAllModules()) {
       for (auto &F : *M) {
@@ -72,8 +78,11 @@ protected:
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
   Initialize({pathToLLFiles + "basic_01_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"0", 0}, {"1", 13}};
   compareResults(gt, llvmlcasolver);
@@ -81,8 +90,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_02) {
   Initialize({pathToLLFiles + "basic_02_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"0", 0}, {"1", 17}};
   compareResults(gt, llvmlcasolver);
@@ -90,8 +102,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_02) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
   Initialize({pathToLLFiles + "basic_03_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"0", 0}, {"1", 14}, {"2", 14}, {"8", 14}};
@@ -100,8 +115,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_03) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
   Initialize({pathToLLFiles + "basic_04_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"0", 0}, {"1", 14}, {"2", 20}, {"10", 14}, {"11", 20}};
@@ -110,8 +128,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_04) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
   Initialize({pathToLLFiles + "basic_05_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"0", 0}, {"1", 3},  {"2", 14},
                                              {"7", 3}, {"8", 12}, {"9", 14}};
@@ -120,8 +141,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_05) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
   Initialize({pathToLLFiles + "basic_06_cpp_m2r_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 16}};
   compareResults(gt, llvmlcasolver);
@@ -130,8 +154,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_06) {
 /* ============== BRANCH TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
   Initialize({pathToLLFiles + "branch_01_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"1", 0}, {"2", LCAProblem->bottomElement()}};
@@ -141,8 +168,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_01) {
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
   // Probably a bad example/style, since variable i is possibly unitialized
   Initialize({pathToLLFiles + "branch_02_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"1", 0}, {"2", LCAProblem->bottomElement()}};
@@ -151,8 +181,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_02) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_03) {
   Initialize({pathToLLFiles + "branch_03_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 0}, {"2", 30}};
   compareResults(gt, llvmlcasolver);
@@ -160,8 +193,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_03) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_04) {
   Initialize({pathToLLFiles + "branch_04_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 0},
                                              {"2", 10},
@@ -173,8 +209,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_04) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
   Initialize({pathToLLFiles + "branch_05_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"1", 0},  {"2", 10},  {"3", LCAProblem->bottomElement()},
@@ -184,8 +223,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_05) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_06) {
   Initialize({pathToLLFiles + "branch_06_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 0},
                                              {"2", 10},
@@ -197,8 +239,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_06) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
   Initialize({pathToLLFiles + "branch_07_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"1", 0},  {"2", 10}, {"3", LCAProblem->bottomElement()},
@@ -210,8 +255,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleBranchTest_07) {
 /* ============== CALL TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
   Initialize({pathToLLFiles + "call_01_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"0", 42}, {"1", 42},  {"5", 42},        {"8", 0},
@@ -221,8 +269,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_01) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
   Initialize({pathToLLFiles + "call_02_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"0", 2},  {"3", 2},   {"4", 42},       {"6", 0},
@@ -232,8 +283,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_02) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_03) {
   Initialize({pathToLLFiles + "call_03_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 0}, {"2", 42}, {"5", 42}};
   compareResults(gt, llvmlcasolver);
@@ -241,8 +295,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_03) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_04) {
   Initialize({pathToLLFiles + "call_04_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {{"1", 0}, {"2", 10}, {"6", 42}};
   compareResults(gt, llvmlcasolver);
@@ -250,8 +307,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_04) {
 
 TEST_F(IDELinearConstantAnalysisTest, HandleCallTest_05) {
   Initialize({pathToLLFiles + "call_05_cpp_dbg.ll"});
-  LLVMIDESolver<const llvm::Value *, int64_t, LLVMBasedICFG &> llvmlcasolver(
-      *LCAProblem);
+  IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+            IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+            IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+            IDELinearConstantAnalysis::i_t>
+      llvmlcasolver(*LCAProblem);
   llvmlcasolver.solve();
   const std::map<std::string, int64_t> gt = {
       {"0", 0},

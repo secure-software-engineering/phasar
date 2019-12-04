@@ -36,8 +36,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_1) {
     for (auto &I : BB) {
       // inspect call-sites
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        llvm::ImmutableCallSite CS(&I);
-        ASSERT_FALSE(ICFG.isVirtualFunctionCall(CS));
+        ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
       }
     }
   }
@@ -61,7 +60,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_2) {
   FunctionSet.insert(FOO);
   FunctionSet.insert(BAR);
 
-  set<const llvm::Function *> FunSet = ICFG.getAllMethods();
+  set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
   ASSERT_EQ(FunctionSet, FunSet);
 
   set<const llvm::Instruction *> callsFromWithin = ICFG.getCallsFromWithin(F);
@@ -82,8 +81,7 @@ TEST_F(LLVMBasedICFGTest, VirtualCallSite_1) {
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        llvm::ImmutableCallSite CS(&I);
-        ASSERT_TRUE(ICFG.isVirtualFunctionCall(CS));
+        ASSERT_TRUE(ICFG.isVirtualFunctionCall(&I));
       }
     }
   }
@@ -102,7 +100,7 @@ TEST_F(LLVMBasedICFGTest, FunctionPointer_1) {
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        ASSERT_TRUE(ICFG.getMethodOf(&I));
+        ASSERT_TRUE(ICFG.getFunctionOf(&I));
       }
     }
   }
@@ -119,9 +117,9 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_3) {
   for (auto &BB : *Factorial) {
     for (auto &I : BB) {
       set<const llvm::Instruction *> callsFromWithin =
-          ICFG.getCallsFromWithin(ICFG.getMethodOf(&I));
+          ICFG.getCallsFromWithin(ICFG.getFunctionOf(&I));
       for (const llvm::Instruction *Inst : callsFromWithin) {
-        std::string methodName = ICFG.getMethodName(ICFG.getMethodOf(Inst));
+        std::string methodName = ICFG.getFunctionName(ICFG.getFunctionOf(Inst));
         ASSERT_EQ(methodName, "factorial");
       }
     }
@@ -151,10 +149,8 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_4) {
               calleesOfCallAtInside = ICFG.getCalleesOfCallAt(&I2);
               for (const llvm::Function *Func2 : calleesOfCallAtInside) {
                 countFunc++;
-                llvm::ImmutableCallSite CS(&I);
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(CS));
-                llvm::ImmutableCallSite CS2(&I2);
-                ASSERT_FALSE(ICFG.isVirtualFunctionCall(CS2));
+                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I));
+                ASSERT_FALSE(ICFG.isVirtualFunctionCall(&I2));
               }
             }
           }
@@ -180,7 +176,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_5) {
     for (auto &I : BB) {
       if (ICFG.isCallStmt(&I)) {
         set<const llvm::Instruction *> callsFromWithin =
-            ICFG.getCallsFromWithin(ICFG.getMethodOf(&I));
+            ICFG.getCallsFromWithin(ICFG.getFunctionOf(&I));
         ASSERT_EQ(callsFromWithin.size(), 1);
       }
     }
@@ -202,7 +198,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_6) {
   if (ICFG.isCallStmt(I) || llvm::isa<llvm::InvokeInst>(I)) {
     set<const llvm::Instruction *> startPoints = ICFG.getStartPointsOf(FooF);
     set<const llvm::Instruction *> callsFromWithin =
-        ICFG.getCallsFromWithin(ICFG.getMethodOf(getNthInstruction(F, 2)));
+        ICFG.getCallsFromWithin(ICFG.getFunctionOf(getNthInstruction(F, 2)));
 
     ASSERT_EQ(startPoints.size(), 1);
     ASSERT_TRUE(startPoints.count(I));
@@ -227,7 +223,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_7) {
 
   const llvm::Instruction *I = getNthInstruction(FooF, 4);
   const llvm::Instruction *lastInst = ICFG.getLastInstructionOf("_ZN3Foo1fEv");
-  set<const llvm::Function *> allMethods = ICFG.getAllMethods();
+  set<const llvm::Function *> allMethods = ICFG.getAllFunctions();
   ASSERT_EQ(lastInst, I);
   ASSERT_EQ(allMethods.size(), 3);
   ASSERT_TRUE(allMethods.count(Main));
@@ -252,7 +248,7 @@ TEST_F(LLVMBasedICFGTest, StaticCallSite_8) {
       ICFG.getAllInstructionsOfFunction("_ZN4Foo21fEv");
   ASSERT_EQ(Insts.size(), Insts1.size());
 
-  set<const llvm::Function *> FunSet = ICFG.getAllMethods();
+  set<const llvm::Function *> FunSet = ICFG.getAllFunctions();
   ASSERT_EQ(FunSet.size(), 3);
 
   const llvm::Instruction *I = getNthInstruction(F, 1);

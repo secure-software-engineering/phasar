@@ -48,7 +48,7 @@ protected:
 
 TEST_F(LLVMIRToSrcTest, HandleInstructions) {
   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
-  auto Fmain = ICFG->getMethod("main");
+  auto Fmain = ICFG->getFunction("main");
   for (auto &BB : *Fmain) {
     for (auto &I : BB) {
       if (llvm::isa<llvm::StoreInst>(&I) ||

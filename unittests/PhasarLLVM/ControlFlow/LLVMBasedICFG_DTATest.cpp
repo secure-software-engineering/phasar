@@ -31,10 +31,9 @@ TEST_F(LLVMBasedICFG_DTATest, VirtualCallSite_5) {
 
   const llvm::Instruction *I = getNthInstruction(F, 16);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    llvm::ImmutableCallSite CS(I);
     set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
 
-    ASSERT_TRUE(ICFG.isVirtualFunctionCall(CS));
+    ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
     ASSERT_EQ(Callees.size(), 2);
     ASSERT_TRUE(Callees.count(VFuncB));
     ASSERT_TRUE(Callees.count(VFuncA));

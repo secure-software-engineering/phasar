@@ -54,8 +54,7 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
 
   const llvm::Instruction *I = getNthInstruction(F, 14);
   if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
-    llvm::ImmutableCallSite CS(I);
-    ASSERT_TRUE(ICFG.isVirtualFunctionCall(CS));
+    ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
     std::set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
     ASSERT_EQ(Callees.size(), 1);
     ASSERT_TRUE(Callees.count(AptrFoo));
