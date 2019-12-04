@@ -30,7 +30,6 @@ int main(int argc, char **argv) {
   }
   initializeLogger(false);
   ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
-  DB.preprocessIR();
   LLVMTypeHierarchy H(DB);
   LLVMBasedICFG ICF(H, DB, CallGraphAnalysisType::OTF, {"main"});
   const llvm::Function *F = nullptr;

@@ -228,7 +228,7 @@ PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
 
 // points-to graph stuff
 
-PointsToGraph::PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
+PointsToGraph::PointsToGraph(llvm::AAResults AA, llvm::Function *F,
                              bool onlyConsiderMustAlias) {
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();

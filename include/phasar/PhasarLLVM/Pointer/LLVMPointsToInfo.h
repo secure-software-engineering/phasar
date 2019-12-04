@@ -16,21 +16,21 @@
 
 #include <json.hpp>
 
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
 
 namespace llvm {
 class Value;
+class Function;
 } // namespace llvm
 
 namespace psr {
 
 class ProjectIRDB;
-class PointstoGraph;
+class PointsToGraph;
 
 class LLVMPointsToInfo : public PointsToInfo<const llvm::Value *> {
 private:
-  std::map<std::string, std::unique_ptr<PointsToGraph>> PointsToGraphs;
+  std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>> PointsToGraphs;
 
 public:
   LLVMPointsToInfo(ProjectIRDB &IRDB);
@@ -45,7 +45,7 @@ public:
 
   nlohmann::json getAsJson() const override;
 
-  PointsToGraph *getPointsToGraph(const std::string &FunctionName) const;
+  PointsToGraph *getPointsToGraph(const llvm::Function *F) const;
 };
 
 } // namespace psr

@@ -38,8 +38,7 @@ int main(int argc, const char **argv) {
   }
   initializeLogger(false);
   ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
-  DB.preprocessIR();
-  if (DB.getFunction("main")) {
+  if (DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
     LLVMPointsToInfo PT(DB);
     LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});

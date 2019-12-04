@@ -54,16 +54,11 @@ llvm::StringRef PhasarPass::getPassName() const { return "PhasarPass"; }
 
 bool PhasarPass::runOnModule(llvm::Module &M) {
   // set up the IRDB
-  IRDBOptions Opt = IRDBOptions::NONE;
-  Opt |= IRDBOptions::WPA;
-  Opt |= IRDBOptions::OWNSNOT;
-  ProjectIRDB DB(Opt);
-  DB.insertModule(&M);
-  DB.preprocessIR();
+  ProjectIRDB DB({&M}, IRDBOptions::WPA);
   std::set<std::string> EntryPointsSet;
   // check if the requested entry points exist
   for (const std::string &EP : EntryPoints) {
-    if (!DB.getFunction(EP)) {
+    if (!DB.getFunctionDefinition(EP)) {
       llvm::report_fatal_error("psr error: entry point does not exist '" + EP +
                                "'");
     }

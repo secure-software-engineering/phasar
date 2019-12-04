@@ -54,9 +54,9 @@ void OTFResolver::TreatPossibleTarget(
       if (auto M = F->getParent()) {
         if (auto target = M->getFunction(possible_target->getName().str())) {
           if (!target->isDeclaration()) {
-            PointsToGraph &callee_ptg =
-                *IRDB.getPointsToGraph(possible_target->getName().str());
-            WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
+            // PointsToGraph &callee_ptg =
+                // *IRDB.getPointsToGraph(possible_target->getName().str());
+            // WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
           }
         } else {
           throw runtime_error("target not get");

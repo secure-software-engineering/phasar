@@ -14,16 +14,16 @@ set(PHASAR_LINK_LIBS
 set(LLVM_LINK_COMPONENTS
   Support
   Core
-  Vectorize
-  ScalarOpts
-  Instrumentation
-  ObjCARCOpts
-  TransformUtils
-  CodeGen
-  Analysis
-  ipo
+  # Vectorize
+  # ScalarOpts
+  # Instrumentation
+  # ObjCARCOpts
+  # TransformUtils
+  # CodeGen
+  # Analysis
+  # ipo
   IRReader
-  InstCombine
+  # InstCombine
   Linker
   BitWriter
 )

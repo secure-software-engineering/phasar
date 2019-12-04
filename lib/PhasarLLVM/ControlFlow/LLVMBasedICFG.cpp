@@ -102,13 +102,13 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
         }
       }());
   for (auto &EntryPoint : EntryPoints) {
-    llvm::Function *F = IRDB.getFunction(EntryPoint);
+    const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
       throw ios_base::failure(
           "Could not retrieve llvm::Function for entry point");
     }
-    PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
-    WholeModulePTG.mergeWith(ptg, F);
+    // PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
+    // WholeModulePTG.mergeWith(ptg, F);
     constructionWalker(F, resolver.get());
   }
   REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
@@ -155,10 +155,10 @@ LLVMBasedICFG::LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
         }
       }());
   for (auto &EntryPoint : EntryPoints) {
-    llvm::Function *F = M.getFunction(EntryPoint);
+    const llvm::Function *F = M.getFunction(EntryPoint);
     if (F && !F->isDeclaration()) {
-      PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
-      WholeModulePTG.mergeWith(ptg, F);
+      // PointsToGraph &ptg = *IRDB.getPointsToGraph(EntryPoint);
+      // WholeModulePTG.mergeWith(ptg, F);
       constructionWalker(F, resolver.get());
     }
   }
@@ -209,8 +209,8 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         // still try to resolve the called function statically
         const llvm::Value *v = cs.getCalledValue();
         const llvm::Value *sv = v->stripPointerCasts();
-        if (sv->hasName() && IRDB.getFunction(sv->getName())) {
-          possible_targets.insert(IRDB.getFunction(sv->getName()));
+        if (sv->hasName() && IRDB.getFunctionDefinition(sv->getName())) {
+          possible_targets.insert(IRDB.getFunctionDefinition(sv->getName()));
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Found static call-site: "
                         << llvmIRToString(cs.getInstruction()));
@@ -304,7 +304,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
 }
 
 const llvm::Function *LLVMBasedICFG::getFunction(const string &fun) const {
-  return IRDB.getFunction(fun);
+  return IRDB.getFunctionDefinition(fun);
 }
 
 set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
@@ -330,8 +330,8 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
       auto target = boost::target(*ei, cg);
       if (CS.getInstruction() == edge.callsite) {
         // cout << "Name: " << cg[target].functionName << endl;
-        if (IRDB.getFunction(cg[target].functionName)) {
-          Callees.insert(IRDB.getFunction(cg[target].functionName));
+        if (IRDB.getFunctionDefinition(cg[target].functionName)) {
+          Callees.insert(IRDB.getFunctionDefinition(cg[target].functionName));
         } else {
           // Either we have a special function called like glibc- or
           // llvm intrinsic functions or a function that is defined in
@@ -463,12 +463,12 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
 
 vector<const llvm::Instruction *>
 LLVMBasedICFG::getAllInstructionsOfFunction(const string &name) {
-  return getAllInstructionsOf(IRDB.getFunction(name));
+  return getAllInstructionsOf(IRDB.getFunctionDefinition(name));
 }
 
 const llvm::Instruction *
 LLVMBasedICFG::getLastInstructionOf(const string &name) {
-  const llvm::Function &f = *IRDB.getFunction(name);
+  const llvm::Function &f = *IRDB.getFunctionDefinition(name);
   auto last = llvm::inst_end(f);
   last--;
   return &(*last);
@@ -534,7 +534,7 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &other) {
 }
 
 bool LLVMBasedICFG::isPrimitiveFunction(const string &name) {
-  for (auto &BB : *IRDB.getFunction(name)) {
+  for (auto &BB : *IRDB.getFunctionDefinition(name)) {
     for (auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
         return false;

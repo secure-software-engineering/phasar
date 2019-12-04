@@ -613,8 +613,8 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
                                                 const std::string &Fname) {
   std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
-  std::set<IDETypeStateAnalysis::d_t> Aliases =
-      IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
+  std::set<IDETypeStateAnalysis::d_t> Aliases;// =
+      // IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
   for (auto Alias : Aliases) {
     if (hasMatchingType(Alias))
       PointsToAndAllocas.insert(Alias);

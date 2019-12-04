@@ -184,7 +184,7 @@ public:
    *                              False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::AAResults &AA, llvm::Function *F,
+  PointsToGraph(llvm::AAResults AA, llvm::Function *F,
                 bool onlyConsiderMustAlias = false);
 
   /**

@@ -42,7 +42,7 @@ protected:
   void initialize() {
     auto EntryPoints = IMProblem.getEntryPoints();
     for (const auto &EntryPoint : EntryPoints) {
-      auto Function = IMProblem.getProjectIRDB()->getFunction(EntryPoint);
+      auto Function = IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);
       auto ControlFlowEdges = CFG->getAllControlFlowEdges(Function);
       // add all intra-procedural edges to the worklist
       Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),

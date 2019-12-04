@@ -8,6 +8,19 @@ set(LLVM_LINK_COMPONENTS
   Core
   Support
   Analysis
+  # Core
+  # # Vectorize
+  # # ScalarOpts
+  # # Instrumentation
+  # # ObjCARCOpts
+  # # TransformUtils
+  # # CodeGen
+  # # Analysis
+  # # ipo
+  # IRReader
+  # # InstCombine
+  # # Linker
+  # BitWriter
 )
 
 # Handle the library files
