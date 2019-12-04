@@ -22,6 +22,7 @@
 #include <boost/filesystem/operations.hpp>
 
 namespace bpo = boost::program_options;
+namespace bfs = boost::filesystem;
 
 using namespace std;
 using namespace psr;
