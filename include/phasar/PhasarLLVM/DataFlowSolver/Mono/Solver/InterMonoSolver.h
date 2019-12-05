@@ -18,14 +18,15 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTERMONOSOLVER_H_
 
 #include <deque>
-#include <iosfwd>
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
@@ -39,8 +40,10 @@ public:
 protected:
   InterMonoProblem<N, D, M, T, V, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> Analysis;
-  MonoSet<M> AddedFunctions;
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+      Analysis;
+  std::unordered_set<M> AddedFunctions;
   const I *ICF;
 
   void initialize() {
@@ -51,15 +54,14 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Additionally, insert the initial seeds
-      Analysis[seed.first][CallStringCTX<D, N, K>()].insert(seed.second.begin(),
-                                                            seed.second.end());
+      Analysis[seed.first][CallStringCTX<N, K>()].insert(seed.second);
     }
   }
 
@@ -84,9 +86,9 @@ protected:
     std::cout << "-----------------" << std::endl;
   }
 
-  void printMonoSet(const MonoSet<D> &S) {
+  void printBitVectorSet(const BitVectorSet<D> &S) {
     std::cout << "SET CONTENTS:\n{ ";
-    for (auto Entry : S) {
+    for (auto Entry : S.getAsSet()) {
       std::cout << llvmIRToString(Entry) << ", ";
     }
     std::cout << "}" << std::endl;
@@ -111,11 +113,11 @@ protected:
       // Initialize with empty context and empty data-flow set such that the
       // flow functions are at least called once per instruction
       for (auto &edge : edges) {
-        Analysis[edge.first][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edge.first][CallStringCTX<N, K>()];
       }
       // Initialize last
       if (!edges.empty()) {
-        Analysis[edges.back().second][CallStringCTX<D, N, K>()].insert({});
+        Analysis[edges.back().second][CallStringCTX<N, K>()];
       }
       // Add return edge(s)
       for (auto ret : ICF->getExitPointsOf(callee)) {
@@ -163,7 +165,9 @@ public:
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
   virtual ~InterMonoSolver() = default;
 
-  MonoMap<N, MonoMap<CallStringCTX<D, N, K>, MonoSet<D>>> getAnalysis() {
+  std::unordered_map<N,
+                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  getAnalysis() {
     return Analysis;
   }
 
@@ -178,7 +182,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      MonoMap<CallStringCTX<D, N, K>, MonoSet<D>> Out;
+      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>> Out;
       if (ICF->isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -217,6 +221,7 @@ public:
           // we need to use several call- and retsites if the context is empty
           std::set<N> callsites;
           std::set<N> retsites;
+          std::cout << "CTX: " << CTX << '\n';
           // handle empty context
           if (CTX.empty()) {
             callsites = ICF->getCallersOf(ICF->getFunctionOf(src));
@@ -224,6 +229,7 @@ public:
             // handle context containing at least one element
             callsites.insert(CTXRm.pop_back());
           }
+          std::cout << "CTXRm: " << CTXRm << std::endl;
           // retrieve the possible return sites for each call
           for (auto callsite : callsites) {
             auto retsitesPerCall = ICF->getReturnSitesOfCallAt(callsite);
@@ -233,7 +239,7 @@ public:
             auto retFactsPerCall =
                 IMProblem.returnFlow(callsite, ICF->getFunctionOf(src), src,
                                      dst, Analysis[src][CTX]);
-            Out[CTXRm].insert(retFactsPerCall.begin(), retFactsPerCall.end());
+            Out[CTXRm].insert(retFactsPerCall);
           }
           for (auto retsite : retsites) {
             bool flowfactsstabilized =
@@ -265,29 +271,29 @@ public:
     }
   }
 
-  MonoSet<D> getResultsAt(N n) {
-    MonoSet<D> Result;
+  BitVectorSet<D> getResultsAt(N n) {
+    BitVectorSet<D> Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
-      Result.insert(Facts.begin(), Facts.end());
+      Result.insert(Facts);
     }
     return Result;
   }
 
   void dumpResults() {
     std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
-    for (auto &entry : this->Analysis) {
-      std::cout << "Instruction:\n" << this->IMProblem.NtoString(entry.first);
+    for (auto &[Node, ContextMap] : this->Analysis) {
+      std::cout << "Instruction:\n" << this->IMProblem.NtoString(Node);
       std::cout << "\nFacts:\n";
-      if (entry.second.empty()) {
+      if (ContextMap.empty()) {
         std::cout << "\tEMPTY\n";
       } else {
-        for (auto &context : entry.second) {
-          std::cout << context.first << '\n';
-          if (context.second.empty()) {
+        for (auto &[Context, FlowFacts] : ContextMap) {
+          std::cout << Context << '\n';
+          if (FlowFacts.empty()) {
             std::cout << "\tEMPTY\n";
           } else {
-            for (auto &fact : context.second) {
-              std::cout << this->IMProblem.DtoString(fact);
+            for (auto FlowFact : FlowFacts.getAsSet()) {
+              std::cout << this->IMProblem.DtoString(FlowFact);
             }
           }
         }

@@ -38,7 +38,7 @@ class EdgeFunctionComposer
 private:
   // For debug purpose only
   const unsigned EFComposer_Id;
-  static unsigned CurrEFComposer_Id;
+  static inline unsigned CurrEFComposer_Id = 0;
 
 protected:
   /// First edge function
@@ -71,6 +71,9 @@ public:
     if (auto *EI = dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
+    if (auto *AB = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
+      return this->shared_from_this();
+    }
     return F->composeWith(G->composeWith(secondFunction));
   }
 
@@ -85,12 +88,10 @@ public:
   }
 
   void print(std::ostream &OS, bool isForDebug = false) const override {
-    OS << "Comp_" << EFComposer_Id << "[ " << F.get()->str() << " , "
-       << G.get()->str() << " ]";
+    OS << "COMP[ " << F.get()->str() << " , " << G.get()->str()
+       << " ] (EF:" << EFComposer_Id << ')';
   }
 };
-
-template <typename V> unsigned EdgeFunctionComposer<V>::CurrEFComposer_Id = 0;
 
 } // namespace psr
 

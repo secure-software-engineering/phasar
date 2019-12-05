@@ -495,11 +495,14 @@ IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
 std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::TSEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>> secondFunction) {
+  if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
+          secondFunction.get())) {
+    return this->shared_from_this();
+  }
   if (auto *EI = dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
-  // TODO: Can we reduce the EF if composed with AllTop?
   return make_shared<TSEdgeFunctionComposer>(this->shared_from_this(),
                                              secondFunction, TSD.bottom());
 }
@@ -613,8 +616,9 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
                                                 const std::string &Fname) {
   std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas;
   std::set<IDETypeStateAnalysis::d_t> RelevantAllocas = getRelevantAllocas(V);
-  std::set<IDETypeStateAnalysis::d_t> Aliases;// =
-      // IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
+  std::set<IDETypeStateAnalysis::d_t>
+      Aliases; // =
+               // IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
   for (auto Alias : Aliases) {
     if (hasMatchingType(Alias))
       PointsToAndAllocas.insert(Alias);
@@ -680,13 +684,13 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   return false;
 }
 
-void IDETypeStateAnalysis::printIDEReport(
+void IDETypeStateAnalysis::emitTextReport(
     std::ostream &os,
-    SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                  IDETypeStateAnalysis::l_t> &SR) {
+    const SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+                        IDETypeStateAnalysis::l_t> &SR) {
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : ICF->getAllFunctions()) {
-    os << '\n' << llvmFunctionToSrc(f) << '\n';
+    os << '\n' << getFunctionNameFromIR(f) << '\n';
     for (auto &BB : *f) {
       for (auto &I : BB) {
         auto results = SR.resultsAt(&I, true);
@@ -696,11 +700,9 @@ void IDETypeStateAnalysis::printIDEReport(
             if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(res.first)) {
               if (res.second == TSD.error()) {
                 os << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(res.first) << '\n'
-                   << llvmValueToSrc(res.first, false) << '\n';
+                   << DtoString(res.first) << '\n';
                 for (auto Pred : ICF->getPredsOf(&I)) {
-                  os << "\nPredecessor: " << NtoString(Pred) << '\n'
-                     << llvmValueToSrc(Pred, false) << '\n';
+                  os << "\nPredecessor: " << NtoString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {
@@ -711,8 +713,7 @@ void IDETypeStateAnalysis::printIDEReport(
                 os << "============================\n";
               } else {
                 os << "\nAlloca : " << DtoString(res.first)
-                   << "\nState  : " << LtoString(res.second) << '\n'
-                   << llvmValueToSrc(res.first, false) << '\n';
+                   << "\nState  : " << LtoString(res.second) << '\n';
               }
             }
           }
@@ -722,12 +723,9 @@ void IDETypeStateAnalysis::printIDEReport(
               if (res.second == TSD.error()) {
                 os << "\n=== ERROR STATE DETECTED ===\nAlloca: "
                    << DtoString(res.first) << '\n'
-                   << llvmValueToSrc(res.first, false)
-                   << "\nAt IR Inst: " << NtoString(&I) << '\n'
-                   << llvmValueToSrc(&I, false) << '\n';
+                   << "\nAt IR Inst: " << NtoString(&I) << '\n';
                 for (auto Pred : ICF->getPredsOf(&I)) {
-                  os << "\nPredecessor: " << NtoString(Pred) << '\n'
-                     << llvmValueToSrc(Pred, false) << '\n';
+                  os << "\nPredecessor: " << NtoString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
                   for (auto Res : PredResults) {
                     if (Res.first == Alloca) {

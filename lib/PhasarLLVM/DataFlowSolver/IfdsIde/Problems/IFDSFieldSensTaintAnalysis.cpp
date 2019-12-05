@@ -222,9 +222,9 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
   return seedMap;
 }
 
-void IFDSFieldSensTaintAnalysis::printIFDSReport(
+void IFDSFieldSensTaintAnalysis::emitTextReport(
     std::ostream &os,
-    SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
+    const SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
         &solverResults) {
   std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string lcovTraceFile =

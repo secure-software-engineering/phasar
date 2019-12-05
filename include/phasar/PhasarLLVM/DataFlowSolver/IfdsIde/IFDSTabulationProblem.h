@@ -89,9 +89,9 @@ public:
 
   IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
 
-  virtual void printIFDSReport(std::ostream &os,
-                               SolverResults<N, D, BinaryDomain> &SR) {
-    os << "No IFDS report available!\n";
+  virtual void emitTextReport(std::ostream &os,
+                              const SolverResults<N, D, BinaryDomain> &SR) {
+    os << "No text report available!\n";
   }
 };
 } // namespace psr

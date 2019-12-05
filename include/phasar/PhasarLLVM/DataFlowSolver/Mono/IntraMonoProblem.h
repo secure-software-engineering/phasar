@@ -20,9 +20,11 @@
 #include <set>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -59,13 +61,15 @@ public:
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
   ~IntraMonoProblem() override = default;
 
-  virtual MonoSet<D> join(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
+  virtual BitVectorSet<D> join(const BitVectorSet<D> &Lhs,
+                               const BitVectorSet<D> &Rhs) = 0;
 
-  virtual bool sqSubSetEqual(const MonoSet<D> &Lhs, const MonoSet<D> &Rhs) = 0;
+  virtual bool sqSubSetEqual(const BitVectorSet<D> &Lhs,
+                             const BitVectorSet<D> &Rhs) = 0;
 
-  virtual MonoSet<D> normalFlow(N S, const MonoSet<D> &In) = 0;
+  virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
 
-  virtual MonoMap<N, MonoSet<D>> initialSeeds() = 0;
+  virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
 

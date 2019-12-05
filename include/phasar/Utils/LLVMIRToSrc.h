@@ -31,40 +31,21 @@ class Module;
 
 namespace psr {
 
-/**
- * @brief Maps the given @see llvm::Argument to corresponding formal parameter
- * of a function in source code.
- */
-std::string llvmArgumentToSrc(const llvm::Argument *A, bool ScopeInfo = true);
+std::string getVarNameFromIR(const llvm::Value *V);
 
-/**
- * @brief Maps the given @see llvm::Instruction to corresponding instruction in
- * source code.
- */
-std::string llvmInstructionToSrc(const llvm::Instruction *I,
-                                 bool ScopeInfo = true);
+std::string getFunctionNameFromIR(const llvm::Value *V);
 
-/**
- * @brief Maps the given @see llvm::Function to corresponding function in source
- * code.
- */
-std::string llvmFunctionToSrc(const llvm::Function *F);
+std::string getFilePathFromIR(const llvm::Value *V);
 
-/**
- * @brief Maps the given @see llvm::GlobalVariable to corresponding global
- * variable in source code.
- */
-std::string llvmGlobalValueToSrc(const llvm::GlobalVariable *GV);
+std::string getDirectoryFromIR(const llvm::Value *V);
 
-/**
- * @brief Maps the given llvm::Module to corresponding compile unit.
- */
-std::string llvmModuleToSrc(const llvm::Module *M);
+unsigned int getLineFromIR(const llvm::Value *V);
 
-/**
- * @brief Maps the given llvm::Value to corresponding source information.
- */
-std::string llvmValueToSrc(const llvm::Value *V, bool ScopeInfo = true);
+unsigned int getColumnFromIR(const llvm::Value *V);
+
+std::string getSrcCodeFromIR(const llvm::Value *V);
+
+std::string getModuleIDFromIR(const llvm::Value *V);
 
 } // namespace psr
 

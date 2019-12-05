@@ -30,7 +30,8 @@ class PointsToGraph;
 
 class LLVMPointsToInfo : public PointsToInfo<const llvm::Value *> {
 private:
-  std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>> PointsToGraphs;
+  std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>>
+      PointsToGraphs;
 
 public:
   LLVMPointsToInfo(ProjectIRDB &IRDB);

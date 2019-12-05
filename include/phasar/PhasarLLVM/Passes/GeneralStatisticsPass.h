@@ -60,7 +60,7 @@ private:
   size_t memIntrinsic = 0;
   size_t globalPointers = 0;
   std::set<const llvm::Type *> allocatedTypes;
-  std::set<const llvm::Value *> allocaInstrucitons;
+  std::set<const llvm::Instruction *> allocaInstructions;
   std::set<const llvm::Instruction *> retResInstructions;
 
 public:
@@ -104,37 +104,62 @@ public:
   /**
    * @brief Returns the number of Allocation sites.
    */
-  size_t getAllocationsites();
+  size_t getAllocationsites() const;
 
   /**
    * @brief Returns the number of Function calls.
    */
-  size_t getFunctioncalls();
+  size_t getFunctioncalls() const;
 
   /**
    * @brief Returns the number of Instructions.
    */
-  size_t getInstructions();
+  size_t getInstructions() const;
 
   /**
    * @brief Returns the number of global pointers.
    */
-  size_t getGlobalPointers();
+  size_t getGlobalPointers() const;
+
+  /**
+   * @brief Returns the number of basic blocks.
+   */
+  size_t getBasicBlocks() const;
+
+  /**
+   * @brief Returns the number of functions.
+   */
+  size_t getFunctions() const;
+
+  /**
+   * @brief Returns the number of globals.
+   */
+  size_t getGlobals() const;
+
+  /**
+   * @brief Returns the number of memory intrinsics.
+   */
+  size_t getMemoryIntrinsics() const;
+
+  /**
+   * @brief Returns the number of store instructions.
+   */
+  size_t getStoreInstructions() const;
 
   /**
    * @brief Returns all possible Types.
    */
-  std::set<const llvm::Type *> getAllocatedTypes();
+  std::set<const llvm::Type *> getAllocatedTypes() const;
 
   /**
    * @brief Returns all stack and heap allocating instructions.
    */
-  std::set<const llvm::Value *> getAllocaInstructions();
+  std::set<const llvm::Instruction *> getAllocaInstructions() const;
 
   /**
    * @brief Returns all Return and Resume Instructions.
    */
-  std::set<const llvm::Instruction *> getRetResInstructions();
+  std::set<const llvm::Instruction *> getRetResInstructions() const;
 };
 
 } // namespace psr

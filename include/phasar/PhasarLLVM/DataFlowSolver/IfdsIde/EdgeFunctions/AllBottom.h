@@ -45,10 +45,14 @@ public:
 
   std::shared_ptr<EdgeFunction<V>>
   composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
-    if (EdgeIdentity<V> *ei =
-            dynamic_cast<EdgeIdentity<V> *>(secondFunction.get()))
+    if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
       return this->shared_from_this();
-    return secondFunction;
+    }
+    if (EdgeIdentity<V> *ei =
+            dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
+      return this->shared_from_this();
+    }
+    return secondFunction->composeWith(this->shared_from_this());
   }
 
   std::shared_ptr<EdgeFunction<V>>

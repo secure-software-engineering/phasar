@@ -13,7 +13,6 @@
 #include <iostream>
 #include <set>
 
-#include <phasar/Config/Configuration.h>
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
@@ -245,3 +244,17 @@ void AnalysisController::executeWholeProgram() {
 }
 
 } // namespace psr
+
+namespace std {
+
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<unsigned> hash_unsigned;
+    size_t hp = hash_ptr(p.first);
+    size_t hu = hash_unsigned(p.second);
+    return hp ^ (hu << 1);
+  }
+};
+
+} // namespace std

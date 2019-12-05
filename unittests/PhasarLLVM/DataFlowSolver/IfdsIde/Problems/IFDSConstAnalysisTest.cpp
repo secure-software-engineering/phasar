@@ -29,8 +29,7 @@ protected:
   virtual ~IFDSConstAnalysisTest() {}
 
   void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles);
-    IRDB->preprocessIR();
+    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     PT = new LLVMPointsToInfo(*IRDB);
     ICFG =
@@ -56,7 +55,7 @@ protected:
                  IFDSConstAnalysis::m_t, IFDSConstAnalysis::t_t,
                  IFDSConstAnalysis::v_t, IFDSConstAnalysis::i_t> &solver) {
     std::set<const llvm::Value *> allMutableAllocas;
-    for (auto RR : IRDB->getRetResInstructions()) {
+    for (auto RR : IRDB->getRetOrResInstructions()) {
       std::set<const llvm::Value *> facts = solver.ifdsResultsAt(RR);
       for (auto fact : facts) {
         if (isAllocaInstOrHeapAllocaFunction(fact) ||

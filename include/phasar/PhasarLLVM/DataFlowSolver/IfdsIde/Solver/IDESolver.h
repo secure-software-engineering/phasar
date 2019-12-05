@@ -48,7 +48,6 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h>
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>
-
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMMMacros.h>
@@ -207,7 +206,7 @@ public:
   }
 
   virtual void printReport() {
-    // ideTabulationProblem.emitTextReport(std::cout, getSolverResults());
+    ideTabulationProblem.emitTextReport(std::cout, getSolverResults());
   }
 
   virtual void dumpResults() {
@@ -307,6 +306,11 @@ public:
     }
   }
 
+  SolverResults<N, D, L> getSolverResults() {
+    return SolverResults<N, D, L>(this->valtab,
+                                  ideTabulationProblem.getZeroValue());
+  }
+
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
   std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>>
@@ -350,10 +354,10 @@ protected:
   std::map<std::pair<N, D>, size_t> fSummaryReuse;
 
   // When transforming an IFDSTabulationProblem into an IDETabulationProblem,
-  // we need to allocate dynamically, otherwise the objects lifetime runs out -
-  // as a modifiable r-value reference created here that should be stored in a
-  // modifiable l-value reference within the IDESolver implementation leads to
-  // (massive) undefined behavior (and nightmares):
+  // we need to allocate dynamically, otherwise the objects lifetime runs out
+  // - as a modifiable r-value reference created here that should be stored in
+  // a modifiable l-value reference within the IDESolver implementation leads
+  // to (massive) undefined behavior (and nightmares):
   // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
   IDESolver(IFDSTabulationProblem<N, D, M, T, V, I> &tabulationProblem)
       : transformedProblem(
@@ -377,8 +381,8 @@ protected:
    * context.
    *
    * For each possible callee, registers incoming call edges.
-   * Also propagates call-to-return flows and summarized callee flows within the
-   * caller.
+   * Also propagates call-to-return flows and summarized callee flows within
+   *the caller.
    *
    * 	The following cases must be considered and handled:
    *		1. Process as usual and just process the call
@@ -470,6 +474,9 @@ protected:
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                          << "Create initial self-loop with D: "
+                          << ideTabulationProblem.DtoString(d3));
             propagate(d3, sP, d3, EdgeIdentity<L>::getInstance(), n,
                       false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
@@ -870,8 +877,8 @@ protected:
       }
     }
     // Phase II(ii)
-    // we create an array of all nodes and then dispatch fractions of this array
-    // to multiple threads
+    // we create an array of all nodes and then dispatch fractions of this
+    // array to multiple threads
     std::set<N> allNonCallStartNodes = ICF->allNonCallStartNodes();
     std::vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
     size_t i = 0;
@@ -1000,8 +1007,8 @@ protected:
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "       = " << fPrime->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-            // for each jump function coming into the call, propagate to return
-            // site using the composed function
+            // for each jump function coming into the call, propagate to
+            // return site using the composed function
             for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
               std::shared_ptr<EdgeFunction<L>> f3 = valAndFunc.second;
               if (!f3->equal_to(allTop)) {
@@ -1023,7 +1030,8 @@ protected:
     // fact for which we have no incoming flow.
     // note: we propagate that way only values that originate from ZERO, as
     // conditionally generated values should only
-    // be propagated into callers that have an incoming edge for this condition
+    // be propagated into callers that have an incoming edge for this
+    // condition
     if (SolverConfig.followReturnsPastSeeds && inc.empty() &&
         ideTabulationProblem.isZeroValue(d1)) {
       std::set<N> callers = ICF->getCallersOf(methodThatNeedsSummary);
@@ -1099,7 +1107,8 @@ protected:
     //			((LinkedNode<D>) d5).setCallingContext(d4);
     //		}
     //		if(d5 instanceof JoinHandlingNode) {
-    //			((JoinHandlingNode<D>) d5).setCallingContext(d4);
+    //			((JoinHandlingNode<D>)
+    // d5).setCallingContext(d4);
     //		}
     return d5;
   }
@@ -1170,8 +1179,8 @@ protected:
   }
 
   /**
-   * Propagates the flow further down the exploded super graph, merging any edge
-   * function that might already have been computed for targetVal at
+   * Propagates the flow further down the exploded super graph, merging any
+   * edge function that might already have been computed for targetVal at
    * target.
    *
    * @param sourceVal the source value of the propagated summary edge
@@ -1462,10 +1471,10 @@ protected:
        *   actually happen during  call-to-return.
        *
        * Case 2: d1 --> d2-Set
-       *   Every fact d_i != zeroValue in d2-set will be generated in the callee
-       * context, thus counts as a new fact. Even if d1 is passed as it is, it
-       * will count as a new fact. The reason for this is, that d1 can be
-       * killed in the callee context, but still be valid in the caller
+       *   Every fact d_i != zeroValue in d2-set will be generated in the
+       * callee context, thus counts as a new fact. Even if d1 is passed as it
+       * is, it will count as a new fact. The reason for this is, that d1 can
+       * be killed in the callee context, but still be valid in the caller
        * context.
        *
        * Special Case: Summary was applied for a particular call
@@ -1511,11 +1520,11 @@ protected:
       }
       /* --- Return-flow Path Edges ---
        * Since every fact passed to the callee was counted as a new fact, we
-       * have to count every fact propagated to the caller as a kill to satisfy
-       * our invariant. Obviously, every fact not propagated to the caller will
-       * count as a kill. If an actual new fact is propagated to the caller, we
-       * have to increase the number of generated facts by one. Zero value does
-       * not count towards generated/killed facts.
+       * have to count every fact propagated to the caller as a kill to
+       * satisfy our invariant. Obviously, every fact not propagated to the
+       * caller will count as a kill. If an actual new fact is propagated to
+       * the caller, we have to increase the number of generated facts by one.
+       * Zero value does not count towards generated/killed facts.
        */
       if (ICF->isExitStmt(cell.r)) {
         for (auto D1ToD2Set : cell.v) {
@@ -1673,8 +1682,8 @@ protected:
         for (auto D2Fact : D1ToD2Set.second) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "d2: " << ideTabulationProblem.DtoString(D2Fact));
-          // We do not need to generate any intra-procedural nodes and edges for
-          // the zero value since they will be auto-generated
+          // We do not need to generate any intra-procedural nodes and edges
+          // for the zero value since they will be auto-generated
           if (!ideTabulationProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
@@ -1737,9 +1746,9 @@ protected:
         FG = &G.functions[fNameOfN1];
         FG->intraCFEdges.emplace(N1, N2);
       } else {
-        // Check the case where the callee is a single statement function, thus
-        // does not contain intra-procedural path edges. We have to generate
-        // the function sub graph here!
+        // Check the case where the callee is a single statement function,
+        // thus does not contain intra-procedural path edges. We have to
+        // generate the function sub graph here!
         if (!G.functions.count(fNameOfN1)) {
           FG = &G.functions[fNameOfN1];
           FG->id = fNameOfN1;
@@ -1811,7 +1820,7 @@ protected:
               EFLabel += EF->str() + ", ";
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
-            G.interFactEdges.emplace(D1, D2);
+            G.interFactEdges.emplace(D1, D2, true, EFLabel);
           }
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");

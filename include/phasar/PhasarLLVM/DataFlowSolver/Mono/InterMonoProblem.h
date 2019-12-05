@@ -17,12 +17,10 @@
 #ifndef PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 #define PHASAR_PHASARLLVM_MONO_INTERMONOPROBLEM_H_
 
-#include <initializer_list>
 #include <set>
-#include <string>
-#include <type_traits>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -52,13 +50,13 @@ public:
   InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
-  virtual MonoSet<D> callFlow(N CallSite, M Callee, const MonoSet<D> &In) = 0;
-
-  virtual MonoSet<D> returnFlow(N CallSite, M Callee, N ExitStmt, N RetSite,
-                                const MonoSet<D> &In) = 0;
-
-  virtual MonoSet<D> callToRetFlow(N CallSite, N RetSite, MonoSet<M> Callees,
-                                   const MonoSet<D> &In) = 0;
+  virtual BitVectorSet<D> callFlow(N CallSite, M Callee,
+                                   const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt,
+                                     N RetSite, const BitVectorSet<D> &In) = 0;
+  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
+                                        std::set<M> Callees,
+                                        const BitVectorSet<D> &In) = 0;
 
   const I *getICFG() const { return ICF; }
 };

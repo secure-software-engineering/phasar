@@ -26,19 +26,19 @@
 
 namespace psr {
 
-template <typename N, typename D, typename V> class SolverResults {
+template <typename N, typename D, typename L> class SolverResults {
 private:
-  Table<N, D, V> &results;
+  Table<N, D, L> &results;
   D zeroValue;
 
 public:
-  SolverResults(Table<N, D, V> &res_tab, D zv)
+  SolverResults(Table<N, D, L> &res_tab, D zv)
       : results(res_tab), zeroValue(zv) {}
 
-  V valueAt(N stmt, D node) { return results.get(stmt, node); }
+  L valueAt(N stmt, D node) const { return results.get(stmt, node); }
 
-  std::unordered_map<D, V> resultsAt(N stmt, bool stripZero = false) {
-    std::unordered_map<D, V> result = results.row(stmt);
+  std::unordered_map<D, L> resultsAt(N stmt, bool stripZero = false) const {
+    std::unordered_map<D, L> result = results.row(stmt);
     if (stripZero) {
       for (auto it = result.begin(); it != result.end();) {
         if (it->first == zeroValue) {
@@ -51,7 +51,7 @@ public:
     return result;
   }
 
-  std::set<D> ifdsResultsAt(N stmt) {
+  std::set<D> ifdsResultsAt(N stmt) const {
     std::set<D> keyset;
     std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
     for (auto d : map) {

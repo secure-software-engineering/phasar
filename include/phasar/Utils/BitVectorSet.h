@@ -11,32 +11,40 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
-#include <cassert>
+#include <functional>
 #include <initializer_list>
-#include <map>
+#include <iostream>
+#include <set>
 #include <vector>
+
+#include <boost/bimap.hpp>
+#include <boost/bimap/unordered_set_of.hpp>
 
 namespace psr {
 
-// TODO: under construction
-// BitVectorSet must allow for fast set union/set intersection/insert/lookup
-// while requireing minimal space which, in turn, allows for fast copies to be
-// performed (propagation along the control-flow graph).
-
 /**
- * BitVectorSet implements a set that only requires minimal space. Elements are
+ * BitVectorSet implements a set that requires minimal space. Elements are
  * kept in a static map and the set itself only stores a vector of bits which
  * indicate whether elements are contained in the set.
  *
- * @brief Implements a set that only requires minimal space.
+ * @brief Implements a set that requires minimal space.
  */
 template <typename T> class BitVectorSet {
 private:
-  inline static std::map<T, size_t> Position;
+  // Using boost::hash<T> causes ambiguity for hash_value():
+  //  -<llvm/ADT/Hashing.h>
+  //  -<boost/functional/hash/extensions.hpp>
+  //  -<boost/graph/adjacency_list.hpp>
+  typedef boost::bimap<boost::bimaps::unordered_set_of<T, std::hash<T>>,
+                       boost::bimaps::unordered_set_of<size_t>>
+      bimap_t;
+  inline static bimap_t Position;
   std::vector<bool> Bits;
 
 public:
   BitVectorSet() = default;
+
+  explicit BitVectorSet(size_t Count) : Bits(Count, false) {}
 
   BitVectorSet(std::initializer_list<T> Ilist) {
     for (auto &Item : Ilist) {
@@ -44,34 +52,105 @@ public:
     }
   }
 
-  BitVectorSet(const BitVectorSet &) = default;
-
-  BitVectorSet(BitVectorSet &&) = default;
-
   ~BitVectorSet() = default;
 
+  BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
+    const std::vector<bool> *Shorter, *Longer;
+    if (Bits.size() < Other.Bits.size()) {
+      Shorter = &Bits;
+      Longer = &Other.Bits;
+    } else {
+      Shorter = &Other.Bits;
+      Longer = &Bits;
+    }
+    BitVectorSet<T> Res(Longer->size());
+    size_t idx = 0;
+    for (; idx < Shorter->size(); ++idx) {
+      Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
+    }
+    for (; idx < Longer->size(); ++idx) {
+      Res.Bits[idx] = (*Longer)[idx];
+    }
+    return Res;
+  }
+
+  BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
+    const std::vector<bool> *Shorter, *Longer;
+    if (Bits.size() < Other.Bits.size()) {
+      Shorter = &Bits;
+      Longer = &Other.Bits;
+    } else {
+      Shorter = &Other.Bits;
+      Longer = &Bits;
+    }
+    BitVectorSet<T> Res(Shorter->size());
+    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
+      Res.Bits[idx] = ((*Shorter)[idx] && (*Longer)[idx]);
+    }
+    return Res;
+  }
+
+  bool includes(const BitVectorSet<T> &Other) const {
+    // check if Other contains 1's at positions where this does not
+    // Other is longer
+    if (Bits.size() < Other.Bits.size()) {
+      size_t idx = 0;
+      for (; idx < Bits.size(); ++idx) {
+        if (Other.Bits[idx] && !Bits[idx]) {
+          return false;
+        }
+      }
+      // Check if Other's additional bits are non-zero
+      for (; idx < Other.Bits.size(); ++idx) {
+        if (Other.Bits[idx]) {
+          return false;
+        }
+      }
+      // additional zeros are fine
+      return true;
+    } else {
+      // this is longer or they have the same length
+      // check if Other contains 1's at positions where this does not
+      for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
+        if (Other.Bits[idx] && !Bits[idx]) {
+          return false;
+        }
+      }
+      return true;
+    }
+  }
+
   void insert(const T &Data) {
-    auto Search = Position.find(Data);
+    auto Search = Position.left.find(Data);
     // Data already known
-    if (Search != Position.end()) {
+    if (Search != Position.left.end()) {
       if (Bits.size() <= Search->second) {
         Bits.resize(Search->second + 1);
       }
       Bits[Search->second] = true;
     } else {
       // Data unknown
-      size_t Idx = Position.size();
-      Position[Data] = Position.size();
-      if (Bits.size() <= Position.size()) {
-        Bits.resize(Position.size());
+      size_t Idx = Position.left.size();
+      Position.left.insert(std::make_pair(Data, Position.left.size()));
+      if (Bits.size() <= Position.left.size()) {
+        Bits.resize(Position.left.size());
       }
       Bits[Idx] = true;
     }
   }
 
+  void insert(const BitVectorSet<T> &Other) {
+    if (Other.Bits.size() > Bits.size()) {
+      Bits.resize(Other.Bits.size());
+    }
+    for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
+      Bits[idx] = (Bits[idx] || Other.Bits[idx]);
+    }
+  }
+
   void erase(const T &Data) noexcept {
-    auto Search = Position.find(Data);
-    if (Search != Position.end()) {
+    auto Search = Position.left.find(Data);
+    if (Search != Position.left.end()) {
       if (!(Bits.size() < Search->second - 1)) {
         Bits[Search->second] = false;
       }
@@ -84,12 +163,14 @@ public:
     return std::find(Bits.begin(), Bits.end(), true) == Bits.end();
   }
 
+  void reserve(size_t NewCap) { Bits.reserve(NewCap); }
+
   bool find(const T &Data) const noexcept { return count(Data); }
 
   size_t count(const T &Data) const noexcept {
-    auto Search = Position.find(Data);
-    if (Search != Position.end()) {
-      if (Bits.size() - 1 >= Search->second) {
+    auto Search = Position.left.find(Data);
+    if (Search != Position.left.end()) {
+      if (Bits.size() > Search->second) {
         return Bits[Search->second];
       }
     }
@@ -130,13 +211,26 @@ public:
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
     OS << '<';
-    for (auto &Position : B.Position) {
+    for (auto &Position : B.Position.left) {
       if (Position.second < B.Bits.size() && B.Bits[Position.second]) {
         OS << Position.first << ", ";
       }
     }
     OS << '>';
     return OS;
+  }
+
+  std::set<T> getAsSet() const {
+    std::set<T> Elements;
+    for (size_t idx = 0; idx < Bits.size(); ++idx) {
+      if (Bits[idx]) {
+        auto e = Position.right.find(idx);
+        if (e != Position.right.end()) {
+          Elements.insert(e->second);
+        }
+      }
+    }
+    return Elements;
   }
 };
 

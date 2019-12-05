@@ -42,36 +42,33 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                        IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
           IRDB, TH, CF, PT, EntryPoints) {}
 
-MonoSet<const llvm::Value *>
-IntraMonoSolverTest::join(const MonoSet<const llvm::Value *> &Lhs,
-                          const MonoSet<const llvm::Value *> &Rhs) {
+BitVectorSet<const llvm::Value *>
+IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
+                          const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::join()\n";
-  MonoSet<const llvm::Value *> Result;
-  set_union(Lhs.begin(), Lhs.end(), Rhs.begin(), Rhs.end(),
-            inserter(Result, Result.begin()));
-  return Result;
+  return Lhs.setUnion(Rhs);
 }
 
 bool IntraMonoSolverTest::sqSubSetEqual(
-    const MonoSet<const llvm::Value *> &Lhs,
-    const MonoSet<const llvm::Value *> &Rhs) {
+    const BitVectorSet<const llvm::Value *> &Lhs,
+    const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::sqSubSetEqual()\n";
-  return includes(Rhs.begin(), Rhs.end(), Lhs.begin(), Lhs.end());
+  return Lhs.includes(Rhs);
 }
 
-MonoSet<const llvm::Value *>
+BitVectorSet<const llvm::Value *>
 IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
-                                const MonoSet<const llvm::Value *> &In) {
+                                const BitVectorSet<const llvm::Value *> &In) {
   cout << "IntraMonoSolverTest::normalFlow()\n";
-  MonoSet<const llvm::Value *> Result;
-  Result.insert(In.begin(), In.end());
+  BitVectorSet<const llvm::Value *> Result;
+  Result.insert(In);
   if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
   }
   return Result;
 }
 
-MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
+unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 IntraMonoSolverTest::initialSeeds() {
   cout << "IntraMonoSolverTest::initialSeeds()\n";
   return {};

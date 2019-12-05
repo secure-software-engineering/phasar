@@ -18,12 +18,12 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -36,25 +36,26 @@ public:
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  MonoMap<N, MonoSet<D>> Analysis;
+  std::unordered_map<N, BitVectorSet<D>> Analysis;
   const C *CFG;
 
   void initialize() {
     auto EntryPoints = IMProblem.getEntryPoints();
     for (const auto &EntryPoint : EntryPoints) {
-      auto Function = IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);
+      auto Function =
+          IMProblem.getProjectIRDB()->getFunctionDefinition(EntryPoint);
       auto ControlFlowEdges = CFG->getAllControlFlowEdges(Function);
       // add all intra-procedural edges to the worklist
       Worklist.insert(Worklist.begin(), ControlFlowEdges.begin(),
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
       for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, MonoSet<D>()));
+        Analysis.insert(std::make_pair(s, BitVectorSet<D>()));
       }
     }
     // insert initial seeds
-    for (auto &seed : IMProblem.initialSeeds()) {
-      Analysis[seed.first].insert(seed.second.begin(), seed.second.end());
+    for (auto &[Node, FlowFacts] : IMProblem.initialSeeds()) {
+      Analysis[Node].insert(FlowFacts);
     }
   }
 
@@ -72,7 +73,7 @@ public:
       Worklist.pop_front();
       N src = path.first;
       N dst = path.second;
-      MonoSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
+      BitVectorSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         for (auto nprimeprime : CFG->getSuccsOf(dst)) {
@@ -91,19 +92,19 @@ public:
     }
   }
 
-  virtual MonoSet<D> getResultsAt(N n) { return Analysis[n]; }
+  BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
 
   virtual void dumpResults() {
     std::cout << "Intra-Monotone solver results:\n"
                  "------------------------------\n";
-    for (auto &entry : this->Analysis) {
-      std::cout << "Instruction:\n" << this->IMProblem.NtoString(entry.first);
+    for (auto &[Node, FlowFacts] : this->Analysis) {
+      std::cout << "Instruction:\n" << this->IMProblem.NtoString(Node);
       std::cout << "\nFacts:\n";
-      if (entry.second.empty()) {
+      if (FlowFacts.empty()) {
         std::cout << "\tEMPTY\n";
       } else {
-        for (auto fact : entry.second) {
-          std::cout << this->IMProblem.DtoString(fact) << '\n';
+        for (auto FlowFact : FlowFacts.getAsSet()) {
+          std::cout << this->IMProblem.DtoString(FlowFact) << '\n';
         }
       }
       std::cout << "\n\n";

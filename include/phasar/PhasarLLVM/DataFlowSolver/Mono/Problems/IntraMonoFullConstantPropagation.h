@@ -19,9 +19,11 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <utility>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace llvm {
 class Value;
@@ -57,20 +59,23 @@ public:
                                    std::set<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 
-  MonoSet<std::pair<const llvm::Value *, unsigned>>
-  join(const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-       const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
+  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
+  join(const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+       const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
+      override;
 
   bool sqSubSetEqual(
-      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-      const MonoSet<std::pair<const llvm::Value *, unsigned>> &Rhs) override;
+      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
+      override;
 
-  MonoSet<std::pair<const llvm::Value *, unsigned>> normalFlow(
-      const llvm::Instruction *S,
-      const MonoSet<std::pair<const llvm::Value *, unsigned>> &In) override;
+  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
+  normalFlow(const llvm::Instruction *S,
+             const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &In)
+      override;
 
-  MonoMap<const llvm::Instruction *,
-          MonoSet<std::pair<const llvm::Value *, unsigned>>>
+  std::unordered_map<const llvm::Instruction *,
+                     BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;

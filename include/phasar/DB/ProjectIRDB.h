@@ -45,9 +45,11 @@ private:
   llvm::Module *WPAModule = nullptr;
   IRDBOptions Options;
   // Stores all allocation instructions
-  std::set<const llvm::Value *> AllocaInstructions;
+  std::set<const llvm::Instruction *> AllocaInstructions;
   // Stores all allocated types
   std::set<const llvm::Type *> AllocatedTypes;
+  // Return or resum instructions
+  std::set<const llvm::Instruction *> RetOrResInstructions;
   // Stores the contexts
   std::vector<std::unique_ptr<llvm::LLVMContext>> Contexts;
   // Contains all modules that correspond to a project and owns them
@@ -58,6 +60,7 @@ private:
   void buildIDModuleMapping(llvm::Module *M);
 
   void preprocessModule(llvm::Module *M);
+  bool wasCompiledWithDebugInfo(llvm::Module *M) const;
 
   void preprocessAllModules();
 
@@ -81,14 +84,16 @@ public:
 
   void insertModule(llvm::Module *M);
 
-   // add WPA support by providing a fat completely linked module
+  // add WPA support by providing a fat completely linked module
   void linkForWPA();
   // get a completely linked module for the WPA_MODE
   llvm::Module *getWPAModule();
 
-  bool containsSourceFile(const std::string &File);
+  bool containsSourceFile(const std::string &File) const;
 
-  bool empty();
+  bool empty() const;
+
+  bool debugInfoAvailable() const;
 
   llvm::Module *getModule(const std::string &ModuleName);
 
@@ -100,36 +105,43 @@ public:
     return ModuleSet;
   }
 
-  std::set<const llvm::Function *> getAllFunctions();
+  std::set<const llvm::Function *> getAllFunctions() const;
 
-  const llvm::Function *getFunctionDefinition(const std::string &FunctionName) const;
+  const llvm::Function *
+  getFunctionDefinition(const std::string &FunctionName) const;
 
-  const llvm::GlobalVariable *getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
+  const llvm::GlobalVariable *
+  getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
 
   llvm::Module *getModuleDefiningFunction(const std::string &FunctionName);
 
-  std::set<const llvm::Value *> getAllocaInstructions();
+  const llvm::Module *
+  getModuleDefiningFunction(const std::string &FunctionName) const;
+
+  std::set<const llvm::Instruction *> getAllocaInstructions() const;
 
   /**
    * LLVM's intrinsic global variables are excluded.
    *
    * @brief Returns all stack and heap allocations, including global variables.
    */
-  std::set<const llvm::Value *> getAllMemoryLocations();
+  std::set<const llvm::Value *> getAllMemoryLocations() const;
 
-  std::set<std::string> getAllSourceFiles();
+  std::set<std::string> getAllSourceFiles() const;
 
-  std::set<const llvm::Type *> getAllocatedTypes();
+  std::set<const llvm::Type *> getAllocatedTypes() const;
 
-  std::size_t getNumberOfModules();
+  std::set<const llvm::Instruction *> getRetOrResInstructions() const;
+
+  std::size_t getNumberOfModules() const;
 
   llvm::Instruction *getInstruction(std::size_t id);
 
-  std::size_t getInstructionID(const llvm::Instruction *I);
+  std::size_t getInstructionID(const llvm::Instruction *I) const;
 
-  void print();
+  void print() const;
 
-  void emitPreprocessedIR(std::ostream &os, bool shortendIR);
+  void emitPreprocessedIR(std::ostream &os, bool shortendIR) const;
 
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and

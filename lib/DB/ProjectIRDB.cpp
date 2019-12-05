@@ -129,6 +129,8 @@ void ProjectIRDB::preprocessModule(llvm::Module *M) {
   // Obtain the allocated types found in the module
   auto ATypes = GSP->getAllocatedTypes();
   AllocatedTypes.insert(ATypes.begin(), ATypes.end());
+  auto RRInsts = GSP->getRetResInstructions();
+  RetOrResInstructions.insert(RRInsts.begin(), RRInsts.end());
   STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   cout << "PTG construction ...\n";
   START_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
@@ -224,7 +226,7 @@ void ProjectIRDB::buildIDModuleMapping(llvm::Module *M) {
   }
 }
 
-bool ProjectIRDB::containsSourceFile(const std::string &File) {
+bool ProjectIRDB::containsSourceFile(const std::string &File) const {
   return Modules.find(File) != Modules.end();
 }
 
@@ -234,7 +236,7 @@ llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
   return nullptr;
 }
 
-std::size_t ProjectIRDB::getNumberOfModules() { return Modules.size(); }
+std::size_t ProjectIRDB::getNumberOfModules() const { return Modules.size(); }
 
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t id) {
   if (IDInstructionMapping.count(id))
@@ -242,7 +244,7 @@ llvm::Instruction *ProjectIRDB::getInstruction(std::size_t id) {
   return nullptr;
 }
 
-std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
+std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) const {
   std::size_t id = 0;
   if (auto MD = llvm::cast<llvm::MDString>(
           I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))) {
@@ -251,14 +253,14 @@ std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   return id;
 }
 
-void ProjectIRDB::print() {
+void ProjectIRDB::print() const {
   for (auto &[File, Module] : Modules) {
     std::cout << "Module: " << File << std::endl;
     llvm::outs() << *Module;
   }
 }
 
-void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) {
+void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) const {
   for (auto &entry : Modules) {
     os << "IR module: " << entry.first << '\n';
     // print globals
@@ -302,6 +304,11 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) {
   }
 }
 
+std::set<const llvm::Instruction *>
+ProjectIRDB::getRetOrResInstructions() const {
+  return RetOrResInstructions;
+}
+
 const llvm::Function *
 ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
   for (auto &[File, Module] : Modules) {
@@ -313,7 +320,8 @@ ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
   return nullptr;
 }
 
-const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(const std::string &GlobalVariableName) const {
+const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
+    const std::string &GlobalVariableName) const {
   for (auto &[File, Module] : Modules) {
     auto G = Module->getGlobalVariable(GlobalVariableName);
     if (G && !G->isDeclaration()) {
@@ -323,7 +331,19 @@ const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(const std::
   return nullptr;
 }
 
-llvm::Module *ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) {
+llvm::Module *
+ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) {
+  for (auto &[File, Module] : Modules) {
+    auto F = Module->getFunction(FunctionName);
+    if (F && !F->isDeclaration()) {
+      return Module.get();
+    }
+  }
+  return nullptr;
+}
+
+const llvm::Module *
+ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) const {
   for (auto &[File, Module] : Modules) {
     auto F = Module->getFunction(FunctionName);
     if (F && !F->isDeclaration()) {
@@ -384,8 +404,8 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
     return getGlobalVariableDefinition(S);
   } else if (S.find(".f") != std::string::npos) {
     unsigned argno = stoi(S.substr(S.find(".f") + 2, S.size()));
-    return getNthFunctionArgument(getFunctionDefinition(S.substr(0, S.find(".f"))),
-                                  argno);
+    return getNthFunctionArgument(
+        getFunctionDefinition(S.substr(0, S.find(".f"))), argno);
   } else if (S.find(".o.") != std::string::npos) {
     unsigned i = S.find(".");
     unsigned j = S.find(".o.");
@@ -419,11 +439,11 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
   return nullptr;
 }
 
-std::set<const llvm::Value *> ProjectIRDB::getAllocaInstructions() {
+std::set<const llvm::Instruction *> ProjectIRDB::getAllocaInstructions() const {
   return AllocaInstructions;
 }
 
-std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
+std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   std::set<const llvm::Function *> Functions;
   for (auto &[File, Module] : Modules) {
     for (auto &F : *Module) {
@@ -433,7 +453,7 @@ std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() {
   return Functions;
 }
 
-bool ProjectIRDB::empty() { return Modules.empty(); }
+bool ProjectIRDB::empty() const { return Modules.empty(); }
 
 void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
@@ -441,13 +461,17 @@ void ProjectIRDB::insertModule(llvm::Module *M) {
   preprocessModule(M);
 }
 
-set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() {
+set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
   return AllocatedTypes;
 }
 
-set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() {
+set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   // get all stack and heap alloca instructions
-  set<const llvm::Value *> allMemoryLoc = getAllocaInstructions();
+  auto AllocaInsts = getAllocaInstructions();
+  set<const llvm::Value *> allMemoryLoc;
+  for (auto AllocaInst : AllocaInsts) {
+    allMemoryLoc.insert(static_cast<const llvm::Value *>(AllocaInst));
+  }
   set<string> IgnoredGlobalNames = {"llvm.used",
                                     "llvm.compiler.used",
                                     "llvm.global_ctors",
@@ -467,6 +491,26 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() {
     }
   }
   return allMemoryLoc;
+}
+
+bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
+  return M->getNamedMetadata("llvm.dbg.cu") != NULL;
+}
+
+bool ProjectIRDB::debugInfoAvailable() const {
+  if (WPAModule) {
+    return wasCompiledWithDebugInfo(WPAModule);
+  }
+  // During unittests WPAMOD might not be set
+  else if (Modules.size() >= 1) {
+    for (auto &[File, Module] : Modules) {
+      if (!wasCompiledWithDebugInfo(Module.get())) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
 }
 
 } // namespace psr

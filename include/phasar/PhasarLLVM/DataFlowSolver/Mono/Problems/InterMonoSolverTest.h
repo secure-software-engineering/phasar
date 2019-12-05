@@ -19,9 +19,11 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
+#include <phasar/Utils/BitVectorSet.h>
 
 namespace llvm {
 class Instruction;
@@ -53,34 +55,35 @@ public:
                       std::set<std::string> EntryPoints = {});
   ~InterMonoSolverTest() override = default;
 
-  MonoSet<const llvm::Value *>
-  join(const MonoSet<const llvm::Value *> &Lhs,
-       const MonoSet<const llvm::Value *> &Rhs) override;
+  BitVectorSet<const llvm::Value *>
+  join(const BitVectorSet<const llvm::Value *> &Lhs,
+       const BitVectorSet<const llvm::Value *> &Rhs) override;
 
-  bool sqSubSetEqual(const MonoSet<const llvm::Value *> &Lhs,
-                     const MonoSet<const llvm::Value *> &Rhs) override;
+  bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
+                     const BitVectorSet<const llvm::Value *> &Rhs) override;
 
-  MonoSet<const llvm::Value *>
+  BitVectorSet<const llvm::Value *>
   normalFlow(const llvm::Instruction *Stmt,
-             const MonoSet<const llvm::Value *> &In) override;
+             const BitVectorSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *>
+  BitVectorSet<const llvm::Value *>
   callFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
-           const MonoSet<const llvm::Value *> &In) override;
+           const BitVectorSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *>
+  BitVectorSet<const llvm::Value *>
   returnFlow(const llvm::Instruction *CallSite, const llvm::Function *Callee,
              const llvm::Instruction *ExitStmt,
              const llvm::Instruction *RetSite,
-             const MonoSet<const llvm::Value *> &In) override;
+             const BitVectorSet<const llvm::Value *> &In) override;
 
-  MonoSet<const llvm::Value *>
+  BitVectorSet<const llvm::Value *>
   callToRetFlow(const llvm::Instruction *CallSite,
                 const llvm::Instruction *RetSite,
-                MonoSet<const llvm::Function *> Callees,
-                const MonoSet<const llvm::Value *> &In) override;
+                std::set<const llvm::Function *> Callees,
+                const BitVectorSet<const llvm::Value *> &In) override;
 
-  MonoMap<const llvm::Instruction *, MonoSet<const llvm::Value *>>
+  std::unordered_map<const llvm::Instruction *,
+                     BitVectorSet<const llvm::Value *>>
   initialSeeds() override;
 
   void printNode(std::ostream &os, const llvm::Instruction *n) const override;

@@ -1,13 +1,11 @@
-void bar(int b) {
-
-}
-
-void foo(int a) {
-  bar(a);
+int foo(int a, int b) {
+  a += b;
+  b += a;
+  return a + b;
 }
 
 int main() {
-  int i;
-  foo(2);
+  int k;
+  k = foo(1, 2);
   return 0;
 }

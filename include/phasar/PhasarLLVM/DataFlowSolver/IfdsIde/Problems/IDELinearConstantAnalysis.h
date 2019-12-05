@@ -63,6 +63,19 @@ public:
 
   ~IDELinearConstantAnalysis() override;
 
+  struct LCAResult {
+    LCAResult() = default;
+    unsigned line_nr = 0;
+    std::string src_code;
+    std::map<std::string, l_t> variableToValue;
+    std::vector<n_t> ir_trace;
+    void print(std::ostream &os);
+  };
+
+  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_restults_t;
+
+  void stripBottomResults(std::unordered_map<d_t, l_t> &res);
+
   // start formulating our analysis by specifying the parts required for IFDS
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
@@ -178,6 +191,28 @@ public:
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
 
+  class BinOp : public EdgeFunction<l_t>,
+                public std::enable_shared_from_this<BinOp> {
+  private:
+    const unsigned EdgeFunctionID, Op;
+    d_t lop, rop, currNode;
+
+  public:
+    BinOp(const unsigned Op, d_t lop, d_t rop, d_t currNode);
+
+    l_t computeTarget(l_t source) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+
+    void print(std::ostream &OS, bool isForDebug = false) const override;
+  };
+
   // Helper functions
 
   /**
@@ -196,6 +231,10 @@ public:
    */
   static l_t executeBinOperation(const unsigned op, l_t lop, l_t rop);
 
+  static char opToChar(const unsigned op);
+
+  bool isEntryPoint(std::string FunctionName) const;
+
   void printNode(std::ostream &os, n_t n) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
@@ -204,8 +243,10 @@ public:
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
-  void printIDEReport(std::ostream &os,
-                      SolverResults<n_t, d_t, l_t> &SR) override;
+  lca_restults_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+
+  void emitTextReport(std::ostream &os,
+                      const SolverResults<n_t, d_t, l_t> &SR) override;
 };
 
 } // namespace psr

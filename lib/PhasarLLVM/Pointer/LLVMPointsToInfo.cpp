@@ -7,16 +7,16 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/Passes/PassBuilder.h>
 #include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/IR/Value.h>
+#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/IR/Value.h>
+#include <llvm/Passes/PassBuilder.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 namespace psr {
 
@@ -31,7 +31,8 @@ LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
     for (auto &F : *NCM) {
       if (!F.isDeclaration()) {
         llvm::AAResults AAR = AAM.run(F, FAM);
-        PointsToGraphs.insert(std::make_pair(&F, std::make_unique<PointsToGraph>(std::move(AAR), &F)));
+        PointsToGraphs.insert(std::make_pair(
+            &F, std::make_unique<PointsToGraph>(std::move(AAR), &F)));
       } else {
         PointsToGraphs.insert(std::make_pair(&F, nullptr));
       }

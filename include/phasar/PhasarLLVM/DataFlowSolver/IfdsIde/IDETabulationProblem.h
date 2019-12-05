@@ -49,10 +49,17 @@ public:
                                                 EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
-  virtual void printIDEReport(std::ostream &os, SolverResults<N, D, L> &SR) {
-    os << "No IDE report available!\n";
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+  virtual void emitTextReport(std::ostream &os,
+                              const SolverResults<N, D, L> &SR) {
+    os << "No text report available!\n";
   }
+#pragma clang diagnostic pop
+private:
+  using IFDSTabulationProblem<N, D, M, T, V, I>::emitTextReport;
 };
+
 } // namespace psr
 
 #endif

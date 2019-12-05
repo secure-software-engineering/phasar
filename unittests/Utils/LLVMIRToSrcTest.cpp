@@ -28,8 +28,7 @@ protected:
   virtual ~LLVMIRToSrcTest() {}
 
   void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles);
-    IRDB->preprocessIR();
+    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG = new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, {"main"});
   }
@@ -46,49 +45,49 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(LLVMIRToSrcTest, HandleInstructions) {
-  Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
-  auto Fmain = ICFG->getFunction("main");
-  for (auto &BB : *Fmain) {
-    for (auto &I : BB) {
-      if (llvm::isa<llvm::StoreInst>(&I) ||
-          (llvm::isa<llvm::CallInst>(&I) &&
-           !llvm::isa<llvm::DbgValueInst>(&I) &&
-           !llvm::isa<llvm::DbgDeclareInst>(&I)) ||
-          llvm::isa<llvm::LoadInst>(&I)) {
-        std::cout << '\n'
-                  << llvmIRToString(&I) << "\n  --> "
-                  << llvmInstructionToSrc(&I) << std::endl;
-      }
-    }
-  }
-}
+// TEST_F(LLVMIRToSrcTest, HandleInstructions) {
+//   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
+//   auto Fmain = ICFG->getMethod("main");
+//   for (auto &BB : *Fmain) {
+//     for (auto &I : BB) {
+//       if (llvm::isa<llvm::StoreInst>(&I) ||
+//           (llvm::isa<llvm::CallInst>(&I) &&
+//            !llvm::isa<llvm::DbgValueInst>(&I) &&
+//            !llvm::isa<llvm::DbgDeclareInst>(&I)) ||
+//           llvm::isa<llvm::LoadInst>(&I)) {
+//         std::cout << '\n'
+//                   << llvmIRToString(&I) << "\n  --> "
+//                   << llvmInstructionToSrc(&I) << std::endl;
+//       }
+//     }
+//   }
+// }
 
-TEST_F(LLVMIRToSrcTest, HandleFunctions) {
-  Initialize({pathToLLFiles + "multi_calls_cpp_dbg.ll"});
-  for (auto F : IRDB->getAllFunctions()) {
-    // F->print(llvm::outs());
-    // llvm::outs() << '\n';
-    std::cout << '\n' << llvmFunctionToSrc(F) << std::endl;
-  }
-}
+// TEST_F(LLVMIRToSrcTest, HandleFunctions) {
+//   Initialize({pathToLLFiles + "multi_calls_cpp_dbg.ll"});
+//   for (auto F : IRDB->getAllFunctions()) {
+//     // F->print(llvm::outs());
+//     // llvm::outs() << '\n';
+//     std::cout << '\n' << llvmFunctionToSrc(F) << std::endl;
+//   }
+// }
 
-TEST_F(LLVMIRToSrcTest, HandleGlobalVariable) {
-  Initialize({pathToLLFiles + "global_01_cpp_dbg.ll"});
-  for (auto &GV :
-       IRDB->getModule(pathToLLFiles + "global_01_cpp_dbg.ll")->globals()) {
-    std::cout << '\n' << llvmGlobalValueToSrc(&GV) << std::endl;
-  }
-}
+// TEST_F(LLVMIRToSrcTest, HandleGlobalVariable) {
+//   Initialize({pathToLLFiles + "global_01_cpp_dbg.ll"});
+//   for (auto &GV :
+//        IRDB->getModule(pathToLLFiles + "global_01_cpp_dbg.ll")->globals()) {
+//     std::cout << '\n' << llvmGlobalValueToSrc(&GV) << std::endl;
+//   }
+// }
 
-TEST_F(LLVMIRToSrcTest, HandleAlloca) {
-  Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
-  for (auto A : IRDB->getAllocaInstructions()) {
-    std::cout << '\n'
-              << llvmIRToString(A) << "\n  --> " << llvmValueToSrc(A)
-              << std::endl;
-  }
-}
+// TEST_F(LLVMIRToSrcTest, HandleAlloca) {
+//   Initialize({pathToLLFiles + "function_call_cpp_dbg.ll"});
+//   for (auto A : IRDB->getAllocaInstructions()) {
+//     std::cout << '\n'
+//               << llvmIRToString(A) << "\n  --> " << llvmValueToSrc(A)
+//               << std::endl;
+//   }
+// }
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

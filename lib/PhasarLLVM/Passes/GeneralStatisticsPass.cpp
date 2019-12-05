@@ -53,7 +53,7 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
                 llvm::dyn_cast<llvm::AllocaInst>(&I)) {
           allocatedTypes.insert(alloc->getAllocatedType());
           // do not add allocas from llvm internal functions
-          allocaInstrucitons.insert(&I);
+          allocaInstructions.insert(&I);
           ++allocationsites;
         } // check bitcast instructions for possible types
         else {
@@ -84,7 +84,7 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
             if (mem_allocating_functions.count(
                     cxx_demangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
-              allocaInstrucitons.insert(&I);
+              allocaInstructions.insert(&I);
               ++allocationsites;
               // check if an instance of a user-defined type is allocated on the
               // heap
@@ -179,23 +179,43 @@ void GeneralStatisticsPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 
 void GeneralStatisticsPass::releaseMemory() {}
 
-size_t GeneralStatisticsPass::getAllocationsites() { return allocationsites; }
+size_t GeneralStatisticsPass::getAllocationsites() const {
+  return allocationsites;
+}
 
-size_t GeneralStatisticsPass::getFunctioncalls() { return callsites; }
+size_t GeneralStatisticsPass::getFunctioncalls() const { return callsites; }
 
-size_t GeneralStatisticsPass::getInstructions() { return instructions; }
+size_t GeneralStatisticsPass::getInstructions() const { return instructions; }
 
-size_t GeneralStatisticsPass::getGlobalPointers() { return globalPointers; }
+size_t GeneralStatisticsPass::getGlobalPointers() const {
+  return globalPointers;
+}
 
-set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
+size_t GeneralStatisticsPass::getBasicBlocks() const { return basicblocks; }
+
+size_t GeneralStatisticsPass::getFunctions() const { return functions; }
+
+size_t GeneralStatisticsPass::getGlobals() const { return globals; }
+
+size_t GeneralStatisticsPass::getMemoryIntrinsics() const {
+  return memIntrinsic;
+}
+
+size_t GeneralStatisticsPass::getStoreInstructions() const {
+  return storeInstructions;
+}
+
+set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() const {
   return allocatedTypes;
 }
 
-set<const llvm::Value *> GeneralStatisticsPass::getAllocaInstructions() {
-  return allocaInstrucitons;
+set<const llvm::Instruction *>
+GeneralStatisticsPass::getAllocaInstructions() const {
+  return allocaInstructions;
 }
 
-set<const llvm::Instruction *> GeneralStatisticsPass::getRetResInstructions() {
+set<const llvm::Instruction *>
+GeneralStatisticsPass::getRetResInstructions() const {
   return retResInstructions;
 }
 
