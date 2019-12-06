@@ -37,4 +37,8 @@ AliasResult to_AliasResult(const std::string &S) {
   }
 }
 
+std::ostream &operator<<(std::ostream &OS, const AliasResult& AR) {
+  return OS << to_string(AR);
+}
+
 } // namespace psr

@@ -351,13 +351,18 @@ bool LLVMTypeHierarchy::isSuperType(const llvm::StructType *Type,
 }
 
 std::set<const llvm::StructType *>
-LLVMTypeHierarchy::getReachableSuperTypes(const llvm::StructType *Type) {}
+LLVMTypeHierarchy::getReachableSuperTypes(const llvm::StructType *Type) {
+  return {};
+}
 
 const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
   // return g[type_vertex_map.at(TypeName)].llvmtype;
+  return nullptr;
 }
 
-std::set<const llvm::StructType *> LLVMTypeHierarchy::getAllTypes() const {}
+std::set<const llvm::StructType *> LLVMTypeHierarchy::getAllTypes() const {
+  return {};
+}
 
 std::string LLVMTypeHierarchy::getTypeName(const llvm::StructType *Type) const {
   return Type->getStructName();

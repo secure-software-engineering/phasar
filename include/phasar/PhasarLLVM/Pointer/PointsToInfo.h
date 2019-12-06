@@ -11,6 +11,7 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
 #include <set>
+#include <iosfwd>
 
 #include <json.hpp>
 
@@ -21,6 +22,8 @@ enum class AliasResult { NoAlias, MayAlias, MustAlias };
 std::string to_string(AliasResult AR);
 
 AliasResult to_AliasResult(const std::string &S);
+
+std::ostream &operator<<(std::ostream &OS, const AliasResult& AR);
 
 template <typename V> class PointsToInfo {
 public:
