@@ -64,13 +64,17 @@ bool GeneralStatisticsPass::runOnModule(llvm::Module &M) {
             }
           }
         }
-        // check for return or resume instrucitons
+        // check for return or resume instructions
         if (llvm::isa<llvm::ReturnInst>(I) || llvm::isa<llvm::ResumeInst>(I)) {
           retResInstructions.insert(&I);
         }
-        // check for store instrucitons
+        // check for store instructions
         if (llvm::isa<llvm::StoreInst>(I)) {
           ++storeInstructions;
+        }
+        // check for load instructions
+        if (llvm::isa<llvm::LoadInst>(I)) {
+          ++loadInstructions;
         }
         // check for llvm's memory intrinsics
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
@@ -144,8 +148,8 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
   REG_COUNTER("GS Globals", globals, PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("GS Global Pointer", globalPointers, PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("GS Memory Intrinsics", memIntrinsic, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Store Instructions", storeInstructions,
-              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Store Instructions", storeInstructions, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Load Instructions", loadInstructions, PAMM_SEVERITY_LEVEL::Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   if (bl::core::get()->get_logging_enabled()) {
@@ -162,6 +166,7 @@ bool GeneralStatisticsPass::doFinalization(llvm::Module &M) {
     BOOST_LOG_SEV(lg, INFO) << "Instructions       : " << instructions;
     BOOST_LOG_SEV(lg, INFO) << "Memory Intrinsics  : " << memIntrinsic;
     BOOST_LOG_SEV(lg, INFO) << "Store Instructions : " << storeInstructions;
+    BOOST_LOG_SEV(lg, INFO) << "Load Instructions  : " << loadInstructions;
     BOOST_LOG_SEV(lg, INFO) << ' ';
     for (auto type : allocatedTypes) {
       std::string type_str;
@@ -196,6 +201,8 @@ size_t GeneralStatisticsPass::getGlobals() { return globals; }
 size_t GeneralStatisticsPass::getMemoryIntrinsics() { return memIntrinsic; }
 
 size_t GeneralStatisticsPass::getStoreInstructions() { return storeInstructions; }
+
+size_t GeneralStatisticsPass::getLoadInstructions() { return loadInstructions; }
 
 set<const llvm::Type *> GeneralStatisticsPass::getAllocatedTypes() {
   return allocatedTypes;
