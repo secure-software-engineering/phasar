@@ -1,6 +1,6 @@
 #pragma once
-#include "IDETabulationProblem.h"
 #include <phasar/PhasarLLVM/ControlFlow/VariationalICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
 
 namespace psr {
 template <typename N, typename D, typename M, typename V>
@@ -45,6 +45,7 @@ public:
     auto userEdgeFn =
         problem.getNormalEdgeFunction(curr, currNode, succ, succNode);
     z3::expr cond;
+
     ICF->isPPBranchTarget(curr, succ, cond);
     // if it is not a conditional branch, cond is true
     return std::make_shared<VariationalEdgeFunction<V>>(userEdgeFn, cond);

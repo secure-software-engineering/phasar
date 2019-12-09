@@ -1,7 +1,6 @@
 #pragma once
-#include "ICFG.h"
-#include "VariationalCFG.h"
-
+#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/VariationalCFG.h>
 
 template <typename N, typename M, typename C>
 class VariationalICFG : public virtual VariationalCFG<N, M, C>,

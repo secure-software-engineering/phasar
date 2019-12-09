@@ -1,5 +1,5 @@
 #pragma once
-#include "VariationalCFG.h"
+#include <phasar/PhasarLLVM/ControlFlow/VariationalCFG.h>
 #include <z3++.h>
 namespace llvm {
 class Function;

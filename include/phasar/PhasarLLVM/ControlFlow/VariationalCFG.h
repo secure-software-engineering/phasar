@@ -1,5 +1,5 @@
 #pragma once
-#include "CFG.h"
+#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
 #include <tuple>
 #include <vector>
 
