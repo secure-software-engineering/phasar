@@ -1,4 +1,7 @@
 #pragma once
+#include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
 #include <phasar/PhasarLLVM/ControlFlow/VariationalCFG.h>
 #include <z3++.h>
 namespace llvm {
@@ -13,12 +16,13 @@ class LLVMBasedVariationalCFG
   z3::context ctx;
   bool isPPBranchNode(const llvm::BranchInst *T);
   bool isPPBranchNode(const llvm::BranchInst *T, z3::expr &cond);
-  z3::expr inferCondition(const llvm::CMPInst cmp);
+  z3::expr inferCondition(const llvm::CmpInst *cmp);
 
 public:
+  LLVMBasedVariationalCFG() = default;
   virtual ~LLVMBasedVariationalCFG() = default;
-  std::vectorstd::tuple<const llvm::Instruction *, z3::expr>>
-      getSuccsOfWithCond(const llvm::Instruction *stmt) override;
+  std::vector<std::tuple<const llvm::Instruction *, z3::expr>>
+  getSuccsOfWithCond(const llvm::Instruction *stmt) override;
   bool isPPBranchTarget(const llvm::Instruction *stmt,
                         const llvm::Instruction *succ) override;
   bool isPPBranchTarget(const llvm::Instruction *stmt,

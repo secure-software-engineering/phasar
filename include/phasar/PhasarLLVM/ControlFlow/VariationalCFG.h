@@ -16,25 +16,26 @@ public:
   /// or else true
   virtual bool isPPBranchTarget(N stmt, N succ, C &condition) = 0;
   virtual bool isNormalBranchTarget(N stmt, N succ) {
-    return isBranchTarget(stmt, succ) && !isPPBranchTarget(stmt, succ);
+    return this->isBranchTarget(stmt, succ) &&
+           !this->isPPBranchTarget(stmt, succ);
   }
-  virtual std::vectorstd::tuple<N, C>> getSuccsOfWithCond(N stmt) = 0;
+  virtual std::vector<std::tuple<N, C>> getSuccsOfWithCond(N stmt) = 0;
+  virtual C getTrueCondition() = 0;
   virtual std::vector<std::tuple<N, N, C>>
   getAllControlFlowEdgesWithCondition(M fun) {
     // TODO: make more (memory) efficient
     std::vector<std::tuple<N, N, C>> ret;
-    auto normalCFGEdges = getAllControlFlowEdges();
+    auto normalCFGEdges = this->getAllControlFlowEdges(fun);
     ret.reserve(normalCFGEdges.size());
 
     for (auto &[curr, succ] : normalCFGEdges) {
-      C cond;
-      if (isPPBranchTarget(curr, succ, cond))
+      C cond = getTrueCondition();
+      if (this->isPPBranchTarget(curr, succ, cond))
         ret.emplace_back(curr, succ, cond);
       else
         ret.emplace_back(curr, succ, getTrueCondition());
     }
     return ret;
   }
-  virtual C getTrueCondition() = 0;
 };
 } // namespace psr

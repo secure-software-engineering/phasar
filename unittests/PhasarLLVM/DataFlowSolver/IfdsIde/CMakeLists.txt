@@ -1,4 +1,5 @@
 add_subdirectory(Problems)
+add_subdirectory(Variability)
 
 set(IfdsIdeSources
 	EdgeFunctionComposerTest.cpp
