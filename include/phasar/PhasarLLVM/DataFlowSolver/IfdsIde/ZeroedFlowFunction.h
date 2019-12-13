@@ -25,11 +25,11 @@ namespace psr {
 
 template <typename D> class ZeroedFlowFunction : public FlowFunction<D> {
 private:
-  std::shared_ptr<FlowFunction<D>> delegate;
+  FlowFunction<D>* delegate;
   D zerovalue;
 
 public:
-  ZeroedFlowFunction(std::shared_ptr<FlowFunction<D>> ff, D zv)
+  ZeroedFlowFunction(FlowFunction<D>* ff, D zv)
       : delegate(ff), zerovalue(zv) {}
   std::set<D> computeTargets(D source) override {
     if (source == zerovalue) {

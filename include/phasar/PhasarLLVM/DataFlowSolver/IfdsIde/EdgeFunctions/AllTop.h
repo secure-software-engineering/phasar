@@ -37,17 +37,17 @@ public:
 
   V computeTarget(V source) override { return topElement; }
 
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
+  EdgeFunction<V>*
+  composeWith(EdgeFunction<V>* secondFunction) override {
     return this->shared_from_this();
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
+  EdgeFunction<V>*
+  joinWith(EdgeFunction<V>* otherFunction) override {
     return otherFunction;
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(EdgeFunction<V>* other) const override {
     if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other.get()))
       return (alltop->topElement == topElement);
     return false;

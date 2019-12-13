@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_EDGEIDENTITY_H_
 
 #include <iostream>
-#include <memory>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
 #include <string>
@@ -44,13 +43,13 @@ public:
 
   V computeTarget(V source) override { return source; }
 
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
+  EdgeFunction<V>*
+  composeWith(EdgeFunction<V>* secondFunction) override {
     return secondFunction;
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
+  EdgeFunction<V>*
+  joinWith(EdgeFunction<V>* otherFunction) override {
     if ((otherFunction.get() == this) ||
         otherFunction->equal_to(this->shared_from_this()))
       return this->shared_from_this();
@@ -62,13 +61,13 @@ public:
     return otherFunction->joinWith(this->shared_from_this());
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(EdgeFunction<V>* other) const override {
     return this == other.get();
   }
 
-  static std::shared_ptr<EdgeIdentity<V>> getInstance() {
+  static EdgeIdentity<V>* getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static std::shared_ptr<EdgeIdentity<V>> instance(new EdgeIdentity<V>());
+    static EdgeIdentity<V>* instance = new EdgeIdentity<V>();
     return instance;
   }
 

@@ -11,8 +11,8 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWEDGEFUNCTIONCACHE_H_
 
 #include <map>
-#include <memory>
 #include <set>
+#include <unordered_set>
 #include <tuple>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
@@ -39,30 +39,30 @@ private:
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
-  std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, N>, FlowFunction<D>*>
       NormalFlowFunctionCache;
-  std::map<std::tuple<N, M>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, M>, FlowFunction<D>*>
       CallFlowFunctionCache;
-  std::map<std::tuple<N, M, N, N>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, M, N, N>, FlowFunction<D>*>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N, std::set<M>>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, N, std::set<M>>, FlowFunction<D>*>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
       NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, M, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, M, D>, EdgeFunction<L>*>
       CallEdgeFunctionCache;
-  std::map<std::tuple<N, M, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, M, N, D, N, D>, EdgeFunction<L>*>
       ReturnEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
       SummaryEdgeFunctionCache;
 
   // Data for clean up
-  std::set<EdgeFunction<L> *> managedEdgeFunctions;
-  std::set<EdgeFunction<L> *> registeredEdgeFunctionSingleton;
-  std::set<FlowFunction<D> *> registeredFlowFunctionSingleton;
+  std::unordered_set<EdgeFunction<L> *> managedEdgeFunctions;
+  std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingleton;
+  std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingleton;
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
@@ -119,9 +119,7 @@ public:
   }
 
   void registerAsEdgeFunctionSingleton(std::set<EdgeFunction<L> *> &s) {
-    for (auto p : s) {
-      registerAsEdgeFunctionSingleton(p);
-    }
+    registeredEdgeFunctionSingleton.insert(s);
   }
 
   void registerAsFlowFunctionSingleton(FlowFunction<D> *p) {
@@ -129,12 +127,10 @@ public:
   }
 
   void registerAsFlowFunctionSingleton(std::set<FlowFunction<D> *> &s) {
-    for (auto p : s) {
-      registerAsFlowFunctionSingleton(p);
-    }
+    registeredFlowFunctionSingleton.insert(s);
   }
 
-  std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
+  FlowFunction<D>* getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -153,8 +149,7 @@ public:
     } else {
       INC_COUNTER("Normal-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<D>>(
-                          problem.getNormalFlowFunction(curr, succ), zeroValue)
+                    ? new ZeroedFlowFunction<D>(problem.getNormalFlowFunction(curr, succ), zeroValue)
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
@@ -163,7 +158,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) {
+  FlowFunction<D>* getCallFlowFunction(N callStmt, M destMthd) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -183,7 +178,7 @@ public:
       INC_COUNTER("Call-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<D>>(
+              ? new ZeroedFlowFunction<D>(
                     problem.getCallFlowFunction(callStmt, destMthd), zeroValue)
               : problem.getCallFlowFunction(callStmt, destMthd);
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
@@ -193,7 +188,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd,
+  FlowFunction<D>* getRetFlowFunction(N callSite, M calleeMthd,
                                                       N exitStmt, N retSite) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -217,7 +212,7 @@ public:
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<D>>(
+                    ? new ZeroedFlowFunction<D>(
                           problem.getRetFlowFunction(callSite, calleeMthd,
                                                      exitStmt, retSite),
                           zeroValue)
@@ -230,7 +225,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>>
+  FlowFunction<D>*
   getCallToRetFlowFunction(N callSite, N retSite, std::set<M> callees) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -256,7 +251,7 @@ public:
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? std::make_shared<ZeroedFlowFunction<D>>(
+              ? new ZeroedFlowFunction<D>(
                     problem.getCallToRetFlowFunction(callSite, retSite,
                                                      callees),
                     zeroValue)
@@ -268,7 +263,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
+  FlowFunction<D>* getSummaryFlowFunction(N callStmt,
                                                           M destMthd) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -284,7 +279,7 @@ public:
     return ff;
   }
 
-  std::shared_ptr<EdgeFunction<L>> getNormalEdgeFunction(N curr, D currNode,
+  EdgeFunction<L>* getNormalEdgeFunction(N curr, D currNode,
                                                          N succ, D succNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -315,7 +310,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
+  EdgeFunction<L>*
   getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -348,7 +343,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>> getReturnEdgeFunction(N callSite,
+  EdgeFunction<L>* getReturnEdgeFunction(N callSite,
                                                          M calleeMethod,
                                                          N exitStmt, D exitNode,
                                                          N reSite, D retNode) {
@@ -387,7 +382,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
+  EdgeFunction<L>*
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
                            std::set<M> callees) {
     PAMM_GET_INSTANCE;
@@ -425,7 +420,7 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
+  EdgeFunction<L>*
   getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();

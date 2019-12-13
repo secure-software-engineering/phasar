@@ -43,8 +43,8 @@ public:
 
   V computeTarget(V source) override { return bottomElement; }
 
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
+  EdgeFunction<V>*
+  composeWith(EdgeFunction<V>* secondFunction) override {
     if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
@@ -55,8 +55,8 @@ public:
     return secondFunction->composeWith(this->shared_from_this());
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
+  EdgeFunction<V>*
+  joinWith(EdgeFunction<V>* otherFunction) override {
     if (otherFunction.get() == this ||
         otherFunction->equal_to(this->shared_from_this()))
       return this->shared_from_this();
@@ -68,7 +68,7 @@ public:
     return this->shared_from_this();
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(EdgeFunction<V>* other) const override {
     if (AllBottom<V> *allbottom = dynamic_cast<AllBottom<V> *>(other.get())) {
       return (allbottom->bottomElement == bottomElement);
     }

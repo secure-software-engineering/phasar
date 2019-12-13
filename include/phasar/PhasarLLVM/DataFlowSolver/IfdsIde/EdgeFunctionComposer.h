@@ -10,7 +10,6 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONCOMPOSER_H
 
-#include <memory>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -42,13 +41,13 @@ private:
 
 protected:
   /// First edge function
-  std::shared_ptr<EdgeFunction<V>> F;
+  EdgeFunction<V>* F;
   /// Second edge function
-  std::shared_ptr<EdgeFunction<V>> G;
+  EdgeFunction<V>* G;
 
 public:
-  EdgeFunctionComposer(std::shared_ptr<EdgeFunction<V>> F,
-                       std::shared_ptr<EdgeFunction<V>> G)
+  EdgeFunctionComposer(EdgeFunction<V>* F,
+                       EdgeFunction<V>* G)
       : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
 
   /**
@@ -66,8 +65,8 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
+  EdgeFunction<V>*
+  composeWith(EdgeFunction<V>* secondFunction) override {
     if (auto *EI = dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
@@ -80,7 +79,7 @@ public:
   // virtual std::shared_ptr<EdgeFunction<V>>
   // joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) = 0;
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
+  bool equal_to(EdgeFunction<V>* other) const override {
     if (auto EFC = dynamic_cast<EdgeFunctionComposer<V> *>(other.get())) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }

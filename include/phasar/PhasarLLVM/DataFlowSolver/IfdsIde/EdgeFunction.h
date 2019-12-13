@@ -30,13 +30,13 @@ public:
 
   virtual L computeTarget(L source) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<L>>
-  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) = 0;
+  virtual EdgeFunction<L>*
+  composeWith(EdgeFunction<L>* secondFunction) = 0;
 
-  virtual std::shared_ptr<EdgeFunction<L>>
-  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) = 0;
+  virtual EdgeFunction<L>*
+  joinWith(EdgeFunction<L>* otherFunction) = 0;
 
-  virtual bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const = 0;
+  virtual bool equal_to(EdgeFunction<L>* other) const = 0;
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const {
     OS << "EdgeFunction";

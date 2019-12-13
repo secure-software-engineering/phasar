@@ -34,9 +34,9 @@ public:
   Identity &operator=(const Identity &i) = delete;
   // simply return what the user provides
   std::set<D> computeTargets(D source) override { return {source}; }
-  static std::shared_ptr<Identity> getInstance() {
-    static std::shared_ptr<Identity> instance =
-        std::shared_ptr<Identity>(new Identity);
+  static Identity* getInstance() {
+    static Identity* instance =
+        new Identity;
     return instance;
   }
 };
