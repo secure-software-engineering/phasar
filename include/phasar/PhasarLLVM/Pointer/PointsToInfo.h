@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
-#include <set>
 #include <iosfwd>
+#include <set>
 
 #include <json.hpp>
 
@@ -23,7 +23,7 @@ std::string to_string(AliasResult AR);
 
 AliasResult to_AliasResult(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const AliasResult& AR);
+std::ostream &operator<<(std::ostream &OS, const AliasResult &AR);
 
 template <typename V> class PointsToInfo {
 public:

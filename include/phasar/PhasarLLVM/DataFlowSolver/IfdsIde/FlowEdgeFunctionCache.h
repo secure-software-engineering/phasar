@@ -59,6 +59,11 @@ private:
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       SummaryEdgeFunctionCache;
 
+  // Data for clean up
+  std::set<EdgeFunction<L> *> managedEdgeFunctions;
+  std::set<EdgeFunction<L> *> registeredEdgeFunctionSingleton;
+  std::set<FlowFunction<D> *> registeredFlowFunctionSingleton;
+
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
@@ -103,6 +108,31 @@ public:
   FlowEdgeFunctionCache(const FlowEdgeFunctionCache &FEFC) = default;
 
   FlowEdgeFunctionCache(FlowEdgeFunctionCache &&FEFC) = default;
+
+  EdgeFunction<L> *manageEdgeFunction(EdgeFunction<L> *p) {
+    managedEdgeFunctions.insert(p);
+    return p;
+  }
+
+  void registerAsEdgeFunctionSingleton(EdgeFunction<L> *p) {
+    registeredEdgeFunctionSingleton.insert(p);
+  }
+
+  void registerAsEdgeFunctionSingleton(std::set<EdgeFunction<L> *> &s) {
+    for (auto p : s) {
+      registerAsEdgeFunctionSingleton(p);
+    }
+  }
+
+  void registerAsFlowFunctionSingleton(FlowFunction<D> *p) {
+    registeredFlowFunctionSingleton.insert(p);
+  }
+
+  void registerAsFlowFunctionSingleton(std::set<FlowFunction<D> *> &s) {
+    for (auto p : s) {
+      registerAsFlowFunctionSingleton(p);
+    }
+  }
 
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
