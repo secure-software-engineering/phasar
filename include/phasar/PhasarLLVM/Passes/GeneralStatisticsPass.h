@@ -57,6 +57,7 @@ private:
   size_t callsites = 0;
   size_t instructions = 0;
   size_t storeInstructions = 0;
+  size_t loadInstructions = 0;
   size_t memIntrinsic = 0;
   size_t globalPointers = 0;
   std::set<const llvm::Type *> allocatedTypes;
@@ -147,6 +148,12 @@ public:
   size_t getStoreInstructions();
 
   /**
+  * @brief Returns the number of load instructions.
+  */
+  size_t getLoadInstructions();
+
+
+    /**
    * @brief Returns all possible Types.
    */
   std::set<const llvm::Type *> getAllocatedTypes();
