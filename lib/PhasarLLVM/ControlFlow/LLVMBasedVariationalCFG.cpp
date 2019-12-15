@@ -4,11 +4,13 @@
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalCFG.h>
 
 namespace psr {
-z3::expr LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) {
+LLVMBasedVariationalCFG::LLVMBasedVariationalCFG() : ctx(new z3::context()) {}
+z3::expr
+LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
   // TODO implement
   return getTrueCondition();
 }
-bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) {
+bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   if (!br->isConditional())
     return false;
   // cond will most likely be an 'icmp ne i32 ..., 0'
@@ -35,7 +37,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) {
   return false;
 }
 bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
-                                             z3::expr &cond) {
+                                             z3::expr &cond) const {
   if (!br->isConditional()) {
     cond = getTrueCondition();
     return false;
@@ -56,7 +58,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
               cond = inferCondition(icmp);
             } else {
               // TODO was hier?
-              cond = ctx.bool_val(true);
+              cond = ctx->bool_val(true);
             }
             return true;
           }
@@ -86,11 +88,11 @@ LLVMBasedVariationalCFG::getSuccsOfWithCond(const llvm::Instruction *stmt) {
   }
   return Successors;
 }
-z3::expr LLVMBasedVariationalCFG::getTrueCondition() {
-  return ctx.bool_val(true);
+z3::expr LLVMBasedVariationalCFG::getTrueCondition() const {
+  return ctx->bool_val(true);
 }
-bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
-                                               const llvm::Instruction *succ) {
+bool LLVMBasedVariationalCFG::isPPBranchTarget(
+    const llvm::Instruction *stmt, const llvm::Instruction *succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
     if (!isPPBranchNode(T))
       return false;
@@ -104,7 +106,7 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
 }
 bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
                                                const llvm::Instruction *succ,
-                                               z3::expr &condition) {
+                                               z3::expr &condition) const {
   if (auto br = llvm::dyn_cast<llvm::BranchInst>(stmt);
       br && br->isConditional()) {
     if (isPPBranchNode(br, condition)) {
