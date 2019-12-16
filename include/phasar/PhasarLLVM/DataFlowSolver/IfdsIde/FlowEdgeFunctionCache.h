@@ -12,8 +12,8 @@
 
 #include <map>
 #include <set>
-#include <unordered_set>
 #include <tuple>
+#include <unordered_set>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
@@ -39,25 +39,19 @@ private:
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
-  std::map<std::tuple<N, N>, FlowFunction<D>*>
-      NormalFlowFunctionCache;
-  std::map<std::tuple<N, M>, FlowFunction<D>*>
-      CallFlowFunctionCache;
-  std::map<std::tuple<N, M, N, N>, FlowFunction<D>*>
-      ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N, std::set<M>>, FlowFunction<D>*>
+  std::map<std::tuple<N, N>, FlowFunction<D> *> NormalFlowFunctionCache;
+  std::map<std::tuple<N, M>, FlowFunction<D> *> CallFlowFunctionCache;
+  std::map<std::tuple<N, M, N, N>, FlowFunction<D> *> ReturnFlowFunctionCache;
+  std::map<std::tuple<N, N, std::set<M>>, FlowFunction<D> *>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
-  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
-      NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, M, D>, EdgeFunction<L>*>
-      CallEdgeFunctionCache;
-  std::map<std::tuple<N, M, N, D, N, D>, EdgeFunction<L>*>
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L> *> NormalEdgeFunctionCache;
+  std::map<std::tuple<N, D, M, D>, EdgeFunction<L> *> CallEdgeFunctionCache;
+  std::map<std::tuple<N, M, N, D, N, D>, EdgeFunction<L> *>
       ReturnEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L> *>
       CallToRetEdgeFunctionCache;
-  std::map<std::tuple<N, D, N, D>, EdgeFunction<L>*>
-      SummaryEdgeFunctionCache;
+  std::map<std::tuple<N, D, N, D>, EdgeFunction<L> *> SummaryEdgeFunctionCache;
 
   // Data for clean up
   std::unordered_set<EdgeFunction<L> *> managedEdgeFunctions;
@@ -130,7 +124,7 @@ public:
     registeredFlowFunctionSingleton.insert(s);
   }
 
-  FlowFunction<D>* getNormalFlowFunction(N curr, N succ) {
+  FlowFunction<D> *getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -149,7 +143,8 @@ public:
     } else {
       INC_COUNTER("Normal-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
-                    ? new ZeroedFlowFunction<D>(problem.getNormalFlowFunction(curr, succ), zeroValue)
+                    ? new ZeroedFlowFunction<D>(
+                          problem.getNormalFlowFunction(curr, succ), zeroValue)
                     : problem.getNormalFlowFunction(curr, succ);
       NormalFlowFunctionCache.insert(make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
@@ -158,7 +153,7 @@ public:
     }
   }
 
-  FlowFunction<D>* getCallFlowFunction(N callStmt, M destMthd) {
+  FlowFunction<D> *getCallFlowFunction(N callStmt, M destMthd) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -188,8 +183,8 @@ public:
     }
   }
 
-  FlowFunction<D>* getRetFlowFunction(N callSite, M calleeMthd,
-                                                      N exitStmt, N retSite) {
+  FlowFunction<D> *getRetFlowFunction(N callSite, M calleeMthd, N exitStmt,
+                                      N retSite) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -225,8 +220,8 @@ public:
     }
   }
 
-  FlowFunction<D>*
-  getCallToRetFlowFunction(N callSite, N retSite, std::set<M> callees) {
+  FlowFunction<D> *getCallToRetFlowFunction(N callSite, N retSite,
+                                            std::set<M> callees) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -251,10 +246,9 @@ public:
       INC_COUNTER("CallToRet-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff =
           (autoAddZero)
-              ? new ZeroedFlowFunction<D>(
-                    problem.getCallToRetFlowFunction(callSite, retSite,
-                                                     callees),
-                    zeroValue)
+              ? new ZeroedFlowFunction<D>(problem.getCallToRetFlowFunction(
+                                              callSite, retSite, callees),
+                                          zeroValue)
               : problem.getCallToRetFlowFunction(callSite, retSite, callees);
       CallToRetFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
@@ -263,8 +257,7 @@ public:
     }
   }
 
-  FlowFunction<D>* getSummaryFlowFunction(N callStmt,
-                                                          M destMthd) {
+  FlowFunction<D> *getSummaryFlowFunction(N callStmt, M destMthd) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
@@ -279,8 +272,8 @@ public:
     return ff;
   }
 
-  EdgeFunction<L>* getNormalEdgeFunction(N curr, D currNode,
-                                                         N succ, D succNode) {
+  EdgeFunction<L> *getNormalEdgeFunction(N curr, D currNode, N succ,
+                                         D succNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -310,8 +303,8 @@ public:
     }
   }
 
-  EdgeFunction<L>*
-  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
+  EdgeFunction<L> *getCallEdgeFunction(N callStmt, D srcNode,
+                                       M destinationMethod, D destNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -343,10 +336,8 @@ public:
     }
   }
 
-  EdgeFunction<L>* getReturnEdgeFunction(N callSite,
-                                                         M calleeMethod,
-                                                         N exitStmt, D exitNode,
-                                                         N reSite, D retNode) {
+  EdgeFunction<L> *getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt,
+                                         D exitNode, N reSite, D retNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -382,9 +373,9 @@ public:
     }
   }
 
-  EdgeFunction<L>*
-  getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<M> callees) {
+  EdgeFunction<L> *getCallToRetEdgeFunction(N callSite, D callNode, N retSite,
+                                            D retSiteNode,
+                                            std::set<M> callees) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -420,8 +411,8 @@ public:
     }
   }
 
-  EdgeFunction<L>*
-  getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
+  EdgeFunction<L> *getSummaryEdgeFunction(N callSite, D callNode, N retSite,
+                                          D retSiteNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

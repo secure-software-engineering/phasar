@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDESOLVERTEST_H_
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,22 +55,22 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
                                                          m_t destMthd) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
                                                         m_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
@@ -82,24 +81,24 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>*
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
+  EdgeFunction<l_t>* getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
                                                          m_t destinationMethod,
                                                          d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>*
   getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>*
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<m_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<l_t>>
+  EdgeFunction<l_t>*
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
@@ -109,20 +108,19 @@ public:
 
   l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
+  EdgeFunction<l_t>* allTopFunction() override;
 
   class IDESolverTestAllTop
-      : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IDESolverTestAllTop> {
+      : public EdgeFunction<l_t>{
     l_t computeTarget(l_t source) override;
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override;
+    EdgeFunction<l_t>*
+    composeWith(EdgeFunction<l_t>* secondFunction) override;
 
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override;
+    EdgeFunction<l_t>*
+    joinWith(EdgeFunction<l_t>* otherFunction) override;
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    bool equal_to(EdgeFunction<l_t>* other) const override;
   };
 
   void printNode(std::ostream &os, n_t n) const override;

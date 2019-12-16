@@ -12,7 +12,6 @@
 
 #include <iosfwd>
 #include <map>
-#include <memory>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <set>
@@ -76,22 +75,22 @@ public:
 
   ~IFDSTaintAnalysis() override = default;
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
                                                          m_t destMthd) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
                                                         m_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;

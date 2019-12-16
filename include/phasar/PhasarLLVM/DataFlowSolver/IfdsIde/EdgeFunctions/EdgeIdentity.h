@@ -43,31 +43,29 @@ public:
 
   V computeTarget(V source) override { return source; }
 
-  EdgeFunction<V>*
-  composeWith(EdgeFunction<V>* secondFunction) override {
+  EdgeFunction<V> *composeWith(EdgeFunction<V> *secondFunction) override {
     return secondFunction;
   }
 
-  EdgeFunction<V>*
-  joinWith(EdgeFunction<V>* otherFunction) override {
-    if ((otherFunction.get() == this) ||
-        otherFunction->equal_to(this->shared_from_this()))
-      return this->shared_from_this();
-    if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(otherFunction.get()))
+  EdgeFunction<V> *joinWith(EdgeFunction<V> *otherFunction) override {
+    if ((otherFunction == this) ||
+        otherFunction->equal_to(this))
+      return this;
+    if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(otherFunction))
       return otherFunction;
-    if (AllTop<V> *at = dynamic_cast<AllTop<V> *>(otherFunction.get()))
-      return this->shared_from_this();
+    if (AllTop<V> *at = dynamic_cast<AllTop<V> *>(otherFunction))
+      return this;
     // do not know how to join; hence ask other function to decide on this
-    return otherFunction->joinWith(this->shared_from_this());
+    return otherFunction->joinWith(this);
   }
 
-  bool equal_to(EdgeFunction<V>* other) const override {
-    return this == other.get();
+  bool equal_to(EdgeFunction<V> *other) const override {
+    return this == other;
   }
 
-  static EdgeIdentity<V>* getInstance() {
+  static EdgeIdentity<V> *getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)
-    static EdgeIdentity<V>* instance = new EdgeIdentity<V>();
+    static EdgeIdentity<V> *instance = new EdgeIdentity<V>();
     return instance;
   }
 

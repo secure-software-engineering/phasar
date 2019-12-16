@@ -30,13 +30,11 @@ public:
 
   virtual L computeTarget(L source) = 0;
 
-  virtual EdgeFunction<L>*
-  composeWith(EdgeFunction<L>* secondFunction) = 0;
+  virtual EdgeFunction<L> *composeWith(EdgeFunction<L> *secondFunction) = 0;
 
-  virtual EdgeFunction<L>*
-  joinWith(EdgeFunction<L>* otherFunction) = 0;
+  virtual EdgeFunction<L> *joinWith(EdgeFunction<L> *otherFunction) = 0;
 
-  virtual bool equal_to(EdgeFunction<L>* other) const = 0;
+  virtual bool equal_to(EdgeFunction<L> *other) const = 0;
 
   virtual void print(std::ostream &OS, bool isForDebug = false) const {
     OS << "EdgeFunction";

@@ -25,8 +25,7 @@
 namespace psr {
 
 template <typename V>
-class AllTop : public EdgeFunction<V>,
-               public std::enable_shared_from_this<AllTop<V>> {
+class AllTop : public EdgeFunction<V>{
 private:
   const V topElement;
 
@@ -37,18 +36,16 @@ public:
 
   V computeTarget(V source) override { return topElement; }
 
-  EdgeFunction<V>*
-  composeWith(EdgeFunction<V>* secondFunction) override {
-    return this->shared_from_this();
+  EdgeFunction<V> *composeWith(EdgeFunction<V> *secondFunction) override {
+    return this;
   }
 
-  EdgeFunction<V>*
-  joinWith(EdgeFunction<V>* otherFunction) override {
+  EdgeFunction<V> *joinWith(EdgeFunction<V> *otherFunction) override {
     return otherFunction;
   }
 
-  bool equal_to(EdgeFunction<V>* other) const override {
-    if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other.get()))
+  bool equal_to(EdgeFunction<V> *other) const override {
+    if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other))
       return (alltop->topElement == topElement);
     return false;
   }

@@ -15,7 +15,7 @@ using namespace std;
 
 namespace psr {
 
-const shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM =
-    make_shared<AllBottom<BinaryDomain>>(BinaryDomain::BOTTOM);
+AllBottom<BinaryDomain>* ALL_BOTTOM =
+    new AllBottom<BinaryDomain>(BinaryDomain::BOTTOM);
 
 } // namespace psr

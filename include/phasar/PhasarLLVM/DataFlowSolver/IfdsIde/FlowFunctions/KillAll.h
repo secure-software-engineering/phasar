@@ -33,9 +33,8 @@ public:
   KillAll(const KillAll &k) = delete;
   KillAll &operator=(const KillAll &k) = delete;
   std::set<D> computeTargets(D source) override { return std::set<D>(); }
-  static KillAll<D>* getInstance() {
-    static KillAll* instance =
-        new KillAll;
+  static KillAll<D> *getInstance() {
+    static KillAll *instance = new KillAll;
     return instance;
   }
 };

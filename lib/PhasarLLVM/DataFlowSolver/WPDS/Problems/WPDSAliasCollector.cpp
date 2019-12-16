@@ -33,19 +33,19 @@ WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                   WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
                   WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+FlowFunction<WPDSAliasCollector::d_t>*
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t curr,
                                           WPDSAliasCollector::n_t succ) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+FlowFunction<WPDSAliasCollector::d_t>*
 WPDSAliasCollector::getCallFlowFunction(WPDSAliasCollector::n_t callStmt,
                                         WPDSAliasCollector::m_t destMthd) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+FlowFunction<WPDSAliasCollector::d_t>*
 WPDSAliasCollector::getRetFlowFunction(WPDSAliasCollector::n_t callSite,
                                        WPDSAliasCollector::m_t calleeMthd,
                                        WPDSAliasCollector::n_t exitStmt,
@@ -53,20 +53,20 @@ WPDSAliasCollector::getRetFlowFunction(WPDSAliasCollector::n_t callSite,
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+FlowFunction<WPDSAliasCollector::d_t>*
 WPDSAliasCollector::getCallToRetFlowFunction(
     WPDSAliasCollector::n_t callSite, WPDSAliasCollector::n_t retSite,
     set<WPDSAliasCollector::m_t> callees) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
+FlowFunction<WPDSAliasCollector::d_t>*
 WPDSAliasCollector::getSummaryFlowFunction(WPDSAliasCollector::n_t curr,
                                            WPDSAliasCollector::m_t destMthd) {
   return nullptr;
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t curr,
                                           WPDSAliasCollector::d_t currNode,
                                           WPDSAliasCollector::n_t succ,
@@ -74,7 +74,7 @@ WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t curr,
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::getCallEdgeFunction(
     WPDSAliasCollector::n_t callStmt, WPDSAliasCollector::d_t srcNode,
     WPDSAliasCollector::m_t destinationMethod,
@@ -82,7 +82,7 @@ WPDSAliasCollector::getCallEdgeFunction(
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::getReturnEdgeFunction(WPDSAliasCollector::n_t callSite,
                                           WPDSAliasCollector::m_t calleeMethod,
                                           WPDSAliasCollector::n_t exitStmt,
@@ -92,7 +92,7 @@ WPDSAliasCollector::getReturnEdgeFunction(WPDSAliasCollector::n_t callSite,
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::getCallToRetEdgeFunction(
     WPDSAliasCollector::n_t callSite, WPDSAliasCollector::d_t callNode,
     WPDSAliasCollector::n_t retSite, WPDSAliasCollector::d_t retSiteNode,
@@ -100,7 +100,7 @@ WPDSAliasCollector::getCallToRetEdgeFunction(
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
-shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::getSummaryEdgeFunction(WPDSAliasCollector::n_t curr,
                                            WPDSAliasCollector::d_t currNode,
                                            WPDSAliasCollector::n_t succ,
@@ -129,9 +129,9 @@ WPDSAliasCollector::initialSeeds() {
   return {};
 }
 
-std::shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
+EdgeFunction<WPDSAliasCollector::l_t>*
 WPDSAliasCollector::allTopFunction() {
-  return make_shared<AllTop<WPDSAliasCollector::l_t>>(BinaryDomain::TOP);
+  return new AllTop<WPDSAliasCollector::l_t>(BinaryDomain::TOP);
 }
 
 void WPDSAliasCollector::printNode(std::ostream &os,

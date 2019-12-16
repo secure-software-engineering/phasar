@@ -47,7 +47,7 @@ public:
       : IFDSTabulationProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT,
                                                 EntryPoints) {}
   ~IDETabulationProblem() override = default;
-  virtual EdgeFunction<L>* allTopFunction() = 0;
+  virtual EdgeFunction<L> *allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
   virtual void emitTextReport(std::ostream &os,

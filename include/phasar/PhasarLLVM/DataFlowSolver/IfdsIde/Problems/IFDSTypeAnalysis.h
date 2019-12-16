@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTYPEANALYSIS_H_
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 
@@ -49,22 +48,22 @@ public:
 
   ~IFDSTypeAnalysis() override = default;
 
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
                                                          m_t destMthd) override;
 
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
                                                         m_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getSummaryFlowFunction(n_t curr, m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;

@@ -46,7 +46,7 @@ IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+FlowFunction<ExtendedValue>*
 IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
     const llvm::Instruction *currentInst,
     const llvm::Instruction *successorInst) {
@@ -59,47 +59,47 @@ IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
   }
 
   if (DataFlowUtils::isReturnValue(currentInst, successorInst))
-    return std::make_shared<ReturnInstFlowFunction>(successorInst, traceStats,
+    return new ReturnInstFlowFunction(successorInst, traceStats,
                                                     getZeroValue());
 
   if (llvm::isa<llvm::StoreInst>(currentInst))
-    return std::make_shared<StoreInstFlowFunction>(currentInst, traceStats,
+    return new StoreInstFlowFunction(currentInst, traceStats,
                                                    getZeroValue());
 
   if (llvm::isa<llvm::BranchInst>(currentInst) ||
       llvm::isa<llvm::SwitchInst>(currentInst))
-    return std::make_shared<BranchSwitchInstFlowFunction>(
+    return new BranchSwitchInstFlowFunction(
         currentInst, traceStats, getZeroValue());
 
   if (llvm::isa<llvm::GetElementPtrInst>(currentInst))
-    return std::make_shared<GEPInstFlowFunction>(currentInst, traceStats,
+    return new GEPInstFlowFunction(currentInst, traceStats,
                                                  getZeroValue());
 
   if (llvm::isa<llvm::PHINode>(currentInst))
-    return std::make_shared<PHINodeFlowFunction>(currentInst, traceStats,
+    return new PHINodeFlowFunction(currentInst, traceStats,
                                                  getZeroValue());
 
   if (DataFlowUtils::isCheckOperandsInst(currentInst))
-    return std::make_shared<CheckOperandsFlowFunction>(currentInst, traceStats,
+    return new CheckOperandsFlowFunction(currentInst, traceStats,
                                                        getZeroValue());
 
-  return std::make_shared<IdentityFlowFunction>(currentInst, traceStats,
+  return new IdentityFlowFunction(currentInst, traceStats,
                                                 getZeroValue());
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+FlowFunction<ExtendedValue>*
 IFDSFieldSensTaintAnalysis::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  return std::make_shared<MapTaintedValuesToCallee>(
+  return new MapTaintedValuesToCallee(
       llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats,
       getZeroValue());
 }
 
-std::shared_ptr<FlowFunction<ExtendedValue>>
+FlowFunction<ExtendedValue>*
 IFDSFieldSensTaintAnalysis::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
-  return std::make_shared<MapTaintedValuesToCaller>(
+  return new MapTaintedValuesToCaller(
       llvm::cast<llvm::CallInst>(callSite),
       llvm::cast<llvm::ReturnInst>(exitStmt), traceStats, getZeroValue());
 }
@@ -110,7 +110,7 @@ IFDSFieldSensTaintAnalysis::getRetFlowFunction(
  * previously generated facts. Facts from the returning functions are
  * handled in getRetFlowFunction.
  */
-std::shared_ptr<FlowFunction<ExtendedValue>>
+FlowFunction<ExtendedValue>*
 IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     std::set<const llvm::Function *> callees) {
@@ -132,7 +132,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
    * instruction will be pushed when the flow function is called with the branch
    * instruction fact.
    */
-  return std::make_shared<CallToRetFlowFunction>(callSite, traceStats,
+  return new CallToRetFlowFunction(callSite, traceStats,
                                                  getZeroValue());
 }
 
@@ -141,7 +141,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
  * Instead facts according to the defined flow function will be taken into
  * account.
  */
-std::shared_ptr<FlowFunction<ExtendedValue>>
+FlowFunction<ExtendedValue>*
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   const auto destMthdName = destMthd->getName();
@@ -153,7 +153,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   const auto callInst = llvm::cast<llvm::CallInst>(callStmt);
   bool isStaticCallSite = callInst->getCalledFunction();
   if (!isStaticCallSite)
-    return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
+    return new IdentityFlowFunction(callStmt, traceStats,
                                                   getZeroValue());
 
   /*
@@ -161,33 +161,33 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    */
 
   if (taintConfig.isSink(destMthdName))
-    return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
+    return new IdentityFlowFunction(callStmt, traceStats,
                                                   getZeroValue());
 
   /*
    * Intrinsics.
    */
   if (llvm::isa<llvm::MemTransferInst>(callStmt))
-    return std::make_shared<MemTransferInstFlowFunction>(callStmt, traceStats,
+    return new MemTransferInstFlowFunction(callStmt, traceStats,
                                                          getZeroValue());
 
   if (llvm::isa<llvm::MemSetInst>(callStmt))
-    return std::make_shared<MemSetInstFlowFunction>(callStmt, traceStats,
+    return new MemSetInstFlowFunction(callStmt, traceStats,
                                                     getZeroValue());
 
   if (llvm::isa<llvm::VAStartInst>(callStmt))
-    return std::make_shared<VAStartInstFlowFunction>(callStmt, traceStats,
+    return new VAStartInstFlowFunction(callStmt, traceStats,
                                                      getZeroValue());
 
   if (llvm::isa<llvm::VAEndInst>(callStmt))
-    return std::make_shared<VAEndInstFlowFunction>(callStmt, traceStats,
+    return new VAEndInstFlowFunction(callStmt, traceStats,
                                                    getZeroValue());
 
   /*
    * Provide summary for tainted functions.
    */
   if (taintConfig.isSource(destMthdName))
-    return std::make_shared<GenerateFlowFunction>(callStmt, traceStats,
+    return new GenerateFlowFunction(callStmt, traceStats,
                                                   getZeroValue());
 
   /*
@@ -195,7 +195,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    */
   bool isDeclaration = destMthd->isDeclaration();
   if (isDeclaration)
-    return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
+    return new IdentityFlowFunction(callStmt, traceStats,
                                                   getZeroValue());
 
   /*

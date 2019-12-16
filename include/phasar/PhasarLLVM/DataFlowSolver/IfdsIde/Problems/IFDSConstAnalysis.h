@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H_
 
 #include <map>
-#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -90,7 +89,7 @@ public:
    * @param curr Currently analyzed program statement.
    * @param succ Successor statement.
    */
-  std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
+  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
                                                            n_t succ) override;
 
   /**
@@ -113,7 +112,7 @@ public:
    * @param callStmt Call statement.
    * @param destMthd Callee function.
    */
-  std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
+  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
                                                          m_t destMthd) override;
 
   /**
@@ -125,7 +124,7 @@ public:
    * @param exitStmt Exit statement in callee.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
+  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
                                                         m_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
@@ -141,14 +140,14 @@ public:
    * @param callSite Call site.
    * @param retSite Return site.
    */
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<m_t> callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.
    */
-  std::shared_ptr<FlowFunction<d_t>>
+  FlowFunction<d_t>*
   getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
 
   /**

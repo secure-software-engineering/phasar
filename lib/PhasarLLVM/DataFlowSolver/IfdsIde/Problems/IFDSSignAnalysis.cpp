@@ -35,19 +35,19 @@ IFDSSignAnalysis::IFDSSignAnalysis(const ProjectIRDB *IRDB,
   IFDSSignAnalysis::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+FlowFunction<IFDSSignAnalysis::d_t>*
 IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t curr,
                                         IFDSSignAnalysis::n_t succ) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+FlowFunction<IFDSSignAnalysis::d_t>*
 IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t callStmt,
                                       IFDSSignAnalysis::m_t destMthd) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+FlowFunction<IFDSSignAnalysis::d_t>*
 IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
                                      IFDSSignAnalysis::m_t calleeMthd,
                                      IFDSSignAnalysis::n_t exitStmt,
@@ -55,14 +55,14 @@ IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+FlowFunction<IFDSSignAnalysis::d_t>*
 IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t callSite,
                                            IFDSSignAnalysis::n_t retSite,
                                            set<IFDSSignAnalysis::m_t> callees) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
+FlowFunction<IFDSSignAnalysis::d_t>*
 IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t callStmt,
                                          IFDSSignAnalysis::m_t destMthd) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();

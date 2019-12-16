@@ -18,7 +18,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_ALLBOTTOM_H_
 
 #include <iostream> // std::cerr
-#include <memory>
 #include <ostream>
 #include <string>
 
@@ -31,8 +30,7 @@ template <typename V> class EdgeIdentity;
 template <typename V> class AllTop;
 
 template <typename V>
-class AllBottom : public EdgeFunction<V>,
-                  public std::enable_shared_from_this<AllBottom<V>> {
+class AllBottom : public EdgeFunction<V>{
 private:
   const V bottomElement;
 
@@ -43,33 +41,31 @@ public:
 
   V computeTarget(V source) override { return bottomElement; }
 
-  EdgeFunction<V>*
-  composeWith(EdgeFunction<V>* secondFunction) override {
-    if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
-      return this->shared_from_this();
+  EdgeFunction<V> *composeWith(EdgeFunction<V> *secondFunction) override {
+    if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(secondFunction)) {
+      return this;
     }
     if (EdgeIdentity<V> *ei =
-            dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
-      return this->shared_from_this();
+            dynamic_cast<EdgeIdentity<V> *>(secondFunction)) {
+      return this;
     }
-    return secondFunction->composeWith(this->shared_from_this());
+    return secondFunction->composeWith(this);
   }
 
-  EdgeFunction<V>*
-  joinWith(EdgeFunction<V>* otherFunction) override {
-    if (otherFunction.get() == this ||
-        otherFunction->equal_to(this->shared_from_this()))
-      return this->shared_from_this();
-    if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(otherFunction.get()))
-      return this->shared_from_this();
+  EdgeFunction<V> *joinWith(EdgeFunction<V> *otherFunction) override {
+    if (otherFunction == this ||
+        otherFunction->equal_to(this))
+      return this;
+    if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(otherFunction))
+      return this;
     if (EdgeIdentity<V> *ei =
-            dynamic_cast<EdgeIdentity<V> *>(otherFunction.get()))
-      return this->shared_from_this();
-    return this->shared_from_this();
+            dynamic_cast<EdgeIdentity<V> *>(otherFunction))
+      return this;
+    return this;
   }
 
-  bool equal_to(EdgeFunction<V>* other) const override {
-    if (AllBottom<V> *allbottom = dynamic_cast<AllBottom<V> *>(other.get())) {
+  bool equal_to(EdgeFunction<V> *other) const override {
+    if (AllBottom<V> *allbottom = dynamic_cast<AllBottom<V> *>(other)) {
       return (allbottom->bottomElement == bottomElement);
     }
     return false;

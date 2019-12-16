@@ -49,7 +49,7 @@ IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
   IFDSTabulationProblem::ZeroValue = createZeroValue();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+FlowFunction<IFDSConstAnalysis::d_t>*
 IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                                          IFDSConstAnalysis::n_t succ) {
   auto &lg = lg::get();
@@ -105,8 +105,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Compute context-relevant points-to "
                          "information for the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
+        return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 pointsToSet,
                                                 curr->getFunction()),
@@ -126,7 +125,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+FlowFunction<IFDSConstAnalysis::d_t>*
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                        IFDSConstAnalysis::m_t destMthd) {
   auto &lg = lg::get();
@@ -145,7 +144,7 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
                   << "Call statement: " << llvmIRToString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Destination method: " << destMthd->getName().str());
-    return make_shared<MapFactsToCallee>(
+    return new MapFactsToCallee(
         llvm::ImmutableCallSite(callStmt), destMthd,
         [](IFDSConstAnalysis::d_t actual) {
           return actual->getType()->isPointerTy();
@@ -156,14 +155,14 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+FlowFunction<IFDSConstAnalysis::d_t>*
 IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
                                       IFDSConstAnalysis::m_t calleeMthd,
                                       IFDSConstAnalysis::n_t exitStmt,
                                       IFDSConstAnalysis::n_t retSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
-  return make_shared<MapFactsToCaller>(
+  return new MapFactsToCaller(
       llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
       [](IFDSConstAnalysis::d_t formal) {
         return formal->getType()->isPointerTy();
@@ -174,7 +173,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
   // All other data-flow facts of the callee function are killed at this point
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+FlowFunction<IFDSConstAnalysis::d_t>*
 IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::n_t retSite,
     set<IFDSConstAnalysis::m_t> callees) {
@@ -190,8 +189,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Compute context-relevant points-to "
                          "information of the pointer operand.");
-        return make_shared<
-            GenAll<IFDSConstAnalysis::d_t>>(/*pointsToSet*/
+        return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
                                             getContextRelevantPointsToSet(
                                                 pointsToSet,
                                                 callSite->getFunction()),
@@ -207,7 +205,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
+FlowFunction<IFDSConstAnalysis::d_t>*
 IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                           IFDSConstAnalysis::m_t destMthd) {
   return nullptr;
