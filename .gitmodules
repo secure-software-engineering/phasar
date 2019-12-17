@@ -8,3 +8,7 @@
 [submodule "external/WALi-OpenNWA"]
 	path = external/WALi-OpenNWA
 	url = https://github.com/pdschubert/WALi-OpenNWA.git
+[submodule "external/z3"]
+	path = external/z3
+	url = https://github.com/Z3Prover/z3.git
+	branch = 30e7c225cd510400eacd41d0a83e013b835a8ece
