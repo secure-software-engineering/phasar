@@ -21,6 +21,7 @@
 #include <llvm/IR/Module.h>
 
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include <phasar/Utils/EnumFlags.h>
 
 namespace llvm {
 class Value;
@@ -69,7 +70,7 @@ public:
   ProjectIRDB(IRDBOptions Options);
   /// Constructs a ProjectIRDB from a bunch of LLVM IR files
   ProjectIRDB(const std::vector<std::string> &IRFiles,
-              IRDBOptions Options = IRDBOptions::WPA);
+              IRDBOptions Options = (IRDBOptions::WPA | IRDBOptions::OWNS));
   /// Constructs a ProjecIRDB from a bunch of LLVM Modules
   ProjectIRDB(const std::vector<llvm::Module *> &Modules,
               IRDBOptions Options = IRDBOptions::WPA);

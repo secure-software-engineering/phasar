@@ -58,7 +58,7 @@ CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   auto receiver_type = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto fallback_types = CH.getReachableSubTypes(receiver_type);
+  auto fallback_types = CH.getSubTypes(receiver_type);
 
   for (auto &fallback : fallback_types) {
     insertVtableIntoResult(possible_call_targets, fallback, vtable_index, CS);

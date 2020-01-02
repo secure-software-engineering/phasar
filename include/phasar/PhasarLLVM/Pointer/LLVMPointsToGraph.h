@@ -36,23 +36,6 @@ class Type;
 
 namespace psr {
 
-// See the following llvm classes for comprehension
-// http://llvm.org/docs/doxygen/html/AliasAnalysis_8cpp_source.html
-// http://llvm.org/docs/doxygen/html/AliasAnalysisEvaluator_8cpp_source.html
-
-// See also the different kinds of alias analyses
-//	#include "llvm/Analysis/AliasAnalysis.h"
-//	#include "llvm/Analysis/BasicAliasAnalysis.h"
-//	#include "llvm/Analysis/CFG.h"
-//	#include "llvm/Analysis/CFLAliasAnalysis.h"
-//	#include "llvm/Analysis/CaptureTracking.h"
-//	#include "llvm/Analysis/GlobalsModRef.h"
-//	#include "llvm/Analysis/ObjCARCAliasAnalysis.h"
-//	#include "llvm/Analysis/ScalarEvolutionAliasAnalysis.h"
-//	#include "llvm/Analysis/ScopedNoAliasAA.h"
-//	#include "llvm/Analysis/TargetLibraryInfo.h"
-//	#include "llvm/Analysis/TypeBasedAliasAnalysis.h"
-
 void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
                   const llvm::Value *V2, const llvm::Module *M);
 
@@ -101,20 +84,11 @@ public:
   struct VertexProperties {
     /**
      * This might be an Instruction, an Operand of an Instruction, Global
-     * Variable
-     * or a formal Argument.
+     * Variable or a formal Argument.
      */
     const llvm::Value *value = nullptr;
-
     /// Holds the llvm IR code for that vertex.
     std::string ir_code;
-
-    /**
-     *  For an instruction the id is equal to the annotated id of the
-     * instruction.
-     *  In all other cases it's zero.
-     */
-    std::size_t id = 0;
 
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
@@ -126,16 +100,8 @@ public:
   struct EdgeProperties {
     /// This might be an Instruction, in particular a Call Instruction.
     const llvm::Value *value = nullptr;
-
     /// Holds the llvm IR code for that edge.
     std::string ir_code;
-
-    /**
-     * For an instruction the id is equal to the annotated id of the
-     * instruction.
-     * In all other cases it's zero.
-     */
-    std::size_t id = 0;
 
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
@@ -184,7 +150,7 @@ public:
    *                              False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::AAResults AA, llvm::Function *F,
+  PointsToGraph(llvm::Function *F, llvm::AAResults &AA,
                 bool onlyConsiderMustAlias = false);
 
   /**
@@ -204,6 +170,16 @@ public:
   PointsToGraph() = default;
 
   virtual ~PointsToGraph() = default;
+
+  /**
+   * @brief Returns true if graph contains 0 nodes.
+   */
+  bool empty() const;
+
+  /**
+   * @brief Returns the number of graph nodes.
+   */
+  size_t size() const;
 
   /**
    * @brief Returns true if the given pointer is an interesting pointer,
@@ -302,9 +278,9 @@ public:
    */
   void printAsDot(const std::string &filename);
 
-  unsigned getNumOfVertices();
+  size_t getNumVertices() const;
 
-  unsigned getNumOfEdges();
+  size_t getNumEdges() const;
   /**
    * @brief NOT YET IMPLEMENTED
    */

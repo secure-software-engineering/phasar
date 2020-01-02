@@ -14,12 +14,12 @@
  *      Author: pdschbrt
  */
 
-#ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSPASS_H_
-#define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSPASS_H_
+#ifndef PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
+#define PHASAR_PHASARLLVM_PASSES_GENERALSTATISTICSANALYSIS_H_
 
 #include <set>
 
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 
 namespace llvm {
 class Type;
@@ -31,25 +31,9 @@ class Module;
 
 namespace psr {
 
-/**
- * This class uses the Module Pass Mechanism of LLVM to compute
- * some statistics about a Module. This includes the number of
- *  - Function calls
- *  - Global variables
- *  - Basic blocks
- *  - Allocation sites
- *  - Call sites
- *  - Instructions
- *  - Pointers
- *
- *  and also a set of all allocated Types in that Module.
- *
- *  This pass does not modify the analyzed Module in any way!
- *
- * @brief Computes general statistics for a Module.
- */
-class GeneralStatisticsPass : public llvm::ModulePass {
+class GeneralStatistics {
 private:
+  friend class GeneralStatisticsAnalysis;
   size_t functions = 0;
   size_t globals = 0;
   size_t basicblocks = 0;
@@ -64,43 +48,6 @@ private:
   std::set<const llvm::Instruction *> retResInstructions;
 
 public:
-  static char ID;
-  GeneralStatisticsPass() : llvm::ModulePass(ID) {}
-
-  /**
-   * @brief Does all the computation of the statistics.
-   * @param M The analyzed Module.
-   * @return Always false.
-   */
-  bool runOnModule(llvm::Module &M) override;
-
-  /**
-   * @brief Not used in this context!
-   * @return Always false.
-   */
-  bool doInitialization(llvm::Module &M) override;
-
-  /**
-   * @brief Prints the computed statistics to the command-line
-   * @param M The analyzed Module.
-   * @return Always false;
-   */
-  bool doFinalization(llvm::Module &M) override;
-
-  /**
-   * @brief Sets that the pass does not transform its input at all.
-   */
-  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
-
-  /**
-   * This pass holds onto memory for the entire duration of their lifetime
-   * (which is the entire compile time). This is the default behavior for
-   * passes.
-   *
-   * @brief The pass does not release any memory during their lifetime.
-   */
-  void releaseMemory() override;
-
   /**
    * @brief Returns the number of Allocation sites.
    */
@@ -160,6 +107,39 @@ public:
    * @brief Returns all Return and Resume Instructions.
    */
   std::set<const llvm::Instruction *> getRetResInstructions() const;
+};
+
+/**
+ * This class uses the Module Pass Mechanism of LLVM to compute
+ * some statistics about a Module. This includes the number of
+ *  - Function calls
+ *  - Global variables
+ *  - Basic blocks
+ *  - Allocation sites
+ *  - Call sites
+ *  - Instructions
+ *  - Pointers
+ *
+ *  and also a set of all allocated Types in that Module.
+ *
+ *  This pass does not modify the analyzed Module in any way!
+ *
+ * @brief Computes general statistics for a Module.
+ */
+class GeneralStatisticsAnalysis
+    : public llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis> {
+private:
+  friend llvm::AnalysisInfoMixin<GeneralStatisticsAnalysis>;
+  static llvm::AnalysisKey Key;
+  GeneralStatistics Stats;
+
+public:
+  /// The pass itself stores the results.
+  using Result = GeneralStatistics;
+
+  explicit GeneralStatisticsAnalysis();
+
+  GeneralStatistics run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
 };
 
 } // namespace psr

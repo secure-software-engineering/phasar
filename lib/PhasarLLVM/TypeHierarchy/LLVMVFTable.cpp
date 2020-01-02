@@ -18,6 +18,8 @@ using namespace psr;
 
 namespace psr {
 
+LLVMVFTable::LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(Fs) {}
+
 const llvm::Function *LLVMVFTable::getFunction(unsigned Idx) const {
   if (Idx < size()) {
     return VFT[Idx];

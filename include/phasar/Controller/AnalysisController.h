@@ -13,22 +13,27 @@
 #include <iosfwd>
 #include <set>
 #include <string>
+#include <vector>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 
 namespace psr {
 
 class AnalysisController {
 private:
-  ProjectIRDB IRDB;
+  ProjectIRDB &IRDB;
   LLVMTypeHierarchy TH;
   LLVMPointsToInfo PT;
   LLVMBasedICFG ICF;
+  std::vector<DataFlowAnalysisType> DataFlowAnalyses;
+  std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
+  AnalysisStrategy Strategy;
 
   void executeDemandDriven();
   void executeIncremental();
@@ -37,7 +42,11 @@ private:
   void executeWholeProgram();
 
 public:
-  AnalysisController();
+  AnalysisController(ProjectIRDB &IRDB,
+                     std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+                     std::vector<std::string> AnalysisConfigs,
+                     std::set<std::string> EntryPoints,
+                     AnalysisStrategy Strategy);
   ~AnalysisController() = default;
   AnalysisController(const AnalysisController &) = delete;
   AnalysisController(AnalysisController &&) = delete;

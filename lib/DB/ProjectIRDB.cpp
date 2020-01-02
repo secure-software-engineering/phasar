@@ -21,6 +21,7 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/IRReader/IRReader.h>
 #include <llvm/Linker/Linker.h>
+#include <llvm/Passes/PassBuilder.h>
 #include <llvm/Support/ErrorHandling.h>
 #include <llvm/Support/SourceMgr.h>
 #include <llvm/Transforms/Utils.h>
@@ -29,7 +30,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/Passes/GeneralStatisticsPass.h>
+#include <phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/Utils/EnumFlags.h>
 #include <phasar/Utils/IO.h>
@@ -47,7 +48,7 @@ ProjectIRDB::ProjectIRDB(IRDBOptions Options) : Options(Options) {}
 
 ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
                          IRDBOptions Options)
-    : ProjectIRDB(Options) {
+    : ProjectIRDB(Options | IRDBOptions::OWNS) {
   for (const auto &File : IRFiles) {
     // if we have a file that is already compiled to llvm ir
     if ((File.find(".ll") != File.npos || File.find(".bc") != File.npos) &&
@@ -90,6 +91,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<llvm::Module *> &Modules,
 }
 
 ProjectIRDB::~ProjectIRDB() {
+  // release resources if IRDB does not own
   if (!(Options & IRDBOptions::OWNS)) {
     for (auto &Context : Contexts) {
       Context.release();
@@ -101,39 +103,34 @@ ProjectIRDB::~ProjectIRDB() {
 }
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
-  // WARNING: Activating passes lead to higher time in llvmIRToString
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
   START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
-  GeneralStatisticsPass *GSP = new GeneralStatisticsPass();
-  ValueAnnotationPass *VAP = new ValueAnnotationPass(M->getContext());
-  llvm::legacy::PassManager PM;
-  PM.add(GSP);
-  PM.add(VAP);
-  PM.run(*M);
-  // just to be sure that none of the passes has messed up the module!
-  bool broken_debug_info = false;
-  if (M == nullptr ||
-      llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
-    llvm::report_fatal_error("Error: module is broken!");
-  }
-  if (broken_debug_info) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, WARNING)
-                  << "AnalysisController: debug info is broken.");
-  }
-  auto Allocas = GSP->getAllocaInstructions();
+  llvm::PassBuilder PB;
+  llvm::ModuleAnalysisManager MAM;
+  // register the GeneralStaticsPass analysis pass to the ModuleAnalysisManager
+  // such that we can query its results later on
+  GeneralStatisticsAnalysis GSP;
+  MAM.registerPass([&]() { return std::move(GSP); });
+  PB.registerModuleAnalyses(MAM);
+  llvm::ModulePassManager MPM;
+  // add the transformation pass ValueAnnotationPass
+  MPM.addPass(ValueAnnotationPass());
+  // just to be sure that none of the passes messed up the module!
+  MPM.addPass(llvm::VerifierPass());
+  MPM.run(*M, MAM);
+  // retrieve data from the GeneralStatisticsAnalysis registered earlier
+  auto GSPResult = MAM.getResult<GeneralStatisticsAnalysis>(*M);
+  auto Allocas = GSPResult.getAllocaInstructions();
   AllocaInstructions.insert(Allocas.begin(), Allocas.end());
-  // Obtain the allocated types found in the module
-  auto ATypes = GSP->getAllocatedTypes();
+  auto ATypes = GSPResult.getAllocatedTypes();
   AllocatedTypes.insert(ATypes.begin(), ATypes.end());
-  auto RRInsts = GSP->getRetResInstructions();
+  auto RRInsts = GSPResult.getRetResInstructions();
   RetOrResInstructions.insert(RRInsts.begin(), RRInsts.end());
   STOP_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
-  cout << "PTG construction ...\n";
-  START_TIMER("PTG Construction", PAMM_SEVERITY_LEVEL::Core);
   buildIDModuleMapping(M);
 }
 

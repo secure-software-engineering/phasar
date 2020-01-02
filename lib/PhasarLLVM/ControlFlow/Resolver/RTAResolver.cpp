@@ -79,7 +79,7 @@ RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   // also insert all possible subtypes vtable entries
-  auto reachable_types = CH.getReachableSubTypes(receiver_type);
+  auto reachable_types = CH.getSubTypes(receiver_type);
 
   // also insert all possible subtypes vtable entries
   auto possible_types = IRDB.getAllocatedTypes();

@@ -21,6 +21,9 @@ std::string to_string(AliasResult AR) {
   case AliasResult::MayAlias:
     return "MayAlias";
     break;
+  case AliasResult::PartialAlias:
+    return "PartialAlias";
+    break;
   case AliasResult::MustAlias:
     return "MustAlias";
     break;
@@ -32,12 +35,14 @@ AliasResult to_AliasResult(const std::string &S) {
     return AliasResult::NoAlias;
   } else if (S == "MayAlias") {
     return AliasResult::MayAlias;
+  } else if (S == "PartialAlias") {
+    return AliasResult::PartialAlias;
   } else {
     return AliasResult::MustAlias;
   }
 }
 
-std::ostream &operator<<(std::ostream &OS, const AliasResult& AR) {
+std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
   return OS << to_string(AR);
 }
 

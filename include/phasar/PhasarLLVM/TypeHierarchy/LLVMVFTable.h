@@ -31,10 +31,13 @@ namespace psr {
  */
 class LLVMVFTable : public VFTable<const llvm::Function *> {
 private:
+  friend class LLVMTypeHierarchy;
   std::vector<const llvm::Function *> VFT;
+  LLVMVFTable(std::vector<const llvm::Function *> Fs);
 
 public:
-  ~LLVMVFTable() = default;
+  LLVMVFTable() = default;
+  ~LLVMVFTable() override = default;
 
   /**
    * 	@brief Returns a function identifier by it's index in the VTable.

@@ -192,43 +192,20 @@ void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
 // points-to graph internal stuff
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
-    : value(v) {
+    : value(v), ir_code(llvmIRToString(v)) {
   // WARNING: equivalent to llvmIRToString
   // WARNING 2 : really really really slow (yes it is)
-  // // save the ir code
-  // llvm::raw_string_ostream rso(ir_code);
-  // value->print(rso);
-  // // retrieve the id
-  // if (const llvm::Instruction *inst =
-  //         llvm::dyn_cast<llvm::Instruction>(value)) {
-  //   id = stoull(llvm::cast<llvm::MDString>(
-  //                   inst->getMetadata(MetaDataKind)->getOperand(0))
-  //                   ->getString()
-  //                   .str());
-  // }
 }
 
-PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v) : value(v) {
-  // save the ir code
+PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *v)
+    : value(v), ir_code(llvmIRToString(v)) {
   // WARNING: equivalent to llvmIRToString
   // WARNING 2 : really really really slow (yes it is)
-  // if (v) {
-  //   llvm::raw_string_ostream rso(ir_code);
-  //   value->print(rso);
-  //   // retrieve the id
-  //   if (const llvm::Instruction *inst =
-  //           llvm::dyn_cast<llvm::Instruction>(value)) {
-  //     id = stoull(llvm::cast<llvm::MDString>(
-  //                     inst->getMetadata(MetaDataKind)->getOperand(0))
-  //                     ->getString()
-  //                     .str());
-  //   }
-  // }
 }
 
 // points-to graph stuff
 
-PointsToGraph::PointsToGraph(llvm::AAResults AA, llvm::Function *F,
+PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA,
                              bool onlyConsiderMustAlias) {
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();
@@ -464,23 +441,19 @@ bool PointsToGraph::representsSingleFunction() {
 }
 
 void PointsToGraph::print() {
-  cout << "PointsToGraph for ";
-  for (const auto &fname : ContainedFunctions) {
-    cout << fname << " ";
+  for (const auto &Fn : ContainedFunctions) {
+    cout << "PointsToGraph for " << Fn << ":\n";
+    boost::print_graph(
+        ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
   }
-  cout << "\n";
-  boost::print_graph(
-      ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
 void PointsToGraph::print() const {
-  cout << "PointsToGraph for ";
-  for (const auto &fname : ContainedFunctions) {
-    cout << fname << " ";
+  for (const auto &Fn : ContainedFunctions) {
+    cout << "PointsToGraph for " << Fn << ":\n";
+    boost::print_graph(
+        ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
   }
-  cout << "\n";
-  boost::print_graph(
-      ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
 }
 
 void PointsToGraph::printAsDot(const string &filename) {
@@ -657,8 +630,14 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
   }
 }
 
-unsigned PointsToGraph::getNumOfVertices() { return boost::num_vertices(ptg); }
+bool PointsToGraph::empty() const { return size() == 0; }
 
-unsigned PointsToGraph::getNumOfEdges() { return boost::num_edges(ptg); }
+size_t PointsToGraph::size() const { return getNumVertices(); }
+
+size_t PointsToGraph::getNumVertices() const {
+  return boost::num_vertices(ptg);
+}
+
+size_t PointsToGraph::getNumEdges() const { return boost::num_edges(ptg); }
 
 } // namespace psr

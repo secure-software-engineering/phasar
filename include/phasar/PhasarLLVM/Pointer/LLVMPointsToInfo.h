@@ -14,6 +14,8 @@
 #include <memory>
 #include <string>
 
+#include <llvm/Analysis/AliasAnalysis.h>
+
 #include <json.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
@@ -30,6 +32,7 @@ class PointsToGraph;
 
 class LLVMPointsToInfo : public PointsToInfo<const llvm::Value *> {
 private:
+  std::unordered_map<const llvm::Function *, llvm::AAResults> AAInfos;
   std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>>
       PointsToGraphs;
 
@@ -38,11 +41,10 @@ public:
 
   ~LLVMPointsToInfo() override = default;
 
-  AliasResult alias(const llvm::Value *V1,
-                    const llvm::Value *V2) const override;
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2) override;
 
   std::set<const llvm::Value *>
-  getPointsToSet(const llvm::Value *V1) const override;
+  getPointsToSet(const llvm::Value *V) const override;
 
   nlohmann::json getAsJson() const override;
 

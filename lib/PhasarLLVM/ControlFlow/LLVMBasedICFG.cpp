@@ -280,7 +280,7 @@ bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *n) const {
           V->getType()->getPointerElementType());
       // get the type name and check if it has a virtual member function
       if (CH.hasType(T) && CH.hasVFTable(T)) {
-        LLVMVFTable *VFT = CH.getVFTable(T);
+        auto VFT = CH.getVFTable(T);
         for (const llvm::Function *F : *VFT) {
           if (!F) {
             // Is a pure virtual function

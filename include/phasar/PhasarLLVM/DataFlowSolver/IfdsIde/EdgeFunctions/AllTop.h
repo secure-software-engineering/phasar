@@ -24,31 +24,31 @@
 
 namespace psr {
 
-template <typename V>
-class AllTop : public EdgeFunction<V>,
-               public std::enable_shared_from_this<AllTop<V>> {
+template <typename L>
+class AllTop : public EdgeFunction<L>,
+               public std::enable_shared_from_this<AllTop<L>> {
 private:
-  const V topElement;
+  const L topElement;
 
 public:
-  AllTop(V topElement) : topElement(topElement) {}
+  AllTop(L topElement) : topElement(topElement) {}
 
   ~AllTop() override = default;
 
-  V computeTarget(V source) override { return topElement; }
+  L computeTarget(L source) override { return topElement; }
 
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
+  std::shared_ptr<EdgeFunction<L>>
+  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) override {
     return this->shared_from_this();
   }
 
-  std::shared_ptr<EdgeFunction<V>>
-  joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) override {
+  std::shared_ptr<EdgeFunction<L>>
+  joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) override {
     return otherFunction;
   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
-    if (AllTop<V> *alltop = dynamic_cast<AllTop<V> *>(other.get()))
+  bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const override {
+    if (AllTop<L> *alltop = dynamic_cast<AllTop<L> *>(other.get()))
       return (alltop->topElement == topElement);
     return false;
   }
