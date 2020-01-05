@@ -45,7 +45,7 @@ IFDSTaintAnalysis::IFDSTaintAnalysis(
   IFDSTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-FlowFunction<IFDSTaintAnalysis::d_t>*
+FlowFunction<IFDSTaintAnalysis::d_t> *
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
                                          IFDSTaintAnalysis::n_t succ) {
   // If a tainted value is stored, the store location must be tainted too
@@ -87,7 +87,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSTaintAnalysis::d_t>*
+FlowFunction<IFDSTaintAnalysis::d_t> *
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                        IFDSTaintAnalysis::m_t destMthd) {
   string FunctionName = cxx_demangle(destMthd->getName().str());
@@ -102,30 +102,26 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   // Map the actual into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
-    return new MapFactsToCallee(llvm::ImmutableCallSite(callStmt),
-                                         destMthd);
+    return new MapFactsToCallee(llvm::ImmutableCallSite(callStmt), destMthd);
   }
   // Pass everything else as identity
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSTaintAnalysis::d_t>*
-IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
-                                      IFDSTaintAnalysis::m_t calleeMthd,
-                                      IFDSTaintAnalysis::n_t exitStmt,
-                                      IFDSTaintAnalysis::n_t retSite) {
+FlowFunction<IFDSTaintAnalysis::d_t> *IFDSTaintAnalysis::getRetFlowFunction(
+    IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::m_t calleeMthd,
+    IFDSTaintAnalysis::n_t exitStmt, IFDSTaintAnalysis::n_t retSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
-  return new MapFactsToCaller(
-      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
-      [](IFDSTaintAnalysis::d_t formal) {
-        return formal->getType()->isPointerTy();
-      });
+  return new MapFactsToCaller(llvm::ImmutableCallSite(callSite), calleeMthd,
+                              exitStmt, [](IFDSTaintAnalysis::d_t formal) {
+                                return formal->getType()->isPointerTy();
+                              });
   // All other stuff is killed at this point
 }
 
-FlowFunction<IFDSTaintAnalysis::d_t>*
+FlowFunction<IFDSTaintAnalysis::d_t> *
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
     set<IFDSTaintAnalysis::m_t> callees) {
@@ -177,8 +173,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       if (Source.TaintsReturn) {
         ToGenerate.insert(callSite);
       }
-      return new GenAll<IFDSTaintAnalysis::d_t>(ToGenerate,
-                                                         getZeroValue());
+      return new GenAll<IFDSTaintAnalysis::d_t>(ToGenerate, getZeroValue());
     }
     if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
@@ -212,15 +207,14 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
         }
       };
       return new TAFF(llvm::ImmutableCallSite(callSite), Callee,
-                               SourceSinkFunctions.getSink(FunctionName), Leaks,
-                               this);
+                      SourceSinkFunctions.getSink(FunctionName), Leaks, this);
     }
   }
   // Otherwise pass everything as it is
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSTaintAnalysis::d_t>*
+FlowFunction<IFDSTaintAnalysis::d_t> *
 IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
                                           IFDSTaintAnalysis::m_t destMthd) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &specialSummaries =

@@ -24,8 +24,7 @@
 
 namespace psr {
 
-template <typename V>
-class AllTop : public EdgeFunction<V>{
+template <typename V> class AllTop : public EdgeFunction<V> {
 private:
   const V topElement;
 

@@ -50,19 +50,19 @@ IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                                                const llvm::Instruction *succ) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSSFB901TaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                              const llvm::Function *destMthd) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSSFB901TaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
                                             const llvm::Function *calleeMthd,
                                             const llvm::Instruction *exitStmt,
@@ -70,14 +70,14 @@ IFDSSFB901TaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSSFB901TaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     set<const llvm::Function *> callees) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSSFB901TaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return nullptr;

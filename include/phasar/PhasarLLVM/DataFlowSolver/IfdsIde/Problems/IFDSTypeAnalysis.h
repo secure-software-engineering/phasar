@@ -48,23 +48,17 @@ public:
 
   ~IFDSTypeAnalysis() override = default;
 
-  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunction<d_t> *getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+  FlowFunction<d_t> *getCallFlowFunction(n_t callStmt, m_t destMthd) override;
 
-  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunction<d_t> *getRetFlowFunction(n_t callSite, m_t calleeMthd,
+                                        n_t exitStmt, n_t retSite) override;
 
-  FlowFunction<d_t>*
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+  FlowFunction<d_t> *getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                              std::set<m_t> callees) override;
 
-  FlowFunction<d_t>*
-  getSummaryFlowFunction(n_t curr, m_t destMthd) override;
+  FlowFunction<d_t> *getSummaryFlowFunction(n_t curr, m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 

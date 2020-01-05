@@ -77,23 +77,18 @@ public:
 
   // start formulating our analysis by specifying the parts required for IFDS
 
-  FlowFunction<d_t>* getNormalFlowFunction(n_t curr,
-                                                           n_t succ) override;
+  FlowFunction<d_t> *getNormalFlowFunction(n_t curr, n_t succ) override;
 
-  FlowFunction<d_t>* getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+  FlowFunction<d_t> *getCallFlowFunction(n_t callStmt, m_t destMthd) override;
 
-  FlowFunction<d_t>* getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
-                                                        n_t exitStmt,
-                                                        n_t retSite) override;
+  FlowFunction<d_t> *getRetFlowFunction(n_t callSite, m_t calleeMthd,
+                                        n_t exitStmt, n_t retSite) override;
 
-  FlowFunction<d_t>*
-  getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+  FlowFunction<d_t> *getCallToRetFlowFunction(n_t callSite, n_t retSite,
+                                              std::set<m_t> callees) override;
 
-  FlowFunction<d_t>*
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  FlowFunction<d_t> *getSummaryFlowFunction(n_t callStmt,
+                                            m_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -103,26 +98,24 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  EdgeFunction<l_t>*
-  getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
-                        d_t succNode) override;
+  EdgeFunction<l_t> *getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
+                                           d_t succNode) override;
 
-  EdgeFunction<l_t>* getCallEdgeFunction(n_t callStmt,
-                                                         d_t srcNode,
-                                                         m_t destinationMethod,
-                                                         d_t destNode) override;
+  EdgeFunction<l_t> *getCallEdgeFunction(n_t callStmt, d_t srcNode,
+                                         m_t destinationMethod,
+                                         d_t destNode) override;
 
-  EdgeFunction<l_t>*
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
-                        d_t exitNode, n_t reSite, d_t retNode) override;
+  EdgeFunction<l_t> *getReturnEdgeFunction(n_t callSite, m_t calleeMethod,
+                                           n_t exitStmt, d_t exitNode,
+                                           n_t reSite, d_t retNode) override;
 
-  EdgeFunction<l_t>*
-  getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override;
+  EdgeFunction<l_t> *getCallToRetEdgeFunction(n_t callSite, d_t callNode,
+                                              n_t retSite, d_t retSiteNode,
+                                              std::set<m_t> callees) override;
 
-  EdgeFunction<l_t>*
-  getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
-                         d_t retSiteNode) override;
+  EdgeFunction<l_t> *getSummaryEdgeFunction(n_t callStmt, d_t callNode,
+                                            n_t retSite,
+                                            d_t retSiteNode) override;
 
   l_t topElement() override;
 
@@ -130,21 +123,18 @@ public:
 
   l_t join(l_t lhs, l_t rhs) override;
 
-  EdgeFunction<l_t>* allTopFunction() override;
+  EdgeFunction<l_t> *allTopFunction() override;
 
   // Custom EdgeFunction declarations
 
   class LCAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
   public:
-    LCAEdgeFunctionComposer(EdgeFunction<l_t>* F,
-                            EdgeFunction<l_t>* G)
+    LCAEdgeFunctionComposer(EdgeFunction<l_t> *F, EdgeFunction<l_t> *G)
         : EdgeFunctionComposer<l_t>(F, G){};
 
-    EdgeFunction<l_t>*
-    composeWith(EdgeFunction<l_t>* secondFunction) override;
+    EdgeFunction<l_t> *composeWith(EdgeFunction<l_t> *secondFunction) override;
 
-    EdgeFunction<l_t>*
-    joinWith(EdgeFunction<l_t>* otherFunction) override;
+    EdgeFunction<l_t> *joinWith(EdgeFunction<l_t> *otherFunction) override;
   };
 
   class GenConstant : public EdgeFunction<l_t>,
@@ -158,13 +148,11 @@ public:
 
     l_t computeTarget(l_t source) override;
 
-    EdgeFunction<l_t>*
-    composeWith(EdgeFunction<l_t>* secondFunction) override;
+    EdgeFunction<l_t> *composeWith(EdgeFunction<l_t> *secondFunction) override;
 
-    EdgeFunction<l_t>*
-    joinWith(EdgeFunction<l_t>* otherFunction) override;
+    EdgeFunction<l_t> *joinWith(EdgeFunction<l_t> *otherFunction) override;
 
-    bool equal_to(EdgeFunction<l_t>* other) const override;
+    bool equal_to(EdgeFunction<l_t> *other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
@@ -179,13 +167,11 @@ public:
 
     l_t computeTarget(l_t source) override;
 
-    EdgeFunction<l_t>*
-    composeWith(EdgeFunction<l_t>* secondFunction) override;
+    EdgeFunction<l_t> *composeWith(EdgeFunction<l_t> *secondFunction) override;
 
-    EdgeFunction<l_t>*
-    joinWith(EdgeFunction<l_t>* otherFunction) override;
+    EdgeFunction<l_t> *joinWith(EdgeFunction<l_t> *otherFunction) override;
 
-    bool equal_to(EdgeFunction<l_t>* other) const override;
+    bool equal_to(EdgeFunction<l_t> *other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };
@@ -201,13 +187,11 @@ public:
 
     l_t computeTarget(l_t source) override;
 
-    EdgeFunction<l_t>*
-    composeWith(EdgeFunction<l_t>* secondFunction) override;
+    EdgeFunction<l_t> *composeWith(EdgeFunction<l_t> *secondFunction) override;
 
-    EdgeFunction<l_t>*
-    joinWith(EdgeFunction<l_t>* otherFunction) override;
+    EdgeFunction<l_t> *joinWith(EdgeFunction<l_t> *otherFunction) override;
 
-    bool equal_to(EdgeFunction<l_t>* other) const override;
+    bool equal_to(EdgeFunction<l_t> *other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
   };

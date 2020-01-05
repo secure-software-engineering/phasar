@@ -35,8 +35,8 @@ namespace psr {
 
 template <typename D, typename V = BinaryDomain> class SpecialSummaries {
 private:
-  std::map<std::string, FlowFunction<D>*> SpecialFlowFunctions;
-  std::map<std::string, EdgeFunction<V>*> SpecialEdgeFunctions;
+  std::map<std::string, FlowFunction<D> *> SpecialFlowFunctions;
+  std::map<std::string, EdgeFunction<V> *> SpecialEdgeFunctions;
   std::vector<std::string> SpecialFunctionNames;
 
   // Constructs the SpecialSummaryMap such that it contains all glibc,
@@ -67,7 +67,7 @@ public:
 
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
-                             FlowFunction<D>* flowfunction) {
+                             FlowFunction<D> *flowfunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     return Override;
@@ -75,8 +75,8 @@ public:
 
   // Returns true, when an existing function is overwritten, false otherwise.
   bool provideSpecialSummary(const std::string &name,
-                             FlowFunction<D>* flowfunction,
-                             EdgeFunction<V>* edgefunction) {
+                             FlowFunction<D> *flowfunction,
+                             EdgeFunction<V> *edgefunction) {
     bool Override = containsSpecialSummary(name);
     SpecialFlowFunctions[name] = flowfunction;
     SpecialEdgeFunctions[name] = edgefunction;
@@ -91,23 +91,21 @@ public:
     return SpecialFlowFunctions.count(name);
   }
 
-  FlowFunction<D>*
+  FlowFunction<D> *
   getSpecialFlowFunctionSummary(const llvm::Function *function) {
     return getSpecialFlowFunctionSummary(function->getName().str());
   }
 
-  FlowFunction<D>*
-  getSpecialFlowFunctionSummary(const std::string &name) {
+  FlowFunction<D> *getSpecialFlowFunctionSummary(const std::string &name) {
     return SpecialFlowFunctions[name];
   }
 
-  EdgeFunction<V>*
+  EdgeFunction<V> *
   getSpecialEdgeFunctionSummary(const llvm::Function *function) {
     return getSpecialEdgeFunctionSummary(function->getName().str());
   }
 
-  EdgeFunction<V>*
-  getSpecialEdgeFunctionSummary(const std::string &name) {
+  EdgeFunction<V> *getSpecialEdgeFunctionSummary(const std::string &name) {
     return SpecialEdgeFunctions[name];
   }
 

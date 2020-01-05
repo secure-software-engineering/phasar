@@ -53,26 +53,26 @@ public:
       std::set<std::string> EntryPoints = {"main"});
   ~IFDSFieldSensTaintAnalysis() override = default;
 
-  FlowFunction<ExtendedValue>*
+  FlowFunction<ExtendedValue> *
   getNormalFlowFunction(const llvm::Instruction *curr,
                         const llvm::Instruction *succ) override;
 
-  FlowFunction<ExtendedValue>*
+  FlowFunction<ExtendedValue> *
   getCallFlowFunction(const llvm::Instruction *callStmt,
                       const llvm::Function *destMthd) override;
 
-  FlowFunction<ExtendedValue>*
+  FlowFunction<ExtendedValue> *
   getRetFlowFunction(const llvm::Instruction *callSite,
                      const llvm::Function *calleeMthd,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
-  FlowFunction<ExtendedValue>*
+  FlowFunction<ExtendedValue> *
   getCallToRetFlowFunction(const llvm::Instruction *callSite,
                            const llvm::Instruction *retSite,
                            std::set<const llvm::Function *> callees) override;
 
-  FlowFunction<ExtendedValue>*
+  FlowFunction<ExtendedValue> *
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
                          const llvm::Function *destMthd) override;
 

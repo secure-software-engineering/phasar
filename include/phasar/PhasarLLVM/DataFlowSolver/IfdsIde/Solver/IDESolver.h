@@ -87,7 +87,7 @@ public:
         SolverConfig(tabulationProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(tabulationProblem),
         allTop(tabulationProblem.allTopFunction()),
-        jumpFn(new JumpFunctions<N, D, M, T, V, L, I>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {}
   IDESolver &operator=(IDESolver &&) = delete;
@@ -329,7 +329,7 @@ protected:
 
   EdgeFunction<L>* allTop;
 
-  JumpFunctions<N, D, M, T, V, L, I>* jumpFn;
+  std::shared_ptr<JumpFunctions<N, D, M, T, V, L, I>> jumpFn;
 
   std::map<std::tuple<N, D, N, D>,
            std::vector<EdgeFunction<L>*>>
@@ -369,7 +369,7 @@ protected:
         SolverConfig(ideTabulationProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(ideTabulationProblem),
         allTop(ideTabulationProblem.allTopFunction()),
-        jumpFn(new JumpFunctions<N, D, M, T, V, L, I>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {
     // std::cout << "called IDESolver::IDESolver() ctor with IFDSProblem" <<

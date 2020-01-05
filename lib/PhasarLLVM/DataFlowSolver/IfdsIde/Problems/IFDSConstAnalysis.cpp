@@ -49,7 +49,7 @@ IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
   IFDSTabulationProblem::ZeroValue = createZeroValue();
 }
 
-FlowFunction<IFDSConstAnalysis::d_t>*
+FlowFunction<IFDSConstAnalysis::d_t> *
 IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                                          IFDSConstAnalysis::n_t succ) {
   auto &lg = lg::get();
@@ -106,10 +106,10 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
                       << "Compute context-relevant points-to "
                          "information for the pointer operand.");
         return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                pointsToSet,
-                                                curr->getFunction()),
-                                            getZeroValue());
+                                                  getContextRelevantPointsToSet(
+                                                      pointsToSet,
+                                                      curr->getFunction()),
+                                                  getZeroValue());
       }
     }
     // If neither the pointer operand nor one of its alias is initialized,
@@ -125,7 +125,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSConstAnalysis::d_t>*
+FlowFunction<IFDSConstAnalysis::d_t> *
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                        IFDSConstAnalysis::m_t destMthd) {
   auto &lg = lg::get();
@@ -144,22 +144,19 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
                   << "Call statement: " << llvmIRToString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Destination method: " << destMthd->getName().str());
-    return new MapFactsToCallee(
-        llvm::ImmutableCallSite(callStmt), destMthd,
-        [](IFDSConstAnalysis::d_t actual) {
-          return actual->getType()->isPointerTy();
-        });
+    return new MapFactsToCallee(llvm::ImmutableCallSite(callStmt), destMthd,
+                                [](IFDSConstAnalysis::d_t actual) {
+                                  return actual->getType()->isPointerTy();
+                                });
   } /* end call/invoke instruction */
 
   // Pass everything else as identity
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSConstAnalysis::d_t>*
-IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
-                                      IFDSConstAnalysis::m_t calleeMthd,
-                                      IFDSConstAnalysis::n_t exitStmt,
-                                      IFDSConstAnalysis::n_t retSite) {
+FlowFunction<IFDSConstAnalysis::d_t> *IFDSConstAnalysis::getRetFlowFunction(
+    IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::m_t calleeMthd,
+    IFDSConstAnalysis::n_t exitStmt, IFDSConstAnalysis::n_t retSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return new MapFactsToCaller(
@@ -173,7 +170,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
   // All other data-flow facts of the callee function are killed at this point
 }
 
-FlowFunction<IFDSConstAnalysis::d_t>*
+FlowFunction<IFDSConstAnalysis::d_t> *
 IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::n_t retSite,
     set<IFDSConstAnalysis::m_t> callees) {
@@ -190,10 +187,10 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
                       << "Compute context-relevant points-to "
                          "information of the pointer operand.");
         return new GenAll<IFDSConstAnalysis::d_t>(/*pointsToSet*/
-                                            getContextRelevantPointsToSet(
-                                                pointsToSet,
-                                                callSite->getFunction()),
-                                            getZeroValue());
+                                                  getContextRelevantPointsToSet(
+                                                      pointsToSet,
+                                                      callSite->getFunction()),
+                                                  getZeroValue());
       }
     }
     markAsInitialized(pointerOp);
@@ -205,7 +202,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
   return Identity<IFDSConstAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSConstAnalysis::d_t>*
+FlowFunction<IFDSConstAnalysis::d_t> *
 IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t callStmt,
                                           IFDSConstAnalysis::m_t destMthd) {
   return nullptr;

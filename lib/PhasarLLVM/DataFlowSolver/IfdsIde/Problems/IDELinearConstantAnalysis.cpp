@@ -71,13 +71,12 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 
 // Start formulating our analysis by specifying the parts required for IFDS
 
-FlowFunction<IDELinearConstantAnalysis::d_t>*
+FlowFunction<IDELinearConstantAnalysis::d_t> *
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t curr, IDELinearConstantAnalysis::n_t succ) {
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
-      return new Gen<IDELinearConstantAnalysis::d_t>(Alloca,
-                                                              getZeroValue());
+      return new Gen<IDELinearConstantAnalysis::d_t>(Alloca, getZeroValue());
     }
   }
   // Check store instructions. Store instructions override previous value
@@ -126,7 +125,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IDELinearConstantAnalysis::d_t>*
+FlowFunction<IDELinearConstantAnalysis::d_t> *
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
@@ -202,7 +201,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IDELinearConstantAnalysis::d_t>*
+FlowFunction<IDELinearConstantAnalysis::d_t> *
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::m_t calleeMthd,
@@ -246,7 +245,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
       });
 }
 
-FlowFunction<IDELinearConstantAnalysis::d_t>*
+FlowFunction<IDELinearConstantAnalysis::d_t> *
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::n_t retSite, set<m_t> callees) {
@@ -264,7 +263,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IDELinearConstantAnalysis::d_t>*
+FlowFunction<IDELinearConstantAnalysis::d_t> *
 IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::m_t destMthd) {
@@ -327,7 +326,7 @@ bool IDELinearConstantAnalysis::isZeroValue(
 
 // In addition provide specifications for the IDE parts
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::n_t curr,
     IDELinearConstantAnalysis::d_t currNode,
@@ -403,8 +402,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
       return new AllBottom<IDELinearConstantAnalysis::l_t>(
           IDELinearConstantAnalysis::BOTTOM);
     } else {
-      return new IDELinearConstantAnalysis::BinOp(OP, lop, rop,
-                                                           currNode);
+      return new IDELinearConstantAnalysis::BinOp(OP, lop, rop, currNode);
     }
   }
 
@@ -413,7 +411,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t srcNode,
@@ -433,7 +431,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::m_t calleeMethod,
@@ -453,7 +451,7 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
     IDELinearConstantAnalysis::d_t callNode,
@@ -463,7 +461,7 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::getSummaryEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t callNode,
@@ -494,14 +492,14 @@ IDELinearConstantAnalysis::join(IDELinearConstantAnalysis::l_t lhs,
   }
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::allTopFunction() {
   return new AllTop<IDELinearConstantAnalysis::l_t>(TOP);
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* secondFunction) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *secondFunction) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           secondFunction)) {
     return this;
@@ -516,11 +514,10 @@ IDELinearConstantAnalysis::LCAEdgeFunctionComposer::composeWith(
   return F->composeWith(G->composeWith(secondFunction));
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::LCAEdgeFunctionComposer::joinWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* otherFunction) {
-  if (otherFunction == this ||
-      otherFunction->equal_to(this)) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *otherFunction) {
+  if (otherFunction == this || otherFunction->equal_to(this)) {
     return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
@@ -542,9 +539,9 @@ IDELinearConstantAnalysis::GenConstant::computeTarget(
   return IntConst;
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::GenConstant::composeWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* secondFunction) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *secondFunction) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           secondFunction)) {
     return this;
@@ -556,25 +553,26 @@ IDELinearConstantAnalysis::GenConstant::composeWith(
   if (auto *LSVI = dynamic_cast<LCAIdentity *>(secondFunction)) {
     return this;
   }
-  return new IDELinearConstantAnalysis::LCAEdgeFunctionComposer(this, secondFunction);
+  return new IDELinearConstantAnalysis::LCAEdgeFunctionComposer(this,
+                                                                secondFunction);
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::GenConstant::joinWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* otherFunction) {
-  if (otherFunction == this ||
-      otherFunction->equal_to(this)) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *otherFunction) {
+  if (otherFunction == this || otherFunction->equal_to(this)) {
     return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
           otherFunction)) {
     return this;
   }
-  return new AllBottom<IDELinearConstantAnalysis::l_t>(IDELinearConstantAnalysis::BOTTOM);
+  return new AllBottom<IDELinearConstantAnalysis::l_t>(
+      IDELinearConstantAnalysis::BOTTOM);
 }
 
 bool IDELinearConstantAnalysis::GenConstant::equal_to(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* other) const {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *other) const {
   if (auto *GC =
           dynamic_cast<IDELinearConstantAnalysis::GenConstant *>(other)) {
     return (GC->IntConst == this->IntConst);
@@ -596,17 +594,16 @@ IDELinearConstantAnalysis::LCAIdentity::computeTarget(
   return source;
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::LCAIdentity::composeWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* secondFunction) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *secondFunction) {
   return secondFunction;
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::LCAIdentity::joinWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* otherFunction) {
-  if (otherFunction == this ||
-      otherFunction->equal_to(this)) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *otherFunction) {
+  if (otherFunction == this || otherFunction->equal_to(this)) {
     return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
@@ -618,7 +615,7 @@ IDELinearConstantAnalysis::LCAIdentity::joinWith(
 }
 
 bool IDELinearConstantAnalysis::LCAIdentity::equal_to(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* other) const {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *other) const {
   return this == other;
 }
 
@@ -665,9 +662,9 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
   throw runtime_error("Only linear constant propagation can be specified!");
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::BinOp::composeWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* secondFunction) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *secondFunction) {
   if (auto *AB = dynamic_cast<AllBottom<IDELinearConstantAnalysis::l_t> *>(
           secondFunction)) {
     return this;
@@ -680,15 +677,14 @@ IDELinearConstantAnalysis::BinOp::composeWith(
           secondFunction)) {
     return this;
   }
-  return new IDELinearConstantAnalysis::LCAEdgeFunctionComposer(
-      this, secondFunction);
+  return new IDELinearConstantAnalysis::LCAEdgeFunctionComposer(this,
+                                                                secondFunction);
 }
 
-EdgeFunction<IDELinearConstantAnalysis::l_t>*
+EdgeFunction<IDELinearConstantAnalysis::l_t> *
 IDELinearConstantAnalysis::BinOp::joinWith(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* otherFunction) {
-  if (otherFunction == this ||
-      otherFunction->equal_to(this)) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *otherFunction) {
+  if (otherFunction == this || otherFunction->equal_to(this)) {
     return this;
   }
   if (auto *AT = dynamic_cast<AllTop<IDELinearConstantAnalysis::l_t> *>(
@@ -700,9 +696,8 @@ IDELinearConstantAnalysis::BinOp::joinWith(
 }
 
 bool IDELinearConstantAnalysis::BinOp::equal_to(
-    EdgeFunction<IDELinearConstantAnalysis::l_t>* other) const {
-  if (auto *BOP =
-          dynamic_cast<IDELinearConstantAnalysis::BinOp *>(other)) {
+    EdgeFunction<IDELinearConstantAnalysis::l_t> *other) const {
+  if (auto *BOP = dynamic_cast<IDELinearConstantAnalysis::BinOp *>(other)) {
     return BOP->Op == this->Op && BOP->lop == this->lop &&
            BOP->rop == this->rop;
   }

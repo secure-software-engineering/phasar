@@ -48,8 +48,7 @@ public:
   }
 
   EdgeFunction<V> *joinWith(EdgeFunction<V> *otherFunction) override {
-    if ((otherFunction == this) ||
-        otherFunction->equal_to(this))
+    if ((otherFunction == this) || otherFunction->equal_to(this))
       return this;
     if (AllBottom<V> *ab = dynamic_cast<AllBottom<V> *>(otherFunction))
       return otherFunction;
@@ -59,9 +58,7 @@ public:
     return otherFunction->joinWith(this);
   }
 
-  bool equal_to(EdgeFunction<V> *other) const override {
-    return this == other;
-  }
+  bool equal_to(EdgeFunction<V> *other) const override { return this == other; }
 
   static EdgeIdentity<V> *getInstance() {
     // implement singleton C++11 thread-safe (see Scott Meyers)

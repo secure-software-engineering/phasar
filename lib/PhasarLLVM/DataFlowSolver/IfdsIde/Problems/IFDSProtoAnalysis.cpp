@@ -36,38 +36,36 @@ IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 
-FlowFunction<IFDSProtoAnalysis::d_t>*
+FlowFunction<IFDSProtoAnalysis::d_t> *
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
                                          IFDSProtoAnalysis::n_t succ) {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     return new Gen<IFDSProtoAnalysis::d_t>(Store->getPointerOperand(),
-                                                    getZeroValue());
+                                           getZeroValue());
   }
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSProtoAnalysis::d_t>*
+FlowFunction<IFDSProtoAnalysis::d_t> *
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                        IFDSProtoAnalysis::m_t destMthd) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSProtoAnalysis::d_t>*
-IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
-                                      IFDSProtoAnalysis::m_t calleeMthd,
-                                      IFDSProtoAnalysis::n_t exitStmt,
-                                      IFDSProtoAnalysis::n_t retSite) {
+FlowFunction<IFDSProtoAnalysis::d_t> *IFDSProtoAnalysis::getRetFlowFunction(
+    IFDSProtoAnalysis::n_t callSite, IFDSProtoAnalysis::m_t calleeMthd,
+    IFDSProtoAnalysis::n_t exitStmt, IFDSProtoAnalysis::n_t retSite) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSProtoAnalysis::d_t>*
+FlowFunction<IFDSProtoAnalysis::d_t> *
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t callSite, IFDSProtoAnalysis::n_t retSite,
     set<IFDSProtoAnalysis::m_t> callees) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
-FlowFunction<IFDSProtoAnalysis::d_t>*
+FlowFunction<IFDSProtoAnalysis::d_t> *
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t callStmt,
                                           IFDSProtoAnalysis::m_t destMthd) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();

@@ -46,8 +46,7 @@ IFDSFieldSensTaintAnalysis::IFDSFieldSensTaintAnalysis(
   IFDSFieldSensTaintAnalysis::ZeroValue = createZeroValue();
 }
 
-FlowFunction<ExtendedValue>*
-IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
+FlowFunction<ExtendedValue> *IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
     const llvm::Instruction *currentInst,
     const llvm::Instruction *successorInst) {
   if (taintConfig.isSource(currentInst)) {
@@ -60,48 +59,41 @@ IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
 
   if (DataFlowUtils::isReturnValue(currentInst, successorInst))
     return new ReturnInstFlowFunction(successorInst, traceStats,
-                                                    getZeroValue());
+                                      getZeroValue());
 
   if (llvm::isa<llvm::StoreInst>(currentInst))
-    return new StoreInstFlowFunction(currentInst, traceStats,
-                                                   getZeroValue());
+    return new StoreInstFlowFunction(currentInst, traceStats, getZeroValue());
 
   if (llvm::isa<llvm::BranchInst>(currentInst) ||
       llvm::isa<llvm::SwitchInst>(currentInst))
-    return new BranchSwitchInstFlowFunction(
-        currentInst, traceStats, getZeroValue());
+    return new BranchSwitchInstFlowFunction(currentInst, traceStats,
+                                            getZeroValue());
 
   if (llvm::isa<llvm::GetElementPtrInst>(currentInst))
-    return new GEPInstFlowFunction(currentInst, traceStats,
-                                                 getZeroValue());
+    return new GEPInstFlowFunction(currentInst, traceStats, getZeroValue());
 
   if (llvm::isa<llvm::PHINode>(currentInst))
-    return new PHINodeFlowFunction(currentInst, traceStats,
-                                                 getZeroValue());
+    return new PHINodeFlowFunction(currentInst, traceStats, getZeroValue());
 
   if (DataFlowUtils::isCheckOperandsInst(currentInst))
     return new CheckOperandsFlowFunction(currentInst, traceStats,
-                                                       getZeroValue());
+                                         getZeroValue());
 
-  return new IdentityFlowFunction(currentInst, traceStats,
-                                                getZeroValue());
+  return new IdentityFlowFunction(currentInst, traceStats, getZeroValue());
 }
 
-FlowFunction<ExtendedValue>*
-IFDSFieldSensTaintAnalysis::getCallFlowFunction(
+FlowFunction<ExtendedValue> *IFDSFieldSensTaintAnalysis::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  return new MapTaintedValuesToCallee(
-      llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats,
-      getZeroValue());
+  return new MapTaintedValuesToCallee(llvm::cast<llvm::CallInst>(callStmt),
+                                      destMthd, traceStats, getZeroValue());
 }
 
-FlowFunction<ExtendedValue>*
-IFDSFieldSensTaintAnalysis::getRetFlowFunction(
+FlowFunction<ExtendedValue> *IFDSFieldSensTaintAnalysis::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
-  return new MapTaintedValuesToCaller(
-      llvm::cast<llvm::CallInst>(callSite),
-      llvm::cast<llvm::ReturnInst>(exitStmt), traceStats, getZeroValue());
+  return new MapTaintedValuesToCaller(llvm::cast<llvm::CallInst>(callSite),
+                                      llvm::cast<llvm::ReturnInst>(exitStmt),
+                                      traceStats, getZeroValue());
 }
 
 /*
@@ -110,7 +102,7 @@ IFDSFieldSensTaintAnalysis::getRetFlowFunction(
  * previously generated facts. Facts from the returning functions are
  * handled in getRetFlowFunction.
  */
-FlowFunction<ExtendedValue>*
+FlowFunction<ExtendedValue> *
 IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     std::set<const llvm::Function *> callees) {
@@ -132,8 +124,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
    * instruction will be pushed when the flow function is called with the branch
    * instruction fact.
    */
-  return new CallToRetFlowFunction(callSite, traceStats,
-                                                 getZeroValue());
+  return new CallToRetFlowFunction(callSite, traceStats, getZeroValue());
 }
 
 /*
@@ -141,8 +132,7 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
  * Instead facts according to the defined flow function will be taken into
  * account.
  */
-FlowFunction<ExtendedValue>*
-IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
+FlowFunction<ExtendedValue> *IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   const auto destMthdName = destMthd->getName();
 
@@ -153,50 +143,43 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   const auto callInst = llvm::cast<llvm::CallInst>(callStmt);
   bool isStaticCallSite = callInst->getCalledFunction();
   if (!isStaticCallSite)
-    return new IdentityFlowFunction(callStmt, traceStats,
-                                                  getZeroValue());
+    return new IdentityFlowFunction(callStmt, traceStats, getZeroValue());
 
   /*
    * Exclude blacklisted functions here.
    */
 
   if (taintConfig.isSink(destMthdName))
-    return new IdentityFlowFunction(callStmt, traceStats,
-                                                  getZeroValue());
+    return new IdentityFlowFunction(callStmt, traceStats, getZeroValue());
 
   /*
    * Intrinsics.
    */
   if (llvm::isa<llvm::MemTransferInst>(callStmt))
     return new MemTransferInstFlowFunction(callStmt, traceStats,
-                                                         getZeroValue());
+                                           getZeroValue());
 
   if (llvm::isa<llvm::MemSetInst>(callStmt))
-    return new MemSetInstFlowFunction(callStmt, traceStats,
-                                                    getZeroValue());
+    return new MemSetInstFlowFunction(callStmt, traceStats, getZeroValue());
 
   if (llvm::isa<llvm::VAStartInst>(callStmt))
-    return new VAStartInstFlowFunction(callStmt, traceStats,
-                                                     getZeroValue());
+    return new VAStartInstFlowFunction(callStmt, traceStats, getZeroValue());
 
   if (llvm::isa<llvm::VAEndInst>(callStmt))
-    return new VAEndInstFlowFunction(callStmt, traceStats,
-                                                   getZeroValue());
+    return new VAEndInstFlowFunction(callStmt, traceStats, getZeroValue());
 
   /*
    * Provide summary for tainted functions.
    */
   if (taintConfig.isSource(destMthdName))
-    return new GenerateFlowFunction(callStmt, traceStats,
-                                                  getZeroValue());
+    return new GenerateFlowFunction(callStmt, traceStats, getZeroValue());
 
   /*
    * Skip all (other) declarations.
    */
   bool isDeclaration = destMthd->isDeclaration();
   if (isDeclaration)
-    return new IdentityFlowFunction(callStmt, traceStats,
-                                                  getZeroValue());
+    return new IdentityFlowFunction(callStmt, traceStats, getZeroValue());
 
   /*
    * Follow call -> getCallFlowFunction()

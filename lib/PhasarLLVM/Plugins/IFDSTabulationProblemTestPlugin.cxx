@@ -51,33 +51,33 @@ IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSTabulationProblemTestPlugin::getNormalFlowFunction(
     const llvm::Instruction *curr, const llvm::Instruction *succ) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSTabulationProblemTestPlugin::getCallFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSTabulationProblemTestPlugin::getRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSTabulationProblemTestPlugin::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     set<const llvm::Function *> callees) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-shared_ptr<FlowFunction<const llvm::Value *>>
+FlowFunction<const llvm::Value *>*
 IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return nullptr;

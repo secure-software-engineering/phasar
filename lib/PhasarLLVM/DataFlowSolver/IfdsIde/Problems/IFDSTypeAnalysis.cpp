@@ -31,7 +31,7 @@ IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
   IFDSTypeAnalysis::ZeroValue = createZeroValue();
 }
 
-FlowFunction<IFDSTypeAnalysis::d_t>*
+FlowFunction<IFDSTypeAnalysis::d_t> *
 IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t curr,
                                         IFDSTypeAnalysis::n_t succ) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
@@ -43,7 +43,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t curr,
   return new TAFF();
 }
 
-FlowFunction<IFDSTypeAnalysis::d_t>*
+FlowFunction<IFDSTypeAnalysis::d_t> *
 IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t callStmt,
                                       IFDSTypeAnalysis::m_t destMthd) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
@@ -55,11 +55,9 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t callStmt,
   return new TAFF();
 }
 
-FlowFunction<IFDSTypeAnalysis::d_t>*
-IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
-                                     IFDSTypeAnalysis::m_t calleeMthd,
-                                     IFDSTypeAnalysis::n_t exitStmt,
-                                     IFDSTypeAnalysis::n_t retSite) {
+FlowFunction<IFDSTypeAnalysis::d_t> *IFDSTypeAnalysis::getRetFlowFunction(
+    IFDSTypeAnalysis::n_t callSite, IFDSTypeAnalysis::m_t calleeMthd,
+    IFDSTypeAnalysis::n_t exitStmt, IFDSTypeAnalysis::n_t retSite) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t source) override {
@@ -69,7 +67,7 @@ IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
   return new TAFF();
 }
 
-FlowFunction<IFDSTypeAnalysis::d_t>*
+FlowFunction<IFDSTypeAnalysis::d_t> *
 IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
                                            IFDSTypeAnalysis::n_t retSite,
                                            set<IFDSTypeAnalysis::m_t> callees) {
@@ -82,7 +80,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
   return new TAFF();
 }
 
-FlowFunction<IFDSTypeAnalysis::d_t>*
+FlowFunction<IFDSTypeAnalysis::d_t> *
 IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t curr,
                                          IFDSTypeAnalysis::m_t destMthd) {
   return nullptr;
