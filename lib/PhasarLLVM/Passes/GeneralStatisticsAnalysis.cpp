@@ -80,7 +80,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
         }
         // check for load instructions
         if (llvm::isa<llvm::LoadInst>(I)) {
-          ++loadInstructions;
+          ++Stats.loadInstructions;
         }
         // check for llvm's memory intrinsics
         if (llvm::isa<llvm::MemIntrinsic>(I)) {
