@@ -97,56 +97,56 @@ public:
     REG_COUNTER("Summary-EF Cache Hit", 0, PAMM_SEVERITY_LEVEL::Full);
   }
 
-  ~FlowEdgeFunctionCache(){
-    //Freeing all Flow Functions that are no singletons
-    for(auto elem : NormalFlowFunctionCache){
-      if (!registeredFlowFunctionSingleton.count(elem.second)){
+  ~FlowEdgeFunctionCache() {
+    // Freeing all Flow Functions that are no singletons
+    for (auto elem : NormalFlowFunctionCache) {
+      if (!registeredFlowFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : CallFlowFunctionCache){
-      if (!registeredFlowFunctionSingleton.count(elem.second)){
+    for (auto elem : CallFlowFunctionCache) {
+      if (!registeredFlowFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : ReturnFlowFunctionCache){
-      if (!registeredFlowFunctionSingleton.count(elem.second)){
+    for (auto elem : ReturnFlowFunctionCache) {
+      if (!registeredFlowFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : CallToRetFlowFunctionCache){
-      if (!registeredFlowFunctionSingleton.count(elem.second)){
+    for (auto elem : CallToRetFlowFunctionCache) {
+      if (!registeredFlowFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    //Freeing all Edge Functions that are no singletons
-    for(auto elem : NormalEdgeFunctionCache){
-      if (!registeredEdgeFunctionSingleton.count(elem.second)){
+    // Freeing all Edge Functions that are no singletons
+    for (auto elem : NormalEdgeFunctionCache) {
+      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : CallEdgeFunctionCache){
-      if (!registeredEdgeFunctionSingleton.count(elem.second)){
+    for (auto elem : CallEdgeFunctionCache) {
+      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : ReturnEdgeFunctionCache){
-      if (!registeredEdgeFunctionSingleton.count(elem.second)){
+    for (auto elem : ReturnEdgeFunctionCache) {
+      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : CallToRetEdgeFunctionCache){
-      if (!registeredEdgeFunctionSingleton.count(elem.second)){
+    for (auto elem : CallToRetEdgeFunctionCache) {
+      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    for(auto elem : SummaryEdgeFunctionCache){
-      if (!registeredEdgeFunctionSingleton.count(elem.second)){
+    for (auto elem : SummaryEdgeFunctionCache) {
+      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
         delete elem.second;
       }
     }
-    //free additional edge functions 
-    for(auto elem : managedEdgeFunctions){
+    // free additional edge functions
+    for (auto elem : managedEdgeFunctions) {
       delete elem;
     }
   }
