@@ -10,11 +10,9 @@ static unsigned CurrMulTwoEF_Id = 0;
 static unsigned CurrAddTwoEF_Id = 0;
 
 struct MyEFC : EdgeFunctionComposer<int> {
-  MyEFC(EdgeFunction<int>* F,
-        EdgeFunction<int>* G)
+  MyEFC(EdgeFunction<int> *F, EdgeFunction<int> *G)
       : EdgeFunctionComposer<int>(F, G){};
-  EdgeFunction<int>*
-  joinWith(EdgeFunction<int>* otherFunction) override {
+  EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
   };
 };
@@ -26,15 +24,13 @@ private:
 public:
   MulTwoEF(unsigned id) : MulTwoEF_Id(id){};
   int computeTarget(int source) override { return source * 2; };
-  EdgeFunction<int>*
-  composeWith(EdgeFunction<int>* secondFunction) override {
+  EdgeFunction<int> *composeWith(EdgeFunction<int> *secondFunction) override {
     return new MyEFC(this, secondFunction);
   }
-  EdgeFunction<int>*
-  joinWith(EdgeFunction<int>* otherFunction) override {
+  EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
   };
-  bool equal_to(EdgeFunction<int>* other) const override {
+  bool equal_to(EdgeFunction<int> *other) const override {
     return this == other;
   }
   void print(std::ostream &os, bool isForDebug = false) const override {
@@ -49,15 +45,13 @@ private:
 public:
   AddTwoEF(unsigned id) : AddTwoEF_Id(id){};
   int computeTarget(int source) override { return source + 2; };
-  EdgeFunction<int>*
-  composeWith(EdgeFunction<int>* secondFunction) override {
+  EdgeFunction<int> *composeWith(EdgeFunction<int> *secondFunction) override {
     return new MyEFC(this, secondFunction);
   }
-  EdgeFunction<int>*
-  joinWith(EdgeFunction<int>* otherFunction) override {
+  EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
   };
-  bool equal_to(EdgeFunction<int>* other) const override {
+  bool equal_to(EdgeFunction<int> *other) const override {
     return this == other;
   }
   void print(std::ostream &os, bool isForDebug = false) const override {

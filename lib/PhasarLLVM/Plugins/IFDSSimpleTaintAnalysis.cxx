@@ -55,7 +55,7 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
     std::set<std::string> EntryPoints)
     : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
-FlowFunction<const llvm::Value *>*
+FlowFunction<const llvm::Value *> *
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
                                                const llvm::Instruction *succ) {
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
@@ -75,7 +75,7 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
   return Identity<const llvm::Value *>::getInstance();
 }
 
-FlowFunction<const llvm::Value *>*
+FlowFunction<const llvm::Value *> *
 IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
                                              const llvm::Function *destMthd) {
   if (auto Call = llvm::dyn_cast<llvm::CallInst>(callStmt)) {
@@ -88,22 +88,20 @@ IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
   return Identity<const llvm::Value *>::getInstance();
 }
 
-FlowFunction<const llvm::Value *>*
-IFDSSimpleTaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                            const llvm::Function *calleeMthd,
-                                            const llvm::Instruction *exitStmt,
-                                            const llvm::Instruction *retSite) {
+FlowFunction<const llvm::Value *> *IFDSSimpleTaintAnalysis::getRetFlowFunction(
+    const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
+    const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-FlowFunction<const llvm::Value *>*
+FlowFunction<const llvm::Value *> *
 IFDSSimpleTaintAnalysis::getCallToRetFlowFunction(
     const llvm::Instruction *callSite, const llvm::Instruction *retSite,
     set<const llvm::Function *> callees) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
-FlowFunction<const llvm::Value *>*
+FlowFunction<const llvm::Value *> *
 IFDSSimpleTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
   return nullptr;

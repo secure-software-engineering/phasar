@@ -29,12 +29,11 @@ namespace psr {
  */
 template <typename V> class JoinLatticeToSemiRingElem : public wali::SemElem {
 public:
-  EdgeFunction<V>* F;
+  EdgeFunction<V> *F;
   JoinLattice<V> &L;
   V v;
 
-  JoinLatticeToSemiRingElem(EdgeFunction<V>* F,
-                            JoinLattice<V> &L)
+  JoinLatticeToSemiRingElem(EdgeFunction<V> *F, JoinLattice<V> &L)
       : wali::SemElem(), F(F), L(L) {}
   virtual ~JoinLatticeToSemiRingElem() = default;
 
@@ -43,15 +42,13 @@ public:
   wali::sem_elem_t one() const override {
     // std::cout << "JoinLatticeToSemiRingElem::one()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
-        new JoinLatticeToSemiRingElem(
-            new AllBottom<V>(L.bottomElement()), L));
+        new JoinLatticeToSemiRingElem(new AllBottom<V>(L.bottomElement()), L));
   }
 
   wali::sem_elem_t zero() const override {
     // std::cout << "JoinLatticeToSemiRingElem::zero()" << std::endl;
     return wali::ref_ptr<JoinLatticeToSemiRingElem<V>>(
-        new JoinLatticeToSemiRingElem(
-            new AllTop<V>(L.topElement()), L));
+        new JoinLatticeToSemiRingElem(new AllTop<V>(L.topElement()), L));
   }
 
   wali::sem_elem_t extend(SemElem *se) override {

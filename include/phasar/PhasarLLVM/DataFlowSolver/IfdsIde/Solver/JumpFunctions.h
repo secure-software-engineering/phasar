@@ -37,28 +37,26 @@ template <typename N, typename D, typename M, typename T, typename V,
           typename L, typename I>
 class JumpFunctions {
 private:
-  EdgeFunction<L>* allTop;
+  EdgeFunction<L> *allTop;
   const IDETabulationProblem<N, D, M, T, V, L, I> &problem;
 
 protected:
   // mapping from target node and value to a list of all source values and
   // associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<N, D, std::unordered_map<D, EdgeFunction<L>*>>
-      nonEmptyReverseLookup;
+  Table<N, D, std::unordered_map<D, EdgeFunction<L> *>> nonEmptyReverseLookup;
   // mapping from source value and target node to a list of all target values
   // and associated functions where the list is implemented as a mapping from
   // the source value to the function we exclude empty default functions
-  Table<D, N, std::unordered_map<D, EdgeFunction<L>*>>
-      nonEmptyForwardLookup;
+  Table<D, N, std::unordered_map<D, EdgeFunction<L> *>> nonEmptyForwardLookup;
   // a mapping from target node to a list of triples consisting of source value,
   // target value and associated function; the triple is implemented by a table
   // we exclude empty default functions
-  std::unordered_map<N, Table<D, D, EdgeFunction<L>*>>
+  std::unordered_map<N, Table<D, D, EdgeFunction<L> *>>
       nonEmptyLookupByTargetNode;
 
 public:
-  JumpFunctions(EdgeFunction<L>* allTop,
+  JumpFunctions(EdgeFunction<L> *allTop,
                 const IDETabulationProblem<N, D, M, T, V, L, I> &p)
       : allTop(allTop), problem(p) {}
 
@@ -73,7 +71,7 @@ public:
    * @see PathEdge
    */
   void addFunction(D sourceVal, N target, D targetVal,
-                   EdgeFunction<L>* function) {
+                   EdgeFunction<L> *function) {
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -90,10 +88,10 @@ public:
     }
     // it is important that existing values in JumpFunctions are overwritten
     // (use operator[] instead of insert)
-    std::unordered_map<D, EdgeFunction<L>*> &sourceValToFunc =
+    std::unordered_map<D, EdgeFunction<L> *> &sourceValToFunc =
         nonEmptyReverseLookup.get(target, targetVal);
     sourceValToFunc[sourceVal] = function;
-    std::unordered_map<D, EdgeFunction<L>*> &targetValToFunc =
+    std::unordered_map<D, EdgeFunction<L> *> &targetValToFunc =
         nonEmptyForwardLookup.get(sourceVal, target);
     targetValToFunc[targetVal] = function;
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
@@ -107,10 +105,10 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::unordered_map<D, EdgeFunction<L>*>
-  reverseLookup(N target, D targetVal) {
+  std::unordered_map<D, EdgeFunction<L> *> reverseLookup(N target,
+                                                         D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal))
-      return std::unordered_map<D, EdgeFunction<L>*>{};
+      return std::unordered_map<D, EdgeFunction<L> *>{};
     else
       return nonEmptyReverseLookup.get(target, targetVal);
   }
@@ -120,10 +118,10 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::unordered_map<D, EdgeFunction<L>*>
-  forwardLookup(D sourceVal, N target) {
+  std::unordered_map<D, EdgeFunction<L> *> forwardLookup(D sourceVal,
+                                                         N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target))
-      return std::unordered_map<D, EdgeFunction<L>*>{};
+      return std::unordered_map<D, EdgeFunction<L> *>{};
     else
       return nonEmptyForwardLookup.get(sourceVal, target);
   }
@@ -134,7 +132,7 @@ public:
    * The return value is a set of records of the form
    * (sourceVal,targetVal,edgeFunction).
    */
-  Table<D, D, EdgeFunction<L>*> lookupByTarget(N target) {
+  Table<D, D, EdgeFunction<L> *> lookupByTarget(N target) {
     return nonEmptyLookupByTargetNode[target];
   }
 

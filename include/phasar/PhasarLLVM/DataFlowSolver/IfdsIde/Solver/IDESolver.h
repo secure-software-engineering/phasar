@@ -327,17 +327,16 @@ protected:
 
   Table<N, N, std::map<D, std::set<D>>> computedInterPathEdges;
 
-  EdgeFunction<L>* allTop;
+  EdgeFunction<L> *allTop;
 
   std::shared_ptr<JumpFunctions<N, D, M, T, V, L, I>> jumpFn;
 
-  std::map<std::tuple<N, D, N, D>,
-           std::vector<EdgeFunction<L>*>>
+  std::map<std::tuple<N, D, N, D>, std::vector<EdgeFunction<L> *>>
       intermediateEdgeFunctions;
 
   // stores summaries that were queried before they were computed
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
-  Table<N, D, Table<N, D, EdgeFunction<L>*>> endsummarytab;
+  Table<N, D, Table<N, D, EdgeFunction<L> *>> endsummarytab;
 
   // edges going along calls
   // see CC 2010 paper by Naeem, Lhotak and Rodriguez
@@ -404,7 +403,7 @@ protected:
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
-    EdgeFunction<L>* f = jumpFunction(edge);
+    EdgeFunction<L> *f = jumpFunction(edge);
     std::set<N> returnSiteNs = ICF->getReturnSitesOfCallAt(n);
     std::set<M> callees = ICF->getCalleesOfCallAt(n);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
@@ -421,7 +420,7 @@ protected:
     // for each possible callee
     for (M sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
-      FlowFunction<D>* specialSum =
+      FlowFunction<D> *specialSum =
           cachedFlowEdgeFunctions.getSummaryFlowFunction(n, sCalledProcN);
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
@@ -436,7 +435,7 @@ protected:
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, returnSiteN, d2, res, false);
           for (D d3 : res) {
-            EdgeFunction<L>* sumEdgFnE =
+            EdgeFunction<L> *sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -453,7 +452,7 @@ protected:
         }
       } else {
         // compute the call-flow function
-        FlowFunction<D>* function =
+        FlowFunction<D> *function =
             cachedFlowEdgeFunctions.getCallFlowFunction(n, sCalledProcN);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         std::set<D> res = computeCallFlowFunction(function, d1, d2);
@@ -484,10 +483,8 @@ protected:
             addIncoming(sP, d3, n, d2);
             // line 15.2, copy to avoid concurrent modification exceptions by
             // other threads
-            std::set<
-                typename Table<N, D, EdgeFunction<L>*>::Cell>
-                endSumm = std::set<typename Table<
-                    N, D, EdgeFunction<L>*>::Cell>(
+            std::set<typename Table<N, D, EdgeFunction<L> *>::Cell> endSumm =
+                std::set<typename Table<N, D, EdgeFunction<L> *>::Cell>(
                     endSummary(sP, d3));
             // std::cout << "ENDSUMM" << std::endl;
             // std::cout << "Size: " << endSumm.size() << std::endl;
@@ -500,16 +497,15 @@ protected:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (typename Table<N, D, EdgeFunction<L>*>::Cell
-                     entry : endSumm) {
+            for (typename Table<N, D, EdgeFunction<L> *>::Cell entry :
+                 endSumm) {
               N eP = entry.getRowKey();
               D d4 = entry.getColumnKey();
-              EdgeFunction<L>* fCalleeSummary =
-                  entry.getValue();
+              EdgeFunction<L> *fCalleeSummary = entry.getValue();
               // for each return site
               for (N retSiteN : returnSiteNs) {
                 // compute return-flow function
-                FlowFunction<D>* retFunction =
+                FlowFunction<D> *retFunction =
                     cachedFlowEdgeFunctions.getRetFlowFunction(n, sCalledProcN,
                                                                eP, retSiteN);
                 INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -522,13 +518,13 @@ protected:
                 for (D d5 : returnedFacts) {
                   // update the caller-side summary function
                   // get call edge function
-                  EdgeFunction<L>* f4 =
+                  EdgeFunction<L> *f4 =
                       cachedFlowEdgeFunctions.getCallEdgeFunction(
                           n, d2, sCalledProcN, d3);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "Queried Call Edge Function: " << f4->str());
                   // get return edge function
-                  EdgeFunction<L>* f5 =
+                  EdgeFunction<L> *f5 =
                       cachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, sCalledProcN, eP, d4, retSiteN, d5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -550,7 +546,7 @@ protected:
                                 << fCalleeSummary->str() << " * " << f4->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "         (return * calleeSummary * call)");
-                  EdgeFunction<L>* fPrime =
+                  EdgeFunction<L> *fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "       = " << fPrime->str());
@@ -572,7 +568,7 @@ protected:
       // line 17-19 of Naeem/Lhotak/Rodriguez
       // process intra-procedural flows along call-to-return flow functions
       for (N returnSiteN : returnSiteNs) {
-        FlowFunction<D>* callToReturnFlowFunction =
+        FlowFunction<D> *callToReturnFlowFunction =
             cachedFlowEdgeFunctions.getCallToRetFlowFunction(n, returnSiteN,
                                                              callees);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -582,7 +578,7 @@ protected:
                          PAMM_SEVERITY_LEVEL::Full);
         saveEdges(n, returnSiteN, d2, returnFacts, false);
         for (D d3 : returnFacts) {
-          EdgeFunction<L>* edgeFnE =
+          EdgeFunction<L> *edgeFnE =
               cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
                   n, d2, returnSiteN, d3, callees);
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -619,10 +615,10 @@ protected:
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
-    EdgeFunction<L>* f = jumpFunction(edge);
+    EdgeFunction<L> *f = jumpFunction(edge);
     auto successorInst = ICF->getSuccsOf(n);
     for (auto m : successorInst) {
-      FlowFunction<D>* flowFunction =
+      FlowFunction<D> *flowFunction =
           cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       std::set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
@@ -630,11 +626,11 @@ protected:
                        PAMM_SEVERITY_LEVEL::Full);
       saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
-        EdgeFunction<L>* g =
+        EdgeFunction<L> *g =
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
-        EdgeFunction<L>* fprime = f->composeWith(g);
+        EdgeFunction<L> *fprime = f->composeWith(g);
         if (SolverConfig.emitESG) {
           intermediateEdgeFunctions[std::make_tuple(n, d2, m, d3)].push_back(
               fprime);
@@ -656,7 +652,7 @@ protected:
     for (N c : ICF->getCallsFromWithin(p)) {
       for (auto entry : jumpFn->forwardLookup(d, c)) {
         D dPrime = entry.first;
-        EdgeFunction<L>* fPrime = entry.second;
+        EdgeFunction<L> *fPrime = entry.second;
         N sP = n;
         L value = val(sP, d);
         INC_COUNTER("Value Propagation", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -670,11 +666,11 @@ protected:
     auto &lg = lg::get();
     D d = nAndD.second;
     for (M q : ICF->getCalleesOfCallAt(n)) {
-      FlowFunction<D>* callFlowFunction =
+      FlowFunction<D> *callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       for (D dPrime : callFlowFunction->computeTargets(d)) {
-        EdgeFunction<L>* edgeFn =
+        EdgeFunction<L> *edgeFn =
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Call Edge Function: " << edgeFn->str());
@@ -732,7 +728,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
-  EdgeFunction<L>* jumpFunction(PathEdge<N, D> edge) {
+  EdgeFunction<L> *jumpFunction(PathEdge<N, D> edge) {
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "JumpFunctions Forward-Lookup:");
@@ -760,8 +756,7 @@ protected:
     return res;
   }
 
-  void addEndSummary(N sP, D d1, N eP, D d2,
-                     EdgeFunction<L>* f) {
+  void addEndSummary(N sP, D d1, N eP, D d2, EdgeFunction<L> *f) {
     // note: at this point we don't need to join with a potential previous f
     // because f is a jump function, which is already properly joined
     // within propagate(..)
@@ -826,14 +821,13 @@ protected:
     PAMM_GET_INSTANCE;
     for (N n : values) {
       for (N sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
-        Table<D, D, EdgeFunction<L>*> lookupByTarget;
+        Table<D, D, EdgeFunction<L> *> lookupByTarget;
         lookupByTarget = jumpFn->lookupByTarget(n);
-        for (typename Table<D, D, EdgeFunction<L>*>::Cell
+        for (typename Table<D, D, EdgeFunction<L> *>::Cell
                  sourceValTargetValAndFunction : lookupByTarget.cellSet()) {
           D dPrime = sourceValTargetValAndFunction.getRowKey();
           D d = sourceValTargetValAndFunction.getColumnKey();
-          EdgeFunction<L>* fPrime =
-              sourceValTargetValAndFunction.getValue();
+          EdgeFunction<L> *fPrime = sourceValTargetValAndFunction.getValue();
           L targetVal = val(sP, dPrime);
           setVal(n, d,
                  ideTabulationProblem.join(val(n, d),
@@ -935,7 +929,7 @@ protected:
                   << "Process exit at target: "
                   << ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
-    EdgeFunction<L>* f = jumpFunction(edge);
+    EdgeFunction<L> *f = jumpFunction(edge);
     M methodThatNeedsSummary = ICF->getFunctionOf(n);
     D d1 = edge.factAtSource();
     D d2 = edge.factAtTarget();
@@ -960,7 +954,7 @@ protected:
       // for each return site
       for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
         // compute return-flow function
-        FlowFunction<D>* retFunction =
+        FlowFunction<D> *retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 c, methodThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -976,15 +970,13 @@ protected:
           for (D d5 : targets) {
             // compute composed function
             // get call edge function
-            EdgeFunction<L>* f4 =
-                cachedFlowEdgeFunctions.getCallEdgeFunction(
-                    c, d4, ICF->getFunctionOf(n), d1);
+            EdgeFunction<L> *f4 = cachedFlowEdgeFunctions.getCallEdgeFunction(
+                c, d4, ICF->getFunctionOf(n), d1);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Queried Call Edge Function: " << f4->str());
             // get return edge function
-            EdgeFunction<L>* f5 =
-                cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
+            EdgeFunction<L> *f5 = cachedFlowEdgeFunctions.getReturnEdgeFunction(
+                c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG) {
@@ -1002,15 +994,14 @@ protected:
                           << " * " << f4->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "         (return * function * call)");
-            EdgeFunction<L>* fPrime =
-                f4->composeWith(f)->composeWith(f5);
+            EdgeFunction<L> *fPrime = f4->composeWith(f)->composeWith(f5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "       = " << fPrime->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
             for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
-              EdgeFunction<L>* f3 = valAndFunc.second;
+              EdgeFunction<L> *f3 = valAndFunc.second;
               if (!f3->equal_to(allTop)) {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
@@ -1037,7 +1028,7 @@ protected:
       std::set<N> callers = ICF->getCallersOf(methodThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
-          FlowFunction<D>* retFunction =
+          FlowFunction<D> *retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
                   c, methodThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1047,9 +1038,8 @@ protected:
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, retSiteC, d2, targets, true);
           for (D d5 : targets) {
-            EdgeFunction<L>* f5 =
-                cachedFlowEdgeFunctions.getReturnEdgeFunction(
-                    c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
+            EdgeFunction<L> *f5 = cachedFlowEdgeFunctions.getReturnEdgeFunction(
+                c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG) {
@@ -1071,7 +1061,7 @@ protected:
       // the flow function has a side effect such as registering a taint;
       // instead we thus call the return flow function will a null caller
       if (callers.empty()) {
-        FlowFunction<D>* retFunction =
+        FlowFunction<D> *retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
                 nullptr, methodThatNeedsSummary, n, nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -1080,10 +1070,9 @@ protected:
     }
   }
 
-  void
-  propagteUnbalancedReturnFlow(N retSiteC, D targetVal,
-                               EdgeFunction<L>* edgeFunction,
-                               N relatedCallSite) {
+  void propagteUnbalancedReturnFlow(N retSiteC, D targetVal,
+                                    EdgeFunction<L> *edgeFunction,
+                                    N relatedCallSite) {
     propagate(zeroValue, retSiteC, targetVal, edgeFunction, relatedCallSite,
               true);
   }
@@ -1121,17 +1110,16 @@ protected:
    * @param d2 The abstraction at the current node
    * @return The set of abstractions at the successor node
    */
-  std::set<D>
-  computeNormalFlowFunction(FlowFunction<D>* flowFunction, D d1,
-                            D d2) {
+  std::set<D> computeNormalFlowFunction(FlowFunction<D> *flowFunction, D d1,
+                                        D d2) {
     return flowFunction->computeTargets(d2);
   }
 
   /**
    * TODO: comment
    */
-  std::set<D> computeSummaryFlowFunction(
-      FlowFunction<D>* SummaryFlowFunction, D d1, D d2) {
+  std::set<D> computeSummaryFlowFunction(FlowFunction<D> *SummaryFlowFunction,
+                                         D d1, D d2) {
     return SummaryFlowFunction->computeTargets(d2);
   }
 
@@ -1142,9 +1130,8 @@ protected:
    * @param d2 The abstraction at the call site
    * @return The set of caller-side abstractions at the callee's start node
    */
-  std::set<D>
-  computeCallFlowFunction(FlowFunction<D>* callFlowFunction,
-                          D d1, D d2) {
+  std::set<D> computeCallFlowFunction(FlowFunction<D> *callFlowFunction, D d1,
+                                      D d2) {
     return callFlowFunction->computeTargets(d2);
   }
 
@@ -1157,8 +1144,9 @@ protected:
    * @param d2 The abstraction at the call site
    * @return The set of caller-side abstractions at the return site
    */
-  std::set<D> computeCallToReturnFlowFunction(
-      FlowFunction<D>* callToReturnFlowFunction, D d1, D d2) {
+  std::set<D>
+  computeCallToReturnFlowFunction(FlowFunction<D> *callToReturnFlowFunction,
+                                  D d1, D d2) {
     return callToReturnFlowFunction->computeTargets(d2);
   }
 
@@ -1172,9 +1160,9 @@ protected:
    * @param callerSideDs The abstractions at the call site
    * @return The set of caller-side abstractions at the return site
    */
-  std::set<D>
-  computeReturnFlowFunction(FlowFunction<D>* retFunction, D d1,
-                            D d2, N callSite, std::set<D> callerSideDs) {
+  std::set<D> computeReturnFlowFunction(FlowFunction<D> *retFunction, D d1,
+                                        D d2, N callSite,
+                                        std::set<D> callerSideDs) {
     return retFunction->computeTargets(d2);
   }
 
@@ -1196,8 +1184,7 @@ protected:
    * but may be useful for subclasses of {@link IDESolver})
    */
   void
-  propagate(D sourceVal, N target, D targetVal,
-            EdgeFunction<L>* f,
+  propagate(D sourceVal, N target, D targetVal, EdgeFunction<L> *f,
             /* deliberately exposed to clients */ N relatedCallSite,
             /* deliberately exposed to clients */ bool isUnbalancedReturn) {
     auto &lg = lg::get();
@@ -1211,12 +1198,11 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Target value  : "
                   << ideTabulationProblem.DtoString(targetVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Edge function : " << f->str()
-                  << " (result of previous compose)");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Edge function : " << f->str()
+                                           << " (result of previous compose)");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-    EdgeFunction<L>* jumpFnE = nullptr;
-    EdgeFunction<L>* fPrime;
+    EdgeFunction<L> *jumpFnE = nullptr;
+    EdgeFunction<L> *fPrime;
     if (!jumpFn->reverseLookup(target, targetVal).empty()) {
       jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
     }
@@ -1261,8 +1247,8 @@ protected:
     return ideTabulationProblem.join(curr, newVal);
   }
 
-  std::set<typename Table<N, D, EdgeFunction<L>*>::Cell>
-  endSummary(N sP, D d3) {
+  std::set<typename Table<N, D, EdgeFunction<L> *>::Cell> endSummary(N sP,
+                                                                     D d3) {
     if (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       auto key = std::make_pair(sP, d3);
       auto findND = fSummaryReuse.find(key);
