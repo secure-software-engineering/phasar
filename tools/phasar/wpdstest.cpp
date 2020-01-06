@@ -11,11 +11,12 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSSolverTest.h>
-#include <phasar/PhasarLLVM/WPDS/Solver/LLVMWPDSSolver.h>
 #include <phasar/Utils/Logger.h>
 
 #include <llvm/Support/raw_ostream.h>
@@ -44,17 +45,20 @@ int main(int argc, char **argv) {
     return 1;
   }
   initializeLogger(false);
-  ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
-  DB.preprocessIR();
+  ProjectIRDB DB({argv[1]});
   const llvm::Function *F;
-  if ((F = DB.getFunction("main"))) {
+  if ((F = DB.getFunctionDefinition("main"))) {
     LLVMTypeHierarchy H(DB);
+    LLVMPointsToInfo PT(DB);
     LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
     auto Ret = &F->back().back();
     cout << "RESULTS AT: " << llvmIRToString(Ret) << '\n';
     if (DFA == "ID") {
-      WPDSSolverTest T(I, H, DB, WPDSType::FWPDS, SearchDirection::FORWARD);
-      LLVMWPDSSolver<const llvm::Value *, BinaryDomain, LLVMBasedICFG &> S(T);
+      WPDSSolverTest T(&DB, &H, &I, &PT, {"main"});
+      WPDSSolver<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::m_t,
+                 WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,
+                 WPDSSolverTest::i_t>
+          S(T);
       S.solve();
       auto Results = S.resultsAt(Ret);
       cout << "Results:\n";
@@ -64,26 +68,26 @@ int main(int argc, char **argv) {
       }
     } else if (DFA == "LCA") {
       std::cout << "LCA" << std::endl;
-      WPDSLinearConstantAnalysis L(I, H, DB, WPDSType::FWPDS, [DIRECTION]() {
-        if (DIRECTION == "FORWARD") {
-          return SearchDirection::FORWARD;
-        }
-        return SearchDirection::BACKWARD;
-      }());
-      LLVMWPDSSolver<const llvm::Value *, int64_t, LLVMBasedICFG &> S(L);
-      S.solve();
-      auto Results = S.resultsAt(Ret);
-      cout << "Results:\n";
-      if (!Results.empty()) {
-        for (auto &Result : Results) {
-          Result.first->print(llvm::outs());
-          cout << " - with value: ";
-          L.printValue(cout, Result.second);
-          std::cout << '\n';
-        }
-      } else {
-        cout << "Results are empty!\n";
-      }
+      // WPDSLinearConstantAnalysis L(&DB, &H, &I, &PT, {"main"});
+      // WPDSSolver<
+      //     WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,
+      //     WPDSLinearConstantAnalysis::m_t, WPDSLinearConstantAnalysis::t_t,
+      //     WPDSLinearConstantAnalysis::v_t, WPDSLinearConstantAnalysis::l_t,
+      //     WPDSLinearConstantAnalysis::i_t>
+      //     S(L);
+      // S.solve();
+      // auto Results = S.resultsAt(Ret);
+      // cout << "Results:\n";
+      // if (!Results.empty()) {
+      //   for (auto &Result : Results) {
+      //     Result.first->print(llvm::outs());
+      //     cout << " - with value: ";
+      //     L.printEdgeFact(cout, Result.second);
+      //     std::cout << '\n';
+      //   }
+      // } else {
+      //   cout << "Results are empty!\n";
+      // }
     }
     std::cout << "DONE!\n";
   } else {

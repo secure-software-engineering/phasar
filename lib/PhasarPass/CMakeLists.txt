@@ -9,6 +9,7 @@ set(PHASAR_LINK_LIBS
   phasar_passes
   phasar_phasarllvm_utils
   phasar_pointer
+  phasar_typehierarchy
   phasar_utils
 )
 

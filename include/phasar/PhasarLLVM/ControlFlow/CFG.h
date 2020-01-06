@@ -27,31 +27,31 @@ template <typename N, typename M> class CFG {
 public:
   virtual ~CFG() = default;
 
-  virtual M getMethodOf(N stmt) = 0;
+  virtual M getFunctionOf(N stmt) const = 0;
 
-  virtual std::vector<N> getPredsOf(N stmt) = 0;
+  virtual std::vector<N> getPredsOf(N stmt) const = 0;
 
-  virtual std::vector<N> getSuccsOf(N stmt) = 0;
+  virtual std::vector<N> getSuccsOf(N stmt) const = 0;
 
-  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(M fun) = 0;
+  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(M fun) const = 0;
 
-  virtual std::vector<N> getAllInstructionsOf(M fun) = 0;
+  virtual std::vector<N> getAllInstructionsOf(M fun) const = 0;
 
-  virtual bool isExitStmt(N stmt) = 0;
+  virtual bool isExitStmt(N stmt) const = 0;
 
-  virtual bool isStartPoint(N stmt) = 0;
+  virtual bool isStartPoint(N stmt) const = 0;
 
-  virtual bool isFieldLoad(N stmt) = 0;
+  virtual bool isFieldLoad(N stmt) const = 0;
 
-  virtual bool isFieldStore(N stmt) = 0;
+  virtual bool isFieldStore(N stmt) const = 0;
 
-  virtual bool isFallThroughSuccessor(N stmt, N succ) = 0;
+  virtual bool isFallThroughSuccessor(N stmt, N succ) const = 0;
 
-  virtual bool isBranchTarget(N stmt, N succ) = 0;
+  virtual bool isBranchTarget(N stmt, N succ) const = 0;
 
-  virtual std::string getStatementId(N stmt) = 0;
+  virtual std::string getStatementId(N stmt) const = 0;
 
-  virtual std::string getMethodName(M fun) = 0;
+  virtual std::string getFunctionName(M fun) const = 0;
 };
 
 } // namespace psr

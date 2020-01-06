@@ -2,6 +2,7 @@ file(GLOB_RECURSE CONTROLFLOW_SRC *.h *.cpp)
 
 set(PHASAR_LINK_LIBS
   phasar_pointer
+  phasar_typehierarchy
   phasar_db
   phasar_utils
 )

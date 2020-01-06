@@ -23,7 +23,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -54,9 +54,9 @@ void OTFResolver::TreatPossibleTarget(
       if (auto M = F->getParent()) {
         if (auto target = M->getFunction(possible_target->getName().str())) {
           if (!target->isDeclaration()) {
-            PointsToGraph &callee_ptg =
-                *IRDB.getPointsToGraph(possible_target->getName().str());
-            WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
+            // PointsToGraph &callee_ptg =
+            // *IRDB.getPointsToGraph(possible_target->getName().str());
+            // WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
           }
         } else {
           throw runtime_error("target not get");
@@ -76,8 +76,9 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 
 void OTFResolver::OtherInst(const llvm::Instruction *Inst) {}
 
-set<string> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  set<string> possible_call_targets;
+set<const llvm::Function *>
+OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+  set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -116,8 +117,8 @@ set<string> OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   for (auto possible_type_struct : possible_types) {
-    string type_name = possible_type_struct->getName().str();
-    insertVtableIntoResult(possible_call_targets, type_name, vtable_index, CS);
+    insertVtableIntoResult(possible_call_targets, possible_type_struct,
+                           vtable_index, CS);
   }
 
   if (possible_call_targets.empty())

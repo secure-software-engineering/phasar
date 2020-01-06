@@ -24,7 +24,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/Macros.h>
@@ -74,10 +74,11 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
 
   // If it doesn't contain vtable, there is no reason to call this class in the
   // DTA graph, so no need to add it
-  string struct_name = struct_ty->getStructName().str();
-
-  if (CH.containsVTable(struct_name))
-    return false;
+  if (struct_ty->isStructTy()) {
+    if (CH.hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
+      return false;
+    }
+  }
 
   // So there is a vtable, the question is, where is it compared to the bitcast
   // instruction Carefull, there can be multiple vtable storage, we want to get
@@ -158,8 +159,9 @@ void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
   }
 }
 
-set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  set<string> possible_call_targets;
+set<const llvm::Function *>
+DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+  set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -195,9 +197,8 @@ set<string> DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      string type_name = possible_type_struct->getName().str();
-      insertVtableIntoResult(possible_call_targets, type_name, vtable_index,
-                             CS);
+      insertVtableIntoResult(possible_call_targets, possible_type_struct,
+                             vtable_index, CS);
     }
   }
 

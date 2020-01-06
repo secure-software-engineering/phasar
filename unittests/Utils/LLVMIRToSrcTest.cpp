@@ -5,7 +5,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -28,8 +28,7 @@ protected:
   virtual ~LLVMIRToSrcTest() {}
 
   void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles);
-    IRDB->preprocessIR();
+    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG = new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, {"main"});
   }

@@ -17,9 +17,9 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
-#include <functional>
 #include <iosfwd>
 #include <map>
+#include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -29,7 +29,7 @@
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 
 namespace llvm {
 class Instruction;
@@ -111,41 +111,43 @@ public:
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 CallGraphAnalysisType CGType,
-                const std::vector<std::string> &EntryPoints = {"main"});
+                const std::set<std::string> &EntryPoints = {"main"});
 
   LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
                 const llvm::Module &M, CallGraphAnalysisType CGType,
-                std::vector<std::string> EntryPoints = {});
+                std::set<std::string> EntryPoints = {});
 
   ~LLVMBasedICFG() override = default;
 
-  std::set<const llvm::Function *> getAllMethods();
+  std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isVirtualFunctionCall(llvm::ImmutableCallSite CS);
+  bool isIndirectFunctionCall(const llvm::Instruction *n) const override;
 
-  const llvm::Function *getMethod(const std::string &fun) override;
+  bool isVirtualFunctionCall(const llvm::Instruction *n) const override;
+
+  const llvm::Function *getFunction(const std::string &fun) const override;
 
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *n) override;
+  getCalleesOfCallAt(const llvm::Instruction *n) const override;
 
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *m) override;
+  getCallersOf(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *m) override;
+  getCallsFromWithin(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) override;
+  getStartPointsOf(const llvm::Function *m) const override;
 
   std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) override;
+  getExitPointsOf(const llvm::Function *fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *n) override;
+  getReturnSitesOfCallAt(const llvm::Instruction *n) const override;
 
-  bool isCallStmt(const llvm::Instruction *stmt) override;
+  bool isCallStmt(const llvm::Instruction *stmt) const override;
 
-  std::set<const llvm::Instruction *> allNonCallStartNodes() override;
+  std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
   const llvm::Instruction *getLastInstructionOf(const std::string &name);
 
@@ -162,7 +164,7 @@ public:
 
   void printInternalPTGAsDot(const std::string &filename);
 
-  json getAsJson() override;
+  nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();
 
@@ -170,7 +172,7 @@ public:
 
   void exportPATBCJSON();
 
-  PointsToGraph &getWholeModulePTG();
+  const PointsToGraph &getWholeModulePTG() const;
 
   std::vector<std::string> getDependencyOrderedFunctions();
 };

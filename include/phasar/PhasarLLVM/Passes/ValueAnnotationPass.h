@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
 #define PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
 
-#include <llvm/Pass.h>
+#include <llvm/IR/PassManager.h>
 
 namespace llvm {
 class LLVMContext;
@@ -36,48 +36,17 @@ namespace psr {
  *
  * @brief Annotates every Instruction with a unique ID.
  */
-class ValueAnnotationPass : public llvm::ModulePass {
+class ValueAnnotationPass
+    : public llvm::AnalysisInfoMixin<ValueAnnotationPass> {
 private:
+  friend llvm::AnalysisInfoMixin<ValueAnnotationPass>;
+  static llvm::AnalysisKey Key;
   static size_t unique_value_id;
-  llvm::LLVMContext &context;
 
 public:
-  static char ID;
-  ValueAnnotationPass(llvm::LLVMContext &context)
-      : llvm::ModulePass(ID), context(context) {}
+  explicit ValueAnnotationPass();
 
-  /**
-   * @brief Does the annotation.
-   * @param M The analyzed Module.
-   * @return Always true.
-   */
-  bool runOnModule(llvm::Module &M) override;
-
-  /**
-   * @brief Not used in this context!
-   * @return Always false.
-   */
-  bool doInitialization(llvm::Module &M) override;
-
-  /**
-   * @brief Not used in this context!
-   * @return Always false.
-   */
-  bool doFinalization(llvm::Module &M) override;
-
-  /**
-   * @brief Sets that the pass preserves the CFG.
-   */
-  void getAnalysisUsage(llvm::AnalysisUsage &AU) const override;
-
-  /**
-   * This pass holds onto memory for the entire duration of their lifetime
-   * (which is the entire compile time). This is the default behavior for
-   * passes.
-   *
-   * @brief The pass does not release any memory during their lifetime.
-   */
-  void releaseMemory() override;
+  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
 
   /**
    * @brief Resets the global ID - only used for unit testing!

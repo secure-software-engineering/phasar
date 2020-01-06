@@ -12,22 +12,30 @@
 
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
-#include <vector>
 
 namespace psr {
 
 class LLVMBasedICFG;
+class LLVMPointsToInfo;
+class LLVMTypeHierarchy;
+class ProjectIRDB;
 
 class IDETabulationProblemPlugin {};
 
 extern "C" std::unique_ptr<IDETabulationProblemPlugin>
-makeIDETabulationProblemPlugin(LLVMBasedICFG &I,
-                               std::vector<std::string> EntryPoints);
+makeIDETabulationProblemPlugin(const ProjectIRDB *IRDB,
+                               const LLVMTypeHierarchy *TH,
+                               const LLVMBasedICFG *ICF,
+                               const LLVMPointsToInfo *PT,
+                               std::set<std::string> EntryPoints);
 
 extern std::map<std::string,
                 std::unique_ptr<IDETabulationProblemPlugin> (*)(
-                    LLVMBasedICFG &I, std::vector<std::string> EntryPoints)>
+                    const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                    std::set<std::string> EntryPoints)>
     IDETabulationProblemPluginFactory;
 
 } // namespace psr

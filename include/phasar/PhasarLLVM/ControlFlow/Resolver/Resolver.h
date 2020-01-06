@@ -41,8 +41,8 @@ protected:
   const llvm::StructType *
   getReceiverType(const llvm::ImmutableCallSite &CS) const;
   std::string getReceiverTypeName(const llvm::ImmutableCallSite &CS) const;
-  void insertVtableIntoResult(std::set<std::string> &results,
-                              const std::string &struct_name,
+  void insertVtableIntoResult(std::set<const llvm::Function *> &results,
+                              const llvm::StructType *struct_type,
                               const unsigned vtable_index,
                               const llvm::ImmutableCallSite &CS);
   bool matchVirtualSignature(const llvm::FunctionType *type_call,
@@ -60,9 +60,9 @@ public:
                       std::set<const llvm::Function *> &PossibleTargets);
   virtual void postCall(const llvm::Instruction *Inst);
   virtual void OtherInst(const llvm::Instruction *Inst);
-  virtual std::set<std::string>
+  virtual std::set<const llvm::Function *>
   resolveVirtualCall(const llvm::ImmutableCallSite &CS) = 0;
-  virtual std::set<std::string>
+  virtual std::set<const llvm::Function *>
   resolveFunctionPointer(const llvm::ImmutableCallSite &CS);
 };
 } // namespace psr

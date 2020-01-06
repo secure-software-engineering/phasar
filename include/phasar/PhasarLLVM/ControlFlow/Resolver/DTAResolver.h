@@ -28,6 +28,7 @@
 namespace llvm {
 class Instruction;
 class ImmutableCallSite;
+class Function;
 } // namespace llvm
 
 namespace psr {
@@ -60,7 +61,7 @@ public:
 
   virtual void firstFunction(const llvm::Function *F) override;
   virtual void OtherInst(const llvm::Instruction *Inst) override;
-  virtual std::set<std::string>
+  virtual std::set<const llvm::Function *>
   resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
 };
 } // namespace psr

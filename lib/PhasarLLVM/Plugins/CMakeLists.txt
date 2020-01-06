@@ -3,6 +3,7 @@ file(GLOB_RECURSE PLUGINS_SO *.cxx)
 
 set(PHASAR_LINK_LIBS
   phasar_ifdside
+  phasar_mono
   phasar_phasarllvm_utils
   phasar_utils
 )
@@ -44,6 +45,7 @@ foreach(plugin ${PLUGINS_SO})
     phasar_config
     phasar_utils
     phasar_ifdside
+    phasar_mono
     LLVMCore
     LLVMSupport
     )

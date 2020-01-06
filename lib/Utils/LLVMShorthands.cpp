@@ -27,7 +27,7 @@
 
 #include <boost/algorithm/string/trim.hpp>
 
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>

@@ -6,7 +6,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
@@ -22,11 +22,10 @@ protected:
 TEST_F(LLVMBasedICFG_CHATest, StaticCallSite_1) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_1_c.ll"},
                    IRDBOptions::WPA);
-  IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
-  llvm::Function *F = IRDB.getFunction("main");
-  llvm::Function *Foo = IRDB.getFunction("foo");
+  const llvm::Function *F = IRDB.getFunctionDefinition("main");
+  const llvm::Function *Foo = IRDB.getFunctionDefinition("foo");
   // iterate all instructions
   for (auto &BB : *F) {
     for (auto &I : BB) {
@@ -45,10 +44,9 @@ TEST_F(LLVMBasedICFG_CHATest, StaticCallSite_1) {
 TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_2) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_2_cpp.ll"},
                    IRDBOptions::WPA);
-  IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
-  llvm::Function *F = IRDB.getFunction("main");
+  const llvm::Function *F = IRDB.getFunctionDefinition("main");
   ASSERT_TRUE(F);
 
   const llvm::Instruction *I = getNthInstruction(F, 13);
@@ -68,11 +66,10 @@ TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_2) {
 TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_9) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_9_cpp.ll"},
                    IRDBOptions::WPA);
-  IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
-  llvm::Function *F = IRDB.getFunction("main");
-  llvm::Function *Foo = IRDB.getFunction("_ZN1D3fooEv");
+  const llvm::Function *F = IRDB.getFunctionDefinition("main");
+  const llvm::Function *Foo = IRDB.getFunctionDefinition("_ZN1D3fooEv");
   ASSERT_TRUE(Foo);
   ASSERT_TRUE(F);
 
@@ -96,12 +93,11 @@ TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_9) {
 TEST_F(LLVMBasedICFG_CHATest, VirtualCallSite_7) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_7_cpp.ll"},
                    IRDBOptions::WPA);
-  IRDB.preprocessIR();
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::CHA, {"main"});
-  llvm::Function *F = IRDB.getFunction("main");
-  llvm::Function *VfuncB = IRDB.getFunction("_ZN1B5VfuncEv");
-  llvm::Function *VfuncA = IRDB.getFunction("_ZN1A5VfuncEv");
+  const llvm::Function *F = IRDB.getFunctionDefinition("main");
+  const llvm::Function *VfuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
+  const llvm::Function *VfuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   ASSERT_TRUE(F);
   ASSERT_TRUE(VfuncB);
   ASSERT_TRUE(VfuncA);

@@ -9,24 +9,24 @@ Analyses
 cmd parameter - analysis name - analysis type
 
 === These analyses are only for testing purposes ===
-None                  - /                                            - /
-IFDS_SolverTest       - IFDS solver test                             - IFDS
-IDE_SolverTest 	      - IDE solver test                              - IDE
-Intra_Mono_SolverTest - intra MONOTONE solver test                   - MONO
-Inter_Mono_SolverTest - inter MONOTONE solver test (context-based)   - MONO
+none                  - /                                                 - /
+ifds-solvertest       - IFDS solver test                                  - IFDS
+ide-solvertest	      - IDE solver test                                   - IDE
+intra-mono-solvertest - intra MONOTONE solver test                        - MONO
+inter-mono-solvertest - inter MONOTONE solver test (context-based)        - MONO
 
 === The actual analyses ===
-IFDS_FieldSensTaintAnalysis    - static environment variable tracing               - IFDS
-IFDS_ConstAnalysis                 - an immutability analysis                          - IFDS
-IFDS_LinearConstantAnalysis        - linear constant propagation                       - IFDS
-IFDS_TaintAnalysis                 - a taint analysis tracking IO                      - IFDS
-IFDS_TypeAnalysis                  - type analysis                                     - IFDS
-IFDS_UninitializedVariables        - a simple uninitialized variables analysis         - IFDS
-IDE_LinearConstantAnalysis         - an IDE version of the linear constant propagation - IDE
-IDE_TaintAnalysis                  - an IDE version of the taint analysis              - IDE
-IDE_TypeStateAnalysis              - a simple type analysis                            - IDE
-Intra_Mono_FullConstantPropagation - full constant propagation analysis                - MONO
-Inter_Mono_TaintAnalysis           - taint analysis                                    - MONO
+ifds-fstaint          - static environment variable tracing               - IFDS
+ifds-const            - an immutability analysis                          - IFDS
+ifds-lca              - linear constant propagation                       - IFDS
+ifds-taint            - a taint analysis tracking IO                      - IFDS
+ifds-ta               - type analysis                                     - IFDS
+ifds-uninit           - a simple uninitialized variables analysis         - IFDS
+ide-lca               - an IDE version of the linear constant propagation - IDE
+ide-taint             - an IDE version of the taint analysis              - IDE
+ide-ts                - a simple type analysis                            - IDE
+intra-mono-fca        - full constant propagation analysis                - MONO
+inter-mono-taint      - taint analysis                                    - MONO
 
 === The analysis plugin mechanism ===
 -D Plugin --analysis-plugin <?>

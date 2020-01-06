@@ -1,10 +1,10 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/WPDS/Solver/LLVMWPDSSolver.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMMMacros.h>
 
@@ -16,7 +16,7 @@ protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/linear_constant/";
-  const std::vector<std::string> EntryPoints = {"main"};
+  const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
@@ -27,13 +27,12 @@ protected:
   virtual ~WPDSLinearConstantAnalysisTest() = default;
 
   void Initialize(const std::vector<std::string> &IRFiles) {
-    IRDB = new ProjectIRDB(IRFiles);
-    IRDB->preprocessIR();
+    IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     ICFG =
         new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
-    LCAProblem = new WPDSLinearConstantAnalysis(
-        *ICFG, *TH, *IRDB, WPDSType::FWPDS, SearchDirection::BACKWARD);
+    // LCAProblem = new WPDSLinearConstantAnalysis(
+    //    *ICFG, *TH, *IRDB, WPDSType::FWPDS, WPDSSearchDirection::BACKWARD);
   }
 
   void SetUp() override {

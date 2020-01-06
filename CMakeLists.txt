@@ -111,10 +111,6 @@ endif()
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
-# wise enum
-add_subdirectory(external/wise_enum)
-include_directories(external/wise_enum)
-
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
 include_directories(${BOOST_INCLUDE_DIR})
@@ -204,50 +200,8 @@ llvm_map_components_to_libnames(llvm_libs
   ${LLVM_LINK_COMPONENTS}
 )
 
-# Build a stand-alone executable
-if(PHASAR_IN_TREE)
-  add_phasar_executable(phasar
-    tools/phasar/phasar.cpp
-  )
-
-  # Build a small test tool to show how phasar may be used
-  add_phasar_executable(myphasartool
-    tools/phasar/myphasartool.cpp
-  )
-
-  add_phasar_executable(syncpdstest
-    tools/phasar/syncpdstest.cpp
-  )
-
-  add_phasar_executable(boomerangtest
-    tools/phasar/boomerangtest.cpp
-  )
-
-  add_phasar_executable(wpdstest
-    tools/phasar/wpdstest.cpp
-  )
-else()
-  add_executable(phasar
-    tools/phasar/phasar.cpp
-  )
-
-  # Build a small test tool to show how phasar may be used
-  add_executable(myphasartool
-    tools/phasar/myphasartool.cpp
-  )
-
-  add_executable(syncpdstest
-    tools/phasar/syncpdstest.cpp
-  )
-
-  add_executable(boomerangtest
-    tools/phasar/boomerangtest.cpp
-  )
-
-  add_executable(wpdstest
-    tools/phasar/wpdstest.cpp
-  )
-endif()
+# phasar-based binaries
+add_subdirectory(tools)
 
 # Fix boost_thread dependency for MacOS
 if(APPLE)
@@ -258,166 +212,11 @@ endif()
 
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
-  set(PHASAR_PLUGINS_LIB )
+  set(PHASAR_PLUGINS_LIB)
   message(WARNING "Plugins are currently not supported on MacOS platforms")
 else()
   set(PHASAR_PLUGINS_LIB phasar_plugins)
 endif()
-
-# Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
-# If this list is altered the other one should be altered accordingly.
-target_link_libraries(phasar
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_controlflow
-  phasar_phasarllvm_utils
-  phasar_ifdside
-  phasar_utils
-  phasar_mono
-  phasar_db
-  phasar_experimental
-  phasar_clang
-  phasar_passes
-
-  ${PHASAR_PLUGINS_LIB}
-  phasar_pointer
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${SQLITE3_LIBRARY}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}
-)
-
-if(NOT PHASAR_IN_TREE)
-target_link_libraries(phasar
-  LINK_PUBLIC
-  ${llvm_libs}
-)
-endif()
-
-set(LLVM_LINK_COMPONENTS
-)
-
-target_link_libraries(myphasartool
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_db
-  phasar_experimental
-  phasar_clang
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
-  phasar_passes
-  ${PHASAR_PLUGINS_LIB}
-  phasar_pointer
-  phasar_phasarllvm_utils
-  phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}
-  ${llvm_libs}
-  gtest
-)
-
-target_link_libraries(wpdstest
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_db
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
-  phasar_wpds
-  wali
-  phasar_passes
-  ${PHASAR_PLUGINS_LIB}
-  phasar_pointer
-  phasar_phasarllvm_utils
-  phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${SQLITE3_LIBRARY}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}
-  ${llvm_libs}
-)
-
-target_link_libraries(syncpdstest
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_db
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
-  phasar_wpds
-  phasar_syncpds
-  ${PHASAR_PLUGINS_LIB}
-  wali
-  phasar_passes
-  phasar_pointer
-  phasar_phasarllvm_utils
-  phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${llvm_libs}
-)
-
-target_link_libraries(boomerangtest
-  LINK_PUBLIC
-  phasar_config
-  phasar_controller
-  phasar_db
-  phasar_controlflow
-  phasar_ifdside
-  phasar_mono
-  phasar_wpds
-  phasar_syncpds
-  ${PHASAR_PLUGINS_LIB}
-  wali
-  phasar_passes
-  phasar_pointer
-  phasar_phasarllvm_utils
-  phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
-  ${Boost_LIBRARIES}
-  ${CMAKE_DL_LIBS}
-  ${CMAKE_THREAD_LIBS_INIT}
-  ${llvm_libs}
-)
 
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
@@ -433,7 +232,7 @@ if (PHASAR_BUILD_IR)
 endif()
 
 # Install Phasar executable and libraries
-install(TARGETS phasar
+install(TARGETS phasar-llvm
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib

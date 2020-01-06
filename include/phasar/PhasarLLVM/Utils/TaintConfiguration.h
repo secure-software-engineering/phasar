@@ -363,10 +363,10 @@ public:
   bool isSink(const llvm::Instruction *I) const {
     return SinkInstructions.count(I);
   }
-  SourceFunction getSource(const std::string &FunctionName) {
+  SourceFunction getSource(const std::string &FunctionName) const {
     return Sources.at(FunctionName);
   }
-  SinkFunction getSink(const std::string &FunctionName) {
+  SinkFunction getSink(const std::string &FunctionName) const {
     return Sinks.at(FunctionName);
   }
 

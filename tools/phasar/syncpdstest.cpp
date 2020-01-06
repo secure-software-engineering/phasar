@@ -9,35 +9,31 @@
 
 #include <iostream>
 
+#include <boost/filesystem/operations.hpp>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/SyncPDS/Solver/SyncPDSSolver.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/SyncPDS/Solver/SyncPDSSolver.h>
 #include <phasar/Utils/Logger.h>
-
-#include <llvm/Support/raw_ostream.h>
-
-#include <boost/filesystem/operations.hpp>
 
 using namespace std;
 using namespace psr;
-namespace bfs = boost::filesystem;
 
 int main(int argc, char **argv) {
   initializeLogger(false);
   auto &lg = lg::get();
-  if (argc < 2 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
+  if (argc < 2 || !boost::filesystem::exists(argv[1]) || boost::filesystem::is_directory(argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     std::cerr << "use programs in build/test/llvm_test_code/fields/\n";
     return 1;
   }
   initializeLogger(false);
-  ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
-  DB.preprocessIR();
+  ProjectIRDB DB({argv[1]});
   LLVMTypeHierarchy H(DB);
-  LLVMBasedICFG ICFG(H, DB, CallGraphAnalysisType::OTF, {"main"});
+  LLVMBasedICFG ICF(H, DB, CallGraphAnalysisType::OTF, {"main"});
   const llvm::Function *F = nullptr;
-  if (!(F = ICFG.getMethod("main"))) {
+  if (!(F = ICF.getFunction("main"))) {
     std::cerr << "program does not contain a 'main' function!\n";
     return 1;
   }

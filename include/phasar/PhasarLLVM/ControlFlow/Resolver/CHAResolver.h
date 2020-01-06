@@ -18,13 +18,13 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_RESOLVER_CHARESOLVER_H_
 
 #include <set>
-#include <string>
 
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
 
 namespace llvm {
 class ImmutableCallSite;
-}
+class Function;
+} // namespace llvm
 
 namespace psr {
 struct CHAResolver : public Resolver {
@@ -32,7 +32,7 @@ public:
   CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
   virtual ~CHAResolver() = default;
 
-  virtual std::set<std::string>
+  virtual std::set<const llvm::Function *>
   resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
 };
 } // namespace psr
