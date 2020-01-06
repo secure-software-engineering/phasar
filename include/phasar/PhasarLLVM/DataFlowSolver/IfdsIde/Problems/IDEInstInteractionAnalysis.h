@@ -48,7 +48,7 @@ public:
   typedef LLVMBasedICFG i_t;
 
 private:
-  std::function<std::set<d_t>(n_t)> FactGen;
+  std::function<std::set<v_t>(n_t, d_t, d_t)> EdgeFactGen;
 
 public:
   IDEInstInteractionAnalysis(const ProjectIRDB *IRDB,
@@ -59,10 +59,13 @@ public:
 
   virtual ~IDEInstInteractionAnalysis() = default;
 
-  // offer a special hook to the usr that allows to generate facts on-the-fly
+  // Offer a special hook to the user that allows to generate additional
+  // edge facts on-the-fly. Above the generator function, the ordinary
+  // edge facts are generated according to the usual edge functions.
 
-  void
-  registerFlowFactGenerator(std::function<std::set<d_t>(n_t)> FactGenerator);
+  void registerEdgeFactGenerator(
+      std::function<std::set<v_t>(n_t curr, d_t srcNode, d_t destNode)>
+          EdgeFactGenerator);
 
   // start formulating our analysis by specifying the parts required for IFDS
 
