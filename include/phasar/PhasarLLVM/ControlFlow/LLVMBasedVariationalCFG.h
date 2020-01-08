@@ -19,6 +19,10 @@ class LLVMBasedVariationalCFG
   bool isPPBranchNode(const llvm::BranchInst *T) const;
   bool isPPBranchNode(const llvm::BranchInst *T, z3::expr &cond) const;
   z3::expr inferCondition(const llvm::CmpInst *cmp) const;
+  z3::expr createExpression(const llvm::Value *val) const;
+  z3::expr createBinOp(const llvm::BinaryOperator *val) const;
+  z3::expr createVariableOrGlobal(const llvm::LoadInst *val) const;
+  z3::expr createGEP(const llvm::GetElementPtrInst *val) const;
 
 public:
   LLVMBasedVariationalCFG();
@@ -26,10 +30,10 @@ public:
   std::vector<std::tuple<const llvm::Instruction *, z3::expr>>
   getSuccsOfWithCond(const llvm::Instruction *stmt) override;
   bool isPPBranchTarget(const llvm::Instruction *stmt,
-                        const llvm::Instruction *succ)const override;
+                        const llvm::Instruction *succ) const override;
   bool isPPBranchTarget(const llvm::Instruction *stmt,
                         const llvm::Instruction *succ,
-                        z3::expr &condition)const override;
+                        z3::expr &condition) const override;
   z3::expr getTrueCondition() const override;
 };
 } // namespace psr
