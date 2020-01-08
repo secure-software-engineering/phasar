@@ -16,6 +16,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
@@ -196,6 +197,18 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     llvmtypestatesolver.solve();
     if (DumpResults) {
       llvmtypestatesolver.dumpResults();
+    }
+  } else if (DataFlowAnalysis == "ide-instinteract") {
+    IDEInstInteractionAnalysis instinteraction(&DB, &H, &I, &PT,
+                                               EntryPointsSet);
+    IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
+              IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
+              IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
+              IDEInstInteractionAnalysis::i_t>
+        llvminstinteractionsolver(instinteraction);
+    llvminstinteractionsolver.solve();
+    if (DumpResults) {
+      llvminstinteractionsolver.dumpResults();
     }
   } else if (DataFlowAnalysis == "intra-mono-fullconstantpropagation") {
     // todo

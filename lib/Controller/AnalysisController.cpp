@@ -46,20 +46,15 @@ using namespace psr;
 
 namespace psr {
 
-template <typename T> static set<T> vectorToSet(const vector<T> &v) {
-  set<T> s;
-  for_each(v.begin(), v.end(), [&s](T t) { s.insert(t); });
-  return s;
-}
-
-AnalysisController::AnalysisController()
-    : IRDB(PhasarConfig::VariablesMap()["module"]
-               .as<std::vector<std::string>>()),
-      TH(IRDB), PT(IRDB), ICF(TH, IRDB),
-      EntryPoints(vectorToSet(PhasarConfig::VariablesMap()["entry-points"]
-                                  .as<std::vector<std::string>>())) {
-  executeAs(to_AnalysisStrategy(
-      PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>()));
+AnalysisController::AnalysisController(
+    ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
+    std::vector<std::string> AnalysisConfigs, std::set<std::string> EntryPoints,
+    AnalysisStrategy Strategy)
+    : IRDB(IRDB), TH(IRDB), PT(IRDB), ICF(TH, IRDB),
+      DataFlowAnalyses(move(DataFlowAnalyses)),
+      AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
+      Strategy(Strategy) {
+  executeAs(Strategy);
 }
 
 void AnalysisController::executeAs(AnalysisStrategy Strategy) {
@@ -93,16 +88,10 @@ void AnalysisController::executeModuleWise() {}
 void AnalysisController::executeVariational() {}
 
 void AnalysisController::executeWholeProgram() {
-  std::vector<std::string> AnalysisConfigs =
-      PhasarConfig::VariablesMap()["analysis-config"]
-          .as<std::vector<std::string>>();
   size_t ConfigIdx = 0;
-  for (auto DataFlowAnalysisName :
-       PhasarConfig::VariablesMap()["data-flow-analysis"]
-           .as<std::vector<std::string>>()) {
+  for (auto DataFlowAnalysis : DataFlowAnalyses) {
     std::string AnalysisConfigPath =
         (ConfigIdx < AnalysisConfigs.size()) ? AnalysisConfigs[ConfigIdx] : "";
-    auto DataFlowAnalysis = to_DataFlowAnalysisType(DataFlowAnalysisName);
     switch (DataFlowAnalysis) {
     case DataFlowAnalysisType::IFDSUninitializedVariables: {
       WholeProgramAnalysis<

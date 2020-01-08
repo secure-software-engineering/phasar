@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -84,21 +84,59 @@ public:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator_t;
 
 private:
-  bidigraph_t g;
-  std::unordered_map<const llvm::StructType *, vertex_t> type_vertex_map;
+  bidigraph_t TypeGraph;
+  std::unordered_map<const llvm::StructType *, vertex_t> TypeVertexMap;
   // maps type names to the corresponding vtable
-  std::unordered_map<const llvm::StructType *, LLVMVFTable> type_vtbl_map;
+  std::unordered_map<const llvm::StructType *, LLVMVFTable> TypeVFTMap;
   // holds all modules that are included in the type hierarchy
-  std::unordered_set<const llvm::Module *> contained_modules;
+  std::unordered_set<const llvm::Module *> VisitedModules;
+  // helper map from clearname to type*
+  std::unordered_map<std::string, const llvm::StructType *> ClearNameTypeMap;
+  // map from clearname to type info variable
+  std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTIMap;
+  // map from clearname to vtable variable
+  std::unordered_map<std::string, const llvm::GlobalVariable *> ClearNameTVMap;
 
-  // void reconstructVTables(const llvm::Module &M);
+  static const std::string StructPrefix;
+
+  static const std::string ClassPrefix;
+
+  static const std::string VTablePrefix;
+
+  static const std::string VTablePrefixDemang;
+
+  static const std::string TypeInfoPrefix;
+
+  static const std::string TypeInfoPrefixDemang;
+
+  std::string removeStructOrClassPrefix(const llvm::StructType &T);
+
+  std::string removeStructOrClassPrefix(const std::string &TypeName);
+
+  std::string removeTypeInfoPrefix(std::string VarName);
+
+  std::string removeVTablePrefix(std::string VarName);
+
+  bool isTypeInfo(std::string VarName);
+
+  bool isVTable(std::string VarName);
+
+  bool isStruct(const llvm::StructType &T);
+
+  bool isStruct(llvm::StringRef TypeName);
+
+  std::vector<const llvm::StructType *>
+  getSubTypes(const llvm::Module &M, const llvm::StructType &Type);
+
+  std::vector<const llvm::Function *>
+  getVirtualFunctions(const llvm::Module &M, const llvm::StructType &Type);
+
   // FRIEND_TEST(VTableTest, SameTypeDifferentVTables);
   FRIEND_TEST(LTHTest, GraphConstruction);
   FRIEND_TEST(LTHTest, HandleLoadAndPrintOfNonEmptyGraph);
 
 protected:
-  // void buildLLVMTypeHierarchy(const llvm::Module &M);
-  // void pruneTypeHierarchyWithVtable(const llvm::Function *constructor);
+  void buildLLVMTypeHierarchy(const llvm::Module &M);
 
 public:
   /**
@@ -113,7 +151,7 @@ public:
    *         llvm::Module.
    *  @param M A llvm::Module.
    */
-  // LLVMTypeHierarchy(const llvm::Module &M);
+  LLVMTypeHierarchy(const llvm::Module &M);
 
   ~LLVMTypeHierarchy() = default;
 
@@ -132,13 +170,13 @@ public:
                  const llvm::StructType *SubType) override;
 
   std::set<const llvm::StructType *>
-  getReachableSubTypes(const llvm::StructType *Type) override;
+  getSubTypes(const llvm::StructType *Type) override;
 
   bool isSuperType(const llvm::StructType *Type,
                    const llvm::StructType *SuperType) override;
 
   std::set<const llvm::StructType *>
-  getReachableSuperTypes(const llvm::StructType *Type) override;
+  getSuperTypes(const llvm::StructType *Type) override;
 
   const llvm::StructType *getType(std::string TypeName) const override;
 
@@ -148,13 +186,13 @@ public:
 
   bool hasVFTable(const llvm::StructType *Type) const override;
 
-  LLVMVFTable *getVFTable(const llvm::StructType *Type) const override;
+  const LLVMVFTable *getVFTable(const llvm::StructType *Type) const override;
 
   size_t size() const override;
 
   bool empty() const override;
 
-  void print(std::ostream &OS) const override;
+  void print(std::ostream &OS = std::cout) const override;
 
   nlohmann::json getAsJson() const override;
 
@@ -163,13 +201,13 @@ public:
   /**
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
-  // void printTransitiveClosure();
+  void printTransitiveClosure(std::ostream &OS = std::cout) const;
 
   /**
-   * 	@brief Prints the class hierarchy to a .dot file.
-   * 	@param path Path where the .dot file is created.
+   * 	@brief Prints the class hierarchy to an ostream in dot format.
+   * 	@param an outputstream
    */
-  // void printAsDot(const std::string &path = "struct_type_hierarchy.dot");
+  void printAsDot(std::ostream &OS = std::cout) const;
 
   // void printGraphAsDot(std::ostream &out);
 

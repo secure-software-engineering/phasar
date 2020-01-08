@@ -10,26 +10,26 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOINFO_H_
 
-#include <set>
 #include <iosfwd>
+#include <set>
 
 #include <json.hpp>
 
 namespace psr {
 
-enum class AliasResult { NoAlias, MayAlias, MustAlias };
+enum class AliasResult { NoAlias, MayAlias, PartialAlias, MustAlias };
 
 std::string to_string(AliasResult AR);
 
 AliasResult to_AliasResult(const std::string &S);
 
-std::ostream &operator<<(std::ostream &OS, const AliasResult& AR);
+std::ostream &operator<<(std::ostream &OS, const AliasResult &AR);
 
 template <typename V> class PointsToInfo {
 public:
   virtual ~PointsToInfo() = default;
 
-  virtual AliasResult alias(V V1, V V2) const = 0;
+  virtual AliasResult alias(V V1, V V2) = 0;
 
   virtual std::set<V> getPointsToSet(V V1) const = 0;
 

@@ -27,11 +27,11 @@ public:
 
   virtual bool isSubType(T Type, T SubType) = 0;
 
-  virtual std::set<T> getReachableSubTypes(T Type) = 0;
+  virtual std::set<T> getSubTypes(T Type) = 0;
 
   virtual bool isSuperType(T Type, T SuperType) = 0;
 
-  virtual std::set<T> getReachableSuperTypes(T Type) = 0;
+  virtual std::set<T> getSuperTypes(T Type) = 0;
 
   virtual T getType(std::string TypeName) const = 0;
 
@@ -41,7 +41,7 @@ public:
 
   virtual bool hasVFTable(T Type) const = 0;
 
-  virtual VFTable<M> *getVFTable(T Type) const = 0;
+  virtual const VFTable<M> *getVFTable(T Type) const = 0;
 
   virtual size_t size() const = 0;
 

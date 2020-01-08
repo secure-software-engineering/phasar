@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   initializeLogger(false);
-  ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
+  ProjectIRDB DB({argv[1]});
   const llvm::Function *F;
   if ((F = DB.getFunctionDefinition("main"))) {
     LLVMTypeHierarchy H(DB);

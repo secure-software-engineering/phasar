@@ -19,7 +19,7 @@ namespace psr {
 
 template <typename M> class VFTable {
 public:
-  ~VFTable() = default;
+  virtual ~VFTable() = default;
 
   virtual M getFunction(unsigned Idx) const = 0;
 

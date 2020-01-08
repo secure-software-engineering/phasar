@@ -51,6 +51,7 @@ target_link_libraries(phasar-llvm
   phasar_controller
   phasar_controlflow
   phasar_phasarllvm_utils
+  phasar_analysis_strategy
   phasar_ifdside
   phasar_utils
   phasar_mono

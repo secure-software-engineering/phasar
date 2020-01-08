@@ -10,13 +10,13 @@ int main() {
   struct A {
   public:
     ~A() = default;
-    virtual A *foo() {}
+    virtual A *foo() { return nullptr; }
   };
 
   struct B : public A {
   public:
     ~B() = default;
-    virtual A *foo() {}
+    virtual A *foo() { return nullptr; }
   };
 
   struct C : public B {

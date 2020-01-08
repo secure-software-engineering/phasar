@@ -1,8 +1,10 @@
 set(IfdsIdeProblemSources
 	IFDSConstAnalysisTest.cpp
 	IFDSTaintAnalysisTest.cpp
+	IDEInstInteractionAnalysisTest.cpp
 	IDELinearConstantAnalysisTest.cpp
-	IDETypeStateAnalysisTest.cpp
+	IDETypeStateAnalysisFileIOTest.cpp
+	IDETypeStateAnalysisOpenSSLTest.cpp
 	IFDSUninitializedVariablesTest.cpp
 )
 
