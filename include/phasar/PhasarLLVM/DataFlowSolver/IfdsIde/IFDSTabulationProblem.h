@@ -54,6 +54,7 @@ protected:
   const PointsToInfo<V> *PT;
   D ZeroValue;
   std::set<std::string> EntryPoints;
+  std::set<FlowFunction<D> *> registeredFlowFunctionSingleton;
 
 public:
   using ConfigurationTy = HasNoConfigurationType;
@@ -74,6 +75,8 @@ public:
   D getZeroValue() const { return ZeroValue; }
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
+
+  std::set<FlowFunction<D> *> getRegisteredFlowFunctionSingleton() const { return registeredFlowFunctionSingleton; }
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 

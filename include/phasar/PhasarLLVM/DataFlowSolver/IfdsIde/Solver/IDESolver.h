@@ -447,7 +447,7 @@ protected:
                           << "Compose: " << sumEdgFnE->str() << " * "
                           << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-            propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
+            propagate(d1, returnSiteN, d3, cachedFlowEdgeFunctions.manageEdgeFunction(f->composeWith(sumEdgFnE)), n, false);
           }
         }
       } else {
@@ -547,7 +547,7 @@ protected:
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "         (return * calleeSummary * call)");
                   EdgeFunction<L> *fPrime =
-                      f4->composeWith(fCalleeSummary)->composeWith(f5);
+                      cachedFlowEdgeFunctions.manageEdgeFunction(cachedFlowEdgeFunctions.manageEdgeFunction(f4->composeWith(fCalleeSummary))->composeWith(f5));
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                                 << "       = " << fPrime->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -558,7 +558,7 @@ protected:
                                 << f->str());
                   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
                   propagate(d1, retSiteN, d5_restoredCtx,
-                            f->composeWith(fPrime), n, false);
+                            cachedFlowEdgeFunctions.manageEdgeFunction(f->composeWith(fPrime)), n, false);
                 }
               }
             }
@@ -589,7 +589,7 @@ protected:
                 .push_back(edgeFnE);
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          auto fPrime = f->composeWith(edgeFnE);
+          auto fPrime = cachedFlowEdgeFunctions.manageEdgeFunction(f->composeWith(edgeFnE));
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Compose: " << edgeFnE->str() << " * " << f->str()
                         << " = " << fPrime->str());
@@ -630,7 +630,7 @@ protected:
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
-        EdgeFunction<L> *fprime = f->composeWith(g);
+        EdgeFunction<L> *fprime = cachedFlowEdgeFunctions.manageEdgeFunction(f->composeWith(g));
         if (SolverConfig.emitESG) {
           intermediateEdgeFunctions[std::make_tuple(n, d2, m, d3)].push_back(
               fprime);
@@ -994,7 +994,7 @@ protected:
                           << " * " << f4->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "         (return * function * call)");
-            EdgeFunction<L> *fPrime = f4->composeWith(f)->composeWith(f5);
+            EdgeFunction<L> *fPrime = cachedFlowEdgeFunctions.manageEdgeFunction(cachedFlowEdgeFunctions.manageEdgeFunction(f4->composeWith(f))->composeWith(f5));
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "       = " << fPrime->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -1009,7 +1009,7 @@ protected:
                               << "Compose: " << fPrime->str() << " * "
                               << f3->str());
                 LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-                propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
+                propagate(d3, retSiteC, d5_restoredCtx, cachedFlowEdgeFunctions.manageEdgeFunction(f3->composeWith(fPrime)),
                           c, false);
               }
             }
@@ -1050,7 +1050,7 @@ protected:
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-            propagteUnbalancedReturnFlow(retSiteC, d5, f->composeWith(f5), c);
+            propagteUnbalancedReturnFlow(retSiteC, d5, cachedFlowEdgeFunctions.manageEdgeFunction(f->composeWith(f5)), c);
             // register for value processing (2nd IDE phase)
             unbalancedRetSites.insert(retSiteC);
           }
@@ -1209,7 +1209,7 @@ protected:
     if (jumpFnE == nullptr) {
       jumpFnE = allTop; // jump function is initialized to all-top
     }
-    fPrime = jumpFnE->joinWith(f);
+    fPrime = cachedFlowEdgeFunctions.manageEdgeFunction(jumpFnE->joinWith(f));
     bool newFunction = !(fPrime->equal_to(jumpFnE));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Join: " << jumpFnE->str() << " & " << f->str()

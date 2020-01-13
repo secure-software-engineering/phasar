@@ -22,6 +22,12 @@
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMMMacros.h>
 
+// All singletons
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
+
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h>
+
 namespace psr {
 
 /**
@@ -55,8 +61,10 @@ private:
 
   // Data for clean up
   std::unordered_set<EdgeFunction<L> *> managedEdgeFunctions;
-  std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingleton;
-  std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingleton;
+  std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingleton = {
+      EdgeIdentity<V>::getInstance(),};
+  std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingleton = {
+      Identity<D>::getInstance(), KillAll<D>::getInstance()};
 
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
@@ -95,6 +103,10 @@ public:
     // Counters for the summary edge functions
     REG_COUNTER("Summary-EF Construction", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Summary-EF Cache Hit", 0, PAMM_SEVERITY_LEVEL::Full);
+
+    //register Singletons of Problem
+    registerAsEdgeFunctionSingleton(problem.getRegisteredEdgeFunctionSingleton());
+    registerAsFlowFunctionSingleton(problem.getRegisteredFlowFunctionSingleton());
   }
 
   ~FlowEdgeFunctionCache() {
@@ -147,7 +159,9 @@ public:
     }
     // free additional edge functions
     for (auto elem : managedEdgeFunctions) {
-      delete elem;
+      if (!registeredEdgeFunctionSingleton.count(elem)) {
+        delete elem;
+      }
     }
   }
 
