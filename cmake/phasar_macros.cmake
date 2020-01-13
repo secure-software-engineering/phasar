@@ -178,6 +178,11 @@ macro(add_phasar_library name)
   if( LLVM_LINK_COMPONENTS )
     llvm_config(${name} ${LLVM_LINK_COMPONENTS})
   endif( LLVM_LINK_COMPONENTS )
+
+  # z3 links
+  set(LIB_Z3 z3)
+  target_link_libraries(${name} LINK_PUBLIC ${LIB_Z3})
+
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)
     if(NOT cflag)
