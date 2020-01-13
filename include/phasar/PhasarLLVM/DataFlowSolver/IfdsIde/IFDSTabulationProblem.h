@@ -76,7 +76,9 @@ public:
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
 
-  std::set<FlowFunction<D> *> getRegisteredFlowFunctionSingleton() const { return registeredFlowFunctionSingleton; }
+  std::set<FlowFunction<D> *> getRegisteredFlowFunctionSingleton() const {
+    return registeredFlowFunctionSingleton;
+  }
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 

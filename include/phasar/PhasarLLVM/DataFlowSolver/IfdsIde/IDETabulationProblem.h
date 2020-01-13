@@ -39,8 +39,10 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, T, V, I>,
                              public virtual EdgeFactPrinter<L> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
+
 protected:
   std::set<EdgeFunction<L> *> registeredEdgeFunctionSingleton;
+
 public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
                        const I *ICF, const PointsToInfo<V> *PT,
@@ -49,7 +51,9 @@ public:
                                                 EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual EdgeFunction<L> *allTopFunction() = 0;
-  std::set<EdgeFunction<L> *> getRegisteredEdgeFunctionSingleton() const {return registeredEdgeFunctionSingleton;}
+  std::set<EdgeFunction<L> *> getRegisteredEdgeFunctionSingleton() const {
+    return registeredEdgeFunctionSingleton;
+  }
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
   virtual void emitTextReport(std::ostream &os,

@@ -62,7 +62,8 @@ private:
   // Data for clean up
   std::unordered_set<EdgeFunction<L> *> managedEdgeFunctions;
   std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingleton = {
-      EdgeIdentity<V>::getInstance(),};
+      EdgeIdentity<V>::getInstance(),
+  };
   std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingleton = {
       Identity<D>::getInstance(), KillAll<D>::getInstance()};
 
@@ -104,9 +105,11 @@ public:
     REG_COUNTER("Summary-EF Construction", 0, PAMM_SEVERITY_LEVEL::Full);
     REG_COUNTER("Summary-EF Cache Hit", 0, PAMM_SEVERITY_LEVEL::Full);
 
-    //register Singletons of Problem
-    registerAsEdgeFunctionSingleton(problem.getRegisteredEdgeFunctionSingleton());
-    registerAsFlowFunctionSingleton(problem.getRegisteredFlowFunctionSingleton());
+    // register Singletons of Problem
+    registerAsEdgeFunctionSingleton(
+        problem.getRegisteredEdgeFunctionSingleton());
+    registerAsFlowFunctionSingleton(
+        problem.getRegisteredFlowFunctionSingleton());
   }
 
   ~FlowEdgeFunctionCache() {
