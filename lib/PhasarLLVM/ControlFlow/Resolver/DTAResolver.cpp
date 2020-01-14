@@ -22,7 +22,6 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Module.h>
 
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -32,8 +31,8 @@
 using namespace std;
 using namespace psr;
 
-DTAResolver::DTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : CHAResolver(irdb, ch) {}
+DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : CHAResolver(IRDB, TH) {}
 
 bool DTAResolver::heuristic_anti_contructor_this_type(
     const llvm::BitCastInst *bitcast) {
@@ -75,7 +74,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   // If it doesn't contain vtable, there is no reason to call this class in the
   // DTA graph, so no need to add it
   if (struct_ty->isStructTy()) {
-    if (TH.hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
+    if (Resolver::TH->hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
       return false;
     }
   }
@@ -130,20 +129,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   return (bitcast_num > vtable_num);
 }
 
-void DTAResolver::firstFunction(const llvm::Function *F) {
-  auto func_type = F->getFunctionType();
-
-  for (auto param : func_type->params()) {
-    if (llvm::isa<llvm::PointerType>(param)) {
-      if (auto struct_ty =
-              llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-        unsound_types.insert(struct_ty);
-      }
-    }
-  }
-}
-
-void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
+void DTAResolver::otherInst(const llvm::Instruction *Inst) {
   if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(Inst)) {
     // We add the connection between the two types in the DTA graph
     auto src = BitCast->getSrcTy();
@@ -182,10 +168,6 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
                 << "Virtual function table entry is: " << vtable_index);
 
   auto receiver_type = getReceiverType(CS);
-
-  if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    return CHAResolver::resolveVirtualCall(CS);
-  }
 
   auto possible_types = typegraph.getTypes(receiver_type);
 

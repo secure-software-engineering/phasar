@@ -49,28 +49,14 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
 }
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH,
-                                               ProjectIRDB &IRDB)
-    : ForwardICFG(STH, IRDB) {
-  auto cgCopy = ForwardICFG.CallGraph;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
-};
-
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::set<std::string> &EntryPoints)
-    : ForwardICFG(STH, IRDB, CGType, EntryPoints) {
+    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
+    LLVMPointsToInfo *PT)
+    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT) {
   auto cgCopy = ForwardICFG.CallGraph;
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
-};
-
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, const llvm::Module &M,
-    CallGraphAnalysisType CGType, std::set<std::string> EntryPoints)
-    : ForwardICFG(STH, IRDB, M, CGType, EntryPoints) {
-  auto cgCopy = ForwardICFG.CallGraph;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
-};
+}
 
 bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) const {
   return ForwardICFG.isCallStmt(stmt);

@@ -41,11 +41,11 @@ int main(int argc, const char **argv) {
     LLVMTypeHierarchy H(DB);
     std::cout << "LLVMPointstoInfo:\n";
     LLVMPointsToInfo PT(DB);
-    auto PTG = PT.getPointsToGraph(F);
-    PTG->print();
+    // auto PTG = PT.getPointsToGraph(F);
+    // PTG->print();
     std::cout << "LLVMBasedICFG:\n";
-    LLVMBasedICFG I(H, DB, CallGraphAnalysisType::OTF, {"main"});
-    I.print();
+    LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &PT);
+    // I.print();
     // std::cout << "=== Call graph ===\n";
     // I.print();
     // I.printAsDot("call_graph.dot");

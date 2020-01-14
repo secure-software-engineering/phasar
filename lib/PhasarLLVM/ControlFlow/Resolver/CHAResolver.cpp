@@ -21,7 +21,6 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Module.h>
 
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -56,7 +55,7 @@ CHAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   auto ReceiverTy = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto FallbackTys = TH.getSubTypes(ReceiverTy);
+  auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
 
   set<const llvm::Function *> PossibleCallees;
 

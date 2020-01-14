@@ -44,7 +44,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::CHA, EntryPoints);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
+                       &PT);
     IDEInstInteractionAnalysis IIAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
     IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
               IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,

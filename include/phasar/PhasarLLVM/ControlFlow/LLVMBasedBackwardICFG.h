@@ -46,15 +46,10 @@ private:
 public:
   LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
 
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
-
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                         CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {"main"});
-
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                         const llvm::Module &M, CallGraphAnalysisType CGType,
-                         std::set<std::string> EntryPoints = {});
+  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                         const std::set<std::string> &EntryPoints = {},
+                         LLVMTypeHierarchy *TH = nullptr,
+                         LLVMPointsToInfo *PT = nullptr);
 
   ~LLVMBasedBackwardsICFG() override = default;
 

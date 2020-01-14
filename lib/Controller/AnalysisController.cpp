@@ -50,7 +50,8 @@ AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, std::set<std::string> EntryPoints,
     AnalysisStrategy Strategy)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB), ICF(TH, IRDB),
+    : IRDB(IRDB), TH(IRDB), PT(IRDB),
+      ICF(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
       Strategy(Strategy) {

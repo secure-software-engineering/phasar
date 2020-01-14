@@ -473,6 +473,17 @@ set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
   return AllocatedTypes;
 }
 
+std::set<const llvm::StructType *>
+ProjectIRDB::getAllocatedStructTypes() const {
+  std::set<const llvm::StructType *> StructTypes;
+  for (auto Ty : AllocatedTypes) {
+    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
+      StructTypes.insert(StructTy);
+    }
+  }
+  return StructTypes;
+}
+
 set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   // get all stack and heap alloca instructions
   auto AllocaInsts = getAllocaInstructions();

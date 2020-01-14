@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
@@ -18,7 +19,8 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_7_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, {"main"});
+  LLVMPointsToInfo PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *VFuncA = IRDB.getFunctionDefinition("_ZN1A5VfuncEv");
   const llvm::Function *VFuncB = IRDB.getFunctionDefinition("_ZN1B5VfuncEv");
@@ -46,7 +48,8 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
   ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_8_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
-  LLVMBasedICFG ICFG(TH, IRDB, CallGraphAnalysisType::OTF, {"main"});
+  LLVMPointsToInfo PT(IRDB);
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
   const llvm::Function *F = IRDB.getFunctionDefinition("main");
   const llvm::Function *FooC = IRDB.getFunctionDefinition("_ZZ4mainEN1C3fooEv");
   ASSERT_TRUE(F);

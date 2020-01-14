@@ -4,6 +4,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/Logger.h>
 #include <phasar/Utils/PAMMMacros.h>
@@ -20,6 +21,7 @@ protected:
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
+  LLVMPointsToInfo *PT;
   LLVMBasedICFG *ICFG;
   WPDSLinearConstantAnalysis *LCAProblem;
 
@@ -29,8 +31,9 @@ protected:
   void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    PT = new LLVMPointsToInfo(*IRDB);
+    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
+                             PT);
     // LCAProblem = new WPDSLinearConstantAnalysis(
     //    *ICFG, *TH, *IRDB, WPDSType::FWPDS, WPDSSearchDirection::BACKWARD);
   }
@@ -44,6 +47,7 @@ protected:
     PAMM_GET_INSTANCE;
     delete IRDB;
     delete TH;
+    delete PT;
     delete ICFG;
     delete LCAProblem;
     PAMM_RESET;

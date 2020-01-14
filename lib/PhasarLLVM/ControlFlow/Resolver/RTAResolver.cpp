@@ -31,21 +31,21 @@
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : CHAResolver(irdb, ch) {}
+RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : CHAResolver(IRDB, TH) {}
 
-void RTAResolver::firstFunction(const llvm::Function *F) {
-  auto func_type = F->getFunctionType();
+// void RTAResolver::firstFunction(const llvm::Function *F) {
+//   auto func_type = F->getFunctionType();
 
-  for (auto param : func_type->params()) {
-    if (llvm::isa<llvm::PointerType>(param)) {
-      if (auto struct_ty =
-              llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-        unsound_types.insert(struct_ty);
-      }
-    }
-  }
-}
+//   for (auto param : func_type->params()) {
+//     if (llvm::isa<llvm::PointerType>(param)) {
+//       if (auto struct_ty =
+//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
+//         unsound_types.insert(struct_ty);
+//       }
+//     }
+//   }
+// }
 
 set<const llvm::Function *>
 RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
@@ -74,15 +74,11 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
   auto receiver_type = getReceiverType(CS);
 
-  if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    return CHAResolver::resolveVirtualCall(CS);
-  }
+  // also insert all possible subtypes vtable entries
+  auto reachable_types = Resolver::TH->getSubTypes(receiver_type);
 
   // also insert all possible subtypes vtable entries
-  auto reachable_types = TH.getSubTypes(receiver_type);
-
-  // also insert all possible subtypes vtable entries
-  auto possible_types = IRDB.getAllocatedTypes();
+  auto possible_types = IRDB.getAllocatedStructTypes();
 
   auto end_it = reachable_types.end();
   for (auto possible_type : possible_types) {

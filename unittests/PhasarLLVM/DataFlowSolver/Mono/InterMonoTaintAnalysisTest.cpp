@@ -34,8 +34,8 @@ protected:
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
@@ -62,8 +62,8 @@ protected:
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,

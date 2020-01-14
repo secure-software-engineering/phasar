@@ -33,8 +33,8 @@ protected:
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     PT = new LLVMPointsToInfo(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
+                             PT);
     // TSF = new TaintSensitiveFunctions(true);
     UninitProblem =
         new IFDSUninitializedVariables(IRDB, TH, ICFG, PT, EntryPoints);

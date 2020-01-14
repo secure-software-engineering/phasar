@@ -489,11 +489,12 @@ void PointsToGraph::printValueVertexMap() {
   }
 }
 
-void PointsToGraph::mergeWith(const PointsToGraph &Other,
+void PointsToGraph::mergeWith(const PointsToGraph *Other,
                               const llvm::Function *F) {
   if (!ContainedFunctions.count(F->getName().str())) {
     ContainedFunctions.insert(F->getName().str());
-    copy_graph<PointsToGraph::graph_t, PointsToGraph::vertex_t>(ptg, Other.ptg);
+    copy_graph<PointsToGraph::graph_t, PointsToGraph::vertex_t>(ptg,
+                                                                Other->ptg);
     value_vertex_map.clear();
     vertex_iterator_t vi, vi_end;
     for (boost::tie(vi, vi_end) = boost::vertices(ptg); vi != vi_end; ++vi) {
@@ -552,7 +553,7 @@ void PointsToGraph::mergeWith(
   }
 }
 
-void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
+void PointsToGraph::mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
                               const llvm::Function *F) {
   // Check if points-to graph of F is already within 'this' whole module
   // points-to graph
@@ -586,19 +587,19 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
     for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
       auto Formal = getNthFunctionArgument(F, i);
       if (value_vertex_map.count(CS.getArgOperand(i)) &&
-          Other.value_vertex_map.count(Formal)) {
+          Other->value_vertex_map.count(Formal)) {
         v_in_g1_u_in_g2.push_back(
             make_pair(value_vertex_map[CS.getArgOperand(i)],
-                      Other.value_vertex_map[Formal]));
+                      Other->value_vertex_map[Formal]));
       }
     }
 
-    for (auto Formal : Other.getPointersEscapingThroughReturnsForFunction(F)) {
+    for (auto Formal : Other->getPointersEscapingThroughReturnsForFunction(F)) {
       if (value_vertex_map.count(CS.getInstruction()) &&
-          Other.value_vertex_map.count(Formal)) {
+          Other->value_vertex_map.count(Formal)) {
         v_in_g1_u_in_g2.push_back(
             make_pair(value_vertex_map[CS.getInstruction()],
-                      Other.value_vertex_map[Formal]));
+                      Other->value_vertex_map[Formal]));
       }
     }
 
@@ -613,10 +614,10 @@ void PointsToGraph::mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
     // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
     // IsoMap;
     vector<PointsToGraph::vertex_t> orig2copy_data(
-        boost::num_vertices(Other.ptg));
+        boost::num_vertices(Other->ptg));
     IsoMap mapV = boost::make_iterator_property_map(
-        orig2copy_data.begin(), get(boost::vertex_index, Other.ptg));
-    boost::copy_graph(Other.ptg, ptg,
+        orig2copy_data.begin(), get(boost::vertex_index, Other->ptg));
+    boost::copy_graph(Other->ptg, ptg,
                       boost::orig_to_copy(mapV)); // means g1 += g2
     for (auto &entry : v_in_g1_u_in_g2) {
       PointsToGraph::vertex_t u_in_g1 = mapV[entry.second];

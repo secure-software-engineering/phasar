@@ -247,11 +247,11 @@ public:
 
   // TODO add more detailed description
   inline bool representsSingleFunction();
-  void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
+  void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
   void mergeWith(const PointsToGraph &Other,
                  const std::vector<std::pair<llvm::ImmutableCallSite,
                                              const llvm::Function *>> &Calls);
-  void mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
+  void mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
                  const llvm::Function *F);
 
   /**

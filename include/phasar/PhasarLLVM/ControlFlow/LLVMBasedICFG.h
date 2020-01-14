@@ -45,6 +45,7 @@ namespace psr {
 class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -52,9 +53,10 @@ class LLVMBasedICFG
   friend class LLVMBasedBackwardsICFG;
 
 private:
-  CallGraphAnalysisType CGType;
-  LLVMTypeHierarchy &TH;
   ProjectIRDB &IRDB;
+  CallGraphAnalysisType CGType;
+  LLVMTypeHierarchy *TH;
+  LLVMPointsToInfo *PT;
   PointsToGraph WholeModulePTG;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
@@ -107,15 +109,10 @@ private:
   struct dependency_visitor;
 
 public:
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
-
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                CallGraphAnalysisType CGType,
-                const std::set<std::string> &EntryPoints = {"main"});
-
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                const llvm::Module &M, CallGraphAnalysisType CGType,
-                std::set<std::string> EntryPoints = {});
+  LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                const std::set<std::string> &EntryPoints = {},
+                LLVMTypeHierarchy *TH = nullptr,
+                LLVMPointsToInfo *PT = nullptr);
 
   ~LLVMBasedICFG() override = default;
 

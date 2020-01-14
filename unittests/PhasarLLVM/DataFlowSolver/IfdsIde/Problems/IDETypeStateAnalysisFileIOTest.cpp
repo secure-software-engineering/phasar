@@ -40,8 +40,8 @@ protected:
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     PT = new LLVMPointsToInfo(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
+                             PT);
     CSTDFILEIODesc = new CSTDFILEIOTypeStateDescription();
     TSProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT, *CSTDFILEIODesc,
                                          EntryPoints);

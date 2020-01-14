@@ -5,6 +5,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -22,6 +23,7 @@ protected:
 
   ProjectIRDB *IRDB;
   LLVMTypeHierarchy *TH;
+  LLVMPointsToInfo *PT;
   LLVMBasedICFG *ICFG;
 
   LLVMIRToSrcTest() {}
@@ -30,7 +32,9 @@ protected:
   void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    ICFG = new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, {"main"});
+    PT = new LLVMPointsToInfo(*IRDB);
+    ICFG =
+        new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, {"main"}, TH, PT);
   }
 
   void SetUp() override {
@@ -41,6 +45,7 @@ protected:
   void TearDown() override {
     delete IRDB;
     delete TH;
+    delete PT;
     delete ICFG;
   }
 }; // Test Fixture

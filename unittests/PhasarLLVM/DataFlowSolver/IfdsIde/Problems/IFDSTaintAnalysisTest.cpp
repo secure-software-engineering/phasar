@@ -32,9 +32,9 @@ protected:
   void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
     PT = new LLVMPointsToInfo(*IRDB);
+    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
+                             PT);
     TSF = new TaintConfiguration<const llvm::Value *>(
         {TaintConfiguration<const llvm::Value *>::SourceFunction("source()",
                                                                  true)},

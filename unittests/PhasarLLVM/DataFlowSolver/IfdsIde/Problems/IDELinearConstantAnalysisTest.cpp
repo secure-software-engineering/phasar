@@ -32,7 +32,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+                       &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
               IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,

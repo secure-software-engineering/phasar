@@ -134,6 +134,8 @@ public:
 
   std::set<const llvm::Type *> getAllocatedTypes() const;
 
+  std::set<const llvm::StructType *> getAllocatedStructTypes() const;
+
   std::set<const llvm::Instruction *> getRetOrResInstructions() const;
 
   std::size_t getNumberOfModules() const;

@@ -70,13 +70,16 @@ std::string getReceiverTypeName(llvm::ImmutableCallSite CS) {
   return "";
 }
 
-Resolver::Resolver(ProjectIRDB &DB, LLVMTypeHierarchy &H) : IRDB(DB), TH(H) {}
+Resolver::Resolver(ProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
+
+Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : IRDB(IRDB), TH(&TH) {}
 
 const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                                     llvm::ImmutableCallSite CS) {
-  if (TH.hasVFTable(T)) {
-    auto Target = TH.getVFTable(T)->getFunction(Idx);
+  if (TH->hasVFTable(T)) {
+    auto Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
       return Target;
     }
@@ -85,12 +88,12 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
 }
 
 void Resolver::preCall(const llvm::Instruction *inst) {}
-void Resolver::TreatPossibleTarget(
+
+void Resolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &possible_targets) {}
+
 void Resolver::postCall(const llvm::Instruction *inst) {}
-void Resolver::OtherInst(const llvm::Instruction *inst) {}
-void Resolver::firstFunction(const llvm::Function *F) {}
 
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
@@ -118,5 +121,7 @@ Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
 
   return possible_call_targets;
 }
+
+void Resolver::otherInst(const llvm::Instruction *Inst) {}
 
 } // namespace psr

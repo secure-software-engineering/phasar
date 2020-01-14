@@ -64,8 +64,8 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
-                            EntryPoints)
+                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
         EntryPoints(std::move(EntryPoints)),
         ProblemDesc(&IRDB, TypeHierarchy, CallGraph, PointerInfo, EntryPoints),
@@ -88,8 +88,8 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
-                            EntryPoints)
+                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
         EntryPoints(std::move(EntryPoints)),
         Config(std::unique_ptr<ConfigurationTy>(Config)), ConfigPath(""),
@@ -114,8 +114,8 @@ public:
                         : std::unique_ptr<PointerAnalysisTy>(PointerInfo)),
         CallGraph(CallGraph == nullptr
                       ? std::make_unique<CallGraphAnalysisTy>(
-                            *TypeHierarchy, IRDB, CallGraphAnalysisType::OTF,
-                            EntryPoints)
+                            IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                            this->TypeHierarchy.get(), this->PointerInfo.get())
                       : std::unique_ptr<CallGraphAnalysisTy>(CallGraph)),
         EntryPoints(std::move(EntryPoints)),
         Config(std::make_unique<ConfigurationTy>(ConfigPath)),
