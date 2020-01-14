@@ -16,13 +16,16 @@ class LLVMBasedVariationalCFG
       public virtual VariationalCFG<const llvm::Instruction *,
                                     const llvm::Function *, z3::expr> {
   std::unique_ptr<z3::context> ctx;
+  std::unique_ptr<std::unordered_map<std::string, z3::expr>> pp_variables;
+
   bool isPPBranchNode(const llvm::BranchInst *T) const;
   bool isPPBranchNode(const llvm::BranchInst *T, z3::expr &cond) const;
   z3::expr inferCondition(const llvm::CmpInst *cmp) const;
   z3::expr createExpression(const llvm::Value *val) const;
   z3::expr createBinOp(const llvm::BinaryOperator *val) const;
   z3::expr createVariableOrGlobal(const llvm::LoadInst *val) const;
-  z3::expr createGEP(const llvm::GetElementPtrInst *val) const;
+  z3::expr createConstant(const llvm::Constant *val) const;
+  bool isPPVariable(const llvm::GlobalVariable *glob, std::string &name) const;
 
 public:
   LLVMBasedVariationalCFG();
