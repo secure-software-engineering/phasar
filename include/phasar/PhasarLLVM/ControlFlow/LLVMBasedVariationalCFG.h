@@ -15,6 +15,7 @@ class LLVMBasedVariationalCFG
     : public virtual LLVMBasedCFG,
       public virtual VariationalCFG<const llvm::Instruction *,
                                     const llvm::Function *, z3::expr> {
+  // use pointers for mutability from const methods
   std::unique_ptr<z3::context> ctx;
   std::unique_ptr<std::unordered_map<std::string, z3::expr>> pp_variables;
 
@@ -38,5 +39,6 @@ public:
                         const llvm::Instruction *succ,
                         z3::expr &condition) const override;
   z3::expr getTrueCondition() const override;
+  z3::context &getContext() const;
 };
 } // namespace psr

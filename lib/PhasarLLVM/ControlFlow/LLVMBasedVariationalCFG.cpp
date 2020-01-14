@@ -1,7 +1,9 @@
 #include <deque>
+#include <iostream>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/InstrTypes.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalCFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 LLVMBasedVariationalCFG::LLVMBasedVariationalCFG()
@@ -58,34 +60,58 @@ LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
 bool LLVMBasedVariationalCFG::isPPVariable(const llvm::GlobalVariable *glob,
                                            std::string &_name) const {
   auto name = glob->getName();
-  if (name.contains("_CONFIG_") &&
-      name.size() > llvm::StringRef("_CONFIG_").size()) {
-    // TODO get name
-    return true;
+  if (!name.startswith("_")) {
+    // std::cerr << "Not starts with _" << std::endl;
+    return false;
   }
-  return false;
+  auto config = name.find("_CONFIG_");
+  const auto config_len = llvm::StringRef("_CONFIG_").size();
+  if (config == llvm::StringRef::npos || config == 0 ||
+      name.size() == config_len) {
+    // std::cerr << "ERROR: config: " << config << "; size: " << name.size()
+    //          << " vs " << config_len << std::endl;
+    return false;
+  }
+
+  if (name.endswith("_defined")) {
+    const auto defined_len = llvm::StringRef("_defined").size();
+    name = name.substr(0, name.size() - defined_len);
+  }
+
+  _name = name.substr(config + config_len);
+
+  return true;
 }
 
 z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
     const llvm::LoadInst *val) const {
   auto pointerOp = val->getPointerOperand();
-  if (auto glob = llvm::dyn_cast<llvm::GlobalVariable>(val)) {
+  if (auto glob = llvm::dyn_cast<llvm::GlobalVariable>(pointerOp)) {
     if (glob->isConstant() && glob->hasInitializer()) {
       return createConstant(glob->getInitializer());
     } else {
       std::string name;
       if (isPPVariable(glob, name)) {
         auto it = pp_variables->find(name);
-        if (it != pp_variables->end())
+        if (it != pp_variables->end()) {
+          // std::cout << "Variable: " << it->second << std::endl;
           return it->second;
-        auto ret = ctx->int_val(name.data());
+        }
+        auto ret = ctx->int_const(name.data());
         // move name here to preserve the allocated string, which is stored
         // untracked in ret
         pp_variables->insert({std::move(name), ret});
-      }
+        // std::cout << "+Variable: " << ret << std::endl;
+        return ret;
+      } /*else {
+        std::cerr << "ERROR: " << llvmIRToString(val) << " is no pp variable"
+                  << std::endl;
+      }*/
     }
   }
-  // TODO implement
+  // std::cerr << "Invalid preprocessor variable: " << llvmIRToString(val)
+  //          << std::endl;
+  assert(false && "Invalid preprocessor variable");
   return getTrueCondition();
 }
 
@@ -100,6 +126,7 @@ LLVMBasedVariationalCFG::createConstant(const llvm::Constant *val) const {
     return ctx->fpa_val(cnstFP->getValueAPF().convertToDouble());
   } else {
     assert(false && "Invalid constant value");
+    return getTrueCondition();
   }
 }
 z3::expr
@@ -127,6 +154,8 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
 
   auto xLhs = createExpression(lhs);
   auto xRhs = createExpression(rhs);
+  // std::cout << "inferCondition: xLhs = " << xLhs << "; xRhs = " << xRhs
+  //          << std::endl;
 
   switch (cmp->getPredicate()) {
   case llvm::CmpInst::ICMP_EQ:
@@ -223,11 +252,16 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
               cond = ctx->bool_val(true);
             }
             return true;
-          }
+          } /*else {
+            std::cout << glob->getName().str() << " is no PP variable"
+                      << std::endl;
+          }*/
         }
       }
     }
-  }
+    // std::cerr << "Fall through" << std::endl;
+  } else
+    std::cerr << "No user" << std::endl;
   cond = getTrueCondition();
   return false;
 }
@@ -283,4 +317,5 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
   }
   return false;
 }
+z3::context &LLVMBasedVariationalCFG::getContext() const { return *ctx; }
 } // namespace psr

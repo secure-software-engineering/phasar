@@ -1,5 +1,6 @@
 set(VaraProblemSources
 	IDEVariabilityTabulationProblemTest.cpp
+	VariabilityCFGTest.cpp
 )
 
 foreach(TEST_SRC ${VaraProblemSources})
