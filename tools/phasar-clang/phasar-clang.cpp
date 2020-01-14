@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include <phasar/Controller/AnalysisExecutor.h>
+// #include <phasar/Controller/AnalysisExecutor.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/Logger.h>
 #include <boost/filesystem/operations.hpp>

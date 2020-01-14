@@ -1,1 +1,5 @@
-add_subdirectory(phasar)
+add_subdirectory(boomerang)
+add_subdirectory(example-tool)
+add_subdirectory(phasar-clang)
+add_subdirectory(phasar-llvm)
+add_subdirectory(phasar-old)
