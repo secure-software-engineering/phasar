@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
 #include <iosfwd>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
@@ -52,7 +53,7 @@ class LLVMBasedICFG
 
 private:
   CallGraphAnalysisType CGType;
-  LLVMTypeHierarchy &CH;
+  LLVMTypeHierarchy &TH;
   ProjectIRDB &IRDB;
   PointsToGraph WholeModulePTG;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
@@ -67,20 +68,19 @@ private:
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
-    const llvm::Function *function = nullptr;
-    std::string functionName;
-    bool isDeclaration;
+    const llvm::Function *F = nullptr;
+    std::string FName;
     VertexProperties() = default;
-    VertexProperties(const llvm::Function *f, bool isDecl = false);
+    VertexProperties(const llvm::Function *F);
   };
 
   // The EdgeProperties for our call-graph.
   struct EdgeProperties {
-    const llvm::Instruction *callsite = nullptr;
-    std::string ir_code;
-    size_t id = 0;
+    const llvm::Instruction *CS = nullptr;
+    std::string IR;
+    size_t ID = 0;
     EdgeProperties() = default;
-    EdgeProperties(const llvm::Instruction *i);
+    EdgeProperties(const llvm::Instruction *I);
   };
 
   /// Specify the type of graph to be used.
@@ -97,12 +97,12 @@ private:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
   /// The call graph.
-  bidigraph_t cg;
+  bidigraph_t CallGraph;
 
   /// Maps function names to the corresponding vertex id.
-  std::unordered_map<std::string, vertex_t> function_vertex_map;
+  std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver *resolver);
+  void constructionWalker(const llvm::Function *F, Resolver *Res);
 
   struct dependency_visitor;
 
@@ -158,9 +158,9 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print();
+  void print(std::ostream &OS = std::cout);
 
-  void printAsDot(const std::string &filename);
+  void printAsDot(std::ostream &OS = std::cout);
 
   void printInternalPTGAsDot(const std::string &filename);
 
@@ -170,11 +170,9 @@ public:
 
   unsigned getNumOfEdges();
 
-  void exportPATBCJSON();
-
   const PointsToGraph &getWholeModulePTG() const;
 
-  std::vector<std::string> getDependencyOrderedFunctions();
+  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };
 
 } // namespace psr

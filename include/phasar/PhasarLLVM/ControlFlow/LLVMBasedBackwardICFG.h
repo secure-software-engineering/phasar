@@ -97,9 +97,9 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print();
+  void print(std::ostream &OS);
 
-  void printAsDot(const std::string &filename);
+  void printAsDot(std::ostream &OS);
 
   void printInternalPTGAsDot(const std::string &filename);
 
@@ -109,11 +109,9 @@ public:
 
   unsigned getNumOfEdges();
 
-  void exportPATBCJSON();
-
   const PointsToGraph &getWholeModulePTG() const;
 
-  std::vector<std::string> getDependencyOrderedFunctions();
+  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };
 
 } // namespace psr

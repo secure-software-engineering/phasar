@@ -39,7 +39,7 @@ public:
 
   virtual void firstFunction(const llvm::Function *F) override;
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
 };
 } // namespace psr
 

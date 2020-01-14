@@ -149,8 +149,10 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   REG_COUNTER("GS Globals", globals, PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("GS Global Pointer", globalPointers, PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("GS Memory Intrinsics", memIntrinsic, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Store Instructions", storeInstructions, PAMM_SEVERITY_LEVEL::Full);
-  REG_COUNTER("GS Load Instructions", loadInstructions, PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Store Instructions", storeInstructions,
+              PAMM_SEVERITY_LEVEL::Full);
+  REG_COUNTER("GS Load Instructions", loadInstructions,
+              PAMM_SEVERITY_LEVEL::Full);
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   if (boost::log::core::get()->get_logging_enabled()) {

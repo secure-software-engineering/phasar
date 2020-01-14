@@ -111,6 +111,8 @@ public:
   const llvm::Function *
   getFunctionDefinition(const std::string &FunctionName) const;
 
+  const llvm::Function *getFunction(const std::string &FunctionName) const;
+
   const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
 

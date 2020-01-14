@@ -29,11 +29,12 @@ class Function;
 namespace psr {
 struct CHAResolver : public Resolver {
 public:
-  CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
+  CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
+
   virtual ~CHAResolver() = default;
 
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
 };
 } // namespace psr
 

@@ -146,6 +146,22 @@ bool matchesSignature(const llvm::Function *F,
   return false;
 }
 
+bool matchesSignature(const llvm::FunctionType *FType1,
+                      const llvm::FunctionType *FType2) {
+  if (FType1 == nullptr || FType2 == nullptr)
+    return false;
+  if (FType1->getNumParams() == FType2->getNumParams() &&
+      FType1->getReturnType() == FType2->getReturnType()) {
+    for (unsigned Idx = 0; Idx < FType1->getNumParams(); ++Idx) {
+      if (FType1->getParamType(Idx) != FType2->getParamType(Idx)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 std::string llvmIRToString(const llvm::Value *V) {
   // WARNING: Expensive function, cause is the V->print(RSO)
   //         (20ms on a medium size code (phasar without debug)

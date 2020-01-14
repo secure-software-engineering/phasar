@@ -78,7 +78,7 @@ TEST_F(LLVMBasedICFGTest, VirtualCallSite_1) {
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
-        ASSERT_TRUE(ICFG.isVirtualFunctionCall(&I));
+        ASSERT_FALSE(ICFG.isIndirectFunctionCall(&I));
       }
     }
   }

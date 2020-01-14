@@ -317,6 +317,17 @@ ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
   return nullptr;
 }
 
+const llvm::Function *
+ProjectIRDB::getFunction(const std::string &FunctionName) const {
+  for (auto &[File, Module] : Modules) {
+    auto F = Module->getFunction(FunctionName);
+    if (F) {
+      return F;
+    }
+  }
+  return nullptr;
+}
+
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
     const std::string &GlobalVariableName) const {
   for (auto &[File, Module] : Modules) {

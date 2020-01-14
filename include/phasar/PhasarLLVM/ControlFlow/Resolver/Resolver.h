@@ -31,22 +31,21 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 
+int getVFTIndex(const llvm::ImmutableCallSite CS);
+
+const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS);
+
+std::string getReceiverTypeName(llvm::ImmutableCallSite CS);
+
 class Resolver {
 protected:
   ProjectIRDB &IRDB;
-  LLVMTypeHierarchy &CH;
+  LLVMTypeHierarchy &TH;
 
 protected:
-  int getVtableIndex(const llvm::ImmutableCallSite &CS) const;
-  const llvm::StructType *
-  getReceiverType(const llvm::ImmutableCallSite &CS) const;
-  std::string getReceiverTypeName(const llvm::ImmutableCallSite &CS) const;
-  void insertVtableIntoResult(std::set<const llvm::Function *> &results,
-                              const llvm::StructType *struct_type,
-                              const unsigned vtable_index,
-                              const llvm::ImmutableCallSite &CS);
-  bool matchVirtualSignature(const llvm::FunctionType *type_call,
-                             const llvm::FunctionType *type_candidate);
+  const llvm::Function *getNonPureVirtualVFTEntry(const llvm::StructType *T,
+                                                  unsigned Idx,
+                                                  llvm::ImmutableCallSite CS);
 
 public:
   Resolver(ProjectIRDB &DB, LLVMTypeHierarchy &H);
@@ -56,14 +55,14 @@ public:
   virtual void firstFunction(const llvm::Function *F);
   virtual void preCall(const llvm::Instruction *Inst);
   virtual void
-  TreatPossibleTarget(const llvm::ImmutableCallSite &CS,
+  TreatPossibleTarget(llvm::ImmutableCallSite CS,
                       std::set<const llvm::Function *> &PossibleTargets);
   virtual void postCall(const llvm::Instruction *Inst);
   virtual void OtherInst(const llvm::Instruction *Inst);
   virtual std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) = 0;
+  resolveVirtualCall(llvm::ImmutableCallSite CS) = 0;
   virtual std::set<const llvm::Function *>
-  resolveFunctionPointer(const llvm::ImmutableCallSite &CS);
+  resolveFunctionPointer(llvm::ImmutableCallSite CS);
 };
 } // namespace psr
 

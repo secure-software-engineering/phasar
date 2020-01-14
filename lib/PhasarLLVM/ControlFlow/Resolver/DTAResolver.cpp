@@ -75,7 +75,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   // If it doesn't contain vtable, there is no reason to call this class in the
   // DTA graph, so no need to add it
   if (struct_ty->isStructTy()) {
-    if (CH.hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
+    if (TH.hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
       return false;
     }
   }
@@ -160,7 +160,7 @@ void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -168,7 +168,7 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = this->getVtableIndex(CS);
+  auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -181,7 +181,7 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Virtual function table entry is: " << vtable_index);
 
-  auto receiver_type = this->getReceiverType(CS);
+  auto receiver_type = getReceiverType(CS);
 
   if (unsound_types.find(receiver_type) != unsound_types.end()) {
     return CHAResolver::resolveVirtualCall(CS);
@@ -197,8 +197,11 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      insertVtableIntoResult(possible_call_targets, possible_type_struct,
-                             vtable_index, CS);
+      auto Target =
+          getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+      if (Target) {
+        possible_call_targets.insert(Target);
+      }
     }
   }
 

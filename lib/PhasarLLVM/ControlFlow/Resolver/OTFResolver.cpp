@@ -40,7 +40,7 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 }
 
 void OTFResolver::TreatPossibleTarget(
-    const llvm::ImmutableCallSite &CS,
+    llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &possible_targets) {
   auto &lg = lg::get();
 
@@ -77,7 +77,7 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 void OTFResolver::OtherInst(const llvm::Instruction *Inst) {}
 
 set<const llvm::Function *>
-OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -85,7 +85,7 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = this->getVtableIndex(CS);
+  auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -105,7 +105,7 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   auto possible_allocated_types =
       WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
 
-  auto receiver_type = this->getReceiverType(CS);
+  auto receiver_type = getReceiverType(CS);
 
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> possible_types;
@@ -117,10 +117,12 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   for (auto possible_type_struct : possible_types) {
-    insertVtableIntoResult(possible_call_targets, possible_type_struct,
-                           vtable_index, CS);
+    auto Target =
+        getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+    if (Target) {
+      possible_call_targets.insert(Target);
+    }
   }
-
   if (possible_call_targets.empty())
     return CHAResolver::resolveVirtualCall(CS);
 
