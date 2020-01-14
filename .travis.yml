@@ -1,8 +1,8 @@
 language: cpp
 
-compiler:
-  - clang
-  - gcc
+#compiler:
+#  - clang
+#  - gcc
 
 #cache:
 #  directories:
@@ -34,7 +34,7 @@ matrix:
           - libmysqlcppconn-dev
           - libboost-filesystem-dev
           - libboost-system-dev
-          - libboost-program_options-dev
+          - libboost-program-options-dev
           - libboost-log-dev
           - libboost-thread-dev
     env:
