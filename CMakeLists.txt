@@ -232,11 +232,11 @@ if (PHASAR_BUILD_IR)
 endif()
 
 # Install Phasar executable and libraries
-install(TARGETS phasar-llvm
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-)
+# install(TARGETS phasar-llvm
+#         RUNTIME DESTINATION bin
+#         LIBRARY DESTINATION lib
+#         ARCHIVE DESTINATION lib
+# )
 # Install Phasar include directory
 install(DIRECTORY include/
   DESTINATION include
