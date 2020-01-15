@@ -210,6 +210,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
              IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
       Solver(*UninitProblem);
   Solver.solve();
+  UninitProblem->emitTextReport(std::cout, Solver.getSolverResults());
   map<int, set<string>> GroundTruth;
   //%2 = load i32, i32 %1
   GroundTruth[2] = {"0"};
