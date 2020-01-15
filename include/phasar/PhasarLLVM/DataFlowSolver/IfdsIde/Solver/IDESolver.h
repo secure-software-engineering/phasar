@@ -90,7 +90,9 @@ public:
         jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {}
+
   IDESolver &operator=(IDESolver &&) = delete;
+
   virtual ~IDESolver() = default;
 
   nlohmann::json getAsJson() {
@@ -313,7 +315,7 @@ public:
 
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
-  std::shared_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>>
+  std::unique_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>>
       transformedProblem;
   IDETabulationProblem<N, D, M, T, V, L, I> &ideTabulationProblem;
   D zeroValue;
@@ -371,10 +373,7 @@ protected:
         allTop(ideTabulationProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
-        initialSeeds(ideTabulationProblem.initialSeeds()) {
-    // std::cout << "called IDESolver::IDESolver() ctor with IFDSProblem" <<
-    // std::endl;
-  }
+        initialSeeds(ideTabulationProblem.initialSeeds()) {}
 
   /**
    * Lines 13-20 of the algorithm; processing a call site in the caller's

@@ -29,7 +29,7 @@ LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
   // llvm::AAManager AA = PB.buildDefaultAAPipeline();
   llvm::AAManager AA;
   AA.registerFunctionAnalysis<llvm::BasicAA>();
-  // AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
+  AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
   llvm::FunctionAnalysisManager FAM;
   FAM.registerPass([&] { return std::move(AA); });
   PB.registerFunctionAnalyses(FAM);
