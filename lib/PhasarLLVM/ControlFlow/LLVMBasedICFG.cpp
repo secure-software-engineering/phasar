@@ -82,13 +82,16 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   auto &lg = lg::get();
   // check for faults in the logic
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
-    llvm::report_fatal_error(
-        "Type hierarchy must be provided when a resolver has been chosen.");
+    // no type hierarchy information provided by the user,
+    // we need to construct a type hierarchy ourselfes
+    TH = new LLVMTypeHierarchy(IRDB);
+    UserTHInfos = false;
   }
   if (!PT && (CGType == CallGraphAnalysisType::OTF)) {
-    llvm::report_fatal_error(
-        "Poits-to information must be provided when OTF resolver has been "
-        "chosen.");
+    // no pointer information provided by the user,
+    // we need to construct a points-to infos ourselfes
+    PT = new LLVMPointsToInfo(IRDB);
+    UserPTInfos = false;
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
@@ -134,6 +137,17 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Call graph has been constructed");
+}
+
+LLVMBasedICFG::~LLVMBasedICFG() {
+  // if we had to compute type hierarchy or points-to information ourselfs,
+  // we need to clean up
+  if (!UserTHInfos) {
+    delete TH;
+  }
+  if (!UserPTInfos) {
+    delete PT;
+  }
 }
 
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,

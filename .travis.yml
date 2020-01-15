@@ -4,14 +4,14 @@ language: cpp
 #  - clang
 #  - gcc
 
-#cache:
-#  directories:
-#    - $TRAVIS_BUILD_DIR/boost_1_70_0/
+cache:
+  directories:
+    - $TRAVIS_BUILD_DIR/boost_1_70_0/
 
 matrix:
   include:
   - os: linux
-    dist: xenial
+    dist: bionic
     sudo: enabled
     addons:
       apt:
@@ -32,12 +32,12 @@ matrix:
           - doxygen
           - libcurl4-gnutls-dev
           - libmysqlcppconn-dev
-          - libboost-filesystem-dev
-          - libboost-system-dev
-          - libboost-graph-dev
-          - libboost-program-options-dev
-          - libboost-log-dev
-          - libboost-thread-dev
+          - libboost-filesystem1.65-dev
+          - libboost-system1.65-dev
+          - libboost-graph1.65-dev
+          - libboost-program-options1.65-dev
+          - libboost-log1.65-dev
+          - libboost-thread1.65-dev
     env:
       - MATRIX_EVAL="CC=clang && CXX=clang++"
   # TODO FIXME
@@ -67,6 +67,10 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-9.0/bin:$PATH" ; fi
   # Initialize all submodules
   - git submodule update --init --recursive
+  # Install boost 1.70
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz; tar xf boost_1_70_0.tar.gz; cd boost_1_70_0/; ./bootstrap.sh 1> /dev/null ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
 
 # commands that need to be run before execution
 # before_script

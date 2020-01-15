@@ -55,6 +55,8 @@ class LLVMBasedICFG
 private:
   ProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
+  bool UserTHInfos = true;
+  bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
   LLVMPointsToInfo *PT;
   PointsToGraph WholeModulePTG;
@@ -114,7 +116,7 @@ public:
                 LLVMTypeHierarchy *TH = nullptr,
                 LLVMPointsToInfo *PT = nullptr);
 
-  ~LLVMBasedICFG() override = default;
+  ~LLVMBasedICFG() override;
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
