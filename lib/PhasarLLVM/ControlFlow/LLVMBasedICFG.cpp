@@ -80,11 +80,16 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     : IRDB(IRDB), CGType(CGType), TH(TH), PT(PT) {
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();
-  assert(!TH && (CGType == CallGraphAnalysisType::NORESOLVE) &&
-         "Type hierarchy must be provided when a resolver has been chosen.");
-  assert(!PT && (CGType != CallGraphAnalysisType::OTF) &&
-         "Poits-to information must be provided when OTF resolver has been "
-         "chosen.");
+  // check for faults in the logic
+  if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
+    llvm::report_fatal_error(
+        "Type hierarchy must be provided when a resolver has been chosen.");
+  }
+  if (!PT && (CGType == CallGraphAnalysisType::OTF)) {
+    llvm::report_fatal_error(
+        "Poits-to information must be provided when OTF resolver has been "
+        "chosen.");
+  }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());

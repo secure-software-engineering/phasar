@@ -55,16 +55,14 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_8) {
   ASSERT_TRUE(F);
   ASSERT_TRUE(FooC);
 
-  set<const llvm::Instruction *> Insts;
-  Insts.insert(getNthInstruction(F, 15));
-  Insts.insert(getNthInstruction(F, 21));
-  for (auto *I : Insts) {
-    llvm::ImmutableCallSite CS(I);
-    set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
-    ASSERT_EQ(Callees.size(), 1);
-    ASSERT_TRUE(Callees.count(FooC));
-    ASSERT_TRUE(ICFG.getCallersOf(FooC).count(I));
-  }
+  auto CS1 = getNthInstruction(F, 15);
+  auto CS2 = getNthInstruction(F, 21);
+
+  auto Callees1 = ICFG.getCalleesOfCallAt(CS1);
+  auto Callees2 = ICFG.getCalleesOfCallAt(CS2);
+
+  ASSERT_TRUE(Callees1.count(FooC));
+  ASSERT_TRUE(Callees2.count(FooC));
 }
 
 int main(int argc, char **argv) {
