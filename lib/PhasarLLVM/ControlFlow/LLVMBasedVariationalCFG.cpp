@@ -73,10 +73,10 @@ bool LLVMBasedVariationalCFG::isPPVariable(const llvm::GlobalVariable *glob,
     return false;
   }
 
-  if (name.endswith("_defined")) {
-    const auto defined_len = llvm::StringRef("_defined").size();
-    name = name.substr(0, name.size() - defined_len);
-  }
+  // if (name.endswith("_defined")) {
+  // const auto defined_len = llvm::StringRef("_defined").size();
+  // name = name.substr(0, name.size() - defined_len);
+  //}
 
   _name = name.substr(config + config_len);
 
@@ -97,7 +97,16 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
           // std::cout << "Variable: " << it->second << std::endl;
           return it->second;
         }
-        auto ret = ctx->int_const(name.data());
+        // constexpr auto defined_len = sizeof("_defined") - 1;
+        auto ret = getTrueCondition();
+        auto defined_pos = name.find_last_of("_defined");
+
+        if (defined_pos == name.size() - 1) {
+          ret = ctx->bool_const(name.data());
+        } else {
+
+          ret = ctx->int_const(name.data());
+        }
         // move name here to preserve the allocated string, which is stored
         // untracked in ret
         pp_variables->insert({std::move(name), ret});
@@ -147,6 +156,24 @@ LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
   assert(false && "Unknown expression");
   return getTrueCondition();
 }
+z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
+                                                    z3::expr xInt,
+                                                    bool forEquality) const {
+  std::cout << "Compare bool and int: " << xBool << (forEquality ? "==" : "!=")
+            << xInt << std::endl;
+  int64_t intVal;
+  if (xInt.is_numeral_i64(intVal)) {
+    if (forEquality)
+      return intVal ? xBool : !xBool;
+    else
+      return intVal ? !xBool : xBool;
+  }
+  auto ret = (xInt != ctx->int_val(0)) == xBool;
+  if (!forEquality)
+    ret = !ret;
+  return ret;
+}
+
 z3::expr
 LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
   auto lhs = cmp->getOperand(0);
@@ -154,6 +181,15 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
 
   auto xLhs = createExpression(lhs);
   auto xRhs = createExpression(rhs);
+  int64_t rhsVal;
+  if (cmp->isEquality()) {
+    if (xLhs.is_bool() && xRhs.is_int())
+      return compareBoolAndInt(xLhs, xRhs,
+                               cmp->getPredicate() == llvm::CmpInst::ICMP_EQ);
+    else if (xLhs.is_int() && xRhs.is_bool())
+      return compareBoolAndInt(xRhs, xLhs,
+                               cmp->getPredicate() == llvm::CmpInst::ICMP_EQ);
+  }
   // std::cout << "inferCondition: xLhs = " << xLhs << "; xRhs = " << xRhs
   //          << std::endl;
 

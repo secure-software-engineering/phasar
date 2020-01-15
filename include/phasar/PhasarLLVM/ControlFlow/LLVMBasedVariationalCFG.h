@@ -26,6 +26,8 @@ class LLVMBasedVariationalCFG
   z3::expr createBinOp(const llvm::BinaryOperator *val) const;
   z3::expr createVariableOrGlobal(const llvm::LoadInst *val) const;
   z3::expr createConstant(const llvm::Constant *val) const;
+  z3::expr compareBoolAndInt(z3::expr xBool, z3::expr xInt,
+                             bool forEquality) const;
   bool isPPVariable(const llvm::GlobalVariable *glob, std::string &name) const;
 
 public:

@@ -79,7 +79,7 @@ TEST_F(VariabilityCFGTest, twovariables_desugared) {
   EXPECT_TRUE(doAnalysis(currInst, succInst, exp));
   std::cout << exp << std::endl;
   auto &ctx = VICFG->getContext();
-  compareResults(exp, ctx.int_const("B") != ctx.int_val(0));
+  compareResults(exp, ctx.bool_const("B_defined"));
 }
 // main function for the test case/*  */
 int main(int argc, char **argv) {
