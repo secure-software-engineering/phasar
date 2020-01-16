@@ -125,7 +125,7 @@ OpenSSLEVPKeyDerivationTypeStateDescription::getNextState(
 
 std::string
 OpenSSLEVPKeyDerivationTypeStateDescription::getTypeNameOfInterest() const {
-  return "struct._IO_FILE"; // NOT SURE WHAT TO D WITH THIS
+  return "struct.evp_kdp_ctx_st"; // NOT SURE WHAT TO DO WITH THIS
 }
 
 set<int> OpenSSLEVPKeyDerivationTypeStateDescription::getConsumerParamIdx(
