@@ -15,7 +15,7 @@ class IDETypeStateAnalysisFileIOTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/typestate_analysis/";
+      "build/test/llvm_test_code/typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
