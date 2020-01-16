@@ -61,7 +61,7 @@ const std::string LLVMTypeHierarchy::TypeInfoPrefixDemang = "typeinfo for ";
 
 LLVMTypeHierarchy::VertexProperties::VertexProperties(
     const llvm::StructType *Type)
-    : Type(Type), TypeName(Type->getStructName()), VFT(),
+    : Type(Type), TypeName(Type->getStructName().str()), VFT(),
       ReachableTypes({Type}) {}
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
@@ -294,10 +294,12 @@ LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
 }
 
 const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
-  for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
-    if (TypeGraph[V].TypeName == TypeName) {
-      return TypeGraph[V].Type;
-    }
+  if (ClearNameTypeMap.count(TypeName)) {
+    return ClearNameTypeMap.at(TypeName);
+  }
+  auto ClearName = boost::core::demangle(TypeName.c_str());
+  if (ClearNameTypeMap.count(ClearName)) {
+    return ClearNameTypeMap.at(ClearName);
   }
   return nullptr;
 }
@@ -337,10 +339,18 @@ bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "TypeHierarchy:\n";
-  boost::print_graph(
-      TypeGraph,
-      boost::get(&LLVMTypeHierarchy::VertexProperties::TypeName, TypeGraph),
-      OS);
+  boost::print_graph(TypeGraph,
+                     boost::get(&VertexProperties::TypeName, TypeGraph), OS);
+  // vertex_iterator_t ui, ui_end;
+  // for (boost::tie(ui, ui_end) = boost::vertices(TypeGraph); ui != ui_end;
+  // ++ui) {
+  //   OS << TypeGraph[*ui].TypeName << " --> ";
+  //   out_edge_iterator_t ei, ei_end;
+  //   for (boost::tie(ei, ei_end) = boost::out_edges(*ui, TypeGraph); ei !=
+  //   ei_end; ++ei)
+  //     OS << TypeGraph[target(*ei, TypeGraph)].TypeName << " ";
+  //   OS << '\n';
+  // }
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
     OS << "Virtual function table for: " << Ty->getName().str() << '\n';
@@ -433,13 +443,5 @@ void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
 //   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name,
 //   G)); boost::read_graphviz(in, G, dp); return G;
 // }
-
-void LLVMTypeHierarchy::printTransitiveClosure(std::ostream &OS) const {
-  bidigraph_t TC;
-  boost::transitive_closure(TypeGraph, TC);
-  boost::print_graph(
-      TC, boost::get(&LLVMTypeHierarchy::VertexProperties::TypeName, TypeGraph),
-      OS);
-}
 
 } // namespace psr

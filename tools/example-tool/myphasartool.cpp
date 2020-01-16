@@ -39,6 +39,8 @@ int main(int argc, const char **argv) {
   ProjectIRDB DB({argv[1]});
   if (auto F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
+    std::cout << "Type Hierarchy:\n";
+    H.print();
     LLVMPointsToInfo P(DB);
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
     // IFDS template parametrization test
