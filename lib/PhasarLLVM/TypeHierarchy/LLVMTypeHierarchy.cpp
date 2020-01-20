@@ -294,12 +294,10 @@ LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
 }
 
 const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
-  if (ClearNameTypeMap.count(TypeName)) {
-    return ClearNameTypeMap.at(TypeName);
-  }
-  auto ClearName = boost::core::demangle(TypeName.c_str());
-  if (ClearNameTypeMap.count(ClearName)) {
-    return ClearNameTypeMap.at(ClearName);
+  for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
+    if (TypeGraph[V].Type->getName() == TypeName) {
+      return TypeGraph[V].Type;
+    }
   }
   return nullptr;
 }
