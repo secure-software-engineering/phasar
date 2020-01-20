@@ -52,3 +52,9 @@ endif()
 
 set(LLVM_LINK_COMPONENTS
 )
+
+install(TARGETS phasar-llvm
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)

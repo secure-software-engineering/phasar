@@ -38,7 +38,6 @@ target_link_libraries(myphasartool
   ${CMAKE_THREAD_LIBS_INIT}
   ${CLANG_LIBRARIES}
   ${llvm_libs}
-  gtest
 )
 
 if(NOT PHASAR_IN_TREE)
@@ -49,4 +48,10 @@ target_link_libraries(myphasartool
 endif()
 
 set(LLVM_LINK_COMPONENTS
+)
+
+install(TARGETS myphasartool
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
 )

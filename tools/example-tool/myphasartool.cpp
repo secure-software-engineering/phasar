@@ -32,7 +32,9 @@ int main(int argc, const char **argv) {
   auto &lg = lg::get();
   if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
       boost::filesystem::is_directory(argv[1])) {
-    std::cerr << "usage: <prog> <ir file>\n";
+    std::cerr << "myphasartool\n"
+                 "A small PhASAR-based example program\n\n"
+                 "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
   initializeLogger(false);
