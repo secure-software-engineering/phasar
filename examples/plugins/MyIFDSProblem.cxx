@@ -1,18 +1,23 @@
 #include "MyIFDSProblem.h"
 #include <iostream>
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace std;
 using namespace psr;
 
 // Factory function that is used to create an instance by the Phasar framework.
 unique_ptr<IFDSTabulationProblemPlugin>
-makeMyIFDSProblem(LLVMBasedICFG &I, vector<string> EntryPoints) {
+makeMyIFDSProblem(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                  const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                  std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new MyIFDSProblem(I, EntryPoints));
+      new MyIFDSProblem(IRDB, TH, ICF, PT, EntryPoints));
 }
 
 // Is executed on plug-in load and has to register this plug-in to Phasar.
@@ -24,8 +29,12 @@ __attribute__((constructor)) void init() {
 // Is executed on unload, can be used to unregister the plug-in.
 __attribute__((destructor)) void fini() { cout << "fini - MyIFDSProblem\n"; }
 
-MyIFDSProblem::MyIFDSProblem(LLVMBasedICFG &I, vector<string> EntryPoints)
-    : IFDSTabulationProblemPlugin(I, EntryPoints) {}
+MyIFDSProblem::MyIFDSProblem(const ProjectIRDB *IRDB,
+                             const LLVMTypeHierarchy *TH,
+                             const LLVMBasedICFG *ICF,
+                             const LLVMPointsToInfo *PT,
+                             std::set<std::string> EntryPoints)
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 MyIFDSProblem::getNormalFlowFunction(const llvm::Instruction *curr,
@@ -101,8 +110,9 @@ MyIFDSProblem::initialSeeds() {
   cout << "MyIFDSProblem::initialSeeds()\n";
   map<const llvm::Instruction *, set<const llvm::Value *>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
-    SeedMap.insert(std::make_pair(&icfg.getMethod(EntryPoint)->front().front(),
-                                  set<const llvm::Value *>({zeroValue()})));
+    SeedMap.insert(
+        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
+                       set<const llvm::Value *>({getZeroValue()})));
   }
   return SeedMap;
 }
