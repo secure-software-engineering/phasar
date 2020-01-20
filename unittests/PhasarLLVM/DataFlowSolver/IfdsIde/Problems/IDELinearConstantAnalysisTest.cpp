@@ -506,11 +506,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_02) {
   GroundTruth.emplace("main", 4, "g", 10);
   GroundTruth.emplace("main", 4, "i", 10);
   GroundTruth.emplace("main", 5, "g", 10);
-  GroundTruth.emplace("main", 5, "i", -20);
-  GroundTruth.emplace("main", 6, "g", -20);
-  GroundTruth.emplace("main", 6, "i", -20);
-  GroundTruth.emplace("main", 7, "g", -20);
-  GroundTruth.emplace("main", 7, "i", -20);
+  GroundTruth.emplace("main", 5, "i", -10);
+  GroundTruth.emplace("main", 6, "g", -10);
+  GroundTruth.emplace("main", 6, "i", -10);
+  GroundTruth.emplace("main", 7, "g", -10);
+  GroundTruth.emplace("main", 7, "i", -10);
   compareResults(Results, GroundTruth);
 }
 
