@@ -23,6 +23,7 @@
 namespace llvm {
 class Value;
 class Function;
+class Instruction;
 } // namespace llvm
 
 namespace psr {
@@ -30,7 +31,8 @@ namespace psr {
 class ProjectIRDB;
 class PointsToGraph;
 
-class LLVMPointsToInfo : public PointsToInfo<const llvm::Value *> {
+class LLVMPointsToInfo
+    : public PointsToInfo<const llvm::Value *, const llvm::Instruction *> {
 private:
   std::unordered_map<const llvm::Function *, llvm::AAResults> AAInfos;
   std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>>
@@ -41,10 +43,14 @@ public:
 
   ~LLVMPointsToInfo() override = default;
 
-  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2) override;
+  AliasResult alias(const llvm::Value *V1, const llvm::Value *V2,
+                    const llvm::Instruction *I = nullptr) override;
 
   std::set<const llvm::Value *>
-  getPointsToSet(const llvm::Value *V) const override;
+  getPointsToSet(const llvm::Value *V,
+                 const llvm::Instruction *I = nullptr) const override;
+
+  void print(std::ostream &OS = std::cout) const override;
 
   nlohmann::json getAsJson() const override;
 

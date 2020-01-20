@@ -15,9 +15,9 @@
  */
 
 #include <cassert>
+#include <fstream>
 #include <iomanip>
 #include <sstream>
-#include <fstream>
 
 #include <boost/filesystem.hpp>
 
@@ -25,7 +25,6 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/PAMM.h>
-
 
 using namespace psr;
 using json = nlohmann::json;

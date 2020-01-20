@@ -30,7 +30,7 @@ namespace psr {
 
 class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
-template <typename V> class PointsToInfo;
+template <typename V, typename N> class PointsToInfo;
 
 template <typename N, typename D, typename M, typename T, typename V,
           typename L, typename I>
@@ -43,7 +43,7 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, T, V, I>,
 
 public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
-                       const I *ICF, const PointsToInfo<V> *PT,
+                       const I *ICF, const PointsToInfo<V, N> *PT,
                        std::set<std::string> EntryPoints = {})
       : IFDSTabulationProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT,
                                                 EntryPoints) {}

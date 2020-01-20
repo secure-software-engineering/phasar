@@ -149,46 +149,6 @@ struct PointsToGraph::reachability_dfs_visitor : boost::default_dfs_visitor {
   }
 };
 
-void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
-                  const llvm::Value *V2, const llvm::Module *M) {
-  if (P) {
-    std::string o1, o2;
-    {
-      llvm::raw_string_ostream os1(o1), os2(o2);
-      V1->printAsOperand(os1, true, M);
-      V2->printAsOperand(os2, true, M);
-    }
-
-    if (o2 < o1)
-      std::swap(o1, o2);
-    llvm::errs() << "  " << Msg << ":\t" << o1 << ", " << o2 << "\n";
-  }
-}
-
-void PrintModRefResults(const char *Msg, bool P, llvm::Instruction *I,
-                        llvm::Value *Ptr, llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ":  Ptr: ";
-    Ptr->printAsOperand(llvm::errs(), true, M);
-    llvm::errs() << "\t<->" << *I << '\n';
-  }
-}
-
-void PrintModRefResults(const char *Msg, bool P, llvm::CallSite CSA,
-                        llvm::CallSite CSB, llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ": " << *CSA.getInstruction() << " <-> "
-                 << *CSB.getInstruction() << '\n';
-  }
-}
-
-void PrintLoadStoreResults(const char *Msg, bool P, const llvm::Value *V1,
-                           const llvm::Value *V2, const llvm::Module *M) {
-  if (P) {
-    llvm::errs() << "  " << Msg << ": " << *V1 << " <-> " << *V2 << '\n';
-  }
-}
-
 // points-to graph internal stuff
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *v)
@@ -321,11 +281,6 @@ PointsToGraph::PointsToGraph(vector<string> fnames) {
   ContainedFunctions.insert(fnames.begin(), fnames.end());
 }
 
-bool PointsToGraph::isInterestingPointer(llvm::Value *V) {
-  return V->getType()->isPointerTy() &&
-         !llvm::isa<llvm::ConstantPointerNull>(V);
-}
-
 vector<pair<unsigned, const llvm::Value *>>
 PointsToGraph::getPointersEscapingThroughParams() {
   vector<pair<unsigned, const llvm::Value *>> escaping_pointers;
@@ -440,19 +395,11 @@ bool PointsToGraph::representsSingleFunction() {
   return ContainedFunctions.size() == 1;
 }
 
-void PointsToGraph::print() {
+void PointsToGraph::print(std::ostream &OS) const {
   for (const auto &Fn : ContainedFunctions) {
     cout << "PointsToGraph for " << Fn << ":\n";
     boost::print_graph(
-        ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
-  }
-}
-
-void PointsToGraph::print() const {
-  for (const auto &Fn : ContainedFunctions) {
-    cout << "PointsToGraph for " << Fn << ":\n";
-    boost::print_graph(
-        ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg));
+        ptg, boost::get(&PointsToGraph::VertexProperties::ir_code, ptg), OS);
   }
 }
 

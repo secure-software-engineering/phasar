@@ -42,26 +42,30 @@ int main(int argc, const char **argv) {
     std::cout << "Type Hierarchy:\n";
     H.print();
     LLVMPointsToInfo P(DB);
+    std::cout << "Points-to Information:\n";
+    P.print();
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
-    // IFDS template parametrization test
-    std::cout << "Testing IFDS:\n";
-    IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
-    IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
-               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
-        S(L);
-    S.solve();
-    S.dumpResults();
-    // IDE template parametrization test
-    std::cout << "Testing IDE:\n";
-    IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
-    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
-              IDELinearConstantAnalysis::i_t>
-        T(M);
-    T.solve();
-    T.dumpResults();
+    std::cout << "Inter-procedural control-flow graph:\n";
+    I.print();
+    // // IFDS template parametrization test
+    // std::cout << "Testing IFDS:\n";
+    // IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
+    // IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
+    //            IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+    //            IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
+    //     S(L);
+    // S.solve();
+    // S.dumpResults();
+    // // IDE template parametrization test
+    // std::cout << "Testing IDE:\n";
+    // IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
+    // IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
+    //           IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+    //           IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+    //           IDELinearConstantAnalysis::i_t>
+    //     T(M);
+    // T.solve();
+    // T.dumpResults();
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
   }

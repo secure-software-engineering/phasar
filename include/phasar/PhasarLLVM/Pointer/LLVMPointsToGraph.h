@@ -17,11 +17,14 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 
-#include <json.hpp>
+#include <iostream>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+
 #include <llvm/IR/CallSite.h>
+
+#include <json.hpp>
 
 #include <phasar/Config/Configuration.h>
 
@@ -36,20 +39,14 @@ class Type;
 
 namespace psr {
 
-void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
-                  const llvm::Value *V2, const llvm::Module *M);
-
-inline void PrintModRefResults(const char *Msg, bool P,
-                               const llvm::Instruction *I,
-                               const llvm::Value *Ptr, const llvm::Module *M);
-
-inline void PrintModRefResults(const char *Msg, bool P,
-                               const llvm::CallSite CSA,
-                               const llvm::CallSite CSB, const llvm::Module *M);
-
-inline void PrintLoadStoreResults(const char *Msg, bool P,
-                                  const llvm::Value *V1, const llvm::Value *V2,
-                                  const llvm::Module *M);
+/**
+ * @brief Returns true if the given pointer is an interesting pointer,
+ *        i.e. not a constant null pointer.
+ */
+static inline bool isInterestingPointer(llvm::Value *V) {
+  return V->getType()->isPointerTy() &&
+         !llvm::isa<llvm::ConstantPointerNull>(V);
+}
 
 enum class PointerAnalysisType {
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
@@ -182,12 +179,6 @@ public:
   size_t size() const;
 
   /**
-   * @brief Returns true if the given pointer is an interesting pointer,
-   *        i.e. not a constant null pointer.
-   */
-  inline bool isInterestingPointer(llvm::Value *V);
-
-  /**
    * @brief Returns a std::vector containing pointers which are escaping through
    *        function parameters.
    * @return Vector holding function argument pointers and the function argument
@@ -265,12 +256,7 @@ public:
   /**
    * @brief Prints the points-to graph to the command-line.
    */
-  void print();
-
-  /**
-   * @brief Prints the points-to graph to the command-line.
-   */
-  void print() const;
+  void print(std::ostream &OS = std::cout) const;
 
   /**
    * @brief Prints the points-to graph as a .dot file.
