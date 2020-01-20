@@ -57,6 +57,9 @@ public:
 
   std::set<const llvm::Function *>
   resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+
+  std::set<const llvm::Function *>
+  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
 };
 } // namespace psr
 

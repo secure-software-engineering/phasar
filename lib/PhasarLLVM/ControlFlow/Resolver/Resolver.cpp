@@ -98,6 +98,8 @@ void Resolver::postCall(const llvm::Instruction *inst) {}
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   // we may wish to optimise this function
+  // naive implementation that considers every function whose signature
+  // matches the call-site's signature as a callee target
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Call function pointer: "

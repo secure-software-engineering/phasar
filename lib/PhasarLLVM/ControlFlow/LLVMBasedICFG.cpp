@@ -501,14 +501,14 @@ bool LLVMBasedICFG::isPrimitiveFunction(const string &name) {
   return true;
 }
 
-void LLVMBasedICFG::print(ostream &OS) {
-  cout << "CallGraph:\n";
+void LLVMBasedICFG::print(ostream &OS) const {
+  cout << "Call Graph:\n";
   boost::print_graph(
       CallGraph, boost::get(&LLVMBasedICFG::VertexProperties::FName, CallGraph),
       OS);
 }
 
-void LLVMBasedICFG::printAsDot(std::ostream &OS) {
+void LLVMBasedICFG::printAsDot(std::ostream &OS) const {
   boost::write_graphviz(
       OS, CallGraph,
       boost::make_label_writer(
@@ -520,11 +520,11 @@ void LLVMBasedICFG::printAsDot(std::ostream &OS) {
 void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
   ofstream ofs(filename);
   boost::write_graphviz(
-      ofs, WholeModulePTG.ptg,
-      boost::make_label_writer(boost::get(
-          &PointsToGraph::VertexProperties::ir_code, WholeModulePTG.ptg)),
-      boost::make_label_writer(boost::get(
-          &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
+      ofs, WholeModulePTG.PAG,
+      boost::make_label_writer(
+          boost::get(&PointsToGraph::VertexProperties::IR, WholeModulePTG.PAG)),
+      boost::make_label_writer(
+          boost::get(&PointsToGraph::EdgeProperties::IR, WholeModulePTG.PAG)));
 }
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {

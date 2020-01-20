@@ -18,6 +18,8 @@
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 
 #include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
@@ -48,18 +50,6 @@ static inline bool isInterestingPointer(llvm::Value *V) {
          !llvm::isa<llvm::ConstantPointerNull>(V);
 }
 
-enum class PointerAnalysisType {
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
-  Invalid
-};
-
-std::string to_string(const PointerAnalysisType &PA);
-
-PointerAnalysisType to_PointerAnalysisType(const std::string &S);
-
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
-
 // TODO: add a more high level description.
 /**
  * 	This class is a representation of a points-to graph. It is possible to
@@ -83,9 +73,9 @@ public:
      * This might be an Instruction, an Operand of an Instruction, Global
      * Variable or a formal Argument.
      */
-    const llvm::Value *value = nullptr;
+    const llvm::Value *V = nullptr;
     /// Holds the llvm IR code for that vertex.
-    std::string ir_code;
+    std::string IR;
 
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
@@ -96,9 +86,9 @@ public:
    */
   struct EdgeProperties {
     /// This might be an Instruction, in particular a Call Instruction.
-    const llvm::Value *value = nullptr;
+    const llvm::Value *V = nullptr;
     /// Holds the llvm IR code for that edge.
-    std::string ir_code;
+    std::string IR;
 
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
@@ -117,23 +107,22 @@ public:
 
   /// The type for a vertex iterator.
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
-  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
-  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
+  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator_t;
+  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator_t;
 
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
   inline const static std::set<std::string> HeapAllocationFunctions = {
       "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
 
 private:
-  struct allocation_site_dfs_visitor;
-  struct reachability_dfs_visitor;
+  struct AllocationSiteDFSVisitor;
+  struct ReachabilityDFSVisitor;
 
   /// The points to graph.
-  graph_t ptg;
-  std::map<const llvm::Value *, vertex_t> value_vertex_map;
+  graph_t PAG;
+  std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::set<std::string> ContainedFunctions;
+  std::unordered_set<std::string> ContainedFunctions;
 
 public:
   /**
@@ -147,18 +136,7 @@ public:
    *                              False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::Function *F, llvm::AAResults &AA,
-                bool onlyConsiderMustAlias = false);
-
-  /**
-   * It is used when a points-to graph is restored from the database.
-   *
-   * @brief This will create an empty points-to graph, except the functions
-   * names
-   * that are contained in the points-to graph.
-   * @param fnames Names of functions contained in the points-to graph.
-   */
-  PointsToGraph(std::vector<std::string> fnames);
+  PointsToGraph(llvm::Function *F, llvm::AAResults &AA);
 
   /**
    * @brief This will create an empty points-to graph. It is used when points-to

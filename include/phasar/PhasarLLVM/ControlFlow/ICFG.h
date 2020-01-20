@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_ICFG_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
@@ -68,6 +68,10 @@ public:
 
   virtual std::set<N> getReturnSitesOfCallAt(N stmt) const = 0;
 
+  using CFG<N, M>::print; // tell the compiler we wish to have both prints
+  virtual void print(std::ostream &OS = std::cout) const = 0;
+
+  using CFG<N, M>::getAsJson; // tell the compiler we wish to have both prints
   virtual nlohmann::json getAsJson() const = 0;
 };
 

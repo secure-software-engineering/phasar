@@ -157,12 +157,15 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print(std::ostream &OS = std::cout);
+  using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
+  void print(std::ostream &OS = std::cout) const override;
 
-  void printAsDot(std::ostream &OS = std::cout);
+  void printAsDot(std::ostream &OS = std::cout) const;
 
   void printInternalPTGAsDot(const std::string &filename);
 
+  using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
+                                 // prints
   nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();

@@ -9,9 +9,11 @@
 
 #include <llvm/ADT/SetVector.h>
 #include <llvm/ADT/SmallVector.h>
+#include <llvm/ADT/StringSwitch.h>
 #include <llvm/Analysis/AliasAnalysis.h>
 #include <llvm/Analysis/BasicAliasAnalysis.h>
 #include <llvm/Analysis/CFLAndersAliasAnalysis.h>
+#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
 #include <llvm/IR/Argument.h>
 #include <llvm/IR/DataLayout.h>
 #include <llvm/IR/Function.h>
@@ -73,14 +75,51 @@ static inline void PrintLoadStoreResults(llvm::AliasResult AR, bool P,
   }
 }
 
-LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
-  llvm::PassBuilder PB;
-  // Create the analysis manager
+std::string to_string(const PointerAnalysisType &PA) {
+  switch (PA) {
+  default:
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  case PointerAnalysisType::TYPE:                                              \
+    return NAME;                                                               \
+    break;
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+  }
+}
+
+PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
+  PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(NAME, PointerAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+                                 .Default(PointerAnalysisType::Invalid);
+  if (Type == PointerAnalysisType::Invalid) {
+    Type = llvm::StringSwitch<PointerAnalysisType>(S)
+#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
+  .Case(CMDFLAG, PointerAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+               .Default(PointerAnalysisType::Invalid);
+  }
+  return Type;
+}
+
+std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA) {
+  return os << to_string(PA);
+}
+
+LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB, PointerAnalysisType PAT) {
   // llvm::AAManager AA = PB.buildDefaultAAPipeline();
   llvm::AAManager AA;
   AA.registerFunctionAnalysis<llvm::BasicAA>();
-  AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
-  llvm::FunctionAnalysisManager FAM;
+  switch (PAT) {
+  case PointerAnalysisType::CFLAnders:
+    AA.registerFunctionAnalysis<llvm::CFLAndersAA>();
+    break;
+  case PointerAnalysisType::CFLSteens:
+    AA.registerFunctionAnalysis<llvm::CFLSteensAA>();
+    break;
+  default:
+    break;
+  }
   FAM.registerPass([&] { return std::move(AA); });
   PB.registerFunctionAnalyses(FAM);
   llvm::FunctionPassManager FPM;
@@ -90,10 +129,10 @@ LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB) {
     for (auto &F : *M) {
       if (!F.isDeclaration()) {
         llvm::PreservedAnalyses PA = FPM.run(F, FAM);
-        llvm::AAResults AAR(std::move(FAM.getResult<llvm::AAManager>(F)));
-        PointsToGraphs.insert(
-            std::make_pair(&F, std::make_unique<PointsToGraph>(&F, AAR)));
-        AAInfos.insert(std::make_pair(&F, std::move(AAR)));
+        llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(F);
+        AAInfos.insert(std::make_pair(&F, &AAR));
+        PointsToGraphs.insert(std::make_pair(
+            &F, std::make_unique<PointsToGraph>(&F, *AAInfos.at(&F))));
       }
     }
   }
@@ -129,7 +168,7 @@ AliasResult LLVMPointsToInfo::alias(const llvm::Value *V1,
     // don't know, used intra-procedural information for inter-procedural query
     return AliasResult::MayAlias;
   }
-  switch (AAInfos.at(V1F).alias(V1, V2)) {
+  switch (AAInfos.at(V1F)->alias(V1, V2)) {
   case llvm::NoAlias:
     return AliasResult::NoAlias;
     break;
@@ -164,7 +203,7 @@ LLVMPointsToInfo::getPointsToSet(const llvm::Value *V,
 }
 
 void LLVMPointsToInfo::print(std::ostream &OS) const {
-  OS << "PointsToInfo:\n";
+  OS << "Points-to Info:\n";
   for (auto &[Fn, AA] : AAInfos) {
     bool PrintAll, PrintNoAlias, PrintMayAlias, PrintPartialAlias,
         PrintMustAlias, EvalAAMD, PrintNoModRef, PrintMod, PrintRef,
@@ -231,18 +270,18 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
       auto I1Size = llvm::LocationSize::unknown();
       llvm::Type *I1ElTy =
           llvm::cast<llvm::PointerType>((*I1)->getType())->getElementType();
-      if (I1ElTy->isSized())
+      if (I1ElTy->isSized()) {
         I1Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I1ElTy));
-
+      }
       for (llvm::SetVector<llvm::Value *>::iterator I2 = Pointers.begin();
            I2 != I1; ++I2) {
         auto I2Size = llvm::LocationSize::unknown();
         llvm::Type *I2ElTy =
             llvm::cast<llvm::PointerType>((*I2)->getType())->getElementType();
-        if (I2ElTy->isSized())
+        if (I2ElTy->isSized()) {
           I2Size = llvm::LocationSize::precise(DL.getTypeStoreSize(I2ElTy));
-
-        llvm::AliasResult AR = AA.alias(*I1, I1Size, *I2, I2Size);
+        }
+        llvm::AliasResult AR = AA->alias(*I1, I1Size, *I2, I2Size);
         switch (AR) {
         case llvm::NoAlias:
           PrintResults(AR, PrintNoAlias, *I1, *I2, F->getParent());
@@ -264,7 +303,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
       // iterate over all pairs of load, store
       for (llvm::Value *Load : Loads) {
         for (llvm::Value *Store : Stores) {
-          llvm::AliasResult AR = AA.alias(
+          llvm::AliasResult AR = AA->alias(
               llvm::MemoryLocation::get(llvm::cast<llvm::LoadInst>(Load)),
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(Store)));
           switch (AR) {
@@ -294,7 +333,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
            I1 != E; ++I1) {
         for (llvm::SetVector<llvm::Value *>::iterator I2 = Stores.begin();
              I2 != I1; ++I2) {
-          llvm::AliasResult AR = AA.alias(
+          llvm::AliasResult AR = AA->alias(
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I1)),
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I2)));
           switch (AR) {
@@ -325,7 +364,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
         if (ElTy->isSized())
           Size = llvm::LocationSize::precise(DL.getTypeStoreSize(ElTy));
 
-        switch (AA.getModRefInfo(Call, Pointer, Size)) {
+        switch (AA->getModRefInfo(Call, Pointer, Size)) {
         case llvm::ModRefInfo::NoModRef:
           PrintModRefResults("NoModRef", PrintNoModRef, Call, Pointer,
                              F->getParent());
@@ -366,7 +405,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
       for (llvm::CallBase *CallB : Calls) {
         if (CallA == CallB)
           continue;
-        switch (AA.getModRefInfo(CallA, CallB)) {
+        switch (AA->getModRefInfo(CallA, CallB)) {
         case llvm::ModRefInfo::NoModRef:
           PrintModRefResults("NoModRef", PrintNoModRef, CallA, CallB,
                              F->getParent());
@@ -410,6 +449,13 @@ PointsToGraph *
 LLVMPointsToInfo::getPointsToGraph(const llvm::Function *F) const {
   if (PointsToGraphs.count(F)) {
     return PointsToGraphs.at(F).get();
+  }
+  return nullptr;
+}
+
+llvm::AAResults *LLVMPointsToInfo::getAAResults(const llvm::Function *F) const {
+  if (AAInfos.count(F)) {
+    return AAInfos.at(F);
   }
   return nullptr;
 }

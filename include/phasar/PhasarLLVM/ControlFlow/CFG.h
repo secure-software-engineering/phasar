@@ -21,6 +21,8 @@
 #include <utility> // std::pair
 #include <vector>
 
+#include <json.hpp>
+
 namespace psr {
 
 template <typename N, typename M> class CFG {
@@ -52,6 +54,10 @@ public:
   virtual std::string getStatementId(N stmt) const = 0;
 
   virtual std::string getFunctionName(M fun) const = 0;
+
+  virtual void print(M fun, std::ostream &OS) const = 0;
+
+  virtual nlohmann::json getAsJson(M fun) const = 0;
 };
 
 } // namespace psr

@@ -92,12 +92,16 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print(std::ostream &OS);
+  using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
+                                     // prints
+  void print(std::ostream &OS) const override;
 
-  void printAsDot(std::ostream &OS);
+  void printAsDot(std::ostream &OS) const;
 
   void printInternalPTGAsDot(const std::string &filename);
 
+  using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
+                                         // both prints
   nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();

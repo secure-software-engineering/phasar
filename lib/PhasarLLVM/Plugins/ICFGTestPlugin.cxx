@@ -97,6 +97,10 @@ std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::m_t fun) const {
   return "";
 }
 
+void ICFGTestPlugin::print(ICFGTestPlugin::m_t F, std::ostream &OS) const {}
+
+nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::m_t F) const { return ""; }
+
 // ICFG parts
 
 std::set<ICFGTestPlugin::m_t> ICFGTestPlugin::getAllFunctions() const {
@@ -152,6 +156,8 @@ std::set<ICFGTestPlugin::n_t>
 ICFGTestPlugin::getReturnSitesOfCallAt(ICFGTestPlugin::n_t stmt) const {
   return {};
 }
+
+void ICFGTestPlugin::print(std::ostream &OS) const {}
 
 nlohmann::json ICFGTestPlugin::getAsJson() const { return ""_json; }
 

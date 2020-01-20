@@ -338,7 +338,7 @@ size_t LLVMTypeHierarchy::size() const {
 bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
-  OS << "TypeHierarchy:\n";
+  OS << "Type Hierarchy:\n";
   boost::print_graph(TypeGraph,
                      boost::get(&VertexProperties::TypeName, TypeGraph), OS);
   // vertex_iterator_t ui, ui_end;
