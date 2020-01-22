@@ -73,6 +73,8 @@ protected:
                 IDETypeStateAnalysis::i_t> &solver) {
     for (auto InstToGroundTruth : groundTruth) {
       auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
+      // std::cout << "Handle results at " << InstToGroundTruth.first <<
+      // std::endl;
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> results;
       for (auto Result : solver.resultsAt(Inst, true)) {
@@ -151,11 +153,15 @@ TEST_F(IDETypeStateAnalysisFileIOTest, HandleTypeState_04) {
       llvmtssolver(*TSProblem);
 
   llvmtssolver.solve();
+
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // At exit in foo()
       {6, {{"2", IOSTATE::OPENED}, {"8", IOSTATE::OPENED}}},
+      // Before closing in main()
+      {12, {{"2", IOSTATE::UNINIT}, {"8", IOSTATE::UNINIT}}},
       // At exit in main()
-      {14, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
+      {14, {{"2", IOSTATE::ERROR}, {"8", IOSTATE::ERROR}}}};
+
   compareResults(gt, llvmtssolver);
 }
 
@@ -170,17 +176,14 @@ TEST_F(IDETypeStateAnalysisFileIOTest, HandleTypeState_05) {
   llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // Before if statement
-      {10,
-       {{"4", IOSTATE::OPENED},
-        {"6", IOSTATE::OPENED},
-        {"11", IOSTATE::OPENED}}},
+      {10, {{"4", IOSTATE::OPENED}, {"6", IOSTATE::OPENED}}},
       // Inside if statement at last instruction
       {13,
        {{"4", IOSTATE::CLOSED},
         {"6", IOSTATE::CLOSED},
         {"11", IOSTATE::CLOSED}}},
       // After if statement
-      {14, {{"4", IOSTATE::BOT}, {"6", IOSTATE::BOT}, {"11", IOSTATE::BOT}}}};
+      {14, {{"4", IOSTATE::BOT}, {"6", IOSTATE::BOT}}}};
   compareResults(gt, llvmtssolver);
 }
 
@@ -251,7 +254,7 @@ TEST_F(IDETypeStateAnalysisFileIOTest, HandleTypeState_07) {
       // After store
       {14,
        {{"8", IOSTATE::OPENED},
-        {"10", IOSTATE::OPENED},
+        {"10", IOSTATE::ERROR},
         {"12", IOSTATE::OPENED}}},
       // At exit in main()
       {16, {{"2", IOSTATE::CLOSED}, {"8", IOSTATE::CLOSED}}}};
@@ -327,21 +330,18 @@ TEST_F(IDETypeStateAnalysisFileIOTest, HandleTypeState_11) {
 
   llvmtssolver.solve();
   const std::map<std::size_t, std::map<std::string, int>> gt = {
-      // At exit in bar()
+      // At exit in bar(): closing uninitialized file-handle gives error-state
       {6,
-       {{"2", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}},
+       {{"2", IOSTATE::ERROR}, {"7", IOSTATE::ERROR}, {"13", IOSTATE::ERROR}}},
       // At exit in foo()
       {11,
        {{"2", IOSTATE::OPENED},
         {"7", IOSTATE::OPENED},
         {"13", IOSTATE::OPENED}}},
-      // At exit in main()
+      // At exit in main(): due to aliasing the error-state from bar is
+      // propagated back to main
       {19,
-       {{"2", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}}};
+       {{"2", IOSTATE::ERROR}, {"7", IOSTATE::ERROR}, {"13", IOSTATE::ERROR}}}};
   compareResults(gt, llvmtssolver);
 }
 
@@ -422,37 +422,52 @@ TEST_F(IDETypeStateAnalysisFileIOTest, HandleTypeState_15) {
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // After store of ret val of first fopen()
       {9,
-       {{"5", IOSTATE::OPENED},
-        {"7", IOSTATE::OPENED},
-        {"9", IOSTATE::OPENED},
-        {"11", IOSTATE::OPENED},
-        {"13", IOSTATE::OPENED}}},
+       {
+           {"5", IOSTATE::OPENED}, {"7", IOSTATE::OPENED},
+           // for 9, 11, 13 state is top
+           // {"9", IOSTATE::OPENED},
+           // {"11", IOSTATE::OPENED},
+           // {"13", IOSTATE::OPENED}
+       }},
       // After first fclose()
       {11,
-       {{"5", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"9", IOSTATE::CLOSED},
-        {"11", IOSTATE::CLOSED},
-        {"13", IOSTATE::CLOSED}}},
+       {
+           {"5", IOSTATE::CLOSED},
+           {"7", IOSTATE::CLOSED},
+           {"9", IOSTATE::CLOSED},
+           // for 11 and 13 state is top
+           // {"11", IOSTATE::CLOSED},
+           // {"13", IOSTATE::CLOSED}
+       }},
       // After second fopen() but before storing ret val
       {12,
-       {{"5", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"9", IOSTATE::CLOSED},
-        {"11", IOSTATE::OPENED},
-        {"13", IOSTATE::CLOSED}}},
+       {
+           {"5", IOSTATE::CLOSED},
+           {"7", IOSTATE::CLOSED},
+           {"9", IOSTATE::CLOSED},
+           {"11", IOSTATE::OPENED},
+           // for 13 state is top
+           //{"13", IOSTATE::CLOSED}
+       }},
       // After storing ret val of second fopen()
       {13,
-       {{"5", IOSTATE::OPENED},
-        {"7", IOSTATE::OPENED},
-        {"9", IOSTATE::OPENED},
-        {"11", IOSTATE::OPENED},
-        {"13", IOSTATE::OPENED}}},
+       {
+           {"5", IOSTATE::OPENED},
+           {"7", IOSTATE::CLOSED}, // 7 and 9 do not alias 11
+           {"9", IOSTATE::CLOSED},
+           {"11", IOSTATE::OPENED},
+           // for 13 state is top
+           //{"13", IOSTATE::OPENED}
+       }},
       // At exit in main()
       {15,
        {{"5", IOSTATE::CLOSED},
-        {"7", IOSTATE::CLOSED},
-        {"9", IOSTATE::CLOSED},
+        // Due to flow-insensitive alias information, the
+        // closed file-handle (which has ID 13) may alias
+        // the closed file handles 7 and 9. Hence closed
+        // + closed gives error for 7 and 9 => false positive
+        {"7", IOSTATE::ERROR},
+        {"9", IOSTATE::ERROR},
         {"11", IOSTATE::CLOSED},
         {"13", IOSTATE::CLOSED}}}};
   compareResults(gt, llvmtssolver);
