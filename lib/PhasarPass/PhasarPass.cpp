@@ -70,7 +70,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMTypeHierarchy H(DB);
   LLVMPointsToInfo PT(DB);
   LLVMBasedCFG CFG;
-  LLVMBasedICFG I(H, DB, CGTy, EntryPointsSet);
+  LLVMBasedICFG I(DB, CGTy, EntryPointsSet, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
     IFDSSolverTest ifdstest(&DB, &H, &I, &PT, EntryPointsSet);
     IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::m_t,

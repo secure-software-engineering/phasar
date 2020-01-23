@@ -46,15 +46,10 @@ private:
 public:
   LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG);
 
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
-
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                         CallGraphAnalysisType CGType,
-                         const std::set<std::string> &EntryPoints = {"main"});
-
-  LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                         const llvm::Module &M, CallGraphAnalysisType CGType,
-                         std::set<std::string> EntryPoints = {});
+  LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                         const std::set<std::string> &EntryPoints = {},
+                         LLVMTypeHierarchy *TH = nullptr,
+                         LLVMPointsToInfo *PT = nullptr);
 
   ~LLVMBasedBackwardsICFG() override = default;
 
@@ -97,23 +92,25 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print();
+  using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
+                                     // prints
+  void print(std::ostream &OS) const override;
 
-  void printAsDot(const std::string &filename);
+  void printAsDot(std::ostream &OS) const;
 
-  void printInternalPTGAsDot(const std::string &filename);
+  void printInternalPTGAsDot(std::ostream &OS) const;
 
+  using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
+                                         // both prints
   nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
 
-  void exportPATBCJSON();
-
   const PointsToGraph &getWholeModulePTG() const;
 
-  std::vector<std::string> getDependencyOrderedFunctions();
+  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };
 
 } // namespace psr

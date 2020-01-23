@@ -33,8 +33,8 @@ protected:
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
     TH = new LLVMTypeHierarchy(*IRDB);
     PT = new LLVMPointsToInfo(*IRDB);
-    ICFG =
-        new LLVMBasedICFG(*TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
+                             PT);
     // TSF = new TaintSensitiveFunctions(true);
     UninitProblem =
         new IFDSUninitializedVariables(IRDB, TH, ICFG, PT, EntryPoints);
@@ -210,6 +210,7 @@ TEST_F(IFDSUninitializedVariablesTest, UninitTest_10_SHOULD_LEAK) {
              IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
       Solver(*UninitProblem);
   Solver.solve();
+  UninitProblem->emitTextReport(std::cout, Solver.getSolverResults());
   map<int, set<string>> GroundTruth;
   //%2 = load i32, i32 %1
   GroundTruth[2] = {"0"};

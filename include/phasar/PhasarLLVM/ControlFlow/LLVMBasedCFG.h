@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDCFG_H_
 
+#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -69,6 +70,11 @@ public:
   std::string getStatementId(const llvm::Instruction *stmt) const override;
 
   std::string getFunctionName(const llvm::Function *fun) const override;
+
+  void print(const llvm::Function *F,
+             std::ostream &OS = std::cout) const override;
+
+  nlohmann::json getAsJson(const llvm::Function *F) const override;
 };
 
 } // namespace psr

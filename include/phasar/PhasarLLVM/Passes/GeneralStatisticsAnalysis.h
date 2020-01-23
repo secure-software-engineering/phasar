@@ -95,12 +95,11 @@ public:
   size_t getStoreInstructions() const;
 
   /**
-  * @brief Returns the number of load instructions.
-  */
+   * @brief Returns the number of load instructions.
+   */
   size_t getLoadInstructions();
 
-
-    /**
+  /**
    * @brief Returns all possible Types.
    */
   std::set<const llvm::Type *> getAllocatedTypes() const;

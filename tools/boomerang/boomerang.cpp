@@ -12,6 +12,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/SyncPDS/Solver/SyncPDSSolver.h>
 #include <phasar/Utils/Logger.h>
 
@@ -34,7 +35,8 @@ int main(int argc, char **argv) {
   initializeLogger(false);
   ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
   LLVMTypeHierarchy H(DB);
-  LLVMBasedICFG ICFG(H, DB, CallGraphAnalysisType::OTF, {"main"});
+  LLVMPointsToInfo P(DB);
+  LLVMBasedICFG ICFG(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
   for (auto &F : *DB.getWPAModule()) {
     if (F.isDeclaration()) { continue; }
     llvm::outs() << "ANALYZE FUNCTION: " << F.getName() << '\n';

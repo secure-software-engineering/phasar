@@ -10,6 +10,7 @@
 #ifndef ICFGTESTPLUGIN_H_
 #define ICFGTESTPLUGIN_H_
 
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -66,6 +67,10 @@ public:
 
   std::string getFunctionName(m_t fun) const override;
 
+  void print(m_t F, std::ostream &OS = std::cout) const override;
+
+  nlohmann::json getAsJson(m_t F) const override;
+
   // ICFG parts
 
   std::set<m_t> getAllFunctions() const override;
@@ -91,6 +96,8 @@ public:
   std::set<n_t> getExitPointsOf(m_t fun) const override;
 
   std::set<n_t> getReturnSitesOfCallAt(n_t stmt) const override;
+
+  void print(std::ostream &OS = std::cout) const override;
 
   nlohmann::json getAsJson() const override;
 };

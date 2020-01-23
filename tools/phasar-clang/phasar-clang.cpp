@@ -9,10 +9,10 @@
 
 #include <iostream>
 
-#include <phasar/Controller/AnalysisExecutor.h>
+// #include <phasar/Controller/AnalysisExecutor.h>
+#include <boost/filesystem/operations.hpp>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/Utils/Logger.h>
-#include <boost/filesystem/operations.hpp>
 
 namespace bfs = boost::filesystem;
 
@@ -26,10 +26,7 @@ int main(int argc, const char **argv) {
   }
   initializeLogger(false);
   ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
-  DB.preprocessIR();
   if (DB.getFunction("main")) {
-    AnalysisExecutor Exe;
-    Exe.testExecutor(DB);
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
   }
@@ -44,14 +41,19 @@ int main(int argc, const char **argv) {
 //     // clang-format off
 //     Generic.add_options()
 //     	("help,h", "Print help message")
-//       ("config", bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig), "Path to the configuration file, options can be specified as 'parameter = option'");
+//       ("config",
+//       bpo::value<std::string>(&ConfigFile)->notifier(validateParamConfig),
+//       "Path to the configuration file, options can be specified as 'parameter
+//       = option'");
 //     // clang-format on
-//     // Declare a group of options that will be allowed both on command line and
+//     // Declare a group of options that will be allowed both on command line
+//     and
 //     // in config file
 //     bpo::options_description Config("Configuration file options");
 //     // clang-format off
 //     Config.add_options()
-//     	("project,p", bpo::value<std::string>()->notifier(validateParamProject), "Path to the project under analysis");
+//     	("project,p", bpo::value<std::string>()->notifier(validateParamProject),
+//     "Path to the project under analysis");
 //     // clang-format on
 //     bpo::options_description CmdlineOptions;
 //     CmdlineOptions.add(PhasarMode).add(Generic).add(Config);

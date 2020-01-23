@@ -317,6 +317,17 @@ ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
   return nullptr;
 }
 
+const llvm::Function *
+ProjectIRDB::getFunction(const std::string &FunctionName) const {
+  for (auto &[File, Module] : Modules) {
+    auto F = Module->getFunction(FunctionName);
+    if (F) {
+      return F;
+    }
+  }
+  return nullptr;
+}
+
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
     const std::string &GlobalVariableName) const {
   for (auto &[File, Module] : Modules) {
@@ -460,6 +471,17 @@ void ProjectIRDB::insertModule(llvm::Module *M) {
 
 set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
   return AllocatedTypes;
+}
+
+std::set<const llvm::StructType *>
+ProjectIRDB::getAllocatedStructTypes() const {
+  std::set<const llvm::StructType *> StructTypes;
+  for (auto Ty : AllocatedTypes) {
+    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
+      StructTypes.insert(StructTy);
+    }
+  }
+  return StructTypes;
 }
 
 set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {

@@ -14,13 +14,17 @@
  *      Author: rleer
  */
 
-#include <boost/filesystem.hpp>
 #include <cassert>
+#include <fstream>
 #include <iomanip>
+#include <sstream>
+
+#include <boost/filesystem.hpp>
+
 #include <json.hpp>
+
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/PAMM.h>
-#include <sstream>
 
 using namespace psr;
 using json = nlohmann::json;

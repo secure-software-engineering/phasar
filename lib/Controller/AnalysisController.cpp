@@ -13,6 +13,8 @@
 #include <iostream>
 #include <set>
 
+#include <llvm/Support/ErrorHandling.h>
+
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
@@ -50,7 +52,8 @@ AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, std::set<std::string> EntryPoints,
     AnalysisStrategy Strategy)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB), ICF(TH, IRDB),
+    : IRDB(IRDB), TH(IRDB), PT(IRDB),
+      ICF(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
       Strategy(Strategy) {
@@ -60,16 +63,16 @@ AnalysisController::AnalysisController(
 void AnalysisController::executeAs(AnalysisStrategy Strategy) {
   switch (Strategy) {
   case AnalysisStrategy::DemandDriven:
-    assert(false && "AnalysisStrategy not supported, yet!");
+    llvm::report_fatal_error("AnalysisStrategy not supported, yet!");
     break;
   case AnalysisStrategy::Incremental:
-    assert(false && "AnalysisStrategy not supported, yet!");
+    llvm::report_fatal_error("AnalysisStrategy not supported, yet!");
     break;
   case AnalysisStrategy::ModuleWise:
-    assert(false && "AnalysisStrategy not supported, yet!");
+    llvm::report_fatal_error("AnalysisStrategy not supported, yet!");
     break;
   case AnalysisStrategy::Variational:
-    assert(false && "AnalysisStrategy not supported, yet!");
+    llvm::report_fatal_error("AnalysisStrategy not supported, yet!");
     break;
   case AnalysisStrategy::WholeProgram:
     executeWholeProgram();

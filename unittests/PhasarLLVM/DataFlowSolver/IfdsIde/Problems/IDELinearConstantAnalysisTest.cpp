@@ -32,7 +32,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(TH, *IRDB, CallGraphAnalysisType::OTF, EntryPoints);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+                       &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
               IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
@@ -505,11 +506,11 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_02) {
   GroundTruth.emplace("main", 4, "g", 10);
   GroundTruth.emplace("main", 4, "i", 10);
   GroundTruth.emplace("main", 5, "g", 10);
-  GroundTruth.emplace("main", 5, "i", -20);
-  GroundTruth.emplace("main", 6, "g", -20);
-  GroundTruth.emplace("main", 6, "i", -20);
-  GroundTruth.emplace("main", 7, "g", -20);
-  GroundTruth.emplace("main", 7, "i", -20);
+  GroundTruth.emplace("main", 5, "i", -10);
+  GroundTruth.emplace("main", 6, "g", -10);
+  GroundTruth.emplace("main", 6, "i", -10);
+  GroundTruth.emplace("main", 7, "g", -10);
+  GroundTruth.emplace("main", 7, "i", -10);
   compareResults(Results, GroundTruth);
 }
 

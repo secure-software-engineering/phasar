@@ -305,7 +305,9 @@ IFDSUninitializedVariables::getCallFlowFunction(
             }
           }
           return res;*/
-          return {};
+
+          // propagate zero
+          return {source};
         }
       }
     };

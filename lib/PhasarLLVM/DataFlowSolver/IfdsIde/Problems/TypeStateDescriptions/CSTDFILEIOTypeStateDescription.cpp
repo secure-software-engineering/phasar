@@ -9,6 +9,7 @@
 
 #include <cassert>
 
+#include <iostream>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
 
 using namespace std;
@@ -71,8 +72,15 @@ bool CSTDFILEIOTypeStateDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    return delta[static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
-        funcNameToToken(Tok))][S];
+    auto x = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
+        funcNameToToken(Tok));
+
+    auto ret = delta[x][S];
+    // if (ret == error()) {
+    //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)
+    //            << ") = ERROR" << std::endl;
+    // }
+    return ret;
   } else {
     return CSTDFILEIOState::BOT;
   }

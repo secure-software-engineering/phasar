@@ -111,6 +111,8 @@ public:
   const llvm::Function *
   getFunctionDefinition(const std::string &FunctionName) const;
 
+  const llvm::Function *getFunction(const std::string &FunctionName) const;
+
   const llvm::GlobalVariable *
   getGlobalVariableDefinition(const std::string &GlobalVariableName) const;
 
@@ -131,6 +133,8 @@ public:
   std::set<std::string> getAllSourceFiles() const;
 
   std::set<const llvm::Type *> getAllocatedTypes() const;
+
+  std::set<const llvm::StructType *> getAllocatedStructTypes() const;
 
   std::set<const llvm::Instruction *> getRetOrResInstructions() const;
 

@@ -32,7 +32,7 @@ struct HasNoConfigurationType;
 
 class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
-template <typename V> class PointsToInfo;
+template <typename V, typename N> class PointsToInfo;
 template <typename N, typename M> class CFG;
 
 template <typename N, typename D, typename M, typename T, typename V,
@@ -47,7 +47,7 @@ protected:
   const ProjectIRDB *IRDB;
   const TypeHierarchy<T, M> *TH;
   const C *CF;
-  const PointsToInfo<V> *PT;
+  const PointsToInfo<V, N> *PT;
   std::set<std::string> EntryPoints;
 
 public:
@@ -56,7 +56,7 @@ public:
   using ConfigurationTy = HasNoConfigurationType;
 
   IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
-                   const C *CF, const PointsToInfo<V> *PT,
+                   const C *CF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
   ~IntraMonoProblem() override = default;
@@ -79,7 +79,7 @@ public:
 
   const C *getCFG() const { return CF; }
 
-  const PointsToInfo<V> *getPointstoInfo() const { return PT; }
+  const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
 };
 
 } // namespace psr

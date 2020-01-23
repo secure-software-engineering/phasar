@@ -236,26 +236,28 @@ if (PHASAR_BUILD_IR)
   add_subdirectory(test)
 endif()
 
-# Install Phasar executable and libraries
-install(TARGETS phasar-llvm
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-)
+# Install targets of phasar-llvm, other executables, and libraries are to be
+# found in the individual subdirectories of tools/
+
 # Install Phasar include directory
 install(DIRECTORY include/
   DESTINATION include
-  FILES_MATCHING PATTERN "*.h"
+  FILES_MATCHING
+  PATTERN "*.def"
+  PATTERN "*.h"
 )
+
 # Install the header only json container
 install(DIRECTORY external/json/single_include/nlohmann/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )
+
 # Install the gtest header files (TODO this installation dependency should be eliminated)
 install(DIRECTORY external/googletest/googletest/include/gtest/
   DESTINATION include/gtest
 )
+
 # Install Phasar utils helper scripts
 install(DIRECTORY utils/
   DESTINATION bin
@@ -264,6 +266,7 @@ install(DIRECTORY utils/
               GROUP_EXECUTE GROUP_READ
               WORLD_EXECUTE WORLD_READ
 )
+
 # Install the Phasar config files into ~/.config/phasar/
 install(DIRECTORY config/
   DESTINATION $ENV{HOME}/.config/phasar

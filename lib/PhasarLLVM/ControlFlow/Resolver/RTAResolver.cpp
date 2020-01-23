@@ -31,24 +31,24 @@
 using namespace std;
 using namespace psr;
 
-RTAResolver::RTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : CHAResolver(irdb, ch) {}
+RTAResolver::RTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : CHAResolver(IRDB, TH) {}
 
-void RTAResolver::firstFunction(const llvm::Function *F) {
-  auto func_type = F->getFunctionType();
+// void RTAResolver::firstFunction(const llvm::Function *F) {
+//   auto func_type = F->getFunctionType();
 
-  for (auto param : func_type->params()) {
-    if (llvm::isa<llvm::PointerType>(param)) {
-      if (auto struct_ty =
-              llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-        unsound_types.insert(struct_ty);
-      }
-    }
-  }
-}
+//   for (auto param : func_type->params()) {
+//     if (llvm::isa<llvm::PointerType>(param)) {
+//       if (auto struct_ty =
+//               llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
+//         unsound_types.insert(struct_ty);
+//       }
+//     }
+//   }
+// }
 
 set<const llvm::Function *>
-RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
@@ -59,7 +59,7 @@ RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVtableIndex(CS);
+  auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -74,23 +74,22 @@ RTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
 
   auto receiver_type = getReceiverType(CS);
 
-  if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    return CHAResolver::resolveVirtualCall(CS);
-  }
+  // also insert all possible subtypes vtable entries
+  auto reachable_types = Resolver::TH->getSubTypes(receiver_type);
 
   // also insert all possible subtypes vtable entries
-  auto reachable_types = CH.getSubTypes(receiver_type);
-
-  // also insert all possible subtypes vtable entries
-  auto possible_types = IRDB.getAllocatedTypes();
+  auto possible_types = IRDB.getAllocatedStructTypes();
 
   auto end_it = reachable_types.end();
   for (auto possible_type : possible_types) {
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       if (reachable_types.find(possible_type_struct) != end_it) {
-        insertVtableIntoResult(possible_call_targets, possible_type_struct,
-                               vtable_index, CS);
+        auto Target =
+            getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+        if (Target) {
+          possible_call_targets.insert(Target);
+        }
       }
     }
   }

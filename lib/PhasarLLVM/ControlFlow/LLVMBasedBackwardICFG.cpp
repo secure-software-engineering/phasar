@@ -45,32 +45,18 @@ namespace psr {
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
     : ForwardICFG(ICFG) {
-  auto cgCopy = ForwardICFG.cg;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
+  auto cgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
 }
 
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMTypeHierarchy &STH,
-                                               ProjectIRDB &IRDB)
-    : ForwardICFG(STH, IRDB) {
-  auto cgCopy = ForwardICFG.cg;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
-};
-
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::set<std::string> &EntryPoints)
-    : ForwardICFG(STH, IRDB, CGType, EntryPoints) {
-  auto cgCopy = ForwardICFG.cg;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
-};
-
-LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
-    LLVMTypeHierarchy &STH, ProjectIRDB &IRDB, const llvm::Module &M,
-    CallGraphAnalysisType CGType, std::set<std::string> EntryPoints)
-    : ForwardICFG(STH, IRDB, M, CGType, EntryPoints) {
-  auto cgCopy = ForwardICFG.cg;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.cg);
-};
+    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
+    LLVMPointsToInfo *PT)
+    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT) {
+  auto cgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
+}
 
 bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *stmt) const {
   return ForwardICFG.isCallStmt(stmt);
@@ -159,15 +145,16 @@ bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &name) {
   return ForwardICFG.isPrimitiveFunction(name);
 }
 
-void LLVMBasedBackwardsICFG::print() { ForwardICFG.print(); }
-
-void LLVMBasedBackwardsICFG::printAsDot(const std::string &filename) {
-  ForwardICFG.printAsDot(filename);
+void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
+  ForwardICFG.print(OS);
 }
 
-void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
-    const std::string &filename) {
-  ForwardICFG.printInternalPTGAsDot(filename);
+void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) const {
+  ForwardICFG.printAsDot(OS);
+}
+
+void LLVMBasedBackwardsICFG::printInternalPTGAsDot(std::ostream &OS) const {
+  ForwardICFG.printInternalPTGAsDot(OS);
 }
 
 nlohmann::json LLVMBasedBackwardsICFG::getAsJson() const {
@@ -182,15 +169,11 @@ unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
   return ForwardICFG.getNumOfEdges();
 }
 
-void LLVMBasedBackwardsICFG::exportPATBCJSON() {
-  return ForwardICFG.exportPATBCJSON();
-}
-
 const PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() const {
   return ForwardICFG.getWholeModulePTG();
 }
 
-std::vector<std::string>
+std::vector<const llvm::Function *>
 LLVMBasedBackwardsICFG::getDependencyOrderedFunctions() {
   return ForwardICFG.getDependencyOrderedFunctions();
 }

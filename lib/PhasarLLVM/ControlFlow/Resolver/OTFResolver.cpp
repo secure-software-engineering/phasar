@@ -23,6 +23,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
@@ -31,41 +32,27 @@
 using namespace std;
 using namespace psr;
 
-OTFResolver::OTFResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch,
-                         PointsToGraph &wholemodulePTG)
-    : CHAResolver(irdb, ch), WholeModulePTG(wholemodulePTG) {}
+OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
+                         LLVMPointsToInfo &PT, PointsToGraph &WholeModulePTG)
+    : CHAResolver(IRDB, TH), PT(PT), WholeModulePTG(WholeModulePTG) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {
   CallStack.push_back(Inst);
 }
 
-void OTFResolver::TreatPossibleTarget(
-    const llvm::ImmutableCallSite &CS,
-    std::set<const llvm::Function *> &possible_targets) {
+void OTFResolver::handlePossibleTargets(
+    llvm::ImmutableCallSite CS,
+    std::set<const llvm::Function *> &CalleeTargets) {
   auto &lg = lg::get();
 
-  for (auto possible_target : possible_targets) {
+  for (auto CalleeTarget : CalleeTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Target name: " << possible_target->getName().str());
+                  << "Target name: " << CalleeTarget->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
-
-    if (auto F = CS.getCaller()) {
-      if (auto M = F->getParent()) {
-        if (auto target = M->getFunction(possible_target->getName().str())) {
-          if (!target->isDeclaration()) {
-            // PointsToGraph &callee_ptg =
-            // *IRDB.getPointsToGraph(possible_target->getName().str());
-            // WholeModulePTG.mergeWith(callee_ptg, CS, possible_target);
-          }
-        } else {
-          throw runtime_error("target not get");
-        }
-      } else {
-        throw runtime_error("M not get");
-      }
-    } else {
-      throw runtime_error("F not get");
+    if (!CalleeTarget->isDeclaration()) {
+      auto CalleePTG = PT.getPointsToGraph(CalleeTarget);
+      WholeModulePTG.mergeWith(CalleePTG, CS, CalleeTarget);
     }
   }
 }
@@ -74,10 +61,8 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
   CallStack.pop_back();
 }
 
-void OTFResolver::OtherInst(const llvm::Instruction *Inst) {}
-
 set<const llvm::Function *>
-OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -85,7 +70,7 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = this->getVtableIndex(CS);
+  auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -105,7 +90,7 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   auto possible_allocated_types =
       WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
 
-  auto receiver_type = this->getReceiverType(CS);
+  auto receiver_type = getReceiverType(CS);
 
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> possible_types;
@@ -117,12 +102,33 @@ OTFResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   for (auto possible_type_struct : possible_types) {
-    insertVtableIntoResult(possible_call_targets, possible_type_struct,
-                           vtable_index, CS);
+    auto Target =
+        getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+    if (Target) {
+      possible_call_targets.insert(Target);
+    }
   }
-
   if (possible_call_targets.empty())
     return CHAResolver::resolveVirtualCall(CS);
 
   return possible_call_targets;
+}
+
+std::set<const llvm::Function *>
+OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+  std::set<const llvm::Function *> Callees;
+  auto PTS = PT.getPointsToSet(CS.getCalledValue());
+  for (auto P : PTS) {
+    if (P->getType()->isPointerTy() &&
+        P->getType()->getPointerElementType()->isFunctionTy()) {
+      if (auto F = llvm::dyn_cast<llvm::Function>(P)) {
+        Callees.insert(F);
+      }
+    }
+  }
+  // if we could not find any callees, use a fallback solution
+  if (Callees.empty()) {
+    return Resolver::resolveFunctionPointer(CS);
+  }
+  return Callees;
 }

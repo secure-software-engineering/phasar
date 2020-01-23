@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDICFG_H_
 
 #include <iosfwd>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
@@ -44,6 +45,7 @@ namespace psr {
 class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 
 class LLVMBasedICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -51,9 +53,12 @@ class LLVMBasedICFG
   friend class LLVMBasedBackwardsICFG;
 
 private:
-  CallGraphAnalysisType CGType;
-  LLVMTypeHierarchy &CH;
   ProjectIRDB &IRDB;
+  CallGraphAnalysisType CGType;
+  bool UserTHInfos = true;
+  bool UserPTInfos = true;
+  LLVMTypeHierarchy *TH;
+  LLVMPointsToInfo *PT;
   PointsToGraph WholeModulePTG;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
@@ -67,20 +72,19 @@ private:
 
   // The VertexProperties for our call-graph.
   struct VertexProperties {
-    const llvm::Function *function = nullptr;
-    std::string functionName;
-    bool isDeclaration;
+    const llvm::Function *F = nullptr;
     VertexProperties() = default;
-    VertexProperties(const llvm::Function *f, bool isDecl = false);
+    VertexProperties(const llvm::Function *F);
+    std::string getFunctionName() const;
   };
 
   // The EdgeProperties for our call-graph.
   struct EdgeProperties {
-    const llvm::Instruction *callsite = nullptr;
-    std::string ir_code;
-    size_t id = 0;
+    const llvm::Instruction *CS = nullptr;
+    size_t ID = 0;
     EdgeProperties() = default;
-    EdgeProperties(const llvm::Instruction *i);
+    EdgeProperties(const llvm::Instruction *I);
+    std::string getCallSiteAsString() const;
   };
 
   /// Specify the type of graph to be used.
@@ -97,27 +101,22 @@ private:
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
   /// The call graph.
-  bidigraph_t cg;
+  bidigraph_t CallGraph;
 
   /// Maps function names to the corresponding vertex id.
-  std::unordered_map<std::string, vertex_t> function_vertex_map;
+  std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver *resolver);
+  void constructionWalker(const llvm::Function *F, Resolver *Res);
 
   struct dependency_visitor;
 
 public:
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB);
+  LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
+                const std::set<std::string> &EntryPoints = {},
+                LLVMTypeHierarchy *TH = nullptr,
+                LLVMPointsToInfo *PT = nullptr);
 
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                CallGraphAnalysisType CGType,
-                const std::set<std::string> &EntryPoints = {"main"});
-
-  LLVMBasedICFG(LLVMTypeHierarchy &STH, ProjectIRDB &IRDB,
-                const llvm::Module &M, CallGraphAnalysisType CGType,
-                std::set<std::string> EntryPoints = {});
-
-  ~LLVMBasedICFG() override = default;
+  ~LLVMBasedICFG() override;
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
@@ -158,23 +157,61 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print();
+  using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
+  void print(std::ostream &OS = std::cout) const override;
 
-  void printAsDot(const std::string &filename);
+  // provide a VertexPropertyWrite to tell boost how to write a vertex
+  class CallGraphVertexWriter {
+  public:
+    CallGraphVertexWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << CGraph[v].getFunctionName() << "\"]";
+    }
 
-  void printInternalPTGAsDot(const std::string &filename);
+  private:
+    const bidigraph_t &CGraph;
+  };
 
+  // a function to conveniently create the vertex writer
+  CallGraphVertexWriter
+  makeCallGraphVertexWriter(const bidigraph_t &CGraph) const {
+    return CallGraphVertexWriter(CGraph);
+  }
+
+  // provide a EdgePropertyWrite to tell boost how to write an edge
+  class CallGraphEdgeWriter {
+  public:
+    CallGraphEdgeWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << CGraph[v].getCallSiteAsString() << "\"]";
+    }
+
+  private:
+    const bidigraph_t &CGraph;
+  };
+
+  // a function to conveniently create the edge writer
+  CallGraphEdgeWriter makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
+    return CallGraphEdgeWriter(CGraph);
+  }
+
+  void printAsDot(std::ostream &OS = std::cout) const;
+
+  void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
+
+  using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
+                                 // prints
   nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
 
-  void exportPATBCJSON();
-
   const PointsToGraph &getWholeModulePTG() const;
 
-  std::vector<std::string> getDependencyOrderedFunctions();
+  std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };
 
 } // namespace psr

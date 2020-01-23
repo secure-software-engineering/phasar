@@ -30,6 +30,7 @@
 
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Function.h>
+#include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/InstIterator.h>
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
@@ -61,8 +62,11 @@ const std::string LLVMTypeHierarchy::TypeInfoPrefixDemang = "typeinfo for ";
 
 LLVMTypeHierarchy::VertexProperties::VertexProperties(
     const llvm::StructType *Type)
-    : Type(Type), TypeName(Type->getStructName()), VFT(),
-      ReachableTypes({Type}) {}
+    : Type(Type), ReachableTypes({Type}) {}
+
+std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
+  return Type->getStructName().str();
+}
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_GET_INSTANCE;
@@ -295,7 +299,7 @@ LLVMTypeHierarchy::getSuperTypes(const llvm::StructType *Type) {
 
 const llvm::StructType *LLVMTypeHierarchy::getType(std::string TypeName) const {
   for (auto V : boost::make_iterator_range(boost::vertices(TypeGraph))) {
-    if (TypeGraph[V].TypeName == TypeName) {
+    if (TypeGraph[V].Type->getName() == TypeName) {
       return TypeGraph[V].Type;
     }
   }
@@ -336,11 +340,17 @@ size_t LLVMTypeHierarchy::size() const {
 bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
-  OS << "TypeHierarchy:\n";
-  boost::print_graph(
-      TypeGraph,
-      boost::get(&LLVMTypeHierarchy::VertexProperties::TypeName, TypeGraph),
-      OS);
+  OS << "Type Hierarchy:\n";
+  vertex_iterator ui, ui_end;
+  for (boost::tie(ui, ui_end) = boost::vertices(TypeGraph); ui != ui_end;
+       ++ui) {
+    OS << TypeGraph[*ui].getTypeName() << " --> ";
+    out_edge_iterator ei, ei_end;
+    for (boost::tie(ei, ei_end) = boost::out_edges(*ui, TypeGraph);
+         ei != ei_end; ++ei)
+      OS << TypeGraph[target(*ei, TypeGraph)].getTypeName() << " ";
+    OS << '\n';
+  }
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
     OS << "Virtual function table for: " << Ty->getName().str() << '\n';
@@ -352,17 +362,17 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
 
 nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   nlohmann::json J;
-  vertex_iterator_t vi_v, vi_v_end;
-  out_edge_iterator_t ei, ei_end;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(TypeGraph);
        vi_v != vi_v_end; ++vi_v) {
-    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].TypeName];
+    J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].getTypeName()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, TypeGraph);
          ei != ei_end; ++ei) {
-      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].TypeName] +=
-          TypeGraph[boost::target(*ei, TypeGraph)].TypeName;
+      J[PhasarConfig::JsonTypeHierarchyID()][TypeGraph[*vi_v].getTypeName()] +=
+          TypeGraph[boost::target(*ei, TypeGraph)].getTypeName();
     }
   }
   return J;
@@ -416,8 +426,7 @@ nlohmann::json LLVMTypeHierarchy::getAsJson() const {
 
 void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
   boost::write_graphviz(OS, TypeGraph,
-                        boost::make_label_writer(boost::get(
-                            &VertexProperties::TypeName, TypeGraph)));
+                        makeTypeHierarchyVertexWriter(TypeGraph));
 }
 
 // void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {
@@ -433,13 +442,5 @@ void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
 //   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name,
 //   G)); boost::read_graphviz(in, G, dp); return G;
 // }
-
-void LLVMTypeHierarchy::printTransitiveClosure(std::ostream &OS) const {
-  bidigraph_t TC;
-  boost::transitive_closure(TypeGraph, TC);
-  boost::print_graph(
-      TC, boost::get(&LLVMTypeHierarchy::VertexProperties::TypeName, TypeGraph),
-      OS);
-}
 
 } // namespace psr

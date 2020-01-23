@@ -20,6 +20,7 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace std;
 using namespace psr;
@@ -157,4 +158,13 @@ string LLVMBasedCFG::getStatementId(const llvm::Instruction *stmt) const {
 string LLVMBasedCFG::getFunctionName(const llvm::Function *fun) const {
   return fun->getName().str();
 }
+
+void LLVMBasedCFG::print(const llvm::Function *F, std::ostream &OS) const {
+  OS << llvmIRToString(F);
+}
+
+nlohmann::json LLVMBasedCFG::getAsJson(const llvm::Function *F) const {
+  return "";
+}
+
 } // namespace psr

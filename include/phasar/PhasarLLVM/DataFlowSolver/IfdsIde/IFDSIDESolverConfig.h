@@ -37,7 +37,10 @@ struct IFDSIDESolverConfig {
   bool autoAddZero = true;
   bool computeValues = true;
   bool recordEdges = false;
-  bool emitESG = PhasarConfig::VariablesMap()["emit-esg-as-dot"].as<bool>();
+  bool emitESG =
+      (PhasarConfig::VariablesMap().count("emit-esg-as-dot"))
+          ? PhasarConfig::VariablesMap()["emit-esg-as-dot"].as<bool>()
+          : false;
   bool computePersistedSummaries = false;
   friend std::ostream &operator<<(std::ostream &os,
                                   const IFDSIDESolverConfig &sc);

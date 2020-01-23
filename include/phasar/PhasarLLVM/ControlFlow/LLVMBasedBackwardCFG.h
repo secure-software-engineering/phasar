@@ -73,6 +73,10 @@ public:
   std::string getFunctionName(const llvm::Function *fun) const override;
 
   std::string getStatementId(const llvm::Instruction *stmt) const override;
+
+  void print(const llvm::Function *F, std::ostream &OS) const override;
+
+  nlohmann::json getAsJson(const llvm::Function *F) const override;
 };
 } // namespace psr
 

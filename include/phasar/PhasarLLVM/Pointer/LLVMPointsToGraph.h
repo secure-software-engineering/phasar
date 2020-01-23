@@ -17,11 +17,16 @@
 #ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 #define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
 
-#include <json.hpp>
+#include <iostream>
+#include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <boost/graph/adjacency_list.hpp>
+
 #include <llvm/IR/CallSite.h>
+
+#include <json.hpp>
 
 #include <phasar/Config/Configuration.h>
 
@@ -36,32 +41,14 @@ class Type;
 
 namespace psr {
 
-void PrintResults(const char *Msg, bool P, const llvm::Value *V1,
-                  const llvm::Value *V2, const llvm::Module *M);
-
-inline void PrintModRefResults(const char *Msg, bool P,
-                               const llvm::Instruction *I,
-                               const llvm::Value *Ptr, const llvm::Module *M);
-
-inline void PrintModRefResults(const char *Msg, bool P,
-                               const llvm::CallSite CSA,
-                               const llvm::CallSite CSB, const llvm::Module *M);
-
-inline void PrintLoadStoreResults(const char *Msg, bool P,
-                                  const llvm::Value *V1, const llvm::Value *V2,
-                                  const llvm::Module *M);
-
-enum class PointerAnalysisType {
-#define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
-  Invalid
-};
-
-std::string to_string(const PointerAnalysisType &PA);
-
-PointerAnalysisType to_PointerAnalysisType(const std::string &S);
-
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
+/**
+ * @brief Returns true if the given pointer is an interesting pointer,
+ *        i.e. not a constant null pointer.
+ */
+static inline bool isInterestingPointer(llvm::Value *V) {
+  return V->getType()->isPointerTy() &&
+         !llvm::isa<llvm::ConstantPointerNull>(V);
+}
 
 // TODO: add a more high level description.
 /**
@@ -86,25 +73,21 @@ public:
      * This might be an Instruction, an Operand of an Instruction, Global
      * Variable or a formal Argument.
      */
-    const llvm::Value *value = nullptr;
-    /// Holds the llvm IR code for that vertex.
-    std::string ir_code;
-
+    const llvm::Value *V = nullptr;
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
+    std::string getValueAsString() const;
   };
 
   /**
    * 	@brief Holds the information of an edge in the points-to graph.
    */
   struct EdgeProperties {
-    /// This might be an Instruction, in particular a Call Instruction.
-    const llvm::Value *value = nullptr;
-    /// Holds the llvm IR code for that edge.
-    std::string ir_code;
-
+    /// This may contain a call or invoke instruction.
+    const llvm::Value *V = nullptr;
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
+    std::string getValueAsString() const;
   };
 
   /// Data structure for holding the points-to graph.
@@ -119,7 +102,6 @@ public:
   typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
 
   /// The type for a vertex iterator.
-  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
   typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator;
   typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
   typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
@@ -129,14 +111,14 @@ public:
       "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
 
 private:
-  struct allocation_site_dfs_visitor;
-  struct reachability_dfs_visitor;
+  struct AllocationSiteDFSVisitor;
+  struct ReachabilityDFSVisitor;
 
   /// The points to graph.
-  graph_t ptg;
-  std::map<const llvm::Value *, vertex_t> value_vertex_map;
+  graph_t PAG;
+  std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::set<std::string> ContainedFunctions;
+  std::unordered_set<std::string> ContainedFunctions;
 
 public:
   /**
@@ -150,18 +132,7 @@ public:
    *                              False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::Function *F, llvm::AAResults &AA,
-                bool onlyConsiderMustAlias = false);
-
-  /**
-   * It is used when a points-to graph is restored from the database.
-   *
-   * @brief This will create an empty points-to graph, except the functions
-   * names
-   * that are contained in the points-to graph.
-   * @param fnames Names of functions contained in the points-to graph.
-   */
-  PointsToGraph(std::vector<std::string> fnames);
+  PointsToGraph(llvm::Function *F, llvm::AAResults &AA);
 
   /**
    * @brief This will create an empty points-to graph. It is used when points-to
@@ -180,12 +151,6 @@ public:
    * @brief Returns the number of graph nodes.
    */
   size_t size() const;
-
-  /**
-   * @brief Returns true if the given pointer is an interesting pointer,
-   *        i.e. not a constant null pointer.
-   */
-  inline bool isInterestingPointer(llvm::Value *V);
 
   /**
    * @brief Returns a std::vector containing pointers which are escaping through
@@ -247,11 +212,11 @@ public:
 
   // TODO add more detailed description
   inline bool representsSingleFunction();
-  void mergeWith(const PointsToGraph &Other, const llvm::Function *F);
+  void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
   void mergeWith(const PointsToGraph &Other,
                  const std::vector<std::pair<llvm::ImmutableCallSite,
                                              const llvm::Function *>> &Calls);
-  void mergeWith(PointsToGraph &Other, llvm::ImmutableCallSite CS,
+  void mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
                  const llvm::Function *F);
 
   /**
@@ -265,18 +230,31 @@ public:
   /**
    * @brief Prints the points-to graph to the command-line.
    */
-  void print();
+  void print(std::ostream &OS = std::cout) const;
+
+  class PointerVertexOrEdgePrinter {
+  public:
+    PointerVertexOrEdgePrinter(const graph_t &PAG) : PAG(PAG) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << PAG[v].getValueAsString() << "\"]";
+    }
+
+  private:
+    const graph_t &PAG;
+  };
+
+  static inline PointerVertexOrEdgePrinter
+  makePointerVertexOrEdgePrinter(const graph_t &PAG) {
+    return PointerVertexOrEdgePrinter(PAG);
+  }
 
   /**
-   * @brief Prints the points-to graph to the command-line.
+   * @brief Prints the points-to graph in .dot format to the given output
+   * stream.
+   * @param outputstream.
    */
-  void print() const;
-
-  /**
-   * @brief Prints the points-to graph as a .dot file.
-   * @param filename Filename of the .dot file.
-   */
-  void printAsDot(const std::string &filename);
+  void printAsDot(std::ostream &OS = std::cout) const;
 
   size_t getNumVertices() const;
 

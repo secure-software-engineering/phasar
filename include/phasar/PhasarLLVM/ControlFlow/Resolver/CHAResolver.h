@@ -27,13 +27,14 @@ class Function;
 } // namespace llvm
 
 namespace psr {
-struct CHAResolver : public Resolver {
+class CHAResolver : public Resolver {
 public:
-  CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
-  virtual ~CHAResolver() = default;
+  CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
-  virtual std::set<const llvm::Function *>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+  ~CHAResolver() override = default;
+
+  std::set<const llvm::Function *>
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
 };
 } // namespace psr
 

@@ -21,7 +21,6 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Module.h>
 
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -30,20 +29,18 @@
 using namespace std;
 using namespace psr;
 
-CHAResolver::CHAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : Resolver(irdb, ch) {}
+CHAResolver::CHAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : Resolver(IRDB, TH) {}
 
 set<const llvm::Function *>
-CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
-  set<const llvm::Function *> possible_call_targets;
+CHAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   auto &lg = lg::get();
-
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVtableIndex(CS);
-  if (vtable_index < 0) {
+  auto VFTIdx = getVFTIndex(CS);
+  if (VFTIdx < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
@@ -53,16 +50,20 @@ CHAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Virtual function table entry is: " << vtable_index);
+                << "Virtual function table entry is: " << VFTIdx);
 
-  auto receiver_type = getReceiverType(CS);
+  auto ReceiverTy = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto fallback_types = CH.getSubTypes(receiver_type);
+  auto FallbackTys = Resolver::TH->getSubTypes(ReceiverTy);
 
-  for (auto &fallback : fallback_types) {
-    insertVtableIntoResult(possible_call_targets, fallback, vtable_index, CS);
+  set<const llvm::Function *> PossibleCallees;
+
+  for (auto &FallbackTy : FallbackTys) {
+    auto Target = getNonPureVirtualVFTEntry(FallbackTy, VFTIdx, CS);
+    if (Target) {
+      PossibleCallees.insert(Target);
+    }
   }
-
-  return possible_call_targets;
+  return PossibleCallees;
 }

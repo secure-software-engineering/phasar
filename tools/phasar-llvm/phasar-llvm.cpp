@@ -238,7 +238,8 @@ int main(int argc, const char **argv) {
     Strategy = AnalysisStrategy::WholeProgram;
   }
   if (!PhasarConfig::VariablesMap().count("module")) {
-    std::cout << "At least on LLVM target module is required!\n";
+    std::cout << "At least on LLVM target module is required!\n"
+                 "Specify a LLVM target module or re-run with '--help'\n";
     return 0;
   }
   ProjectIRDB IRDB(

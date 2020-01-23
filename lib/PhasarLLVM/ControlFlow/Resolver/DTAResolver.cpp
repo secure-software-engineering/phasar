@@ -22,7 +22,6 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Module.h>
 
-#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -32,8 +31,8 @@
 using namespace std;
 using namespace psr;
 
-DTAResolver::DTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch)
-    : CHAResolver(irdb, ch) {}
+DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : CHAResolver(IRDB, TH) {}
 
 bool DTAResolver::heuristic_anti_contructor_this_type(
     const llvm::BitCastInst *bitcast) {
@@ -75,7 +74,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   // If it doesn't contain vtable, there is no reason to call this class in the
   // DTA graph, so no need to add it
   if (struct_ty->isStructTy()) {
-    if (CH.hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
+    if (Resolver::TH->hasVFTable(llvm::dyn_cast<llvm::StructType>(struct_ty))) {
       return false;
     }
   }
@@ -130,20 +129,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   return (bitcast_num > vtable_num);
 }
 
-void DTAResolver::firstFunction(const llvm::Function *F) {
-  auto func_type = F->getFunctionType();
-
-  for (auto param : func_type->params()) {
-    if (llvm::isa<llvm::PointerType>(param)) {
-      if (auto struct_ty =
-              llvm::dyn_cast<llvm::StructType>(stripPointer(param))) {
-        unsound_types.insert(struct_ty);
-      }
-    }
-  }
-}
-
-void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
+void DTAResolver::otherInst(const llvm::Instruction *Inst) {
   if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(Inst)) {
     // We add the connection between the two types in the DTA graph
     auto src = BitCast->getSrcTy();
@@ -160,7 +146,7 @@ void DTAResolver::OtherInst(const llvm::Instruction *Inst) {
 }
 
 set<const llvm::Function *>
-DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
+DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
   auto &lg = lg::get();
 
@@ -168,7 +154,7 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = this->getVtableIndex(CS);
+  auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -181,11 +167,7 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Virtual function table entry is: " << vtable_index);
 
-  auto receiver_type = this->getReceiverType(CS);
-
-  if (unsound_types.find(receiver_type) != unsound_types.end()) {
-    return CHAResolver::resolveVirtualCall(CS);
-  }
+  auto receiver_type = getReceiverType(CS);
 
   auto possible_types = typegraph.getTypes(receiver_type);
 
@@ -197,8 +179,11 @@ DTAResolver::resolveVirtualCall(const llvm::ImmutableCallSite &CS) {
     if (auto possible_type_struct =
             llvm::dyn_cast<llvm::StructType>(possible_type)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      insertVtableIntoResult(possible_call_targets, possible_type_struct,
-                             vtable_index, CS);
+      auto Target =
+          getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+      if (Target) {
+        possible_call_targets.insert(Target);
+      }
     }
   }
 
