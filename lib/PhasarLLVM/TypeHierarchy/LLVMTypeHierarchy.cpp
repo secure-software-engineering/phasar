@@ -341,11 +341,11 @@ bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "Type Hierarchy:\n";
-  vertex_iterator_t ui, ui_end;
+  vertex_iterator ui, ui_end;
   for (boost::tie(ui, ui_end) = boost::vertices(TypeGraph); ui != ui_end;
        ++ui) {
     OS << TypeGraph[*ui].getTypeName() << " --> ";
-    out_edge_iterator_t ei, ei_end;
+    out_edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::out_edges(*ui, TypeGraph);
          ei != ei_end; ++ei)
       OS << TypeGraph[target(*ei, TypeGraph)].getTypeName() << " ";
@@ -362,8 +362,8 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
 
 nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   nlohmann::json J;
-  vertex_iterator_t vi_v, vi_v_end;
-  out_edge_iterator_t ei, ei_end;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(TypeGraph);
        vi_v != vi_v_end; ++vi_v) {
