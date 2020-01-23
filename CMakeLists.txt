@@ -112,8 +112,11 @@ add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
 # Z3 solver
-add_subdirectory(external/z3)
-include_directories(external/z3/src/api/c++/)
+find_package(Z3 4.7.1)
+
+if (NOT Z3_FOUND)
+  message(FATAL_ERROR "Z3 >= 4.7.1 has not been found in LLVM_Z3_INSTALL_DIR: ${LLVM_Z3_INSTALL_DIR}.")
+endif()
 
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
