@@ -18,16 +18,19 @@
 #define PHASAR_PHASARLLVM_TYPEHIERARCHY_LLVMTYPEHIERARCHY_H_
 
 #include <iostream>
+#include <optional>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <gtest/gtest_prod.h>
-
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
+
+#include <llvm/ADT/StringRef.h>
+
+#include <gtest/gtest_prod.h>
 
 #include <json.hpp>
 
@@ -38,6 +41,7 @@ namespace llvm {
 class Module;
 class StructType;
 class Function;
+class GlobalVariable;
 } // namespace llvm
 
 namespace psr {
@@ -57,9 +61,9 @@ public:
     VertexProperties() = default;
     VertexProperties(const llvm::StructType *Type);
     const llvm::StructType *Type = nullptr;
-    std::string TypeName = "";
-    LLVMVFTable VFT;
+    std::optional<LLVMVFTable> VFT;
     std::set<const llvm::StructType *> ReachableTypes;
+    std::string getTypeName() const;
   };
 
   /// Edges in the class hierarchy graph doesn't hold any additional
@@ -202,6 +206,25 @@ public:
    * 	@brief Prints the transitive closure of the class hierarchy graph.
    */
   void printTransitiveClosure(std::ostream &OS = std::cout) const;
+
+  // provide a VertexPropertyWrite to tell boost how to write a vertex
+  class TypeHierarchyVertexWriter {
+  public:
+    TypeHierarchyVertexWriter(const bidigraph_t &TyGraph) : TyGraph(TyGraph) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << TyGraph[v].getTypeName() << "\"]";
+    }
+
+  private:
+    const bidigraph_t &TyGraph;
+  };
+
+  // a function to conveniently create this writer
+  TypeHierarchyVertexWriter
+  makeTypeHierarchyVertexWriter(const bidigraph_t &TyGraph) const {
+    return TypeHierarchyVertexWriter(TyGraph);
+  }
 
   /**
    * 	@brief Prints the class hierarchy to an ostream in dot format.

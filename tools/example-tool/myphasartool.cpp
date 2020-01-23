@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <fstream>
 
 #include <boost/filesystem/operations.hpp>
 
@@ -49,6 +50,8 @@ int main(int argc, const char **argv) {
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
     // print inter-procedural control-flow graph
     I.print();
+    std::ofstream ofs("cg.dot");
+    I.printAsDot(ofs);
     // IFDS template parametrization test
     std::cout << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
