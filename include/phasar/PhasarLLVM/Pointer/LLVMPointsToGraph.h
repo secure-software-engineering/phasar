@@ -74,24 +74,20 @@ public:
      * Variable or a formal Argument.
      */
     const llvm::Value *V = nullptr;
-    /// Holds the llvm IR code for that vertex.
-    std::string IR;
-
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
+    std::string getValueAsString() const;
   };
 
   /**
    * 	@brief Holds the information of an edge in the points-to graph.
    */
   struct EdgeProperties {
-    /// This might be an Instruction, in particular a Call Instruction.
+    /// This may contain a call or invoke instruction.
     const llvm::Value *V = nullptr;
-    /// Holds the llvm IR code for that edge.
-    std::string IR;
-
     EdgeProperties() = default;
     EdgeProperties(const llvm::Value *v);
+    std::string getValueAsString() const;
   };
 
   /// Data structure for holding the points-to graph.
@@ -106,9 +102,9 @@ public:
   typedef boost::graph_traits<graph_t>::edge_descriptor edge_t;
 
   /// The type for a vertex iterator.
-  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator_t;
-  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator_t;
-  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator_t;
+  typedef boost::graph_traits<graph_t>::vertex_iterator vertex_iterator;
+  typedef boost::graph_traits<graph_t>::out_edge_iterator out_edge_iterator;
+  typedef boost::graph_traits<graph_t>::in_edge_iterator in_edge_iterator;
 
   /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
   inline const static std::set<std::string> HeapAllocationFunctions = {
@@ -236,11 +232,29 @@ public:
    */
   void print(std::ostream &OS = std::cout) const;
 
+  class PointerVertexOrEdgePrinter {
+  public:
+    PointerVertexOrEdgePrinter(const graph_t &PAG) : PAG(PAG) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << PAG[v].getValueAsString() << "\"]";
+    }
+
+  private:
+    const graph_t &PAG;
+  };
+
+  static inline PointerVertexOrEdgePrinter
+  makePointerVertexOrEdgePrinter(const graph_t &PAG) {
+    return PointerVertexOrEdgePrinter(PAG);
+  }
+
   /**
-   * @brief Prints the points-to graph as a .dot file.
-   * @param filename Filename of the .dot file.
+   * @brief Prints the points-to graph in .dot format to the given output
+   * stream.
+   * @param outputstream.
    */
-  void printAsDot(const std::string &filename);
+  void printAsDot(std::ostream &OS = std::cout) const;
 
   size_t getNumVertices() const;
 

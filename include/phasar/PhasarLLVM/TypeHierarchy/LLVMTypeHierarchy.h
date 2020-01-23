@@ -83,8 +83,7 @@ public:
   typedef boost::graph_traits<bidigraph_t>::edge_descriptor edge_t;
   // Let us have some further handy typedefs.
   typedef boost::graph_traits<bidigraph_t>::vertex_iterator vertex_iterator;
-  typedef boost::graph_traits<bidigraph_t>::out_edge_iterator
-      out_edge_iterator;
+  typedef boost::graph_traits<bidigraph_t>::out_edge_iterator out_edge_iterator;
   typedef boost::graph_traits<bidigraph_t>::in_edge_iterator in_edge_iterator;
 
 private:

@@ -98,7 +98,7 @@ public:
 
   void printAsDot(std::ostream &OS) const;
 
-  void printInternalPTGAsDot(const std::string &filename);
+  void printInternalPTGAsDot(std::ostream &OS) const;
 
   using LLVMBasedBackwardCFG::getAsJson; // tell the compiler we wish to have
                                          // both prints

@@ -75,7 +75,7 @@ private:
     const llvm::Function *F = nullptr;
     VertexProperties() = default;
     VertexProperties(const llvm::Function *F);
-    std::string getFunctionName() const;    
+    std::string getFunctionName() const;
   };
 
   // The EdgeProperties for our call-graph.
@@ -160,7 +160,7 @@ public:
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
 
-    // provide a VertexPropertyWrite to tell boost how to write a vertex
+  // provide a VertexPropertyWrite to tell boost how to write a vertex
   class CallGraphVertexWriter {
   public:
     CallGraphVertexWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
@@ -193,14 +193,13 @@ public:
   };
 
   // a function to conveniently create the edge writer
-  CallGraphEdgeWriter
-  makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
+  CallGraphEdgeWriter makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
     return CallGraphEdgeWriter(CGraph);
   }
 
   void printAsDot(std::ostream &OS = std::cout) const;
 
-  void printInternalPTGAsDot(const std::string &filename);
+  void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 
   using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
                                  // prints

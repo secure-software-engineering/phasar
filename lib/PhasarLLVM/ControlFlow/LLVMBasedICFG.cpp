@@ -46,6 +46,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
@@ -525,14 +526,11 @@ void LLVMBasedICFG::printAsDot(std::ostream &OS) const {
                         makeCallGraphEdgeWriter(CallGraph));
 }
 
-void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
-  ofstream ofs(filename);
+void LLVMBasedICFG::printInternalPTGAsDot(std::ostream &OS) const {
   boost::write_graphviz(
-      ofs, WholeModulePTG.PAG,
-      boost::make_label_writer(
-          boost::get(&PointsToGraph::VertexProperties::IR, WholeModulePTG.PAG)),
-      boost::make_label_writer(
-          boost::get(&PointsToGraph::EdgeProperties::IR, WholeModulePTG.PAG)));
+      OS, WholeModulePTG.PAG,
+      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG),
+      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG));
 }
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {

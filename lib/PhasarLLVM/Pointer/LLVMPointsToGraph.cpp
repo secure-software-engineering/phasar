@@ -117,15 +117,16 @@ struct PointsToGraph::ReachabilityDFSVisitor : boost::default_dfs_visitor {
 // points-to graph internal stuff
 
 PointsToGraph::VertexProperties::VertexProperties(const llvm::Value *V)
-    : V(V), IR(llvmIRToString(V)) {
-  // WARNING: equivalent to llvmIRToString
-  // WARNING 2 : really really really slow (yes it is)
+    : V(V) {}
+
+std::string PointsToGraph::VertexProperties::getValueAsString() const {
+  return llvmIRToString(V);
 }
 
-PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *V)
-    : V(V), IR(llvmIRToString(V)) {
-  // WARNING: equivalent to llvmIRToString
-  // WARNING 2 : really really really slow (yes it is)
+PointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *V) : V(V) {}
+
+std::string PointsToGraph::EdgeProperties::getValueAsString() const {
+  return llvmIRToString(V);
 }
 
 // points-to graph stuff
@@ -235,7 +236,7 @@ PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
 vector<pair<unsigned, const llvm::Value *>>
 PointsToGraph::getPointersEscapingThroughParams() {
   vector<pair<unsigned, const llvm::Value *>> escaping_pointers;
-  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PAG);
+  for (pair<vertex_iterator, vertex_iterator> vp = boost::vertices(PAG);
        vp.first != vp.second; ++vp.first) {
     if (const llvm::Argument *arg =
             llvm::dyn_cast<llvm::Argument>(PAG[*vp.first].V)) {
@@ -248,7 +249,7 @@ PointsToGraph::getPointersEscapingThroughParams() {
 vector<const llvm::Value *>
 PointsToGraph::getPointersEscapingThroughReturns() const {
   vector<const llvm::Value *> escaping_pointers;
-  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PAG);
+  for (pair<vertex_iterator, vertex_iterator> vp = boost::vertices(PAG);
        vp.first != vp.second; ++vp.first) {
     for (auto user : PAG[*vp.first].V->users()) {
       if (llvm::isa<llvm::ReturnInst>(user)) {
@@ -263,7 +264,7 @@ vector<const llvm::Value *>
 PointsToGraph::getPointersEscapingThroughReturnsForFunction(
     const llvm::Function *F) const {
   vector<const llvm::Value *> escaping_pointers;
-  for (pair<vertex_iterator_t, vertex_iterator_t> vp = boost::vertices(PAG);
+  for (pair<vertex_iterator, vertex_iterator> vp = boost::vertices(PAG);
        vp.first != vp.second; ++vp.first) {
     for (auto user : PAG[*vp.first].V->users()) {
       if (auto R = llvm::dyn_cast<llvm::ReturnInst>(user)) {
@@ -289,7 +290,7 @@ set<const llvm::Value *> PointsToGraph::getReachableAllocationSites(
 }
 
 bool PointsToGraph::containsValue(llvm::Value *V) {
-  pair<vertex_iterator_t, vertex_iterator_t> vp;
+  pair<vertex_iterator, vertex_iterator> vp;
   for (vp = boost::vertices(PAG); vp.first != vp.second; ++vp.first)
     if (PAG[*vp.first].V == V)
       return true;
@@ -353,33 +354,37 @@ bool PointsToGraph::representsSingleFunction() {
 void PointsToGraph::print(std::ostream &OS) const {
   for (const auto &Fn : ContainedFunctions) {
     cout << "PointsToGraph for " << Fn << ":\n";
-    boost::print_graph(
-        PAG, boost::get(&PointsToGraph::VertexProperties::IR, PAG), OS);
+    vertex_iterator ui, ui_end;
+    for (boost::tie(ui, ui_end) = boost::vertices(PAG); ui != ui_end; ++ui) {
+      OS << PAG[*ui].getValueAsString() << " <--> ";
+      out_edge_iterator ei, ei_end;
+      for (boost::tie(ei, ei_end) = boost::out_edges(*ui, PAG); ei != ei_end;
+           ++ei) {
+        OS << PAG[target(*ei, PAG)].getValueAsString() << " ";
+      }
+      OS << '\n';
+    }
   }
 }
 
-void PointsToGraph::printAsDot(const string &filename) {
-  ofstream ofs(filename);
-  boost::write_graphviz(ofs, PAG,
-                        boost::make_label_writer(boost::get(
-                            &PointsToGraph::VertexProperties::IR, PAG)),
-                        boost::make_label_writer(boost::get(
-                            &PointsToGraph::EdgeProperties::IR, PAG)));
+void PointsToGraph::printAsDot(std::ostream &OS) const {
+  boost::write_graphviz(OS, PAG, makePointerVertexOrEdgePrinter(PAG),
+                        makePointerVertexOrEdgePrinter(PAG));
 }
 
 nlohmann::json PointsToGraph::getAsJson() {
   nlohmann::json J;
-  vertex_iterator_t vi_v, vi_v_end;
-  out_edge_iterator_t ei, ei_end;
+  vertex_iterator vi_v, vi_v_end;
+  out_edge_iterator ei, ei_end;
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(PAG); vi_v != vi_v_end;
        ++vi_v) {
-    J[PhasarConfig::JsonPointToGraphID()][llvmIRToString(PAG[*vi_v].V)];
+    J[PhasarConfig::JsonPointToGraphID()][PAG[*vi_v].getValueAsString()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, PAG); ei != ei_end;
          ++ei) {
-      J[PhasarConfig::JsonPointToGraphID()][llvmIRToString(PAG[*vi_v].V)] +=
-          llvmIRToString(PAG[boost::target(*ei, PAG)].V);
+      J[PhasarConfig::JsonPointToGraphID()][PAG[*vi_v].getValueAsString()] +=
+          PAG[boost::target(*ei, PAG)].getValueAsString();
     }
   }
   return J;
@@ -398,7 +403,7 @@ void PointsToGraph::mergeWith(const PointsToGraph *Other,
     copy_graph<PointsToGraph::graph_t, PointsToGraph::vertex_t>(PAG,
                                                                 Other->PAG);
     ValueVertexMap.clear();
-    vertex_iterator_t vi, vi_end;
+    vertex_iterator vi, vi_end;
     for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
       ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
     }
@@ -447,7 +452,7 @@ void PointsToGraph::mergeWith(
                PointsToGraph::EdgeProperties, const llvm::Instruction *>(
       PAG, Other.PAG, v_in_g1_u_in_g2);
   ValueVertexMap.clear();
-  vertex_iterator_t vi, vi_end;
+  vertex_iterator vi, vi_end;
   for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
     ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
   }
@@ -478,10 +483,9 @@ void PointsToGraph::mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
     }
   } else {
     ContainedFunctions.insert(F->getName().str());
-    // TODO this function has to check if F's points-to graph is already merged
-    // into the 'this' points-to graph. If so, is is not allowed to copy it a
-    // second
-    // time into 'this' PAG.
+    // TODO this function has to check if F's points-to graph is already
+    // merged into the 'this' points-to graph. If so, is is not allowed to
+    // copy it a second time into 'this' PAG.
     vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>>
         v_in_g1_u_in_g2;
     for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
@@ -509,8 +513,8 @@ void PointsToGraph::mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
         typename std::vector<PointsToGraph::vertex_t>::iterator, index_map_t,
         PointsToGraph::vertex_t, PointsToGraph::vertex_t &>
         IsoMap;
-    // for more generic graphs, one can try typedef std::map<vertex_t, vertex_t>
-    // IsoMap;
+    // for more generic graphs, one can try typedef std::map<vertex_t,
+    // vertex_t> IsoMap;
     vector<PointsToGraph::vertex_t> orig2copy_data(
         boost::num_vertices(Other->PAG));
     IsoMap mapV = boost::make_iterator_property_map(
@@ -523,7 +527,7 @@ void PointsToGraph::mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
     }
   }
   ValueVertexMap.clear();
-  vertex_iterator_t vi, vi_end;
+  vertex_iterator vi, vi_end;
   for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
     ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
   }

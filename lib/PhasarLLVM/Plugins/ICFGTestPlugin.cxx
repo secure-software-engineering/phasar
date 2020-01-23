@@ -99,7 +99,9 @@ std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::m_t fun) const {
 
 void ICFGTestPlugin::print(ICFGTestPlugin::m_t F, std::ostream &OS) const {}
 
-nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::m_t F) const { return ""; }
+nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::m_t F) const {
+  return "";
+}
 
 // ICFG parts
 

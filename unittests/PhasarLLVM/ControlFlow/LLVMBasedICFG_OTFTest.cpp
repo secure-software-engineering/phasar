@@ -51,8 +51,8 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   LLVMPointsToInfo PT(IRDB);
 //   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::OTF, {"main"}, &TH, &PT);
 //   const llvm::Function *F = IRDB.getFunctionDefinition("main");
-//   const llvm::Function *FooC = IRDB.getFunctionDefinition("_ZZ4mainEN1C3fooEv");
-//   ASSERT_TRUE(F);
+//   const llvm::Function *FooC =
+//   IRDB.getFunctionDefinition("_ZZ4mainEN1C3fooEv"); ASSERT_TRUE(F);
 //   ASSERT_TRUE(FooC);
 
 //   auto CS1 = getNthInstruction(F, 15);
