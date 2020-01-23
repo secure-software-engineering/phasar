@@ -114,7 +114,6 @@ include_directories(external/WALi-OpenNWA/Source/wali/include)
 # Z3 solver
 add_subdirectory(external/z3)
 include_directories(external/z3/src/api/c++/)
-include_directories(external/z3/src/api/)
 
 # Boost
 find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
