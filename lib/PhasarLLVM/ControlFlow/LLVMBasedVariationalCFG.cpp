@@ -1,14 +1,25 @@
-#include <deque>
+/******************************************************************************
+ * Copyright (c) 2020 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, Philipp Schubert and others
+ *****************************************************************************/
+
 #include <iostream>
+
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/InstrTypes.h>
+#include <llvm/IR/Instruction.h>
+#include <llvm/IR/Instructions.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
+using namespace psr;
+
 namespace psr {
-LLVMBasedVariationalCFG::LLVMBasedVariationalCFG()
-    : ctx(new z3::context()),
-      pp_variables(new std::unordered_map<std::string, z3::expr>()) {}
 
 z3::expr
 LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
@@ -57,6 +68,7 @@ LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
     return getTrueCondition();
   }
 }
+
 bool LLVMBasedVariationalCFG::isPPVariable(const llvm::GlobalVariable *glob,
                                            std::string &_name) const {
   auto name = glob->getName();
@@ -92,8 +104,8 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
     } else {
       std::string name;
       if (isPPVariable(glob, name)) {
-        auto it = pp_variables->find(name);
-        if (it != pp_variables->end()) {
+        auto it = PPVariables.find(name);
+        if (it != PPVariables.end()) {
           // std::cout << "Variable: " << it->second << std::endl;
           return it->second;
         }
@@ -102,14 +114,14 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
         auto defined_pos = name.find_last_of("_defined");
 
         if (defined_pos == name.size() - 1) {
-          ret = ctx->bool_const(name.data());
+          ret = CTX.bool_const(name.data());
         } else {
 
-          ret = ctx->int_const(name.data());
+          ret = CTX.int_const(name.data());
         }
         // move name here to preserve the allocated string, which is stored
         // untracked in ret
-        pp_variables->insert({std::move(name), ret});
+        PPVariables.insert({std::move(name), ret});
         // std::cout << "+Variable: " << ret << std::endl;
         return ret;
       } /*else {
@@ -128,16 +140,17 @@ z3::expr
 LLVMBasedVariationalCFG::createConstant(const llvm::Constant *val) const {
   if (auto cnstInt = llvm::dyn_cast<llvm::ConstantInt>(val)) {
     if (cnstInt->getValue().getBitWidth() == 1)
-      return ctx->bool_val(cnstInt->getLimitedValue());
+      return CTX.bool_val(cnstInt->getLimitedValue());
     else
-      return ctx->int_val(cnstInt->getSExtValue());
+      return CTX.int_val(cnstInt->getSExtValue());
   } else if (auto cnstFP = llvm::dyn_cast<llvm::ConstantFP>(val)) {
-    return ctx->fpa_val(cnstFP->getValueAPF().convertToDouble());
+    return CTX.fpa_val(cnstFP->getValueAPF().convertToDouble());
   } else {
     assert(false && "Invalid constant value");
     return getTrueCondition();
   }
 }
+
 z3::expr
 LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
   if (auto load = llvm::dyn_cast<llvm::LoadInst>(val)) {
@@ -156,6 +169,7 @@ LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
   assert(false && "Unknown expression");
   return getTrueCondition();
 }
+
 z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
                                                     z3::expr xInt,
                                                     bool forEquality) const {
@@ -168,7 +182,7 @@ z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
     else
       return intVal ? !xBool : xBool;
   }
-  auto ret = (xInt != ctx->int_val(0)) == xBool;
+  auto ret = (xInt != CTX.int_val(0)) == xBool;
   if (!forEquality)
     ret = !ret;
   return ret;
@@ -223,9 +237,9 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
   case llvm::CmpInst::FCMP_ULT:
     return xLhs < xRhs;
   case llvm::CmpInst::FCMP_FALSE:
-    return ctx->bool_val(false);
+    return CTX.bool_val(false);
   case llvm::CmpInst::FCMP_TRUE:
-    return ctx->bool_val(true);
+    return CTX.bool_val(true);
   case llvm::CmpInst::FCMP_UNO: // unordered (either nans)
   case llvm::CmpInst::FCMP_ORD: // ordered (no nans)
   default:                      // will not happen
@@ -235,6 +249,7 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
 
   return getTrueCondition();
 }
+
 bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   if (!br->isConditional())
     return false;
@@ -261,6 +276,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   }
   return false;
 }
+
 bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
                                              z3::expr &cond) const {
   if (!br->isConditional()) {
@@ -285,7 +301,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
               cond = inferCondition(icmp);
             } else {
               // TODO was hier?
-              cond = ctx->bool_val(true);
+              cond = CTX.bool_val(true);
             }
             return true;
           } /*else {
@@ -301,9 +317,11 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
   cond = getTrueCondition();
   return false;
 }
-std::vector<std::tuple<const llvm::Instruction *, z3::expr>>
-LLVMBasedVariationalCFG::getSuccsOfWithCond(const llvm::Instruction *stmt) {
-  std::vector<std::tuple<const llvm::Instruction *, z3::expr>> Successors;
+
+std::vector<std::pair<const llvm::Instruction *, z3::expr>>
+LLVMBasedVariationalCFG::getSuccsOfWithCond(
+    const llvm::Instruction *stmt) const {
+  std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
   if (stmt->getNextNode()) {
     Successors.emplace_back(stmt->getNextNode(), getTrueCondition());
   }
@@ -319,9 +337,11 @@ LLVMBasedVariationalCFG::getSuccsOfWithCond(const llvm::Instruction *stmt) {
   }
   return Successors;
 }
+
 z3::expr LLVMBasedVariationalCFG::getTrueCondition() const {
-  return ctx->bool_val(true);
+  return CTX.bool_val(true);
 }
+
 bool LLVMBasedVariationalCFG::isPPBranchTarget(
     const llvm::Instruction *stmt, const llvm::Instruction *succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
@@ -335,6 +355,7 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(
   }
   return false;
 }
+
 bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
                                                const llvm::Instruction *succ,
                                                z3::expr &condition) const {
@@ -353,5 +374,7 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
   }
   return false;
 }
-z3::context &LLVMBasedVariationalCFG::getContext() const { return *ctx; }
+
+z3::context &LLVMBasedVariationalCFG::getContext() const { return CTX; }
+
 } // namespace psr

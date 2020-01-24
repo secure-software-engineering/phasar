@@ -29,6 +29,7 @@ protected:
 
   ProjectIRDB *IRDB = nullptr;
   LLVMTypeHierarchy *TH = nullptr;
+  LLVMPointsToInfo *PT = nullptr;
   LLVMBasedVariationalICFG *VICFG = nullptr;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
@@ -38,8 +39,9 @@ protected:
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     TH = new LLVMTypeHierarchy(*IRDB);
-    VICFG = new LLVMBasedVariationalICFG(*TH, *IRDB, CallGraphAnalysisType::OTF,
-                                         EntryPoints);
+    PT = new LLVMPointsToInfo(*IRDB);
+    VICFG = new LLVMBasedVariationalICFG(*IRDB, CallGraphAnalysisType::OTF,
+                                         EntryPoints, TH, PT);
   }
   bool doAnalysis(const llvm::Instruction *currInst,
                   const llvm::Instruction *succInst, z3::expr &ret) {
@@ -50,6 +52,7 @@ protected:
   void TearDown() override {
     DELETE(VICFG);
     DELETE(TH);
+    DELETE(PT);
     DELETE(IRDB);
   }
 
@@ -69,7 +72,7 @@ protected:
 }; // Test Fixture
 
 TEST_F(VariabilityCFGTest, twovariables_desugared) {
-  initialize("twovariables.desugared.ll");
+  initialize("twovariables_desugared_c.ll");
   z3::expr exp = VICFG->getTrueCondition();
   auto currInst = IRDB->getInstruction(9);
   auto succInst = IRDB->getInstruction(10);

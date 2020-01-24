@@ -112,10 +112,10 @@ add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
 # Z3 solver
-find_package(Z3 4.7.1)
+find_package(Z3 4.8.7)
 
 if (NOT Z3_FOUND)
-  message(FATAL_ERROR "Z3 >= 4.7.1 has not been found in LLVM_Z3_INSTALL_DIR: ${LLVM_Z3_INSTALL_DIR}.")
+  message(FATAL_ERROR "Z3 >= 4.8.7 has not been found.")
 endif()
 
 # Boost

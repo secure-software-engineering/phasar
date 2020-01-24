@@ -48,7 +48,7 @@ class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 
 class LLVMBasedICFG
-    : public ICFG<const llvm::Instruction *, const llvm::Function *>,
+    : public virtual ICFG<const llvm::Instruction *, const llvm::Function *>,
       public virtual LLVMBasedCFG {
   friend class LLVMBasedBackwardsICFG;
 
