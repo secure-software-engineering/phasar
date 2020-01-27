@@ -245,8 +245,8 @@ void IFDSConstAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSConstAnalysis::printMethod(ostream &os,
-                                    IFDSConstAnalysis::m_t m) const {
+void IFDSConstAnalysis::printFunction(ostream &os,
+                                      IFDSConstAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

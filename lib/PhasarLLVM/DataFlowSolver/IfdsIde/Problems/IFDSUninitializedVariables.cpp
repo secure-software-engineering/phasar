@@ -436,7 +436,7 @@ void IFDSUninitializedVariables::printDataFlowFact(
   os << llvmIRToShortString(d);
 }
 
-void IFDSUninitializedVariables::printMethod(
+void IFDSUninitializedVariables::printFunction(
     ostream &os, IFDSUninitializedVariables::m_t m) const {
   os << m->getName().str();
 }

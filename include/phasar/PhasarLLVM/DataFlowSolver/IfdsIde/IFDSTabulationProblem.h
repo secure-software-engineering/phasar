@@ -35,14 +35,14 @@ struct HasNoConfigurationType;
 
 class ProjectIRDB;
 template <typename T, typename M> class TypeHierarchy;
-template <typename V> class PointsToInfo;
+template <typename V, typename N> class PointsToInfo;
 
 template <typename N, typename D, typename M, typename T, typename V,
           typename I>
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,
-                              public virtual MethodPrinter<M> {
+                              public virtual FunctionPrinter<M> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 
@@ -51,7 +51,7 @@ protected:
   const ProjectIRDB *IRDB;
   const TypeHierarchy<T, M> *TH;
   const I *ICF;
-  const PointsToInfo<V> *PT;
+  const PointsToInfo<V, N> *PT;
   D ZeroValue;
   std::set<std::string> EntryPoints;
 
@@ -59,7 +59,7 @@ public:
   using ConfigurationTy = HasNoConfigurationType;
 
   IFDSTabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
-                        const I *ICF, const PointsToInfo<V> *PT,
+                        const I *ICF, const PointsToInfo<V, N> *PT,
                         std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), ICF(ICF), PT(PT), EntryPoints(EntryPoints) {}
 
@@ -81,7 +81,7 @@ public:
 
   const I *getICFG() const { return ICF; }
 
-  const PointsToInfo<V> *getPointstoInfo() const { return PT; }
+  const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
 
   void setIFDSIDESolverConfig(IFDSIDESolverConfig Config) {
     SolverConfig = Config;

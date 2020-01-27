@@ -145,15 +145,16 @@ bool LLVMBasedBackwardsICFG::isPrimitiveFunction(const std::string &name) {
   return ForwardICFG.isPrimitiveFunction(name);
 }
 
-void LLVMBasedBackwardsICFG::print(std::ostream &OS) { ForwardICFG.print(OS); }
+void LLVMBasedBackwardsICFG::print(std::ostream &OS) const {
+  ForwardICFG.print(OS);
+}
 
-void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) {
+void LLVMBasedBackwardsICFG::printAsDot(std::ostream &OS) const {
   ForwardICFG.printAsDot(OS);
 }
 
-void LLVMBasedBackwardsICFG::printInternalPTGAsDot(
-    const std::string &filename) {
-  ForwardICFG.printInternalPTGAsDot(filename);
+void LLVMBasedBackwardsICFG::printInternalPTGAsDot(std::ostream &OS) const {
+  ForwardICFG.printInternalPTGAsDot(OS);
 }
 
 nlohmann::json LLVMBasedBackwardsICFG::getAsJson() const {

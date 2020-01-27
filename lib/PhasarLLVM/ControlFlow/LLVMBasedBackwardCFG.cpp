@@ -22,6 +22,7 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace psr;
 using namespace std;
@@ -134,4 +135,14 @@ LLVMBasedBackwardCFG::getStatementId(const llvm::Instruction *stmt) const {
       ->getString()
       .str();
 }
+
+void LLVMBasedBackwardCFG::print(const llvm::Function *F,
+                                 std::ostream &OS) const {
+  OS << llvmIRToString(F);
+}
+
+nlohmann::json LLVMBasedBackwardCFG::getAsJson(const llvm::Function *F) const {
+  return "";
+}
+
 } // namespace psr

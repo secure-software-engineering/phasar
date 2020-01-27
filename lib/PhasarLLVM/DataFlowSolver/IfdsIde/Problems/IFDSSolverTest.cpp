@@ -98,7 +98,7 @@ void IFDSSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSSolverTest::printMethod(ostream &os, IFDSSolverTest::m_t m) const {
+void IFDSSolverTest::printFunction(ostream &os, IFDSSolverTest::m_t m) const {
   os << m->getName().str();
 }
 

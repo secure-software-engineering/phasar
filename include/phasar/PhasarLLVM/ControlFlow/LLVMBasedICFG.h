@@ -73,18 +73,18 @@ private:
   // The VertexProperties for our call-graph.
   struct VertexProperties {
     const llvm::Function *F = nullptr;
-    std::string FName;
     VertexProperties() = default;
     VertexProperties(const llvm::Function *F);
+    std::string getFunctionName() const;
   };
 
   // The EdgeProperties for our call-graph.
   struct EdgeProperties {
     const llvm::Instruction *CS = nullptr;
-    std::string IR;
     size_t ID = 0;
     EdgeProperties() = default;
     EdgeProperties(const llvm::Instruction *I);
+    std::string getCallSiteAsString() const;
   };
 
   /// Specify the type of graph to be used.
@@ -157,12 +157,52 @@ public:
 
   bool isPrimitiveFunction(const std::string &name);
 
-  void print(std::ostream &OS = std::cout);
+  using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
+  void print(std::ostream &OS = std::cout) const override;
 
-  void printAsDot(std::ostream &OS = std::cout);
+  // provide a VertexPropertyWrite to tell boost how to write a vertex
+  class CallGraphVertexWriter {
+  public:
+    CallGraphVertexWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << CGraph[v].getFunctionName() << "\"]";
+    }
 
-  void printInternalPTGAsDot(const std::string &filename);
+  private:
+    const bidigraph_t &CGraph;
+  };
 
+  // a function to conveniently create the vertex writer
+  CallGraphVertexWriter
+  makeCallGraphVertexWriter(const bidigraph_t &CGraph) const {
+    return CallGraphVertexWriter(CGraph);
+  }
+
+  // provide a EdgePropertyWrite to tell boost how to write an edge
+  class CallGraphEdgeWriter {
+  public:
+    CallGraphEdgeWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
+    template <class VertexOrEdge>
+    void operator()(std::ostream &out, const VertexOrEdge &v) const {
+      out << "[label=\"" << CGraph[v].getCallSiteAsString() << "\"]";
+    }
+
+  private:
+    const bidigraph_t &CGraph;
+  };
+
+  // a function to conveniently create the edge writer
+  CallGraphEdgeWriter makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
+    return CallGraphEdgeWriter(CGraph);
+  }
+
+  void printAsDot(std::ostream &OS = std::cout) const;
+
+  void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
+
+  using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
+                                 // prints
   nlohmann::json getAsJson() const override;
 
   unsigned getNumOfVertices();

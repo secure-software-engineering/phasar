@@ -97,7 +97,8 @@ void IFDSSignAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSSignAnalysis::printMethod(ostream &os, IFDSSignAnalysis::m_t m) const {
+void IFDSSignAnalysis::printFunction(ostream &os,
+                                     IFDSSignAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

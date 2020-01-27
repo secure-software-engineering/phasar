@@ -33,7 +33,7 @@ private:
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   std::vector<std::string> AnalysisConfigs;
   std::set<std::string> EntryPoints;
-  AnalysisStrategy Strategy;
+  [[maybe_unused]] AnalysisStrategy Strategy;
 
   void executeDemandDriven();
   void executeIncremental();

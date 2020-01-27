@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <fstream>
 
 #include <boost/filesystem/operations.hpp>
 
@@ -32,15 +33,23 @@ int main(int argc, const char **argv) {
   auto &lg = lg::get();
   if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
       boost::filesystem::is_directory(argv[1])) {
-    std::cerr << "usage: <prog> <ir file>\n";
+    std::cerr << "myphasartool\n"
+                 "A small PhASAR-based example program\n\n"
+                 "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
   initializeLogger(false);
   ProjectIRDB DB({argv[1]});
   if (auto F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
+    // print type hierarchy
+    H.print();
     LLVMPointsToInfo P(DB);
+    // print points-to information
+    P.print();
     LLVMBasedICFG I(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
+    // print inter-procedural control-flow graph
+    I.print();
     // IFDS template parametrization test
     std::cout << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});

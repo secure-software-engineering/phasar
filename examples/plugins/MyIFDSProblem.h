@@ -7,9 +7,18 @@
 #include <set>
 #include <vector>
 
+namespace psr {
+class ProjectIRDB;
+class LLVMTypeHierarchy;
+class LLVMBasedICFG;
+class LLVMPointsToInfo;
+} // namespace psr
+
 class MyIFDSProblem : public psr::IFDSTabulationProblemPlugin {
 public:
-  MyIFDSProblem(psr::LLVMBasedICFG &I, std::vector<std::string> EntryPoints);
+  MyIFDSProblem(const psr::ProjectIRDB *IRDB, const psr::LLVMTypeHierarchy *TH,
+                const psr::LLVMBasedICFG *ICF, const psr::LLVMPointsToInfo *PT,
+                std::set<std::string> EntryPoints);
   ~MyIFDSProblem() = default;
   std::shared_ptr<psr::FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,

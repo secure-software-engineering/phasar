@@ -80,7 +80,7 @@ public:
     os << llvmIRToString(d);
   }
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, const llvm::Function *m) const override {
     os << m->getName().str();
   }
 };

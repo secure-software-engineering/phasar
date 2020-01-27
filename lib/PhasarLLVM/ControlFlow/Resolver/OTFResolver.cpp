@@ -113,3 +113,22 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
 
   return possible_call_targets;
 }
+
+std::set<const llvm::Function *>
+OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+  std::set<const llvm::Function *> Callees;
+  auto PTS = PT.getPointsToSet(CS.getCalledValue());
+  for (auto P : PTS) {
+    if (P->getType()->isPointerTy() &&
+        P->getType()->getPointerElementType()->isFunctionTy()) {
+      if (auto F = llvm::dyn_cast<llvm::Function>(P)) {
+        Callees.insert(F);
+      }
+    }
+  }
+  // if we could not find any callees, use a fallback solution
+  if (Callees.empty()) {
+    return Resolver::resolveFunctionPointer(CS);
+  }
+  return Callees;
+}

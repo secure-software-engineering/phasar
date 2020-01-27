@@ -144,8 +144,8 @@ void WPDSAliasCollector::printDataFlowFact(std::ostream &os,
   os << llvmIRToString(d);
 }
 
-void WPDSAliasCollector::printMethod(std::ostream &os,
-                                     WPDSAliasCollector::m_t m) const {
+void WPDSAliasCollector::printFunction(std::ostream &os,
+                                       WPDSAliasCollector::m_t m) const {
   os << m->getName().str();
 }
 

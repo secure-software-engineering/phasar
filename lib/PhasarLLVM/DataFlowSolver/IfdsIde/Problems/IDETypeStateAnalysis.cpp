@@ -457,8 +457,8 @@ void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
   os << llvmIRToString(d);
 }
 
-void IDETypeStateAnalysis::printMethod(ostream &os,
-                                       IDETypeStateAnalysis::m_t m) const {
+void IDETypeStateAnalysis::printFunction(ostream &os,
+                                         IDETypeStateAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

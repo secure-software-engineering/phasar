@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_PLUGINS_ANALYSISPLUGINCONTROLLER_H_
 #define PHASAR_PHASARLLVM_PLUGINS_ANALYSISPLUGINCONTROLLER_H_
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -17,18 +18,17 @@
 
 namespace psr {
 
+class ProjectIRDB;
+class LLVMTypeHierarchy;
 class LLVMBasedICFG;
-
-using json = nlohmann::json;
+class LLVMPointsToInfo;
 
 class AnalysisPluginController {
-private:
-  json &FinalResultsJson;
-
 public:
   AnalysisPluginController(std::vector<std::string> AnalysisPlygins,
-                           LLVMBasedICFG &ICFG,
-                           std::vector<std::string> EntryPoints, json &Results);
+                           const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                           const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                           std::set<std::string> EntryPoints = {"main"});
 };
 
 } // namespace psr

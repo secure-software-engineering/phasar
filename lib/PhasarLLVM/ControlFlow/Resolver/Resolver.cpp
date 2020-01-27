@@ -97,29 +97,29 @@ void Resolver::postCall(const llvm::Instruction *inst) {}
 
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
-  // We may want to optimise the time of this function as it is in fact most of
-  // the time spent in the ICFG construction and it grows rapidily
+  // we may wish to optimise this function
+  // naive implementation that considers every function whose signature
+  // matches the call-site's signature as a callee target
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
-
-  std::set<const llvm::Function *> possible_call_targets;
+  std::set<const llvm::Function *> CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
   if (CS.getCalledValue() != nullptr &&
       CS.getCalledValue()->getType()->isPointerTy()) {
-    if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
+    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CS.getCalledValue()->getType()->getPointerElementType())) {
-      for (auto f : IRDB.getAllFunctions()) {
-        if (matchesSignature(f, ftype)) {
-          possible_call_targets.insert(f);
+      for (auto F : IRDB.getAllFunctions()) {
+        if (matchesSignature(F, FTy)) {
+          CalleeTargets.insert(F);
         }
       }
     }
   }
 
-  return possible_call_targets;
+  return CalleeTargets;
 }
 
 void Resolver::otherInst(const llvm::Instruction *Inst) {}

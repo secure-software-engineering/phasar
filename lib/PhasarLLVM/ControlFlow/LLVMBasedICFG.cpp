@@ -46,6 +46,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
@@ -66,13 +67,18 @@ struct LLVMBasedICFG::dependency_visitor : boost::default_dfs_visitor {
 };
 
 LLVMBasedICFG::VertexProperties::VertexProperties(const llvm::Function *F)
-    : F(F), FName(F->getName().str()) {}
+    : F(F) {}
+
+std::string LLVMBasedICFG::VertexProperties::getFunctionName() const {
+  return F->getName().str();
+}
 
 LLVMBasedICFG::EdgeProperties::EdgeProperties(const llvm::Instruction *I)
-    : CS(I),
-      // WARNING: Huge cost
-      //, ir_code(llvmIRToString(i)),
-      IR(""), ID(stoull(getMetaDataID(I))) {}
+    : CS(I), ID(stoull(getMetaDataID(I))) {}
+
+std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
+  return llvmIRToString(CS);
+}
 
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
@@ -501,30 +507,30 @@ bool LLVMBasedICFG::isPrimitiveFunction(const string &name) {
   return true;
 }
 
-void LLVMBasedICFG::print(ostream &OS) {
-  cout << "CallGraph:\n";
-  boost::print_graph(
-      CallGraph, boost::get(&LLVMBasedICFG::VertexProperties::FName, CallGraph),
-      OS);
+void LLVMBasedICFG::print(ostream &OS) const {
+  OS << "Call Graph:\n";
+  vertex_iterator ui, ui_end;
+  for (boost::tie(ui, ui_end) = boost::vertices(CallGraph); ui != ui_end;
+       ++ui) {
+    OS << CallGraph[*ui].getFunctionName() << " --> ";
+    out_edge_iterator ei, ei_end;
+    for (boost::tie(ei, ei_end) = boost::out_edges(*ui, CallGraph);
+         ei != ei_end; ++ei)
+      OS << CallGraph[target(*ei, CallGraph)].getFunctionName() << " ";
+    OS << '\n';
+  }
 }
 
-void LLVMBasedICFG::printAsDot(std::ostream &OS) {
-  boost::write_graphviz(
-      OS, CallGraph,
-      boost::make_label_writer(
-          boost::get(&LLVMBasedICFG::VertexProperties::FName, CallGraph)),
-      boost::make_label_writer(
-          boost::get(&LLVMBasedICFG::EdgeProperties::IR, CallGraph)));
+void LLVMBasedICFG::printAsDot(std::ostream &OS) const {
+  boost::write_graphviz(OS, CallGraph, makeCallGraphVertexWriter(CallGraph),
+                        makeCallGraphEdgeWriter(CallGraph));
 }
 
-void LLVMBasedICFG::printInternalPTGAsDot(const string &filename) {
-  ofstream ofs(filename);
+void LLVMBasedICFG::printInternalPTGAsDot(std::ostream &OS) const {
   boost::write_graphviz(
-      ofs, WholeModulePTG.ptg,
-      boost::make_label_writer(boost::get(
-          &PointsToGraph::VertexProperties::ir_code, WholeModulePTG.ptg)),
-      boost::make_label_writer(boost::get(
-          &PointsToGraph::EdgeProperties::ir_code, WholeModulePTG.ptg)));
+      OS, WholeModulePTG.PAG,
+      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG),
+      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG));
 }
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {
@@ -534,12 +540,12 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
   // iterate all graph vertices
   for (boost::tie(vi_v, vi_v_end) = boost::vertices(CallGraph);
        vi_v != vi_v_end; ++vi_v) {
-    J[PhasarConfig::JsonCallGraphID()][CallGraph[*vi_v].FName];
+    J[PhasarConfig::JsonCallGraphID()][CallGraph[*vi_v].getFunctionName()];
     // iterate all out edges of vertex vi_v
     for (boost::tie(ei, ei_end) = boost::out_edges(*vi_v, CallGraph);
          ei != ei_end; ++ei) {
-      J[PhasarConfig::JsonCallGraphID()][CallGraph[*vi_v].FName] +=
-          CallGraph[boost::target(*ei, CallGraph)].FName;
+      J[PhasarConfig::JsonCallGraphID()][CallGraph[*vi_v].getFunctionName()] +=
+          CallGraph[boost::target(*ei, CallGraph)].getFunctionName();
     }
   }
   return J;
