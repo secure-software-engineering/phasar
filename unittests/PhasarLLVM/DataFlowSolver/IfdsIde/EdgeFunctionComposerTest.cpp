@@ -17,7 +17,7 @@ struct MyEFC : EdgeFunctionComposer<int> {
   };
 };
 
-struct MulTwoEF : EdgeFunction<int>, std::enable_shared_from_this<MulTwoEF> {
+struct MulTwoEF : EdgeFunction<int> {
 private:
   const unsigned MulTwoEF_Id;
 
@@ -38,7 +38,7 @@ public:
   }
 };
 
-struct AddTwoEF : EdgeFunction<int>, std::enable_shared_from_this<AddTwoEF> {
+struct AddTwoEF : EdgeFunction<int> {
 private:
   const unsigned AddTwoEF_Id;
 
@@ -84,12 +84,18 @@ TEST(EdgeFunctionComposerTest, HandleEFComposition) {
   auto AddEF1 = new AddTwoEF(++CurrAddTwoEF_Id);
   auto AddEF2 = new AddTwoEF(++CurrAddTwoEF_Id);
   auto MulEF = new MulTwoEF(++CurrMulTwoEF_Id);
-  auto ComposedEF = (AddEF1->composeWith(MulEF))->composeWith(AddEF2);
+  auto ComposedEFIntermediate = AddEF1->composeWith(MulEF);
+  auto ComposedEF = ComposedEFIntermediate->composeWith(AddEF2);
   std::cout << "Compose: " << ComposedEF->str() << '\n';
   int result = ComposedEF->computeTarget(initialValue);
   std::cout << "Result: " << result << '\n';
   EXPECT_EQ(12, result);
   EXPECT_FALSE(AddEF1->equal_to(AddEF2));
+  delete AddEF1;
+  delete AddEF2;
+  delete MulEF;
+  delete ComposedEFIntermediate;
+  delete ComposedEF;
 }
 
 // main function for the test case

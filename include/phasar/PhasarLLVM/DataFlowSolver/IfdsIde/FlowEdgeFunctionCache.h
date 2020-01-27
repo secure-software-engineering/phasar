@@ -61,10 +61,9 @@ private:
 
   // Data for clean up
   std::unordered_set<EdgeFunction<L> *> managedEdgeFunctions;
-  std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingleton = {
-      EdgeIdentity<V>::getInstance(),
-  };
-  std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingleton = {
+  std::unordered_set<EdgeFunction<L> *> registeredEdgeFunctionSingletons = {
+      EdgeIdentity<L>::getInstance()};
+  std::unordered_set<FlowFunction<D> *> registeredFlowFunctionSingletons = {
       Identity<D>::getInstance(), KillAll<D>::getInstance()};
 
 public:
@@ -115,54 +114,54 @@ public:
   ~FlowEdgeFunctionCache() {
     // Freeing all Flow Functions that are no singletons
     for (auto elem : NormalFlowFunctionCache) {
-      if (!registeredFlowFunctionSingleton.count(elem.second)) {
+      if (!registeredFlowFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : CallFlowFunctionCache) {
-      if (!registeredFlowFunctionSingleton.count(elem.second)) {
+      if (!registeredFlowFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : ReturnFlowFunctionCache) {
-      if (!registeredFlowFunctionSingleton.count(elem.second)) {
+      if (!registeredFlowFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : CallToRetFlowFunctionCache) {
-      if (!registeredFlowFunctionSingleton.count(elem.second)) {
+      if (!registeredFlowFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     // Freeing all Edge Functions that are no singletons
     for (auto elem : NormalEdgeFunctionCache) {
-      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
+      if (!registeredEdgeFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : CallEdgeFunctionCache) {
-      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
+      if (!registeredEdgeFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : ReturnEdgeFunctionCache) {
-      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
+      if (!registeredEdgeFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : CallToRetEdgeFunctionCache) {
-      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
+      if (!registeredEdgeFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     for (auto elem : SummaryEdgeFunctionCache) {
-      if (!registeredEdgeFunctionSingleton.count(elem.second)) {
+      if (!registeredEdgeFunctionSingletons.count(elem.second)) {
         delete elem.second;
       }
     }
     // free additional edge functions
     for (auto elem : managedEdgeFunctions) {
-      if (!registeredEdgeFunctionSingleton.count(elem)) {
+      if (!registeredEdgeFunctionSingletons.count(elem)) {
         delete elem;
       }
     }
@@ -177,20 +176,12 @@ public:
     return p;
   }
 
-  void registerAsEdgeFunctionSingleton(EdgeFunction<L> *p) {
-    registeredEdgeFunctionSingleton.insert(p);
+  void registerAsEdgeFunctionSingleton(std::set<EdgeFunction<L> *> s) {
+    registeredEdgeFunctionSingletons.insert(s.begin(), s.end());
   }
 
-  void registerAsEdgeFunctionSingleton(std::set<EdgeFunction<L> *> &s) {
-    registeredEdgeFunctionSingleton.insert(s);
-  }
-
-  void registerAsFlowFunctionSingleton(FlowFunction<D> *p) {
-    registeredFlowFunctionSingleton.insert(p);
-  }
-
-  void registerAsFlowFunctionSingleton(std::set<FlowFunction<D> *> &s) {
-    registeredFlowFunctionSingleton.insert(s);
+  void registerAsFlowFunctionSingleton(std::set<FlowFunction<D> *> s) {
+    registeredFlowFunctionSingletons.insert(s.begin(), s.end());
   }
 
   FlowFunction<D> *getNormalFlowFunction(N curr, N succ) {

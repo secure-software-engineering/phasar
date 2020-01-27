@@ -28,9 +28,7 @@ namespace psr {
 
 template <typename V> class EdgeFunction;
 
-template <typename V>
-class EdgeIdentity : public EdgeFunction<V>,
-                     public std::enable_shared_from_this<EdgeIdentity<V>> {
+template <typename V> class EdgeIdentity : public EdgeFunction<V> {
 private:
   EdgeIdentity() = default;
 

@@ -30,10 +30,7 @@ namespace psr {
  * implementation. By default, an explicit composition is used. Such a function
  * definition can grow unduly large.
  */
-template <typename V>
-class EdgeFunctionComposer
-    : public EdgeFunction<V>,
-      public std::enable_shared_from_this<EdgeFunctionComposer<V>> {
+template <typename V> class EdgeFunctionComposer : public EdgeFunction<V> {
 private:
   // For debug purpose only
   const unsigned EFComposer_Id;

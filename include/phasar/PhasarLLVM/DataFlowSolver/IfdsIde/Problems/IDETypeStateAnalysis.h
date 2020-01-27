@@ -182,8 +182,7 @@ public:
     EdgeFunction<l_t> *joinWith(EdgeFunction<l_t> *otherFunction) override;
   };
 
-  class TSEdgeFunction : public EdgeFunction<l_t>,
-                         public std::enable_shared_from_this<TSEdgeFunction> {
+  class TSEdgeFunction : public EdgeFunction<l_t> {
   protected:
     const TypeStateDescription &TSD;
     // Do not use a reference here, since LLVM's StringRef's (obtained by str())
