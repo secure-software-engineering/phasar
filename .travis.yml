@@ -1,17 +1,17 @@
-language: c++
+language: cpp
 
-# compiler:
-#   - clang
-#   - gcc
+#compiler:
+#  - clang
+#  - gcc
 
 cache:
   directories:
-    - $TRAVIS_BUILD_DIR/boost_1_67_0/
+    - $TRAVIS_BUILD_DIR/boost_1_70_0/
 
 matrix:
   include:
   - os: linux
-    dist: xenial
+    dist: bionic
     sudo: enabled
     addons:
       apt:
@@ -20,10 +20,6 @@ matrix:
         packages:
           - g++-7
           - build-essential
-          - clang-5.0
-          - libclang-5.0-dev
-          - llvm-5.0
-          - llvm-5.0-dev
           - sqlite3
           - libsqlite3-dev
           - bear
@@ -36,13 +32,19 @@ matrix:
           - doxygen
           - libcurl4-gnutls-dev
           - libmysqlcppconn-dev
+          - libboost-filesystem1.65-dev
+          - libboost-system1.65-dev
+          - libboost-graph1.65-dev
+          - libboost-program-options1.65-dev
+          - libboost-log1.65-dev
+          - libboost-thread1.65-dev
     env:
-      - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-  # TODO decomment, when C++17 can be used on OSX (LLVM has been updated)
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
+  # TODO FIXME
   # - os: osx
   #   osx_image: xcode8
   #   env:
-  #     - MATRIX_EVAL="brew install gcc && CC=gcc-7 && CXX=g++-7"
+  #     - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 branches:
     - development
@@ -50,23 +52,25 @@ branches:
 
 # commands that need to be run before installing the dependencies
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository 'deb http://apt.llvm.org/stretch/ llvm-toolchain-stretch-9 main'; wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add - ; sudo apt-get update -q ; sudo apt-get install libllvm9 llvm-9 llvm-9-dev llvm-9-doc llvm-9-examples llvm-9-runtime clang-9 clang-tools-9 clang-9-doc libclang-common-9-dev libclang-9-dev libclang1-9 clang-format-9 python-clang-9 lld-9 -y ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew update ; fi
   - eval "${MATRIX_EVAL}"
 
 # install all dependencies
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-9; export CXX=/usr/bin/clang++-9; fi
   - echo "checking C++ compiler"; clang++ --version
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update ; travis_wait 40 brew bundle ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@5/bin:$PATH" ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-5.0/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle --verbose; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@9/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export PATH="/usr/lib/llvm-9.0/bin:$PATH" ; fi
   # Initialize all submodules
   - git submodule update --init --recursive
-  # Install boost 1.67
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.67.0/source/boost_1_67_0.tar.gz; tar xf boost_1_67_0.tar.gz; cd boost_1_67_0/ ; ./bootstrap.sh 1> /dev/null ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
+  # Install boost 1.70
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz; tar xf boost_1_70_0.tar.gz; cd boost_1_70_0/; ./bootstrap.sh 1> /dev/null ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
+  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
 
 # commands that need to be run before execution
 # before_script
@@ -78,7 +82,7 @@ script:
   - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
   - sudo make install
-  # - make test # make DBConnTest run on CI build nodes first
+  # - ctest -j2
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make

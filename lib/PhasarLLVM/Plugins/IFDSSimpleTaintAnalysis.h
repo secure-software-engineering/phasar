@@ -23,8 +23,9 @@ namespace psr {
 
 class IFDSSimpleTaintAnalysis : public IFDSTabulationProblemPlugin {
 public:
-  IFDSSimpleTaintAnalysis(LLVMBasedICFG &I,
-                          std::vector<std::string> EntryPoints);
+  IFDSSimpleTaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
+                          const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
+                          std::set<std::string> EntryPoints = {});
   ~IFDSSimpleTaintAnalysis() = default;
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getNormalFlowFunction(const llvm::Instruction *curr,

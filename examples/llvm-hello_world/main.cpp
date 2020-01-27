@@ -1,4 +1,3 @@
-#include <cxxabi.h>
 #include <iostream>
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Constants.h>
@@ -17,16 +16,6 @@
 #include <memory>
 #include <string>
 
-std::string cxx_demangle(const std::string &mangled_name) {
-  int status = 0;
-  char *demangled =
-      abi::__cxa_demangle(mangled_name.c_str(), NULL, NULL, &status);
-  std::string result((status == 0 && demangled != NULL) ? demangled
-                                                        : mangled_name);
-  free(demangled);
-  return result;
-}
-
 int main(int argc, char **argv) {
   if (argc != 2) {
     std::cout << "usage: <prog> <IR file>\n";
@@ -38,7 +27,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<llvm::Module> M = llvm::parseIRFile(argv[1], Diag, *C);
   // check if the module is alright
   bool broken_debug_info = false;
-  if (M.get() == nullptr || llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
+  if (M.get() == nullptr ||
+      llvm::verifyModule(*M, &llvm::errs(), &broken_debug_info)) {
     llvm::errs() << "error: module not valid\n";
     return 1;
   }

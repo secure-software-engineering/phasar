@@ -6,29 +6,30 @@
 Analyses
 --------
 
-	cmd parameter - analysis name - analysis type
+cmd parameter - analysis name - analysis type
 
-	=== These analyses are only for testing purposes ===
-	none - / - /
-	ifds-solvertest - IFDS solver test - IFDS
-	ide-solvertest - IDE solver test - IDE
-	intra-mono-solvertest - intra MONOTONE solver test - MONO
-	inter-mono-solvertest - inter MONOTONE solver test (context-based) - MONO
+=== These analyses are only for testing purposes ===
+none                  - /                                                 - /
+ifds-solvertest       - IFDS solver test                                  - IFDS
+ide-solvertest	      - IDE solver test                                   - IDE
+intra-mono-solvertest - intra MONOTONE solver test                        - MONO
+inter-mono-solvertest - inter MONOTONE solver test (context-based)        - MONO
 
-	=== The actual analyses ===
-	ifds-const - an immutability analysis - IFDS
-	ifds-lca - linear constant propagation - IFDS
-	ifds-taint - a taint analysis tracking IO - IFDS
-	ifds-type - type analysis - IFDS
-	ifds-uninit - a simple uninitialized variables analysis - IFDS
-	ide-lca - an IDE version of the linear constant propagation - IDE
-	ide-taint - an IDE version of the taint analysis - IDE
-	ide-typestate - a simple type analysis - IDE
-	intra-mono-fullconstpropagation - full constant propagation analysis - MONO
-	inter-mono-taint - taint analysis - MONO
+=== The actual analyses ===
+ifds-fstaint          - static environment variable tracing               - IFDS
+ifds-const            - an immutability analysis                          - IFDS
+ifds-lca              - linear constant propagation                       - IFDS
+ifds-taint            - a taint analysis tracking IO                      - IFDS
+ifds-ta               - type analysis                                     - IFDS
+ifds-uninit           - a simple uninitialized variables analysis         - IFDS
+ide-lca               - an IDE version of the linear constant propagation - IDE
+ide-taint             - an IDE version of the taint analysis              - IDE
+ide-ts                - a simple type analysis                            - IDE
+intra-mono-fca        - full constant propagation analysis                - MONO
+inter-mono-taint      - taint analysis                                    - MONO
 
-	=== The analysis plugin mechanism ===
-	-D plugin --analysis-plugin <?>
+=== The analysis plugin mechanism ===
+-D Plugin --analysis-plugin <?>
 
 Currently the following analysis plugins are available:
 	

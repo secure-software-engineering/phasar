@@ -12,7 +12,7 @@ function(add_phasar_unittest test_name)
   endif()
   # Workaround: Remove Plugins for MacOS for now
   if(APPLE)
-    set(PHASAR_PLUGINS_LIB )
+    set(PHASAR_PLUGINS_LIB)
   else()
     set(PHASAR_PLUGINS_LIB phasar_plugins)
   endif()
@@ -29,6 +29,7 @@ function(add_phasar_unittest test_name)
     phasar_passes
     ${PHASAR_PLUGINS_LIB}
     phasar_pointer
+    phasar_typehierarchy
     phasar_phasarllvm_utils
     phasar_utils
     boost_program_options
@@ -84,8 +85,8 @@ function(generate_ll_file)
   set(test_code_file_target "${parent_dir}_${test_code_file_name}${ll_file_suffix}")
 
   # define compilation flags
-  set(GEN_CXX_FLAGS -std=c++14 -emit-llvm -S)
-  set(GEN_C_FLAGS -emit-llvm -S)
+  set(GEN_CXX_FLAGS -std=c++14 -fno-discard-value-names -emit-llvm -S)
+  set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
   set(GEN_CMD_COMMENT "compile ${GEN_LL_FILE} to LLVM IR")
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
@@ -148,7 +149,7 @@ macro(add_phasar_library name)
     string( REGEX MATCHALL "/[^/]" split_path ${CMAKE_CURRENT_SOURCE_DIR})
     list( GET split_path -1 dir)
     file( GLOB_RECURSE headers
-      ../../include/polly${dir}/*.h)
+      ../../include/phasar${dir}/*.h)
     set(srcs ${srcs} ${headers})
   endif(MSVC_IDE OR XCODE)
   if (MODULE)

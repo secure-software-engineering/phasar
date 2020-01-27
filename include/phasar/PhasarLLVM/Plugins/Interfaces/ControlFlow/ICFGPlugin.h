@@ -29,7 +29,7 @@ class ProjectIRDB;
 class ICFGPlugin
     : public ICFG<const llvm::Instruction *, const llvm::Function *> {
 private:
-  ProjectIRDB &IRDB;
+  [[maybe_unused]] ProjectIRDB &IRDB;
   const std::vector<std::string> EntryPoints;
 
 public:

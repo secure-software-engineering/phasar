@@ -8,7 +8,7 @@ MAIN_FILE := main.cpp
 CXX := clang++
 
 # compiler flags
-CXX_FLAGS := -std=c++14
+CXX_FLAGS := -std=c++17
 CXX_FLAGS += -Wall
 CXX_FLAGS += -Wextra
 CXX_FLAGS += -O0

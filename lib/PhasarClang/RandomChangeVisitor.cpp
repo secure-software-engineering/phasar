@@ -41,10 +41,10 @@ bool RandomChangeVisitor::VisitStmt(clang::Stmt *S) {
   if (clang::isa<clang::IfStmt>(S)) {
     clang::IfStmt *IfStatement = clang::cast<clang::IfStmt>(S);
     clang::Stmt *Then = IfStatement->getThen();
-    RW.InsertText(Then->getLocStart(), "// the 'if' part\n", true, true);
+    RW.InsertText(Then->getBeginLoc(), "// the 'if' part\n", true, true);
     clang::Stmt *Else = IfStatement->getElse();
     if (Else)
-      RW.InsertText(Else->getLocStart(), "// the 'else' part\n", true, true);
+      RW.InsertText(Else->getBeginLoc(), "// the 'else' part\n", true, true);
   }
   return true;
 }
@@ -68,7 +68,7 @@ bool RandomChangeVisitor::VisitFunctionDecl(clang::FunctionDecl *F) {
     // And after
     std::stringstream SSAfter;
     SSAfter << "\n// End function " << FuncName;
-    ST = FuncBody->getLocEnd().getLocWithOffset(1);
+    ST = FuncBody->getEndLoc().getLocWithOffset(1);
     RW.InsertText(ST, SSAfter.str(), true, true);
   }
 
@@ -90,7 +90,7 @@ bool RandomChangeVisitor::VisitVarDecl(clang::VarDecl *V) {
       // Use DeclRefExpr to find uses of the VarDecl 'V'!
       // --> use the VisitStmt function!
 
-      auto Start = V->getLocStart();
+      auto Start = V->getBeginLoc();
       // setting it to Start enables the use of auto for different input
       // decls we use
       auto End = Start;

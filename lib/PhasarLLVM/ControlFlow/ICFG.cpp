@@ -14,7 +14,11 @@
  *      Author: pdschbrt
  */
 
-#include <iostream>
+#include <ostream>
+#include <string>
+
+#include <llvm/ADT/StringSwitch.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 
 using namespace psr;
@@ -22,19 +26,35 @@ using namespace std;
 
 namespace psr {
 
-const map<string, CallGraphAnalysisType> StringToCallGraphAnalysisType = {
-    {"CHA", CallGraphAnalysisType::CHA},
-    {"RTA", CallGraphAnalysisType::RTA},
-    {"DTA", CallGraphAnalysisType::DTA},
-    {"OTF", CallGraphAnalysisType::OTF}};
+std::string to_string(const CallGraphAnalysisType &CGA) {
+  switch (CGA) {
+  default:
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
+  case CallGraphAnalysisType::TYPE:                                            \
+    return NAME;                                                               \
+    break;
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+  }
+}
 
-const map<CallGraphAnalysisType, string> CallGraphAnalysisTypeToString = {
-    {CallGraphAnalysisType::CHA, "CHA"},
-    {CallGraphAnalysisType::RTA, "RTA"},
-    {CallGraphAnalysisType::DTA, "DTA"},
-    {CallGraphAnalysisType::OTF, "OTF"}};
+CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S) {
+  CallGraphAnalysisType Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
+  .Case(NAME, CallGraphAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+                                   .Default(CallGraphAnalysisType::Invalid);
+  if (Type == CallGraphAnalysisType::Invalid) {
+    Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
+#define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
+  .Case(CMDFLAG, CallGraphAnalysisType::TYPE)
+#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+               .Default(CallGraphAnalysisType::Invalid);
+  }
+  return Type;
+}
 
 ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
-  return os << CallGraphAnalysisTypeToString.at(CGA);
+  return os << to_string(CGA);
 }
+
 } // namespace psr

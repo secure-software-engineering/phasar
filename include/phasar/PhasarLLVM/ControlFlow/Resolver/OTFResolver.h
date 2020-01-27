@@ -32,26 +32,34 @@ class Function;
 namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
+class LLVMPointsToInfo;
 class PointsToGraph;
 
-struct OTFResolver : public CHAResolver {
+class OTFResolver : public CHAResolver {
 protected:
+  LLVMPointsToInfo &PT;
   PointsToGraph &WholeModulePTG;
   std::vector<const llvm::Instruction *> CallStack;
 
 public:
-  OTFResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch,
-              PointsToGraph &wholemodulePTG);
-  virtual ~OTFResolver() = default;
+  OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT,
+              PointsToGraph &WholeModulePTG);
 
-  virtual void preCall(const llvm::Instruction *Inst) override;
-  virtual void TreatPossibleTarget(
-      const llvm::ImmutableCallSite &CS,
+  ~OTFResolver() override = default;
+
+  void preCall(const llvm::Instruction *Inst) override;
+
+  void handlePossibleTargets(
+      llvm::ImmutableCallSite CS,
       std::set<const llvm::Function *> &possible_targets) override;
-  virtual void postCall(const llvm::Instruction *Inst) override;
-  virtual void OtherInst(const llvm::Instruction *Inst) override;
-  virtual std::set<std::string>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+
+  void postCall(const llvm::Instruction *Inst) override;
+
+  std::set<const llvm::Function *>
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+
+  std::set<const llvm::Function *>
+  resolveFunctionPointer(llvm::ImmutableCallSite CS) override;
 };
 } // namespace psr
 

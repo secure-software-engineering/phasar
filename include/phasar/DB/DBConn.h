@@ -13,7 +13,7 @@
  *  Created on: 23.08.2016
  *      Author: pdschbrt
  */
-
+/*
 #ifndef PHASAR_DB_DBCONN_H_
 #define PHASAR_DB_DBCONN_H_
 
@@ -26,7 +26,7 @@
 #include <llvm/IR/Module.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/IfdsIde/IDESummary.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
 // If ProjectIRDB is no more returned, forward declare it and remove this
@@ -149,3 +149,4 @@ public:
 } // namespace psr
 
 #endif
+*/

@@ -17,6 +17,7 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
+#include <phasar/Utils/Macros.h>
 #include <string>
 #include <vector>
 
@@ -76,6 +77,10 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept;
 // TODO add description
 bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
 
+// TODO add description
+bool matchesSignature(const llvm::FunctionType *FType1,
+                      const llvm::FunctionType *FType2);
+
 /**
  * @brief Returns a string representation of a LLVM Value.
  * @note Expensive function (between 20 to 550 ms per call)
@@ -83,6 +88,12 @@ bool matchesSignature(const llvm::Function *F, const llvm::FunctionType *FType);
  * implementation)
  */
 std::string llvmIRToString(const llvm::Value *V);
+
+/**
+ * @brief Same as @link(llvmIRToString) but tries to shorten the
+ *        resulting string
+ */
+std::string llvmIRToShortString(const llvm::Value *V);
 
 /**
  * @brief Returns all LLVM Global Values that are used in the given LLVM
@@ -93,15 +104,29 @@ globalValuesUsedinFunction(const llvm::Function *F);
 
 /**
  * Only Instructions and GlobalVariables have 'real' ID's, i.e. annotated meta
- * data. Formal arguments will not be annotated with an ID during
- * ValueAnnotationPass. Instead, a formal arguments ID will look like this:
+ * data. Formal arguments cannot be annotated with metadata in LLVM. Therefore,
+ * a formal arguments ID will look like this:
  *    <function_name>.<#argument>
+ *
+ * ZeroValue will have -1 as ID by default.
  *
  * @brief Returns the ID of a given LLVM Value.
  * @return Meta data ID as a string or -1, if it's not
  * an Instruction, GlobalVariable or Argument.
  */
 std::string getMetaDataID(const llvm::Value *V);
+
+/**
+ * @brief Does less-than comparison based on the annotated ID.
+ *
+ * This is useful, since Instructions/Globals and Arguments have different
+ * underlying types for their ID's, size_t and string respectively.
+ */
+struct llvmValueIDLess {
+  stringIDLess sless;
+  llvmValueIDLess();
+  bool operator()(const llvm::Value *lhs, const llvm::Value *rhs) const;
+};
 
 /**
  * @brief Returns position of a formal function argument.
@@ -140,10 +165,10 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
  * Function.
  * @param F Function to retrieve the Termination Instruction from.
  * @param termInstNo Termination Instruction number.
- * @return LLVM Termination Instruction or nullptr, if termInstNo invalid.
+ * @return LLVM Instruction or nullptr, if termInstNo invalid.
  */
-const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
-                                                  unsigned termInstNo);
+const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
+                                               unsigned termInstNo);
 /**
  * The Store Instruction count starts with one (not zero, as in Function
  * arguments).

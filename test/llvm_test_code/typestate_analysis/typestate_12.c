@@ -1,20 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void foo(FILE *f) {
-  int i;
-
-  while ((i = fgetc(f)) != EOF)
-    putchar(i);
-
-  fclose(f);
+FILE* bar() {
+	FILE *p;
+	p = fopen("test", "w+");
+	return p;
 }
 
-int main(int argc, char **argv) {
+FILE* foo() {
+  return bar();
+}
+
+int main() {
   FILE *f;
-  f = fopen(argv[1], "r");
-
-  foo(f);
-
+  f = foo();
+  fclose(f);
+  
   return 0;
 }

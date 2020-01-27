@@ -13,11 +13,11 @@ D: CMake
 
 N: Nicolas Bellec
 E: nicolas.bellec@ens-rennes.fr
-D: Call-graph algorithms and inter-procedural context-based solver
+D: Call-graph algorithms
 
 N: Florian Sattler
 E: sattlerf@fim.uni-passau.de
-D: CMake build as llvm drop-in
+D: CMake and CMake build as llvm drop-in
 
 N: Christian Stritzke
 E: christian.stritzke@iem.fraunhofer.de

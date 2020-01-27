@@ -55,11 +55,12 @@ ostream &operator<<(ostream &os, enum severity_level l) {
   return os << SeverityLevelToString.at(l);
 }
 
-bool LogFilter(const bl::attribute_value_set &set) {
+bool LogFilter(const boost::log::attribute_value_set &set) {
   return set["Severity"].extract<severity_level>() >= logFilterLevel;
 }
 
-void LogFormatter(const bl::record_view &view, bl::formatting_ostream &os) {
+void LogFormatter(const boost::log::record_view &view,
+                  boost::log::formatting_ostream &os) {
   os << view.attribute_values()["LineCounter"].extract<int>() << " "
      << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
      << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
@@ -72,9 +73,10 @@ void LoggerExceptionHandler::operator()(const std::exception &ex) const {
 
 void initializeLogger(bool use_logger, string log_file) {
   // Using this call, logging can be enabled or disabled
-  bl::core::get()->set_logging_enabled(use_logger);
+  boost::log::core::get()->set_logging_enabled(use_logger);
   // if (log_file == "") {
-  typedef bl::sinks::synchronous_sink<bl::sinks::text_ostream_backend>
+  typedef boost::log::sinks::synchronous_sink<
+      boost::log::sinks::text_ostream_backend>
       text_sink;
   boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
@@ -97,12 +99,13 @@ void initializeLogger(bool use_logger, string log_file) {
   sink->locked_backend()->add_stream(stream);
   sink->set_filter(&LogFilter);
   sink->set_formatter(&LogFormatter);
-  bl::core::get()->add_sink(sink);
-  bl::core::get()->add_global_attribute("LineCounter",
-                                        bl::attributes::counter<int>{});
-  bl::core::get()->add_global_attribute("Timestamp",
-                                        bl::attributes::local_clock{});
-  bl::core::get()->set_exception_handler(
-      bl::make_exception_handler<std::exception>(LoggerExceptionHandler()));
+  boost::log::core::get()->add_sink(sink);
+  boost::log::core::get()->add_global_attribute(
+      "LineCounter", boost::log::attributes::counter<int>{});
+  boost::log::core::get()->add_global_attribute(
+      "Timestamp", boost::log::attributes::local_clock{});
+  boost::log::core::get()->set_exception_handler(
+      boost::log::make_exception_handler<std::exception>(
+          LoggerExceptionHandler()));
 }
 } // namespace psr

@@ -14,13 +14,17 @@
  *      Author: rleer
  */
 
-#include <boost/filesystem.hpp>
 #include <cassert>
+#include <fstream>
 #include <iomanip>
+#include <sstream>
+
+#include <boost/filesystem.hpp>
+
 #include <json.hpp>
+
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/PAMM.h>
-#include <sstream>
 
 using namespace psr;
 using json = nlohmann::json;
@@ -271,7 +275,7 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add timer data
   while (!RunningTimer.empty()) {
-    stopTimer(RunningTimer.begin()->first);
+    stopTimer(std::string(RunningTimer.begin()->first));
   }
   json jTimer;
   for (auto timer : StoppedTimer) {
@@ -304,15 +308,18 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
 
   // add analysis/project/source file information if available
   json jInfo;
-  if (VariablesMap.count("project-id")) {
-    jInfo["Project-ID"] = VariablesMap["project-id"].as<std::string>();
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    jInfo["Project-ID"] =
+        PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
-  if (VariablesMap.count("module")) {
-    jInfo["Module(s)"] = VariablesMap["module"].as<std::vector<std::string>>();
+  if (PhasarConfig::VariablesMap().count("module")) {
+    jInfo["Module(s)"] =
+        PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>();
   }
-  if (VariablesMap.count("data-flow-analysis")) {
+  if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     jInfo["Data-flow analysis"] =
-        VariablesMap["data-flow-analysis"].as<std::vector<std::string>>();
+        PhasarConfig::VariablesMap()["data-flow-analysis"]
+            .as<std::vector<std::string>>();
   }
   if (!jInfo.is_null()) {
     jsonData["Info"] = jInfo;

@@ -9,12 +9,13 @@ using namespace psr;
 class LLVMGetterTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/global_stmt_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthStoreInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 4);
   ASSERT_EQ(getNthStoreInstruction(F, 1), I);
@@ -27,7 +28,7 @@ TEST_F(LLVMGetterTest, HandlesLLVMStoreInstruction) {
 
 TEST_F(LLVMGetterTest, HandlesLLVMTermInstruction) {
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/if_else_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   ASSERT_EQ(getNthTermInstruction(F, 0), nullptr);
   auto I = getNthInstruction(F, 14);
   ASSERT_EQ(getNthTermInstruction(F, 1), I);

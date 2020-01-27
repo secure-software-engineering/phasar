@@ -1,0 +1,49 @@
+{
+	"CFNode": {
+		"style": "filled",
+		"shape": "record"
+	},
+	"CFIntraEdge": {
+	},
+	"CFInterEdge": {
+		"weight": "1"
+	},
+	"FactNode": {
+		"style": "rounded"
+	},
+	"FactIDEdge": {
+		"style": "dotted",
+		"arrowhead": "normal",
+		"fontsize": "11",
+		"arrowsize": "0.7"
+	},
+	"FactCrossEdge": {
+    "style": "dotted",
+		"arrowhead": "normal",
+		"fontsize": "11",
+		"arrowsize": "0.7"
+	},
+	"FactInterEdge": {
+    "weight": "0.1",
+		"style": "dashed",
+		"arrowhead": "normal",
+		"fontsize": "11",
+		"arrowsize": "0.7"
+	},
+	"LambdaNode": {
+		"style": "rounded"
+	},
+	"LambdaIDEdge": {
+		"style": "dotted",
+		"arrowhead": "normal",
+		"fontsize": "11",
+		"arrowsize": "0.7"
+	},
+	"LambdaInterEdge": {
+    "weight": "0.1",
+		"style": "dashed",
+		"arrowhead": "normal",
+		"fontsize": "11",
+		"arrowsize": "0.7"
+	}
+}

@@ -29,44 +29,25 @@ using namespace psr;
 
 namespace psr {
 
-std::string getSrcCodeLine(const std::string &Dir, const std::string &File,
-                           unsigned int num) {
-  boost::filesystem::path FilePath;
-  // Its possible that File holds the complete path
-  if (File.find("/home/") == std::string::npos) {
-    boost::filesystem::path DirPath(Dir);
-    boost::filesystem::path FileName(File);
-    FilePath = DirPath / FileName;
-  } else {
-    FilePath = File;
-  }
-  if (boost::filesystem::exists(FilePath) &&
-      !boost::filesystem::is_directory(FilePath)) {
-    std::ifstream ifs(FilePath.string(), std::ios::binary);
-    if (ifs.is_open()) {
-      ifs.seekg(std::ios::beg);
-      std::string line;
-      for (unsigned int i = 0; i < num - 1; ++i) {
-        ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-      }
-      std::getline(ifs, line);
-      boost::algorithm::trim(line);
-      return line;
-    }
-  }
-  throw std::ios_base::failure("could not read file: " + FilePath.string());
-}
-
-llvm::DILocalVariable *getDILocVarFromValue(const llvm::Value *V) {
-  if (auto *L =
-          llvm::LocalAsMetadata::getIfExists(const_cast<llvm::Value *>(V))) {
-    if (auto *MDV = llvm::MetadataAsValue::getIfExists(V->getContext(), L)) {
+llvm::DbgVariableIntrinsic *getDbgVarIntrinsic(const llvm::Value *V) {
+  if (auto *VAM =
+          llvm::ValueAsMetadata::getIfExists(const_cast<llvm::Value *>(V))) {
+    if (auto *MDV = llvm::MetadataAsValue::getIfExists(V->getContext(), VAM)) {
       for (auto *U : MDV->users()) {
-        if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(U)) {
-          return DDI->getVariable();
+        if (auto DBGIntr = llvm::dyn_cast<llvm::DbgVariableIntrinsic>(U)) {
+          return DBGIntr;
         }
-        if (auto *DVI = llvm::dyn_cast<llvm::DbgValueInst>(U)) {
-          return DVI->getVariable();
+      }
+    }
+  } else if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    /* If mem2reg is not activated, formal parameters will be stored in
+     * registers at the beginning of function call. Debug info will be linked to
+     * those alloca's instead of the arguments itself. */
+    for (auto User : Arg->users()) {
+      if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
+        if (Store->getValueOperand() == Arg &&
+            llvm::isa<llvm::AllocaInst>(Store->getPointerOperand())) {
+          return getDbgVarIntrinsic(Store->getPointerOperand());
         }
       }
     }
@@ -74,99 +55,186 @@ llvm::DILocalVariable *getDILocVarFromValue(const llvm::Value *V) {
   return nullptr;
 }
 
-std::string getLocalVarSrcInfo(const llvm::Value *V, bool ScopeInfo) {
-  if (auto DILocVar = getDILocVarFromValue(V)) {
-    std::string VarName("Var : " + DILocVar->getName().str() + "\n");
-    std::string Line("Line: " + std::to_string(DILocVar->getLine()));
-    std::string Scope;
-    if (ScopeInfo) {
-      Scope = "\nFunc: " +
-              DILocVar->getScope()->getSubprogram()->getName().str() + "\n";
-      Scope += "File: " + DILocVar->getScope()->getFilename().str();
+llvm::DILocalVariable *getDILocalVariable(const llvm::Value *V) {
+  if (auto DbgIntr = getDbgVarIntrinsic(V)) {
+    if (auto *DDI = llvm::dyn_cast<llvm::DbgDeclareInst>(DbgIntr)) {
+      return DDI->getVariable();
     }
-    return VarName + Line + Scope;
-  }
-  return "No source information available!";
-}
-
-std::string llvmInstructionToSrc(const llvm::Instruction *I, bool ScopeInfo) {
-  // Get source variable name if available
-  if (I->isUsedByMetadata()) {
-    return getLocalVarSrcInfo(I, ScopeInfo);
-  }
-  // Otherwise get the corresponding source code line instead
-  if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
-    auto &DILoc = I->getDebugLoc();
-    std::string ScopeStr;
-    std::string SrcCode("Src : ");
-    if (auto Scope = DILoc->getScope()) {
-      if (ScopeInfo) {
-        // Scope is not necessarily a DISubprogram - could be a DILexicalblock
-        ScopeStr = "Func: " + Scope->getSubprogram()->getName().str() + "\n";
-        ScopeStr += "File: " + Scope->getFilename().str() + "\n";
-      }
-      SrcCode += getSrcCodeLine(Scope->getDirectory().str(),
-                                Scope->getFilename().str(), DILoc.getLine());
-      SrcCode += "\n";
-    } else {
-      SrcCode += "No source code found!\n";
-    }
-    std::string Line = "Line: " + std::to_string(DILoc.getLine()) + "\n";
-    std::string Col = "Col : " + std::to_string(DILoc.getCol());
-    return SrcCode + ScopeStr + Line + Col;
-  }
-  return "No source information available!";
-}
-
-std::string llvmArgumentToSrc(const llvm::Argument *A, bool ScopeInfo) {
-  return getLocalVarSrcInfo(A, ScopeInfo);
-}
-
-std::string llvmFunctionToSrc(const llvm::Function *F) {
-  if (auto SubProg = F->getSubprogram()) {
-    return "Fname: " + SubProg->getName().str() +
-           "\nLine : " + std::to_string(SubProg->getLine()) +
-           "\nFile : " + SubProg->getFilename().str();
-    ;
-  } else {
-    return "Fname: " + F->getName().str();
-  }
-}
-
-std::string llvmGlobalValueToSrc(const llvm::GlobalVariable *GV) {
-  // There is no dbg info for external global variable's
-  if (auto DbgMetaNode = GV->getMetadata(llvm::LLVMContext::MD_dbg)) {
-    if (auto DIGVExp =
-            llvm::dyn_cast<llvm::DIGlobalVariableExpression>(DbgMetaNode)) {
-      if (auto DIGV = DIGVExp->getVariable()) {
-        return "Var : " + DIGV->getName().str() +
-               "\nLine: " + std::to_string(DIGV->getLine()) +
-               "\nFile: " + DIGV->getFilename().str();
-      }
+    if (auto *DVI = llvm::dyn_cast<llvm::DbgValueInst>(DbgIntr)) {
+      return DVI->getVariable();
     }
   }
-  return "No source information available!";
+  return nullptr;
 }
 
-std::string llvmModuleToSrc(const llvm::Module *M) {
-  return M->getModuleIdentifier();
-}
-
-std::string llvmValueToSrc(const llvm::Value *V, bool ScopeInfo) {
-  // if possible delegate call to appropriate method
-  if (auto F = llvm::dyn_cast<llvm::Function>(V)) {
-    return llvmFunctionToSrc(F);
-  }
+llvm::DIGlobalVariable *getDIGlobalVariable(const llvm::Value *V) {
   if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    return llvmGlobalValueToSrc(GV);
+    if (auto MN = GV->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      if (auto DIGVExp = llvm::dyn_cast<llvm::DIGlobalVariableExpression>(MN)) {
+        return DIGVExp->getVariable();
+      }
+    }
   }
-  if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    return llvmArgumentToSrc(Arg, ScopeInfo);
+  return nullptr;
+}
+
+llvm::DISubprogram *getDISubprogram(const llvm::Value *V) {
+  if (auto F = llvm::dyn_cast<llvm::Function>(V)) {
+    return F->getSubprogram();
   }
-  if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
-    return llvmInstructionToSrc(I, ScopeInfo);
+  return nullptr;
+}
+
+llvm::DILocation *getDILocation(const llvm::Value *V) {
+  // Arguments and Instruction such as AllocaInst
+  if (auto DbgIntr = getDbgVarIntrinsic(V)) {
+    if (auto MN = DbgIntr->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      return llvm::dyn_cast<llvm::DILocation>(MN);
+    }
+  } else if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (auto MN = I->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      return llvm::dyn_cast<llvm::DILocation>(MN);
+    }
   }
-  return "No source information available!";
+  return nullptr;
+}
+
+llvm::DIFile *getDIFile(const llvm::Value *V) {
+  if (auto GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
+    if (auto MN = GO->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      if (auto Subpr = llvm::dyn_cast<llvm::DISubprogram>(MN)) {
+        return Subpr->getFile();
+      }
+      if (auto GVExpr = llvm::dyn_cast<llvm::DIGlobalVariableExpression>(MN)) {
+        return GVExpr->getVariable()->getFile();
+      }
+    }
+  } else if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    if (auto LocVar = getDILocalVariable(Arg)) {
+      return LocVar->getFile();
+    }
+  } else if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (I->isUsedByMetadata()) {
+      if (auto LocVar = getDILocalVariable(I)) {
+        return LocVar->getFile();
+      }
+    } else if (I->getMetadata(llvm::LLVMContext::MD_dbg)) {
+      return I->getDebugLoc()->getFile();
+    }
+  }
+  return nullptr;
+}
+
+std::string getVarNameFromIR(const llvm::Value *V) {
+  if (auto LocVar = getDILocalVariable(V)) {
+    return LocVar->getName().str();
+  } else if (auto GlobVar = getDIGlobalVariable(V)) {
+    return GlobVar->getName().str();
+  }
+  return "";
+}
+
+std::string getFunctionNameFromIR(const llvm::Value *V) {
+  // We can return unmangled function names w/o checking debug info
+  if (auto F = llvm::dyn_cast<llvm::Function>(V)) {
+    return F->getName().str();
+  } else if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent()->getName().str();
+  } else if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return I->getFunction()->getName().str();
+  }
+  return "";
+}
+
+std::string getFilePathFromIR(const llvm::Value *V) {
+  if (auto DIF = getDIFile(V)) {
+    boost::filesystem::path file(DIF->getFilename().str());
+    boost::filesystem::path dir(DIF->getDirectory().str());
+    if (!file.empty()) {
+      // try to concatenate file path and dir to get absolut path
+      if (!file.has_root_directory() && !dir.empty()) {
+        file = dir / file;
+      }
+      return file.string();
+    }
+  } else {
+    /* As a fallback solution, we will return 'source_filename' info from
+     * module. However, it is not guaranteed to contain the absoult path, and it
+     * will return 'llvm-link' for linked modules. */
+    if (auto F = llvm::dyn_cast<llvm::Function>(V)) {
+      return F->getParent()->getSourceFileName();
+    } else if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+      return Arg->getParent()->getParent()->getSourceFileName();
+    } else if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+      return I->getFunction()->getParent()->getSourceFileName();
+    }
+  }
+  return "";
+}
+
+unsigned int getLineFromIR(const llvm::Value *V) {
+  // Argument and Instruction
+  if (auto DILoc = getDILocation(V)) {
+    return DILoc->getLine();
+  } else if (auto DISubpr = getDISubprogram(V)) { // Function
+    return DISubpr->getLine();
+  } else if (auto DIGV = getDIGlobalVariable(V)) { // Globals
+    return DIGV->getLine();
+  }
+  return 0;
+}
+
+std::string getDirectoryFromIR(const llvm::Value *V) {
+  // Argument and Instruction
+  if (auto DILoc = getDILocation(V)) {
+    return DILoc->getDirectory();
+  } else if (auto DISubpr = getDISubprogram(V)) { // Function
+    return DISubpr->getDirectory();
+  } else if (auto DIGV = getDIGlobalVariable(V)) { // Globals
+    return DIGV->getDirectory();
+  }
+  return 0;
+}
+
+unsigned int getColumnFromIR(const llvm::Value *V) {
+  // Globals and Function have no column info
+  if (auto DILoc = getDILocation(V)) {
+    return DILoc->getColumn();
+  }
+  return 0;
+}
+
+std::string getSrcCodeFromIR(const llvm::Value *V) {
+  unsigned int lineNr = getLineFromIR(V);
+  if (lineNr > 0) {
+    boost::filesystem::path path(getFilePathFromIR(V));
+    if (boost::filesystem::exists(path) &&
+        !boost::filesystem::is_directory(path)) {
+      std::ifstream ifs(path.string(), std::ios::binary);
+      if (ifs.is_open()) {
+        ifs.seekg(std::ios::beg);
+        std::string src_line;
+        for (unsigned int i = 0; i < lineNr - 1; ++i) {
+          ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+        std::getline(ifs, src_line);
+        boost::algorithm::trim(src_line);
+        return src_line;
+      }
+    }
+  }
+  return "";
+}
+
+std::string getModuleIDFromIR(const llvm::Value *V) {
+  if (auto GO = llvm::dyn_cast<llvm::GlobalObject>(V)) {
+    return GO->getParent()->getModuleIdentifier();
+  } else if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+    return Arg->getParent()->getParent()->getModuleIdentifier();
+  } else if (auto I = llvm::dyn_cast<llvm::Instruction>(V)) {
+    return I->getFunction()->getParent()->getModuleIdentifier();
+  }
+  return "";
 }
 
 } // namespace psr

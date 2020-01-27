@@ -10,13 +10,14 @@ using namespace psr;
 class LLVMBasedCFGTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
@@ -38,7 +39,7 @@ TEST_F(LLVMBasedCFGTest, FallThroughSuccTest) {
 TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/switch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SWITCH INSTRUCTION
   // switch i32 %4, label %8 [
@@ -73,7 +74,7 @@ TEST_F(LLVMBasedCFGTest, BranchTargetTest) {
 TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
   auto TermInst = getNthTermInstruction(F, 4);
@@ -89,7 +90,7 @@ TEST_F(LLVMBasedCFGTest, HandlesMulitplePredeccessors) {
 TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
   // store i32 0, i32* %1, align 4
@@ -120,7 +121,7 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptyPredeccessor) {
 TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
@@ -146,7 +147,7 @@ TEST_F(LLVMBasedCFGTest, HandlesMultipleSuccessors) {
 TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR
   // store i32 0, i32* %1, align 4
@@ -168,7 +169,7 @@ TEST_F(LLVMBasedCFGTest, HandlesSingleOrEmptySuccessor) {
 TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CALL INSTRUCTION SUCCESSOR
   // %4 = call i32 @_Z4multii(i32 2, i32 4)
@@ -183,7 +184,7 @@ TEST_F(LLVMBasedCFGTest, HandlesCallSuccessor) {
 TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "fields/array_1_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   auto Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(cfg.isFieldLoad(Inst));
   Inst = getNthInstruction(F, 6);
@@ -193,7 +194,7 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsArray) {
 TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "fields/array_1_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   auto Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(cfg.isFieldStore(Inst));
   Inst = getNthInstruction(F, 9);
@@ -203,7 +204,7 @@ TEST_F(LLVMBasedCFGTest, HandleFieldStoreArray) {
 TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "fields/field_1_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   auto Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(cfg.isFieldLoad(Inst));
   Inst = getNthInstruction(F, 11);
@@ -217,7 +218,7 @@ TEST_F(LLVMBasedCFGTest, HandleFieldLoadsField) {
 TEST_F(LLVMBasedCFGTest, HandleFieldStoreField) {
   LLVMBasedCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "fields/field_1_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   auto Inst = getNthInstruction(F, 1);
   ASSERT_FALSE(cfg.isFieldStore(Inst));
   Inst = getNthInstruction(F, 5);

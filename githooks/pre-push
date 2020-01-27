@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# An easy hook thats sets the version tags of phasar according to the naming scheme.
+
+local="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$local" = "master" ] ; then
+version="#define PHASAR_VERSION v"
+version="${version}$(date +"%m%y")"
+echo "${version}" > include/phasar/Config/Version.h
+fi

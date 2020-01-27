@@ -35,15 +35,21 @@ using namespace psr;
 
 namespace psr {
 
+llvm::AnalysisKey ValueAnnotationPass::Key;
+
 size_t ValueAnnotationPass::unique_value_id = 0;
 
-bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
+ValueAnnotationPass::ValueAnnotationPass() {}
+
+llvm::PreservedAnalyses
+ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running ValueAnnotationPass");
+  auto &context = M.getContext();
   for (auto &global : M.globals()) {
     llvm::MDNode *node = llvm::MDNode::get(
         context, llvm::MDString::get(context, std::to_string(unique_value_id)));
-    global.setMetadata(MetaDataKind, node);
+    global.setMetadata(PhasarConfig::MetaDataKind(), node);
     //		std::cout <<
     // llvm::cast<llvm::MDString>(global.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
     //<< std::endl;
@@ -55,7 +61,7 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
         llvm::MDNode *node = llvm::MDNode::get(
             context,
             llvm::MDString::get(context, std::to_string(unique_value_id)));
-        I.setMetadata(MetaDataKind, node);
+        I.setMetadata(PhasarConfig::MetaDataKind(), node);
         //		    	std::cout <<
         // llvm::cast<llvm::MDString>(I.getMetadata(MetaDataKind)->getOperand(0))->getString().str()
         //<< std::endl;
@@ -63,18 +69,8 @@ bool ValueAnnotationPass::runOnModule(llvm::Module &M) {
       }
     }
   }
-  return true;
+  return llvm::PreservedAnalyses::none();
 }
-
-bool ValueAnnotationPass::doInitialization(llvm::Module &M) { return false; }
-
-bool ValueAnnotationPass::doFinalization(llvm::Module &M) { return false; }
-
-void ValueAnnotationPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
-  AU.setPreservesCFG();
-}
-
-void ValueAnnotationPass::releaseMemory() {}
 
 void ValueAnnotationPass::resetValueID() {
   cout << "Reset ID" << endl;

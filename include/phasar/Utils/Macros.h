@@ -18,7 +18,7 @@
 
 namespace llvm {
 class Type;
-}
+} // namespace llvm
 
 namespace psr {
 
@@ -91,6 +91,11 @@ std::set<std::set<T>> computePowerSet(const std::set<T> &s) {
 }
 
 std::ostream &operator<<(std::ostream &os, const std::vector<bool> &bits);
+
+struct stringIDLess {
+  bool operator()(const std::string &lhs, const std::string &rhs) const;
+};
+
 } // namespace psr
 
 #endif

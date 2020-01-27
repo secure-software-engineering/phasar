@@ -28,18 +28,17 @@
 namespace llvm {
 class Instruction;
 class ImmutableCallSite;
+class Function;
 } // namespace llvm
 
 namespace psr {
-class ProjectIRDB;
 
-struct DTAResolver : public CHAResolver {
+class DTAResolver : public CHAResolver {
 public:
   using TypeGraph_t = CachedTypeGraph;
 
 protected:
   TypeGraph_t typegraph;
-  std::set<const llvm::StructType *> unsound_types;
 
   /**
    * An heuristic that return true if the bitcast instruction is interesting to
@@ -55,13 +54,14 @@ protected:
   bool heuristic_anti_contructor_vtable_pos(const llvm::BitCastInst *bitcast);
 
 public:
-  DTAResolver(ProjectIRDB &irdb, LLVMTypeHierarchy &ch);
-  virtual ~DTAResolver() = default;
+  DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH);
 
-  virtual void firstFunction(const llvm::Function *F) override;
-  virtual void OtherInst(const llvm::Instruction *Inst) override;
-  virtual std::set<std::string>
-  resolveVirtualCall(const llvm::ImmutableCallSite &CS) override;
+  ~DTAResolver() override = default;
+
+  std::set<const llvm::Function *>
+  resolveVirtualCall(llvm::ImmutableCallSite CS) override;
+
+  void otherInst(const llvm::Instruction *Inst) override;
 };
 } // namespace psr
 

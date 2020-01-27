@@ -11,37 +11,20 @@
 #define PHASAR_PHASARLLVM_UTILS_DATAFLOWANALYSISTYPE_H_
 
 #include <iosfwd>
-#include <map>
 #include <string>
 
 namespace psr {
 
 enum class DataFlowAnalysisType {
-  IFDS_UninitializedVariables = 0,
-  IFDS_ConstAnalysis,
-  IFDS_TaintAnalysis,
-  IDE_TaintAnalysis,
-  IDE_TypeStateAnalysis,
-  IFDS_TypeAnalysis,
-  IFDS_SolverTest,
-  IFDS_LinearConstantAnalysis,
-  IDE_LinearConstantAnalysis,
-  IDE_SolverTest,
-  Intra_Mono_FullConstantPropagation,
-  Intra_Mono_SolverTest,
-  Inter_Mono_SolverTest,
-  Inter_Mono_TaintAnalysis,
-  Plugin,
-  None
+#define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE) TYPE,
+#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def>
 };
 
-extern const std::map<std::string, DataFlowAnalysisType>
-    StringToDataFlowAnalysisType;
+std::string to_string(const DataFlowAnalysisType &D);
 
-extern const std::map<DataFlowAnalysisType, std::string>
-    DataFlowAnalysisTypeToString;
+DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S);
 
-std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &k);
+std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 
 } // namespace psr
 

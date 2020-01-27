@@ -27,11 +27,13 @@
 
 #include <boost/algorithm/string/trim.hpp>
 
-#include <phasar/PhasarLLVM/IfdsIde/LLVMZeroValue.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Macros.h>
+
+#include <stdlib.h>
 
 using namespace std;
 using namespace psr;
@@ -89,7 +91,7 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
           ++i;
         }
         std::string st(c, c + i);
-        if (index.first <= std::distance(s.begin(), c) + atoi(st.c_str())) {
+        if (index.first <= std::distance(s.begin(), c) + stoul(st)) {
           noName = false;
           break;
         } else {
@@ -144,6 +146,22 @@ bool matchesSignature(const llvm::Function *F,
   return false;
 }
 
+bool matchesSignature(const llvm::FunctionType *FType1,
+                      const llvm::FunctionType *FType2) {
+  if (FType1 == nullptr || FType2 == nullptr)
+    return false;
+  if (FType1->getNumParams() == FType2->getNumParams() &&
+      FType1->getReturnType() == FType2->getReturnType()) {
+    for (unsigned Idx = 0; Idx < FType1->getNumParams(); ++Idx) {
+      if (FType1->getParamType(Idx) != FType2->getParamType(Idx)) {
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
 std::string llvmIRToString(const llvm::Value *V) {
   // WARNING: Expensive function, cause is the V->print(RSO)
   //         (20ms on a medium size code (phasar without debug)
@@ -152,10 +170,30 @@ std::string llvmIRToString(const llvm::Value *V) {
   std::string IRBuffer;
   llvm::raw_string_ostream RSO(IRBuffer);
   V->print(RSO);
-  RSO << ", ID: " << getMetaDataID(V);
+  RSO << " | ID: " << getMetaDataID(V);
   RSO.flush();
   boost::trim_left(IRBuffer);
   return IRBuffer;
+}
+
+std::string llvmIRToShortString(const llvm::Value *V) {
+  // WARNING: Expensive function, cause is the V->print(RSO)
+  //         (20ms on a medium size code (phasar without debug)
+  //          80ms on a huge size code (clang without debug),
+  //          can be multiplied by times 3 to 5 if passes are enabled)
+  std::string IRBuffer;
+  llvm::raw_string_ostream RSO(IRBuffer);
+  V->print(RSO);
+  boost::trim_left(IRBuffer);
+  RSO.flush();
+  if (IRBuffer.find(", align") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", align"));
+  } else if (IRBuffer.find(", !") != std::string::npos) {
+    IRBuffer.erase(IRBuffer.find(", !"));
+  } else if (IRBuffer.size() > 30) {
+    IRBuffer.erase(30);
+  }
+  return IRBuffer + " | ID: " + getMetaDataID(V);
 }
 
 std::vector<const llvm::Value *>
@@ -176,19 +214,17 @@ globalValuesUsedinFunction(const llvm::Function *F) {
 
 std::string getMetaDataID(const llvm::Value *V) {
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto metaData = Inst->getMetadata(MetaDataKind)) {
+    if (auto metaData = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
       return llvm::cast<llvm::MDString>(metaData->getOperand(0))
           ->getString()
           .str();
     }
 
   } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (!isLLVMZeroValue(V)) {
-      if (auto metaData = GV->getMetadata(MetaDataKind)) {
-        return llvm::cast<llvm::MDString>(metaData->getOperand(0))
-            ->getString()
-            .str();
-      }
+    if (auto metaData = GV->getMetadata(PhasarConfig::MetaDataKind())) {
+      return llvm::cast<llvm::MDString>(metaData->getOperand(0))
+          ->getString()
+          .str();
     }
   } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     string FName = Arg->getParent()->getName().str();
@@ -196,6 +232,15 @@ std::string getMetaDataID(const llvm::Value *V) {
     return string(FName + "." + ArgNr);
   }
   return "-1";
+}
+
+llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
+
+bool llvmValueIDLess::operator()(const llvm::Value *lhs,
+                                 const llvm::Value *rhs) const {
+  std::string lhs_id = getMetaDataID(lhs);
+  std::string rhs_id = getMetaDataID(rhs);
+  return sless(lhs_id, rhs_id);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
@@ -271,13 +316,13 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
   std::string SourceCode;
   if (considerIdentifier) {
     llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(M, RSO);
+    llvm::WriteBitcodeToFile(*M, RSO);
     RSO.flush();
   } else {
     std::string Identifier = M->getModuleIdentifier();
     M->setModuleIdentifier("");
     llvm::raw_string_ostream RSO(SourceCode);
-    llvm::WriteBitcodeToFile(M, RSO);
+    llvm::WriteBitcodeToFile(*M, RSO);
     RSO.flush();
     M->setModuleIdentifier(Identifier);
   }
@@ -287,17 +332,16 @@ std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
 std::size_t computeModuleHash(const llvm::Module *M) {
   std::string SourceCode;
   llvm::raw_string_ostream RSO(SourceCode);
-  llvm::WriteBitcodeToFile(M, RSO);
+  llvm::WriteBitcodeToFile(*M, RSO);
   RSO.flush();
   return std::hash<std::string>{}(SourceCode);
 }
 
-const llvm::TerminatorInst *getNthTermInstruction(const llvm::Function *F,
-                                                  unsigned termInstNo) {
+const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
+                                               unsigned termInstNo) {
   unsigned current = 1;
   for (auto &BB : *F) {
-    if (const llvm::TerminatorInst *T =
-            llvm::dyn_cast<llvm::TerminatorInst>(BB.getTerminator())) {
+    if (const llvm::Instruction *T = BB.getTerminator()) {
       if (current == termInstNo) {
         return T;
       }

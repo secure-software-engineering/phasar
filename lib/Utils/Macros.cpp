@@ -94,4 +94,21 @@ ostream &operator<<(ostream &os, const vector<bool> &bits) {
   }
   return os;
 }
+
+bool stringIDLess::operator()(const std::string &lhs,
+                              const std::string &rhs) const {
+  char *endptr1, *endptr2;
+  long lhs_val = strtol(lhs.c_str(), &endptr1, 10);
+  long rhs_val = strtol(rhs.c_str(), &endptr2, 10);
+  if (lhs.c_str() == endptr1 && lhs.c_str() == endptr2) {
+    return lhs < rhs;
+  } else if (lhs.c_str() == endptr1 && rhs.c_str() != endptr2) {
+    return false;
+  } else if (lhs.c_str() != endptr1 && rhs.c_str() == endptr2) {
+    return true;
+  } else {
+    return lhs_val < rhs_val;
+  }
+}
+
 } // namespace psr

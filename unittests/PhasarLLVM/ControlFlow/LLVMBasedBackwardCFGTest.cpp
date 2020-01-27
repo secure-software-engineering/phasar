@@ -10,13 +10,14 @@ using namespace psr;
 class LLVMBasedBackwardCFGTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
-      PhasarDirectory + "build/test/llvm_test_code/";
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
   auto Term = getNthTermInstruction(F, 1);
   auto a = getNthInstruction(F, 10);
   auto b = getNthInstruction(F, 14);
@@ -30,7 +31,7 @@ TEST_F(LLVMBasedBackwardCFGTest, BranchTargetTest) {
 TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING CONDITIONAL BRANCH
   // br i1 %5, label %6, label %9
@@ -56,7 +57,7 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMulitplePredeccessors) {
 TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/function_call_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE PREDECCESSOR
   // store i32 0, i32* %1, align 4
@@ -78,15 +79,16 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptyPredeccessor) {
 TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // ret i32 0
   auto TermInst = getNthTermInstruction(F, 4);
+  std::cout << llvmIRToString(TermInst) << std::endl;
   std::vector<const llvm::Instruction *> Successor;
   // br label %12
-  Successor.push_back(getNthTermInstruction(F, 2));
-  // br label %12
   Successor.push_back(getNthTermInstruction(F, 3));
+  // br label %12
+  Successor.push_back(getNthTermInstruction(F, 2));
   auto succsOfTermInst = cfg.getSuccsOf(TermInst);
   ASSERT_EQ(succsOfTermInst, Successor);
 }
@@ -94,7 +96,7 @@ TEST_F(LLVMBasedBackwardCFGTest, HandlesMultipleSuccessors) {
 TEST_F(LLVMBasedBackwardCFGTest, HandlesSingleOrEmptySuccessor) {
   LLVMBasedBackwardCFG cfg;
   ProjectIRDB IRDB({pathToLLFiles + "control_flow/branch_cpp.ll"});
-  auto F = IRDB.getFunction("main");
+  auto F = IRDB.getFunctionDefinition("main");
 
   // HANDLING SINGLE SUCCESSOR
   // store i32 0, i32* %1, align 4

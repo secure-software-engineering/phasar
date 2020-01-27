@@ -14,122 +14,114 @@
  *      Author: nicolas bellec
  */
 
+#include <set>
+
 #include <llvm/IR/CallSite.h>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/DerivedTypes.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
+#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
 
-using namespace std;
 using namespace psr;
 
-Resolver::Resolver(ProjectIRDB &DB, LLVMTypeHierarchy &H) : IRDB(DB), CH(H) {}
+namespace psr {
 
-int Resolver::getVtableIndex(const llvm::ImmutableCallSite &CS) const {
+int getVFTIndex(llvm::ImmutableCallSite CS) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
-  const llvm::LoadInst *load =
+  const llvm::LoadInst *Load =
       llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
-  if (load == nullptr) {
+  if (Load == nullptr) {
     return -1;
   }
-  const llvm::GetElementPtrInst *gep =
-      llvm::dyn_cast<llvm::GetElementPtrInst>(load->getPointerOperand());
-  if (gep == nullptr) {
+  const llvm::GetElementPtrInst *GEP =
+      llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
+  if (GEP == nullptr) {
     return -2;
   }
-  unsigned vtable_index =
-      llvm::dyn_cast<llvm::ConstantInt>(gep->getOperand(1))->getZExtValue();
-  return vtable_index;
-}
-
-const llvm::StructType *
-Resolver::getReceiverType(const llvm::ImmutableCallSite &CS) const {
-  const llvm::Value *receiver = CS.getArgOperand(0);
-  const llvm::StructType *receiver_type = llvm::dyn_cast<llvm::StructType>(
-      receiver->getType()->getPointerElementType());
-  if (!receiver_type) {
-    throw runtime_error("Receiver type is not a struct type!");
+  if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
+    return CI->getZExtValue();
   }
-  return receiver_type;
+  return -3;
 }
 
-string Resolver::getReceiverTypeName(const llvm::ImmutableCallSite &CS) const {
-  auto receiver_type_name = getReceiverType(CS)->getName().str();
-  return receiver_type_name;
-}
-
-bool Resolver::matchVirtualSignature(const llvm::FunctionType *type_call,
-                                     const llvm::FunctionType *type_candidate) {
-  if (type_call->getNumParams() == type_candidate->getNumParams() &&
-      type_call->getReturnType() == type_candidate->getReturnType() &&
-      type_call->getNumParams() >= 1) {
-    for (unsigned int i = 1; i < type_call->getNumParams(); ++i) {
-      if (type_call->getParamType(i) != type_candidate->getParamType(i)) {
-        return false;
+const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS) {
+  if (CS.getNumArgOperands() > 0) {
+    const llvm::Value *Receiver = CS.getArgOperand(0);
+    if (Receiver->getType()->isPointerTy()) {
+      if (const llvm::StructType *ReceiverTy = llvm::dyn_cast<llvm::StructType>(
+              Receiver->getType()->getPointerElementType())) {
+        return ReceiverTy;
       }
     }
-    return true;
   }
-  return false;
+  return nullptr;
 }
 
-void Resolver::insertVtableIntoResult(std::set<std::string> &results,
-                                      const std::string &struct_name,
-                                      const unsigned vtable_index,
-                                      const llvm::ImmutableCallSite &CS) {
-  if (CH.containsVTable(struct_name)) {
-    auto vtable_entry = CH.getVTableEntry(struct_name, vtable_index);
-    if (vtable_entry != "__cxa_pure_virtual") {
-      if (auto call_type = CS.getFunctionType()) {
-        if (auto candidate = IRDB.getFunction(vtable_entry)) {
-          if (auto candidate_type = candidate->getFunctionType()) {
-            if (!matchVirtualSignature(call_type, candidate_type)) {
-              return;
-            }
-          }
-        }
-      }
-      results.insert(vtable_entry);
+std::string getReceiverTypeName(llvm::ImmutableCallSite CS) {
+  const auto RT = getReceiverType(CS);
+  if (RT) {
+    return RT->getName().str();
+  }
+  return "";
+}
+
+Resolver::Resolver(ProjectIRDB &IRDB) : IRDB(IRDB), TH(nullptr) {}
+
+Resolver::Resolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
+    : IRDB(IRDB), TH(&TH) {}
+
+const llvm::Function *
+Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
+                                    llvm::ImmutableCallSite CS) {
+  if (TH->hasVFTable(T)) {
+    auto Target = TH->getVFTable(T)->getFunction(Idx);
+    if (Target->getName() != "__cxa_pure_virtual") {
+      return Target;
     }
   }
+  return nullptr;
 }
 
 void Resolver::preCall(const llvm::Instruction *inst) {}
-void Resolver::TreatPossibleTarget(
-    const llvm::ImmutableCallSite &CS,
-    std::set<const llvm::Function *> &possible_targets) {}
-void Resolver::postCall(const llvm::Instruction *inst) {}
-void Resolver::OtherInst(const llvm::Instruction *inst) {}
-void Resolver::firstFunction(const llvm::Function *F) {}
 
-set<string>
-Resolver::resolveFunctionPointer(const llvm::ImmutableCallSite &CS) {
-  // We may want to optimise the time of this function as it is in fact most of
-  // the time spent in the ICFG construction and it grows rapidily
+void Resolver::handlePossibleTargets(
+    llvm::ImmutableCallSite CS,
+    std::set<const llvm::Function *> &possible_targets) {}
+
+void Resolver::postCall(const llvm::Instruction *inst) {}
+
+std::set<const llvm::Function *>
+Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
+  // we may wish to optimise this function
+  // naive implementation that considers every function whose signature
+  // matches the call-site's signature as a callee target
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
-
-  set<string> possible_call_targets;
+  std::set<const llvm::Function *> CalleeTargets;
   // *CS.getCalledValue() == nullptr* can happen in extremely rare cases (the
   // origin is still unknown)
   if (CS.getCalledValue() != nullptr &&
       CS.getCalledValue()->getType()->isPointerTy()) {
-    if (const llvm::FunctionType *ftype = llvm::dyn_cast<llvm::FunctionType>(
+    if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CS.getCalledValue()->getType()->getPointerElementType())) {
-      for (auto f : IRDB.getAllFunctions()) {
-        if (matchesSignature(f, ftype)) {
-          possible_call_targets.insert(f->getName().str());
+      for (auto F : IRDB.getAllFunctions()) {
+        if (matchesSignature(F, FTy)) {
+          CalleeTargets.insert(F);
         }
       }
     }
   }
 
-  return possible_call_targets;
+  return CalleeTargets;
 }
+
+void Resolver::otherInst(const llvm::Instruction *Inst) {}
+
+} // namespace psr

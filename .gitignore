@@ -6,6 +6,13 @@ bin/*
 # build directory for cmake
 build/
 
+# LLVM project
+llvm-project/*
+
+# Boost
+boost_1_66_0.tar.gz
+boost_1_66_0/*
+
 # external git submodules
 external/*
 
@@ -107,6 +114,9 @@ find_all_symbols_db.yaml
 
 # Emacs convenience metadata
 TAGS
+
+# vim swp files
+*.*.swp
 
 # config files
 compiler_info.txt
