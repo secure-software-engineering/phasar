@@ -84,8 +84,8 @@ void IntraMonoSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IntraMonoSolverTest::printMethod(ostream &os,
-                                      const llvm::Function *m) const {
+void IntraMonoSolverTest::printFunction(ostream &os,
+                                        const llvm::Function *m) const {
   os << m->getName().str();
 }
 

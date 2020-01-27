@@ -108,19 +108,19 @@ template <typename L> struct EdgeFactPrinter {
   }
 };
 
-template <typename M> struct MethodPrinter {
-  MethodPrinter() = default;
-  MethodPrinter(const MethodPrinter &) = delete;
-  MethodPrinter &operator=(const MethodPrinter &) = delete;
-  MethodPrinter(MethodPrinter &&) = delete;
-  MethodPrinter &operator=(MethodPrinter &&) = delete;
-  virtual ~MethodPrinter() = default;
+template <typename F> struct FunctionPrinter {
+  FunctionPrinter() = default;
+  FunctionPrinter(const FunctionPrinter &) = delete;
+  FunctionPrinter &operator=(const FunctionPrinter &) = delete;
+  FunctionPrinter(FunctionPrinter &&) = delete;
+  FunctionPrinter &operator=(FunctionPrinter &&) = delete;
+  virtual ~FunctionPrinter() = default;
 
-  virtual void printMethod(std::ostream &os, M m) const = 0;
+  virtual void printFunction(std::ostream &os, F f) const = 0;
 
-  virtual std::string MtoString(M m) const {
+  virtual std::string FtoString(F f) const {
     std::stringstream ss;
-    printMethod(ss, m);
+    printFunction(ss, f);
     return ss.str();
   }
 };

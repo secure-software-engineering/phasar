@@ -102,8 +102,8 @@ void IFDSProtoAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSProtoAnalysis::printMethod(ostream &os,
-                                    IFDSProtoAnalysis::m_t m) const {
+void IFDSProtoAnalysis::printFunction(ostream &os,
+                                      IFDSProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

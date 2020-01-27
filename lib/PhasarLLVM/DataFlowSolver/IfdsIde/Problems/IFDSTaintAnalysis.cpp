@@ -285,8 +285,8 @@ void IFDSTaintAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSTaintAnalysis::printMethod(ostream &os,
-                                    IFDSTaintAnalysis::m_t m) const {
+void IFDSTaintAnalysis::printFunction(ostream &os,
+                                      IFDSTaintAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

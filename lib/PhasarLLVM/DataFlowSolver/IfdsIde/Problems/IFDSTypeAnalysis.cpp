@@ -115,7 +115,8 @@ void IFDSTypeAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSTypeAnalysis::printMethod(ostream &os, IFDSTypeAnalysis::m_t m) const {
+void IFDSTypeAnalysis::printFunction(ostream &os,
+                                     IFDSTypeAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

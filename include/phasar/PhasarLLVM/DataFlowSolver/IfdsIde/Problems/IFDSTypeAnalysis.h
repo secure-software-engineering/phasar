@@ -77,7 +77,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, m_t m) const override;
 };
 } // namespace psr
 

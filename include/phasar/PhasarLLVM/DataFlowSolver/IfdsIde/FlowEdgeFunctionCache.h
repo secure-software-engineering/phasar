@@ -141,7 +141,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Stmt : " << problem.NtoString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Dest Mthd : " << problem.MtoString(destMthd));
+                  << "(M) Dest Mthd : " << problem.FtoString(destMthd));
     auto key = std::tie(callStmt, destMthd);
     if (CallFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -172,7 +172,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Site : " << problem.NtoString(callSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Callee    : " << problem.MtoString(calleeMthd));
+                  << "(M) Callee    : " << problem.FtoString(calleeMthd));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -213,7 +213,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callee's  : ");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  " << problem.MtoString(callee));
+                    << "  " << problem.FtoString(callee));
     }
     auto key = std::tie(callSite, retSite, callees);
     if (CallToRetFlowFunctionCache.count(key)) {
@@ -248,7 +248,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Stmt : " << problem.NtoString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Dest Mthd : " << problem.MtoString(destMthd));
+                  << "(M) Dest Mthd : " << problem.FtoString(destMthd));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
     return ff;
@@ -297,7 +297,7 @@ public:
                   << "(D) Src Node  : " << problem.DtoString(srcNode));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(M) Dest Mthd : "
-                  << problem.MtoString(destinationMethod));
+                  << problem.FtoString(destinationMethod));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(D) Dest Node : " << problem.DtoString(destNode));
     auto key = std::tie(callStmt, srcNode, destinationMethod, destNode);
@@ -329,7 +329,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Site : " << problem.NtoString(callSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Callee    : " << problem.MtoString(calleeMethod));
+                  << "(M) Callee    : " << problem.FtoString(calleeMethod));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -375,7 +375,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callee's  : ");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  " << problem.MtoString(callee));
+                    << "  " << problem.FtoString(callee));
     }
     auto key = std::tie(callSite, callNode, retSite, retSiteNode);
     if (CallToRetEdgeFunctionCache.count(key)) {

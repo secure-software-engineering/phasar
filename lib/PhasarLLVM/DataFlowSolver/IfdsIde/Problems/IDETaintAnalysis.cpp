@@ -185,7 +185,8 @@ void IDETaintAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IDETaintAnalysis::printMethod(ostream &os, IDETaintAnalysis::m_t m) const {
+void IDETaintAnalysis::printFunction(ostream &os,
+                                     IDETaintAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

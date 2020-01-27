@@ -197,7 +197,8 @@ void IDEProtoAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
+void IDEProtoAnalysis::printFunction(ostream &os,
+                                     IDEProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
