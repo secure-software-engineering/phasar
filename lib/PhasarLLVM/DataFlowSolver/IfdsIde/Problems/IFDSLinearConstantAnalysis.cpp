@@ -132,7 +132,7 @@ void IFDSLinearConstantAnalysis::printDataFlowFact(
   os << '<' + llvmIRToString(d.first) + ", " + std::to_string(d.second) + '>';
 }
 
-void IFDSLinearConstantAnalysis::printMethod(
+void IFDSLinearConstantAnalysis::printFunction(
     ostream &os, IFDSLinearConstantAnalysis::m_t m) const {
   os << m->getName().str();
 }

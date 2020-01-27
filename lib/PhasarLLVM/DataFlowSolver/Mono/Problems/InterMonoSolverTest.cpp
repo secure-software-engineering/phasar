@@ -112,8 +112,8 @@ void InterMonoSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d) << '\n';
 }
 
-void InterMonoSolverTest::printMethod(ostream &os,
-                                      const llvm::Function *m) const {
+void InterMonoSolverTest::printFunction(ostream &os,
+                                        const llvm::Function *m) const {
   os << m->getName().str();
 }
 

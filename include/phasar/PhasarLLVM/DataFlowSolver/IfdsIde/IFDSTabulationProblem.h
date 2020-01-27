@@ -42,7 +42,7 @@ template <typename N, typename D, typename M, typename T, typename V,
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,
-                              public virtual MethodPrinter<M> {
+                              public virtual FunctionPrinter<M> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 

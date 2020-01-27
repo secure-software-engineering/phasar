@@ -97,7 +97,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, const llvm::Value *d) const override;
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &os, const llvm::Function *m) const override;
 
   const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
   getAllLeaks() const;

@@ -145,8 +145,8 @@ public:
     Problem.printDataFlowFact(os, d);
   }
 
-  void printMethod(std::ostream &os, M m) const override {
-    Problem.printMethod(os, m);
+  void printFunction(std::ostream &os, M m) const override {
+    Problem.printFunction(os, m);
   }
 
   void printEdgeFact(std::ostream &os, BinaryDomain v) const override {

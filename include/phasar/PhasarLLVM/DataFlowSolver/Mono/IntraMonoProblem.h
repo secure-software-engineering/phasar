@@ -39,7 +39,7 @@ template <typename N, typename D, typename M, typename T, typename V,
           typename C>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
-                         public MethodPrinter<M> {
+                         public FunctionPrinter<M> {
   static_assert(std::is_base_of_v<CFG<N, M>, C>,
                 "C must implement the CFG interface!");
 

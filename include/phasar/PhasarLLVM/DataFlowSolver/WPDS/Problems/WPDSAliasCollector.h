@@ -95,7 +95,7 @@ public:
 
   void printNode(std::ostream &os, n_t n) const override;
   void printDataFlowFact(std::ostream &os, d_t d) const override;
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, m_t m) const override;
   void printEdgeFact(std::ostream &os, l_t v) const override;
 };
 

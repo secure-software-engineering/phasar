@@ -190,7 +190,7 @@ void IDESolverTest::printDataFlowFact(ostream &os, IDESolverTest::d_t d) const {
   os << llvmIRToString(d);
 }
 
-void IDESolverTest::printMethod(ostream &os, IDESolverTest::m_t m) const {
+void IDESolverTest::printFunction(ostream &os, IDESolverTest::m_t m) const {
   os << m->getName().str();
 }
 
