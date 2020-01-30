@@ -30,7 +30,8 @@ WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
   WPDSProblem<WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,
               WPDSLinearConstantAnalysis::m_t, WPDSLinearConstantAnalysis::t_t,
               WPDSLinearConstantAnalysis::v_t, WPDSLinearConstantAnalysis::l_t,
-              WPDSLinearConstantAnalysis::i_t>::ZeroValue = IDELinearConstantAnalysis::createZeroValue();
+              WPDSLinearConstantAnalysis::i_t>::ZeroValue =
+      IDELinearConstantAnalysis::createZeroValue();
 }
 
 } // namespace psr

@@ -174,9 +174,6 @@ public:
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
-    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
-      dumpResults();
-    }
     if (SolverConfig.emitESG) {
       emitESGasDot();
     }
@@ -207,20 +204,23 @@ public:
     return result;
   }
 
-  virtual void printReport() {
-    ideTabulationProblem.emitTextReport(std::cout, getSolverResults());
+  virtual void emitTextReport(std::ostream &OS = std::cout) {
+    ideTabulationProblem.emitTextReport(getSolverResults(), OS);
   }
 
-  virtual void dumpResults() {
+  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {
+    ideTabulationProblem.emitGraphicalReport(getSolverResults(), OS);
+  }
+
+  virtual void dumpResults(std::ostream &OS = std::cout) {
     PAMM_GET_INSTANCE;
     START_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
-    std::cout
-        << "\n***************************************************************\n"
-        << "*                  Raw IDESolver results                      *\n"
-        << "***************************************************************\n";
+    OS << "\n***************************************************************\n"
+       << "*                  Raw IDESolver results                      *\n"
+       << "***************************************************************\n";
     auto cells = this->valtab.cellVec();
     if (cells.empty()) {
-      std::cout << "No results computed!" << std::endl;
+      OS << "No results computed!" << std::endl;
     } else {
       // FIXME
       // llvmValueIDLess llvmIDLess;
@@ -250,21 +250,20 @@ public:
         currFn = ICF->getFunctionOf(curr);
         if (prevFn != currFn) {
           prevFn = currFn;
-          std::cout << "\n\n============ Results for function '" +
-                           ICF->getFunctionName(currFn) + "' ============\n";
+          OS << "\n\n============ Results for function '" +
+                    ICF->getFunctionName(currFn) + "' ============\n";
         }
         if (prev != curr) {
           prev = curr;
           std::string NString = ideTabulationProblem.NtoString(curr);
           std::string line(NString.size(), '-');
-          std::cout << "\n\nN: " << NString << "\n---" << line << '\n';
+          OS << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        std::cout << "\tD: " << ideTabulationProblem.DtoString(cells[i].c)
-                  << " | V: " << ideTabulationProblem.LtoString(cells[i].v)
-                  << '\n';
+        OS << "\tD: " << ideTabulationProblem.DtoString(cells[i].c)
+           << " | V: " << ideTabulationProblem.LtoString(cells[i].v) << '\n';
       }
     }
-    std::cout << '\n';
+    OS << '\n';
     STOP_TIMER("DFA IDE Result Dumping", PAMM_SEVERITY_LEVEL::Full);
   }
 

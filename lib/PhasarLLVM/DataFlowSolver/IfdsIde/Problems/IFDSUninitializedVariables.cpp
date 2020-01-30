@@ -442,9 +442,9 @@ void IFDSUninitializedVariables::printFunction(
 }
 
 void IFDSUninitializedVariables::emitTextReport(
-    ostream &os,
     const SolverResults<IFDSUninitializedVariables::n_t,
-                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR) {
+                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR,
+    ostream &os) {
   os << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {

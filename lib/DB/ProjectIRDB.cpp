@@ -513,7 +513,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
 }
 
 bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
-  return M->getNamedMetadata("llvm.dbg.cu") != NULL;
+  return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 bool ProjectIRDB::debugInfoAvailable() const {

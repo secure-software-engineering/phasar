@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -51,13 +52,22 @@ public:
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
-  virtual void emitTextReport(std::ostream &os,
-                              const SolverResults<N, D, L> &SR) {
-    os << "No text report available!\n";
+  virtual void emitTextReport(const SolverResults<N, D, L> &SR,
+                              std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+  virtual void emitGraphicalReport(const SolverResults<N, D, L> &SR,
+                                   std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
   }
 #pragma clang diagnostic pop
 private:
   using IFDSTabulationProblem<N, D, M, T, V, I>::emitTextReport;
+  using IFDSTabulationProblem<N, D, M, T, V, I>::emitGraphicalReport;
 };
 
 } // namespace psr

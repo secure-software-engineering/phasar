@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -245,8 +246,8 @@ public:
 
   lca_restults_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, l_t> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+                      std::ostream &OS = std::cout) override;
 };
 
 } // namespace psr

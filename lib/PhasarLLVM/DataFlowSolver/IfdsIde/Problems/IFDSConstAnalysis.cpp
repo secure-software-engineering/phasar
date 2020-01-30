@@ -319,9 +319,9 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
 }
 
 void IFDSConstAnalysis::emitTextReport(
-    ostream &os,
     const SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-                        BinaryDomain> &SR) {
+                        BinaryDomain> &SR,
+    ostream &os) {
   // 1) Remove all mutable memory locations
   for (auto f : ICF->getAllFunctions()) {
     for (auto exit : ICF->getExitPointsOf(f)) {

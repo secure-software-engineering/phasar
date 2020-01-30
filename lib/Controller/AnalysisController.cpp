@@ -50,13 +50,35 @@ namespace psr {
 
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
-    std::vector<std::string> AnalysisConfigs, std::set<std::string> EntryPoints,
-    AnalysisStrategy Strategy)
-    : IRDB(IRDB), TH(IRDB), PT(IRDB),
-      ICF(IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, &PT),
+    std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
+    CallGraphAnalysisType CGTy, std::set<std::string> EntryPoints,
+    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions)
+    : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
+      ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
-      Strategy(Strategy) {
+      Strategy(Strategy), EmitterOptions(EmitterOptions) {
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
+    IRDB.emitPreprocessedIR();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
+    TH.print();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
+    TH.printAsDot();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
+    PT.print();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDOT) {
+    // PT.print();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
+    ICF.print();
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
+    ICF.printAsDot();
+  }
   executeAs(Strategy);
 }
 
@@ -104,6 +126,9 @@ void AnalysisController::executeWholeProgram() {
               IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>,
           IFDSUninitializedVariables>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSConstAnalysis: {
       WholeProgramAnalysis<
@@ -112,6 +137,9 @@ void AnalysisController::executeWholeProgram() {
                      IFDSConstAnalysis::v_t, IFDSConstAnalysis::i_t>,
           IFDSConstAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSTaintAnalysis: {
       WholeProgramAnalysis<
@@ -129,6 +157,9 @@ void AnalysisController::executeWholeProgram() {
                     IDETaintAnalysis::i_t>,
           IDETaintAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDETypeStateAnalysis: {
       // WholeProgramAnalysis<
@@ -146,6 +177,9 @@ void AnalysisController::executeWholeProgram() {
                      IFDSTypeAnalysis::v_t, IFDSTypeAnalysis::i_t>,
           IFDSTypeAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       WholeProgramAnalysis<IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t,
@@ -153,6 +187,9 @@ void AnalysisController::executeWholeProgram() {
                                       IFDSSolverTest::v_t, IFDSSolverTest::i_t>,
                            IFDSSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
       WholeProgramAnalysis<
@@ -162,6 +199,9 @@ void AnalysisController::executeWholeProgram() {
               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>,
           IFDSLinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
       WholeProgramAnalysis<
@@ -171,6 +211,9 @@ void AnalysisController::executeWholeProgram() {
               IFDSFieldSensTaintAnalysis::v_t, IFDSFieldSensTaintAnalysis::i_t>,
           IFDSFieldSensTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDELinearConstantAnalysis: {
       WholeProgramAnalysis<
@@ -181,6 +224,9 @@ void AnalysisController::executeWholeProgram() {
               IDELinearConstantAnalysis::i_t>,
           IDELinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDESolverTest: {
       WholeProgramAnalysis<
@@ -189,6 +235,9 @@ void AnalysisController::executeWholeProgram() {
                     IDESolverTest::i_t>,
           IDESolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
       WholeProgramAnalysis<
@@ -200,6 +249,9 @@ void AnalysisController::executeWholeProgram() {
                           IntraMonoFullConstantPropagation::i_t>,
           IntraMonoFullConstantPropagation>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IntraMonoSolverTest: {
       WholeProgramAnalysis<
@@ -208,6 +260,9 @@ void AnalysisController::executeWholeProgram() {
                           IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>,
           IntraMonoSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::InterMonoSolverTest: {
       WholeProgramAnalysis<
@@ -217,6 +272,9 @@ void AnalysisController::executeWholeProgram() {
                           3>,
           InterMonoSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::InterMonoTaintAnalysis: {
       WholeProgramAnalysis<
@@ -226,6 +284,9 @@ void AnalysisController::executeWholeProgram() {
               InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>,
           InterMonoTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedResults(WPA);
+      WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::Plugin:
       break;
