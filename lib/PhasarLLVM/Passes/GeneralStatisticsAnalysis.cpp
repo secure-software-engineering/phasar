@@ -27,7 +27,6 @@
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
 
 using namespace std;

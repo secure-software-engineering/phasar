@@ -33,6 +33,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKeyDerivationTypeStateDescription.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
@@ -42,6 +43,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
@@ -52,33 +54,20 @@ AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, std::set<std::string> EntryPoints,
-    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions)
+    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
+    std::string ProjectID, std::string OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
-      Strategy(Strategy), EmitterOptions(EmitterOptions) {
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
-    IRDB.emitPreprocessedIR();
+      Strategy(Strategy), EmitterOptions(EmitterOptions),
+      ProjectID(ProjectID), OutDirectory(OutDirectory) {
+  if (OutDirectory != "") {
+    // create directory for results
+    ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
+    boost::filesystem::create_directory(ResultDirectory);
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
-    TH.print();
-  }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
-    TH.printAsDot();
-  }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
-    PT.print();
-  }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDOT) {
-    // PT.print();
-  }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
-    ICF.print();
-  }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
-    ICF.printAsDot();
-  }
+  emitRequestedHelperAnalysisResults();
   executeAs(Strategy);
 }
 
@@ -127,7 +116,7 @@ void AnalysisController::executeWholeProgram() {
           IFDSUninitializedVariables>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSConstAnalysis: {
@@ -138,7 +127,7 @@ void AnalysisController::executeWholeProgram() {
           IFDSConstAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSTaintAnalysis: {
@@ -158,17 +147,22 @@ void AnalysisController::executeWholeProgram() {
           IDETaintAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
-    case DataFlowAnalysisType::IDETypeStateAnalysis: {
-      // WholeProgramAnalysis<
-      //     IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-      //               IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
-      //               IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-      //               IDETypeStateAnalysis::i_t>,
-      //     IDETypeStateAnalysis>
-      //     WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
+    case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
+      OpenSSLEVPKeyDerivationTypeStateDescription TSDesc;
+      WholeProgramAnalysis<
+          IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+                    IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+                    IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
+                    IDETypeStateAnalysis::i_t>,
+          IDETypeStateAnalysis>
+          WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+      WPA.releaseConfiguration();
     } break;
     case DataFlowAnalysisType::IFDSTypeAnalysis: {
       WholeProgramAnalysis<
@@ -178,7 +172,7 @@ void AnalysisController::executeWholeProgram() {
           IFDSTypeAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
@@ -188,7 +182,7 @@ void AnalysisController::executeWholeProgram() {
                            IFDSSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSLinearConstantAnalysis: {
@@ -200,7 +194,7 @@ void AnalysisController::executeWholeProgram() {
           IFDSLinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IFDSFieldSensTaintAnalysis: {
@@ -212,7 +206,7 @@ void AnalysisController::executeWholeProgram() {
           IFDSFieldSensTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDELinearConstantAnalysis: {
@@ -225,7 +219,7 @@ void AnalysisController::executeWholeProgram() {
           IDELinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDESolverTest: {
@@ -236,7 +230,7 @@ void AnalysisController::executeWholeProgram() {
           IDESolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IntraMonoFullConstantPropagation: {
@@ -250,7 +244,7 @@ void AnalysisController::executeWholeProgram() {
           IntraMonoFullConstantPropagation>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IntraMonoSolverTest: {
@@ -261,7 +255,7 @@ void AnalysisController::executeWholeProgram() {
           IntraMonoSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::InterMonoSolverTest: {
@@ -273,7 +267,7 @@ void AnalysisController::executeWholeProgram() {
           InterMonoSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::InterMonoTaintAnalysis: {
@@ -285,13 +279,72 @@ void AnalysisController::executeWholeProgram() {
           InterMonoTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
-      emitRequestedResults(WPA);
+      emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::Plugin:
       break;
     default:
       break;
+    }
+  }
+}
+
+void AnalysisController::emitRequestedHelperAnalysisResults() {
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitIR) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-preprocess-ir.ll");
+      IRDB.emitPreprocessedIR(OFS);
+    } else {
+      IRDB.emitPreprocessedIR();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsText) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-th.txt");
+      TH.print(OFS);
+    } else {
+      TH.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsDot) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-th.dot");
+      TH.printAsDot(OFS);
+    } else {
+      TH.printAsDot();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.txt");
+      PT.print(OFS);
+    } else {
+      PT.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDOT) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.dot");
+      PT.print(OFS);
+    } else {
+      PT.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.txt");
+      ICF.print(OFS);
+    } else {
+      ICF.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsDot) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.dot");
+      ICF.printAsDot(OFS);
+    } else {
+      ICF.printAsDot();
     }
   }
 }

@@ -33,6 +33,7 @@ endif()
 target_link_libraries(phasar_controller
   LINK_PUBLIC
   curl
+  boost_filesystem
   boost_log
 )
 

@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <chrono>
 #include <iterator>
 #include <ostream>
 
@@ -19,11 +21,22 @@
 
 #include <cxxabi.h>
 
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
+
 using namespace std;
 using namespace psr;
 
 namespace psr {
+
+std::string createTimeStamp() {
+  auto Now = std::chrono::system_clock::now();
+  auto NowTime = std::chrono::system_clock::to_time_t(Now);
+  std::string TimeStr(std::ctime(&NowTime));
+  std::replace(TimeStr.begin(), TimeStr.end(), ' ', '-');
+  TimeStr.erase(std::remove(TimeStr.begin(), TimeStr.end(), '\n'),
+                TimeStr.end());
+  return TimeStr;
+}
 
 string cxx_demangle(const string &mangled_name) {
   int status = 0;
@@ -58,15 +71,6 @@ bool isConstructor(const string &mangled_name) {
     return true;
 
   return false;
-}
-
-string debasify(const string &name) {
-  static const string base = ".base";
-  if (boost::algorithm::ends_with(name, base)) {
-    return name.substr(0, name.size() - base.size());
-  } else {
-    return name;
-  }
 }
 
 const llvm::Type *stripPointer(const llvm::Type *pointer) {

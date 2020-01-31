@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <chrono>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,12 +58,20 @@ void validateParamModule(const std::vector<std::string> &Modules) {
   }
 }
 
+void validateParamExport(const std::string &Export) {
+  throw boost::program_options::error_with_option_name(
+      "Parameter not supported, yet.");
+}
+
 void validateParamOutput(const std::string &Output) {
-  if (boost::filesystem::is_directory(Output)) {
+  if (Output != "" && !boost::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
-        "'" + Output + "' cannot be a directory!");
+        "'" + Output +
+        "' does not exist, a valid output directory is required!");
   }
 }
+
+void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
   for (auto &Analysis : Analyses) {
@@ -146,7 +156,6 @@ int main(int argc, const char **argv) {
     Config.add_options()
 			("module,m", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
-      ("output,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamDataFlowAnalysis), "Set the analysis to be run")
 			("analysis-strategy", boost::program_options::value<std::string>()->default_value("WPA")->notifier(&validateParamAnalysisStrategy))
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
@@ -154,10 +163,12 @@ int main(int argc, const char **argv) {
       ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
 			("classhierarchy-analysis,H", "Class-hierarchy analysis")
 			("statistical-analysis,S", "Statistics")
-			//("export,E", boost::program_options::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       ("log,L", "Enable logging")
+      ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
+      ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
+      ("out,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value(""), "Output directory; if specified all results are written to the output directory instead of stdout")
       ("emit-ir", "Emit preprocessed and annotated IR of analysis target")
       ("emit-raw-results", "Emit unprocessed/raw solver results")
       ("emit-text-report", "Emit textual report of solver results")
@@ -169,13 +180,12 @@ int main(int argc, const char **argv) {
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
-      ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible")
+      ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
-      ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project Id used for the database")
-      ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
+      ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
   CmdlineOptions.add(Generic).add(Config);
@@ -326,7 +336,18 @@ int main(int argc, const char **argv) {
   if (PhasarConfig::VariablesMap().count("emit-pta-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDOT;
   }
+  // setup output directory
+  std::string OutDirectory;
+  if (PhasarConfig::VariablesMap().count("out")) {
+    OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
+  }
+  // setup phasar project id
+  std::string ProjectID;
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+  }
   AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
-                                CGTy, EntryPoints, Strategy, EmitterOptions);
+                                CGTy, EntryPoints, Strategy, EmitterOptions,
+                                ProjectID, OutDirectory);
   return 0;
 }

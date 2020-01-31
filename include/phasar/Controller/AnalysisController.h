@@ -15,6 +15,8 @@
 #include <string>
 #include <vector>
 
+#include <boost/filesystem.hpp>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -52,6 +54,9 @@ private:
   [[maybe_unused]] AnalysisStrategy Strategy;
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::None;
+  std::string ProjectID;
+  std::string OutDirectory;
+  boost::filesystem::path ResultDirectory;
 
   void executeDemandDriven();
 
@@ -63,16 +68,33 @@ private:
 
   void executeWholeProgram();
 
-  template <typename T> void emitRequestedResults(T &WPA) {
+  void emitRequestedHelperAnalysisResults();
+
+  template <typename T> void emitRequestedDataFlowResults(T &WPA) {
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTextReport) {
-      WPA.emitTextReport();
+      if (!ResultDirectory.empty()) {
+        std::ofstream OFS(ResultDirectory.string() + "/psr-report.txt");
+        WPA.emitTextReport(OFS);
+      } else {
+        WPA.emitTextReport();
+      }
     }
     if (EmitterOptions &
         AnalysisControllerEmitterOptions::EmitGraphicalReport) {
-      WPA.emitGraphicalReport();
+      if (!ResultDirectory.empty()) {
+        std::ofstream OFS(ResultDirectory.string() + "/psr-report.html");
+        WPA.emitGraphicalReport(OFS);
+      } else {
+        WPA.emitGraphicalReport();
+      }
     }
     if (EmitterOptions & AnalysisControllerEmitterOptions::EmitRawResults) {
-      WPA.dumpResults();
+      if (!ResultDirectory.empty()) {
+        std::ofstream OFS(ResultDirectory.string() + "/psr-raw-results.txt");
+        WPA.dumpResults(OFS);
+      } else {
+        WPA.dumpResults();
+      }
     }
   }
 
@@ -83,7 +105,9 @@ public:
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
                      std::set<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
-                     AnalysisControllerEmitterOptions EmitterOptions);
+                     AnalysisControllerEmitterOptions EmitterOptions,
+                     std::string ProjectID = "default-phasar-project",
+                     std::string OutDirectory = "");
 
   ~AnalysisController() = default;
 

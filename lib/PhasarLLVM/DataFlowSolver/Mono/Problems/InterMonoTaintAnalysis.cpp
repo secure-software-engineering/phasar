@@ -22,7 +22,7 @@
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;

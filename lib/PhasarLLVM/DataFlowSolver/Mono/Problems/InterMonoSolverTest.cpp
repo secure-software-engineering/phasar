@@ -19,7 +19,7 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
