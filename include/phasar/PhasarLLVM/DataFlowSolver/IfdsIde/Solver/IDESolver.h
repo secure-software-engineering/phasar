@@ -68,7 +68,7 @@ class IFDSToIDETabulationProblem;
  * @param <N> The type of nodes in the interprocedural control-flow graph.
  * @param <D> The type of data-flow facts to be computed by the tabulation
  * problem.
- * @param <F> The type of objects used to represent methods.
+ * @param <F> The type of objects used to represent functions.
  * @param <T> The type of user-defined types that the type hierarchy consists of
  * @param <V> The type of values on which points-to information are computed
  * @param <L> The type of values to be computed along flow edges.
@@ -935,11 +935,11 @@ protected:
                   << ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
-    F methodThatNeedsSummary = ICF->getFunctionOf(n);
+    F functionThatNeedsSummary = ICF->getFunctionOf(n);
     D d1 = edge.factAtSource();
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
-    std::set<N> startPointsOf = ICF->getStartPointsOf(methodThatNeedsSummary);
+    std::set<N> startPointsOf = ICF->getStartPointsOf(functionThatNeedsSummary);
     std::map<N, std::set<D>> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
@@ -961,7 +961,7 @@ protected:
         // compute return-flow function
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
-                c, methodThatNeedsSummary, n, retSiteC);
+                c, functionThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
         for (D d4 : entry.second) {
@@ -1033,12 +1033,12 @@ protected:
     // condition
     if (SolverConfig.followReturnsPastSeeds && inc.empty() &&
         ideTabulationProblem.isZeroValue(d1)) {
-      std::set<N> callers = ICF->getCallersOf(methodThatNeedsSummary);
+      std::set<N> callers = ICF->getCallersOf(functionThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
           std::shared_ptr<FlowFunction<D>> retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
-                  c, methodThatNeedsSummary, n, retSiteC);
+                  c, functionThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           std::set<D> targets = computeReturnFlowFunction(
               retFunction, d1, d2, c, std::set<D>{zeroValue});
@@ -1072,7 +1072,7 @@ protected:
       if (callers.empty()) {
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
-                nullptr, methodThatNeedsSummary, n, nullptr);
+                nullptr, functionThatNeedsSummary, n, nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         retFunction->computeTargets(d2);
       }

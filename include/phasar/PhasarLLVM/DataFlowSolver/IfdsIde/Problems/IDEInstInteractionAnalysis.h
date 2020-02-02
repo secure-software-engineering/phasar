@@ -101,7 +101,7 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
-                                                         f_t destinationFunctionon,
+                                                         f_t destinationFunction,
                                                          d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
