@@ -25,24 +25,24 @@
 namespace psr {
 
 class ProjectIRDB;
-template <typename T, typename M> class TypeHierarchy;
+template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
-template <typename N, typename M> class ICFG;
+template <typename N, typename F> class ICFG;
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename I>
-class InterMonoProblem : public IntraMonoProblem<N, D, M, T, V, I> {
-  static_assert(std::is_base_of_v<ICFG<N, M>, I>,
+class InterMonoProblem : public IntraMonoProblem<N, D, F, T, V, I> {
+  static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
 
 protected:
   const I *ICF;
 
 public:
-  InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+  InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                    const I *ICF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
-      : IntraMonoProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
+      : IntraMonoProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {}
 
   InterMonoProblem(const InterMonoProblem &copy) = delete;
@@ -50,12 +50,12 @@ public:
   InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
-  virtual BitVectorSet<D> callFlow(N CallSite, M Callee,
+  virtual BitVectorSet<D> callFlow(N CallSite, F Callee,
                                    const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> returnFlow(N CallSite, M Callee, N ExitStmt,
+  virtual BitVectorSet<D> returnFlow(N CallSite, F Callee, N ExitStmt,
                                      N RetSite, const BitVectorSet<D> &In) = 0;
   virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
-                                        std::set<M> Callees,
+                                        std::set<F> Callees,
                                         const BitVectorSet<D> &In) = 0;
 
   const I *getICFG() const { return ICF; }

@@ -49,7 +49,7 @@ class IFDSConstAnalysis
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
@@ -111,22 +111,22 @@ public:
    * @brief Processing call/invoke instructions and llvm memory intrinsic
    * functions.
    * @param callStmt Call statement.
-   * @param destMthd Callee function.
+   * @param destFun Callee function.
    */
   std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+                                                         f_t destFun) override;
 
   /**
    * Maps formal parameters back into actual parameters. Data-flow fact(s)
    * associated with the return value are propagated into the caller context.
    * @brief Processing a function return.
    * @param callSite Call site.
-   * @param calleeMthd Callee function.
+   * @param calleeFun Callee function.
    * @param exitStmt Exit statement in callee.
    * @param retSite Return site.
    */
   std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
+                                                        f_t calleeFun,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
@@ -143,13 +143,13 @@ public:
    */
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+                           std::set<f_t> callees) override;
 
   /**
    * @brief Not used for this analysis, i.e. always returning nullptr.
    */
   std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
 
   /**
    * Only the zero value is valid at the first program statement, i.e.
@@ -169,7 +169,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printFunction(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, f_t m) const override;
 
   void emitTextReport(std::ostream &os,
                       const SolverResults<n_t, d_t, BinaryDomain> &SR) override;
@@ -228,7 +228,7 @@ public:
    * @param Context dictates which points-to information is relevant.
    */ // clang-format on
   std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
-                                              m_t Context);
+                                              f_t Context);
 };
 
 } // namespace psr

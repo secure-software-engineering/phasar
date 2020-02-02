@@ -36,7 +36,7 @@ namespace psr {
 class MapFactsToCaller : public FlowFunction<const llvm::Value *> {
 private:
   llvm::ImmutableCallSite callSite;
-  const llvm::Function *calleeMthd;
+  const llvm::Function *calleeFun;
   const llvm::ReturnInst *exitStmt;
   std::vector<const llvm::Value *> actuals;
   std::vector<const llvm::Value *> formals;
@@ -45,7 +45,7 @@ private:
 
 public:
   MapFactsToCaller(
-      llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
+      llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
       const llvm::Instruction *exitstmt,
       std::function<bool(const llvm::Value *)> paramPredicate =
           [](const llvm::Value *) { return true; },

@@ -17,7 +17,7 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename V> class IDESummaries {
+template <typename N, typename D, typename F, typename V> class IDESummaries {
 private:
   Table<N, D, Table<N, D, std::shared_ptr<EdgeFunction<V>>>> summaries;
 

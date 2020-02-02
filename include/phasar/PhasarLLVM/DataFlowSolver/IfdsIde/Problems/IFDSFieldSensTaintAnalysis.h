@@ -41,7 +41,7 @@ class IFDSFieldSensTaintAnalysis
 public:
   typedef ExtendedValue d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
@@ -60,11 +60,11 @@ public:
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                      const llvm::Function *destMthd) override;
+                      const llvm::Function *destFun) override;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeMthd,
+                     const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
@@ -75,7 +75,7 @@ public:
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd) override;
+                         const llvm::Function *destFun) override;
 
   std::map<const llvm::Instruction *, std::set<ExtendedValue>>
   initialSeeds() override;

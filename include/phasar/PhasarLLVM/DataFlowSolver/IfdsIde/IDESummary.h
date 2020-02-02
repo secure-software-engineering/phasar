@@ -12,7 +12,7 @@
 
 namespace psr {
 
-// template <typename N, typename D, typename M, typename V, typename I>
+// template <typename N, typename D, typename F, typename V, typename I>
 class IDESummary {
 public:
   IDESummary() {}

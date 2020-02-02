@@ -31,19 +31,19 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename I, unsigned K>
 class InterMonoSolver {
 public:
-  using ProblemTy = InterMonoProblem<N, D, M, T, V, I>;
+  using ProblemTy = InterMonoProblem<N, D, F, T, V, I>;
 
 protected:
-  InterMonoProblem<N, D, M, T, V, I> &IMProblem;
+  InterMonoProblem<N, D, F, T, V, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   std::unordered_map<N,
                      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
       Analysis;
-  std::unordered_set<M> AddedFunctions;
+  std::unordered_set<F> AddedFunctions;
   const I *ICF;
 
   void initialize() {
@@ -157,7 +157,7 @@ protected:
   }
 
 public:
-  InterMonoSolver(InterMonoProblem<N, D, M, T, V, I> &IMP)
+  InterMonoSolver(InterMonoProblem<N, D, F, T, V, I> &IMP)
       : IMProblem(IMP), ICF(IMP.getICFG()) {}
   InterMonoSolver(const InterMonoSolver &) = delete;
   InterMonoSolver &operator=(const InterMonoSolver &) = delete;

@@ -31,16 +31,16 @@ extern const std::shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
  * This class promotes a given IFDSTabulationProblem to an IDETabulationProblem
  * using a binary domain for the edge functions.
  */
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename I>
 class IFDSToIDETabulationProblem
-    : public IDETabulationProblem<N, D, M, T, V, BinaryDomain, I> {
+    : public IDETabulationProblem<N, D, F, T, V, BinaryDomain, I> {
 public:
-  IFDSTabulationProblem<N, D, M, T, V, I> &Problem;
+  IFDSTabulationProblem<N, D, F, T, V, I> &Problem;
 
   IFDSToIDETabulationProblem(
-      IFDSTabulationProblem<N, D, M, T, V, I> &IFDSProblem)
-      : IDETabulationProblem<N, D, M, T, V, BinaryDomain, I>(
+      IFDSTabulationProblem<N, D, F, T, V, I> &IFDSProblem)
+      : IDETabulationProblem<N, D, F, T, V, BinaryDomain, I>(
             IFDSProblem.getProjectIRDB(), IFDSProblem.getTypeHierarchy(),
             IFDSProblem.getICFG(), IFDSProblem.getPointstoInfo(),
             IFDSProblem.getEntryPoints()),
@@ -52,24 +52,24 @@ public:
   }
 
   std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
-                                                       M destMthd) override {
-    return Problem.getCallFlowFunction(callStmt, destMthd);
+                                                       F destFun) override {
+    return Problem.getCallFlowFunction(callStmt, destFun);
   }
 
   std::shared_ptr<FlowFunction<D>>
-  getRetFlowFunction(N callSite, M calleeMthd, N exitStmt, N retSite) override {
-    return Problem.getRetFlowFunction(callSite, calleeMthd, exitStmt, retSite);
+  getRetFlowFunction(N callSite, F calleeFun, N exitStmt, N retSite) override {
+    return Problem.getRetFlowFunction(callSite, calleeFun, exitStmt, retSite);
   }
 
   std::shared_ptr<FlowFunction<D>>
   getCallToRetFlowFunction(N callSite, N retSite,
-                           std::set<M> callees) override {
+                           std::set<F> callees) override {
     return Problem.getCallToRetFlowFunction(callSite, retSite, callees);
   }
 
   std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
-                                                          M destMthd) override {
-    return Problem.getSummaryFlowFunction(callStmt, destMthd);
+                                                          F destFun) override {
+    return Problem.getSummaryFlowFunction(callStmt, destFun);
   }
 
   std::map<N, std::set<D>> initialSeeds() override {
@@ -105,7 +105,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod,
+  getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction,
                       D destNode) override {
     if (Problem.isZeroValue(srcNode))
       return ALL_BOTTOM;
@@ -114,7 +114,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
-  getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt, D exitNode,
+  getReturnEdgeFunction(N callSite, F calleeFunction, N exitStmt, D exitNode,
                         N returnSite, D retNode) override {
     if (Problem.isZeroValue(exitNode))
       return ALL_BOTTOM;
@@ -124,7 +124,7 @@ public:
 
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getCallToRetEdgeFunction(N callStmt, D callNode, N returnSite,
-                           D returnSideNode, std::set<M> callees) override {
+                           D returnSideNode, std::set<F> callees) override {
     if (Problem.isZeroValue(callNode))
       return ALL_BOTTOM;
     else
@@ -145,8 +145,8 @@ public:
     Problem.printDataFlowFact(os, d);
   }
 
-  void printFunction(std::ostream &os, M m) const override {
-    Problem.printFunction(os, m);
+  void printFunction(std::ostream &os, F f) const override {
+    Problem.printFunction(os, f);
   }
 
   void printEdgeFact(std::ostream &os, BinaryDomain v) const override {

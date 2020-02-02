@@ -45,7 +45,7 @@ class InterMonoSolverTest
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
