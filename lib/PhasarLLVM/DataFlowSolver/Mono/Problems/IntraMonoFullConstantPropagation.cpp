@@ -76,7 +76,7 @@ void IntraMonoFullConstantPropagation::printDataFlowFact(
      << ", " + std::to_string(d.second) + " >";
 }
 
-void IntraMonoFullConstantPropagation::printMethod(
+void IntraMonoFullConstantPropagation::printFunction(
     ostream &os, const llvm::Function *m) const {
   os << m->getName().str();
 }

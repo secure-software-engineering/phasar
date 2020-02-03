@@ -147,8 +147,8 @@ void WPDSSolverTest::printDataFlowFact(std::ostream &os,
   os << llvmIRToString(d);
 }
 
-void WPDSSolverTest::printMethod(std::ostream &os,
-                                 WPDSSolverTest::m_t m) const {
+void WPDSSolverTest::printFunction(std::ostream &os,
+                                   WPDSSolverTest::m_t m) const {
   os << m->getName().str();
 }
 

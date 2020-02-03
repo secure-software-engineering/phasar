@@ -218,8 +218,8 @@ void InterMonoTaintAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d) << '\n';
 }
 
-void InterMonoTaintAnalysis::printMethod(ostream &os,
-                                         const llvm::Function *m) const {
+void InterMonoTaintAnalysis::printFunction(ostream &os,
+                                           const llvm::Function *m) const {
   os << m->getName().str();
 }
 const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &

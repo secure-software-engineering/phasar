@@ -242,7 +242,7 @@ void IDEInstInteractionAnalysis::printDataFlowFact(
   os << llvmIRToString(d);
 }
 
-void IDEInstInteractionAnalysis::printMethod(
+void IDEInstInteractionAnalysis::printFunction(
     ostream &os, IDEInstInteractionAnalysis::m_t m) const {
   os << m->getName().str();
 }

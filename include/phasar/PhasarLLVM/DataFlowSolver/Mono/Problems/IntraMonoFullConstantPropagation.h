@@ -84,7 +84,7 @@ public:
   printDataFlowFact(std::ostream &os,
                     std::pair<const llvm::Value *, unsigned> d) const override;
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &os, const llvm::Function *m) const override;
 };
 
 } // namespace psr
