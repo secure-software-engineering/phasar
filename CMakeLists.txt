@@ -99,7 +99,7 @@ else()
 endif()
 
 # Boost
-find_package(Boost 1.66.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
+find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 add_definitions(-DBOOST_LOG_DYN_LINK)
 
