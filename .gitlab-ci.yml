@@ -29,8 +29,8 @@ build:
     - cd /builds/pdschbrt/sse_dfa_llvm/build
   only:
     - master
-    - develop
-    - f-FixGitLabCI
+    - development
+    - variability
   tags:
     - shared
   # save the documentation and binary
