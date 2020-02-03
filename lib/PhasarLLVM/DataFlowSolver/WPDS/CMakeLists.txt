@@ -22,10 +22,10 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS filesystem REQUIRED)
 target_link_libraries(phasar_wpds
   LINK_PUBLIC
-  boost_filesystem
-  boost_system
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_wpds

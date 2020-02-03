@@ -29,9 +29,10 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_utils
   LINK_PUBLIC
-  boost_log
+  ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
 )
 
