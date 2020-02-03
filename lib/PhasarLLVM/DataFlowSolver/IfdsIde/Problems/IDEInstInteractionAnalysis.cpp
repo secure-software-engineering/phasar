@@ -18,6 +18,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
@@ -43,7 +44,7 @@ IDEInstInteractionAnalysis::IDEInstInteractionAnalysis(
 }
 
 void IDEInstInteractionAnalysis::registerEdgeFactGenerator(
-    std::function<std::set<IDEInstInteractionAnalysis::v_t>(
+    std::function<std::set<IDEInstInteractionAnalysis::e_t>(
         IDEInstInteractionAnalysis::n_t curr,
         IDEInstInteractionAnalysis::d_t srcNode,
         IDEInstInteractionAnalysis::d_t destNode)>
@@ -57,6 +58,10 @@ shared_ptr<FlowFunction<IDEInstInteractionAnalysis::d_t>>
 IDEInstInteractionAnalysis::getNormalFlowFunction(
     IDEInstInteractionAnalysis::n_t curr,
     IDEInstInteractionAnalysis::n_t succ) {
+  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+    return std::make_shared<Gen<IDEInstInteractionAnalysis::d_t>>(
+        Alloca, getZeroValue());
+  }
 
   struct IIAFlowFunction : FlowFunction<IDEInstInteractionAnalysis::d_t> {
 
@@ -158,7 +163,7 @@ IDEInstInteractionAnalysis::getNormalEdgeFunction(
     IDEInstInteractionAnalysis::n_t succ,
     IDEInstInteractionAnalysis::d_t succNode) {
   // check if the user has registered a fact generator function
-  std::set<IDEInstInteractionAnalysis::v_t> UserEdgeFacts;
+  std::set<IDEInstInteractionAnalysis::e_t> UserEdgeFacts;
   if (EdgeFactGen) {
     UserEdgeFacts = EdgeFactGen(curr, currNode, succNode);
   }
@@ -212,12 +217,12 @@ IDEInstInteractionAnalysis::getSummaryEdgeFunction(
 IDEInstInteractionAnalysis::l_t IDEInstInteractionAnalysis::topElement() {
   cout << "IDEInstInteractionAnalysis::topElement()\n";
   // have empty set to represent no information
-  return {};
+  return {"__TOP__"};
 }
 
 IDEInstInteractionAnalysis::l_t IDEInstInteractionAnalysis::bottomElement() {
   cout << "IDEInstInteractionAnalysis::bottomElement()\n";
-  return {};
+  return {"__BOTTOM__"};
 }
 
 IDEInstInteractionAnalysis::l_t
@@ -251,11 +256,13 @@ void IDEInstInteractionAnalysis::printFunction(
 void IDEInstInteractionAnalysis::printEdgeFact(
     ostream &os, IDEInstInteractionAnalysis::l_t l) const {
   auto lset = l.getAsSet();
+  size_t idx = 0;
   for (const auto &s : lset) {
     os << s;
-    if (s == *lset.rbegin()) {
+    if (idx != lset.size() - 1) {
       os << ", ";
     }
+    ++idx;
   }
 }
 

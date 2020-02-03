@@ -47,6 +47,16 @@ protected:
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysis IIAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
+    auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
+                        const llvm::Value *DestNode) -> std::set<std::string> {
+      if (I->hasMetadata()) {
+        auto MD = I->getMetadata("dbg");
+        std::string Data = "data";
+        return {Data};
+      }
+      return {};
+    };
+    IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
               IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
               IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,

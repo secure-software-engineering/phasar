@@ -22,6 +22,7 @@ DATA_FLOW_ANALYSIS_TYPES("IFDSLinearConstantAnalysis", "ifds-lca", IFDSLinearCon
 DATA_FLOW_ANALYSIS_TYPES("IFDSFieldSensTaintAnalysis", "ifds-fstaint", IFDSFieldSensTaintAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IDELinearConstantAnalysis", "ide-lca", IDELinearConstantAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IDESolverTest", "ide-solvertest", IDESolverTest)
+DATA_FLOW_ANALYSIS_TYPES("IDEInstInteractionAnalysis", "ide-iia", IDEInstInteractionAnalysis)
 DATA_FLOW_ANALYSIS_TYPES("IntraMonoFullConstantPropagation", "intra-mono-fca", IntraMonoFullConstantPropagation)
 DATA_FLOW_ANALYSIS_TYPES("IntraMonoSolverTest", "intra-mono-solvertest", IntraMonoSolverTest)
 DATA_FLOW_ANALYSIS_TYPES("InterMonoSolverTest", "inter-mono-solvertest", InterMonoSolverTest)

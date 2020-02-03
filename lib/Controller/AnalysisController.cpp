@@ -19,6 +19,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
 #include <phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
@@ -60,8 +61,8 @@ AnalysisController::AnalysisController(
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
-      Strategy(Strategy), EmitterOptions(EmitterOptions),
-      ProjectID(ProjectID), OutDirectory(OutDirectory) {
+      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      OutDirectory(OutDirectory) {
   if (OutDirectory != "") {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
@@ -228,6 +229,19 @@ void AnalysisController::executeWholeProgram() {
                     IDESolverTest::t_t, IDESolverTest::v_t, IDESolverTest::l_t,
                     IDESolverTest::i_t>,
           IDESolverTest>
+          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WPA.solve();
+      emitRequestedDataFlowResults(WPA);
+      WPA.releaseAllHelperAnalyses();
+    } break;
+    case DataFlowAnalysisType::IDEInstInteractionAnalysis: {
+      WholeProgramAnalysis<
+          IDESolver<
+              IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
+              IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
+              IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
+              IDEInstInteractionAnalysis::i_t>,
+          IDEInstInteractionAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
       emitRequestedDataFlowResults(WPA);

@@ -44,11 +44,13 @@ public:
   typedef const llvm::Function *m_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
-  typedef BitVectorSet<std::string> l_t;
+  // type of the element contained in the sets of edge functions
+  typedef std::string e_t;
+  typedef BitVectorSet<e_t> l_t;
   typedef LLVMBasedICFG i_t;
 
 private:
-  std::function<std::set<v_t>(n_t, d_t, d_t)> EdgeFactGen;
+  std::function<std::set<e_t>(n_t, d_t, d_t)> EdgeFactGen;
 
 public:
   IDEInstInteractionAnalysis(const ProjectIRDB *IRDB,
@@ -64,7 +66,7 @@ public:
   // edge facts are generated according to the usual edge functions.
 
   void registerEdgeFactGenerator(
-      std::function<std::set<v_t>(n_t curr, d_t srcNode, d_t destNode)>
+      std::function<std::set<e_t>(n_t curr, d_t srcNode, d_t destNode)>
           EdgeFactGenerator);
 
   // start formulating our analysis by specifying the parts required for IFDS
