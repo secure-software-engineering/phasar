@@ -22,7 +22,7 @@
 #include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
@@ -218,8 +218,8 @@ void InterMonoTaintAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d) << '\n';
 }
 
-void InterMonoTaintAnalysis::printMethod(ostream &os,
-                                         const llvm::Function *m) const {
+void InterMonoTaintAnalysis::printFunction(ostream &os,
+                                           const llvm::Function *m) const {
   os << m->getName().str();
 }
 const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &

@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <algorithm>
+#include <chrono>
 #include <set>
 #include <string>
 #include <vector>
@@ -56,14 +58,29 @@ void validateParamModule(const std::vector<std::string> &Modules) {
   }
 }
 
+void validateParamExport(const std::string &Export) {
+  throw boost::program_options::error_with_option_name(
+      "Parameter not supported, yet.");
+}
+
 void validateParamOutput(const std::string &Output) {
-  if (boost::filesystem::is_directory(Output)) {
+  if (Output != "" && !boost::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
-        "'" + Output + "' cannot be a directory!");
+        "'" + Output +
+        "' does not exist, a valid output directory is required!");
   }
 }
 
-void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {}
+void validateParamPammOutputFile(const std::string &Output) {}
+
+void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
+  for (auto &Analysis : Analyses) {
+    if (to_DataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
+      throw boost::program_options::error_with_option_name(
+          "'" + Analysis + "' is not a valid data-flow analysis!");
+    }
+  }
+}
 
 void validateParamAnalysisStrategy(const std::string &Strategy) {
   if (to_AnalysisStrategy(Strategy) == AnalysisStrategy::None) {
@@ -139,29 +156,36 @@ int main(int argc, const char **argv) {
     Config.add_options()
 			("module,m", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamModule), "Path to the module(s) under analysis")
       ("entry-points,E", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing(), "Set the entry point(s) to be used")
-      ("output,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value("results.json"), "Filename for the results")
 			("data-flow-analysis,D", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamDataFlowAnalysis), "Set the analysis to be run")
 			("analysis-strategy", boost::program_options::value<std::string>()->default_value("WPA")->notifier(&validateParamAnalysisStrategy))
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
-      ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
-      ("callgraph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis), "Set the call-graph algorithm to be used (CHA, RTA, DTA, VTA, OTF)")
+      ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
+      ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
 			("classhierarchy-analysis,H", "Class-hierarchy analysis")
-			("vtable-analysis,V", "Virtual function table analysis")
 			("statistical-analysis,S", "Statistics")
-			//("export,E", boost::program_options::value<std::string>()->notifier(validateParamExport), "Export mode (TODO: yet to implement!)")
 			("mwa,M", "Enable Modulewise-program analysis mode")
-			("mem2reg", "Promote memory to register pass")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
       ("log,L", "Enable logging")
+      ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
+      ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
+      ("out,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value(""), "Output directory; if specified all results are written to the output directory instead of stdout")
       ("emit-ir", "Emit preprocessed and annotated IR of analysis target")
       ("emit-raw-results", "Emit unprocessed/raw solver results")
-      ("emit-esg-as-dot", "Emit the Exploded super-graph (ESG) as DOT graph")
+      ("emit-text-report", "Emit textual report of solver results")
+      ("emit-graphical-report", "Emit graphical report of solver results")
+      ("emit-esg-as-dot", "Emit the exploded super-graph (ESG) as DOT graph")
+      ("emit-th-as-text", "Emit the type hierarchy as text")
+      ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
+      ("emit-cg-as-text", "Emit the call graph as text")
+      ("emit-cg-as-dot", "Emit the call graph as DOT graph")
+      ("emit-pta-as-text", "Emit the points-to information as text")
+      ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
+      ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
       ("callgraph-plugin", boost::program_options::value<std::string>()->notifier(&validateParamICFGPlugin), "ICFG plugin (absolute path to the shared object file)")
       #endif
-      ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project Id used for the database")
-      ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamOutput)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data");
+      ("right-to-ludicrous-speed", "Uses ludicrous speed (shared memory parallelism) whenever possible");
   // clang-format on
   boost::program_options::options_description CmdlineOptions;
   CmdlineOptions.add(Generic).add(Config);
@@ -242,9 +266,10 @@ int main(int argc, const char **argv) {
                  "Specify a LLVM target module or re-run with '--help'\n";
     return 0;
   }
+  // setup IRDB as source code manager
   ProjectIRDB IRDB(
-      PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>(),
-      IRDBOptions::NONE);
+      PhasarConfig::VariablesMap()["module"].as<std::vector<std::string>>());
+  // setup data-flow analyses
   std::vector<DataFlowAnalysisType> DataFlowAnalyses;
   if (PhasarConfig::VariablesMap().count("data-flow-analysis")) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
@@ -255,6 +280,7 @@ int main(int argc, const char **argv) {
   } else {
     DataFlowAnalyses.push_back(DataFlowAnalysisType::None);
   }
+  // setup the data-flow analyses's corresponding analysis configs if anay
   std::vector<std::string> AnalysisConfigs;
   if (PhasarConfig::VariablesMap().count("analysis-config")) {
     AnalysisConfigs = PhasarConfig::VariablesMap()["analysis-config"]
@@ -268,7 +294,60 @@ int main(int argc, const char **argv) {
   } else {
     EntryPoints.insert("main");
   }
-  AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs,
-                                EntryPoints, Strategy);
+  // setup pointer algorithm to be used
+  PointerAnalysisType PTATy = to_PointerAnalysisType(
+      PhasarConfig::VariablesMap()["pointer-analysis"].as<std::string>());
+  // setup call-graph algorithm to be used
+  CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(
+      PhasarConfig::VariablesMap()["call-graph-analysis"].as<std::string>());
+  // setup the emitter options to display the computed analysis results
+  AnalysisControllerEmitterOptions EmitterOptions =
+      AnalysisControllerEmitterOptions::EmitTextReport;
+  if (PhasarConfig::VariablesMap().count("emit-ir")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitIR;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitRawResults;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-text-report")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTextReport;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-graphical-report")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitGraphicalReport;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-esg-as-dot")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitESGAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-th-as-text")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsText;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-th-as-dot")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-pta-as-dot")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDOT;
+  }
+  // setup output directory
+  std::string OutDirectory;
+  if (PhasarConfig::VariablesMap().count("out")) {
+    OutDirectory = PhasarConfig::VariablesMap()["out"].as<std::string>();
+  }
+  // setup phasar project id
+  std::string ProjectID;
+  if (PhasarConfig::VariablesMap().count("project-id")) {
+    ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
+  }
+  AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
+                                CGTy, EntryPoints, Strategy, EmitterOptions,
+                                ProjectID, OutDirectory);
   return 0;
 }

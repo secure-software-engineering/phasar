@@ -13,6 +13,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -26,7 +27,7 @@
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace psr;
 using namespace std;
@@ -242,7 +243,7 @@ void IDEInstInteractionAnalysis::printDataFlowFact(
   os << llvmIRToString(d);
 }
 
-void IDEInstInteractionAnalysis::printMethod(
+void IDEInstInteractionAnalysis::printFunction(
     ostream &os, IDEInstInteractionAnalysis::m_t m) const {
   os << m->getName().str();
 }

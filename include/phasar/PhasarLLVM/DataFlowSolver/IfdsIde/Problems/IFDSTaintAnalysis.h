@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSTAINTANALYSIS_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
@@ -104,10 +104,10 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, m_t m) const override;
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, BinaryDomain> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+                      std::ostream &OS = std::cout) override;
 };
 } // namespace psr
 

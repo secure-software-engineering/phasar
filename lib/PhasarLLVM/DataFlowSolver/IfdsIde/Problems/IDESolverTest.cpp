@@ -13,6 +13,7 @@
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/Type.h>
 #include <llvm/IR/Value.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/DefaultSeeds.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
@@ -24,7 +25,7 @@
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
@@ -190,7 +191,7 @@ void IDESolverTest::printDataFlowFact(ostream &os, IDESolverTest::d_t d) const {
   os << llvmIRToString(d);
 }
 
-void IDESolverTest::printMethod(ostream &os, IDESolverTest::m_t m) const {
+void IDESolverTest::printFunction(ostream &os, IDESolverTest::m_t m) const {
   os << m->getName().str();
 }
 

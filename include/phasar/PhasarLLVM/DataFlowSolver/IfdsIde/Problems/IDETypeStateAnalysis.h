@@ -10,9 +10,9 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDETYPESTATEANALYSIS_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
-#include <ostream>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -171,12 +171,12 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, m_t m) const override;
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, l_t> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+                      std::ostream &OS = std::cout) override;
 
   // customize the edge function composer
   class TSEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {

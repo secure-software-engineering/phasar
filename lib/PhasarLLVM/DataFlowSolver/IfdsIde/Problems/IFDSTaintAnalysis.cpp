@@ -285,13 +285,13 @@ void IFDSTaintAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSTaintAnalysis::printMethod(ostream &os,
-                                    IFDSTaintAnalysis::m_t m) const {
+void IFDSTaintAnalysis::printFunction(ostream &os,
+                                      IFDSTaintAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
 void IFDSTaintAnalysis::emitTextReport(
-    std::ostream &os, const SolverResults<n_t, d_t, BinaryDomain> &SR) {
+    const SolverResults<n_t, d_t, BinaryDomain> &SR, std::ostream &os) {
   os << "\n----- Found the following leaks -----\n";
   if (Leaks.empty()) {
     os << "No leaks found!\n";

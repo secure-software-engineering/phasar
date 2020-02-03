@@ -806,7 +806,7 @@ void IDELinearConstantAnalysis::printDataFlowFact(
   os << llvmIRToShortString(d);
 }
 
-void IDELinearConstantAnalysis::printMethod(
+void IDELinearConstantAnalysis::printFunction(
     ostream &os, IDELinearConstantAnalysis::m_t m) const {
   os << m->getName().str();
 }
@@ -823,9 +823,10 @@ void IDELinearConstantAnalysis::printEdgeFact(
 }
 
 void IDELinearConstantAnalysis::emitTextReport(
-    std::ostream &os, const SolverResults<IDELinearConstantAnalysis::n_t,
-                                          IDELinearConstantAnalysis::d_t,
-                                          IDELinearConstantAnalysis::l_t> &SR) {
+    const SolverResults<IDELinearConstantAnalysis::n_t,
+                        IDELinearConstantAnalysis::d_t,
+                        IDELinearConstantAnalysis::l_t> &SR,
+    std::ostream &os) {
   os << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
   if (!IRDB->debugInfoAvailable()) {

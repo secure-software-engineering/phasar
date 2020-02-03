@@ -23,7 +23,7 @@
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace psr;
 using namespace std;
@@ -197,7 +197,8 @@ void IDEProtoAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IDEProtoAnalysis::printMethod(ostream &os, IDEProtoAnalysis::m_t m) const {
+void IDEProtoAnalysis::printFunction(ostream &os,
+                                     IDEProtoAnalysis::m_t m) const {
   os << m->getName().str();
 }
 

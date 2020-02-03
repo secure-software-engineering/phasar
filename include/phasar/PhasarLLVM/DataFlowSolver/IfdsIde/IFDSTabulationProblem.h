@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
 
-#include <initializer_list>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
@@ -42,7 +42,7 @@ template <typename N, typename D, typename M, typename T, typename V,
 class IFDSTabulationProblem : public virtual FlowFunctions<N, D, M>,
                               public virtual NodePrinter<N>,
                               public virtual DataFlowFactPrinter<D>,
-                              public virtual MethodPrinter<M> {
+                              public virtual FunctionPrinter<M> {
   static_assert(std::is_base_of_v<ICFG<N, M>, I>,
                 "I must implement the ICFG interface!");
 
@@ -89,9 +89,14 @@ public:
 
   IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
 
-  virtual void emitTextReport(std::ostream &os,
-                              const SolverResults<N, D, BinaryDomain> &SR) {
-    os << "No text report available!\n";
+  virtual void emitTextReport(const SolverResults<N, D, BinaryDomain> &SR,
+                              std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
+
+  virtual void emitGraphicalReport(const SolverResults<N, D, BinaryDomain> &SR,
+                                   std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
   }
 };
 } // namespace psr

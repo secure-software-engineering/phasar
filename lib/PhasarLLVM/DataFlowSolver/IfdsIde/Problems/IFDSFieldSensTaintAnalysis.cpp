@@ -223,9 +223,9 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
 }
 
 void IFDSFieldSensTaintAnalysis::emitTextReport(
-    std::ostream &os,
     const SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
-        &solverResults) {
+        &solverResults,
+    std::ostream &os) {
   std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string lcovTraceFile =
       DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");

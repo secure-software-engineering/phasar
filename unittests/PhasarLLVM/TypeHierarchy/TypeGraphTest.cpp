@@ -5,7 +5,7 @@
 
 #include <boost/graph/isomorphism.hpp>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;

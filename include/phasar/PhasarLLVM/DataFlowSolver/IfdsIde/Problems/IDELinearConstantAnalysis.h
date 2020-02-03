@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDELINEARCONSTANTANALYSIS_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -239,14 +240,14 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, m_t m) const override;
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
   lca_restults_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, l_t> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+                      std::ostream &OS = std::cout) override;
 };
 
 } // namespace psr

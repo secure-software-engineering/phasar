@@ -457,8 +457,8 @@ void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
   os << llvmIRToString(d);
 }
 
-void IDETypeStateAnalysis::printMethod(ostream &os,
-                                       IDETypeStateAnalysis::m_t m) const {
+void IDETypeStateAnalysis::printFunction(ostream &os,
+                                         IDETypeStateAnalysis::m_t m) const {
   os << m->getName().str();
 }
 
@@ -685,9 +685,9 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
 }
 
 void IDETypeStateAnalysis::emitTextReport(
-    std::ostream &os,
     const SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                        IDETypeStateAnalysis::l_t> &SR) {
+                        IDETypeStateAnalysis::l_t> &SR,
+    std::ostream &os) {
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : ICF->getAllFunctions()) {
     os << '\n' << getFunctionNameFromIR(f) << '\n';

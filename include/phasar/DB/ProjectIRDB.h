@@ -10,7 +10,7 @@
 #ifndef PHASAR_DB_PROJECTIRDB_H_
 #define PHASAR_DB_PROJECTIRDB_H_
 
-#include <initializer_list>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -146,7 +146,8 @@ public:
 
   void print() const;
 
-  void emitPreprocessedIR(std::ostream &os, bool shortendIR) const;
+  void emitPreprocessedIR(std::ostream &os = std::cout,
+                          bool shortendIR = true) const;
 
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and

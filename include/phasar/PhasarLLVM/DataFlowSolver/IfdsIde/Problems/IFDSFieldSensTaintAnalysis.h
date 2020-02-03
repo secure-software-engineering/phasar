@@ -5,6 +5,7 @@
 #ifndef IFDSFIELDSENSTAINTANALYSIS_H
 #define IFDSFIELDSENSTAINTANALYSIS_H
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -81,9 +82,9 @@ public:
   initialSeeds() override;
 
   void
-  emitTextReport(std::ostream &os,
-                 const SolverResults<const llvm::Instruction *, ExtendedValue,
-                                     BinaryDomain> &solverResults) override;
+  emitTextReport(const SolverResults<const llvm::Instruction *, ExtendedValue,
+                                     BinaryDomain> &solverResults,
+                 std::ostream &OS = std::cout) override;
 
   ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
@@ -116,7 +117,7 @@ public:
     }
   }
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, const llvm::Function *m) const override {
     os << m->getName().str();
   }
 

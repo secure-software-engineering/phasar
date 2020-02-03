@@ -436,15 +436,15 @@ void IFDSUninitializedVariables::printDataFlowFact(
   os << llvmIRToShortString(d);
 }
 
-void IFDSUninitializedVariables::printMethod(
+void IFDSUninitializedVariables::printFunction(
     ostream &os, IFDSUninitializedVariables::m_t m) const {
   os << m->getName().str();
 }
 
 void IFDSUninitializedVariables::emitTextReport(
-    ostream &os,
     const SolverResults<IFDSUninitializedVariables::n_t,
-                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR) {
+                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR,
+    ostream &os) {
   os << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {
