@@ -22,6 +22,7 @@ endif()
 find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_clang
   LINK_PUBLIC
+  phasar_utils
   clangTooling
   clangFrontendTool
   clangFrontend
