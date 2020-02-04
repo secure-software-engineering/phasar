@@ -3,10 +3,10 @@ file(GLOB_RECURSE ANALYSIS_STRATEGY_SRC *.h *.cpp)
 set(PHASAR_LINK_LIBS
 )
 
-# set(LLVM_LINK_COMPONENTS
-#   Core
-#   Support
-# )
+set(LLVM_LINK_COMPONENTS
+  Core
+  Support
+)
 
 if(BUILD_SHARED_LIBS)
   add_phasar_library(phasar_analysis_strategy

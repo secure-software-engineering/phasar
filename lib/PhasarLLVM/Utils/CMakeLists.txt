@@ -5,6 +5,11 @@ set(PHASAR_LINK_LIBS
   phasar_utils
 )
 
+set(LLVM_LINK_COMPONENTS
+  Core
+  Support
+)
+
 # Handle the library files
 if(BUILD_SHARED_LIBS)
   add_phasar_library(phasar_phasarllvm_utils
