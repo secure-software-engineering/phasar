@@ -60,8 +60,8 @@ AnalysisController::AnalysisController(
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),
       AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
-      Strategy(Strategy), EmitterOptions(EmitterOptions),
-      ProjectID(ProjectID), OutDirectory(OutDirectory) {
+      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      OutDirectory(OutDirectory) {
   if (OutDirectory != "") {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
