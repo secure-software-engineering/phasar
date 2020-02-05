@@ -1848,6 +1848,12 @@ IDESolver(Problem &) -> IDESolver<typename Problem::n_t, typename Problem::d_t,
                                   typename Problem::v_t, typename Problem::l_t,
                                   typename Problem::i_t>;
 
+template <typename Problem>
+using IDESolver_P = IDESolver<typename Problem::n_t, typename Problem::d_t,
+                              typename Problem::m_t, typename Problem::t_t,
+                              typename Problem::v_t, typename Problem::l_t,
+                              typename Problem::i_t>;
+
 } // namespace psr
 
 #endif

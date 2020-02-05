@@ -224,24 +224,15 @@ void AnalysisController::executeWholeProgram() {
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDESolverTest: {
-      WholeProgramAnalysis<
-          IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::m_t,
-                    IDESolverTest::t_t, IDESolverTest::v_t, IDESolverTest::l_t,
-                    IDESolverTest::i_t>,
-          IDESolverTest>
-          WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
+      WholeProgramAnalysis<IDESolver_P<IDESolverTest>, IDESolverTest> WPA(
+          IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
       emitRequestedDataFlowResults(WPA);
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDEInstInteractionAnalysis: {
-      WholeProgramAnalysis<
-          IDESolver<
-              IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
-              IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
-              IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
-              IDEInstInteractionAnalysis::i_t>,
-          IDEInstInteractionAnalysis>
+      WholeProgramAnalysis<IDESolver_P<IDEInstInteractionAnalysis>,
+                           IDEInstInteractionAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
       WPA.solve();
       emitRequestedDataFlowResults(WPA);
