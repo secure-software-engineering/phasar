@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IFDSCONSTANALYSIS_H_
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -171,8 +172,8 @@ public:
 
   void printFunction(std::ostream &os, f_t m) const override;
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, BinaryDomain> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, BinaryDomain> &SR,
+                      std::ostream &OS = std::cout) override;
 
   /**
    * @note Global Variables are always intialized in llvm IR, and therefore

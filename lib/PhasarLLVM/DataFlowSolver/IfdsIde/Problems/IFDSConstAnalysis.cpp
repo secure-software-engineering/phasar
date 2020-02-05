@@ -28,8 +28,8 @@
 #include <phasar/Utils/LLVMIRToSrc.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
@@ -319,9 +319,9 @@ size_t IFDSConstAnalysis::initMemoryLocationCount() {
 }
 
 void IFDSConstAnalysis::emitTextReport(
-    ostream &os,
     const SolverResults<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-                        BinaryDomain> &SR) {
+                        BinaryDomain> &SR,
+    ostream &os) {
   // 1) Remove all mutable memory locations
   for (auto f : ICF->getAllFunctions()) {
     for (auto exit : ICF->getExitPointsOf(f)) {

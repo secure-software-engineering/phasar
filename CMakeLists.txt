@@ -91,10 +91,22 @@ include_directories(
 # Threads
 find_package(Threads)
 
+# Fix boost_thread dependency for MacOS
+if(APPLE)
+  set(BOOST_THREAD thread-mt)
+else()
+  set(BOOST_THREAD thread)
+endif()
+
+# Boost
+find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+add_definitions(-DBOOST_LOG_DYN_LINK)
+
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
-include_directories(external/json/single_include/nlohmann)
+include_directories(external/json/single_include/)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -110,11 +122,6 @@ endif()
 # WALi-OpenNWA
 add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
-
-# Boost
-find_package(Boost COMPONENTS filesystem graph system program_options log thread REQUIRED)
-include_directories(${BOOST_INCLUDE_DIR})
-add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # SQL
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
@@ -203,13 +210,6 @@ llvm_map_components_to_libnames(llvm_libs
 # phasar-based binaries
 add_subdirectory(tools)
 
-# Fix boost_thread dependency for MacOS
-if(APPLE)
-  set(BOOST_THREAD boost_thread-mt)
-else()
-  set(BOOST_THREAD boost_thread)
-endif()
-
 # Workaround: Remove Plugins for MacOS for now
 if(APPLE)
   set(PHASAR_PLUGINS_LIB)
@@ -243,7 +243,7 @@ install(DIRECTORY include/
 )
 
 # Install the header only json container
-install(DIRECTORY external/json/single_include/nlohmann/
+install(DIRECTORY external/json/single_include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )

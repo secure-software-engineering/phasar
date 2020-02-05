@@ -17,9 +17,10 @@
 #ifndef PHASAR_UTILS_LLVMSHORTHANDS_H_
 #define PHASAR_UTILS_LLVMSHORTHANDS_H_
 
-#include <phasar/Utils/Macros.h>
 #include <string>
 #include <vector>
+
+#include <phasar/Utils/Utilities.h>
 
 namespace llvm {
 class Value;

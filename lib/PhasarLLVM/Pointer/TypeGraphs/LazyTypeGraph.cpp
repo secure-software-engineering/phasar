@@ -24,7 +24,7 @@
 #include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;

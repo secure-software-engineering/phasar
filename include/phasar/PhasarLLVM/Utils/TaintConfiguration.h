@@ -17,20 +17,22 @@
 #ifndef PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 #define PHASAR_PHASARLLVM_UTILS_TAINTCONFIGURATION_H
 
-#include <boost/filesystem.hpp>
 #include <cassert>
 #include <fstream>
 #include <initializer_list>
 #include <iomanip>
 #include <iostream>
-#include <json.hpp>
 #include <map>
 #include <set>
 #include <string>
 #include <variant>
 #include <vector>
 
-#include "llvm/Support/ErrorHandling.h"
+#include <boost/filesystem.hpp>
+
+#include <llvm/Support/ErrorHandling.h>
+
+#include <nlohmann/json.hpp>
 
 #include <phasar/Config/Configuration.h>
 

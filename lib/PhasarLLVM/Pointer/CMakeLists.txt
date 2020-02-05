@@ -36,12 +36,10 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem graph REQUIRED)
 target_link_libraries(phasar_pointer
-  LINK_PUBLIC
-  boost_log
-  boost_filesystem
-  boost_graph
-  boost_system
+  LINK_PUBLIC  
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_pointer

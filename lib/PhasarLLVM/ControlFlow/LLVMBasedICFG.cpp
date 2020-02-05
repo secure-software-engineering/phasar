@@ -41,8 +41,8 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
+#include <phasar/Utils/Utilities.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 
@@ -281,10 +281,12 @@ set<const llvm::Function *>
 LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
     set<const llvm::Function *> Callees;
-    auto Caller = n->getFunction();
+    auto mapEntry = FunctionVertexMap.find(n->getFunction());
+    if (mapEntry == FunctionVertexMap.end()) {
+      return Callees;
+    }
     out_edge_iterator ei, ei_end;
-    for (boost::tie(ei, ei_end) =
-             boost::out_edges(FunctionVertexMap.at(Caller), CallGraph);
+    for (boost::tie(ei, ei_end) = boost::out_edges(mapEntry->second, CallGraph);
          ei != ei_end; ++ei) {
       auto source = boost::source(*ei, CallGraph);
       auto edge = CallGraph[*ei];
@@ -305,9 +307,12 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallersOf;
+  auto mapEntry = FunctionVertexMap.find(F);
+  if (mapEntry == FunctionVertexMap.end()) {
+    return CallersOf;
+  }
   in_edge_iterator ei, ei_end;
-  for (boost::tie(ei, ei_end) =
-           boost::in_edges(FunctionVertexMap.at(F), CallGraph);
+  for (boost::tie(ei, ei_end) = boost::in_edges(mapEntry->second, CallGraph);
        ei != ei_end; ++ei) {
     auto source = boost::source(*ei, CallGraph);
     auto edge = CallGraph[*ei];

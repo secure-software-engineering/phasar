@@ -21,7 +21,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/PAMM.h>

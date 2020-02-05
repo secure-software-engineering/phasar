@@ -209,6 +209,10 @@ public:
     return !(Lhs == Rhs);
   }
 
+  friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
+    return Lhs.Bits < Rhs.Bits;
+  }
+
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
     OS << '<';
     for (auto &Position : B.Position.left) {

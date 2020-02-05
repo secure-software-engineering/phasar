@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_IFDSTABULATIONPROBLEM_H_
 
-#include <initializer_list>
+#include <iostream>
 #include <map>
 #include <set>
 #include <string>
@@ -89,9 +89,14 @@ public:
 
   IFDSIDESolverConfig getIFDSIDESolverConfig() const { return SolverConfig; }
 
-  virtual void emitTextReport(std::ostream &os,
-                              const SolverResults<N, D, BinaryDomain> &SR) {
-    os << "No text report available!\n";
+  virtual void emitTextReport(const SolverResults<N, D, BinaryDomain> &SR,
+                              std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
+
+  virtual void emitGraphicalReport(const SolverResults<N, D, BinaryDomain> &SR,
+                                   std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
   }
 };
 } // namespace psr

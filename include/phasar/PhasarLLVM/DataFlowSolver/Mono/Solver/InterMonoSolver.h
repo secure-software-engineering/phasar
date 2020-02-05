@@ -266,9 +266,6 @@ public:
         }
       }
     }
-    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
-      dumpResults();
-    }
   }
 
   BitVectorSet<D> getResultsAt(N n) {
@@ -279,28 +276,32 @@ public:
     return Result;
   }
 
-  void dumpResults() {
-    std::cout << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
+  virtual void dumpResults(std::ostream &OS = std::cout) {
+    OS << "======= DUMP LLVM-INTER-MONOTONE-SOLVER RESULTS =======\n";
     for (auto &[Node, ContextMap] : this->Analysis) {
-      std::cout << "Instruction:\n" << this->IMProblem.NtoString(Node);
-      std::cout << "\nFacts:\n";
+      OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
+      OS << "\nFacts:\n";
       if (ContextMap.empty()) {
-        std::cout << "\tEMPTY\n";
+        OS << "\tEMPTY\n";
       } else {
         for (auto &[Context, FlowFacts] : ContextMap) {
-          std::cout << Context << '\n';
+          OS << Context << '\n';
           if (FlowFacts.empty()) {
-            std::cout << "\tEMPTY\n";
+            OS << "\tEMPTY\n";
           } else {
             for (auto FlowFact : FlowFacts.getAsSet()) {
-              std::cout << this->IMProblem.DtoString(FlowFact);
+              OS << this->IMProblem.DtoString(FlowFact);
             }
           }
         }
       }
-      std::cout << '\n';
+      OS << '\n';
     }
   }
+
+  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+
+  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
 };
 
 } // namespace psr
