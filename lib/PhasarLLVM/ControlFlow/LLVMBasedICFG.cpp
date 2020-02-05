@@ -90,13 +90,13 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
     // no type hierarchy information provided by the user,
     // we need to construct a type hierarchy ourselfes
-    TH = new LLVMTypeHierarchy(IRDB);
+    this->TH = new LLVMTypeHierarchy(IRDB);
     UserTHInfos = false;
   }
   if (!PT && (CGType == CallGraphAnalysisType::OTF)) {
     // no pointer information provided by the user,
     // we need to construct a points-to infos ourselfes
-    PT = new LLVMPointsToInfo(IRDB);
+    this->PT = new LLVMPointsToInfo(IRDB);
     UserPTInfos = false;
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
