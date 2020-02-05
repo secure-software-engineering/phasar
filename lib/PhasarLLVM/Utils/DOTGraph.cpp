@@ -15,10 +15,12 @@
  */
 
 #include <algorithm>
-#include <boost/filesystem.hpp>
 #include <iterator>
-#include <json.hpp>
 #include <ostream>
+
+#include <boost/filesystem.hpp>
+
+#include <nlohmann/json.hpp>
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/PhasarLLVM/Utils/DOTGraph.h>

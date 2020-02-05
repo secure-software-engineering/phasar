@@ -28,7 +28,7 @@
 #include <unordered_set>
 #include <utility>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <boost/algorithm/string/trim.hpp>
 

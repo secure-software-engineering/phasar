@@ -106,7 +106,7 @@ add_definitions(-DBOOST_LOG_DYN_LINK)
 # JSON library
 option(JSON_BuildTests OFF)
 add_subdirectory(external/json EXCLUDE_FROM_ALL)
-include_directories(external/json/single_include/nlohmann)
+include_directories(external/json/single_include/)
 
 # Googletest
 if (NOT PHASAR_IN_TREE)
@@ -243,7 +243,7 @@ install(DIRECTORY include/
 )
 
 # Install the header only json container
-install(DIRECTORY external/json/single_include/nlohmann/
+install(DIRECTORY external/json/single_include/
   DESTINATION include
   FILES_MATCHING PATTERN "*.hpp"
 )

@@ -13,7 +13,7 @@
 #include <iosfwd>
 #include <vector>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/TypeHierarchy/VFTable.h>
 
