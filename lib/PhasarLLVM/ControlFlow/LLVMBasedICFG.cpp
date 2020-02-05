@@ -80,6 +80,15 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
   return llvmIRToString(CS);
 }
 
+// Need to provide copy constructor explicitly to avoid multiple frees of TH and
+// PT in case any of them is allocated within the constructor. To this end, we
+// set UserTHInfos and UserPTInfos to true here.
+LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
+    : IRDB(ICF.IRDB), CGType(ICF.CGType), UserTHInfos(true), UserPTInfos(true),
+      TH(ICF.TH), PT(ICF.PT), WholeModulePTG(ICF.WholeModulePTG),
+      VisitedFunctions(ICF.VisitedFunctions), CallGraph(ICF.CallGraph),
+      FunctionVertexMap(ICF.FunctionVertexMap) {}
+
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
