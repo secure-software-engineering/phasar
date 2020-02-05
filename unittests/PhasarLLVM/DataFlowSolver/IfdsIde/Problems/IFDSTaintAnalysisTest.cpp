@@ -74,7 +74,7 @@ protected:
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -86,7 +86,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_01_cpp_m2r_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -98,7 +98,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_01_m2r) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_02_cpp_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -110,7 +110,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_02) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_03_cpp_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -122,7 +122,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_03) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_04_cpp_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -135,7 +135,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_04) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_05_cpp_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();
@@ -147,7 +147,7 @@ TEST_F(IFDSTaintAnalysisTest, TaintTest_05) {
 TEST_F(IFDSTaintAnalysisTest, TaintTest_06) {
   Initialize({pathToLLFiles + "dummy_source_sink/taint_06_cpp_m2r_dbg.ll"});
   IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-             IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+             IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
              IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
       TaintSolver(*TaintProblem);
   TaintSolver.solve();

@@ -87,7 +87,7 @@ public:
 
   std::shared_ptr<FlowFunction<d_t>> getCallToRetFlowFunction(
       n_t callSite, n_t retSite,
-      std::set<IFDSLinearConstantAnalysis::m_t> callees) override;
+      std::set<IFDSLinearConstantAnalysis::f_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, f_t destFun) override;

@@ -49,12 +49,12 @@ IDESolverTest::getNormalFlowFunction(IDESolverTest::n_t curr,
 
 shared_ptr<FlowFunction<IDESolverTest::d_t>>
 IDESolverTest::getCallFlowFunction(IDESolverTest::n_t callStmt,
-                                   IDESolverTest::m_t destMthd) {
+                                   IDESolverTest::f_t destFun) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDESolverTest::d_t>> IDESolverTest::getRetFlowFunction(
-    IDESolverTest::n_t callSite, IDESolverTest::m_t calleeMthd,
+    IDESolverTest::n_t callSite, IDESolverTest::f_t calleeFun,
     IDESolverTest::n_t exitStmt, IDESolverTest::n_t retSite) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
@@ -62,13 +62,13 @@ shared_ptr<FlowFunction<IDESolverTest::d_t>> IDESolverTest::getRetFlowFunction(
 shared_ptr<FlowFunction<IDESolverTest::d_t>>
 IDESolverTest::getCallToRetFlowFunction(IDESolverTest::n_t callSite,
                                         IDESolverTest::n_t retSite,
-                                        set<IDESolverTest::m_t> callees) {
+                                        set<IDESolverTest::f_t> callees) {
   return Identity<IDESolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDESolverTest::d_t>>
 IDESolverTest::getSummaryFlowFunction(IDESolverTest::n_t callStmt,
-                                      IDESolverTest::m_t destMthd) {
+                                      IDESolverTest::f_t destFun) {
   return nullptr;
 }
 
@@ -104,13 +104,13 @@ IDESolverTest::getNormalEdgeFunction(IDESolverTest::n_t curr,
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>> IDESolverTest::getCallEdgeFunction(
     IDESolverTest::n_t callStmt, IDESolverTest::d_t srcNode,
-    IDESolverTest::m_t destinationMethod, IDESolverTest::d_t destNode) {
+    IDESolverTest::f_t destinationFunction, IDESolverTest::d_t destNode) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDESolverTest::l_t>>
 IDESolverTest::getReturnEdgeFunction(IDESolverTest::n_t callSite,
-                                     IDESolverTest::m_t calleeMethod,
+                                     IDESolverTest::f_t calleeFunction,
                                      IDESolverTest::n_t exitStmt,
                                      IDESolverTest::d_t exitNode,
                                      IDESolverTest::n_t reSite,
@@ -123,7 +123,7 @@ IDESolverTest::getCallToRetEdgeFunction(IDESolverTest::n_t callSite,
                                         IDESolverTest::d_t callNode,
                                         IDESolverTest::n_t retSite,
                                         IDESolverTest::d_t retSiteNode,
-                                        set<IDESolverTest::m_t> callees) {
+                                        set<IDESolverTest::f_t> callees) {
   return EdgeIdentity<IDESolverTest::l_t>::getInstance();
 }
 
@@ -190,7 +190,7 @@ void IDESolverTest::printDataFlowFact(ostream &os, IDESolverTest::d_t d) const {
   os << llvmIRToString(d);
 }
 
-void IDESolverTest::printFunction(ostream &os, IDESolverTest::m_t m) const {
+void IDESolverTest::printFunction(ostream &os, IDESolverTest::f_t m) const {
   os << m->getName().str();
 }
 

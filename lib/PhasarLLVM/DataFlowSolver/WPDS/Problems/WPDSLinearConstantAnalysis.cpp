@@ -23,12 +23,12 @@ WPDSLinearConstantAnalysis::WPDSLinearConstantAnalysis(
     std::set<std::string> EntryPoints)
     : WPDSProblem<
           WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,
-          WPDSLinearConstantAnalysis::m_t, WPDSLinearConstantAnalysis::t_t,
+          WPDSLinearConstantAnalysis::f_t, WPDSLinearConstantAnalysis::t_t,
           WPDSLinearConstantAnalysis::v_t, WPDSLinearConstantAnalysis::l_t,
           WPDSLinearConstantAnalysis::i_t>(IRDB, TH, ICF, PT, EntryPoints),
       IDELinearConstantAnalysis(IRDB, TH, ICF, PT, EntryPoints) {
   WPDSProblem<WPDSLinearConstantAnalysis::n_t, WPDSLinearConstantAnalysis::d_t,
-              WPDSLinearConstantAnalysis::m_t, WPDSLinearConstantAnalysis::t_t,
+              WPDSLinearConstantAnalysis::f_t, WPDSLinearConstantAnalysis::t_t,
               WPDSLinearConstantAnalysis::v_t, WPDSLinearConstantAnalysis::l_t,
               WPDSLinearConstantAnalysis::i_t>::ZeroValue = IDELinearConstantAnalysis::createZeroValue();
 }

@@ -38,7 +38,7 @@ ICFGTestPlugin::ICFGTestPlugin(ProjectIRDB &IRDB,
                                const vector<string> EntryPoints)
     : ICFGPlugin(IRDB, EntryPoints) {}
 
-ICFGTestPlugin::m_t
+ICFGTestPlugin::f_t
 ICFGTestPlugin::getFunctionOf(ICFGTestPlugin::n_t stmt) const {
   return nullptr;
 }
@@ -54,12 +54,12 @@ ICFGTestPlugin::getSuccsOf(ICFGTestPlugin::n_t stmt) const {
 }
 
 std::vector<std::pair<ICFGTestPlugin::n_t, ICFGTestPlugin::n_t>>
-ICFGTestPlugin::getAllControlFlowEdges(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getAllControlFlowEdges(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
 std::vector<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getAllInstructionsOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
@@ -93,23 +93,23 @@ std::string ICFGTestPlugin::getStatementId(ICFGTestPlugin::n_t stmt) const {
   return "";
 }
 
-std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::m_t fun) const {
+std::string ICFGTestPlugin::getFunctionName(ICFGTestPlugin::f_t fun) const {
   return "";
 }
 
-void ICFGTestPlugin::print(ICFGTestPlugin::m_t F, std::ostream &OS) const {}
+void ICFGTestPlugin::print(ICFGTestPlugin::f_t F, std::ostream &OS) const {}
 
-nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::m_t F) const {
+nlohmann::json ICFGTestPlugin::getAsJson(ICFGTestPlugin::f_t F) const {
   return "";
 }
 
 // ICFG parts
 
-std::set<ICFGTestPlugin::m_t> ICFGTestPlugin::getAllFunctions() const {
+std::set<ICFGTestPlugin::f_t> ICFGTestPlugin::getAllFunctions() const {
   return {};
 }
 
-ICFGTestPlugin::m_t ICFGTestPlugin::getFunction(const std::string &fun) const {
+ICFGTestPlugin::f_t ICFGTestPlugin::getFunction(const std::string &fun) const {
   return nullptr;
 }
 
@@ -129,28 +129,28 @@ std::set<ICFGTestPlugin::n_t> ICFGTestPlugin::allNonCallStartNodes() const {
   return {};
 }
 
-std::set<ICFGTestPlugin::m_t>
+std::set<ICFGTestPlugin::f_t>
 ICFGTestPlugin::getCalleesOfCallAt(ICFGTestPlugin::n_t stmt) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getCallersOf(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getCallersOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getCallsFromWithin(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getStartPointsOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 
 std::set<ICFGTestPlugin::n_t>
-ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::m_t fun) const {
+ICFGTestPlugin::getExitPointsOf(ICFGTestPlugin::f_t fun) const {
   return {};
 }
 

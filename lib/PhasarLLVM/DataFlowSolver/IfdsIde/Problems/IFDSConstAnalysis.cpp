@@ -128,7 +128,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
-                                       IFDSConstAnalysis::m_t destMthd) {
+                                       IFDSConstAnalysis::f_t destFun) {
   auto &lg = lg::get();
   // Handle one of the three llvm memory intrinsics (memcpy, memmove or memset)
   if (llvm::isa<llvm::MemIntrinsic>(callStmt)) {
@@ -144,9 +144,9 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Call statement: " << llvmIRToString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Destination method: " << destMthd->getName().str());
+                  << "Destination method: " << destFun->getName().str());
     return make_shared<MapFactsToCallee>(
-        llvm::ImmutableCallSite(callStmt), destMthd,
+        llvm::ImmutableCallSite(callStmt), destFun,
         [](IFDSConstAnalysis::d_t actual) {
           return actual->getType()->isPointerTy();
         });
@@ -158,17 +158,17 @@ IFDSConstAnalysis::getCallFlowFunction(IFDSConstAnalysis::n_t callStmt,
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
-                                      IFDSConstAnalysis::m_t calleeMthd,
+                                      IFDSConstAnalysis::f_t calleeFun,
                                       IFDSConstAnalysis::n_t exitStmt,
                                       IFDSConstAnalysis::n_t retSite) {
   // return KillAll<IFDSConstAnalysis::d_t>::getInstance();
   // Map formal parameter back to the actual parameter in the caller.
   return make_shared<MapFactsToCaller>(
-      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+      llvm::ImmutableCallSite(callSite), calleeFun, exitStmt,
       [](IFDSConstAnalysis::d_t formal) {
         return formal->getType()->isPointerTy();
       },
-      [](IFDSConstAnalysis::m_t cmthd) {
+      [](IFDSConstAnalysis::f_t cmthd) {
         return cmthd->getReturnType()->isPointerTy();
       });
   // All other data-flow facts of the callee function are killed at this point
@@ -177,7 +177,7 @@ IFDSConstAnalysis::getRetFlowFunction(IFDSConstAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getCallToRetFlowFunction(
     IFDSConstAnalysis::n_t callSite, IFDSConstAnalysis::n_t retSite,
-    set<IFDSConstAnalysis::m_t> callees) {
+    set<IFDSConstAnalysis::f_t> callees) {
   auto &lg = lg::get();
   // Process the effects of a llvm memory intrinsic function.
   if (llvm::isa<llvm::MemIntrinsic>(callSite)) {
@@ -209,7 +209,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::getSummaryFlowFunction(IFDSConstAnalysis::n_t callStmt,
-                                          IFDSConstAnalysis::m_t destMthd) {
+                                          IFDSConstAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -246,7 +246,7 @@ void IFDSConstAnalysis::printDataFlowFact(ostream &os,
 }
 
 void IFDSConstAnalysis::printFunction(ostream &os,
-                                      IFDSConstAnalysis::m_t m) const {
+                                      IFDSConstAnalysis::f_t m) const {
   os << m->getName().str();
 }
 
@@ -262,7 +262,7 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
 
 set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
     set<IFDSConstAnalysis::d_t> &PointsToSet,
-    IFDSConstAnalysis::m_t CurrentContext) {
+    IFDSConstAnalysis::f_t CurrentContext) {
   PAMM_GET_INSTANCE;
   INC_COUNTER("[Calls] getContextRelevantPointsToSet", 1,
               PAMM_SEVERITY_LEVEL::Full);

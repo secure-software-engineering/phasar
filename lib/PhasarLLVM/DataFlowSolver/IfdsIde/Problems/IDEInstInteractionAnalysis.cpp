@@ -92,33 +92,33 @@ IDEInstInteractionAnalysis::getNormalFlowFunction(
 shared_ptr<FlowFunction<IDEInstInteractionAnalysis::d_t>>
 IDEInstInteractionAnalysis::getCallFlowFunction(
     IDEInstInteractionAnalysis::n_t callStmt,
-    IDEInstInteractionAnalysis::m_t destMthd) {
+    IDEInstInteractionAnalysis::f_t destFun) {
   return std::make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
-                                            destMthd);
+                                            destFun);
 }
 
 shared_ptr<FlowFunction<IDEInstInteractionAnalysis::d_t>>
 IDEInstInteractionAnalysis::getRetFlowFunction(
     IDEInstInteractionAnalysis::n_t callSite,
-    IDEInstInteractionAnalysis::m_t calleeMthd,
+    IDEInstInteractionAnalysis::f_t calleeFun,
     IDEInstInteractionAnalysis::n_t exitStmt,
     IDEInstInteractionAnalysis::n_t retSite) {
   return std::make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
-                                            calleeMthd, exitStmt);
+                                            calleeFun, exitStmt);
 }
 
 shared_ptr<FlowFunction<IDEInstInteractionAnalysis::d_t>>
 IDEInstInteractionAnalysis::getCallToRetFlowFunction(
     IDEInstInteractionAnalysis::n_t callSite,
     IDEInstInteractionAnalysis::n_t retSite,
-    set<IDEInstInteractionAnalysis::m_t> callees) {
+    set<IDEInstInteractionAnalysis::f_t> callees) {
   return Identity<IDEInstInteractionAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDEInstInteractionAnalysis::d_t>>
 IDEInstInteractionAnalysis::getSummaryFlowFunction(
     IDEInstInteractionAnalysis::n_t callStmt,
-    IDEInstInteractionAnalysis::m_t destMthd) {
+    IDEInstInteractionAnalysis::f_t destFun) {
   // do not use summaries
   return nullptr;
 }
@@ -170,7 +170,7 @@ shared_ptr<EdgeFunction<IDEInstInteractionAnalysis::l_t>>
 IDEInstInteractionAnalysis::getCallEdgeFunction(
     IDEInstInteractionAnalysis::n_t callStmt,
     IDEInstInteractionAnalysis::d_t srcNode,
-    IDEInstInteractionAnalysis::m_t destinationMethod,
+    IDEInstInteractionAnalysis::f_t destinationFunction,
     IDEInstInteractionAnalysis::d_t destNode) {
   // can be passed as identity
   return EdgeIdentity<IDEInstInteractionAnalysis::l_t>::getInstance();
@@ -179,7 +179,7 @@ IDEInstInteractionAnalysis::getCallEdgeFunction(
 shared_ptr<EdgeFunction<IDEInstInteractionAnalysis::l_t>>
 IDEInstInteractionAnalysis::getReturnEdgeFunction(
     IDEInstInteractionAnalysis::n_t callSite,
-    IDEInstInteractionAnalysis::m_t calleeMethod,
+    IDEInstInteractionAnalysis::f_t calleeFunction,
     IDEInstInteractionAnalysis::n_t exitStmt,
     IDEInstInteractionAnalysis::d_t exitNode,
     IDEInstInteractionAnalysis::n_t reSite,
@@ -194,7 +194,7 @@ IDEInstInteractionAnalysis::getCallToRetEdgeFunction(
     IDEInstInteractionAnalysis::d_t callNode,
     IDEInstInteractionAnalysis::n_t retSite,
     IDEInstInteractionAnalysis::d_t retSiteNode,
-    set<IDEInstInteractionAnalysis::m_t> callees) {
+    set<IDEInstInteractionAnalysis::f_t> callees) {
   return EdgeIdentity<IDEInstInteractionAnalysis::l_t>::getInstance();
 }
 
@@ -243,7 +243,7 @@ void IDEInstInteractionAnalysis::printDataFlowFact(
 }
 
 void IDEInstInteractionAnalysis::printFunction(
-    ostream &os, IDEInstInteractionAnalysis::m_t m) const {
+    ostream &os, IDEInstInteractionAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

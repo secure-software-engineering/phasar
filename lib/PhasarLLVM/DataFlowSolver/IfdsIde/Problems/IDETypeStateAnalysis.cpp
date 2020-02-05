@@ -129,10 +129,10 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
-                                          IDETypeStateAnalysis::m_t destMthd) {
+                                          IDETypeStateAnalysis::f_t destFun) {
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
-  if (TSD.isAPIFunction(cxx_demangle(destMthd->getName().str()))) {
+  if (TSD.isAPIFunction(cxx_demangle(destFun->getName().str()))) {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
@@ -140,14 +140,14 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t callStmt,
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
-                                         destMthd);
+                                         destFun);
   }
   assert(false && "callStmt not a CallInst nor a InvokeInst");
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
-                                         IDETypeStateAnalysis::m_t calleeMthd,
+                                         IDETypeStateAnalysis::f_t calleeFun,
                                          IDETypeStateAnalysis::n_t exitStmt,
                                          IDETypeStateAnalysis::n_t retSite) {
   // Besides mapping the formal parameter back into the actual parameter and
@@ -155,15 +155,15 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
   // all related alloca's of the formal parameter and the return value.
   struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
     llvm::ImmutableCallSite CallSite;
-    const llvm::Function *CalleeMthd;
+    const llvm::Function *calleeFun;
     const llvm::ReturnInst *ExitStmt;
     IDETypeStateAnalysis *Analysis;
     std::vector<const llvm::Value *> actuals;
     std::vector<const llvm::Value *> formals;
-    TSFlowFunction(llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
+    TSFlowFunction(llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
                    const llvm::Instruction *exitstmt,
                    IDETypeStateAnalysis *analysis)
-        : CallSite(cs), CalleeMthd(calleeMthd),
+        : CallSite(cs), calleeFun(calleeFun),
           ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
           Analysis(analysis) {
       // Set up the actual parameters
@@ -171,8 +171,8 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
         actuals.push_back(CallSite.getArgOperand(idx));
       }
       // Set up the formal parameters
-      for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-        formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+      for (unsigned idx = 0; idx < calleeFun->arg_size(); ++idx) {
+        formals.push_back(getNthFunctionArgument(calleeFun, idx));
       }
     }
 
@@ -183,10 +183,10 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
       if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
         set<const llvm::Value *> res;
         // Handle C-style varargs functions
-        if (CalleeMthd->isVarArg() && !CalleeMthd->isDeclaration()) {
+        if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
           const llvm::Instruction *AllocVarArg;
           // Find the allocation of %struct.__va_list_tag
-          for (auto &BB : *CalleeMthd) {
+          for (auto &BB : *calleeFun) {
             for (auto &I : BB) {
               if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                 if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -235,13 +235,13 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
     }
   };
   return make_shared<TSFlowFunction>(llvm::ImmutableCallSite(callSite),
-                                     calleeMthd, exitStmt, this);
+                                     calleeFun, exitStmt, this);
 }
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getCallToRetFlowFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::n_t retSite,
-    set<IDETypeStateAnalysis::m_t> callees) {
+    set<IDETypeStateAnalysis::f_t> callees) {
   const llvm::ImmutableCallSite CS(callSite);
   for (auto Callee : callees) {
     std::string demangledFname = cxx_demangle(Callee->getName().str());
@@ -294,7 +294,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getSummaryFlowFunction(
-    IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::m_t destMthd) {
+    IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -352,14 +352,14 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallEdgeFunction(
     IDETypeStateAnalysis::n_t callStmt, IDETypeStateAnalysis::d_t srcNode,
-    IDETypeStateAnalysis::m_t destinationMethod,
+    IDETypeStateAnalysis::f_t destinationFunction,
     IDETypeStateAnalysis::d_t destNode) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
-    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::m_t calleeMethod,
+    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::f_t calleeFunction,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();
@@ -369,7 +369,7 @@ shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::d_t callNode,
     IDETypeStateAnalysis::n_t retSite, IDETypeStateAnalysis::d_t retSiteNode,
-    std::set<IDETypeStateAnalysis::m_t> callees) {
+    std::set<IDETypeStateAnalysis::f_t> callees) {
   auto &lg = lg::get();
   const llvm::ImmutableCallSite CS(callSite);
   for (auto Callee : callees) {
@@ -458,7 +458,7 @@ void IDETypeStateAnalysis::printDataFlowFact(std::ostream &os, d_t d) const {
 }
 
 void IDETypeStateAnalysis::printFunction(ostream &os,
-                                         IDETypeStateAnalysis::m_t m) const {
+                                         IDETypeStateAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

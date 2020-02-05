@@ -56,7 +56,7 @@
 namespace psr {
 
 // Forward declare the Transformation
-template <typename N, typename D, typename F, typename T, typename V,
+template <typename N, typename D, typename M, typename T, typename V,
           typename I>
 class IFDSToIDETabulationProblem;
 
@@ -68,26 +68,26 @@ class IFDSToIDETabulationProblem;
  * @param <N> The type of nodes in the interprocedural control-flow graph.
  * @param <D> The type of data-flow facts to be computed by the tabulation
  * problem.
- * @param <F> The type of objects used to represent functions.
+ * @param <M> The type of objects used to represent methods.
  * @param <T> The type of user-defined types that the type hierarchy consists of
  * @param <V> The type of values on which points-to information are computed
  * @param <L> The type of values to be computed along flow edges.
  * @param <I> The type of inter-procedural control-flow graph being used.
  */
-template <typename N, typename D, typename F, typename T, typename V,
+template <typename N, typename D, typename M, typename T, typename V,
           typename L, typename I>
 class IDESolver {
 public:
-  using ProblemTy = IDETabulationProblem<N, D, F, T, V, L, I>;
+  using ProblemTy = IDETabulationProblem<N, D, M, T, V, L, I>;
 
-  IDESolver(IDETabulationProblem<N, D, F, T, V, L, I> &tabulationProblem)
+  IDESolver(IDETabulationProblem<N, D, M, T, V, L, I> &tabulationProblem)
       : ideTabulationProblem(tabulationProblem),
         zeroValue(tabulationProblem.getZeroValue()),
         ICF(tabulationProblem.getICFG()),
         SolverConfig(tabulationProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(tabulationProblem),
         allTop(tabulationProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(tabulationProblem.initialSeeds()) {}
 
@@ -243,8 +243,8 @@ public:
       //           });
       N prev = N{};
       N curr = N{};
-      F prevFn = F{};
-      F currFn = F{};
+      M prevFn = M{};
+      M currFn = M{};
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
         currFn = ICF->getFunctionOf(curr);
@@ -315,15 +315,15 @@ public:
 
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
-  std::unique_ptr<IFDSToIDETabulationProblem<N, D, F, T, V, I>>
+  std::unique_ptr<IFDSToIDETabulationProblem<N, D, M, T, V, I>>
       transformedProblem;
-  IDETabulationProblem<N, D, F, T, V, L, I> &ideTabulationProblem;
+  IDETabulationProblem<N, D, M, T, V, L, I> &ideTabulationProblem;
   D zeroValue;
   const I *ICF;
   const IFDSIDESolverConfig SolverConfig;
   unsigned PathEdgeCount = 0;
 
-  FlowEdgeFunctionCache<N, D, F, T, V, L, I> cachedFlowEdgeFunctions;
+  FlowEdgeFunctionCache<N, D, M, T, V, L, I> cachedFlowEdgeFunctions;
 
   Table<N, N, std::map<D, std::set<D>>> computedIntraPathEdges;
 
@@ -331,7 +331,7 @@ protected:
 
   std::shared_ptr<EdgeFunction<L>> allTop;
 
-  std::shared_ptr<JumpFunctions<N, D, F, T, V, L, I>> jumpFn;
+  std::shared_ptr<JumpFunctions<N, D, M, T, V, L, I>> jumpFn;
 
   std::map<std::tuple<N, D, N, D>,
            std::vector<std::shared_ptr<EdgeFunction<L>>>>
@@ -361,9 +361,9 @@ protected:
   // a modifiable l-value reference within the IDESolver implementation leads
   // to (massive) undefined behavior (and nightmares):
   // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
-  IDESolver(IFDSTabulationProblem<N, D, F, T, V, I> &tabulationProblem)
+  IDESolver(IFDSTabulationProblem<N, D, M, T, V, I> &tabulationProblem)
       : transformedProblem(
-            std::make_unique<IFDSToIDETabulationProblem<N, D, F, T, V, I>>(
+            std::make_unique<IFDSToIDETabulationProblem<N, D, M, T, V, I>>(
                 tabulationProblem)),
         ideTabulationProblem(*transformedProblem),
         zeroValue(ideTabulationProblem.getZeroValue()),
@@ -371,7 +371,7 @@ protected:
         SolverConfig(ideTabulationProblem.getIFDSIDESolverConfig()),
         cachedFlowEdgeFunctions(ideTabulationProblem),
         allTop(ideTabulationProblem.allTopFunction()),
-        jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
+        jumpFn(std::make_shared<JumpFunctions<N, D, M, T, V, L, I>>(
             allTop, ideTabulationProblem)),
         initialSeeds(ideTabulationProblem.initialSeeds()) {}
 
@@ -405,7 +405,7 @@ protected:
     D d2 = edge.factAtTarget();
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
     std::set<N> returnSiteNs = ICF->getReturnSitesOfCallAt(n);
-    std::set<F> callees = ICF->getCalleesOfCallAt(n);
+    std::set<M> callees = ICF->getCalleesOfCallAt(n);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -620,22 +620,22 @@ protected:
     D d2 = edge.factAtTarget();
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
     auto successorInst = ICF->getSuccsOf(n);
-    for (auto f : successorInst) {
+    for (auto m : successorInst) {
       std::shared_ptr<FlowFunction<D>> flowFunction =
-          cachedFlowEdgeFunctions.getNormalFlowFunction(n, f);
+          cachedFlowEdgeFunctions.getNormalFlowFunction(n, m);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
       std::set<D> res = computeNormalFlowFunction(flowFunction, d1, d2);
       ADD_TO_HISTOGRAM("Data-flow facts", res.size(), 1,
                        PAMM_SEVERITY_LEVEL::Full);
-      saveEdges(n, f, d2, res, false);
+      saveEdges(n, m, d2, res, false);
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<L>> g =
-            cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, f, d3);
+            cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, m, d3);
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
         std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
         if (SolverConfig.emitESG) {
-          intermediateEdgeFunctions[std::make_tuple(n, d2, f, d3)].push_back(
+          intermediateEdgeFunctions[std::make_tuple(n, d2, m, d3)].push_back(
               fprime);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -643,7 +643,7 @@ protected:
                       << fprime->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-        propagate(d1, f, d3, fprime, nullptr, false);
+        propagate(d1, m, d3, fprime, nullptr, false);
       }
     }
   }
@@ -651,7 +651,7 @@ protected:
   void propagateValueAtStart(std::pair<N, D> nAndD, N n) {
     PAMM_GET_INSTANCE;
     D d = nAndD.second;
-    F p = ICF->getFunctionOf(n);
+    M p = ICF->getFunctionOf(n);
     for (N c : ICF->getCallsFromWithin(p)) {
       for (auto entry : jumpFn->forwardLookup(d, c)) {
         D dPrime = entry.first;
@@ -668,7 +668,7 @@ protected:
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     D d = nAndD.second;
-    for (F q : ICF->getCalleesOfCallAt(n)) {
+    for (M q : ICF->getCalleesOfCallAt(n)) {
       std::shared_ptr<FlowFunction<D>> callFlowFunction =
           cachedFlowEdgeFunctions.getCallFlowFunction(n, q);
       INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -935,11 +935,11 @@ protected:
                   << ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
-    F functionThatNeedsSummary = ICF->getFunctionOf(n);
+    M methodThatNeedsSummary = ICF->getFunctionOf(n);
     D d1 = edge.factAtSource();
     D d2 = edge.factAtTarget();
     // for each of the method's start points, determine incoming calls
-    std::set<N> startPointsOf = ICF->getStartPointsOf(functionThatNeedsSummary);
+    std::set<N> startPointsOf = ICF->getStartPointsOf(methodThatNeedsSummary);
     std::map<N, std::set<D>> inc;
     for (N sP : startPointsOf) {
       // line 21.1 of Naeem/Lhotak/Rodriguez
@@ -961,7 +961,7 @@ protected:
         // compute return-flow function
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
-                c, functionThatNeedsSummary, n, retSiteC);
+                c, methodThatNeedsSummary, n, retSiteC);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         // for each incoming-call value
         for (D d4 : entry.second) {
@@ -1033,12 +1033,12 @@ protected:
     // condition
     if (SolverConfig.followReturnsPastSeeds && inc.empty() &&
         ideTabulationProblem.isZeroValue(d1)) {
-      std::set<N> callers = ICF->getCallersOf(functionThatNeedsSummary);
+      std::set<N> callers = ICF->getCallersOf(methodThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
           std::shared_ptr<FlowFunction<D>> retFunction =
               cachedFlowEdgeFunctions.getRetFlowFunction(
-                  c, functionThatNeedsSummary, n, retSiteC);
+                  c, methodThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           std::set<D> targets = computeReturnFlowFunction(
               retFunction, d1, d2, c, std::set<D>{zeroValue});
@@ -1072,7 +1072,7 @@ protected:
       if (callers.empty()) {
         std::shared_ptr<FlowFunction<D>> retFunction =
             cachedFlowEdgeFunctions.getRetFlowFunction(
-                nullptr, functionThatNeedsSummary, n, nullptr);
+                nullptr, methodThatNeedsSummary, n, nullptr);
         INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         retFunction->computeTargets(d2);
       }
@@ -1361,7 +1361,7 @@ protected:
     }
 
     std::cout << "\n**********************************************************";
-    std::cout << "\n*          Computed inter-procedural path edges          *";
+    std::cout << "\n*          Computed inter-procedural path egdes          *";
     std::cout
         << "\n**********************************************************\n";
 
@@ -1716,7 +1716,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "=============================================");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Process inter-procedural path edges");
+                  << "Process inter-procedural path egdes");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "=============================================");
     cells = computedInterPathEdges.cellVec();
