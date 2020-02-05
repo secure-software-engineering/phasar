@@ -49,6 +49,8 @@ option(PHASAR_BUILD_IR "Build IR test code (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)

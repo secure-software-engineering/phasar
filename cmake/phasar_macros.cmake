@@ -172,7 +172,11 @@ macro(add_phasar_library name)
 
   if(PHASAR_LINK_LIBS)
     foreach(lib ${PHASAR_LINK_LIBS})
-      target_link_libraries(${name} LINK_PRIVATE ${lib})
+      if(PHASAR_DEBUG_LIBDEPS)
+        target_link_libraries(${name} LINK_PRIVATE ${lib})
+      else()
+        target_link_libraries(${name} LINK_PUBLIC ${lib})
+      endif(PHASAR_DEBUG_LIBDEPS)
     endforeach(lib)
   endif(PHASAR_LINK_LIBS)
 
