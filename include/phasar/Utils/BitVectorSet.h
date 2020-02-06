@@ -52,6 +52,12 @@ public:
     }
   }
 
+  BitVectorSet(std::set<T> StdSet) {
+    for (auto &Item : StdSet) {
+      insert(Item);
+    }
+  }
+
   ~BitVectorSet() = default;
 
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
