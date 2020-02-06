@@ -49,13 +49,13 @@ IDEProtoAnalysis::getNormalFlowFunction(IDEProtoAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::getCallFlowFunction(IDEProtoAnalysis::n_t callStmt,
-                                      IDEProtoAnalysis::m_t destMthd) {
+                                      IDEProtoAnalysis::f_t destFun) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::getRetFlowFunction(IDEProtoAnalysis::n_t callSite,
-                                     IDEProtoAnalysis::m_t calleeMthd,
+                                     IDEProtoAnalysis::f_t calleeFun,
                                      IDEProtoAnalysis::n_t exitStmt,
                                      IDEProtoAnalysis::n_t retSite) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
@@ -64,13 +64,13 @@ IDEProtoAnalysis::getRetFlowFunction(IDEProtoAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::getCallToRetFlowFunction(IDEProtoAnalysis::n_t callSite,
                                            IDEProtoAnalysis::n_t retSite,
-                                           set<IDEProtoAnalysis::m_t> callees) {
+                                           set<IDEProtoAnalysis::f_t> callees) {
   return Identity<IDEProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::getSummaryFlowFunction(IDEProtoAnalysis::n_t callStmt,
-                                         IDEProtoAnalysis::m_t destMthd) {
+                                         IDEProtoAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -108,14 +108,14 @@ IDEProtoAnalysis::getNormalEdgeFunction(IDEProtoAnalysis::n_t curr,
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getCallEdgeFunction(IDEProtoAnalysis::n_t callStmt,
                                       IDEProtoAnalysis::d_t srcNode,
-                                      IDEProtoAnalysis::m_t destinationMethod,
+                                      IDEProtoAnalysis::f_t destinationFunction,
                                       IDEProtoAnalysis::d_t destNode) {
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<IDEProtoAnalysis::l_t>>
 IDEProtoAnalysis::getReturnEdgeFunction(IDEProtoAnalysis::n_t callSite,
-                                        IDEProtoAnalysis::m_t calleeMethod,
+                                        IDEProtoAnalysis::f_t calleeFunction,
                                         IDEProtoAnalysis::n_t exitStmt,
                                         IDEProtoAnalysis::d_t exitNode,
                                         IDEProtoAnalysis::n_t reSite,
@@ -128,7 +128,7 @@ IDEProtoAnalysis::getCallToRetEdgeFunction(IDEProtoAnalysis::n_t callSite,
                                            IDEProtoAnalysis::d_t callNode,
                                            IDEProtoAnalysis::n_t retSite,
                                            IDEProtoAnalysis::d_t retSiteNode,
-                                           set<IDEProtoAnalysis::m_t> callees) {
+                                           set<IDEProtoAnalysis::f_t> callees) {
   return EdgeIdentity<IDEProtoAnalysis::l_t>::getInstance();
 }
 
@@ -198,7 +198,7 @@ void IDEProtoAnalysis::printDataFlowFact(ostream &os,
 }
 
 void IDEProtoAnalysis::printFunction(ostream &os,
-                                     IDEProtoAnalysis::m_t m) const {
+                                     IDEProtoAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

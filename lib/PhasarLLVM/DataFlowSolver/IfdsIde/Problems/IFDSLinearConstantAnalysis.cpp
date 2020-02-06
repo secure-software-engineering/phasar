@@ -65,14 +65,14 @@ IFDSLinearConstantAnalysis::getNormalFlowFunction(
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
-    IFDSLinearConstantAnalysis::m_t destMthd) {
+    IFDSLinearConstantAnalysis::f_t destFun) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
-    IFDSLinearConstantAnalysis::m_t calleeMthd,
+    IFDSLinearConstantAnalysis::f_t calleeFun,
     IFDSLinearConstantAnalysis::n_t exitStmt,
     IFDSLinearConstantAnalysis::n_t retSite) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
@@ -82,14 +82,14 @@ shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
     IFDSLinearConstantAnalysis::n_t callSite,
     IFDSLinearConstantAnalysis::n_t retSite,
-    set<IFDSLinearConstantAnalysis::m_t> callees) {
+    set<IFDSLinearConstantAnalysis::f_t> callees) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
     IFDSLinearConstantAnalysis::n_t callStmt,
-    IFDSLinearConstantAnalysis::m_t destMthd) {
+    IFDSLinearConstantAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -133,7 +133,7 @@ void IFDSLinearConstantAnalysis::printDataFlowFact(
 }
 
 void IFDSLinearConstantAnalysis::printFunction(
-    ostream &os, IFDSLinearConstantAnalysis::m_t m) const {
+    ostream &os, IFDSLinearConstantAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

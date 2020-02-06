@@ -25,19 +25,19 @@
 
 namespace psr {
 
-template <typename N, typename M> class CFG {
+template <typename N, typename F> class CFG {
 public:
   virtual ~CFG() = default;
 
-  virtual M getFunctionOf(N stmt) const = 0;
+  virtual F getFunctionOf(N stmt) const = 0;
 
   virtual std::vector<N> getPredsOf(N stmt) const = 0;
 
   virtual std::vector<N> getSuccsOf(N stmt) const = 0;
 
-  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(M fun) const = 0;
+  virtual std::vector<std::pair<N, N>> getAllControlFlowEdges(F fun) const = 0;
 
-  virtual std::vector<N> getAllInstructionsOf(M fun) const = 0;
+  virtual std::vector<N> getAllInstructionsOf(F fun) const = 0;
 
   virtual bool isExitStmt(N stmt) const = 0;
 
@@ -53,11 +53,11 @@ public:
 
   virtual std::string getStatementId(N stmt) const = 0;
 
-  virtual std::string getFunctionName(M fun) const = 0;
+  virtual std::string getFunctionName(F fun) const = 0;
 
-  virtual void print(M fun, std::ostream &OS) const = 0;
+  virtual void print(F fun, std::ostream &OS) const = 0;
 
-  virtual nlohmann::json getAsJson(M fun) const = 0;
+  virtual nlohmann::json getAsJson(F fun) const = 0;
 };
 
 } // namespace psr

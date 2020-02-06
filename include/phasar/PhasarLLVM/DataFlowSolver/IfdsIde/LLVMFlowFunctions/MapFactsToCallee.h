@@ -30,14 +30,14 @@ namespace psr {
  */
 class MapFactsToCallee : public FlowFunction<const llvm::Value *> {
 protected:
-  const llvm::Function *destMthd;
+  const llvm::Function *destFun;
   std::vector<const llvm::Value *> actuals;
   std::vector<const llvm::Value *> formals;
   std::function<bool(const llvm::Value *)> predicate;
 
 public:
   MapFactsToCallee(
-      const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
+      const llvm::ImmutableCallSite &callSite, const llvm::Function *destFun,
       std::function<bool(const llvm::Value *)> predicate =
           [](const llvm::Value *) { return true; });
   virtual ~MapFactsToCallee() = default;

@@ -65,7 +65,7 @@ public:
       std::tuple<const llvm::Value *, const std::vector<const llvm::Value *>,
                  const llvm::Value *>>
   getSanitizedArgList(const llvm::CallInst *callInst,
-                      const llvm::Function *destMthd,
+                      const llvm::Function *destFun,
                       const llvm::Value *zeroValue);
 
   static const llvm::BasicBlock *

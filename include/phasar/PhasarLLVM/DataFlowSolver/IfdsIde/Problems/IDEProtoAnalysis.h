@@ -39,7 +39,7 @@ class IDEProtoAnalysis
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef const llvm::Value *l_t;
@@ -57,19 +57,19 @@ public:
                                                            n_t succ) override;
 
   std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+                                                         f_t destFun) override;
 
   std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
+                                                        f_t calleeFun,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+                           std::set<f_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -85,16 +85,16 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
-                                                         m_t destinationMethod,
+                                                         f_t destinationFunction,
                                                          d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override;
+                           d_t retSiteNode, std::set<f_t> callees) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
@@ -126,7 +126,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printFunction(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, f_t m) const override;
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 };

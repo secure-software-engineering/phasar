@@ -25,7 +25,7 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename I, typename V,
+template <typename N, typename D, typename F, typename I, typename V,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
 class IDESummaryGenerator {
 protected:

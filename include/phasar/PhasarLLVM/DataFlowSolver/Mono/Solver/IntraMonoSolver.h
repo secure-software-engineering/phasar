@@ -28,11 +28,11 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename C>
 class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, M, T, V, C>;
+  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C>;
 
 protected:
   ProblemTy &IMProblem;
@@ -61,7 +61,7 @@ protected:
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, M, T, V, C> &IMP)
+  IntraMonoSolver(IntraMonoProblem<N, D, F, T, V, C> &IMP)
       : IMProblem(IMP), CFG(IMP.getCFG()) {}
   virtual ~IntraMonoSolver() = default;
   virtual void solve() {

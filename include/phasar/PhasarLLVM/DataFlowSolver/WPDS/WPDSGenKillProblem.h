@@ -20,7 +20,7 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
 class WPDSGenKillProblem {
 public:

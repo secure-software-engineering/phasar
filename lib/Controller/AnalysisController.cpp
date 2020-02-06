@@ -111,7 +111,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           IFDSSolver<
               IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
-              IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+              IFDSUninitializedVariables::f_t, IFDSUninitializedVariables::t_t,
               IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>,
           IFDSUninitializedVariables>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -122,7 +122,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IFDSConstAnalysis: {
       WholeProgramAnalysis<
           IFDSSolver<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-                     IFDSConstAnalysis::m_t, IFDSConstAnalysis::t_t,
+                     IFDSConstAnalysis::f_t, IFDSConstAnalysis::t_t,
                      IFDSConstAnalysis::v_t, IFDSConstAnalysis::i_t>,
           IFDSConstAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -133,7 +133,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IFDSTaintAnalysis: {
       WholeProgramAnalysis<
           IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-                     IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+                     IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
                      IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>,
           IFDSTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
@@ -141,7 +141,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IDETaintAnalysis: {
       WholeProgramAnalysis<
           IDESolver<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
-                    IDETaintAnalysis::m_t, IDETaintAnalysis::t_t,
+                    IDETaintAnalysis::f_t, IDETaintAnalysis::t_t,
                     IDETaintAnalysis::v_t, IDETaintAnalysis::l_t,
                     IDETaintAnalysis::i_t>,
           IDETaintAnalysis>
@@ -154,7 +154,7 @@ void AnalysisController::executeWholeProgram() {
       OpenSSLEVPKeyDerivationTypeStateDescription TSDesc;
       WholeProgramAnalysis<
           IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                    IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+                    IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
                     IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
                     IDETypeStateAnalysis::i_t>,
           IDETypeStateAnalysis>
@@ -167,7 +167,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IFDSTypeAnalysis: {
       WholeProgramAnalysis<
           IFDSSolver<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
-                     IFDSTypeAnalysis::m_t, IFDSTypeAnalysis::t_t,
+                     IFDSTypeAnalysis::f_t, IFDSTypeAnalysis::t_t,
                      IFDSTypeAnalysis::v_t, IFDSTypeAnalysis::i_t>,
           IFDSTypeAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -177,7 +177,7 @@ void AnalysisController::executeWholeProgram() {
     } break;
     case DataFlowAnalysisType::IFDSSolverTest: {
       WholeProgramAnalysis<IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t,
-                                      IFDSSolverTest::m_t, IFDSSolverTest::t_t,
+                                      IFDSSolverTest::f_t, IFDSSolverTest::t_t,
                                       IFDSSolverTest::v_t, IFDSSolverTest::i_t>,
                            IFDSSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -189,7 +189,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           IFDSSolver<
               IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-              IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+              IFDSLinearConstantAnalysis::f_t, IFDSLinearConstantAnalysis::t_t,
               IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>,
           IFDSLinearConstantAnalysis>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -201,7 +201,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           IFDSSolver<
               IFDSFieldSensTaintAnalysis::n_t, IFDSFieldSensTaintAnalysis::d_t,
-              IFDSFieldSensTaintAnalysis::m_t, IFDSFieldSensTaintAnalysis::t_t,
+              IFDSFieldSensTaintAnalysis::f_t, IFDSFieldSensTaintAnalysis::t_t,
               IFDSFieldSensTaintAnalysis::v_t, IFDSFieldSensTaintAnalysis::i_t>,
           IFDSFieldSensTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
@@ -213,7 +213,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           IDESolver<
               IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
               IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
               IDELinearConstantAnalysis::i_t>,
           IDELinearConstantAnalysis>
@@ -224,7 +224,7 @@ void AnalysisController::executeWholeProgram() {
     } break;
     case DataFlowAnalysisType::IDESolverTest: {
       WholeProgramAnalysis<
-          IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::m_t,
+          IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::f_t,
                     IDESolverTest::t_t, IDESolverTest::v_t, IDESolverTest::l_t,
                     IDESolverTest::i_t>,
           IDESolverTest>
@@ -237,7 +237,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           IntraMonoSolver<IntraMonoFullConstantPropagation::n_t,
                           IntraMonoFullConstantPropagation::d_t,
-                          IntraMonoFullConstantPropagation::m_t,
+                          IntraMonoFullConstantPropagation::f_t,
                           IntraMonoFullConstantPropagation::t_t,
                           IntraMonoFullConstantPropagation::v_t,
                           IntraMonoFullConstantPropagation::i_t>,
@@ -250,7 +250,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::IntraMonoSolverTest: {
       WholeProgramAnalysis<
           IntraMonoSolver<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
-                          IntraMonoSolverTest::m_t, IntraMonoSolverTest::t_t,
+                          IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
                           IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>,
           IntraMonoSolverTest>
           WPA(IRDB, EntryPoints, &PT, &ICF, &TH);
@@ -261,7 +261,7 @@ void AnalysisController::executeWholeProgram() {
     case DataFlowAnalysisType::InterMonoSolverTest: {
       WholeProgramAnalysis<
           InterMonoSolver<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
-                          InterMonoSolverTest::m_t, InterMonoSolverTest::t_t,
+                          InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
                           InterMonoSolverTest::v_t, InterMonoSolverTest::i_t,
                           3>,
           InterMonoSolverTest>
@@ -274,7 +274,7 @@ void AnalysisController::executeWholeProgram() {
       WholeProgramAnalysis<
           InterMonoSolver<
               InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-              InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+              InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
               InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>,
           InterMonoTaintAnalysis>
           WPA(IRDB, AnalysisConfigPath, EntryPoints, &PT, &ICF, &TH);
