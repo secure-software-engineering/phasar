@@ -54,8 +54,11 @@ public:
   using l_t = BitVectorSet<e_t>;
   using i_t = LLVMBasedICFG;
 
+  using EdgeFactGeneratorTy = std::set<e_t>(n_t curr, d_t srcNode,
+                                            d_t destNode);
+
 private:
-  std::function<std::set<e_t>(n_t, d_t, d_t)> EdgeFactGen;
+  std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline l_t BOTTOM = {"__BOTTOM__"};
   static inline l_t TOP = {"__TOP__"};
 
@@ -76,9 +79,8 @@ public:
   // edge facts are generated according to the usual edge functions.
 
   inline void registerEdgeFactGenerator(
-      std::function<std::set<e_t>(n_t curr, d_t srcNode, d_t destNode)>
-          EdgeFactGenerator) {
-    EdgeFactGen = EdgeFactGenerator;
+      std::function<EdgeFactGeneratorTy> EdgeFactGenerator) {
+    EdgeFactGen = std::move(EdgeFactGenerator);
   }
 
   // start formulating our analysis by specifying the parts required for IFDS
@@ -378,11 +380,11 @@ public:
     //   // Emit only IR code, function name and module info
     //   OS << "\nWARNING: No Debug Info available - emiting results without "
     //         "source code mapping!\n";
-    for (auto f : ICF->getAllFunctions()) {
+    for (const auto *f : ICF->getAllFunctions()) {
       std::string fName = getFunctionNameFromIR(f);
       OS << "\nFunction: " << fName << "\n----------"
          << std::string(fName.size(), '-') << '\n';
-      for (auto stmt : ICF->getAllInstructionsOf(f)) {
+      for (const auto *stmt : ICF->getAllInstructionsOf(f)) {
         auto results = SR.resultsAt(stmt, true);
         stripBottomResults(results);
         if (!results.empty()) {
