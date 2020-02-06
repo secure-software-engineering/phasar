@@ -58,7 +58,7 @@ protected:
     };
     IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
-              IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
+              IDEInstInteractionAnalysis::f_t, IDEInstInteractionAnalysis::t_t,
               IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
               IDEInstInteractionAnalysis::i_t>
         IIASolver(IIAProblem);

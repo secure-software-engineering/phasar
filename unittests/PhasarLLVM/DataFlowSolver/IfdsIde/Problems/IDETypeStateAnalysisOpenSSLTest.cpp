@@ -71,7 +71,7 @@ class IDETypeStateAnalysisOpenSSLTest : public ::testing::Test {
   //   void compareResults(
   //       const std::map<std::size_t, std::map<std::string, int>> &groundTruth,
   //       IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-  //                 IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+  //                 IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
   //                 IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
   //                 IDETypeStateAnalysis::i_t> &solver) {
   //     for (auto InstToGroundTruth : groundTruth) {
@@ -92,7 +92,7 @@ class IDETypeStateAnalysisOpenSSLTest : public ::testing::Test {
 // TEST_F(IDETypeStateAnalysisOpenSSLTest, HandleTypeState_01) {
 //   Initialize({pathToLLFiles + "typestate_01_c.ll"});
 //   IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-//             IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+//             IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
 //             IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
 //             IDETypeStateAnalysis::i_t>
 //       llvmtssolver(*TSProblem);

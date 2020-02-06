@@ -31,7 +31,7 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
   long varArgIndex = 0L;
 
   const auto sanitizedArgList = DataFlowUtils::getSanitizedArgList(
-      callInst, destMthd, zeroValue.getValue());
+      callInst, destFun, zeroValue.getValue());
 
   for (const auto &argParamTriple : sanitizedArgList) {
 

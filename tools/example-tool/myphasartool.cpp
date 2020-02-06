@@ -54,7 +54,7 @@ int main(int argc, const char **argv) {
     std::cout << "Testing IFDS:\n";
     IFDSLinearConstantAnalysis L(&DB, &H, &I, &P, {"main"});
     IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+               IFDSLinearConstantAnalysis::f_t, IFDSLinearConstantAnalysis::t_t,
                IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
         S(L);
     S.solve();
@@ -63,7 +63,7 @@ int main(int argc, const char **argv) {
     std::cout << "Testing IDE:\n";
     IDELinearConstantAnalysis M(&DB, &H, &I, &P, {"main"});
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
               IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
               IDELinearConstantAnalysis::i_t>
         T(M);

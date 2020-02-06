@@ -44,7 +44,7 @@ class IDEInstInteractionAnalysisT
 public:
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
-  using m_t = const llvm::Function *;
+  using f_t = const llvm::Function *;
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
 
@@ -120,14 +120,14 @@ public:
   }
 
   inline std::shared_ptr<FlowFunction<d_t>>
-  getCallFlowFunction(n_t callStmt, m_t destMthd) override {
+  getCallFlowFunction(n_t callStmt, f_t destMthd) override {
     // just use the auto mapping
     return std::make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
                                               destMthd);
   }
 
   inline std::shared_ptr<FlowFunction<d_t>>
-  getRetFlowFunction(n_t callSite, m_t calleeMthd, n_t exitStmt,
+  getRetFlowFunction(n_t callSite, f_t calleeMthd, n_t exitStmt,
                      n_t retSite) override {
     // just use the auto mapping
     return std::make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
@@ -136,12 +136,12 @@ public:
 
   inline std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override {
+                           std::set<f_t> callees) override {
     return Identity<d_t>::getInstance();
   }
 
   inline std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override {
+  getSummaryFlowFunction(n_t callStmt, f_t destMthd) override {
     // do not use summaries
     return nullptr;
   }
@@ -190,14 +190,14 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getCallEdgeFunction(n_t callStmt, d_t srcNode, m_t destinationMethod,
+  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationMethod,
                       d_t destNode) override {
     // can be passed as identity
     return EdgeIdentity<l_t>::getInstance();
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override {
     // can be passed as identity
     return EdgeIdentity<l_t>::getInstance();
@@ -205,7 +205,7 @@ public:
 
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override {
+                           d_t retSiteNode, std::set<f_t> callees) override {
     return EdgeIdentity<l_t>::getInstance();
   }
 
@@ -261,7 +261,7 @@ public:
       if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
-      return F->composeWith(G->composeWith(secondFunction));
+      return this->F->composeWith(this->G->composeWith(secondFunction));
     }
 
     std::shared_ptr<EdgeFunction<l_t>>
@@ -273,18 +273,18 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
-      return make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT::BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT<e_t>::BOTTOM);
     }
   };
 
   class IIAAAddSetEdgeFunction
       : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAAddSet> {
+        public std::enable_shared_from_this<IIAAAddSetEdgeFunction> {
   private:
     const l_t S;
 
   public:
-    explicit IIAAAddSet(std::set<e_t> S) : S(S) {}
+    explicit IIAAAddSetEdgeFunction(std::set<e_t> S) : S(S) {}
 
     l_t computeTarget(l_t Src) override { return Src.setUnion(S); }
 
@@ -296,7 +296,7 @@ public:
       if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
-      return make_shared<IIAAEdgeFunctionComposer>(this->shared_from_this(),
+      return std::make_shared<IIAAEdgeFunctionComposer>(this->shared_from_this(),
                                                    secondFunction);
     }
 
@@ -309,15 +309,17 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
-      return make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT::BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT<e_t>::BOTTOM);
     }
 
-    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
+      return false;
+    }
 
     void print(std::ostream &OS, bool isForDebug = false) const override {
       OS << "EF: (IIAAAddSetEdgeFunction: ";
-      printEdgeFact(OS, S);
-      IS << ")";
+      // printEdgeFact(OS, S);
+      OS << ")";
     }
   };
 
@@ -331,7 +333,7 @@ public:
     os << llvmIRToString(d);
   }
 
-  void printFunction(std::ostream &os, m_t m) const override {
+  void printFunction(std::ostream &os, f_t m) const override {
     os << m->getName().str();
   }
 
@@ -347,9 +349,9 @@ public:
     }
   }
 
-  void emitTextReport(std::ostream &os,
-                      const SolverResults<n_t, d_t, l_t> &SR) override {
-    os << "TODO: implement IDEInstInterActionAnalysis::emitTextReport()!";
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+                      std::ostream &OS = std::cout) override {
+    OS << "TODO: implement IDEInstInterActionAnalysis::emitTextReport()!";
   }
 };
 

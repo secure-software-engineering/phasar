@@ -31,7 +31,7 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
     std::set<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoFullConstantPropagation::n_t,
                        IntraMonoFullConstantPropagation::d_t,
-                       IntraMonoFullConstantPropagation::m_t,
+                       IntraMonoFullConstantPropagation::f_t,
                        IntraMonoFullConstantPropagation::t_t,
                        IntraMonoFullConstantPropagation::v_t,
                        IntraMonoFullConstantPropagation::i_t>(IRDB, TH, CF, PT,

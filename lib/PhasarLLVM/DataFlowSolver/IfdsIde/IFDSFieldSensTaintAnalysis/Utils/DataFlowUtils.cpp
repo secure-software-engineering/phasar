@@ -692,7 +692,7 @@ const std::vector<
     std::tuple<const llvm::Value *, const std::vector<const llvm::Value *>,
                const llvm::Value *>>
 DataFlowUtils::getSanitizedArgList(const llvm::CallInst *callInst,
-                                   const llvm::Function *destMthd,
+                                   const llvm::Function *destFun,
                                    const llvm::Value *zeroValue) {
   std::vector<
       std::tuple<const llvm::Value *, const std::vector<const llvm::Value *>,
@@ -701,7 +701,7 @@ DataFlowUtils::getSanitizedArgList(const llvm::CallInst *callInst,
 
   for (unsigned i = 0; i < callInst->getNumArgOperands(); ++i) {
     const auto arg = callInst->getOperand(i);
-    const auto param = getNthFunctionArgument(destMthd, i);
+    const auto param = getNthFunctionArgument(destFun, i);
 
     auto argMemLocationSeq = DataFlowUtils::getMemoryLocationSeqFromMatr(arg);
 

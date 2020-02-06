@@ -23,11 +23,11 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCaller::MapFactsToCaller(
-    llvm::ImmutableCallSite cs, const llvm::Function *calleeMthd,
+    llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
     const llvm::Instruction *exitstmt,
     function<bool(const llvm::Value *)> paramPredicate,
     function<bool(const llvm::Function *)> returnPredicate)
-    : callSite(cs), calleeMthd(calleeMthd),
+    : callSite(cs), calleeFun(calleeFun),
       exitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
       paramPredicate(paramPredicate), returnPredicate(returnPredicate) {
   // Set up the actual parameters
@@ -35,8 +35,8 @@ MapFactsToCaller::MapFactsToCaller(
     actuals.push_back(callSite.getArgOperand(idx));
   }
   // Set up the formal parameters
-  for (unsigned idx = 0; idx < calleeMthd->arg_size(); ++idx) {
-    formals.push_back(getNthFunctionArgument(calleeMthd, idx));
+  for (unsigned idx = 0; idx < calleeFun->arg_size(); ++idx) {
+    formals.push_back(getNthFunctionArgument(calleeFun, idx));
   }
 }
 
@@ -45,10 +45,10 @@ MapFactsToCaller::computeTargets(const llvm::Value *source) {
   if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Handle C-style varargs functions
-    if (calleeMthd->isVarArg() && !calleeMthd->isDeclaration()) {
+    if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
       const llvm::Instruction *AllocVarArg;
       // Find the allocation of %struct.__va_list_tag
-      for (auto &BB : *calleeMthd) {
+      for (auto &BB : *calleeFun) {
         for (auto &I : BB) {
           if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
             if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -80,7 +80,7 @@ MapFactsToCaller::computeTargets(const llvm::Value *source) {
       }
     }
     // Collect return value facts
-    if (source == exitStmt->getReturnValue() && returnPredicate(calleeMthd)) {
+    if (source == exitStmt->getReturnValue() && returnPredicate(calleeFun)) {
       res.insert(callSite.getInstruction());
     }
     return res;

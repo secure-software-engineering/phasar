@@ -58,13 +58,13 @@ IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSFB901TaintAnalysis::getCallFlowFunction(const llvm::Instruction *callStmt,
-                                             const llvm::Function *destMthd) {
+                                             const llvm::Function *destFun) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSFB901TaintAnalysis::getRetFlowFunction(const llvm::Instruction *callSite,
-                                            const llvm::Function *calleeMthd,
+                                            const llvm::Function *calleeFun,
                                             const llvm::Instruction *exitStmt,
                                             const llvm::Instruction *retSite) {
   return Identity<const llvm::Value *>::getInstance();
@@ -79,7 +79,7 @@ IFDSSFB901TaintAnalysis::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSFB901TaintAnalysis::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
+    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
   return nullptr;
 }
 

@@ -35,7 +35,7 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     const TaintConfiguration<const llvm::Value *> &TSF,
     std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                       InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                       InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
                        InterMonoTaintAnalysis::v_t,
                        InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
                                                     EntryPoints),

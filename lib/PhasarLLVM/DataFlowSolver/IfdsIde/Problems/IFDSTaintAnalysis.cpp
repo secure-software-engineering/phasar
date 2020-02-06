@@ -89,8 +89,8 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
-                                       IFDSTaintAnalysis::m_t destMthd) {
-  string FunctionName = cxx_demangle(destMthd->getName().str());
+                                       IFDSTaintAnalysis::f_t destFun) {
+  string FunctionName = cxx_demangle(destFun->getName().str());
   // Check if a source or sink function is called:
   // We then can kill all data-flow facts not following the called function.
   // The respective taints or leaks are then generated in the corresponding
@@ -103,7 +103,7 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     return make_shared<MapFactsToCallee>(llvm::ImmutableCallSite(callStmt),
-                                         destMthd);
+                                         destFun);
   }
   // Pass everything else as identity
   return Identity<IFDSTaintAnalysis::d_t>::getInstance();
@@ -111,14 +111,14 @@ IFDSTaintAnalysis::getCallFlowFunction(IFDSTaintAnalysis::n_t callStmt,
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
-                                      IFDSTaintAnalysis::m_t calleeMthd,
+                                      IFDSTaintAnalysis::f_t calleeFun,
                                       IFDSTaintAnalysis::n_t exitStmt,
                                       IFDSTaintAnalysis::n_t retSite) {
   // We must check if the return value and formal parameter are tainted, if so
   // we must taint all user's of the function call. We are only interested in
   // formal parameters of pointer/reference type.
   return make_shared<MapFactsToCaller>(
-      llvm::ImmutableCallSite(callSite), calleeMthd, exitStmt,
+      llvm::ImmutableCallSite(callSite), calleeFun, exitStmt,
       [](IFDSTaintAnalysis::d_t formal) {
         return formal->getType()->isPointerTy();
       });
@@ -128,7 +128,7 @@ IFDSTaintAnalysis::getRetFlowFunction(IFDSTaintAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
-    set<IFDSTaintAnalysis::m_t> callees) {
+    set<IFDSTaintAnalysis::f_t> callees) {
   auto &lg = lg::get();
   // Process the effects of source or sink functions that are called
   for (auto *Callee : ICF->getCalleesOfCallAt(callSite)) {
@@ -185,11 +185,11 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
-        IFDSTaintAnalysis::m_t calledMthd;
+        IFDSTaintAnalysis::f_t calledMthd;
         TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction Sink;
         map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &Leaks;
         const IFDSTaintAnalysis *taintanalysis;
-        TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::m_t calledMthd,
+        TAFF(llvm::ImmutableCallSite cs, IFDSTaintAnalysis::f_t calledMthd,
              TaintConfiguration<IFDSTaintAnalysis::d_t>::SinkFunction s,
              map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> &leaks,
              const IFDSTaintAnalysis *ta)
@@ -222,10 +222,10 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
-                                          IFDSTaintAnalysis::m_t destMthd) {
+                                          IFDSTaintAnalysis::f_t destFun) {
   SpecialSummaries<IFDSTaintAnalysis::d_t> &specialSummaries =
       SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();
-  string FunctionName = cxx_demangle(destMthd->getName().str());
+  string FunctionName = cxx_demangle(destFun->getName().str());
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
   if (specialSummaries.containsSpecialSummary(FunctionName) &&
@@ -286,7 +286,7 @@ void IFDSTaintAnalysis::printDataFlowFact(ostream &os,
 }
 
 void IFDSTaintAnalysis::printFunction(ostream &os,
-                                      IFDSTaintAnalysis::m_t m) const {
+                                      IFDSTaintAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

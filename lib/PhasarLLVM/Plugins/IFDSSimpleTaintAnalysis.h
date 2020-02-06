@@ -33,11 +33,11 @@ public:
 
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                      const llvm::Function *destMthd) override;
+                      const llvm::Function *destFun) override;
 
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeMthd,
+                     const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
@@ -48,7 +48,7 @@ public:
 
   std::shared_ptr<FlowFunction<const llvm::Value *>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd) override;
+                         const llvm::Function *destFun) override;
 
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>>
   initialSeeds() override;

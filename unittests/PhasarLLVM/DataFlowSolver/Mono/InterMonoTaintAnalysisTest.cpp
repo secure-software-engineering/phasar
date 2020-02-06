@@ -39,7 +39,7 @@ protected:
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
                     InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();
@@ -67,7 +67,7 @@ protected:
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
-                    InterMonoTaintAnalysis::m_t, InterMonoTaintAnalysis::t_t,
+                    InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
                     InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();

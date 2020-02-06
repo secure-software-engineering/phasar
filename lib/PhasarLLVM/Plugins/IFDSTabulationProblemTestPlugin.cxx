@@ -59,13 +59,13 @@ IFDSTabulationProblemTestPlugin::getNormalFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getCallFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
+    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
   return Identity<const llvm::Value *>::getInstance();
 }
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
+    const llvm::Instruction *callSite, const llvm::Function *calleeFun,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   return Identity<const llvm::Value *>::getInstance();
 }
@@ -79,7 +79,7 @@ IFDSTabulationProblemTestPlugin::getCallToRetFlowFunction(
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
+    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
   return nullptr;
 }
 

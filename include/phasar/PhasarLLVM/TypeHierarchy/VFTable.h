@@ -17,15 +17,15 @@
 
 namespace psr {
 
-template <typename M> class VFTable {
+template <typename F> class VFTable {
 public:
   virtual ~VFTable() = default;
 
-  virtual M getFunction(unsigned Idx) const = 0;
+  virtual F getFunction(unsigned Idx) const = 0;
 
-  virtual std::vector<M> getAllFunctions() const = 0;
+  virtual std::vector<F> getAllFunctions() const = 0;
 
-  virtual int getIndex(M F) const = 0;
+  virtual int getIndex(F f) const = 0;
 
   virtual bool empty() const = 0;
 
@@ -36,9 +36,9 @@ public:
   virtual nlohmann::json getAsJson() const = 0;
 };
 
-template <typename T, typename M>
+template <typename T, typename F>
 static inline std::ostream &operator<<(std::ostream &OS,
-                                       const VFTable<M> &Table) {
+                                       const VFTable<F> &Table) {
   Table.print(OS);
   return OS;
 }

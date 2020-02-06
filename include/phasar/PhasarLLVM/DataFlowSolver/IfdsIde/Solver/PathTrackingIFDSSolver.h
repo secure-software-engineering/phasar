@@ -29,10 +29,10 @@ namespace psr {
  * both target values with one another.
  * @deprecated Use {@link JoinHandlingNodesIFDSSolver} instead.
  */
-template <typename N, typename D, typename M, typename I>
-class PathTrackingIFDSSolver : public IFDSSolver<N, D, M, I> {
+template <typename N, typename D, typename F, typename I>
+class PathTrackingIFDSSolver : public IFDSSolver<N, D, F, I> {
   //
-  //	public PathTrackingIFDSSolver(IFDSTabulationProblem<N, D, M, I>
+  //	public PathTrackingIFDSSolver(IFDSTabulationProblem<N, D, F, I>
   // ifdsProblem) {
   //		super(ifdsProblem);
   //	}
