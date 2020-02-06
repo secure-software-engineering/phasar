@@ -186,13 +186,12 @@ public:
       return ReturnFlowFunctionCache.at(key);
     } else {
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ff = (autoAddZero)
-                    ? std::make_shared<ZeroedFlowFunction<D>>(
-                          problem.getRetFlowFunction(callSite, calleeFun,
-                                                     exitStmt, retSite),
-                          zeroValue)
-                    : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
-                                                 retSite);
+      auto ff = (autoAddZero) ? std::make_shared<ZeroedFlowFunction<D>>(
+                                    problem.getRetFlowFunction(
+                                        callSite, calleeFun, exitStmt, retSite),
+                                    zeroValue)
+                              : problem.getRetFlowFunction(callSite, calleeFun,
+                                                           exitStmt, retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -285,8 +284,9 @@ public:
     }
   }
 
-  std::shared_ptr<EdgeFunction<L>>
-  getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction, D destNode) {
+  std::shared_ptr<EdgeFunction<L>> getCallEdgeFunction(N callStmt, D srcNode,
+                                                       F destinationFunction,
+                                                       D destNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -348,8 +348,8 @@ public:
       return ReturnEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ef = problem.getReturnEdgeFunction(callSite, calleeFunction, exitStmt,
-                                              exitNode, reSite, retNode);
+      auto ef = problem.getReturnEdgeFunction(
+          callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
       ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Edge function constructed");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');

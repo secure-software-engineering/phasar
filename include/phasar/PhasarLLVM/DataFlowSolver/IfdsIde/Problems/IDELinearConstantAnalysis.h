@@ -73,7 +73,7 @@ public:
     void print(std::ostream &os);
   };
 
-  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_restults_t;
+  typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
 
   void stripBottomResults(std::unordered_map<d_t, l_t> &res);
 
@@ -109,10 +109,9 @@ public:
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
-                                                         d_t srcNode,
-                                                         f_t destinationFunction,
-                                                         d_t destNode) override;
+  std::shared_ptr<EdgeFunction<l_t>>
+  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
+                      d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,
@@ -244,7 +243,7 @@ public:
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
-  lca_restults_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
+  lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override;

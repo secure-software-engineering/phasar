@@ -47,11 +47,16 @@ protected:
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysis IIAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
-    auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
-                        const llvm::Value *DestNode) -> std::set<std::string> {
-      if (I->hasMetadata()) {
+    unsigned Counter = 0;
+    std::set<const llvm::Instruction *> Visited;
+    auto Generator = [&Counter, &Visited](
+                         const llvm::Instruction *I, const llvm::Value *SrcNode,
+                         const llvm::Value *DestNode) -> std::set<std::string> {
+      if (I->hasMetadata() && !Visited.count(I)) {
         auto MD = I->getMetadata("dbg");
-        std::string Data = "data";
+        std::string Data = "FMD_" + std::to_string(Counter);
+        ++Counter;
+        Visited.insert(I);
         return {Data};
       }
       return {};

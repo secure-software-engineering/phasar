@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
 #include "llvm/IR/Instruction.h"
@@ -183,7 +184,7 @@ public:
     }
     // if we have some facts add them to the edges
     if (!UserEdgeFacts.empty()) {
-      return std::make_shared<IIAAAddSetEdgeFunction>(UserEdgeFacts);
+      return std::make_shared<IIAAAddSetEdgeFunction>(*this, UserEdgeFacts);
     }
     // otherwise stick to identity
     return EdgeIdentity<l_t>::getInstance();
@@ -206,7 +207,9 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                            d_t retSiteNode, std::set<f_t> callees) override {
-    return EdgeIdentity<l_t>::getInstance();
+    // just forward to getNormalEdgeFunction() to check whether a user has
+    // additional labels for this call site
+    return getNormalEdgeFunction(callSite, callNode, retSite, retSiteNode);
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>>
@@ -273,7 +276,8 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
-      return std::make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT<e_t>::BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(
+          IDEInstInteractionAnalysisT<e_t>::BOTTOM);
     }
   };
 
@@ -281,12 +285,15 @@ public:
       : public EdgeFunction<l_t>,
         public std::enable_shared_from_this<IIAAAddSetEdgeFunction> {
   private:
-    const l_t S;
+    const IDEInstInteractionAnalysisT<e_t> &Analysis;
+    const l_t Data;
 
   public:
-    explicit IIAAAddSetEdgeFunction(std::set<e_t> S) : S(S) {}
+    explicit IIAAAddSetEdgeFunction(
+        const IDEInstInteractionAnalysisT<e_t> &Analysis, std::set<e_t> Data)
+        : Analysis(Analysis), Data(Data) {}
 
-    l_t computeTarget(l_t Src) override { return Src.setUnion(S); }
+    l_t computeTarget(l_t Src) override { return Src.setUnion(Data); }
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
@@ -296,8 +303,8 @@ public:
       if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
-      return std::make_shared<IIAAEdgeFunctionComposer>(this->shared_from_this(),
-                                                   secondFunction);
+      return std::make_shared<IIAAEdgeFunctionComposer>(
+          this->shared_from_this(), secondFunction);
     }
 
     std::shared_ptr<EdgeFunction<l_t>>
@@ -309,16 +316,20 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
-      return std::make_shared<AllBottom<l_t>>(IDEInstInteractionAnalysisT<e_t>::BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(
+          IDEInstInteractionAnalysisT<e_t>::BOTTOM);
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      return false;
+      if (auto *I = dynamic_cast<IIAAAddSetEdgeFunction *>(other.get())) {
+        return (I->Data == this->Data);
+      }
+      return this == other.get();
     }
 
     void print(std::ostream &OS, bool isForDebug = false) const override {
       OS << "EF: (IIAAAddSetEdgeFunction: ";
-      // printEdgeFact(OS, S);
+      Analysis.printEdgeFact(OS, Data);
       OS << ")";
     }
   };
@@ -349,11 +360,49 @@ public:
     }
   }
 
+  void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
+    for (auto it = Res.begin(); it != Res.end();) {
+      if (it->second == BOTTOM) {
+        it = Res.erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+
   void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &OS = std::cout) override {
-    OS << "TODO: implement IDEInstInterActionAnalysis::emitTextReport()!";
+    OS << "\n====================== IDE-Inst-Interaction-Analysis Report "
+          "======================\n";
+    // if (!IRDB->debugInfoAvailable()) {
+    //   // Emit only IR code, function name and module info
+    //   OS << "\nWARNING: No Debug Info available - emiting results without "
+    //         "source code mapping!\n";
+    for (auto f : ICF->getAllFunctions()) {
+      std::string fName = getFunctionNameFromIR(f);
+      OS << "\nFunction: " << fName << "\n----------"
+         << std::string(fName.size(), '-') << '\n';
+      for (auto stmt : ICF->getAllInstructionsOf(f)) {
+        auto results = SR.resultsAt(stmt, true);
+        stripBottomResults(results);
+        if (!results.empty()) {
+          OS << "At IR statement: " << NtoString(stmt) << '\n';
+          for (auto res : results) {
+            if (res.second != BOTTOM) {
+              OS << "   Fact: " << DtoString(res.first)
+                 << "\n  Value: " << LtoString(res.second) << '\n';
+            }
+          }
+          OS << '\n';
+        }
+      }
+      OS << '\n';
+    }
+    // } else {
+    // TODO: implement better report in case debug information are available
+    //   }
   }
-};
+}; // namespace psr
 
 using IDEInstInteractionAnalysis = IDEInstInteractionAnalysisT<>;
 
