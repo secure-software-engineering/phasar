@@ -304,6 +304,12 @@ public:
   virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
 };
 
+template <typename Problem, unsigned K>
+using InterMonoSolver_P =
+    InterMonoSolver<typename Problem::n_t, typename Problem::d_t,
+                    typename Problem::f_t, typename Problem::t_t,
+                    typename Problem::v_t, typename Problem::i_t, K>;
+
 } // namespace psr
 
 #endif
