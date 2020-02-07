@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2020 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Philipp Schubert, Fabian Schiebel and others
+ *****************************************************************************/
+
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
@@ -11,7 +20,7 @@
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class IDETypeStateAnalysisOpenSSLTest : public ::testing::Test {
+class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
@@ -35,8 +44,8 @@ protected:
     ERROR = 5,
     BOT = 6
   };
-  IDETypeStateAnalysisOpenSSLTest() = default;
-  virtual ~IDETypeStateAnalysisOpenSSLTest() = default;
+  IDETSAnalysisOpenSSLEVPKDFTest() = default;
+  virtual ~IDETSAnalysisOpenSSLEVPKDFTest() = default;
 
   void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
@@ -90,7 +99,7 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDETypeStateAnalysisOpenSSLTest, HandleTypeState_01) {
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, HandleTypeState_01) {
   Initialize({pathToLLFiles + "openssl_program1_c.ll"});
   IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
             IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
