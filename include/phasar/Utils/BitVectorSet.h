@@ -148,6 +148,14 @@ public:
     }
   }
 
+  template <typename Iter>
+  void insert(Iter begin, Iter end) {
+    while (begin != end) {
+      insert(*begin);
+      ++begin;
+    }
+  }
+
   void erase(const T &Data) noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {

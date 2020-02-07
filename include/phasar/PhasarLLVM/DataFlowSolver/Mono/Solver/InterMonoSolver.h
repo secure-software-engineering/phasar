@@ -25,6 +25,7 @@
 #include <vector>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IFDSToInterMonoProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
 #include <phasar/Utils/BitVectorSet.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -32,7 +33,7 @@
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I, unsigned K>
+          typename I, unsigned K = 3>
 class InterMonoSolver {
 public:
   using ProblemTy = InterMonoProblem<N, D, F, T, V, I>;
@@ -159,6 +160,10 @@ protected:
 public:
   InterMonoSolver(InterMonoProblem<N, D, F, T, V, I> &IMP)
       : IMProblem(IMP), ICF(IMP.getICFG()) {}
+
+  InterMonoSolver(IFDSTabulationProblem<N, D, F, T, V, I> &IMP)
+      : InterMonoSolver(IFDSToInterMonoProblem<N, D, F, T, V, I>(IMP)) {}
+
   InterMonoSolver(const InterMonoSolver &) = delete;
   InterMonoSolver &operator=(const InterMonoSolver &) = delete;
   InterMonoSolver(InterMonoSolver &&) = delete;
