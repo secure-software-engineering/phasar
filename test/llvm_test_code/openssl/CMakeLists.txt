@@ -1,6 +1,9 @@
-file(GLOB openssl_files *.c *.cpp)
 
-foreach(TEST_SRC ${openssl_files})
-  get_filename_component(TEST_SRC_FILE ${TEST_SRC} NAME)
-  generate_ll_file(FILE ${TEST_SRC_FILE})
-endforeach(TEST_SRC)
+# We need OpenSSL's header files to generate the LLVM IR
+find_package(OpenSSL REQUIRED)
+message("${OPENSSL_INCLUDE_DIR}")
+include_directories(${OPENSSL_INCLUDE_DIR})
+
+add_subdirectory(key_derivation)
+add_subdirectory(secure_memory)
+add_subdirectory(secure_heap)
