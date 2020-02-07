@@ -1,14 +1,14 @@
 /******************************************************************************
- * Copyright (c) 2018 Philipp Schubert.
- * All rights reserved. This program and the accompanying materials are made
+ * Copyright (c) 2020 Philipp Schubert.
+ * All righ reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKEYDERIVATIONTYPESTATEDESCRIPTION_H_
-#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKEYDERIVATIONTYPESTATEDESCRIPTION_H_
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKDFDESCRIPTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKDFDESCRIPTION_H_
 
 #include <map>
 #include <set>
@@ -23,8 +23,7 @@ namespace psr {
  * finite state machine is encoded by a two-dimensional array with rows as
  * function tokens and columns as states.
  */
-class OpenSSLEVPKeyDerivationTypeStateDescription
-    : public TypeStateDescription {
+class OpenSSLEVPKDFDescription : public TypeStateDescription {
 private:
   /**
    * We use the following lattice
@@ -34,7 +33,7 @@ private:
    *
    *                TOP = no information
    */
-  enum OpenSSLEVPKeyDerivationState {
+  enum OpenSSLEVPKDFState {
     TOP = 42,
     UNINIT = 0,
     KDF_FETCHED = 1,
@@ -50,7 +49,7 @@ private:
    * EVP_KDF_CTX_new(), EVP_KDF_CTX_set_params() ,derive() and
    * EVP_KDF_CTX_free().
    */
-  enum class OpenSSLEVPKeyDerivationToken {
+  enum class OpenSSLEVTKDFToken {
     EVP_KDF_FETCH = 0,
     EVP_KDF_CTX_NEW = 1,
     EVP_KDF_CTX_SET_PARAMS = 2,
@@ -59,11 +58,10 @@ private:
     STAR = 5
   };
 
-  static const std::map<std::string, std::set<int>>
-      OpenSSLEVPKeyDerivationFuncs;
+  static const std::map<std::string, std::set<int>> OpenSSLEVPKDFFuncs;
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKeyDerivationState delta[6][7];
-  OpenSSLEVPKeyDerivationToken funcNameToToken(const std::string &F) const;
+  static const OpenSSLEVPKDFState delta[6][7];
+  OpenSSLEVTKDFToken funcNameToToken(const std::string &F) const;
 
 public:
   bool isFactoryFunction(const std::string &F) const override;

@@ -1,10 +1,10 @@
 /******************************************************************************
- * Copyright (c) 2018 Philipp Schubert.
+ * Copyright (c) 2020 Philipp Schubert.
  * All rights reserved. This program and the accompanying materials are made
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
 #include <cassert>
