@@ -359,7 +359,8 @@ IDETypeStateAnalysis::getCallEdgeFunction(
 
 shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
 IDETypeStateAnalysis::getReturnEdgeFunction(
-    IDETypeStateAnalysis::n_t callSite, IDETypeStateAnalysis::f_t calleeFunction,
+    IDETypeStateAnalysis::n_t callSite,
+    IDETypeStateAnalysis::f_t calleeFunction,
     IDETypeStateAnalysis::n_t exitStmt, IDETypeStateAnalysis::d_t exitNode,
     IDETypeStateAnalysis::n_t reSite, IDETypeStateAnalysis::d_t retNode) {
   return EdgeIdentity<IDETypeStateAnalysis::l_t>::getInstance();

@@ -109,10 +109,9 @@ public:
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
-                                                         d_t srcNode,
-                                                         f_t destinationFunction,
-                                                         d_t destNode) override;
+  std::shared_ptr<EdgeFunction<l_t>>
+  getCallEdgeFunction(n_t callStmt, d_t srcNode, f_t destinationFunction,
+                      d_t destNode) override;
 
   std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(n_t callSite, f_t calleeFunction, n_t exitStmt,

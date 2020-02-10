@@ -83,12 +83,10 @@ WPDSAliasCollector::getCallEdgeFunction(
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
-WPDSAliasCollector::getReturnEdgeFunction(WPDSAliasCollector::n_t callSite,
-                                          WPDSAliasCollector::f_t calleeFunction,
-                                          WPDSAliasCollector::n_t exitStmt,
-                                          WPDSAliasCollector::d_t exitNode,
-                                          WPDSAliasCollector::n_t reSite,
-                                          WPDSAliasCollector::d_t retNode) {
+WPDSAliasCollector::getReturnEdgeFunction(
+    WPDSAliasCollector::n_t callSite, WPDSAliasCollector::f_t calleeFunction,
+    WPDSAliasCollector::n_t exitStmt, WPDSAliasCollector::d_t exitNode,
+    WPDSAliasCollector::n_t reSite, WPDSAliasCollector::d_t retNode) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
