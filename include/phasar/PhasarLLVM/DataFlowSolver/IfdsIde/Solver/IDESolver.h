@@ -1607,6 +1607,7 @@ protected:
     }
   }
 
+public:
   void emitESGasDot() {
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)

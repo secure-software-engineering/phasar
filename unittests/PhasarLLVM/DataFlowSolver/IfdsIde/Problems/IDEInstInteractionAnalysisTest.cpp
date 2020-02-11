@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <iostream>
+#include <set>
 #include <string>
 #include <tuple>
 
@@ -20,6 +22,7 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/LLVMShorthands.h>
 
 using namespace psr;
 
@@ -32,87 +35,173 @@ protected:
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Values
-  using IIACompactResult_t =
-      std::tuple<std::string, std::size_t, std::string, int64_t>;
+  using IIACompactResult_t = std::tuple<std::string, std::size_t, std::string,
+                                        BitVectorSet<std::string>>;
   ProjectIRDB *IRDB = nullptr;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   //   IDEInstInteractionAnalysis::lca_restults_t
-  void doAnalysis(const std::string &llvmFilePath, bool printDump = false) {
+  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
+                                   std::set<IIACompactResult_t> GroundTruth,
+                                   bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+    if (printDump) {
+      IRDB->emitPreprocessedIR(std::cout, false);
+    }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
                        &PT);
     IDEInstInteractionAnalysis IIAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
-    unsigned Counter = 0;
-    std::set<const llvm::Instruction *> Visited;
-    auto Generator = [&Counter, &Visited](
-                         const llvm::Instruction *I, const llvm::Value *SrcNode,
-                         const llvm::Value *DestNode) -> std::set<std::string> {
-      if (I->hasMetadata() && !Visited.count(I)) {
-        auto MD = I->getMetadata("dbg");
-        std::string Data = "FMD_" + std::to_string(Counter);
-        ++Counter;
-        Visited.insert(I);
-        return {Data};
+    // use Phasar's instruction ids as testing labels
+    auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
+                        const llvm::Value *DestNode) -> std::set<std::string> {
+      std::set<std::string> Labels;
+      if (I->hasMetadata()) {
+        std::string Label =
+            llvm::cast<llvm::MDString>(
+                I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
+                ->getString()
+                .str();
+        Labels.insert(Label);
       }
-      return {};
+      return Labels;
     };
+    // register the above generator function
     IIAProblem.registerEdgeFactGenerator(Generator);
-    IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
-              IDEInstInteractionAnalysis::f_t, IDEInstInteractionAnalysis::t_t,
-              IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
-              IDEInstInteractionAnalysis::i_t>
-        IIASolver(IIAProblem);
+    IDESolver_P<IDEInstInteractionAnalysis> IIASolver(IIAProblem);
     IIASolver.solve();
     if (printDump) {
       IIASolver.dumpResults();
     }
-    // return IIAProblem.getIIAResults(IIASolver.getSolverResults());
+    // IIASolver.emitESGasDot();
+    // do the comparison
+    for (auto &Truth : GroundTruth) {
+      auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+      auto ResultMap = IIASolver.resultsAt(Line);
+      for (auto &[Fact, Value] : ResultMap) {
+        std::string FactStr = llvmIRToString(Fact);
+        llvm::StringRef FactRef(FactStr);
+        if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+          std::cout << "Checking variable: " << FactStr << std::endl;
+          EXPECT_EQ(std::get<3>(Truth), Value);
+        }
+      }
+    }
   }
 
   void TearDown() override { delete IRDB; }
 
-  //   /**
-  //    * We map instruction id to value for the ground truth. ID has to be
-  //    * a string since Argument ID's are not integer type (e.g. main.0 for
-  //    argc).
-  //    * @param groundTruth results to compare against
-  //    * @param solver provides the results
-  //    */
-  //   void compareResults(IDEInstInteractionAnalysis::lca_restults_t &Results,
-  //                       std::set<LCACompactResult_t> &GroundTruth) {
-  //     std::set<LCACompactResult_t> RelevantResults;
-  //     for (auto G : GroundTruth) {
-  //       std::string fName = std::get<0>(G);
-  //       unsigned line = std::get<1>(G);
-  //       if (Results.find(fName) != Results.end()) {
-  //         if (auto it = Results[fName].find(line); it !=
-  //         Results[fName].end()) {
-  //           for (auto varToVal : it->second.variableToValue) {
-  //             RelevantResults.emplace(fName, line, varToVal.first,
-  //                                     varToVal.second);
-  //           }
-  //         }
-  //       }
-  //     }
-  //     EXPECT_EQ(RelevantResults, GroundTruth);
-  //   }
 }; // Test Fixture
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {
-  // auto Results = doAnalysis("basic_01_cpp_dbg.ll");
-  doAnalysis("basic_01_cpp_dbg.ll", true);
-  // std::set<IIACompactResult_t> GroundTruth;
-  // GroundTruth.emplace("main", 2, "i", {});
-  // GroundTruth.emplace("main", 3, "i", {});
-  // GroundTruth.emplace("main", 3, "j", {});
-  //   compareResults(Results, GroundTruth);
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 9, "i", {"__BOTTOM__", "1", "4", "5"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 9, "j", {"__BOTTOM__", "2", "7"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 9, "retval", {"__BOTTOM__", "0", "3"}));
+  doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, false);
 }
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_02) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "i", {"__BOTTOM__", "10", "16", "18", "20", "3", "9"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "j", {"__BOTTOM__", "4", "12"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "k", {"__BOTTOM__", "5", "21", "22"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "retval", {"__BOTTOM__", "0", "6"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "argc.addr", {"__BOTTOM__", "1", "7", "13"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "argv.addr", {"__BOTTOM__", "2", "8"}));
+  doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_03) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "retval", {"__BOTTOM__", "0", "3"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "i", {"__BOTTOM__", "1", "4", "10", "12", "18"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 20, "x", {"__BOTTOM__", "2", "5", "7", "14", "16"}));
+  doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_04) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 23, "retval", {"__BOTTOM__", "7", "13"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 23, "argc.addr", {"__BOTTOM__", "8", "14", "21"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "argv.addr", {"__BOTTOM__", "9", "15"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "i", {"__BOTTOM__", "10", "16", "17"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "j", {"__BOTTOM__", "11", "19", "24"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "k", {"__BOTTOM__", "12", "20", "25", "27"}));
+  doAnalysisAndCompareResults("basic_04_cpp.ll", GroundTruth, false);
+}
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_05) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 11, "i", {"__BOTTOM__", "1", "5", "7", "9"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 11, "retval", {"__BOTTOM__", "0", "2"}));
+  doAnalysisAndCompareResults("basic_05_cpp.ll", GroundTruth, false);
+}
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   doAnalysisAndCompareResults("call_01_cpp_dbg.ll", GroundTruth, true);
+// }
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_02) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   doAnalysisAndCompareResults("call_02_cpp_dbg.ll", GroundTruth, true);
+// }
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_03) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   doAnalysisAndCompareResults("call_03_cpp_dbg.ll", GroundTruth, true);
+// }
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_04) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   doAnalysisAndCompareResults("call_04_cpp_dbg.ll", GroundTruth, true);
+// }
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {

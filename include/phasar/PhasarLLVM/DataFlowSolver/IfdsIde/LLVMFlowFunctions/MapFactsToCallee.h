@@ -37,7 +37,7 @@ protected:
 
 public:
   MapFactsToCallee(
-      const llvm::ImmutableCallSite &callSite, const llvm::Function *destFun,
+      llvm::ImmutableCallSite callSite, const llvm::Function *destFun,
       std::function<bool(const llvm::Value *)> predicate =
           [](const llvm::Value *) { return true; });
   virtual ~MapFactsToCallee() = default;

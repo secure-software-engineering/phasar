@@ -10,12 +10,23 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 
+#include <functional>
+#include <map>
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
+
+#include "llvm/IR/Instruction.h"
+#include "llvm/Support/ErrorHandling.h"
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
@@ -24,15 +35,6 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
-
-#include "llvm/IR/Instruction.h"
-
-#include <functional>
-#include <map>
-#include <memory>
-#include <set>
-#include <string>
-#include <vector>
 
 namespace psr {
 
@@ -92,7 +94,6 @@ public:
     }
 
     struct IIAFlowFunction : FlowFunction<d_t> {
-
       IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
 
@@ -106,15 +107,19 @@ public:
           Facts.insert(src);
           return Facts;
         }
+        if (Inst == src) {
+          Facts.insert(Inst);
+        }
         // populate and propagate other existing facts
         for (auto &Op : Inst->operands()) {
           // if one of the operands holds, also generate the instruction using
           // it
           if (Op == src) {
             Facts.insert(Inst);
+            Facts.insert(src);
           }
         }
-        // pass everything that alreay holds as identity
+        // pass everything that already holds as identity
         Facts.insert(src);
         return Facts;
       }
@@ -140,7 +145,10 @@ public:
   inline std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
                            std::set<f_t> callees) override {
-    return Identity<d_t>::getInstance();
+    // just use the auto mapping, pointer parameters are killed and handled by
+    // getCallFlowfunction() and getRetFlowFunction()
+    return std::make_shared<MapFactsAlongsideCallSite>(
+        llvm::ImmutableCallSite(callSite));
   }
 
   inline std::shared_ptr<FlowFunction<d_t>>
@@ -150,7 +158,6 @@ public:
   }
 
   inline std::map<n_t, std::set<d_t>> initialSeeds() override {
-    llvm::outs() << "IDEInstInteractionAnalysis::initialSeeds()\n";
     std::map<n_t, std::set<d_t>> SeedMap;
     for (auto &EntryPoint : EntryPoints) {
       SeedMap.insert(
@@ -161,7 +168,6 @@ public:
   }
 
   inline d_t createZeroValue() const override {
-    llvm::outs() << "IDEInstInteractionAnalysis::createZeroValue()\n";
     // create a special value to represent the zero value!
     return LLVMZeroValue::getInstance();
   }
@@ -184,9 +190,29 @@ public:
     if (EdgeFactGen) {
       UserEdgeFacts = EdgeFactGen(curr, currNode, succNode);
     }
-    // if we have some facts add them to the edges
     if (!UserEdgeFacts.empty()) {
-      return std::make_shared<IIAAAddSetEdgeFunction>(*this, UserEdgeFacts);
+      // handle generating edges from zero
+      // generate labels from zero when the instruction itself is the flow fact
+      // that is generated
+      if (isZeroValue(currNode) && curr == succNode) {
+        return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+      }
+      // handle edges that may add new labels to existing facts
+      if (curr == currNode && currNode == succNode) {
+        return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+      }
+      // generate labels from zero when an operand of the current instruction
+      // is a flow fact that is generated
+      for (auto &Op : curr->operands()) {
+        // also propagate the labels if one of the operands holds
+        if (isZeroValue(currNode) && Op == succNode) {
+          return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+        }
+        // handle edges that may add new labels to existing facts
+        if (Op == currNode && currNode == succNode) {
+          return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+        }
+      }
     }
     // otherwise stick to identity
     return EdgeIdentity<l_t>::getInstance();
@@ -221,18 +247,11 @@ public:
     return nullptr;
   }
 
-  inline l_t topElement() override {
-    llvm::outs() << "IDEInstInteractionAnalysis::topElement()\n";
-    return TOP;
-  }
+  inline l_t topElement() override { return TOP; }
 
-  inline l_t bottomElement() override {
-    llvm::outs() << "IDEInstInteractionAnalysis::bottomElement()\n";
-    return BOTTOM;
-  }
+  inline l_t bottomElement() override { return BOTTOM; }
 
   inline l_t join(l_t lhs, l_t rhs) override {
-    llvm::outs() << "IDEInstInteractionAnalysis::join()\n";
     if (lhs == BOTTOM || rhs == BOTTOM) {
       return BOTTOM;
     }
@@ -246,52 +265,20 @@ public:
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
-    llvm::outs() << "IDEInstInteractionAnalysis::allTopFunction()\n";
     return std::make_shared<AllTop<l_t>>(topElement());
   }
 
   // provide some handy helper edge functions to improve reuse
 
-  class IIAAEdgeFunctionComposer : public EdgeFunctionComposer<l_t> {
-  public:
-    IIAAEdgeFunctionComposer(std::shared_ptr<EdgeFunction<l_t>> F,
-                             std::shared_ptr<EdgeFunction<l_t>> G)
-        : EdgeFunctionComposer<l_t>(F, G){};
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
-      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(secondFunction.get())) {
-        return this->shared_from_this();
-      }
-      if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
-        return this->shared_from_this();
-      }
-      return this->F->composeWith(this->G->composeWith(secondFunction));
-    }
-
-    std::shared_ptr<EdgeFunction<l_t>>
-    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
-      if (otherFunction.get() == this ||
-          otherFunction->equal_to(this->shared_from_this())) {
-        return this->shared_from_this();
-      }
-      if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
-        return this->shared_from_this();
-      }
-      return std::make_shared<AllBottom<l_t>>(
-          IDEInstInteractionAnalysisT<e_t>::BOTTOM);
-    }
-  };
-
-  class IIAAAddSetEdgeFunction
+  class IIAALabelEdgeFunction
       : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAAAddSetEdgeFunction> {
+        public std::enable_shared_from_this<IIAALabelEdgeFunction> {
   private:
     const IDEInstInteractionAnalysisT<e_t> &Analysis;
-    const l_t Data;
+    l_t Data;
 
   public:
-    explicit IIAAAddSetEdgeFunction(
+    explicit IIAALabelEdgeFunction(
         const IDEInstInteractionAnalysisT<e_t> &Analysis, std::set<e_t> Data)
         : Analysis(Analysis), Data(Data) {}
 
@@ -299,18 +286,25 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
+      // std::cout << "IIAALabelEdgeFunction::composeWith\n";
       if (auto *AB = dynamic_cast<AllBottom<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
-      return std::make_shared<IIAAEdgeFunctionComposer>(
-          this->shared_from_this(), secondFunction);
+      if (auto *AS =
+              dynamic_cast<IIAALabelEdgeFunction *>(secondFunction.get())) {
+        auto Union = Data.setUnion(AS->Data);
+        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis,
+                                                       Union.getAsSet());
+      }
+      llvm::report_fatal_error("found unexpected edge function");
     }
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
+      // std::cout << "IIAALabelEdgeFunction::joinWith\n";
       if (otherFunction.get() == this ||
           otherFunction->equal_to(this->shared_from_this())) {
         return this->shared_from_this();
@@ -318,19 +312,26 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
+      if (auto *AS =
+              dynamic_cast<IIAALabelEdgeFunction *>(otherFunction.get())) {
+        auto Union = Data.setUnion(AS->Data);
+        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis,
+                                                       Union.getAsSet());
+      }
       return std::make_shared<AllBottom<l_t>>(
           IDEInstInteractionAnalysisT<e_t>::BOTTOM);
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      if (auto *I = dynamic_cast<IIAAAddSetEdgeFunction *>(other.get())) {
+      // std::cout << "IIAALabelEdgeFunction::equal_to\n";
+      if (auto *I = dynamic_cast<IIAALabelEdgeFunction *>(other.get())) {
         return (I->Data == this->Data);
       }
       return this == other.get();
     }
 
     void print(std::ostream &OS, bool isForDebug = false) const override {
-      OS << "EF: (IIAAAddSetEdgeFunction: ";
+      OS << "EF: (IIAALabelEdgeFunction: ";
       Analysis.printEdgeFact(OS, Data);
       OS << ")";
     }
