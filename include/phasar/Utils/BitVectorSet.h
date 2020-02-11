@@ -52,6 +52,14 @@ public:
     }
   }
 
+  template <typename InputIt>
+  BitVectorSet(InputIt First, InputIt Last) {
+    while (First != Last) {
+      insert(*First);
+      ++First;
+    }
+  }
+
   ~BitVectorSet() = default;
 
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
@@ -145,6 +153,14 @@ public:
     }
     for (size_t idx = 0; idx < Other.Bits.size(); ++idx) {
       Bits[idx] = (Bits[idx] || Other.Bits[idx]);
+    }
+  }
+
+  template <typename InputIt>
+  void insert(InputIt First, InputIt Last) {
+    while (First != Last) {
+      insert(*First);
+      ++First;
     }
   }
 

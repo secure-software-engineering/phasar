@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
+#include <set>
 #include <utility>
 
 #include <phasar/Utils/BitVectorSet.h>
@@ -9,6 +10,18 @@ using namespace psr;
 
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
+
+  EXPECT_EQ(B.count(10), 1);
+  EXPECT_EQ(B.count(20), 1);
+  EXPECT_EQ(B.count(30), 1);
+  EXPECT_EQ(B.count(40), 1);
+  EXPECT_EQ(B.count(50), 1);
+  EXPECT_EQ(B.count(666), 0);
+}
+
+TEST(BitVectorSet, ctorIter) {
+  std::set<int> S({10, 20, 30, 40, 50});
+  BitVectorSet<int> B(S.begin(), S.end());
 
   EXPECT_EQ(B.count(10), 1);
   EXPECT_EQ(B.count(20), 1);
@@ -71,11 +84,22 @@ TEST(BitVectorSet, move) {
   EXPECT_EQ(C.count(42), 1);
 }
 
-TEST(BitVectorSetTest, insert) {
+TEST(BitVectorSet, insert) {
   BitVectorSet<int> B;
   B.insert(1);
   B.insert(42);
   B.insert(13);
+
+  EXPECT_EQ(B.count(1), 1);
+  EXPECT_EQ(B.count(42), 1);
+  EXPECT_EQ(B.count(13), 1);
+  EXPECT_EQ(B.count(666), 0);
+}
+
+TEST(BitVectorSet, insertIter) {
+  std::set<int> S = {1, 42, 13};
+  BitVectorSet<int> B;
+  B.insert(S.begin(), S.end());
 
   EXPECT_EQ(B.count(1), 1);
   EXPECT_EQ(B.count(42), 1);
