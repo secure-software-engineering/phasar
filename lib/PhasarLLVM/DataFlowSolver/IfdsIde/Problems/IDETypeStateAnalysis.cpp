@@ -627,27 +627,31 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
   PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
   return PointsToAndAllocas;
 }
-
+bool hasMatchingTypeName(const llvm::Type *ty, const std::string &pattern) {
+  if (auto StructTy = llvm::dyn_cast<llvm::StructType>(ty)) {
+    return StructTy->getName().contains(pattern);
+  } else {
+    // primitive type
+    std::string str;
+    llvm::raw_string_ostream s(str);
+    s << *ty;
+    s.flush();
+    return str.find(pattern) != std::string::npos;
+  }
+}
 bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   // General case
   if (V->getType()->isPointerTy()) {
-    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-            V->getType()->getPointerElementType())) {
-      if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-          llvm::StringRef::npos) {
-        return true;
-      }
-    }
+    if (hasMatchingTypeName(V->getType()->getPointerElementType(),
+                            TSD.getTypeNameOfInterest()))
+      return true;
   }
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(
+              Alloca->getAllocatedType()->getPointerElementType(),
+              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }
@@ -656,28 +660,21 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
             ->getType()
             ->getPointerElementType()
             ->isPointerTy()) {
-      if (auto StructTy =
-              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
-                                                   ->getType()
-                                                   ->getPointerElementType()
-                                                   ->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(Load->getPointerOperand()
+                                  ->getType()
+                                  ->getPointerElementType()
+                                  ->getPointerElementType(),
+                              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(
+              Store->getValueOperand()->getType()->getPointerElementType(),
+              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }

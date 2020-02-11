@@ -11,7 +11,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKeyDerivationTypeStateDescription.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
@@ -31,7 +31,7 @@ protected:
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
   LLVMPointsToInfo *PT;
-  OpenSSLEVPKeyDerivationTypeStateDescription *OpenSSLEVPKeyDerivationDesc;
+  OpenSSLEVPKDFDescription *OpenSSLEVPKeyDerivationDesc;
   IDETypeStateAnalysis *TSProblem;
 
   enum OpenSSLEVPKeyDerivationState {
@@ -53,8 +53,7 @@ protected:
     PT = new LLVMPointsToInfo(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
-    OpenSSLEVPKeyDerivationDesc =
-        new OpenSSLEVPKeyDerivationTypeStateDescription();
+    OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFDescription();
     TSProblem = new IDETypeStateAnalysis(
         IRDB, TH, ICFG, PT, *OpenSSLEVPKeyDerivationDesc, EntryPoints);
   }
@@ -99,7 +98,7 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, HandleTypeState_01) {
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_HandleTypeState_01) {
   Initialize({pathToLLFiles + "openssl_program1_c.ll"});
   IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
             IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,

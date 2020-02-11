@@ -9,6 +9,8 @@
 
 #include <cassert>
 
+#include <llvm/ADT/StringRef.h>
+#include <llvm/ADT/StringSwitch.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h>
 
 using namespace std;
@@ -19,17 +21,24 @@ namespace psr {
 // Return value is modeled as -1
 const std::map<std::string, std::set<int>>
     OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryFuncs = {
-        // TODO
-};
+        {"CRYPTO_malloc", {-1}}, {"CRYPTO_free", {0}}};
 
 // delta[Token][State] = next State
-// Token: EVP_KDF_FETCH = 0, EVP_KDF_CTX_NEW = 1, EVP_KDF_CTX_SET_PARAMS = 2,
-// DERIVE = 3, EVP_KDF_CTX_FREE = 4, STAR = 5 States: UNINIT = 0, KDF_FETCHED =
-// 1, CTX_ATTACHED = 2, PARAM_INIT = 3, DERIVED = 4, ERROR = 5, BOT = 6
+// Token: CRYPTO_MALLOC=0, CRYPTO_FREE=1, STAR = 2
+//
+// States: ALLOCATED=0, FREED=1, ERROR=2, BOT=3
 const OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryState
     OpenSSLSecureMemoryDescription::delta[6][7] = {
-        // TODO
-};
+        // CRYPTO_malloc
+        {OpenSSLSecureMemoryState::ALLOCATED,
+         OpenSSLSecureMemoryState::ALLOCATED, OpenSSLSecureMemoryState::ERROR,
+         OpenSSLSecureMemoryState::ALLOCATED},
+        // CRYPTO_FREE
+        {OpenSSLSecureMemoryState::FREED, OpenSSLSecureMemoryState::ERROR,
+         OpenSSLSecureMemoryState::ERROR, OpenSSLSecureMemoryState::ERROR},
+        // STAR
+        {OpenSSLSecureMemoryState::ALLOCATED, OpenSSLSecureMemoryState::FREED,
+         OpenSSLSecureMemoryState::ERROR, OpenSSLSecureMemoryState::BOT}};
 
 bool OpenSSLSecureMemoryDescription::isFactoryFunction(
     const std::string &F) const {
@@ -64,7 +73,7 @@ TypeStateDescription::State OpenSSLSecureMemoryDescription::getNextState(
 }
 
 std::string OpenSSLSecureMemoryDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdp_ctx_st"; // NOT SURE WHAT TO DO WITH THIS
+  return "i8"; // NOT SURE WHAT TO DO WITH THIS
 }
 
 set<int> OpenSSLSecureMemoryDescription::getConsumerParamIdx(
@@ -89,10 +98,14 @@ std::string OpenSSLSecureMemoryDescription::stateToString(
   switch (S) {
   case OpenSSLSecureMemoryState::TOP:
     return "TOP";
-    break;
   case OpenSSLSecureMemoryState::BOT:
     return "BOT";
-    break;
+  case OpenSSLSecureMemoryState::ALLOCATED:
+    return "ALLOCATED";
+  case OpenSSLSecureMemoryState::FREED:
+    return "FREED";
+  case OpenSSLSecureMemoryState::ERROR:
+    return "ERROR";
   default:
     assert(false && "received unknown state!");
     break;
@@ -108,7 +121,7 @@ TypeStateDescription::State OpenSSLSecureMemoryDescription::top() const {
 }
 
 TypeStateDescription::State OpenSSLSecureMemoryDescription::start() const {
-  return OpenSSLSecureMemoryState::BOT;
+  return OpenSSLSecureMemoryState::ALLOCATED;
 }
 
 TypeStateDescription::State OpenSSLSecureMemoryDescription::uninit() const {
@@ -116,12 +129,15 @@ TypeStateDescription::State OpenSSLSecureMemoryDescription::uninit() const {
 }
 
 TypeStateDescription::State OpenSSLSecureMemoryDescription::error() const {
-  return OpenSSLSecureMemoryState::BOT;
+  return OpenSSLSecureMemoryState::ERROR;
 }
 
 OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryToken
 OpenSSLSecureMemoryDescription::funcNameToToken(const std::string &F) const {
-  return OpenSSLSecureMemoryToken::STAR;
+  return llvm::StringSwitch<OpenSSLSecureMemoryToken>(F)
+      .Case("CRYPTO_malloc", OpenSSLSecureMemoryToken::CRYPTO_MALLOC)
+      .Case("CRYPTO_free", OpenSSLSecureMemoryToken::CRYPTO_FREE)
+      .Default(OpenSSLSecureMemoryToken::STAR);
 }
 
 } // namespace psr

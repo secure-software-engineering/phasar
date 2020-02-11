@@ -22,13 +22,16 @@ class OpenSSLSecureMemoryDescription : public TypeStateDescription {
 private:
   enum OpenSSLSecureMemoryState {
     TOP = 42,
-    // TODO
-    BOT = 6
+    ALLOCATED = 0,
+    FREED = 1,
+    ERROR = 2,
+    BOT = 3
   };
 
   enum class OpenSSLSecureMemoryToken {
-    // TODO
-    STAR = 5
+    CRYPTO_MALLOC = 0,
+    CRYPTO_FREE = 1,
+    STAR = 2
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLSecureMemoryFuncs;
