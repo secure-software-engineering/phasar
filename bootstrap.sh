@@ -120,8 +120,8 @@ ${DO_UNIT_TESTS} && echo "with unit tests."
 git submodule init
 git submodule update
 
-export CC=${LLVM_INSTALL}/bin/clang
-export CXX=${LLVM_INSTALL}/bin/clang++
+export CC=${LLVM_INSTALL_DIR}/bin/clang
+export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 mkdir -p ${PHASAR_DIR}/build
 cd ${PHASAR_DIR}/build
