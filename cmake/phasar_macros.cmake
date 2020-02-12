@@ -161,7 +161,6 @@ macro(add_phasar_library name)
     set(libkind)
   endif()
   add_library( ${name} ${libkind} ${srcs} )
-  add_library( phasar::${name} ALIAS ${name} )
   if( LLVM_COMMON_DEPENDS )
     add_dependencies( ${name} ${LLVM_COMMON_DEPENDS} )
   endif( LLVM_COMMON_DEPENDS )
@@ -173,11 +172,7 @@ macro(add_phasar_library name)
 
   if(PHASAR_LINK_LIBS)
     foreach(lib ${PHASAR_LINK_LIBS})
-      if(PHASAR_DEBUG_LIBDEPS)
-        target_link_libraries(${name} LINK_PRIVATE ${lib})
-      else()
-        target_link_libraries(${name} LINK_PUBLIC ${lib})
-      endif(PHASAR_DEBUG_LIBDEPS)
+      target_link_libraries(${name} LINK_PRIVATE ${lib})
     endforeach(lib)
   endif(PHASAR_LINK_LIBS)
 
@@ -194,7 +189,6 @@ macro(add_phasar_library name)
   endif(MSVC)
   install(TARGETS ${name}
     EXPORT LLVMExports
-    EXPORT phasarTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
