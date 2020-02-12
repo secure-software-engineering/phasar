@@ -23,11 +23,10 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem graph REQUIRED)
 target_link_libraries(phasar_typehierarchy
   LINK_PUBLIC
-  boost_log
-  boost_filesystem
-  boost_graph
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_typehierarchy

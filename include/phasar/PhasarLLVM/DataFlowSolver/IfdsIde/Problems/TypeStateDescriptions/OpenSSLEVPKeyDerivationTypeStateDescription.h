@@ -61,24 +61,38 @@ private:
 
   static const std::map<std::string, std::set<int>>
       OpenSSLEVPKeyDerivationFuncs;
+
   // delta matrix to implement the state machine's delta function
   static const OpenSSLEVPKeyDerivationState delta[6][7];
+
   OpenSSLEVPKeyDerivationToken funcNameToToken(const std::string &F) const;
 
 public:
   bool isFactoryFunction(const std::string &F) const override;
+
   bool isConsumingFunction(const std::string &F) const override;
+
   bool isAPIFunction(const std::string &F) const override;
+
   TypeStateDescription::State
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
+
   std::string getTypeNameOfInterest() const override;
+
   std::set<int> getConsumerParamIdx(const std::string &F) const override;
+
   std::set<int> getFactoryParamIdx(const std::string &F) const override;
+
   std::string stateToString(TypeStateDescription::State S) const override;
+
   TypeStateDescription::State bottom() const override;
+
   TypeStateDescription::State top() const override;
+
   TypeStateDescription::State uninit() const override;
+
   TypeStateDescription::State start() const override;
+
   TypeStateDescription::State error() const override;
 };
 

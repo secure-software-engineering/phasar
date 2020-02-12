@@ -18,7 +18,7 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/Passes/PassBuilder.h>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
 

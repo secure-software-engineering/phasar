@@ -9,6 +9,7 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
 # Warning! There is a another listing of libraries inside cmake/phasar_macros.cmake.
 # If this list is altered the other one should be altered accordingly.
 target_link_libraries(phasar-llvm
@@ -30,12 +31,6 @@ target_link_libraries(phasar-llvm
   # ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_typehierarchy
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

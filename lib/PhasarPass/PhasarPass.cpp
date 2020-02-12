@@ -73,7 +73,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   LLVMBasedICFG I(DB, CGTy, EntryPointsSet, &H, &PT);
   if (DataFlowAnalysis == "ifds-solvertest") {
     IFDSSolverTest ifdstest(&DB, &H, &I, &PT, EntryPointsSet);
-    IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::m_t,
+    IFDSSolver<IFDSSolverTest::n_t, IFDSSolverTest::d_t, IFDSSolverTest::f_t,
                IFDSSolverTest::t_t, IFDSSolverTest::v_t, IFDSSolverTest::i_t>
         llvmifdstestsolver(ifdstest);
     llvmifdstestsolver.solve();
@@ -82,7 +82,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     }
   } else if (DataFlowAnalysis == "ide-solvertest") {
     IDESolverTest idetest(&DB, &H, &I, &PT, EntryPointsSet);
-    IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::m_t,
+    IDESolver<IDESolverTest::n_t, IDESolverTest::d_t, IDESolverTest::f_t,
               IDESolverTest::t_t, IDESolverTest::v_t, IDESolverTest::l_t,
               IDESolverTest::i_t>
         llvmidetestsolver(idetest);
@@ -93,7 +93,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "intra-mono-solvertest") {
     IntraMonoSolverTest intra(&DB, &H, &I, &PT, EntryPointsSet);
     IntraMonoSolver<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
-                    IntraMonoSolverTest::m_t, IntraMonoSolverTest::t_t,
+                    IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
                     IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>
         solver(intra);
     solver.solve();
@@ -103,7 +103,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "inter-mono-solvertest") {
     InterMonoSolverTest inter(&DB, &H, &I, &PT, EntryPointsSet);
     InterMonoSolver<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
-                    InterMonoSolverTest::m_t, InterMonoSolverTest::t_t,
+                    InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
                     InterMonoSolverTest::v_t, InterMonoSolverTest::i_t, 3>
         solver(inter);
     solver.solve();
@@ -113,7 +113,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "ifds-const") {
     IFDSConstAnalysis constproblem(&DB, &H, &I, &PT, EntryPointsSet);
     IFDSSolver<IFDSConstAnalysis::n_t, IFDSConstAnalysis::d_t,
-               IFDSConstAnalysis::m_t, IFDSConstAnalysis::t_t,
+               IFDSConstAnalysis::f_t, IFDSConstAnalysis::t_t,
                IFDSConstAnalysis::v_t, IFDSConstAnalysis::i_t>
         llvmconstsolver(constproblem);
     llvmconstsolver.solve();
@@ -123,7 +123,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "ifds-lca") {
     IFDSLinearConstantAnalysis lcaproblem(&DB, &H, &I, &PT, EntryPointsSet);
     IFDSSolver<IFDSLinearConstantAnalysis::n_t, IFDSLinearConstantAnalysis::d_t,
-               IFDSLinearConstantAnalysis::m_t, IFDSLinearConstantAnalysis::t_t,
+               IFDSLinearConstantAnalysis::f_t, IFDSLinearConstantAnalysis::t_t,
                IFDSLinearConstantAnalysis::v_t, IFDSLinearConstantAnalysis::i_t>
         llvmlcasolver(lcaproblem);
     llvmlcasolver.solve();
@@ -135,7 +135,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     IFDSTaintAnalysis TaintAnalysisProblem(&DB, &H, &I, &PT, TSF,
                                            EntryPointsSet);
     IFDSSolver<IFDSTaintAnalysis::n_t, IFDSTaintAnalysis::d_t,
-               IFDSTaintAnalysis::m_t, IFDSTaintAnalysis::t_t,
+               IFDSTaintAnalysis::f_t, IFDSTaintAnalysis::t_t,
                IFDSTaintAnalysis::v_t, IFDSTaintAnalysis::i_t>
         LLVMTaintSolver(TaintAnalysisProblem);
     LLVMTaintSolver.solve();
@@ -145,7 +145,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "ifds-type") {
     IFDSTypeAnalysis typeanalysisproblem(&DB, &H, &I, &PT, EntryPointsSet);
     IFDSSolver<IFDSTypeAnalysis::n_t, IFDSTypeAnalysis::d_t,
-               IFDSTypeAnalysis::m_t, IFDSTypeAnalysis::t_t,
+               IFDSTypeAnalysis::f_t, IFDSTypeAnalysis::t_t,
                IFDSTypeAnalysis::v_t, IFDSTypeAnalysis::i_t>
         llvmtypesolver(typeanalysisproblem);
     llvmtypesolver.solve();
@@ -156,7 +156,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     IFDSUninitializedVariables uninitializedvarproblem(&DB, &H, &I, &PT,
                                                        EntryPointsSet);
     IFDSSolver<IFDSUninitializedVariables::n_t, IFDSUninitializedVariables::d_t,
-               IFDSUninitializedVariables::m_t, IFDSUninitializedVariables::t_t,
+               IFDSUninitializedVariables::f_t, IFDSUninitializedVariables::t_t,
                IFDSUninitializedVariables::v_t, IFDSUninitializedVariables::i_t>
         llvmunivsolver(uninitializedvarproblem);
     llvmunivsolver.solve();
@@ -166,7 +166,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "ide-lca") {
     IDELinearConstantAnalysis lcaproblem(&DB, &H, &I, &PT, EntryPointsSet);
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
               IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
               IDELinearConstantAnalysis::i_t>
         llvmlcasolver(lcaproblem);
@@ -177,7 +177,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
   } else if (DataFlowAnalysis == "ide-taint") {
     IDETaintAnalysis taintanalysisproblem(&DB, &H, &I, &PT, EntryPointsSet);
     IDESolver<IDETaintAnalysis::n_t, IDETaintAnalysis::d_t,
-              IDETaintAnalysis::m_t, IDETaintAnalysis::t_t,
+              IDETaintAnalysis::f_t, IDETaintAnalysis::t_t,
               IDETaintAnalysis::v_t, IDETaintAnalysis::l_t,
               IDETaintAnalysis::i_t>
         llvmtaintsolver(taintanalysisproblem);
@@ -190,7 +190,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     IDETypeStateAnalysis typestateproblem(&DB, &H, &I, &PT, fileIODesc,
                                           EntryPointsSet);
     IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-              IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+              IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
               IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
               IDETypeStateAnalysis::i_t>
         llvmtypestatesolver(typestateproblem);
@@ -202,7 +202,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     IDEInstInteractionAnalysis instinteraction(&DB, &H, &I, &PT,
                                                EntryPointsSet);
     IDESolver<IDEInstInteractionAnalysis::n_t, IDEInstInteractionAnalysis::d_t,
-              IDEInstInteractionAnalysis::m_t, IDEInstInteractionAnalysis::t_t,
+              IDEInstInteractionAnalysis::f_t, IDEInstInteractionAnalysis::t_t,
               IDEInstInteractionAnalysis::v_t, IDEInstInteractionAnalysis::l_t,
               IDEInstInteractionAnalysis::i_t>
         llvminstinteractionsolver(instinteraction);

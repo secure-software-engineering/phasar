@@ -18,6 +18,7 @@
 #define PHASAR_PHASARLLVM_MONO_SOLVER_INTRAMONOSOLVER_H_
 
 #include <deque>
+#include <iostream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -27,11 +28,11 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename C>
 class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, M, T, V, C>;
+  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C>;
 
 protected:
   ProblemTy &IMProblem;
@@ -60,7 +61,7 @@ protected:
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, M, T, V, C> &IMP)
+  IntraMonoSolver(IntraMonoProblem<N, D, F, T, V, C> &IMP)
       : IMProblem(IMP), CFG(IMP.getCFG()) {}
   virtual ~IntraMonoSolver() = default;
   virtual void solve() {
@@ -87,29 +88,30 @@ public:
     for (auto entry : Analysis) {
       entry.second = IMProblem.normalFlow(entry.first, entry.second);
     }
-    if (PhasarConfig::VariablesMap().count("emit-raw-results")) {
-      dumpResults();
-    }
   }
 
   BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
 
-  virtual void dumpResults() {
-    std::cout << "Intra-Monotone solver results:\n"
-                 "------------------------------\n";
+  virtual void dumpResults(std::ostream &OS = std::cout) {
+    OS << "Intra-Monotone solver results:\n"
+          "------------------------------\n";
     for (auto &[Node, FlowFacts] : this->Analysis) {
-      std::cout << "Instruction:\n" << this->IMProblem.NtoString(Node);
-      std::cout << "\nFacts:\n";
+      OS << "Instruction:\n" << this->IMProblem.NtoString(Node);
+      OS << "\nFacts:\n";
       if (FlowFacts.empty()) {
-        std::cout << "\tEMPTY\n";
+        OS << "\tEMPTY\n";
       } else {
         for (auto FlowFact : FlowFacts.getAsSet()) {
-          std::cout << this->IMProblem.DtoString(FlowFact) << '\n';
+          OS << this->IMProblem.DtoString(FlowFact) << '\n';
         }
       }
-      std::cout << "\n\n";
+      OS << "\n\n";
     }
   }
+
+  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+
+  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
 };
 
 } // namespace psr

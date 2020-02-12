@@ -30,10 +30,11 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log REQUIRED)
 target_link_libraries(phasar_controller
   LINK_PUBLIC
   curl
-  boost_log
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_controller

@@ -28,12 +28,12 @@ namespace psr {
  * solver propagates the cached value but at the same time links
  * both target values with one another.
  */
-template <typename N, typename D, typename M, typename I>
+template <typename N, typename D, typename F, typename I>
 class JoinHandlingNodesIFDSSolver {
-  // class JoinHandlingNodesIFDSSolver<N, D extends JoinHandlingNode<D>, M, I
-  // extends InterproceduralCFG<N, M>> extends IFDSSolver<N, D, M, I> {
+  // class JoinHandlingNodesIFDSSolver<N, D extends JoinHandlingNode<D>, F, I
+  // extends InterproceduralCFG<N, F>> extends IFDSSolver<N, D, F, I> {
   //
-  //	public JoinHandlingNodesIFDSSolver(IFDSTabulationProblem<N, D, M, I>
+  //	public JoinHandlingNodesIFDSSolver(IFDSTabulationProblem<N, D, F I>
   // ifdsProblem) {
   //		super(ifdsProblem);
   //	}

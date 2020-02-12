@@ -12,4 +12,4 @@ COPY . /usr/src/phasar
 
 RUN ./bootstrap_docker.sh
 
-ENTRYPOINT [ "./build/phasar" ]
+ENTRYPOINT [ "./build/phasar-llvm/phasar-llvm" ]

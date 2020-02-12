@@ -30,29 +30,29 @@ namespace psr {
  * version is used if existend, otherwise a new one is created and inserted
  * into the cache.
  */
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
 class FlowEdgeFunctionCache {
 private:
-  IDETabulationProblem<N, D, M, T, V, L, I> &problem;
+  IDETabulationProblem<N, D, F, T, V, L, I> &problem;
   // Auto add zero
   bool autoAddZero;
   D zeroValue;
   // Caches for the flow functions
   std::map<std::tuple<N, N>, std::shared_ptr<FlowFunction<D>>>
       NormalFlowFunctionCache;
-  std::map<std::tuple<N, M>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, F>, std::shared_ptr<FlowFunction<D>>>
       CallFlowFunctionCache;
-  std::map<std::tuple<N, M, N, N>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, F, N, N>, std::shared_ptr<FlowFunction<D>>>
       ReturnFlowFunctionCache;
-  std::map<std::tuple<N, N, std::set<M>>, std::shared_ptr<FlowFunction<D>>>
+  std::map<std::tuple<N, N, std::set<F>>, std::shared_ptr<FlowFunction<D>>>
       CallToRetFlowFunctionCache;
   // Caches for the edge functions
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       NormalEdgeFunctionCache;
-  std::map<std::tuple<N, D, M, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, D, F, D>, std::shared_ptr<EdgeFunction<L>>>
       CallEdgeFunctionCache;
-  std::map<std::tuple<N, M, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
+  std::map<std::tuple<N, F, N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       ReturnEdgeFunctionCache;
   std::map<std::tuple<N, D, N, D>, std::shared_ptr<EdgeFunction<L>>>
       CallToRetEdgeFunctionCache;
@@ -62,7 +62,7 @@ private:
 public:
   // Ctor allows access to the IDEProblem in order to get access to flow and
   // edge function factory functions.
-  FlowEdgeFunctionCache(IDETabulationProblem<N, D, M, T, V, L, I> &problem)
+  FlowEdgeFunctionCache(IDETabulationProblem<N, D, F, T, V, L, I> &problem)
       : problem(problem),
         autoAddZero(problem.getIFDSIDESolverConfig().autoAddZero),
         zeroValue(problem.getZeroValue()) {
@@ -133,7 +133,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, M destMthd) {
+  std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, F destFun) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -141,8 +141,8 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Stmt : " << problem.NtoString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Dest Mthd : " << problem.FtoString(destMthd));
-    auto key = std::tie(callStmt, destMthd);
+                  << "(F) Dest Fun : " << problem.FtoString(destFun));
+    auto key = std::tie(callStmt, destFun);
     if (CallFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "Flow function fetched from cache");
@@ -154,8 +154,8 @@ public:
       auto ff =
           (autoAddZero)
               ? std::make_shared<ZeroedFlowFunction<D>>(
-                    problem.getCallFlowFunction(callStmt, destMthd), zeroValue)
-              : problem.getCallFlowFunction(callStmt, destMthd);
+                    problem.getCallFlowFunction(callStmt, destFun), zeroValue)
+              : problem.getCallFlowFunction(callStmt, destFun);
       CallFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -163,7 +163,7 @@ public:
     }
   }
 
-  std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, M calleeMthd,
+  std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, F calleeFun,
                                                       N exitStmt, N retSite) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
@@ -172,12 +172,12 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Site : " << problem.NtoString(callSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Callee    : " << problem.FtoString(calleeMthd));
+                  << "(F) Callee    : " << problem.FtoString(calleeFun));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
-    auto key = std::tie(callSite, calleeMthd, exitStmt, retSite);
+    auto key = std::tie(callSite, calleeFun, exitStmt, retSite);
     if (ReturnFlowFunctionCache.count(key)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "Flow function fetched from cache");
@@ -188,10 +188,10 @@ public:
       INC_COUNTER("Return-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ff = (autoAddZero)
                     ? std::make_shared<ZeroedFlowFunction<D>>(
-                          problem.getRetFlowFunction(callSite, calleeMthd,
+                          problem.getRetFlowFunction(callSite, calleeFun,
                                                      exitStmt, retSite),
                           zeroValue)
-                    : problem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
+                    : problem.getRetFlowFunction(callSite, calleeFun, exitStmt,
                                                  retSite);
       ReturnFlowFunctionCache.insert(std::make_pair(key, ff));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Flow function constructed");
@@ -201,7 +201,7 @@ public:
   }
 
   std::shared_ptr<FlowFunction<D>>
-  getCallToRetFlowFunction(N callSite, N retSite, std::set<M> callees) {
+  getCallToRetFlowFunction(N callSite, N retSite, std::set<F> callees) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -210,7 +210,7 @@ public:
                   << "(N) Call Site : " << problem.NtoString(callSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callee's  : ");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(F) Callee's  : ");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "  " << problem.FtoString(callee));
@@ -239,7 +239,7 @@ public:
   }
 
   std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N callStmt,
-                                                          M destMthd) {
+                                                          F destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     auto &lg = lg::get();
@@ -248,9 +248,9 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Stmt : " << problem.NtoString(callStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Dest Mthd : " << problem.FtoString(destMthd));
+                  << "(F) Dest Mthd : " << problem.FtoString(destFun));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-    auto ff = problem.getSummaryFlowFunction(callStmt, destMthd);
+    auto ff = problem.getSummaryFlowFunction(callStmt, destFun);
     return ff;
   }
 
@@ -286,7 +286,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<L>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod, D destNode) {
+  getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction, D destNode) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -296,11 +296,11 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(D) Src Node  : " << problem.DtoString(srcNode));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Dest Mthd : "
-                  << problem.FtoString(destinationMethod));
+                  << "(F) Dest Fun : "
+                  << problem.FtoString(destinationFunction));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(D) Dest Node : " << problem.DtoString(destNode));
-    auto key = std::tie(callStmt, srcNode, destinationMethod, destNode);
+    auto key = std::tie(callStmt, srcNode, destinationFunction, destNode);
     if (CallEdgeFunctionCache.count(key)) {
       INC_COUNTER("Call-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -310,7 +310,7 @@ public:
     } else {
       INC_COUNTER("Call-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
       auto ef = problem.getCallEdgeFunction(callStmt, srcNode,
-                                            destinationMethod, destNode);
+                                            destinationFunction, destNode);
       CallEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Edge function constructed");
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -319,7 +319,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<L>> getReturnEdgeFunction(N callSite,
-                                                         M calleeMethod,
+                                                         F calleeFunction,
                                                          N exitStmt, D exitNode,
                                                          N reSite, D retNode) {
     PAMM_GET_INSTANCE;
@@ -329,7 +329,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Call Site : " << problem.NtoString(callSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "(M) Callee    : " << problem.FtoString(calleeMethod));
+                  << "(F) Callee    : " << problem.FtoString(calleeFunction));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(N) Exit Stmt : " << problem.NtoString(exitStmt));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -339,7 +339,7 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retNode));
     auto key =
-        std::tie(callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
+        std::tie(callSite, calleeFunction, exitStmt, exitNode, reSite, retNode);
     if (ReturnEdgeFunctionCache.count(key)) {
       INC_COUNTER("Return-EF Cache Hit", 1, PAMM_SEVERITY_LEVEL::Full);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -348,7 +348,7 @@ public:
       return ReturnEdgeFunctionCache.at(key);
     } else {
       INC_COUNTER("Return-EF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-      auto ef = problem.getReturnEdgeFunction(callSite, calleeMethod, exitStmt,
+      auto ef = problem.getReturnEdgeFunction(callSite, calleeFunction, exitStmt,
                                               exitNode, reSite, retNode);
       ReturnEdgeFunctionCache.insert(std::make_pair(key, ef));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Edge function constructed");
@@ -359,7 +359,7 @@ public:
 
   std::shared_ptr<EdgeFunction<L>>
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<M> callees) {
+                           std::set<F> callees) {
     PAMM_GET_INSTANCE;
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -372,7 +372,7 @@ public:
                   << "(N) Ret Site  : " << problem.NtoString(retSite));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "(D) Ret Node  : " << problem.DtoString(retSiteNode));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(M) Callee's  : ");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "(F) Callee's  : ");
     for (auto callee : callees) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "  " << problem.FtoString(callee));

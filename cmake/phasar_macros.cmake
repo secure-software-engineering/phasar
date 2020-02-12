@@ -87,31 +87,32 @@ function(generate_ll_file)
   # define compilation flags
   set(GEN_CXX_FLAGS -std=c++14 -fno-discard-value-names -emit-llvm -S)
   set(GEN_C_FLAGS -fno-discard-value-names -emit-llvm -S)
-  set(GEN_CMD_COMMENT "compile ${GEN_LL_FILE} to LLVM IR")
+  set(GEN_CMD_COMMENT "[LL]")
   if(GEN_LL_MEM2REG)
     list(APPEND GEN_CXX_FLAGS -Xclang -disable-O0-optnone)
     list(APPEND GEN_C_FLAGS -Xclang -disable-O0-optnone)
-    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with mem2reg optimization")
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[M2R]")
   endif()
   if(GEN_LL_DEBUG)
     list(APPEND GEN_CXX_FLAGS -g)
     list(APPEND GEN_C_FLAGS -g)
-    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} with/and debug information")
+    set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT}[DBG]")
   endif()
+  set(GEN_CMD_COMMENT "${GEN_CMD_COMMENT} ${GEN_LL_FILE}")
 
   # define .ll file generation command
   if(${test_code_file_ext} STREQUAL ".cpp")
-    set(GEN_CMD ${CMAKE_CXX_COMPILER})
+    set(GEN_CMD ${CMAKE_CXX_COMPILER_LAUNCHER} ${CMAKE_CXX_COMPILER})
     list(APPEND GEN_CMD ${GEN_CXX_FLAGS})
   else()
-    set(GEN_CMD ${CMAKE_C_COMPILER})
+    set(GEN_CMD ${CMAKE_C_COMPILER_LAUNCHER} ${CMAKE_C_COMPILER})
     list(APPEND GEN_CMD ${GEN_C_FLAGS})
   endif()
   if(GEN_LL_MEM2REG)
     add_custom_command(
       OUTPUT ${test_code_ll_file}
       COMMAND ${GEN_CMD} ${test_code_file_path} -o ${test_code_ll_file}
-      COMMAND opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
+      COMMAND ${CMAKE_CXX_COMPILER_LAUNCHER} opt -mem2reg -S ${test_code_ll_file} -o ${test_code_ll_file}
       COMMENT ${GEN_CMD_COMMENT}
       DEPENDS ${GEN_LL_FILE}
       VERBATIM

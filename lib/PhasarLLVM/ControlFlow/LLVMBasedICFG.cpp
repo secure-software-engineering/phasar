@@ -41,8 +41,8 @@
 
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
+#include <phasar/Utils/Utilities.h>
 
 #include <phasar/DB/ProjectIRDB.h>
 
@@ -80,6 +80,15 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
   return llvmIRToString(CS);
 }
 
+// Need to provide copy constructor explicitly to avoid multiple frees of TH and
+// PT in case any of them is allocated within the constructor. To this end, we
+// set UserTHInfos and UserPTInfos to true here.
+LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
+    : IRDB(ICF.IRDB), CGType(ICF.CGType), UserTHInfos(true), UserPTInfos(true),
+      TH(ICF.TH), PT(ICF.PT), WholeModulePTG(ICF.WholeModulePTG),
+      VisitedFunctions(ICF.VisitedFunctions), CallGraph(ICF.CallGraph),
+      FunctionVertexMap(ICF.FunctionVertexMap) {}
+
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
                              LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
@@ -90,13 +99,13 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
     // no type hierarchy information provided by the user,
     // we need to construct a type hierarchy ourselfes
-    TH = new LLVMTypeHierarchy(IRDB);
+    this->TH = new LLVMTypeHierarchy(IRDB);
     UserTHInfos = false;
   }
   if (!PT && (CGType == CallGraphAnalysisType::OTF)) {
     // no pointer information provided by the user,
     // we need to construct a points-to infos ourselfes
-    PT = new LLVMPointsToInfo(IRDB);
+    this->PT = new LLVMPointsToInfo(IRDB);
     UserPTInfos = false;
   }
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
@@ -281,10 +290,12 @@ set<const llvm::Function *>
 LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
     set<const llvm::Function *> Callees;
-    auto Caller = n->getFunction();
+    auto mapEntry = FunctionVertexMap.find(n->getFunction());
+    if (mapEntry == FunctionVertexMap.end()) {
+      return Callees;
+    }
     out_edge_iterator ei, ei_end;
-    for (boost::tie(ei, ei_end) =
-             boost::out_edges(FunctionVertexMap.at(Caller), CallGraph);
+    for (boost::tie(ei, ei_end) = boost::out_edges(mapEntry->second, CallGraph);
          ei != ei_end; ++ei) {
       auto source = boost::source(*ei, CallGraph);
       auto edge = CallGraph[*ei];
@@ -305,9 +316,12 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallersOf;
+  auto mapEntry = FunctionVertexMap.find(F);
+  if (mapEntry == FunctionVertexMap.end()) {
+    return CallersOf;
+  }
   in_edge_iterator ei, ei_end;
-  for (boost::tie(ei, ei_end) =
-           boost::in_edges(FunctionVertexMap.at(F), CallGraph);
+  for (boost::tie(ei, ei_end) = boost::in_edges(mapEntry->second, CallGraph);
        ei != ei_end; ++ei) {
     auto source = boost::source(*ei, CallGraph);
     auto edge = CallGraph[*ei];

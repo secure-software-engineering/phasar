@@ -19,9 +19,9 @@ namespace psr {
 class MapTaintedValuesToCallee : public FlowFunction<ExtendedValue> {
 public:
   MapTaintedValuesToCallee(const llvm::CallInst *_callInst,
-                           const llvm::Function *_destMthd,
+                           const llvm::Function *_destFun,
                            TraceStats &_traceStats, ExtendedValue _zeroValue)
-      : callInst(_callInst), destMthd(_destMthd), traceStats(_traceStats),
+      : callInst(_callInst), destFun(_destFun), traceStats(_traceStats),
         zeroValue(_zeroValue) {}
   ~MapTaintedValuesToCallee() override = default;
 
@@ -29,7 +29,7 @@ public:
 
 private:
   const llvm::CallInst *callInst;
-  const llvm::Function *destMthd;
+  const llvm::Function *destFun;
   TraceStats &traceStats;
   ExtendedValue zeroValue;
 };

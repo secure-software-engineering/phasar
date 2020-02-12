@@ -11,6 +11,7 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
 target_link_libraries(myphasartool
   LINK_PUBLIC
   phasar_config
@@ -27,12 +28,6 @@ target_link_libraries(myphasartool
   phasar_typehierarchy
   phasar_phasarllvm_utils
   phasar_utils
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}

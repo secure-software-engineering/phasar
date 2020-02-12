@@ -52,6 +52,14 @@ public:
     }
   }
 
+  template <typename InputIt>
+  BitVectorSet(InputIt First, InputIt Last) {
+    while (First != Last) {
+      insert(*First);
+      ++First;
+    }
+  }
+
   ~BitVectorSet() = default;
 
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
@@ -148,6 +156,14 @@ public:
     }
   }
 
+  template <typename InputIt>
+  void insert(InputIt First, InputIt Last) {
+    while (First != Last) {
+      insert(*First);
+      ++First;
+    }
+  }
+
   void erase(const T &Data) noexcept {
     auto Search = Position.left.find(Data);
     if (Search != Position.left.end()) {
@@ -207,6 +223,10 @@ public:
 
   friend bool operator!=(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
     return !(Lhs == Rhs);
+  }
+
+  friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
+    return Lhs.Bits < Rhs.Bits;
   }
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
