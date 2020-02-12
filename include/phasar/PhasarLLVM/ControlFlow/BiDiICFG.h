@@ -23,22 +23,22 @@
 
 namespace psr {
 
-template <typename N, typename M> class BiDiICFG : public ICFG<N, M> {
+template <typename N, typename F> class BiDiICFG : public ICFG<N, F> {
 public:
   virtual ~BiDiICFG() = default;
 
   virtual std::vector<N> getPredsOf(N u) = 0;
 
-  virtual std::set<N> getEndPointsOf(M m) = 0;
+  virtual std::set<N> getEndPointsOf(F f) = 0;
 
   virtual std::vector<N> getPredsOfCallAt(N u) = 0;
 
   virtual std::set<N> allNonCallEndNodes() = 0;
 
   // also exposed to some clients who need it
-  // virtual DirectedGraph<N> getOrCreateUnitGraph(M body) = 0;
+  // virtual DirectedGraph<N> getOrCreateUnitGraph(F body) = 0;
 
-  virtual std::vector<N> getParameterRefs(M m) = 0;
+  virtual std::vector<N> getParameterRefs(F f) = 0;
 
   /**
    * Gets whether the given statement is a return site of at least one call

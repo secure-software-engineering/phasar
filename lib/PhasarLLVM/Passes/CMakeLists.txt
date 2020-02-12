@@ -22,11 +22,10 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem REQUIRED)
 target_link_libraries(phasar_passes
   LINK_PUBLIC
-  boost_log
-  boost_filesystem
-  boost_system
+  ${Boost_LIBRARIES}
 )
 
 set_target_properties(phasar_passes

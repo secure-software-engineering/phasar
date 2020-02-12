@@ -22,16 +22,16 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCallee::MapFactsToCallee(
-    const llvm::ImmutableCallSite &callSite, const llvm::Function *destMthd,
+    const llvm::ImmutableCallSite &callSite, const llvm::Function *destFun,
     function<bool(const llvm::Value *)> predicate)
-    : destMthd(destMthd), predicate(predicate) {
+    : destFun(destFun), predicate(predicate) {
   // Set up the actual parameters
   for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
     actuals.push_back(callSite.getArgOperand(idx));
   }
   // Set up the formal parameters
-  for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-    formals.push_back(getNthFunctionArgument(destMthd, idx));
+  for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
+    formals.push_back(getNthFunctionArgument(destFun, idx));
   }
 }
 
@@ -40,16 +40,16 @@ MapFactsToCallee::computeTargets(const llvm::Value *source) {
   if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
     set<const llvm::Value *> res;
     // Handle C-style varargs functions
-    if (destMthd->isVarArg()) {
+    if (destFun->isVarArg()) {
       // Map actual parameter into corresponding formal parameter.
       for (unsigned idx = 0; idx < actuals.size(); ++idx) {
         if (source == actuals[idx] && predicate(actuals[idx])) {
-          if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
+          if (idx >= destFun->arg_size() && !destFun->isDeclaration()) {
             // Over-approximate by trying to add the
             //   alloca [1 x %struct.__va_list_tag], align 16
             // to the results
             // find the allocated %struct.__va_list_tag and generate it
-            for (auto &BB : *destMthd) {
+            for (auto &BB : *destFun) {
               for (auto &I : BB) {
                 if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                   if (Alloc->getAllocatedType()->isArrayTy() &&

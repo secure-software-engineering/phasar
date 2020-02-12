@@ -116,6 +116,8 @@ public:
                 LLVMTypeHierarchy *TH = nullptr,
                 LLVMPointsToInfo *PT = nullptr);
 
+  LLVMBasedICFG(const LLVMBasedICFG &);
+
   ~LLVMBasedICFG() override;
 
   std::set<const llvm::Function *> getAllFunctions() const override;

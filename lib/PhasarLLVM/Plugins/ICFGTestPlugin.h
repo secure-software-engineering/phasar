@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/Plugins/Interfaces/ControlFlow/ICFGPlugin.h>
 
@@ -32,7 +32,7 @@ using json = nlohmann::json;
 class ICFGTestPlugin : public ICFGPlugin {
 public:
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
 
   ICFGTestPlugin(ProjectIRDB &IRDB, const std::vector<std::string> EntryPoints);
 
@@ -40,16 +40,16 @@ public:
 
   // CFG parts
 
-  m_t getFunctionOf(n_t stmt) const override;
+  f_t getFunctionOf(n_t stmt) const override;
 
   std::vector<n_t> getPredsOf(n_t stmt) const override;
 
   std::vector<n_t> getSuccsOf(n_t stmt) const override;
 
   std::vector<std::pair<n_t, n_t>>
-  getAllControlFlowEdges(m_t fun) const override;
+  getAllControlFlowEdges(f_t fun) const override;
 
-  std::vector<n_t> getAllInstructionsOf(m_t fun) const override;
+  std::vector<n_t> getAllInstructionsOf(f_t fun) const override;
 
   bool isExitStmt(n_t stmt) const override;
 
@@ -65,17 +65,17 @@ public:
 
   std::string getStatementId(n_t stmt) const override;
 
-  std::string getFunctionName(m_t fun) const override;
+  std::string getFunctionName(f_t fun) const override;
 
-  void print(m_t F, std::ostream &OS = std::cout) const override;
+  void print(f_t F, std::ostream &OS = std::cout) const override;
 
-  nlohmann::json getAsJson(m_t F) const override;
+  nlohmann::json getAsJson(f_t F) const override;
 
   // ICFG parts
 
-  std::set<m_t> getAllFunctions() const override;
+  std::set<f_t> getAllFunctions() const override;
 
-  m_t getFunction(const std::string &fun) const override;
+  f_t getFunction(const std::string &fun) const override;
 
   bool isCallStmt(n_t stmt) const override;
 
@@ -85,15 +85,15 @@ public:
 
   std::set<n_t> allNonCallStartNodes() const override;
 
-  std::set<m_t> getCalleesOfCallAt(n_t stmt) const override;
+  std::set<f_t> getCalleesOfCallAt(n_t stmt) const override;
 
-  std::set<n_t> getCallersOf(m_t fun) const override;
+  std::set<n_t> getCallersOf(f_t fun) const override;
 
-  std::set<n_t> getCallsFromWithin(m_t fun) const override;
+  std::set<n_t> getCallsFromWithin(f_t fun) const override;
 
-  std::set<n_t> getStartPointsOf(m_t fun) const override;
+  std::set<n_t> getStartPointsOf(f_t fun) const override;
 
-  std::set<n_t> getExitPointsOf(m_t fun) const override;
+  std::set<n_t> getExitPointsOf(f_t fun) const override;
 
   std::set<n_t> getReturnSitesOfCallAt(n_t stmt) const override;
 

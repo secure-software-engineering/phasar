@@ -128,11 +128,17 @@ public:
 
   void operator()() { solve(); }
 
-  void dumpResults(std::ostream &OS = std::cout) {}
+  void dumpResults(std::ostream &OS = std::cout) {
+    DataFlowSolver.dumpResults(OS);
+  }
 
-  void emitTextualReport(std::ostream &OS) {}
+  void emitTextReport(std::ostream &OS = std::cout) {
+    DataFlowSolver.emitTextReport(OS);
+  }
 
-  void emitGraphicalReport() {}
+  void emitGraphicalReport(std::ostream &OS = std::cout) {
+    DataFlowSolver.emitGraphicalReport(OS);
+  }
 
   void releaseAllHelperAnalyses() {
     releasePointerInformation();
@@ -140,7 +146,9 @@ public:
     releaseTypeHierarchy();
   }
 
-  TypeHierarchyTy *releasePointerInformation() { return PointerInfo.release(); }
+  PointerAnalysisTy *releasePointerInformation() {
+    return PointerInfo.release();
+  }
 
   CallGraphAnalysisTy *releaseCallGraph() { return CallGraph.release(); }
 

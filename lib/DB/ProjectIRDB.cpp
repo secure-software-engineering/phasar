@@ -36,8 +36,8 @@
 #include <phasar/Utils/IO.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace psr;
 using namespace std;
@@ -513,7 +513,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
 }
 
 bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
-  return M->getNamedMetadata("llvm.dbg.cu") != NULL;
+  return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
 bool ProjectIRDB::debugInfoAvailable() const {

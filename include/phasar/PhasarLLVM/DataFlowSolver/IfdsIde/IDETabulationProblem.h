@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_IDETABULATIONPROBLEM_H_
 
+#include <iostream>
 #include <memory>
 #include <set>
 #include <string>
@@ -29,35 +30,44 @@
 namespace psr {
 
 class ProjectIRDB;
-template <typename T, typename M> class TypeHierarchy;
+template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
-class IDETabulationProblem : public IFDSTabulationProblem<N, D, M, T, V, I>,
-                             public virtual EdgeFunctions<N, D, M, L>,
+class IDETabulationProblem : public IFDSTabulationProblem<N, D, F, T, V, I>,
+                             public virtual EdgeFunctions<N, D, F, L>,
                              public virtual JoinLattice<L>,
                              public virtual EdgeFactPrinter<L> {
-  static_assert(std::is_base_of_v<ICFG<N, M>, I>,
+  static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
 
 public:
-  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+  IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                        const I *ICF, const PointsToInfo<V, N> *PT,
                        std::set<std::string> EntryPoints = {})
-      : IFDSTabulationProblem<N, D, M, T, V, I>(IRDB, TH, ICF, PT,
+      : IFDSTabulationProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT,
                                                 EntryPoints) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
-  virtual void emitTextReport(std::ostream &os,
-                              const SolverResults<N, D, L> &SR) {
-    os << "No text report available!\n";
+  virtual void emitTextReport(const SolverResults<N, D, L> &SR,
+                              std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+  virtual void emitGraphicalReport(const SolverResults<N, D, L> &SR,
+                                   std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
   }
 #pragma clang diagnostic pop
 private:
-  using IFDSTabulationProblem<N, D, M, T, V, I>::emitTextReport;
+  using IFDSTabulationProblem<N, D, F, T, V, I>::emitTextReport;
+  using IFDSTabulationProblem<N, D, F, T, V, I>::emitGraphicalReport;
 };
 
 } // namespace psr

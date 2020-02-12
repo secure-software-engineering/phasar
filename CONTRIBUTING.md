@@ -33,3 +33,8 @@ If you are using PhASAR without the wish or expertise to contribute to its code 
 Thanks for contributing to the PhASAR project.
 
 `std::cout << "Thank you!\n";`
+
+## Additional Notes for Student Assistants
+When implementing a new feature please name you feature branch according to the following naming scheme:
+
+* `f-CamelCase`

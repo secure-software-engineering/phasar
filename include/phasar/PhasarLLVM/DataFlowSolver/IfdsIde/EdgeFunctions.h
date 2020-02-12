@@ -23,20 +23,20 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename V> class EdgeFunctions {
+template <typename N, typename D, typename F, typename V> class EdgeFunctions {
 public:
   virtual ~EdgeFunctions() = default;
   virtual std::shared_ptr<EdgeFunction<V>>
   getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
-  getCallEdgeFunction(N callStmt, D srcNode, M destinationMethod,
+  getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction,
                       D destNode) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
-  getReturnEdgeFunction(N callSite, M calleeMethod, N exitStmt, D exitNode,
+  getReturnEdgeFunction(N callSite, F calleeFunction, N exitStmt, D exitNode,
                         N reSite, D retNode) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
-                           std::set<M> callees) = 0;
+                           std::set<F> callees) = 0;
   virtual std::shared_ptr<EdgeFunction<V>>
   getSummaryEdgeFunction(N curr, D currNode, N succ, D succNode) = 0;
 };

@@ -48,13 +48,13 @@ IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallFlowFunction(IFDSProtoAnalysis::n_t callStmt,
-                                       IFDSProtoAnalysis::m_t destMthd) {
+                                       IFDSProtoAnalysis::f_t destFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
-                                      IFDSProtoAnalysis::m_t calleeMthd,
+                                      IFDSProtoAnalysis::f_t calleeFun,
                                       IFDSProtoAnalysis::n_t exitStmt,
                                       IFDSProtoAnalysis::n_t retSite) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
@@ -63,13 +63,13 @@ IFDSProtoAnalysis::getRetFlowFunction(IFDSProtoAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getCallToRetFlowFunction(
     IFDSProtoAnalysis::n_t callSite, IFDSProtoAnalysis::n_t retSite,
-    set<IFDSProtoAnalysis::m_t> callees) {
+    set<IFDSProtoAnalysis::f_t> callees) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getSummaryFlowFunction(IFDSProtoAnalysis::n_t callStmt,
-                                          IFDSProtoAnalysis::m_t destMthd) {
+                                          IFDSProtoAnalysis::f_t destFun) {
   return Identity<IFDSProtoAnalysis::d_t>::getInstance();
 }
 
@@ -102,8 +102,8 @@ void IFDSProtoAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSProtoAnalysis::printMethod(ostream &os,
-                                    IFDSProtoAnalysis::m_t m) const {
+void IFDSProtoAnalysis::printFunction(ostream &os,
+                                      IFDSProtoAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

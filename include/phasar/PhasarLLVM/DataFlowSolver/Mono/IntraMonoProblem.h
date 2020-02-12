@@ -31,21 +31,21 @@ namespace psr {
 struct HasNoConfigurationType;
 
 class ProjectIRDB;
-template <typename T, typename M> class TypeHierarchy;
+template <typename T, typename F> class TypeHierarchy;
 template <typename V, typename N> class PointsToInfo;
-template <typename N, typename M> class CFG;
+template <typename N, typename F> class CFG;
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename C>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
-                         public MethodPrinter<M> {
-  static_assert(std::is_base_of_v<CFG<N, M>, C>,
+                         public FunctionPrinter<F> {
+  static_assert(std::is_base_of_v<CFG<N, F>, C>,
                 "C must implement the CFG interface!");
 
 protected:
   const ProjectIRDB *IRDB;
-  const TypeHierarchy<T, M> *TH;
+  const TypeHierarchy<T, F> *TH;
   const C *CF;
   const PointsToInfo<V, N> *PT;
   std::set<std::string> EntryPoints;
@@ -55,7 +55,7 @@ public:
   // a user problem can override the type of configuration to be used, if any
   using ConfigurationTy = HasNoConfigurationType;
 
-  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, M> *TH,
+  IntraMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                    const C *CF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
@@ -75,7 +75,7 @@ public:
 
   const ProjectIRDB *getProjectIRDB() const { return IRDB; }
 
-  const TypeHierarchy<T, M> *getTypeHierarchy() const { return TH; }
+  const TypeHierarchy<T, F> *getTypeHierarchy() const { return TH; }
 
   const C *getCFG() const { return CF; }
 

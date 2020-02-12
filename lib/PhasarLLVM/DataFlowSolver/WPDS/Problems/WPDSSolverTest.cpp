@@ -27,7 +27,7 @@ WPDSSolverTest::WPDSSolverTest(const ProjectIRDB *IRDB,
                                const LLVMBasedICFG *ICF,
                                const LLVMPointsToInfo *PT,
                                std::set<std::string> EntryPoints)
-    : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::m_t,
+    : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::f_t,
                   WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,
                   WPDSSolverTest::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
 
@@ -39,13 +39,13 @@ WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t curr,
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getCallFlowFunction(WPDSSolverTest::n_t callStmt,
-                                    WPDSSolverTest::m_t destMthd) {
+                                    WPDSSolverTest::f_t destFun) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getRetFlowFunction(WPDSSolverTest::n_t callSite,
-                                   WPDSSolverTest::m_t calleeMthd,
+                                   WPDSSolverTest::f_t calleeFun,
                                    WPDSSolverTest::n_t exitStmt,
                                    WPDSSolverTest::n_t retSite) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
@@ -54,13 +54,13 @@ WPDSSolverTest::getRetFlowFunction(WPDSSolverTest::n_t callSite,
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getCallToRetFlowFunction(WPDSSolverTest::n_t callSite,
                                          WPDSSolverTest::n_t retSite,
-                                         set<WPDSSolverTest::m_t> callees) {
+                                         set<WPDSSolverTest::f_t> callees) {
   return Identity<WPDSSolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getSummaryFlowFunction(WPDSSolverTest::n_t curr,
-                                       WPDSSolverTest::m_t destMthd) {
+                                       WPDSSolverTest::f_t destFun) {
   return nullptr;
 }
 
@@ -75,14 +75,14 @@ WPDSSolverTest::getNormalEdgeFunction(WPDSSolverTest::n_t curr,
 shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
 WPDSSolverTest::getCallEdgeFunction(WPDSSolverTest::n_t callStmt,
                                     WPDSSolverTest::d_t srcNode,
-                                    WPDSSolverTest::m_t destinationMethod,
+                                    WPDSSolverTest::f_t destinationFunction,
                                     WPDSSolverTest::d_t destNode) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSSolverTest::l_t>>
 WPDSSolverTest::getReturnEdgeFunction(WPDSSolverTest::n_t callSite,
-                                      WPDSSolverTest::m_t calleeMethod,
+                                      WPDSSolverTest::f_t calleeFunction,
                                       WPDSSolverTest::n_t exitStmt,
                                       WPDSSolverTest::d_t exitNode,
                                       WPDSSolverTest::n_t reSite,
@@ -95,7 +95,7 @@ WPDSSolverTest::getCallToRetEdgeFunction(WPDSSolverTest::n_t callSite,
                                          WPDSSolverTest::d_t callNode,
                                          WPDSSolverTest::n_t retSite,
                                          WPDSSolverTest::d_t retSiteNode,
-                                         set<WPDSSolverTest::m_t> callees) {
+                                         set<WPDSSolverTest::f_t> callees) {
   return EdgeIdentity<WPDSSolverTest::l_t>::getInstance();
 }
 
@@ -147,8 +147,8 @@ void WPDSSolverTest::printDataFlowFact(std::ostream &os,
   os << llvmIRToString(d);
 }
 
-void WPDSSolverTest::printMethod(std::ostream &os,
-                                 WPDSSolverTest::m_t m) const {
+void WPDSSolverTest::printFunction(std::ostream &os,
+                                   WPDSSolverTest::f_t m) const {
   os << m->getName().str();
 }
 

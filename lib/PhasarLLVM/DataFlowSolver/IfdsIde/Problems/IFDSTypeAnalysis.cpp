@@ -45,7 +45,7 @@ IFDSTypeAnalysis::getNormalFlowFunction(IFDSTypeAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t callStmt,
-                                      IFDSTypeAnalysis::m_t destMthd) {
+                                      IFDSTypeAnalysis::f_t destFun) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t source) override {
@@ -57,7 +57,7 @@ IFDSTypeAnalysis::getCallFlowFunction(IFDSTypeAnalysis::n_t callStmt,
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
-                                     IFDSTypeAnalysis::m_t calleeMthd,
+                                     IFDSTypeAnalysis::f_t calleeFun,
                                      IFDSTypeAnalysis::n_t exitStmt,
                                      IFDSTypeAnalysis::n_t retSite) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
@@ -72,7 +72,7 @@ IFDSTypeAnalysis::getRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
                                            IFDSTypeAnalysis::n_t retSite,
-                                           set<IFDSTypeAnalysis::m_t> callees) {
+                                           set<IFDSTypeAnalysis::f_t> callees) {
   struct TAFF : FlowFunction<IFDSTypeAnalysis::d_t> {
     set<IFDSTypeAnalysis::d_t>
     computeTargets(IFDSTypeAnalysis::d_t source) override {
@@ -84,7 +84,7 @@ IFDSTypeAnalysis::getCallToRetFlowFunction(IFDSTypeAnalysis::n_t callSite,
 
 shared_ptr<FlowFunction<IFDSTypeAnalysis::d_t>>
 IFDSTypeAnalysis::getSummaryFlowFunction(IFDSTypeAnalysis::n_t curr,
-                                         IFDSTypeAnalysis::m_t destMthd) {
+                                         IFDSTypeAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -115,7 +115,8 @@ void IFDSTypeAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSTypeAnalysis::printMethod(ostream &os, IFDSTypeAnalysis::m_t m) const {
+void IFDSTypeAnalysis::printFunction(ostream &os,
+                                     IFDSTypeAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

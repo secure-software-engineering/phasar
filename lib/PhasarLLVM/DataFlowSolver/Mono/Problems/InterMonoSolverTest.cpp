@@ -19,7 +19,7 @@
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
@@ -32,7 +32,7 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
-                       InterMonoSolverTest::m_t, InterMonoSolverTest::t_t,
+                       InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
                        InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(
           IRDB, TH, ICF, PT, EntryPoints) {}
 
@@ -112,8 +112,8 @@ void InterMonoSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d) << '\n';
 }
 
-void InterMonoSolverTest::printMethod(ostream &os,
-                                      const llvm::Function *m) const {
+void InterMonoSolverTest::printFunction(ostream &os,
+                                        const llvm::Function *m) const {
   os << m->getName().str();
 }
 

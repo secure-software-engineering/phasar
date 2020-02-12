@@ -43,13 +43,13 @@ IFDSSignAnalysis::getNormalFlowFunction(IFDSSignAnalysis::n_t curr,
 
 shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::getCallFlowFunction(IFDSSignAnalysis::n_t callStmt,
-                                      IFDSSignAnalysis::m_t destMthd) {
+                                      IFDSSignAnalysis::f_t destFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
-                                     IFDSSignAnalysis::m_t calleeMthd,
+                                     IFDSSignAnalysis::f_t calleeFun,
                                      IFDSSignAnalysis::n_t exitStmt,
                                      IFDSSignAnalysis::n_t retSite) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
@@ -58,13 +58,13 @@ IFDSSignAnalysis::getRetFlowFunction(IFDSSignAnalysis::n_t callSite,
 shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::getCallToRetFlowFunction(IFDSSignAnalysis::n_t callSite,
                                            IFDSSignAnalysis::n_t retSite,
-                                           set<IFDSSignAnalysis::m_t> callees) {
+                                           set<IFDSSignAnalysis::f_t> callees) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::getSummaryFlowFunction(IFDSSignAnalysis::n_t callStmt,
-                                         IFDSSignAnalysis::m_t destMthd) {
+                                         IFDSSignAnalysis::f_t destFun) {
   return Identity<IFDSSignAnalysis::d_t>::getInstance();
 }
 
@@ -97,7 +97,8 @@ void IFDSSignAnalysis::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSSignAnalysis::printMethod(ostream &os, IFDSSignAnalysis::m_t m) const {
+void IFDSSignAnalysis::printFunction(ostream &os,
+                                     IFDSSignAnalysis::f_t m) const {
   os << m->getName().str();
 }
 

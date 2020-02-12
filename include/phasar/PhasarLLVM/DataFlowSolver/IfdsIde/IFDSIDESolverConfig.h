@@ -36,7 +36,7 @@ struct IFDSIDESolverConfig {
   bool followReturnsPastSeeds = false;
   bool autoAddZero = true;
   bool computeValues = true;
-  bool recordEdges = false;
+  bool recordEdges = true;
   bool emitESG =
       (PhasarConfig::VariablesMap().count("emit-esg-as-dot"))
           ? PhasarConfig::VariablesMap()["emit-esg-as-dot"].as<bool>()

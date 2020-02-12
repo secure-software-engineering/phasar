@@ -38,7 +38,7 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                                          const LLVMPointsToInfo *PT,
                                          std::set<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
-                       IntraMonoSolverTest::m_t, IntraMonoSolverTest::t_t,
+                       IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
                        IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
           IRDB, TH, CF, PT, EntryPoints) {}
 
@@ -84,8 +84,8 @@ void IntraMonoSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IntraMonoSolverTest::printMethod(ostream &os,
-                                      const llvm::Function *m) const {
+void IntraMonoSolverTest::printFunction(ostream &os,
+                                        const llvm::Function *m) const {
   os << m->getName().str();
 }
 

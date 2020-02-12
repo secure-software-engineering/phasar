@@ -235,28 +235,28 @@ IFDSUninitializedVariables::getNormalFlowFunction(
 shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::n_t callStmt,
-    IFDSUninitializedVariables::m_t destMthd) {
+    IFDSUninitializedVariables::f_t destFun) {
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     llvm::ImmutableCallSite callSite(callStmt);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
-      const llvm::Function *destMthd;
+      const llvm::Function *destFun;
       llvm::ImmutableCallSite callSite;
       const llvm::Value *zerovalue;
       vector<const llvm::Value *> actuals;
       vector<const llvm::Value *> formals;
       UVFF(const llvm::Function *dm, llvm::ImmutableCallSite cs,
            const llvm::Value *zv)
-          : destMthd(dm), callSite(cs), zerovalue(zv) {
+          : destFun(dm), callSite(cs), zerovalue(zv) {
         // set up the actual parameters
         for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // set up the formal parameters
-        /*for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-          formals.push_back(getNthFunctionArgument(destMthd, idx));
+        /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
+          formals.push_back(getNthFunctionArgument(destFun, idx));
         }*/
-        for (auto &arg : destMthd->args()) {
+        for (auto &arg : destFun->args()) {
           formals.push_back(&arg);
         }
       }
@@ -284,7 +284,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
 
           // on zerovalue -> gen all locals parameter
           /* set<const llvm::Value *> res;
-          for (auto &BB : *destMthd) {
+          for (auto &BB : *destFun) {
             for (auto &inst : BB) {
               if (auto alloc = llvm::dyn_cast<llvm::AllocaInst>(&inst)) {
                 // check if the allocated value is of a primitive type
@@ -311,7 +311,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(destMthd, callSite, ZeroValue);
+    return make_shared<UVFF>(destFun, callSite, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -319,7 +319,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
 shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getRetFlowFunction(
     IFDSUninitializedVariables::n_t callSite,
-    IFDSUninitializedVariables::m_t calleeMthd,
+    IFDSUninitializedVariables::f_t calleeFun,
     IFDSUninitializedVariables::n_t exitStmt,
     IFDSUninitializedVariables::n_t retSite) {
   if (llvm::isa<llvm::CallInst>(callSite) ||
@@ -365,7 +365,7 @@ shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getCallToRetFlowFunction(
     IFDSUninitializedVariables::n_t callSite,
     IFDSUninitializedVariables::n_t retSite,
-    set<IFDSUninitializedVariables::m_t> callees) {
+    set<IFDSUninitializedVariables::f_t> callees) {
   //----------------------------------------------------------------------
   // Handle pointer/reference parameters
   //----------------------------------------------------------------------
@@ -393,7 +393,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::getSummaryFlowFunction(
     IFDSUninitializedVariables::n_t callStmt,
-    IFDSUninitializedVariables::m_t destMthd) {
+    IFDSUninitializedVariables::f_t destFun) {
   return nullptr;
 }
 
@@ -436,15 +436,15 @@ void IFDSUninitializedVariables::printDataFlowFact(
   os << llvmIRToShortString(d);
 }
 
-void IFDSUninitializedVariables::printMethod(
-    ostream &os, IFDSUninitializedVariables::m_t m) const {
+void IFDSUninitializedVariables::printFunction(
+    ostream &os, IFDSUninitializedVariables::f_t m) const {
   os << m->getName().str();
 }
 
 void IFDSUninitializedVariables::emitTextReport(
-    ostream &os,
     const SolverResults<IFDSUninitializedVariables::n_t,
-                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR) {
+                        IFDSUninitializedVariables::d_t, BinaryDomain> &SR,
+    ostream &os) {
   os << "====================== IFDS-Uninitialized-Analysis Report "
         "======================\n";
   if (UndefValueUses.empty()) {

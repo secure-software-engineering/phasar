@@ -47,7 +47,7 @@ class IntraMonoFullConstantPropagation
 public:
   typedef const llvm::Instruction *n_t;
   typedef std::pair<const llvm::Value *, unsigned> d_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedCFG i_t;
@@ -84,7 +84,7 @@ public:
   printDataFlowFact(std::ostream &os,
                     std::pair<const llvm::Value *, unsigned> d) const override;
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override;
+  void printFunction(std::ostream &os, const llvm::Function *m) const override;
 };
 
 } // namespace psr

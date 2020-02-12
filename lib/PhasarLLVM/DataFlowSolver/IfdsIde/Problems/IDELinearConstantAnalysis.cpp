@@ -129,24 +129,24 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
-    IDELinearConstantAnalysis::m_t destMthd) {
+    IDELinearConstantAnalysis::f_t destFun) {
   // Map the actual parameters into the formal parameters
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     struct LCAFF : FlowFunction<const llvm::Value *> {
       vector<const llvm::Value *> actuals;
       vector<const llvm::Value *> formals;
-      const llvm::Function *destMthd;
+      const llvm::Function *destFun;
       LCAFF(llvm::ImmutableCallSite callSite,
-            IDELinearConstantAnalysis::m_t destMthd)
-          : destMthd(destMthd) {
+            IDELinearConstantAnalysis::f_t destFun)
+          : destFun(destFun) {
         // Set up the actual parameters
         for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
           actuals.push_back(callSite.getArgOperand(idx));
         }
         // Set up the formal parameters
-        for (unsigned idx = 0; idx < destMthd->arg_size(); ++idx) {
-          formals.push_back(getNthFunctionArgument(destMthd, idx));
+        for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
+          formals.push_back(getNthFunctionArgument(destFun, idx));
         }
       }
       set<IDELinearConstantAnalysis::d_t>
@@ -154,13 +154,13 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         set<IDELinearConstantAnalysis::d_t> res;
         for (unsigned idx = 0; idx < actuals.size(); ++idx) {
           if (source == actuals[idx]) {
-            // Check for C-style varargs: idx >= destMthd->arg_size()
-            if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
+            // Check for C-style varargs: idx >= destFun->arg_size()
+            if (idx >= destFun->arg_size() && !destFun->isDeclaration()) {
               // Over-approximate by trying to add the
               //   alloca [1 x %struct.__va_list_tag], align 16
               // to the results
               // find the allocated %struct.__va_list_tag and generate it
-              for (auto &BB : *destMthd) {
+              for (auto &BB : *destFun) {
                 for (auto &I : BB) {
                   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                     if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -184,7 +184,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
           // Special case: Check if function is called with integer literals as
           // parameter (in case of varargs ignore)
           if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
-              idx < destMthd->arg_size() &&
+              idx < destFun->arg_size() &&
               llvm::isa<llvm::ConstantInt>(actuals[idx])) {
             res.insert(formals[idx]); // corresponding formal
           }
@@ -196,7 +196,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
         return res;
       }
     };
-    return make_shared<LCAFF>(llvm::ImmutableCallSite(callStmt), destMthd);
+    return make_shared<LCAFF>(llvm::ImmutableCallSite(callStmt), destFun);
   }
   // Pass everything else as identity
   return Identity<IDELinearConstantAnalysis::d_t>::getInstance();
@@ -205,7 +205,7 @@ IDELinearConstantAnalysis::getCallFlowFunction(
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
-    IDELinearConstantAnalysis::m_t calleeMthd,
+    IDELinearConstantAnalysis::f_t calleeFun,
     IDELinearConstantAnalysis::n_t exitStmt,
     IDELinearConstantAnalysis::n_t retSite) {
   // Handle the case: %x = call i32 ...
@@ -249,7 +249,7 @@ IDELinearConstantAnalysis::getRetFlowFunction(
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t callSite,
-    IDELinearConstantAnalysis::n_t retSite, set<m_t> callees) {
+    IDELinearConstantAnalysis::n_t retSite, set<f_t> callees) {
   for (auto callee : callees) {
     if (!ICF->getStartPointsOf(callee).empty()) {
       return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
@@ -267,7 +267,7 @@ IDELinearConstantAnalysis::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getSummaryFlowFunction(
     IDELinearConstantAnalysis::n_t callStmt,
-    IDELinearConstantAnalysis::m_t destMthd) {
+    IDELinearConstantAnalysis::f_t destFun) {
   return nullptr;
 }
 
@@ -417,7 +417,7 @@ shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::n_t callStmt,
     IDELinearConstantAnalysis::d_t srcNode,
-    IDELinearConstantAnalysis::m_t destinationMethod,
+    IDELinearConstantAnalysis::f_t destinationFunction,
     IDELinearConstantAnalysis::d_t destNode) {
   // Case: Passing constant integer as parameter
   if (isZeroValue(srcNode) && !isZeroValue(destNode)) {
@@ -436,7 +436,7 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
 shared_ptr<EdgeFunction<IDELinearConstantAnalysis::l_t>>
 IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::n_t callSite,
-    IDELinearConstantAnalysis::m_t calleeMethod,
+    IDELinearConstantAnalysis::f_t calleeFunction,
     IDELinearConstantAnalysis::n_t exitStmt,
     IDELinearConstantAnalysis::d_t exitNode,
     IDELinearConstantAnalysis::n_t reSite,
@@ -459,7 +459,7 @@ IDELinearConstantAnalysis::getCallToRetEdgeFunction(
     IDELinearConstantAnalysis::d_t callNode,
     IDELinearConstantAnalysis::n_t retSite,
     IDELinearConstantAnalysis::d_t retSiteNode,
-    set<IDELinearConstantAnalysis::m_t> callees) {
+    set<IDELinearConstantAnalysis::f_t> callees) {
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
@@ -806,8 +806,8 @@ void IDELinearConstantAnalysis::printDataFlowFact(
   os << llvmIRToShortString(d);
 }
 
-void IDELinearConstantAnalysis::printMethod(
-    ostream &os, IDELinearConstantAnalysis::m_t m) const {
+void IDELinearConstantAnalysis::printFunction(
+    ostream &os, IDELinearConstantAnalysis::f_t m) const {
   os << m->getName().str();
 }
 
@@ -823,9 +823,10 @@ void IDELinearConstantAnalysis::printEdgeFact(
 }
 
 void IDELinearConstantAnalysis::emitTextReport(
-    std::ostream &os, const SolverResults<IDELinearConstantAnalysis::n_t,
-                                          IDELinearConstantAnalysis::d_t,
-                                          IDELinearConstantAnalysis::l_t> &SR) {
+    const SolverResults<IDELinearConstantAnalysis::n_t,
+                        IDELinearConstantAnalysis::d_t,
+                        IDELinearConstantAnalysis::l_t> &SR,
+    std::ostream &os) {
   os << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
   if (!IRDB->debugInfoAvailable()) {

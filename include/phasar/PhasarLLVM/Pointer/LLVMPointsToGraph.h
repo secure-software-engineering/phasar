@@ -26,7 +26,7 @@
 
 #include <llvm/IR/CallSite.h>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/Config/Configuration.h>
 

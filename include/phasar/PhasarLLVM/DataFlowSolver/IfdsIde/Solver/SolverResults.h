@@ -19,6 +19,7 @@
 
 #include <map>
 #include <set>
+#include <type_traits>
 #include <unordered_map>
 
 #include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
@@ -35,7 +36,7 @@ public:
   SolverResults(Table<N, D, L> &res_tab, D zv)
       : results(res_tab), zeroValue(zv) {}
 
-  L valueAt(N stmt, D node) const { return results.get(stmt, node); }
+  L resultAt(N stmt, D node) const { return results.get(stmt, node); }
 
   std::unordered_map<D, L> resultsAt(N stmt, bool stripZero = false) const {
     std::unordered_map<D, L> result = results.row(stmt);
@@ -51,13 +52,18 @@ public:
     return result;
   }
 
+  // this function only exists for IFDS problems which use BinaryDomain as their
+  // value domain L
+  template <typename ValueDomain = L,
+            typename = typename std::enable_if_t<
+                std::is_same_v<ValueDomain, BinaryDomain>>>
   std::set<D> ifdsResultsAt(N stmt) const {
-    std::set<D> keyset;
-    std::unordered_map<D, BinaryDomain> map = this->resultsAt(stmt);
-    for (auto d : map) {
-      keyset.insert(d.first);
+    std::set<D> KeySet;
+    std::unordered_map<D, BinaryDomain> ResultMap = this->resultsAt(stmt);
+    for (auto FlowFact : ResultMap) {
+      KeySet.insert(FlowFact.first);
     }
-    return keyset;
+    return KeySet;
   }
 };
 

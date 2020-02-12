@@ -43,13 +43,13 @@ IFDSSolverTest::getNormalFlowFunction(IFDSSolverTest::n_t curr,
 
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getCallFlowFunction(IFDSSolverTest::n_t callStmt,
-                                    IFDSSolverTest::m_t destMthd) {
+                                    IFDSSolverTest::f_t destFun) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t callSite,
-                                   IFDSSolverTest::m_t calleeMthd,
+                                   IFDSSolverTest::f_t calleeFun,
                                    IFDSSolverTest::n_t exitStmt,
                                    IFDSSolverTest::n_t retSite) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
@@ -58,13 +58,13 @@ IFDSSolverTest::getRetFlowFunction(IFDSSolverTest::n_t callSite,
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getCallToRetFlowFunction(IFDSSolverTest::n_t callSite,
                                          IFDSSolverTest::n_t retSite,
-                                         set<IFDSSolverTest::m_t> callees) {
+                                         set<IFDSSolverTest::f_t> callees) {
   return Identity<IFDSSolverTest::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSSolverTest::d_t>>
 IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t callStmt,
-                                       IFDSSolverTest::m_t destMthd) {
+                                       IFDSSolverTest::f_t destFun) {
   return nullptr;
 }
 
@@ -98,7 +98,7 @@ void IFDSSolverTest::printDataFlowFact(ostream &os,
   os << llvmIRToString(d);
 }
 
-void IFDSSolverTest::printMethod(ostream &os, IFDSSolverTest::m_t m) const {
+void IFDSSolverTest::printFunction(ostream &os, IFDSSolverTest::f_t m) const {
   os << m->getName().str();
 }
 

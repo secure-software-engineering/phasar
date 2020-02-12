@@ -5,6 +5,7 @@
 #ifndef IFDSFIELDSENSTAINTANALYSIS_H
 #define IFDSFIELDSENSTAINTANALYSIS_H
 
+#include <iostream>
 #include <map>
 #include <memory>
 #include <set>
@@ -41,7 +42,7 @@ class IFDSFieldSensTaintAnalysis
 public:
   typedef ExtendedValue d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
@@ -60,11 +61,11 @@ public:
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getCallFlowFunction(const llvm::Instruction *callStmt,
-                      const llvm::Function *destMthd) override;
+                      const llvm::Function *destFun) override;
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getRetFlowFunction(const llvm::Instruction *callSite,
-                     const llvm::Function *calleeMthd,
+                     const llvm::Function *calleeFun,
                      const llvm::Instruction *exitStmt,
                      const llvm::Instruction *retSite) override;
 
@@ -75,15 +76,15 @@ public:
 
   std::shared_ptr<FlowFunction<ExtendedValue>>
   getSummaryFlowFunction(const llvm::Instruction *callStmt,
-                         const llvm::Function *destMthd) override;
+                         const llvm::Function *destFun) override;
 
   std::map<const llvm::Instruction *, std::set<ExtendedValue>>
   initialSeeds() override;
 
   void
-  emitTextReport(std::ostream &os,
-                 const SolverResults<const llvm::Instruction *, ExtendedValue,
-                                     BinaryDomain> &solverResults) override;
+  emitTextReport(const SolverResults<const llvm::Instruction *, ExtendedValue,
+                                     BinaryDomain> &solverResults,
+                 std::ostream &OS = std::cout) override;
 
   ExtendedValue createZeroValue() const override {
     // create a special value to represent the zero value!
@@ -116,7 +117,7 @@ public:
     }
   }
 
-  void printMethod(std::ostream &os, const llvm::Function *m) const override {
+  void printFunction(std::ostream &os, const llvm::Function *m) const override {
     os << m->getName().str();
   }
 

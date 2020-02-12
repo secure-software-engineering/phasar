@@ -29,7 +29,7 @@ WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
                                        const LLVMPointsToInfo *PT,
                                        std::set<std::string> EntryPoints)
     : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
-                  WPDSAliasCollector::m_t, WPDSAliasCollector::t_t,
+                  WPDSAliasCollector::f_t, WPDSAliasCollector::t_t,
                   WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
                   WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
 
@@ -41,13 +41,13 @@ WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t curr,
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getCallFlowFunction(WPDSAliasCollector::n_t callStmt,
-                                        WPDSAliasCollector::m_t destMthd) {
+                                        WPDSAliasCollector::f_t destFun) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getRetFlowFunction(WPDSAliasCollector::n_t callSite,
-                                       WPDSAliasCollector::m_t calleeMthd,
+                                       WPDSAliasCollector::f_t calleeFun,
                                        WPDSAliasCollector::n_t exitStmt,
                                        WPDSAliasCollector::n_t retSite) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
@@ -56,13 +56,13 @@ WPDSAliasCollector::getRetFlowFunction(WPDSAliasCollector::n_t callSite,
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getCallToRetFlowFunction(
     WPDSAliasCollector::n_t callSite, WPDSAliasCollector::n_t retSite,
-    set<WPDSAliasCollector::m_t> callees) {
+    set<WPDSAliasCollector::f_t> callees) {
   return Identity<WPDSAliasCollector::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getSummaryFlowFunction(WPDSAliasCollector::n_t curr,
-                                           WPDSAliasCollector::m_t destMthd) {
+                                           WPDSAliasCollector::f_t destFun) {
   return nullptr;
 }
 
@@ -77,14 +77,14 @@ WPDSAliasCollector::getNormalEdgeFunction(WPDSAliasCollector::n_t curr,
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallEdgeFunction(
     WPDSAliasCollector::n_t callStmt, WPDSAliasCollector::d_t srcNode,
-    WPDSAliasCollector::m_t destinationMethod,
+    WPDSAliasCollector::f_t destinationFunction,
     WPDSAliasCollector::d_t destNode) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
 shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getReturnEdgeFunction(WPDSAliasCollector::n_t callSite,
-                                          WPDSAliasCollector::m_t calleeMethod,
+                                          WPDSAliasCollector::f_t calleeFunction,
                                           WPDSAliasCollector::n_t exitStmt,
                                           WPDSAliasCollector::d_t exitNode,
                                           WPDSAliasCollector::n_t reSite,
@@ -96,7 +96,7 @@ shared_ptr<EdgeFunction<WPDSAliasCollector::l_t>>
 WPDSAliasCollector::getCallToRetEdgeFunction(
     WPDSAliasCollector::n_t callSite, WPDSAliasCollector::d_t callNode,
     WPDSAliasCollector::n_t retSite, WPDSAliasCollector::d_t retSiteNode,
-    set<WPDSAliasCollector::m_t> callees) {
+    set<WPDSAliasCollector::f_t> callees) {
   return EdgeIdentity<WPDSAliasCollector::l_t>::getInstance();
 }
 
@@ -144,8 +144,8 @@ void WPDSAliasCollector::printDataFlowFact(std::ostream &os,
   os << llvmIRToString(d);
 }
 
-void WPDSAliasCollector::printMethod(std::ostream &os,
-                                     WPDSAliasCollector::m_t m) const {
+void WPDSAliasCollector::printFunction(std::ostream &os,
+                                       WPDSAliasCollector::f_t m) const {
   os << m->getName().str();
 }
 

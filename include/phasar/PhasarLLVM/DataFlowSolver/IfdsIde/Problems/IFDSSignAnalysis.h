@@ -39,7 +39,7 @@ class IFDSSignAnalysis
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
+  typedef const llvm::Function *f_t;
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG i_t;
@@ -54,19 +54,19 @@ public:
                                                            n_t succ) override;
 
   std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+                                                         f_t destFun) override;
 
   std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
+                                                        f_t calleeFun,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+                           std::set<f_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  getSummaryFlowFunction(n_t callStmt, f_t destFun) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -78,7 +78,7 @@ public:
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printMethod(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, f_t m) const override;
 };
 
 } // namespace psr

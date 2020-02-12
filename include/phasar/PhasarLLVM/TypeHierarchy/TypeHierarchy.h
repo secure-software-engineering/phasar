@@ -13,13 +13,13 @@
 #include <set>
 #include <string>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/TypeHierarchy/VFTable.h>
 
 namespace psr {
 
-template <typename T, typename M> class TypeHierarchy {
+template <typename T, typename F> class TypeHierarchy {
 public:
   virtual ~TypeHierarchy() = default;
 
@@ -41,7 +41,7 @@ public:
 
   virtual bool hasVFTable(T Type) const = 0;
 
-  virtual const VFTable<M> *getVFTable(T Type) const = 0;
+  virtual const VFTable<F> *getVFTable(T Type) const = 0;
 
   virtual size_t size() const = 0;
 
@@ -52,9 +52,9 @@ public:
   virtual nlohmann::json getAsJson() const = 0;
 };
 
-template <typename T, typename M>
+template <typename T, typename F>
 static inline std::ostream &operator<<(std::ostream &OS,
-                                       const TypeHierarchy<T, M> &TH) {
+                                       const TypeHierarchy<T, F> &TH) {
   TH.print(OS);
   return OS;
 }
