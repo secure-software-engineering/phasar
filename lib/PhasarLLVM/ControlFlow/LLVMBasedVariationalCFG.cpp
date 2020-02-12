@@ -14,6 +14,8 @@
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
 
+#include <z3++.h>
+
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
 

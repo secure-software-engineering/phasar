@@ -24,6 +24,12 @@ else()
   )
 endif()
 
+find_package(Z3 4.8.7 REQUIRED)
+target_link_libraries(phasar_controlflow
+  LINK_PUBLIC  
+  z3
+)
+
 set_target_properties(phasar_controlflow
   PROPERTIES
   LINKER_LANGUAGE CXX

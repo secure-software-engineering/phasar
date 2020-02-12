@@ -1,6 +1,14 @@
+/******************************************************************************
+ * Copyright (c) 2020 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, Philipp Schubert and others
+ *****************************************************************************/
+
 #include <gtest/gtest.h>
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVariabilityTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
@@ -18,7 +26,7 @@ class IDEVariabilityTabulationProblemTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/linear_constant/";
+      "build/test/llvm_test_code/variability/";
   const std::set<std::string> EntryPoints = {"main"};
 
   // Function - Line Nr - Variable - Value
@@ -34,23 +42,21 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
-                       &PT);
     LLVMBasedVariationalICFG VICFG(*IRDB, CallGraphAnalysisType::OTF,
                                    EntryPoints, &TH, &PT);
-    IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &ICFG, &PT, EntryPoints);
+    IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &VICFG, &PT, EntryPoints);
     IDEVariabilityTabulationProblem<
         IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-        IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+        IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
         IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
         IDELinearConstantAnalysis::i_t>
-        vara(LCAProblem, VICFG);
+        VARAProblem(LCAProblem, VICFG);
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::m_t, IDELinearConstantAnalysis::t_t,
+              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
               IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
               VariationalICFG<IDELinearConstantAnalysis::n_t,
-                              IDELinearConstantAnalysis::m_t, z3::expr>>
-        LCASolver(vara);
+                              IDELinearConstantAnalysis::f_t, z3::expr>>
+        LCASolver(VARAProblem);
     LCASolver.solve();
     if (printDump) {
       LCASolver.dumpResults();
@@ -84,6 +90,14 @@ protected:
     EXPECT_EQ(RelevantResults, GroundTruth);
   }
 }; // Test Fixture
+
+TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_TwoVariablesDesugared) {
+  auto Results = doAnalysis("twovariables_desugared_c.ll", true);
+  // std::set<LCACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 2, "i", 13);
+  // GroundTruth.emplace("main", 3, "i", 13);
+  // compareResults(Results, GroundTruth);
+}
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {

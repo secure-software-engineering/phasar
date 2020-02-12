@@ -126,7 +126,8 @@ add_subdirectory(external/WALi-OpenNWA)
 include_directories(external/WALi-OpenNWA/Source/wali/include)
 
 # Z3 solver
-find_package(Z3 4.8.7)
+find_package(Z3 4.8.7 REQUIRED)
+include_directories(${Z3_CXX_INCLUDE_DIRS})
 
 if (NOT Z3_FOUND)
   message(FATAL_ERROR "Z3 >= 4.8.7 has not been found.")

@@ -52,8 +52,7 @@ public:
     }
   }
 
-  template <typename InputIt>
-  BitVectorSet(InputIt First, InputIt Last) {
+  template <typename InputIt> BitVectorSet(InputIt First, InputIt Last) {
     while (First != Last) {
       insert(*First);
       ++First;
@@ -156,8 +155,7 @@ public:
     }
   }
 
-  template <typename InputIt>
-  void insert(InputIt First, InputIt Last) {
+  template <typename InputIt> void insert(InputIt First, InputIt Last) {
     while (First != Last) {
       insert(*First);
       ++First;
