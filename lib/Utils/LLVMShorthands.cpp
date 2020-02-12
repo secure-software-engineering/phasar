@@ -31,7 +31,7 @@
 
 #include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Macros.h>
+#include <phasar/Utils/Utilities.h>
 
 #include <stdlib.h>
 

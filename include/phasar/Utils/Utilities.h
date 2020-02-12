@@ -7,14 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_UTILS_MACROS_H_
-#define PHASAR_UTILS_MACROS_H_
+#ifndef PHASAR_UTILS_UTILITIES_H_
+#define PHASAR_UTILS_UTILITIES_H_
 
 #include <iosfwd>
 #include <set>
 #include <string>
 #include <vector>
-// Should include <iostream> due to the Macros using std::cerr
 
 namespace llvm {
 class Type;
@@ -22,25 +21,7 @@ class Type;
 
 namespace psr {
 
-#define MYDEBUG
-
-#define HEREANDNOW                                                             \
-  std::cerr << "file: " << __FILE__ << " line: " << __LINE__                   \
-            << " function: " << __func__ << std::endl;
-
-#define DIE_HARD exit(-1);
-
-#define UNRECOVERABLE_CXX_ERROR_COND(BOOL, STRING)                             \
-  if (!BOOL) {                                                                 \
-    HEREANDNOW;                                                                \
-    std::cerr << STRING << std::endl;                                          \
-    exit(-1);                                                                  \
-  }
-
-#define UNRECOVERABLE_CXX_ERROR_UNCOND(STRING)                                 \
-  HEREANDNOW;                                                                  \
-  std::cerr << STRING << std::endl;                                            \
-  exit(-1);
+std::string createTimeStamp();
 
 std::string cxx_demangle(const std::string &mangled_name);
 

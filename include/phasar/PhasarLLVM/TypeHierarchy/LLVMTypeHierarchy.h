@@ -32,7 +32,7 @@
 
 #include <gtest/gtest_prod.h>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>

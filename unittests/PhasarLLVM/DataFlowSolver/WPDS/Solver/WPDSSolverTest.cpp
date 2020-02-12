@@ -57,7 +57,7 @@ namespace bfs = boost::filesystem;
 //     if (DFA == "ID") {
 //       WPDSSolverTest T(&DB, &H, &I, &PT, {"main"});
 //       WPDSSolver<WPDSSolverTest::n_t, WPDSSolverTest::d_t,
-//       WPDSSolverTest::m_t,
+//       WPDSSolverTest::f_t,
 //                  WPDSSolverTest::t_t, WPDSSolverTest::v_t,
 //                  WPDSSolverTest::l_t, WPDSSolverTest::i_t>
 //           S(T);
@@ -74,7 +74,7 @@ namespace bfs = boost::filesystem;
 //       // WPDSSolver<
 //       //     WPDSLinearConstantAnalysis::n_t,
 //       WPDSLinearConstantAnalysis::d_t,
-//       //     WPDSLinearConstantAnalysis::m_t,
+//       //     WPDSLinearConstantAnalysis::f_t,
 //       WPDSLinearConstantAnalysis::t_t,
 //       //     WPDSLinearConstantAnalysis::v_t,
 //       WPDSLinearConstantAnalysis::l_t,

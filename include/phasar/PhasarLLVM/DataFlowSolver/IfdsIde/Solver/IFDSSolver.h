@@ -25,14 +25,14 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename T, typename V,
+template <typename N, typename D, typename F, typename T, typename V,
           typename I>
-class IFDSSolver : public IDESolver<N, D, M, T, V, BinaryDomain, I> {
+class IFDSSolver : public IDESolver<N, D, F, T, V, BinaryDomain, I> {
 public:
-  using ProblemTy = IFDSTabulationProblem<N, D, M, T, V, I>;
+  using ProblemTy = IFDSTabulationProblem<N, D, F, T, V, I>;
 
-  IFDSSolver(IFDSTabulationProblem<N, D, M, T, V, I> &ifdsProblem)
-      : IDESolver<N, D, M, T, V, BinaryDomain, I>(ifdsProblem) {}
+  IFDSSolver(IFDSTabulationProblem<N, D, F, T, V, I> &ifdsProblem)
+      : IDESolver<N, D, F, T, V, BinaryDomain, I>(ifdsProblem) {}
 
   ~IFDSSolver() override = default;
 

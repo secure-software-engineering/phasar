@@ -9,6 +9,7 @@ else()
   )
 endif()
 
+find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
 target_link_libraries(phasar-clang
   LINK_PUBLIC
   phasar_config
@@ -28,12 +29,6 @@ target_link_libraries(phasar-clang
   # ${PHASAR_PLUGINS_LIB}
   phasar_pointer
   phasar_typehierarchy
-  boost_program_options
-  boost_filesystem
-  boost_graph
-  boost_system
-  boost_log
-  ${BOOST_THREAD}
   ${SQLITE3_LIBRARY}
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}

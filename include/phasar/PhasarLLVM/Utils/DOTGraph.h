@@ -19,9 +19,10 @@
 
 #include <iosfwd>
 #include <map>
-#include <phasar/Utils/Macros.h>
 #include <set>
 #include <string>
+
+#include <phasar/Utils/Utilities.h>
 
 namespace psr {
 

@@ -28,11 +28,11 @@
 
 namespace psr {
 
-template <typename N, typename D, typename M, typename I,
+template <typename N, typename D, typename F, typename I,
           typename ConcreteTabulationProblem, typename ConcreteSolver>
 class IFDSSummaryGenerator {
 protected:
-  const M toSummarize;
+  const F toSummarize;
   const I icfg;
   const SummaryGenerationStrategy CTXStrategy;
 
@@ -62,7 +62,7 @@ protected:
   };
 
 public:
-  IFDSSummaryGenerator(M Function, I icfg, SummaryGenerationStrategy Strategy)
+  IFDSSummaryGenerator(F Function, I icfg, SummaryGenerationStrategy Strategy)
       : toSummarize(Function), icfg(icfg), CTXStrategy(Strategy) {}
   virtual ~IFDSSummaryGenerator() = default;
   virtual std::set<

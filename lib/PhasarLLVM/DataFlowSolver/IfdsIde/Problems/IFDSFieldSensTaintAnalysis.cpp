@@ -89,15 +89,15 @@ IFDSFieldSensTaintAnalysis::getNormalFlowFunction(
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::getCallFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
+    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
   return std::make_shared<MapTaintedValuesToCallee>(
-      llvm::cast<llvm::CallInst>(callStmt), destMthd, traceStats,
+      llvm::cast<llvm::CallInst>(callStmt), destFun, traceStats,
       getZeroValue());
 }
 
 std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::getRetFlowFunction(
-    const llvm::Instruction *callSite, const llvm::Function *calleeMthd,
+    const llvm::Instruction *callSite, const llvm::Function *calleeFun,
     const llvm::Instruction *exitStmt, const llvm::Instruction *retSite) {
   return std::make_shared<MapTaintedValuesToCaller>(
       llvm::cast<llvm::CallInst>(callSite),
@@ -143,8 +143,8 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
  */
 std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
-    const llvm::Instruction *callStmt, const llvm::Function *destMthd) {
-  const auto destMthdName = destMthd->getName();
+    const llvm::Instruction *callStmt, const llvm::Function *destFun) {
+  const auto destFunName = destFun->getName();
 
   /*
    * We exclude function ptr calls as they will be applied to every
@@ -160,7 +160,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Exclude blacklisted functions here.
    */
 
-  if (taintConfig.isSink(destMthdName))
+  if (taintConfig.isSink(destFunName))
     return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
                                                   getZeroValue());
 
@@ -186,14 +186,14 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintConfig.isSource(destMthdName))
+  if (taintConfig.isSource(destFunName))
     return std::make_shared<GenerateFlowFunction>(callStmt, traceStats,
                                                   getZeroValue());
 
   /*
    * Skip all (other) declarations.
    */
-  bool isDeclaration = destMthd->isDeclaration();
+  bool isDeclaration = destFun->isDeclaration();
   if (isDeclaration)
     return std::make_shared<IdentityFlowFunction>(callStmt, traceStats,
                                                   getZeroValue());
@@ -223,9 +223,9 @@ IFDSFieldSensTaintAnalysis::initialSeeds() {
 }
 
 void IFDSFieldSensTaintAnalysis::emitTextReport(
-    std::ostream &os,
     const SolverResults<const llvm::Instruction *, ExtendedValue, BinaryDomain>
-        &solverResults) {
+        &solverResults,
+    std::ostream &os) {
   std::string FirstEntryPoints = *EntryPoints.begin();
   const std::string lcovTraceFile =
       DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");

@@ -32,8 +32,8 @@
 #include <phasar/Utils/GraphExtensions.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Macros.h>
 #include <phasar/Utils/PAMMMacros.h>
+#include <phasar/Utils/Utilities.h>
 
 using namespace std;
 using namespace psr;
