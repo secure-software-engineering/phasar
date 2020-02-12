@@ -24,6 +24,7 @@
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/EnumFlags.h>
+#include <phasar/Utils/SoundinessFlags.h>
 
 namespace psr {
 
@@ -103,7 +104,7 @@ public:
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     std::set<std::string> EntryPoints,
+                     SoundinessFlag SF, std::set<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      std::string ProjectID = "default-phasar-project",

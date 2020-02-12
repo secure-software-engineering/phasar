@@ -10,6 +10,9 @@
 #ifndef PHASAR_UTILS_SOUNDINESSFLAGS_H_
 #define PHASAR_UTILS_SOUNDINESSFLAGS_H_
 
+#include <iosfwd>
+#include <string>
+
 namespace psr {
 
 enum class SoundinessFlag {

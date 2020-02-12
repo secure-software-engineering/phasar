@@ -53,9 +53,10 @@ namespace psr {
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, std::set<std::string> EntryPoints,
-    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
-    std::string ProjectID, std::string OutDirectory)
+    CallGraphAnalysisType CGTy, SoundinessFlag SF,
+    std::set<std::string> EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions, std::string ProjectID,
+    std::string OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(move(DataFlowAnalyses)),

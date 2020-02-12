@@ -8,6 +8,11 @@
  *****************************************************************************/
 #include <phasar/Utils/SoundinessFlags.h>
 
+#include <ostream>
+#include <string>
+
+#include <llvm/ADT/StringSwitch.h>
+
 using namespace psr;
 
 namespace psr {
