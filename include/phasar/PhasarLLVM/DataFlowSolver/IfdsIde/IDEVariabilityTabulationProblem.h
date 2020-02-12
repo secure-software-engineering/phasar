@@ -84,21 +84,19 @@ public:
   // Edge functions
   std::shared_ptr<EdgeFunction<L>>
   getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) override {
-    // std::cout
-    //     << "IDEVariabilityTabulationProblem::getNormalEdgeFunction applied
-    //     on: "
-    //     << IDEProblem.NtoString(curr) << '\n';
     auto UserEF =
         IDEProblem.getNormalEdgeFunction(curr, currNode, succ, succNode);
-
+    // curr is a special preprocessor #ifdef instruction, we need to add a preprocessor constraint
     if (VarICF.isPPBranchTarget(curr, succ)) {
-      std::cout << "Found PP branch target spawning from: " << IDEProblem.NtoString(curr) << '\n';
-      std::cout << "\tConstraint: " << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
+      std::cout << "PP-Edge constaint: " << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
+      std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
+      std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
+      std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
+      std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
+      // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(), VarICF.getPPConstraintOrTrue(curr, succ));
     }
-    // this->ICF->isPPBranchTarget(curr, succ, Constraint);
-    // if it is not a conditional branch, Constraint is true
-    auto Constraint = VarICF.getTrueCondition();
-    return std::make_shared<VariationalEdgeFunction<L>>(UserEF, Constraint);
+    // ordinary instruction, no preprocessor constraints
+    return std::make_shared<VariationalEdgeFunction<L>>(UserEF, EdgeIdentity<z3::expr>::getInstance());
   }
 
   std::shared_ptr<EdgeFunction<L>> getCallEdgeFunction(N callStmt, D srcNode,

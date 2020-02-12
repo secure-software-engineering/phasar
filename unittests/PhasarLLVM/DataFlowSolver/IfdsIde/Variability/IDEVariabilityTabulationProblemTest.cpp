@@ -91,8 +91,16 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_TwoVariablesDesugared) {
-  auto Results = doAnalysis("twovariables_desugared_c.ll", true);
+// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_TwoVariablesDesugared) {
+//   auto Results = doAnalysis("twovariables_desugared_c.ll", true);
+//   // std::set<LCACompactResult_t> GroundTruth;
+//   // GroundTruth.emplace("main", 2, "i", 13);
+//   // GroundTruth.emplace("main", 3, "i", 13);
+//   // compareResults(Results, GroundTruth);
+// }
+
+TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
+  auto Results = doAnalysis("basic_01_c.ll", true);
   // std::set<LCACompactResult_t> GroundTruth;
   // GroundTruth.emplace("main", 2, "i", 13);
   // GroundTruth.emplace("main", 3, "i", 13);

@@ -14,6 +14,7 @@
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/Support/ErrorHandling.h>
 
 #include <z3++.h>
 
@@ -67,8 +68,7 @@ LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
   case llvm::BinaryOperator::BinaryOps::Xor:
     return xLhs ^ xRhs;
   default:
-    assert(false && "Invalid binary operator");
-    return getTrueCondition();
+    llvm::report_fatal_error("Invalid binary operator");
   }
 }
 
@@ -135,8 +135,7 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
   }
   // std::cerr << "Invalid preprocessor variable: " << llvmIRToString(val)
   //          << std::endl;
-  assert(false && "Invalid preprocessor variable");
-  return getTrueCondition();
+  llvm::report_fatal_error("Invalid preprocessor variable");
 }
 
 z3::expr
@@ -149,8 +148,7 @@ LLVMBasedVariationalCFG::createConstant(const llvm::Constant *val) const {
   } else if (auto cnstFP = llvm::dyn_cast<llvm::ConstantFP>(val)) {
     return CTX.fpa_val(cnstFP->getValueAPF().convertToDouble());
   } else {
-    assert(false && "Invalid constant value");
-    return getTrueCondition();
+    llvm::report_fatal_error("Invalid constant value");
   }
 }
 
@@ -169,15 +167,15 @@ LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
     return createConstant(cnst);
   }
 
-  assert(false && "Unknown expression");
-  return getTrueCondition();
+  llvm::report_fatal_error("Unknown expression");
 }
 
 z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
                                                     z3::expr xInt,
                                                     bool forEquality) const {
-  std::cout << "Compare bool and int: " << xBool << (forEquality ? "==" : "!=")
-            << xInt << std::endl;
+  // std::cout << "Compare bool and int: " << xBool << (forEquality ? "==" :
+  // "!=")
+  // << xInt << std::endl;
   int64_t intVal;
   if (xInt.is_numeral_i64(intVal)) {
     if (forEquality)
@@ -246,8 +244,7 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
   case llvm::CmpInst::FCMP_UNO: // unordered (either nans)
   case llvm::CmpInst::FCMP_ORD: // ordered (no nans)
   default:                      // will not happen
-    assert(false && "Invalid cmp instruction");
-    return getTrueCondition();
+    llvm::report_fatal_error("Invalid cmp instruction");
   }
 
   return getTrueCondition();
@@ -326,7 +323,8 @@ LLVMBasedVariationalCFG::getSuccsOfWithPPConstraints(
     const llvm::Instruction *Stmt) const {
   std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
   for (auto Succ : llvm::successors(Stmt)) {
-    Successors.emplace_back(&Succ->front(), getPPConstraintOrTrue(Stmt, &Succ->front()));
+    Successors.emplace_back(&Succ->front(),
+                            getPPConstraintOrTrue(Stmt, &Succ->front()));
   }
   return Successors;
 }
