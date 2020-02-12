@@ -63,14 +63,13 @@ public:
   virtual ~LLVMBasedVariationalCFG() = default;
 
   std::vector<std::pair<const llvm::Instruction *, z3::expr>>
-  getSuccsOfWithCond(const llvm::Instruction *Stmt) const override;
+  getSuccsOfWithPPConstraints(const llvm::Instruction *Stmt) const override;
 
   bool isPPBranchTarget(const llvm::Instruction *Stmt,
                         const llvm::Instruction *Succ) const override;
 
-  bool isPPBranchTarget(const llvm::Instruction *Stmt,
-                        const llvm::Instruction *Succ,
-                        z3::expr &Cond) const override;
+  z3::expr getPPConstraintOrTrue(const llvm::Instruction *Stmt,
+                                 const llvm::Instruction *Succ) const override;
 
   z3::expr getTrueCondition() const override;
 

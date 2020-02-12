@@ -46,7 +46,7 @@ protected:
   bool doAnalysis(const llvm::Instruction *currInst,
                   const llvm::Instruction *succInst, z3::expr &ret) {
 
-    return VICFG->isPPBranchTarget(currInst, succInst, ret);
+    return VICFG->isPPBranchTarget(currInst, succInst);
   }
 
   void TearDown() override {

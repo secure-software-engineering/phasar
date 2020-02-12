@@ -9,6 +9,7 @@
 
 #include <iostream>
 
+#include <llvm/IR/CFG.h>
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/Instruction.h>
@@ -321,21 +322,11 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
 }
 
 std::vector<std::pair<const llvm::Instruction *, z3::expr>>
-LLVMBasedVariationalCFG::getSuccsOfWithCond(
-    const llvm::Instruction *stmt) const {
+LLVMBasedVariationalCFG::getSuccsOfWithPPConstraints(
+    const llvm::Instruction *Stmt) const {
   std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
-  if (stmt->getNextNode()) {
-    Successors.emplace_back(stmt->getNextNode(), getTrueCondition());
-  }
-  if (stmt->isTerminator()) {
-    for (unsigned i = 0; i < stmt->getNumSuccessors(); ++i) {
-      auto succ = &*stmt->getSuccessor(i)->begin();
-      z3::expr cond = getTrueCondition();
-      if (isPPBranchTarget(stmt, succ, cond))
-        Successors.emplace_back(succ, cond);
-      else
-        Successors.emplace_back(succ, getTrueCondition());
-    }
+  for (auto Succ : llvm::successors(Stmt)) {
+    Successors.emplace_back(&Succ->front(), getPPConstraintOrTrue(Stmt, &Succ->front()));
   }
   return Successors;
 }
@@ -345,12 +336,12 @@ z3::expr LLVMBasedVariationalCFG::getTrueCondition() const {
 }
 
 bool LLVMBasedVariationalCFG::isPPBranchTarget(
-    const llvm::Instruction *stmt, const llvm::Instruction *succ) const {
-  if (auto *T = llvm::dyn_cast<llvm::BranchInst>(stmt)) {
+    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
+  if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (!isPPBranchNode(T))
       return false;
-    for (auto successor : T->successors()) {
-      if (&*successor->begin() == succ) {
+    for (auto Successor : T->successors()) {
+      if (&Successor->front() == Succ) {
         return true;
       }
     }
@@ -358,23 +349,21 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(
   return false;
 }
 
-bool LLVMBasedVariationalCFG::isPPBranchTarget(const llvm::Instruction *stmt,
-                                               const llvm::Instruction *succ,
-                                               z3::expr &condition) const {
-  if (auto br = llvm::dyn_cast<llvm::BranchInst>(stmt);
-      br && br->isConditional()) {
-    if (isPPBranchNode(br, condition)) {
-
+z3::expr LLVMBasedVariationalCFG::getPPConstraintOrTrue(
+    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
+  z3::expr Constraint = getTrueCondition();
+  if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
+      B && B->isConditional()) {
+    if (isPPBranchNode(B, Constraint)) {
       // num successors == 2
-      if (succ == &*br->getSuccessor(0)->begin()) // then-branch
-        return true;
-      else if (succ == &*br->getSuccessor(1)->begin()) { // else-branch
-        condition = !condition;
-        return true;
+      if (Succ == &B->getSuccessor(0)->front()) { // then-branch
+        return Constraint;
+      } else if (Succ == &B->getSuccessor(1)->front()) { // else-branch
+        return !Constraint;
       }
     }
   }
-  return false;
+  return Constraint;
 }
 
 z3::context &LLVMBasedVariationalCFG::getContext() const { return CTX; }
