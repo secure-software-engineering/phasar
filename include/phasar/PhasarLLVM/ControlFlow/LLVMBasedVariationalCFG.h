@@ -71,7 +71,7 @@ public:
   z3::expr getPPConstraintOrTrue(const llvm::Instruction *Stmt,
                                  const llvm::Instruction *Succ) const override;
 
-  z3::expr getTrueCondition() const override;
+  z3::expr getTrueConstraint() const override;
 
   z3::context &getContext() const;
 };

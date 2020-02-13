@@ -73,7 +73,7 @@ protected:
 
 TEST_F(VariabilityCFGTest, twovariables_desugared) {
   initialize("twovariables_desugared_c.ll");
-  z3::expr exp = VICFG->getTrueCondition();
+  z3::expr exp = VICFG->getTrueConstraint();
   auto currInst = IRDB->getInstruction(9);
   auto succInst = IRDB->getInstruction(10);
   ASSERT_NE(currInst, nullptr);

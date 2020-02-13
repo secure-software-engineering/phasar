@@ -113,7 +113,7 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
           return it->second;
         }
         // constexpr auto defined_len = sizeof("_defined") - 1;
-        auto ret = getTrueCondition();
+        auto ret = getTrueConstraint();
         auto defined_pos = name.find_last_of("_defined");
 
         if (defined_pos == name.size() - 1) {
@@ -247,7 +247,7 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
     llvm::report_fatal_error("Invalid cmp instruction");
   }
 
-  return getTrueCondition();
+  return getTrueConstraint();
 }
 
 bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
@@ -280,7 +280,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
 bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
                                              z3::expr &cond) const {
   if (!br->isConditional()) {
-    cond = getTrueCondition();
+    cond = getTrueConstraint();
     return false;
   }
   // cond will most likely be an 'icmp ne i32 ..., 0'
@@ -314,7 +314,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
     // std::cerr << "Fall through" << std::endl;
   } else
     std::cerr << "No user" << std::endl;
-  cond = getTrueCondition();
+  cond = getTrueConstraint();
   return false;
 }
 
@@ -329,7 +329,7 @@ LLVMBasedVariationalCFG::getSuccsOfWithPPConstraints(
   return Successors;
 }
 
-z3::expr LLVMBasedVariationalCFG::getTrueCondition() const {
+z3::expr LLVMBasedVariationalCFG::getTrueConstraint() const {
   return CTX.bool_val(true);
 }
 
@@ -349,7 +349,7 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(
 
 z3::expr LLVMBasedVariationalCFG::getPPConstraintOrTrue(
     const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
-  z3::expr Constraint = getTrueCondition();
+  z3::expr Constraint = getTrueConstraint();
   if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
       B && B->isConditional()) {
     if (isPPBranchNode(B, Constraint)) {

@@ -38,7 +38,7 @@ public:
   virtual std::vector<std::pair<N, C>>
   getSuccsOfWithPPConstraints(N Stmt) const = 0;
 
-  virtual C getTrueCondition() const = 0;
+  virtual C getTrueConstraint() const = 0;
 
   std::vector<std::tuple<N, N, C>>
   getAllControlFlowEdgesWithConstraints(F Fun) const {

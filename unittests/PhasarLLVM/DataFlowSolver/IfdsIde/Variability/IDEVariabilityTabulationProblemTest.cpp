@@ -36,8 +36,8 @@ protected:
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
-  IDELinearConstantAnalysis::lca_restults_t
-  doAnalysis(const std::string &llvmFilePath, bool printDump = false) {
+  // IDELinearConstantAnalysis::lca_restults_t
+  void doAnalysis(const std::string &llvmFilePath, bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
@@ -53,7 +53,8 @@ protected:
         VARAProblem(LCAProblem, VICFG);
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
               IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
+              IDELinearConstantAnalysis::v_t,
+              std::pair<IDELinearConstantAnalysis::l_t, z3::expr>,
               VariationalICFG<IDELinearConstantAnalysis::n_t,
                               IDELinearConstantAnalysis::f_t, z3::expr>>
         LCASolver(VARAProblem);
@@ -61,7 +62,7 @@ protected:
     if (printDump) {
       LCASolver.dumpResults();
     }
-    return LCAProblem.getLCAResults(LCASolver.getSolverResults());
+    // return LCAProblem.getLCAResults(LCASolver.getSolverResults());
   }
 
   void TearDown() override { delete IRDB; }
@@ -91,7 +92,8 @@ protected:
   }
 }; // Test Fixture
 
-// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_TwoVariablesDesugared) {
+// TEST_F(IDEVariabilityTabulationProblemTest,
+// HandleBasic_TwoVariablesDesugared) {
 //   auto Results = doAnalysis("twovariables_desugared_c.ll", true);
 //   // std::set<LCACompactResult_t> GroundTruth;
 //   // GroundTruth.emplace("main", 2, "i", 13);
@@ -100,7 +102,8 @@ protected:
 // }
 
 TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
-  auto Results = doAnalysis("basic_01_c.ll", true);
+  // auto Results = doAnalysis("basic_01_c.ll", true);
+  doAnalysis("basic_01_c.ll", true);
   // std::set<LCACompactResult_t> GroundTruth;
   // GroundTruth.emplace("main", 2, "i", 13);
   // GroundTruth.emplace("main", 3, "i", 13);
