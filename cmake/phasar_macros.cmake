@@ -193,6 +193,9 @@ macro(add_phasar_library name)
   endif(MSVC)
   install(TARGETS ${name}
     EXPORT LLVMExports
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  install(TARGETS ${name}
     EXPORT phasarTargets
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
