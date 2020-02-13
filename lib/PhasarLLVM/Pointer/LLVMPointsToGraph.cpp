@@ -136,7 +136,7 @@ PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Analyzing function: " << F->getName().str());
-  ContainedFunctions.insert(F->getName().str());
+  ContainedFunctions.insert(F);
   bool PrintAll, PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias,
       EvalAAMD, PrintNoModRef, PrintMod, PrintRef, PrintModRef, PrintMust,
       PrintMustMod, PrintMustRef, PrintMustModRef;
@@ -190,8 +190,7 @@ PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
 
   // make vertices for all pointers
   for (auto Pointer : Pointers) {
-    ValueVertexMap[Pointer] = boost::add_vertex(PAG);
-    PAG[ValueVertexMap[Pointer]] = VertexProperties(Pointer);
+    ValueVertexMap[Pointer] = boost::add_vertex(VertexProperties(Pointer), PAG);
   }
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
   for (llvm::SetVector<llvm::Value *>::iterator I1 = Pointers.begin(),
@@ -353,7 +352,7 @@ bool PointsToGraph::representsSingleFunction() {
 
 void PointsToGraph::print(std::ostream &OS) const {
   for (const auto &Fn : ContainedFunctions) {
-    cout << "PointsToGraph for " << Fn << ":\n";
+    cout << "PointsToGraph for " << Fn->getName().str() << ":\n";
     vertex_iterator ui, ui_end;
     for (boost::tie(ui, ui_end) = boost::vertices(PAG); ui != ui_end; ++ui) {
       OS << PAG[*ui].getValueAsString() << " <--> ";
@@ -396,17 +395,54 @@ void PointsToGraph::printValueVertexMap() {
   }
 }
 
+void PointsToGraph::mergeGraph(const PointsToGraph &Other) {
+  typedef graph_t::vertex_descriptor vertex_t;
+  typedef std::map<vertex_t, vertex_t> vertex_map_t;
+  vertex_map_t oldToNewVertexMapping;
+  boost::associative_property_map<vertex_map_t> vertexMapWrapper(
+      oldToNewVertexMapping);
+  boost::copy_graph(Other.PAG, PAG, boost::orig_to_copy(vertexMapWrapper));
+
+  for (const auto &otherValues : Other.ValueVertexMap) {
+    auto mappingIter = oldToNewVertexMapping.find(otherValues.second);
+    if (mappingIter != oldToNewVertexMapping.end()) {
+      ValueVertexMap.insert(
+          make_pair(otherValues.first, mappingIter->second));
+    }
+  }
+}
+
+void PointsToGraph::mergeCallSite(const llvm::ImmutableCallSite &CS,
+                                  const llvm::Function *F) {
+  auto formalArgRange = F->args();
+  auto formalIter = formalArgRange.begin();
+  auto mapEnd = ValueVertexMap.end();
+  for (const auto &arg : CS.args()) {
+    const llvm::Argument *Formal = &*formalIter++;
+    auto argMapIter = ValueVertexMap.find(arg);
+    auto formalMapIter = ValueVertexMap.find(Formal);
+    if (argMapIter != mapEnd && formalMapIter != mapEnd) {
+      boost::add_edge(argMapIter->second, formalMapIter->second,
+                      CS.getInstruction(), PAG);
+    }
+    if (formalIter == formalArgRange.end())
+      break;
+  }
+
+  for (auto Formal : getPointersEscapingThroughReturnsForFunction(F)) {
+    auto instrMapIter = ValueVertexMap.find(CS.getInstruction());
+    auto formalMapIter = ValueVertexMap.find(Formal);
+    if (instrMapIter != mapEnd && formalMapIter != mapEnd) {
+      boost::add_edge(instrMapIter->second, formalMapIter->second,
+                      CS.getInstruction(), PAG);
+    }
+  }
+}
+
 void PointsToGraph::mergeWith(const PointsToGraph *Other,
                               const llvm::Function *F) {
-  if (!ContainedFunctions.count(F->getName().str())) {
-    ContainedFunctions.insert(F->getName().str());
-    copy_graph<PointsToGraph::graph_t, PointsToGraph::vertex_t>(PAG,
-                                                                Other->PAG);
-    ValueVertexMap.clear();
-    vertex_iterator vi, vi_end;
-    for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
-      ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
-    }
+  if (ContainedFunctions.insert(F).second) {
+    mergeGraph(*Other);
   }
 }
 
@@ -414,122 +450,10 @@ void PointsToGraph::mergeWith(
     const PointsToGraph &Other,
     const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>>
         &Calls) {
-  vector<tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
-               const llvm::Instruction *>>
-      v_in_g1_u_in_g2;
-  for (auto Call : Calls) {
-    cout << "performing parameter mapping\n";
-    for (unsigned i = 0; i < Call.first.getNumArgOperands(); ++i) {
-      auto Formal = getNthFunctionArgument(Call.second, i);
-      // cout << "CONTAINS VALUE IN PARAMLIST: " <<
-      // Other.ValueVertexMap.count(Formal) << endl;
-      // Check if the value is of type pointer, therefore it must be contained
-      // in the value_vertex_maps
-      if (ValueVertexMap.count(Call.first.getArgOperand(i)) &&
-          Other.ValueVertexMap.count(Formal)) {
-        v_in_g1_u_in_g2.push_back(
-            tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
-                  const llvm::Instruction *>(
-                ValueVertexMap[Call.first.getArgOperand(i)],
-                Other.ValueVertexMap.at(Formal), Call.first.getInstruction()));
-      }
-    }
-
-    for (auto Formal :
-         Other.getPointersEscapingThroughReturnsForFunction(Call.second)) {
-      if (ValueVertexMap.count(Call.first.getInstruction()) &&
-          Other.ValueVertexMap.count(Formal)) {
-        v_in_g1_u_in_g2.push_back(
-            tuple<PointsToGraph::vertex_t, PointsToGraph::vertex_t,
-                  const llvm::Instruction *>(
-                ValueVertexMap[Call.first.getInstruction()],
-                Other.ValueVertexMap.at(Formal), Call.first.getInstruction()));
-      }
-    }
-    ContainedFunctions.insert(Call.second->getName().str());
-  }
-  merge_graphs<PointsToGraph::graph_t, PointsToGraph::vertex_t,
-               PointsToGraph::EdgeProperties, const llvm::Instruction *>(
-      PAG, Other.PAG, v_in_g1_u_in_g2);
-  ValueVertexMap.clear();
-  vertex_iterator vi, vi_end;
-  for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
-    ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
-  }
-}
-
-void PointsToGraph::mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
-                              const llvm::Function *F) {
-  // Check if points-to graph of F is already within 'this' whole module
-  // points-to graph
-  if (ContainedFunctions.count(F->getName().str())) {
-    for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
-      auto Formal = getNthFunctionArgument(F, i);
-      // Only draw the edges, when these values are of type pointer and
-      // therefore contained in ValueVertexMap
-      if (ValueVertexMap.count(CS.getArgOperand(i)) &&
-          ValueVertexMap.count(Formal)) {
-        boost::add_edge(ValueVertexMap[CS.getArgOperand(i)],
-                        ValueVertexMap[Formal], CS.getInstruction(), PAG);
-      }
-    }
-
-    for (auto Formal : getPointersEscapingThroughReturnsForFunction(F)) {
-      if (ValueVertexMap.count(CS.getInstruction()) &&
-          ValueVertexMap.count(Formal)) {
-        boost::add_edge(ValueVertexMap[CS.getInstruction()],
-                        ValueVertexMap[Formal], CS.getInstruction(), PAG);
-      }
-    }
-  } else {
-    ContainedFunctions.insert(F->getName().str());
-    // TODO this function has to check if F's points-to graph is already
-    // merged into the 'this' points-to graph. If so, is is not allowed to
-    // copy it a second time into 'this' PAG.
-    vector<pair<PointsToGraph::vertex_t, PointsToGraph::vertex_t>>
-        v_in_g1_u_in_g2;
-    for (unsigned i = 0; i < CS.getNumArgOperands(); ++i) {
-      auto Formal = getNthFunctionArgument(F, i);
-      if (ValueVertexMap.count(CS.getArgOperand(i)) &&
-          Other->ValueVertexMap.count(Formal)) {
-        v_in_g1_u_in_g2.push_back(make_pair(ValueVertexMap[CS.getArgOperand(i)],
-                                            Other->ValueVertexMap[Formal]));
-      }
-    }
-
-    for (auto Formal : Other->getPointersEscapingThroughReturnsForFunction(F)) {
-      if (ValueVertexMap.count(CS.getInstruction()) &&
-          Other->ValueVertexMap.count(Formal)) {
-        v_in_g1_u_in_g2.push_back(make_pair(ValueVertexMap[CS.getInstruction()],
-                                            Other->ValueVertexMap[Formal]));
-      }
-    }
-
-    typedef
-        typename boost::property_map<PointsToGraph::graph_t,
-                                     boost::vertex_index_t>::type index_map_t;
-    // for simple adjacency_list<> this type would be more efficient:
-    typedef typename boost::iterator_property_map<
-        typename std::vector<PointsToGraph::vertex_t>::iterator, index_map_t,
-        PointsToGraph::vertex_t, PointsToGraph::vertex_t &>
-        IsoMap;
-    // for more generic graphs, one can try typedef std::map<vertex_t,
-    // vertex_t> IsoMap;
-    vector<PointsToGraph::vertex_t> orig2copy_data(
-        boost::num_vertices(Other->PAG));
-    IsoMap mapV = boost::make_iterator_property_map(
-        orig2copy_data.begin(), get(boost::vertex_index, Other->PAG));
-    boost::copy_graph(Other->PAG, PAG,
-                      boost::orig_to_copy(mapV)); // means g1 += g2
-    for (auto &entry : v_in_g1_u_in_g2) {
-      PointsToGraph::vertex_t u_in_g1 = mapV[entry.second];
-      boost::add_edge(entry.first, u_in_g1, CS.getInstruction(), PAG);
-    }
-  }
-  ValueVertexMap.clear();
-  vertex_iterator vi, vi_end;
-  for (boost::tie(vi, vi_end) = boost::vertices(PAG); vi != vi_end; ++vi) {
-    ValueVertexMap.insert(make_pair(PAG[*vi].V, *vi));
+  ContainedFunctions.insert(Other.ContainedFunctions.begin(), Other.ContainedFunctions.end());
+  mergeGraph(Other);
+  for (const auto &call : Calls) {
+    mergeCallSite(call.first, call.second);
   }
 }
 
