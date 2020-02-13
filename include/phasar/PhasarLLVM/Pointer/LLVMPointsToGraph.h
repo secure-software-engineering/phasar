@@ -116,9 +116,12 @@ private:
 
   /// The points to graph.
   graph_t PAG;
-  std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMap;
+  typedef std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMapT;
+  ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::unordered_set<std::string> ContainedFunctions;
+  std::unordered_set<const llvm::Function* > ContainedFunctions;
+
+  void mergeGraph(const PointsToGraph &Other);
 
 public:
   /**
@@ -213,11 +216,13 @@ public:
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
+
+  void mergeCallSite(const llvm::ImmutableCallSite &CS,
+                     const llvm::Function *F);
+
   void mergeWith(const PointsToGraph &Other,
                  const std::vector<std::pair<llvm::ImmutableCallSite,
                                              const llvm::Function *>> &Calls);
-  void mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
-                 const llvm::Function *F);
 
   /**
    * The value-vertex-map maps each Value of the points-to graph to
