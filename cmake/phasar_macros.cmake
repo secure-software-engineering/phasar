@@ -191,6 +191,10 @@ macro(add_phasar_library name)
     EXPORT LLVMExports
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
+  install(TARGETS ${name}
+    EXPORT phasarTargets
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib${LLVM_LIBDIR_SUFFIX})
   set_property(GLOBAL APPEND PROPERTY LLVM_EXPORTS ${name})
 endmacro(add_phasar_library)
 
