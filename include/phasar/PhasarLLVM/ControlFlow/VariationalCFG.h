@@ -32,7 +32,6 @@ public:
            !this->isPPBranchTarget(Stmt, Succ);
   }
 
-  /// \brief Returns the #ifdef PP constraint
   virtual C getPPConstraintOrTrue(N Stmt, N Succ) const = 0;
 
   virtual std::vector<std::pair<N, C>>
