@@ -24,13 +24,21 @@
 
 namespace psr {
 
+struct z3Less {
+  bool operator()(const z3::expr &Lhs, const z3::expr &Rhs) const {
+    return Lhs.id() < Rhs.id();
+  }
+};
+
+template <typename UserL> using VarL = std::map<z3::expr, UserL, z3Less>;
+
 template <typename UserL>
 class VariationalEdgeFunction
-    : public EdgeFunction<std::vector<std::pair<UserL, z3::expr>>>,
+    : public EdgeFunction<VarL<UserL>>,
       public std::enable_shared_from_this<VariationalEdgeFunction<UserL>> {
 public:
-  using l_t = std::vector<std::pair<UserL, z3::expr>>;
   using user_l_t = UserL;
+  using l_t = VarL<UserL>;
 
 private:
   std::shared_ptr<EdgeFunction<UserL>> UserEF;
@@ -44,13 +52,13 @@ public:
   ~VariationalEdgeFunction() override = default;
 
   l_t computeTarget(l_t Source) override {
-    // std::cout << "Source.size(): " << Source.size() << '\n';
-    if (Source.size() == 1) {
-      auto P = std::make_pair(UserEF->computeTarget(Source[0].first),
-                              Source[0].second);
-      return {P};
+    l_t Res;
+    for (auto &[Constraint, Value] : Source) {
+      Res[Constraint] = UserEF->computeTarget(Value);
+      std::cout << "computeTarget() " << Value << " --> " << Res[Constraint]
+                << '\n';
     }
-    return Source;
+    return Res;
   }
 
   std::shared_ptr<EdgeFunction<l_t>>
@@ -77,8 +85,8 @@ public:
 
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
     std::cout << "VariationalEdgeFunction::equal_to\n";
-    if (auto VEF = dynamic_cast<VariationalEdgeFunction<user_l_t> *>(
-            other.get())) {
+    if (auto VEF =
+            dynamic_cast<VariationalEdgeFunction<user_l_t> *>(other.get())) {
       return UserEF->equal_to(VEF->UserEF);
     }
     return false;

@@ -17,7 +17,10 @@ namespace psr {
 
 template <typename N, typename M, typename C>
 class VariationalICFG : public virtual VariationalCFG<N, M, C>,
-                        public virtual ICFG<N, M> {};
+                        public virtual ICFG<N, M> {
+public:
+    ~VariationalICFG() override = default;
+};
 
 } // namespace psr
 

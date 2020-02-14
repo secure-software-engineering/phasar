@@ -60,7 +60,7 @@ private:
 public:
   LLVMBasedVariationalCFG() = default;
 
-  virtual ~LLVMBasedVariationalCFG() = default;
+  ~LLVMBasedVariationalCFG() override = default;
 
   std::vector<std::pair<const llvm::Instruction *, z3::expr>>
   getSuccsOfWithPPConstraints(const llvm::Instruction *Stmt) const override;

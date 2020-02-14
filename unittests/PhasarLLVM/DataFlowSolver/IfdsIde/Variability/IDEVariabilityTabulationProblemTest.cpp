@@ -54,7 +54,7 @@ protected:
     IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
               IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
               IDELinearConstantAnalysis::v_t,
-              std::vector<std::pair<IDELinearConstantAnalysis::l_t, z3::expr>>,
+              VarL<IDELinearConstantAnalysis::l_t>,
               VariationalICFG<IDELinearConstantAnalysis::n_t,
                               IDELinearConstantAnalysis::f_t, z3::expr>>
         LCASolver(VARAProblem);
@@ -118,6 +118,15 @@ TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_02) {
   // GroundTruth.emplace("main", 3, "i", 13);
   // compareResults(Results, GroundTruth);
 }
+
+// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_03) {
+//   // auto Results = doAnalysis("basic_01_c.ll", true);
+//   doAnalysis("basic_03_c.ll", true);
+//   // std::set<LCACompactResult_t> GroundTruth;
+//   // GroundTruth.emplace("main", 2, "i", 13);
+//   // GroundTruth.emplace("main", 3, "i", 13);
+//   // compareResults(Results, GroundTruth);
+// }
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {

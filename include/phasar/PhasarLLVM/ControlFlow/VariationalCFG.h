@@ -21,7 +21,7 @@ namespace psr {
 template <typename N, typename F, typename C>
 class VariationalCFG : public virtual CFG<N, F> {
 public:
-  virtual ~VariationalCFG() = default;
+  ~VariationalCFG() override = default;
 
   /// \brief True, iff Succ is a successor node of Stmt by an #ifdef branch, or
   /// else true

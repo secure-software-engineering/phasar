@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARIABILITYTABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARIABILITYTABULATIONPROBLEM_H_
 
-#include <vector>
+#include <map>
 
 #include <z3++.h>
 
@@ -28,22 +28,19 @@ namespace psr {
 template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
 class IDEVariabilityTabulationProblem
-    : public IDETabulationProblem<N, D, F, T, V,
-                                  std::vector<std::pair<L, z3::expr>>,
+    : public IDETabulationProblem<N, D, F, T, V, VarL<L>,
                                   VariationalICFG<N, F, z3::expr>> {
 public:
   using user_l_t = L;
-  using l_t = std::vector<std::pair<L, z3::expr>>;
+  using l_t = VarL<L>;
 
 private:
   IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
   LLVMBasedVariationalICFG &VarICF;
 
   const z3::expr TRUE_CONSTRAINT = VarICF.getTrueConstraint();
-  const l_t BOTTOM = std::vector<std::pair<user_l_t, z3::expr>>(
-      {std::make_pair(IDEProblem.bottomElement(), TRUE_CONSTRAINT)});
-  const l_t TOP = std::vector<std::pair<user_l_t, z3::expr>>(
-      {std::make_pair(IDEProblem.topElement(), TRUE_CONSTRAINT)});
+  const l_t BOTTOM = {{TRUE_CONSTRAINT, IDEProblem.bottomElement()}};
+  const l_t TOP = {{TRUE_CONSTRAINT, IDEProblem.topElement()}};
 
 public:
   IDEVariabilityTabulationProblem(
@@ -114,18 +111,18 @@ public:
         IDEProblem.getNormalEdgeFunction(curr, currNode, succ, succNode);
     // curr is a special preprocessor #ifdef instruction, we need to add a
     // preprocessor constraint
-    // if (VarICF.isPPBranchTarget(curr, succ)) {
-    //   std::cout << "PP-Edge constaint: "
-    //             << VarICF.getPPConstraintOrTrue(curr, succ).to_string() <<
-    //             '\n';
-    //   std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
-    //   std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
-    //   std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
-    //   std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
-    //   // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
-    //   // VarICF.getPPConstraintOrTrue(curr, succ));
-    // }
+    if (VarICF.isPPBranchTarget(curr, succ)) {
+      std::cout << "PP-Edge constaint: "
+                << VarICF.getPPConstraintOrTrue(curr, succ).to_string() <<
+                '\n';
+      // std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
+      // std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
+      // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
+      // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
+      // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(), VarICF.getPPConstraintOrTrue(curr, succ));
+    }
     // ordinary instruction, no preprocessor constraints
+    std::cout << "Edge Function: " << *UserEF << '\n';
     return std::make_shared<VariationalEdgeFunction<user_l_t>>(UserEF,
                                                                TRUE_CONSTRAINT);
   }
@@ -166,7 +163,7 @@ public:
   }
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
-    static auto Top = std::make_shared<AllTop<l_t>>(topElement());
+    auto Top = std::make_shared<AllTop<l_t>>(TOP);
     return Top;
   }
 
@@ -174,32 +171,25 @@ public:
 
   l_t bottomElement() override { return BOTTOM; }
 
-  l_t join(l_t lhs, l_t rhs) override {
-    if (lhs.size() == rhs.size()) {
-      std::cout << "USER join\n";
-      return {std::make_pair(IDEProblem.join(lhs[0].first, rhs[0].first),
-                             TRUE_CONSTRAINT)};
-    }
+  l_t join(l_t Lhs, l_t Rhs) override {
+    std::cout << "IDEVariabilityTabulationProblem::join\n";
     std::cout << "lhs: ";
-    printEdgeFact(std::cout, lhs);
+    printEdgeFact(std::cout, Lhs);
     std::cout << "rhs: ";
-    printEdgeFact(std::cout, rhs);
+    printEdgeFact(std::cout, Rhs);
     std::cout << " --> ";
-    if (lhs == BOTTOM || rhs == BOTTOM) {
-      std::cout << "case 1\n";
-      return BOTTOM;
+    for (auto &[LConstraint, LValue] : Lhs) {
+      // case Rhs already contains the constraint
+      if (Rhs.count(LConstraint)) {
+        Rhs[LConstraint] = IDEProblem.join(LValue, Rhs[LConstraint]);
+      } else {
+        // otherwise add the new <constraint, value> pair to Rhs
+        Rhs[LConstraint] = LValue;
+      }
     }
-    if (lhs == TOP) {
-      std::cout << "case 2\n";
-      return rhs;
-    }
-    if (rhs == TOP) {
-      std::cout << "case 3\n";
-      return lhs;
-    }
-    // TODO
-    std::cout << "case 4\n";
-    return lhs;
+    printEdgeFact(std::cout, Rhs);
+    std::cout << '\n';
+    return Rhs;
   }
 
   D createZeroValue() const override { return IDEProblem.createZeroValue(); }
@@ -223,28 +213,13 @@ public:
   }
 
   void printEdgeFact(std::ostream &os, l_t l) const override {
-    for (auto &[Value, Constraint] : l) {
-      os << '<';
+    for (auto &[Constraint, Value] : l) {
+      os << '<' << Constraint.to_string() << " , ";
       IDEProblem.printEdgeFact(os, Value);
-      os << " , " << Constraint.to_string() << "> ; ";
+      os << "> ; ";
     }
   }
 };
-
-bool operator==(const std::vector<std::pair<long, z3::expr>> &LHS,
-                const std::vector<std::pair<long, z3::expr>> &RHS) {
-  std::cout << "YEY!\n";
-  if (LHS.size() != RHS.size()) {
-    return false;
-  }
-  bool Equal = true;
-  for (size_t idx = 0; idx < LHS.size(); ++idx) {
-    if (LHS[idx].first != RHS[idx].first) {
-      Equal = false;
-    }
-  }
-  return Equal;
-}
 
 } // namespace psr
 
