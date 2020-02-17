@@ -1,0 +1,1 @@
+This is a demo tool that uses PhASAR as a library. Currently this is only supported in the f-CMakePackage feature branch of PhASAR. The number of phasar libraries explicitly stated in CMakeLists.txt can be further reduced by stating the non-transitive dependencies of phasar libraries. This is pending work on the PhASAR side.

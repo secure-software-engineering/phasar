@@ -4,6 +4,7 @@
 #include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
 
 #include <boost/graph/isomorphism.hpp>
+#include <phasar/Config/Configuration.h>
 #include <phasar/Utils/LLVMShorthands.h>
 #include <phasar/Utils/Utilities.h>
 
