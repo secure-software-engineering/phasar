@@ -31,6 +31,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace llvm {
 class Instruction;
@@ -55,6 +56,7 @@ class LLVMBasedICFG
 private:
   ProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
+  SoundnessFlag SF;
   bool UserTHInfos = true;
   bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
@@ -113,8 +115,8 @@ private:
 public:
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
-                LLVMTypeHierarchy *TH = nullptr,
-                LLVMPointsToInfo *PT = nullptr);
+                LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
+                SoundnessFlag SF = SoundnessFlag::SOUNDY);
 
   LLVMBasedICFG(const LLVMBasedICFG &);
 

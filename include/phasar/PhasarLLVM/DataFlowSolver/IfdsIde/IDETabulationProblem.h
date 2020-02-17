@@ -26,6 +26,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
@@ -42,12 +43,16 @@ class IDETabulationProblem : public IFDSTabulationProblem<N, D, F, T, V, I>,
   static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
 
+protected:
+  SoundnessFlag SF;
+
 public:
   IDETabulationProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                        const I *ICF, const PointsToInfo<V, N> *PT,
-                       std::set<std::string> EntryPoints = {})
-      : IFDSTabulationProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT,
-                                                EntryPoints) {}
+                       std::set<std::string> EntryPoints = {},
+                       SoundnessFlag SF = SoundnessFlag::SOUNDY)
+      : IFDSTabulationProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
+        SF(SF) {}
   ~IDETabulationProblem() override = default;
   virtual std::shared_ptr<EdgeFunction<L>> allTopFunction() = 0;
 #pragma clang diagnostic push

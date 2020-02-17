@@ -21,6 +21,7 @@
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
@@ -37,13 +38,15 @@ class InterMonoProblem : public IntraMonoProblem<N, D, F, T, V, I> {
 
 protected:
   const I *ICF;
+  SoundnessFlag SF;
 
 public:
   InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                    const I *ICF, const PointsToInfo<V, N> *PT,
-                   std::set<std::string> EntryPoints = {})
+                   std::set<std::string> EntryPoints = {},
+                   SoundnessFlag SF = SoundnessFlag::SOUNDY)
       : IntraMonoProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
-        ICF(ICF) {}
+        ICF(ICF), SF(SF) {}
 
   InterMonoProblem(const InterMonoProblem &copy) = delete;
   InterMonoProblem(InterMonoProblem &&move) = delete;

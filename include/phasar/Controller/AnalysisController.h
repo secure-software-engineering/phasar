@@ -24,7 +24,7 @@
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/SoundinessFlags.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
@@ -58,6 +58,7 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
+  SoundnessFlag SF;
 
   void executeDemandDriven();
 
@@ -104,7 +105,7 @@ public:
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     SoundinessFlag SF, std::set<std::string> EntryPoints,
+                     SoundnessFlag SF, std::set<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      std::string ProjectID = "default-phasar-project",

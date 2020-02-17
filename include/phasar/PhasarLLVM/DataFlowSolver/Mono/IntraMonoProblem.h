@@ -25,6 +25,7 @@
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
