@@ -23,15 +23,18 @@ private:
   enum OpenSSLSecureMemoryState {
     TOP = 42,
     ALLOCATED = 0,
-    FREED = 1,
-    ERROR = 2,
-    BOT = 3
+    ZEROED = 1,
+    FREED = 2,
+    ERROR = 3,
+    BOT = 4
   };
 
   enum class OpenSSLSecureMemoryToken {
     CRYPTO_MALLOC = 0,
-    CRYPTO_FREE = 1,
-    STAR = 2
+    CRYPTO_ZALLOC = 1,
+    CRYPTO_FREE = 2,
+    OPENSSL_CLEANSE = 3,
+    STAR = 4
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLSecureMemoryFuncs;

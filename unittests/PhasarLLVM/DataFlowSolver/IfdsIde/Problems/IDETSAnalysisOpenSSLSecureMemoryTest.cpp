@@ -20,7 +20,7 @@
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
+class IDETSAnalysisOpenSSLSecureMemoryTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
@@ -41,12 +41,13 @@ protected:
   enum OpenSSLSecureMemoryState {
     TOP = 42,
     ALLOCATED = 0,
-    FREED = 1,
-    ERROR = 2,
-    BOT = 3
+    ZEROED = 1,
+    FREED = 2,
+    ERROR = 3,
+    BOT = 4
   };
-  IDETSAnalysisOpenSSLEVPKDFTest() = default;
-  virtual ~IDETSAnalysisOpenSSLEVPKDFTest() = default;
+  IDETSAnalysisOpenSSLSecureMemoryTest() = default;
+  virtual ~IDETSAnalysisOpenSSLSecureMemoryTest() = default;
 
   void Initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
@@ -103,15 +104,31 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, Memory1) {
+TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory1) {
   Initialize({pathToLLFiles + "memory1_c.ll"});
-  llvmtssolver->printReport();
+  // llvmtssolver->printReport();
   std::map<std::size_t, std::map<std::string, int>> gt;
   // TODO add GT values
   gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
             {"3", OpenSSLSecureMemoryState::ALLOCATED}};
   gt[20] = gt[10];
-  gt[29] = {{"3", OpenSSLSecureMemoryState::FREED}};
+  gt[29] = {{"3", OpenSSLSecureMemoryState::ERROR}};
+  compareResults(gt);
+}
+
+TEST_F(IDETSAnalysisOpenSSLSecureMemoryTest, Memory2) {
+  Initialize({pathToLLFiles + "memory2_c.ll"});
+  std::map<size_t, std::map<std::string, int>> gt;
+  gt[10] = {{"8", OpenSSLSecureMemoryState::ALLOCATED},
+            {"3", OpenSSLSecureMemoryState::ALLOCATED}};
+  gt[20] = gt[10];
+  gt[30] = {{"8", OpenSSLSecureMemoryState::ZEROED},
+            {"3", OpenSSLSecureMemoryState::ZEROED},
+            {"27", OpenSSLSecureMemoryState::ZEROED}};
+  gt[32] = {{"8", OpenSSLSecureMemoryState::FREED},
+            {"3", OpenSSLSecureMemoryState::FREED},
+            {"27", OpenSSLSecureMemoryState::FREED},
+            {"30", OpenSSLSecureMemoryState::FREED}};
   compareResults(gt);
 }
 

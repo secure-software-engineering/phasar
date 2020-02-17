@@ -386,7 +386,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
-            CurrentState = TSD.start();
+            // CurrentState = TSD.start();
+            CurrentState = TSD.getNextState(Token, source);
             return CurrentState;
           }
 
