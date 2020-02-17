@@ -35,6 +35,7 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Module.h>
 
+#include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/GraphExtensions.h>

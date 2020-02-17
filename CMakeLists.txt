@@ -51,6 +51,8 @@ option(PHASAR_BUILD_IR "Build IR test code (default is OFF)" OFF)
 
 option(PHASAR_BUILD_DOC "Build documentation" OFF)
 
+option(PHASAR_DEBUG_LIBDEPS "Debug internal library dependencies (private linkage)" OFF)
+
 option(BUILD_SHARED_LIBS "Build shared libraries (default is ON)" ON)
 
 option(PHASAR_ENABLE_WARNINGS "Enable warnings" ON)
@@ -103,7 +105,6 @@ endif()
 # Boost
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-add_definitions(-DBOOST_LOG_DYN_LINK)
 
 # JSON library
 option(JSON_BuildTests OFF)
@@ -233,6 +234,8 @@ if (PHASAR_BUILD_IR)
   add_subdirectory(test)
 endif()
 
+set(INCLUDE_INSTALL_DIR include/ CACHE PATH "Install dir of headers")
+
 # Install targets of phasar-llvm, other executables, and libraries are to be
 # found in the individual subdirectories of tools/
 
@@ -272,6 +275,33 @@ install(DIRECTORY config/
               GROUP_WRITE GROUP_READ
               WORLD_READ
 )
+
+install(EXPORT phasarTargets
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+  NAMESPACE phasar::
+  FILE phasarTargets.cmake
+)
+
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+  Config.cmake.in
+  phasarConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/phasar
+  PATH_VARS INCLUDE_INSTALL_DIR
+  )
+
+write_basic_package_version_file(
+  ${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake
+  VERSION 1.0.0
+  COMPATIBILITY SameMajorVersion
+  )
+
+### Install Config and ConfigVersion files
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/phasarConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/phasarConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/phasar"
+  )
 
 # If the Phasar shared object libraries are not installed into a system folder
 # the so libs must be added manually to the linker search path and the linker
