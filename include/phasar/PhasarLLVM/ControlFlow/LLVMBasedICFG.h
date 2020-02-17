@@ -88,7 +88,7 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::multisetS, boost::vecS,
+  typedef boost::adjacency_list<boost::vecS, boost::vecS,
                                 boost::bidirectionalS, VertexProperties,
                                 EdgeProperties>
       bidigraph_t;
@@ -106,7 +106,7 @@ private:
   /// Maps function names to the corresponding vertex id.
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver *Res);
+  void constructionWalker(const llvm::Function *F, Resolver &Resolver);
 
   struct dependency_visitor;
 
@@ -162,44 +162,7 @@ public:
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
 
-  // provide a VertexPropertyWrite to tell boost how to write a vertex
-  class CallGraphVertexWriter {
-  public:
-    CallGraphVertexWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << CGraph[v].getFunctionName() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &CGraph;
-  };
-
-  // a function to conveniently create the vertex writer
-  CallGraphVertexWriter
-  makeCallGraphVertexWriter(const bidigraph_t &CGraph) const {
-    return CallGraphVertexWriter(CGraph);
-  }
-
-  // provide a EdgePropertyWrite to tell boost how to write an edge
-  class CallGraphEdgeWriter {
-  public:
-    CallGraphEdgeWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << CGraph[v].getCallSiteAsString() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &CGraph;
-  };
-
-  // a function to conveniently create the edge writer
-  CallGraphEdgeWriter makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
-    return CallGraphEdgeWriter(CGraph);
-  }
-
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(std::ostream &OS = std::cout, bool printEdgeLabels = true) const;
 
   void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 

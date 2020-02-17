@@ -28,6 +28,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h>

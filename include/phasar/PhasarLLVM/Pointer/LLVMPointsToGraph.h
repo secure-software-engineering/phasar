@@ -77,6 +77,10 @@ public:
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
     std::string getValueAsString() const;
+
+    // Fetching the users for V is expensive, so we cache the result.
+    mutable std::vector<const llvm::User*> users;
+    std::vector<const llvm::User*> getUsers() const;
   };
 
   /**
@@ -91,7 +95,7 @@ public:
   };
 
   /// Data structure for holding the points-to graph.
-  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                 VertexProperties, EdgeProperties>
       graph_t;
 
