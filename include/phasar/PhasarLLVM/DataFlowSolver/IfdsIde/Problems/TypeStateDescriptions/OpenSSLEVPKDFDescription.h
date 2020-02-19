@@ -36,12 +36,11 @@ private:
   enum OpenSSLEVPKDFState {
     TOP = 42,
     UNINIT = 0,
-    KDF_FETCHED = 1,
-    CTX_ATTACHED = 2,
-    PARAM_INIT = 3,
-    DERIVED = 4,
-    ERROR = 5,
-    BOT = 6
+    CTX_ATTACHED = 1,
+    PARAM_INIT = 2,
+    DERIVED = 3,
+    ERROR = 4,
+    BOT = 5
   };
 
   /**
@@ -50,17 +49,16 @@ private:
    * EVP_KDF_CTX_free().
    */
   enum class OpenSSLEVTKDFToken {
-    EVP_KDF_FETCH = 0,
-    EVP_KDF_CTX_NEW = 1,
-    EVP_KDF_CTX_SET_PARAMS = 2,
-    DERIVE = 3,
-    EVP_KDF_CTX_FREE = 4,
-    STAR = 5
+    EVP_KDF_CTX_NEW = 0,
+    EVP_KDF_CTX_SET_PARAMS = 1,
+    DERIVE = 2,
+    EVP_KDF_CTX_FREE = 3,
+    STAR = 4
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLEVPKDFFuncs;
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKDFState delta[6][7];
+  static const OpenSSLEVPKDFState delta[5][6];
   OpenSSLEVTKDFToken funcNameToToken(const std::string &F) const;
 
 public:

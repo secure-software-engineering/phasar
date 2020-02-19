@@ -24,7 +24,7 @@ class IDETSAnalysisOpenSSLEVPKDFTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/openssl/";
+      "build/test/llvm_test_code/openssl/key_derivation/";
   const std::set<std::string> EntryPoints = {"main"};
 
   ProjectIRDB *IRDB;
@@ -33,16 +33,19 @@ protected:
   LLVMPointsToInfo *PT;
   OpenSSLEVPKDFDescription *OpenSSLEVPKeyDerivationDesc;
   IDETypeStateAnalysis *TSProblem;
+  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+            IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
+            IDETypeStateAnalysis::i_t> *llvmtssolver;
 
   enum OpenSSLEVPKeyDerivationState {
     TOP = 42,
     UNINIT = 0,
-    KDF_FETCHED = 1,
-    CTX_ATTACHED = 2,
-    PARAM_INIT = 3,
-    DERIVED = 4,
-    ERROR = 5,
-    BOT = 6
+    CTX_ATTACHED = 1,
+    PARAM_INIT = 2,
+    DERIVED = 3,
+    ERROR = 4,
+    BOT = 5
   };
   IDETSAnalysisOpenSSLEVPKDFTest() = default;
   virtual ~IDETSAnalysisOpenSSLEVPKDFTest() = default;
@@ -56,6 +59,13 @@ protected:
     OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFDescription();
     TSProblem = new IDETypeStateAnalysis(
         IRDB, TH, ICFG, PT, *OpenSSLEVPKeyDerivationDesc, EntryPoints);
+
+    llvmtssolver =
+        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+                      IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
+                      IDETypeStateAnalysis::i_t>(*TSProblem);
+    llvmtssolver->solve();
   }
 
   void SetUp() override {
@@ -78,16 +88,12 @@ protected:
    * @param solver provides the results
    */
   void compareResults(
-      const std::map<std::size_t, std::map<std::string, int>> &groundTruth,
-      IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-                IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
-                IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-                IDETypeStateAnalysis::i_t> &solver) {
+      const std::map<std::size_t, std::map<std::string, int>> &groundTruth) {
     for (auto InstToGroundTruth : groundTruth) {
       auto Inst = IRDB->getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> results;
-      for (auto Result : solver.resultsAt(Inst, true)) {
+      for (auto Result : llvmtssolver->resultsAt(Inst, true)) {
         if (GT.find(getMetaDataID(Result.first)) != GT.end()) {
           results.insert(std::pair<std::string, int>(
               getMetaDataID(Result.first), Result.second));
@@ -98,23 +104,31 @@ protected:
   }
 }; // Test Fixture
 
-TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_HandleTypeState_01) {
-  Initialize({pathToLLFiles + "openssl_program1_c.ll"});
-  IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
-            IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
-            IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t>
-      llvmtssolver(*TSProblem);
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
+  Initialize({pathToLLFiles + "key-derivation1_c.ll"});
 
-  llvmtssolver.solve();
-  const std::map<std::size_t, std::map<std::string, int>> gt = {
-      {61, {{"60", OpenSSLEVPKeyDerivationState::KDF_FETCHED}}},
-      {62, {{"34", OpenSSLEVPKeyDerivationState::KDF_FETCHED}}},
-      {69,
-       {{"67", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
-        {"35", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}}}};
-  // TODO add more GT values
-  compareResults(gt, llvmtssolver);
+  // llvmtssolver->printReport();
+
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  gt[48] = {{"46", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"20", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[50] = {{"46", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"20", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+
+  gt[92] = {{"46", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+            {"20", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+            {"88", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[98] = {{"95", OpenSSLEVPKeyDerivationState::DERIVED},
+            {"46", OpenSSLEVPKeyDerivationState::DERIVED},
+            {"20", OpenSSLEVPKeyDerivationState::DERIVED},
+            {"88", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[146] = {{"144", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"95", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"46", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"20", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"88", OpenSSLEVPKeyDerivationState::UNINIT}};
+  compareResults(gt);
 }
 
 // main function for the test case
