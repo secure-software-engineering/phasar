@@ -869,7 +869,7 @@ protected:
     for (const auto &seed : allSeeds) {
       N startPoint = seed.first;
       for (D val : seed.second) {
-        setVal(startPoint, val, ideTabulationProblem.bottomElement());
+        setVal(startPoint, val, ideTabulationProblem.topElement());
         std::pair<N, D> superGraphNode(startPoint, val);
         valuePropagationTask(superGraphNode);
       }

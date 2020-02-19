@@ -15,6 +15,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "llvm/IR/Instruction.h"
@@ -24,12 +25,14 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
@@ -40,10 +43,10 @@ namespace psr {
 
 template <typename EdgeFactType = std::string>
 class IDEInstInteractionAnalysisT
-    : public IDETabulationProblem<const llvm::Instruction *,
-                                  const llvm::Value *, const llvm::Function *,
-                                  const llvm::StructType *, const llvm::Value *,
-                                  BitVectorSet<std::string>, LLVMBasedICFG> {
+    : public IDETabulationProblem<
+          const llvm::Instruction *, const llvm::Value *,
+          const llvm::Function *, const llvm::StructType *, const llvm::Value *,
+          LatticeDomain<BitVectorSet<EdgeFactType>>, LLVMBasedICFG> {
 public:
   using d_t = const llvm::Value *;
   using n_t = const llvm::Instruction *;
@@ -53,7 +56,7 @@ public:
 
   // type of the element contained in the sets of edge functions
   using e_t = EdgeFactType;
-  using l_t = BitVectorSet<e_t>;
+  using l_t = LatticeDomain<BitVectorSet<e_t>>;
   using i_t = LLVMBasedICFG;
 
   using EdgeFactGeneratorTy = std::set<e_t>(n_t curr, d_t srcNode,
@@ -61,8 +64,11 @@ public:
 
 private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
-  static inline l_t BOTTOM = {"__BOTTOM__"};
-  static inline l_t TOP = {"__TOP__"};
+  static inline l_t BottomElement = Bottom{};
+  static inline l_t TopElement = Top{};
+  // can be set if a syntactic-only analysis is desired
+  // (without using points-to information)
+  static const bool SyntacticAnalysisOnly = false;
 
 public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
@@ -70,8 +76,12 @@ public:
                               const LLVMBasedICFG *ICF,
                               const LLVMPointsToInfo *PT,
                               std::set<std::string> EntryPoints = {"main"})
-      : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
-    IDETabulationProblem::ZeroValue = createZeroValue();
+      : IDETabulationProblem<const llvm::Instruction *, const llvm::Value *,
+                             const llvm::Function *, const llvm::StructType *,
+                             const llvm::Value *,
+                             LatticeDomain<BitVectorSet<EdgeFactType>>,
+                             LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
+    this->ZeroValue = createZeroValue();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -90,9 +100,76 @@ public:
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-      return std::make_shared<Gen<d_t>>(Alloca, getZeroValue());
+      return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
+    if (!SyntacticAnalysisOnly) {
+
+      // (ii) handle semantic propagation (pointers)
+      if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
+        // if one of the potentially many loaded values holds, the load itself
+        // must also be populated
+        struct IIAFlowFunction : FlowFunction<d_t> {
+          IDEInstInteractionAnalysisT &Problem;
+          const llvm::LoadInst *Load;
+          std::set<d_t> PTS;
+
+          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
+                          const llvm::LoadInst *Load)
+              : Problem(Problem), Load(Load),
+                PTS(Problem.PT->getPointsToSet(Load->getPointerOperand())) {}
+
+          std::set<d_t> computeTargets(d_t src) override {
+            std::set<d_t> Facts;
+            Facts.insert(src);
+            if (PTS.count(src)) {
+              Facts.insert(Load);
+            }
+            return Facts;
+          }
+        };
+        return std::make_shared<IIAFlowFunction>(*this, Load);
+      }
+
+      // (ii) handle semantic propagation (pointers)
+      if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+        // if the value to be stored holds the potentially memory location
+        // that it is stored to must be populated as well
+        struct IIAFlowFunction : FlowFunction<d_t> {
+          IDEInstInteractionAnalysisT &Problem;
+          const llvm::StoreInst *Store;
+          std::set<d_t> ValuePTS;
+          std::set<d_t> PointerPTS;
+
+          IIAFlowFunction(IDEInstInteractionAnalysisT &Problem,
+                          const llvm::StoreInst *Store)
+              : Problem(Problem), Store(Store),
+                ValuePTS(Problem.PT->getPointsToSet(Store->getValueOperand())),
+                PointerPTS(
+                    Problem.PT->getPointsToSet(Store->getPointerOperand())) {}
+
+          std::set<d_t> computeTargets(d_t src) override {
+            std::set<d_t> Facts;
+            Facts.insert(src);
+            // if a value is stored that holds we must generate all potential
+            // memory locations the store might write to
+            if (ValuePTS.count(src)) {
+              Facts.insert(PointerPTS.begin(), PointerPTS.end());
+            }
+            // if the value to be stored does not hold then we must at least add
+            // the store instruction and the points-to set as the instruction
+            // still interacts with the memory locations pointed to be PTS
+            if (PointerPTS.count(src)) {
+              Facts.insert(Store);
+            }
+            return Facts;
+          }
+        };
+        return std::make_shared<IIAFlowFunction>(*this, Store);
+      }
+    }
+
+    // (i) handle syntactic propagation for all other statements
     struct IIAFlowFunction : FlowFunction<d_t> {
       IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
@@ -107,10 +184,12 @@ public:
           Facts.insert(src);
           return Facts;
         }
+        // (i) syntactic propagation
         if (Inst == src) {
           Facts.insert(Inst);
         }
-        // populate and propagate other existing facts
+        // continue syntactic propagation: populate and propagate other existing
+        // facts
         for (auto &Op : Inst->operands()) {
           // if one of the operands holds, also generate the instruction using
           // it
@@ -137,7 +216,8 @@ public:
   inline std::shared_ptr<FlowFunction<d_t>>
   getRetFlowFunction(n_t callSite, f_t calleeMthd, n_t exitStmt,
                      n_t retSite) override {
-    // just use the auto mapping
+    // if pointer parameters hold at the end of a callee function generate all
+    // of the
     return std::make_shared<MapFactsToCaller>(llvm::ImmutableCallSite(callSite),
                                               calleeMthd, exitStmt);
   }
@@ -159,10 +239,10 @@ public:
 
   inline std::map<n_t, std::set<d_t>> initialSeeds() override {
     std::map<n_t, std::set<d_t>> SeedMap;
-    for (auto &EntryPoint : EntryPoints) {
+    for (auto &EntryPoint : this->EntryPoints) {
       SeedMap.insert(
-          std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
-                         std::set<d_t>({getZeroValue()})));
+          std::make_pair(&this->ICF->getFunction(EntryPoint)->front().front(),
+                         std::set<d_t>({this->getZeroValue()})));
     }
     return SeedMap;
   }
@@ -186,31 +266,35 @@ public:
       return EdgeIdentity<l_t>::getInstance();
     }
     // check if the user has registered a fact generator function
-    std::set<e_t> UserEdgeFacts;
+    l_t UserEdgeFacts;
     if (EdgeFactGen) {
-      UserEdgeFacts = EdgeFactGen(curr, currNode, succNode);
-    }
-    if (!UserEdgeFacts.empty()) {
-      // handle generating edges from zero
-      // generate labels from zero when the instruction itself is the flow fact
-      // that is generated
-      if (isZeroValue(currNode) && curr == succNode) {
-        return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
-      }
-      // handle edges that may add new labels to existing facts
-      if (curr == currNode && currNode == succNode) {
-        return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
-      }
-      // generate labels from zero when an operand of the current instruction
-      // is a flow fact that is generated
-      for (auto &Op : curr->operands()) {
-        // also propagate the labels if one of the operands holds
-        if (isZeroValue(currNode) && Op == succNode) {
+      auto EdgeFacts = EdgeFactGen(curr, currNode, succNode);
+      // construct BitVectorSet
+      UserEdgeFacts = l_t(EdgeFacts);
+      if (!EdgeFacts.empty()) {
+        // handle generating edges from zero
+        // generate labels from zero when the instruction itself is the flow
+        // fact that is generated
+        if (isZeroValue(currNode) && curr == succNode) {
           return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
         }
         // handle edges that may add new labels to existing facts
-        if (Op == currNode && currNode == succNode) {
+        if (curr == currNode && currNode == succNode) {
           return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+        }
+        // generate labels from zero when an operand of the current instruction
+        // is a flow fact that is generated
+        for (auto &Op : curr->operands()) {
+          // also propagate the labels if one of the operands holds
+          if (isZeroValue(currNode) && Op == succNode) {
+            return std::make_shared<IIAALabelEdgeFunction>(*this,
+                                                           UserEdgeFacts);
+          }
+          // handle edges that may add new labels to existing facts
+          if (Op == currNode && currNode == succNode) {
+            return std::make_shared<IIAALabelEdgeFunction>(*this,
+                                                           UserEdgeFacts);
+          }
         }
       }
     }
@@ -247,21 +331,23 @@ public:
     return nullptr;
   }
 
-  inline l_t topElement() override { return TOP; }
+  inline l_t topElement() override { return TopElement; }
 
-  inline l_t bottomElement() override { return BOTTOM; }
+  inline l_t bottomElement() override { return BottomElement; }
 
-  inline l_t join(l_t lhs, l_t rhs) override {
-    if (lhs == BOTTOM || rhs == BOTTOM) {
-      return BOTTOM;
+  inline l_t join(l_t Lhs, l_t Rhs) override {
+    if (Lhs == BottomElement || Rhs == BottomElement) {
+      return BottomElement;
     }
-    if (lhs == TOP) {
-      return rhs;
+    if (Lhs == TopElement) {
+      return Rhs;
     }
-    if (rhs == TOP) {
-      return lhs;
+    if (Rhs == TopElement) {
+      return Lhs;
     }
-    return lhs.setUnion(rhs);
+    auto LhsSet = std::get<BitVectorSet<e_t>>(Lhs);
+    auto RhsSet = std::get<BitVectorSet<e_t>>(Rhs);
+    return LhsSet.setUnion(RhsSet);
   }
 
   inline std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override {
@@ -274,15 +360,18 @@ public:
       : public EdgeFunction<l_t>,
         public std::enable_shared_from_this<IIAALabelEdgeFunction> {
   private:
-    const IDEInstInteractionAnalysisT<e_t> &Analysis;
+    IDEInstInteractionAnalysisT<e_t> &Analysis;
     l_t Data;
 
   public:
-    explicit IIAALabelEdgeFunction(
-        const IDEInstInteractionAnalysisT<e_t> &Analysis, std::set<e_t> Data)
+    explicit IIAALabelEdgeFunction(IDEInstInteractionAnalysisT<e_t> &Analysis,
+                                   l_t Data)
         : Analysis(Analysis), Data(Data) {}
 
-    l_t computeTarget(l_t Src) override { return Src.setUnion(Data); }
+    l_t computeTarget(l_t Src) override {
+      return Analysis.join(Src, Data);
+      // return Src.setUnion(Data);
+    }
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
@@ -295,9 +384,9 @@ public:
       }
       if (auto *AS =
               dynamic_cast<IIAALabelEdgeFunction *>(secondFunction.get())) {
-        auto Union = Data.setUnion(AS->Data);
-        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis,
-                                                       Union.getAsSet());
+        // auto Union = Data.setUnion(AS->Data);
+        auto Union = Analysis.join(Data, AS->Data);
+        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis, Union);
       }
       llvm::report_fatal_error("found unexpected edge function");
     }
@@ -314,12 +403,11 @@ public:
       }
       if (auto *AS =
               dynamic_cast<IIAALabelEdgeFunction *>(otherFunction.get())) {
-        auto Union = Data.setUnion(AS->Data);
-        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis,
-                                                       Union.getAsSet());
+        // auto Union = Data.setUnion(AS->Data);
+        auto Union = Analysis.join(Data, AS->Data);
+        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis, Union);
       }
-      return std::make_shared<AllBottom<l_t>>(
-          IDEInstInteractionAnalysisT<e_t>::BOTTOM);
+      return std::make_shared<AllBottom<l_t>>(Analysis.BottomElement);
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
@@ -352,20 +440,26 @@ public:
   }
 
   void printEdgeFact(std::ostream &os, l_t l) const override {
-    auto lset = l.getAsSet();
-    size_t idx = 0;
-    for (const auto &s : lset) {
-      os << s;
-      if (idx != lset.size() - 1) {
-        os << ", ";
+    if (std::holds_alternative<Top>(l)) {
+      os << std::get<Top>(l);
+    } else if (std::holds_alternative<Bottom>(l)) {
+      os << std::get<Bottom>(l);
+    } else {
+      auto lset = std::get<BitVectorSet<e_t>>(l).getAsSet();
+      size_t idx = 0;
+      for (const auto &s : lset) {
+        os << s;
+        if (idx != lset.size() - 1) {
+          os << ", ";
+        }
+        ++idx;
       }
-      ++idx;
     }
   }
 
   void stripBottomResults(std::unordered_map<d_t, l_t> &Res) {
     for (auto it = Res.begin(); it != Res.end();) {
-      if (it->second == BOTTOM) {
+      if (it->second == BottomElement) {
         it = Res.erase(it);
       } else {
         ++it;
@@ -381,19 +475,19 @@ public:
     //   // Emit only IR code, function name and module info
     //   OS << "\nWARNING: No Debug Info available - emiting results without "
     //         "source code mapping!\n";
-    for (const auto *f : ICF->getAllFunctions()) {
+    for (const auto *f : this->ICF->getAllFunctions()) {
       std::string fName = getFunctionNameFromIR(f);
       OS << "\nFunction: " << fName << "\n----------"
          << std::string(fName.size(), '-') << '\n';
-      for (const auto *stmt : ICF->getAllInstructionsOf(f)) {
+      for (const auto *stmt : this->ICF->getAllInstructionsOf(f)) {
         auto results = SR.resultsAt(stmt, true);
         stripBottomResults(results);
         if (!results.empty()) {
-          OS << "At IR statement: " << NtoString(stmt) << '\n';
+          OS << "At IR statement: " << this->NtoString(stmt) << '\n';
           for (auto res : results) {
-            if (res.second != BOTTOM) {
-              OS << "   Fact: " << DtoString(res.first)
-                 << "\n  Value: " << LtoString(res.second) << '\n';
+            if (res.second != BottomElement) {
+              OS << "   Fact: " << this->DtoString(res.first)
+                 << "\n  Value: " << this->LtoString(res.second) << '\n';
             }
           }
           OS << '\n';
