@@ -26,6 +26,7 @@ set(LLVM_LINK_COMPONENTS
   # InstCombine
   Linker
   BitWriter
+  Passes
 )
 
 if(BUILD_SHARED_LIBS)

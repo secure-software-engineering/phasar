@@ -8,6 +8,7 @@ set(LLVM_LINK_COMPONENTS
   Core
   Support
   Analysis
+  Passes
   # Core
   # # Vectorize
   # # ScalarOpts

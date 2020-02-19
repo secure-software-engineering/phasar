@@ -52,8 +52,7 @@ public:
     }
   }
 
-  template <typename InputIt>
-  BitVectorSet(InputIt First, InputIt Last) {
+  template <typename InputIt> BitVectorSet(InputIt First, InputIt Last) {
     while (First != Last) {
       insert(*First);
       ++First;
@@ -156,8 +155,7 @@ public:
     }
   }
 
-  template <typename InputIt>
-  void insert(InputIt First, InputIt Last) {
+  template <typename InputIt> void insert(InputIt First, InputIt Last) {
     while (First != Last) {
       insert(*First);
       ++First;
@@ -231,9 +229,14 @@ public:
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
     OS << '<';
+    size_t Idx = 0;
     for (auto &Position : B.Position.left) {
       if (Position.second < B.Bits.size() && B.Bits[Position.second]) {
-        OS << Position.first << ", ";
+        ++Idx;
+        OS << Position.first;
+        if (Idx < B.size()) {
+          OS << ", ";
+        }
       }
     }
     OS << '>';

@@ -38,7 +38,7 @@ public:
   static const std::string PhasarVersion() { return XSTR(PHASAR_VERSION); }
 
   /// Stores the label/ tag with which we annotate the LLVM IR.
-  static const std::string MetaDataKind() { return "phasar.instruction.id"; }
+  static const std::string MetaDataKind() { return "psr.id"; }
 
   static const std::string ConfigurationDirectory() {
     return configuration_directory;

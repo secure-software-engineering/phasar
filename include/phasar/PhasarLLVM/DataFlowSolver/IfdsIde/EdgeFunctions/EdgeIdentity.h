@@ -73,7 +73,7 @@ public:
   }
 
   void print(std::ostream &OS, bool isForDebug = false) const override {
-    OS << "EdgeId";
+    OS << "EdgeIdentity";
   }
 };
 

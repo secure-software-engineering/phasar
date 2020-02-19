@@ -22,7 +22,7 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCallee::MapFactsToCallee(
-    const llvm::ImmutableCallSite &callSite, const llvm::Function *destFun,
+    llvm::ImmutableCallSite callSite, const llvm::Function *destFun,
     function<bool(const llvm::Value *)> predicate)
     : destFun(destFun), predicate(predicate) {
   // Set up the actual parameters

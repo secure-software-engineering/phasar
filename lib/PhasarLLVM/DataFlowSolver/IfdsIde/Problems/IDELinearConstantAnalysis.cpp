@@ -879,7 +879,7 @@ void IDELinearConstantAnalysis::stripBottomResults(
   }
 }
 
-IDELinearConstantAnalysis::lca_restults_t
+IDELinearConstantAnalysis::lca_results_t
 IDELinearConstantAnalysis::getLCAResults(
     SolverResults<IDELinearConstantAnalysis::n_t,
                   IDELinearConstantAnalysis::d_t,

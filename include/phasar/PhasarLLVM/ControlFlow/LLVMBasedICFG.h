@@ -88,9 +88,8 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::vecS, boost::vecS,
-                                boost::bidirectionalS, VertexProperties,
-                                EdgeProperties>
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                                VertexProperties, EdgeProperties>
       bidigraph_t;
 
   // Let us have some handy typedefs.
@@ -162,7 +161,8 @@ public:
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
 
-  void printAsDot(std::ostream &OS = std::cout, bool printEdgeLabels = true) const;
+  void printAsDot(std::ostream &OS = std::cout,
+                  bool printEdgeLabels = true) const;
 
   void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 
