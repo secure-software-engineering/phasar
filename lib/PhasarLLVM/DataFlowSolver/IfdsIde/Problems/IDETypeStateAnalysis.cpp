@@ -120,20 +120,15 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t source) override {
           // We kill all relevant loacal aliases and alloca's
-
           if (source != Store->getValueOperand() &&
               AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
               // Is simple comparison sufficient?
               /*source == Store->getPointerOperand()*/) {
-            std::cout << "Kill source = " << llvmIRToShortString(source)
-                      << " at " << llvmIRToShortString(Store) << std::endl;
             return {};
           }
           // Generate all local aliases and relevant alloca's from the stored
           // value
           if (source == Store->getValueOperand()) {
-            std::cout << "Store value into " << psr::llvmIRToShortString(Store)
-                      << std::endl;
             AliasesAndAllocas.insert(source);
             return AliasesAndAllocas;
           }
