@@ -26,6 +26,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillMultiple.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/PropagateLoad.h>
@@ -89,13 +90,23 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
       return make_shared<TSFlowFunction>(Load);
     }
   }
+  if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
+    if (hasMatchingType(Gep->getPointerOperand())) {
+      return make_shared<LambdaFlow<d_t>>([=](d_t source) -> set<d_t> {
+        // if (source == Gep->getPointerOperand()) {
+        //  return {source, Gep};
+        //}
+        return {source};
+      });
+    }
+  }
   // Check store instructions for target type. Perform a strong update, i.e.
   // kill the alloca pointed to by the pointer-operand and all alloca's related
   // to the value-operand and then generate them from the value-operand.
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (hasMatchingType(Store)) {
       auto RelevantAliasesAndAllocas = getLocalAliasesAndAllocas(
-          Store->getValueOperand(),
+          Store->getPointerOperand(), // pointer- or value operand???
           curr->getParent()->getParent()->getName().str());
 
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
@@ -108,13 +119,20 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t source) override {
           // We kill all relevant loacal aliases and alloca's
+
           if (source != Store->getValueOperand() &&
-              AliasesAndAllocas.find(source) != AliasesAndAllocas.end()) {
+              /*AliasesAndAllocas.find(source) != AliasesAndAllocas.end()*/
+              // Is simple comparison sufficient?
+              source == Store->getPointerOperand()) {
+            std::cout << "Kill source = " << llvmIRToShortString(source)
+                      << " at " << llvmIRToShortString(Store) << std::endl;
             return {};
           }
           // Generate all local aliases and relevant alloca's from the stored
           // value
           if (source == Store->getValueOperand()) {
+            std::cout << "Store value into " << psr::llvmIRToShortString(Store)
+                      << std::endl;
             AliasesAndAllocas.insert(source);
             return AliasesAndAllocas;
           }
@@ -686,6 +704,7 @@ void IDETypeStateAnalysis::emitTextReport(
     std::ostream &os,
     const SolverResults<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
                         IDETypeStateAnalysis::l_t> &SR) {
+
   os << "\n======= TYPE STATE RESULTS =======\n";
   for (auto &f : ICF->getAllFunctions()) {
     os << '\n' << getFunctionNameFromIR(f) << '\n';
@@ -713,6 +732,10 @@ void IDETypeStateAnalysis::emitTextReport(
                 os << "\nAlloca : " << DtoString(res.first)
                    << "\nState  : " << LtoString(res.second) << '\n';
               }
+            } else {
+              os << "\nInst: " << NtoString(&I) << endl
+                 << "Fact: " << DtoString(res.first) << endl
+                 << "State: " << LtoString(res.second) << endl;
             }
           }
         } else {
@@ -733,6 +756,10 @@ void IDETypeStateAnalysis::emitTextReport(
                 }
                 os << "============================\n";
               }
+            } else {
+              os << "\nInst: " << NtoString(&I) << endl
+                 << "Fact: " << DtoString(res.first) << endl
+                 << "State: " << LtoString(res.second) << endl;
             }
           }
         }

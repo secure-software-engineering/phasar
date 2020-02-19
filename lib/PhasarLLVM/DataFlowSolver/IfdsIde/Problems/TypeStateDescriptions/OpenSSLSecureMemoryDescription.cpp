@@ -47,13 +47,13 @@ const OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryState
          OpenSSLSecureMemoryState::ERROR, OpenSSLSecureMemoryState::ERROR,
          OpenSSLSecureMemoryState::ERROR},
         // OPENSSL_CLEANSE
-        {OpenSSLSecureMemoryState::ZEROED, OpenSSLSecureMemoryState::ZEROED,
+        {OpenSSLSecureMemoryState::BOT, OpenSSLSecureMemoryState::ZEROED,
          OpenSSLSecureMemoryState::ERROR, OpenSSLSecureMemoryState::ERROR,
          OpenSSLSecureMemoryState::ZEROED},
-        // STAR
-        {OpenSSLSecureMemoryState::ALLOCATED, OpenSSLSecureMemoryState::ZEROED,
+        // STAR (kills ZEROED)
+        {OpenSSLSecureMemoryState::BOT, OpenSSLSecureMemoryState::ALLOCATED,
          OpenSSLSecureMemoryState::FREED, OpenSSLSecureMemoryState::ERROR,
-         OpenSSLSecureMemoryState::BOT}};
+         OpenSSLSecureMemoryState::ALLOCATED}};
 
 bool OpenSSLSecureMemoryDescription::isFactoryFunction(
     const std::string &F) const {

@@ -22,11 +22,11 @@ class OpenSSLSecureMemoryDescription : public TypeStateDescription {
 private:
   enum OpenSSLSecureMemoryState {
     TOP = 42,
-    ALLOCATED = 0,
+    BOT = 0,
     ZEROED = 1,
     FREED = 2,
     ERROR = 3,
-    BOT = 4
+    ALLOCATED = 4
   };
 
   enum class OpenSSLSecureMemoryToken {
