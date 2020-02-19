@@ -68,7 +68,7 @@ private:
   static inline l_t TopElement = Top{};
   // can be set if a syntactic-only analysis is desired
   // (without using points-to information)
-  static const bool SyntacticAnalysisOnly = false;
+  const bool SyntacticAnalysisOnly = false;
 
 public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
@@ -153,13 +153,14 @@ public:
             Facts.insert(src);
             // if a value is stored that holds we must generate all potential
             // memory locations the store might write to
-            if (ValuePTS.count(src)) {
+            if (Store->getValueOperand() == src || ValuePTS.count(src)) {
+              Facts.insert(Store->getPointerOperand());
               Facts.insert(PointerPTS.begin(), PointerPTS.end());
             }
             // if the value to be stored does not hold then we must at least add
             // the store instruction and the points-to set as the instruction
             // still interacts with the memory locations pointed to be PTS
-            if (PointerPTS.count(src)) {
+            if (Store->getPointerOperand() == src || PointerPTS.count(src)) {
               Facts.insert(Store);
             }
             return Facts;

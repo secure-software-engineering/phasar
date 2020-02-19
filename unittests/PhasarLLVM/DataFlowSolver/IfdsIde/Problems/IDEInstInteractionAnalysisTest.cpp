@@ -271,7 +271,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_06) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 19, "p", {"1", "2", "4", "9", "11", "14", "16"}));
-  doAnalysisAndCompareResults("basic_06_cpp.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("basic_06_cpp.ll", GroundTruth, false);
 }
 
 TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_01) {
