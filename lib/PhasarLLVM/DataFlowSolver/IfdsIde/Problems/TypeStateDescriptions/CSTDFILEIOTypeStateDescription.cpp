@@ -40,7 +40,8 @@ const CSTDFILEIOTypeStateDescription::CSTDFILEIOState
     CSTDFILEIOTypeStateDescription::delta[3][5] = {
         /* FOPEN */
         {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
+         CSTDFILEIOState::OPENED, CSTDFILEIOState::ERROR,
+         CSTDFILEIOState::OPENED},
         /* FCLOSE */
         {CSTDFILEIOState::ERROR, CSTDFILEIOState::CLOSED,
          CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},

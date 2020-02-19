@@ -106,7 +106,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (hasMatchingType(Store)) {
       auto RelevantAliasesAndAllocas = getLocalAliasesAndAllocas(
-          Store->getPointerOperand(), // pointer- or value operand???
+          // Store->getPointerOperand(), // pointer- or value operand???
+          Store->getValueOperand(),
           curr->getParent()->getParent()->getName().str());
 
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
@@ -121,9 +122,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
           // We kill all relevant loacal aliases and alloca's
 
           if (source != Store->getValueOperand() &&
-              /*AliasesAndAllocas.find(source) != AliasesAndAllocas.end()*/
+              AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
               // Is simple comparison sufficient?
-              source == Store->getPointerOperand()) {
+              /*source == Store->getPointerOperand()*/) {
             std::cout << "Kill source = " << llvmIRToShortString(source)
                       << " at " << llvmIRToShortString(Store) << std::endl;
             return {};
