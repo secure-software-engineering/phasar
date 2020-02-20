@@ -51,6 +51,8 @@ public:
                        std::shared_ptr<EdgeFunction<L>> G)
       : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
 
+  ~EdgeFunctionComposer() override = default;
+
   /**
    * Target value computation is implemented as
    *     G(F(source))
