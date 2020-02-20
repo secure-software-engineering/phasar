@@ -1,4 +1,17 @@
+/******************************************************************************
+ * Copyright (c) 2020 Philipp Schubert.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel, Philipp Schubert and others
+ *****************************************************************************/
+
+#include <sstream>
+#include <tuple>
+
 #include <gtest/gtest.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
@@ -8,9 +21,7 @@
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <sstream>
 
-#include <tuple>
 #define DELETE(x)                                                              \
   if (x) {                                                                     \
     delete (x);                                                                \
