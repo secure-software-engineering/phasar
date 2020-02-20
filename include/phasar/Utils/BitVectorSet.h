@@ -229,9 +229,14 @@ public:
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
     OS << '<';
+    size_t Idx = 0;
     for (auto &Position : B.Position.left) {
       if (Position.second < B.Bits.size() && B.Bits[Position.second]) {
-        OS << Position.first << ", ";
+        ++Idx;
+        OS << Position.first;
+        if (Idx < B.size()) {
+          OS << ", ";
+        }
       }
     }
     OS << '>';

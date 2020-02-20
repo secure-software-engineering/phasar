@@ -7,7 +7,10 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
+#include <tuple>
+
 #include <gtest/gtest.h>
+
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVariabilityTabulationProblem.h>
@@ -16,8 +19,6 @@
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-
-#include <tuple>
 
 using namespace psr;
 
@@ -45,18 +46,9 @@ protected:
     LLVMBasedVariationalICFG VICFG(*IRDB, CallGraphAnalysisType::OTF,
                                    EntryPoints, &TH, &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &VICFG, &PT, EntryPoints);
-    IDEVariabilityTabulationProblem<
-        IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-        IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-        IDELinearConstantAnalysis::v_t, IDELinearConstantAnalysis::l_t,
-        IDELinearConstantAnalysis::i_t>
-        VARAProblem(LCAProblem, VICFG);
-    IDESolver<IDELinearConstantAnalysis::n_t, IDELinearConstantAnalysis::d_t,
-              IDELinearConstantAnalysis::f_t, IDELinearConstantAnalysis::t_t,
-              IDELinearConstantAnalysis::v_t,
-              VarL<IDELinearConstantAnalysis::l_t>,
-              VariationalICFG<IDELinearConstantAnalysis::n_t,
-                              IDELinearConstantAnalysis::f_t, z3::expr>>
+    IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis> VARAProblem(
+        LCAProblem, VICFG);
+    IDESolver_P<IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis>>
         LCASolver(VARAProblem);
     LCASolver.solve();
     if (printDump) {
@@ -73,7 +65,7 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  void compareResults(IDELinearConstantAnalysis::lca_restults_t &Results,
+  void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
                       std::set<LCACompactResult_t> &GroundTruth) {
     std::set<LCACompactResult_t> RelevantResults;
     for (auto G : GroundTruth) {

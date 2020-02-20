@@ -79,8 +79,8 @@ public:
     std::string getValueAsString() const;
 
     // Fetching the users for V is expensive, so we cache the result.
-    mutable std::vector<const llvm::User*> users;
-    std::vector<const llvm::User*> getUsers() const;
+    mutable std::vector<const llvm::User *> users;
+    std::vector<const llvm::User *> getUsers() const;
   };
 
   /**
@@ -123,7 +123,7 @@ private:
   typedef std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMapT;
   ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::unordered_set<const llvm::Function* > ContainedFunctions;
+  std::unordered_set<const llvm::Function *> ContainedFunctions;
 
   void mergeGraph(const PointsToGraph &Other);
 

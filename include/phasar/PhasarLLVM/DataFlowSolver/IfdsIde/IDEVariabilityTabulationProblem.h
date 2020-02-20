@@ -31,8 +31,15 @@ class IDEVariabilityTabulationProblem
     : public IDETabulationProblem<N, D, F, T, V, VarL<L>,
                                   VariationalICFG<N, F, z3::expr>> {
 public:
+  using n_t = N;
+  using d_t = D;
+  using f_t = F;
+  using t_t = T;
+  using v_t = V;
   using user_l_t = L;
+  // override l_t and i_t to capture the variability
   using l_t = VarL<L>;
+  using i_t = VariationalICFG<N, F, z3::expr>;
 
 private:
   IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
@@ -113,13 +120,13 @@ public:
     // preprocessor constraint
     if (VarICF.isPPBranchTarget(curr, succ)) {
       std::cout << "PP-Edge constaint: "
-                << VarICF.getPPConstraintOrTrue(curr, succ).to_string() <<
-                '\n';
+                << VarICF.getPPConstraintOrTrue(curr, succ).to_string() << '\n';
       // std::cout << "\tD1: " << IDEProblem.DtoString(currNode) << '\n';
       // std::cout << "\tN : " << IDEProblem.NtoString(curr) << '\n';
       // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
       // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
-      // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(), VarICF.getPPConstraintOrTrue(curr, succ));
+      // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
+      // VarICF.getPPConstraintOrTrue(curr, succ));
     }
     // ordinary instruction, no preprocessor constraints
     std::cout << "Edge Function: " << *UserEF << '\n';
@@ -220,6 +227,19 @@ public:
     }
   }
 };
+
+template <typename Problem>
+IDEVariabilityTabulationProblem(Problem &)
+    ->IDEVariabilityTabulationProblem<
+        typename Problem::n_t, typename Problem::d_t, typename Problem::f_t,
+        typename Problem::t_t, typename Problem::v_t, typename Problem::l_t,
+        typename Problem::i_t>;
+
+template <typename Problem>
+using IDEVariabilityTabulationProblem_P = IDEVariabilityTabulationProblem<
+    typename Problem::n_t, typename Problem::d_t, typename Problem::f_t,
+    typename Problem::t_t, typename Problem::v_t, typename Problem::l_t,
+    typename Problem::i_t>;
 
 } // namespace psr
 

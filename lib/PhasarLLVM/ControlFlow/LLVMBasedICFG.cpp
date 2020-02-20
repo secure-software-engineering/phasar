@@ -171,7 +171,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "Walking in function: " << F->getName().str());
-  if (F->isDeclaration() || !VisitedFunctions.insert(F).second ) {
+  if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Function already visited or only declaration: "
                   << F->getName().str());
@@ -184,7 +184,8 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   if (fvmItr != FunctionVertexMap.end())
     thisFunctionVertexDescriptor = fvmItr->second;
   else {
-    thisFunctionVertexDescriptor = boost::add_vertex(VertexProperties(F), CallGraph);
+    thisFunctionVertexDescriptor =
+        boost::add_vertex(VertexProperties(F), CallGraph);
     FunctionVertexMap[F] = thisFunctionVertexDescriptor;
   }
 
@@ -240,7 +241,8 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
           if (targetFvmItr != FunctionVertexMap.end())
             targetVertex = targetFvmItr->second;
           else {
-            targetVertex = boost::add_vertex(VertexProperties(possible_target), CallGraph);
+            targetVertex =
+                boost::add_vertex(VertexProperties(possible_target), CallGraph);
             FunctionVertexMap[possible_target] = targetVertex;
           }
           boost::add_edge(thisFunctionVertexDescriptor, targetVertex,
@@ -457,7 +459,8 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &other) {
   vertex_map_t oldToNewVertexMapping;
   boost::associative_property_map<vertex_map_t> vertexMapWrapper(
       oldToNewVertexMapping);
-  boost::copy_graph(other.CallGraph, CallGraph, boost::orig_to_copy(vertexMapWrapper));
+  boost::copy_graph(other.CallGraph, CallGraph,
+                    boost::orig_to_copy(vertexMapWrapper));
 
   // This vector holds the call-sites that are used to merge the whole-module
   // points-to graphs
@@ -537,8 +540,7 @@ void LLVMBasedICFG::print(ostream &OS) const {
 }
 
 namespace {
-template <class graphType>
-class VertexWriter {
+template <class graphType> class VertexWriter {
 public:
   VertexWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
@@ -550,8 +552,7 @@ private:
   const graphType &CGraph;
 };
 
-template <class graphType>
-class EdgeLabelWriter {
+template <class graphType> class EdgeLabelWriter {
 public:
   EdgeLabelWriter(const graphType &CGraph) : CGraph(CGraph) {}
   template <class VertexOrEdge>
@@ -562,17 +563,14 @@ public:
 private:
   const graphType &CGraph;
 };
-}
+} // namespace
 
 void LLVMBasedICFG::printAsDot(std::ostream &OS, bool printEdgeLabels) const {
   if (printEdgeLabels) {
-  boost::write_graphviz(OS, CallGraph,
-                        VertexWriter<bidigraph_t>(CallGraph),
-                        EdgeLabelWriter<bidigraph_t>(CallGraph));
+    boost::write_graphviz(OS, CallGraph, VertexWriter<bidigraph_t>(CallGraph),
+                          EdgeLabelWriter<bidigraph_t>(CallGraph));
   } else {
-    boost::write_graphviz(OS, CallGraph,
-                          VertexWriter<bidigraph_t>(CallGraph));
-
+    boost::write_graphviz(OS, CallGraph, VertexWriter<bidigraph_t>(CallGraph));
   }
 }
 

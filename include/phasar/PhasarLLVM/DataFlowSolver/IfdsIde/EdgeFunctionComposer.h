@@ -31,10 +31,10 @@ namespace psr {
  * implementation. By default, an explicit composition is used. Such a function
  * definition can grow unduly large.
  */
-template <typename V>
+template <typename L>
 class EdgeFunctionComposer
-    : public EdgeFunction<V>,
-      public std::enable_shared_from_this<EdgeFunctionComposer<V>> {
+    : public EdgeFunction<L>,
+      public std::enable_shared_from_this<EdgeFunctionComposer<L>> {
 private:
   // For debug purpose only
   const unsigned EFComposer_Id;
@@ -42,20 +42,22 @@ private:
 
 protected:
   /// First edge function
-  std::shared_ptr<EdgeFunction<V>> F;
+  std::shared_ptr<EdgeFunction<L>> F;
   /// Second edge function
-  std::shared_ptr<EdgeFunction<V>> G;
+  std::shared_ptr<EdgeFunction<L>> G;
 
 public:
-  EdgeFunctionComposer(std::shared_ptr<EdgeFunction<V>> F,
-                       std::shared_ptr<EdgeFunction<V>> G)
+  EdgeFunctionComposer(std::shared_ptr<EdgeFunction<L>> F,
+                       std::shared_ptr<EdgeFunction<L>> G)
       : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
+
+  ~EdgeFunctionComposer() override = default;
 
   /**
    * Target value computation is implemented as
    *     G(F(source))
    */
-  V computeTarget(V source) override {
+  L computeTarget(L source) override {
     return G->computeTarget(F->computeTarget(source));
   }
 
@@ -66,22 +68,22 @@ public:
    * However, it is advised to immediately reduce the resulting edge function
    * by providing an own implementation of this function.
    */
-  std::shared_ptr<EdgeFunction<V>>
-  composeWith(std::shared_ptr<EdgeFunction<V>> secondFunction) override {
-    if (auto *EI = dynamic_cast<EdgeIdentity<V> *>(secondFunction.get())) {
+  std::shared_ptr<EdgeFunction<L>>
+  composeWith(std::shared_ptr<EdgeFunction<L>> secondFunction) override {
+    if (auto *EI = dynamic_cast<EdgeIdentity<L> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
-    if (auto *AB = dynamic_cast<AllBottom<V> *>(secondFunction.get())) {
+    if (auto *AB = dynamic_cast<AllBottom<L> *>(secondFunction.get())) {
       return this->shared_from_this();
     }
     return F->composeWith(G->composeWith(secondFunction));
   }
 
-  // virtual std::shared_ptr<EdgeFunction<V>>
-  // joinWith(std::shared_ptr<EdgeFunction<V>> otherFunction) = 0;
+  // virtual std::shared_ptr<EdgeFunction<L>>
+  // joinWith(std::shared_ptr<EdgeFunction<L>> otherFunction) = 0;
 
-  bool equal_to(std::shared_ptr<EdgeFunction<V>> other) const override {
-    if (auto EFC = dynamic_cast<EdgeFunctionComposer<V> *>(other.get())) {
+  bool equal_to(std::shared_ptr<EdgeFunction<L>> other) const override {
+    if (auto EFC = dynamic_cast<EdgeFunctionComposer<L> *>(other.get())) {
       return F->equal_to(EFC->F) && G->equal_to(EFC->G);
     }
     return false;

@@ -869,7 +869,7 @@ protected:
     for (const auto &seed : allSeeds) {
       N startPoint = seed.first;
       for (D val : seed.second) {
-        setVal(startPoint, val, ideTabulationProblem.bottomElement());
+        setVal(startPoint, val, ideTabulationProblem.topElement());
         std::pair<N, D> superGraphNode(startPoint, val);
         valuePropagationTask(superGraphNode);
       }
@@ -1607,6 +1607,7 @@ protected:
     }
   }
 
+public:
   void emitESGasDot() {
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -1841,6 +1842,19 @@ protected:
     }
   };
 };
+
+template <typename Problem>
+IDESolver(Problem &)
+    ->IDESolver<typename Problem::n_t, typename Problem::d_t,
+                typename Problem::f_t, typename Problem::t_t,
+                typename Problem::v_t, typename Problem::l_t,
+                typename Problem::i_t>;
+
+template <typename Problem>
+using IDESolver_P = IDESolver<typename Problem::n_t, typename Problem::d_t,
+                              typename Problem::f_t, typename Problem::t_t,
+                              typename Problem::v_t, typename Problem::l_t,
+                              typename Problem::i_t>;
 
 } // namespace psr
 

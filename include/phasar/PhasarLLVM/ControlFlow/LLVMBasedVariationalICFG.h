@@ -27,7 +27,7 @@ public:
                            const std::set<std::string> &EntryPoints = {},
                            LLVMTypeHierarchy *TH = nullptr,
                            LLVMPointsToInfo *PT = nullptr);
-  
+
   ~LLVMBasedVariationalICFG() override = default;
 };
 

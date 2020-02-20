@@ -90,7 +90,8 @@ TEST_F(VariabilityCFGTest, twovariables_desugared) {
   EXPECT_TRUE(VICFG->isBranchTarget(currInst, succInst));
   EXPECT_TRUE(VICFG->isPPBranchTarget(currInst, succInst));
   auto &ctx = VICFG->getContext();
-  compareResults(VICFG->getPPConstraintOrTrue(currInst, succInst), ctx.bool_const("B_defined"));
+  compareResults(VICFG->getPPConstraintOrTrue(currInst, succInst),
+                 ctx.bool_const("B_defined"));
 }
 // main function for the test case/*  */
 int main(int argc, char **argv) {

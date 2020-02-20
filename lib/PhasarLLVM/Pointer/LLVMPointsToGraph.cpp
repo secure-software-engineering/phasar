@@ -123,7 +123,7 @@ std::string PointsToGraph::VertexProperties::getValueAsString() const {
   return llvmIRToString(V);
 }
 
-std::vector<const llvm::User*>
+std::vector<const llvm::User *>
 PointsToGraph::VertexProperties::getUsers() const {
   if (!users.empty() || V == nullptr) {
     return users;
@@ -207,18 +207,20 @@ PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
   for (auto I1 = ValueVertexMap.begin(); I1 != mapEnd; ++I1) {
     llvm::Type *I1ElTy =
         llvm::cast<llvm::PointerType>(I1->first->getType())->getElementType();
-    const uint64_t I1Size = I1ElTy->isSized() ? DL.getTypeStoreSize(I1ElTy)
-        : llvm::MemoryLocation::UnknownSize;
+    const uint64_t I1Size = I1ElTy->isSized()
+                                ? DL.getTypeStoreSize(I1ElTy)
+                                : llvm::MemoryLocation::UnknownSize;
     for (auto I2 = std::next(I1); I2 != mapEnd; ++I2) {
       llvm::Type *I2ElTy =
           llvm::cast<llvm::PointerType>(I2->first->getType())->getElementType();
-      const uint64_t I2Size = I2ElTy->isSized() ? DL.getTypeStoreSize(I2ElTy)
-          : llvm::MemoryLocation::UnknownSize;
+      const uint64_t I2Size = I2ElTy->isSized()
+                                  ? DL.getTypeStoreSize(I2ElTy)
+                                  : llvm::MemoryLocation::UnknownSize;
 
       switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {
       case llvm::NoAlias:
         break;
-      case llvm::MayAlias: // no break
+      case llvm::MayAlias:     // no break
       case llvm::PartialAlias: // no break
       case llvm::MustAlias:
         boost::add_edge(I1->second, I2->second, PAG);
@@ -246,7 +248,7 @@ vector<const llvm::Value *>
 PointsToGraph::getPointersEscapingThroughReturns() const {
   vector<const llvm::Value *> escaping_pointers;
   for (auto vertexIter : boost::make_iterator_range(boost::vertices(PAG))) {
-    auto& vertex = PAG[vertexIter];
+    auto &vertex = PAG[vertexIter];
     for (const auto user : vertex.getUsers()) {
       if (llvm::isa<llvm::ReturnInst>(user)) {
         escaping_pointers.push_back(vertex.V);
@@ -261,7 +263,7 @@ PointsToGraph::getPointersEscapingThroughReturnsForFunction(
     const llvm::Function *F) const {
   vector<const llvm::Value *> escaping_pointers;
   for (auto vertexIter : boost::make_iterator_range(boost::vertices(PAG))) {
-    auto& vertex = PAG[vertexIter];
+    auto &vertex = PAG[vertexIter];
     for (const auto user : vertex.getUsers()) {
       if (auto R = llvm::dyn_cast<llvm::ReturnInst>(user)) {
         if (R->getFunction() == F)
@@ -402,8 +404,7 @@ void PointsToGraph::mergeGraph(const PointsToGraph &Other) {
   for (const auto &otherValues : Other.ValueVertexMap) {
     auto mappingIter = oldToNewVertexMapping.find(otherValues.second);
     if (mappingIter != oldToNewVertexMapping.end()) {
-      ValueVertexMap.insert(
-          make_pair(otherValues.first, mappingIter->second));
+      ValueVertexMap.insert(make_pair(otherValues.first, mappingIter->second));
     }
   }
 }
@@ -446,7 +447,8 @@ void PointsToGraph::mergeWith(
     const PointsToGraph &Other,
     const vector<pair<llvm::ImmutableCallSite, const llvm::Function *>>
         &Calls) {
-  ContainedFunctions.insert(Other.ContainedFunctions.begin(), Other.ContainedFunctions.end());
+  ContainedFunctions.insert(Other.ContainedFunctions.begin(),
+                            Other.ContainedFunctions.end());
   mergeGraph(Other);
   for (const auto &call : Calls) {
     mergeCallSite(call.first, call.second);
