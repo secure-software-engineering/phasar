@@ -54,10 +54,9 @@ protected:
     VICFG = new LLVMBasedVariationalICFG(*IRDB, CallGraphAnalysisType::OTF,
                                          EntryPoints, TH, PT);
   }
-  bool doAnalysis(const llvm::Instruction *currInst,
-                  const llvm::Instruction *succInst, z3::expr &ret) {
-
-    return VICFG->isPPBranchTarget(currInst, succInst);
+  z3::expr doAnalysis(const llvm::Instruction *currInst,
+                      const llvm::Instruction *succInst) {
+    return VICFG->getPPConstraintOrTrue(currInst, succInst);
   }
 
   void TearDown() override {
@@ -84,16 +83,14 @@ protected:
 
 TEST_F(VariabilityCFGTest, twovariables_desugared) {
   initialize("twovariables_desugared_c.ll");
-  z3::expr exp = VICFG->getTrueConstraint();
   auto currInst = IRDB->getInstruction(9);
   auto succInst = IRDB->getInstruction(10);
   ASSERT_NE(currInst, nullptr);
   ASSERT_NE(succInst, nullptr);
   EXPECT_TRUE(VICFG->isBranchTarget(currInst, succInst));
-  EXPECT_TRUE(doAnalysis(currInst, succInst, exp));
-  std::cout << exp << std::endl;
+  EXPECT_TRUE(VICFG->isPPBranchTarget(currInst, succInst));
   auto &ctx = VICFG->getContext();
-  compareResults(exp, ctx.bool_const("B_defined"));
+  compareResults(VICFG->getPPConstraintOrTrue(currInst, succInst), ctx.bool_const("B_defined"));
 }
 // main function for the test case/*  */
 int main(int argc, char **argv) {
