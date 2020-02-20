@@ -46,6 +46,8 @@ public:
   EdgeFunctionComposer(EdgeFunction<V> *F, EdgeFunction<V> *G)
       : EFComposer_Id(++CurrEFComposer_Id), F(F), G(G) {}
 
+  ~EdgeFunctionComposer() override = default;
+
   /**
    * Target value computation is implemented as
    *     G(F(source))

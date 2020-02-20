@@ -12,9 +12,12 @@ static unsigned CurrAddTwoEF_Id = 0;
 struct MyEFC : EdgeFunctionComposer<int> {
   MyEFC(EdgeFunction<int> *F, EdgeFunction<int> *G)
       : EdgeFunctionComposer<int>(F, G){};
+
+  ~MyEFC() override = default;
+
   EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
-  };
+  }
 };
 
 struct MulTwoEF : EdgeFunction<int> {
@@ -23,16 +26,23 @@ private:
 
 public:
   MulTwoEF(unsigned id) : MulTwoEF_Id(id){};
+
+  ~MulTwoEF() override = default;
+
   int computeTarget(int source) override { return source * 2; };
+
   EdgeFunction<int> *composeWith(EdgeFunction<int> *secondFunction) override {
     return new MyEFC(this, secondFunction);
   }
+
   EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
   };
+
   bool equal_to(EdgeFunction<int> *other) const override {
     return this == other;
   }
+
   void print(std::ostream &os, bool isForDebug = false) const override {
     os << "MulTwoEF_" << MulTwoEF_Id;
   }
@@ -44,16 +54,23 @@ private:
 
 public:
   AddTwoEF(unsigned id) : AddTwoEF_Id(id){};
+
+  ~AddTwoEF() override = default;
+
   int computeTarget(int source) override { return source + 2; };
+ 
   EdgeFunction<int> *composeWith(EdgeFunction<int> *secondFunction) override {
     return new MyEFC(this, secondFunction);
   }
+ 
   EdgeFunction<int> *joinWith(EdgeFunction<int> *otherFunction) override {
     return new AllBottom<int>(-1);
   };
+ 
   bool equal_to(EdgeFunction<int> *other) const override {
     return this == other;
   }
+ 
   void print(std::ostream &os, bool isForDebug = false) const override {
     os << "AddTwoEF_" << AddTwoEF_Id;
   }
