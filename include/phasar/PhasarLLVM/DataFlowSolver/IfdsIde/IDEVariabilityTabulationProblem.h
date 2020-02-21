@@ -181,12 +181,12 @@ public:
   l_t bottomElement() override { return BOTTOM; }
 
   l_t join(l_t Lhs, l_t Rhs) override {
-    std::cout << "IDEVariabilityTabulationProblem::join\n";
-    std::cout << "lhs: ";
-    printEdgeFact(std::cout, Lhs);
-    std::cout << "rhs: ";
-    printEdgeFact(std::cout, Rhs);
-    std::cout << " --> ";
+    // std::cout << "IDEVariabilityTabulationProblem::join\n";
+    // std::cout << "lhs: ";
+    // printEdgeFact(std::cout, Lhs);
+    // std::cout << "rhs: ";
+    // printEdgeFact(std::cout, Rhs);
+    // std::cout << " --> ";
     for (auto &[LConstraint, LValue] : Lhs) {
       // case Rhs already contains the constraint
       if (Rhs.count(LConstraint)) {
@@ -196,8 +196,8 @@ public:
         Rhs[LConstraint] = LValue;
       }
     }
-    printEdgeFact(std::cout, Rhs);
-    std::cout << '\n';
+    // printEdgeFact(std::cout, Rhs);
+    // std::cout << '\n';
     return Rhs;
   }
 

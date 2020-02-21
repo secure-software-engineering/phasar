@@ -120,6 +120,15 @@ TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_02) {
 //   // compareResults(Results, GroundTruth);
 // }
 
+TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_04) {
+  // auto Results = doAnalysis("basic_01_c.ll", true);
+  doAnalysis("basic_04_c.ll", true);
+  // std::set<LCACompactResult_t> GroundTruth;
+  // GroundTruth.emplace("main", 2, "i", 13);
+  // GroundTruth.emplace("main", 3, "i", 13);
+  // compareResults(Results, GroundTruth);
+}
+
 // main function for the test case/*  */
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

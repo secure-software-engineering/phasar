@@ -711,22 +711,18 @@ protected:
 
   void setVal(N nHashN, D nHashD, L l) {
     auto &lg = lg::get();
-    // TOP is the implicit default value which we do not need to store.
-    if (l == ideTabulationProblem.topElement()) {
-      // do not store top values
-      valtab.remove(nHashN, nHashD);
-    } else {
-      valtab.insert(nHashN, nHashD, l);
-    }
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "setVal()");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "insert L");
+    valtab.insert(nHashN, nHashD, l);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Function : "
+                  << "\tFunction : "
                   << ICF->getFunctionOf(nHashN)->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Inst.    : " << ideTabulationProblem.NtoString(nHashN));
+                  << "\tInst.    : " << ideTabulationProblem.NtoString(nHashN));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact     : " << ideTabulationProblem.DtoString(nHashD));
+                  << "\tFact     : " << ideTabulationProblem.DtoString(nHashD));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Value    : " << ideTabulationProblem.LtoString(l));
+                  << "\tValue    : " << ideTabulationProblem.LtoString(l));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
@@ -866,11 +862,11 @@ protected:
       }
     }
     // do processing
-    for (const auto &seed : allSeeds) {
-      N startPoint = seed.first;
-      for (D val : seed.second) {
-        setVal(startPoint, val, ideTabulationProblem.topElement());
-        std::pair<N, D> superGraphNode(startPoint, val);
+    for (const auto &[Node, Facts] : allSeeds) {
+      N startPoint = Node;
+      for (D Fact : Facts) {
+        setVal(startPoint, Fact, ideTabulationProblem.topElement());
+        std::pair<N, D> superGraphNode(startPoint, Fact);
         valuePropagationTask(superGraphNode);
       }
     }
@@ -878,11 +874,10 @@ protected:
     // we create an array of all nodes and then dispatch fractions of this
     // array to multiple threads
     std::set<N> allNonCallStartNodes = ICF->allNonCallStartNodes();
-    std::vector<N> nonCallStartNodesArray(allNonCallStartNodes.size());
-    size_t i = 0;
-    for (N n : allNonCallStartNodes) {
-      nonCallStartNodesArray[i] = n;
-      i++;
+    std::vector<N> nonCallStartNodesArray;
+    nonCallStartNodesArray.reserve(allNonCallStartNodes.size());
+    for (N nonCallStartNode : allNonCallStartNodes) {
+      nonCallStartNodesArray.push_back(nonCallStartNode);
     }
     valueComputationTask(nonCallStartNodesArray);
   }

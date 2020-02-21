@@ -10,17 +10,15 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VARIATIONALEDGEFUNCTION_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VARIATIONALEDGEFUNCTION_H_
 
+#include <map>
 #include <memory>
 #include <utility>
-#include <vector>
 
 #include <llvm/Support/ErrorHandling.h>
 
 #include <z3++.h>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 
 namespace psr {
 
@@ -53,10 +51,12 @@ public:
 
   l_t computeTarget(l_t Source) override {
     l_t Res;
+    std::cout << "computeTarget() call with Source.size() map elements: "
+              << Source.size() << '\n';
     for (auto &[Constraint, Value] : Source) {
-      Res[Constraint] = UserEF->computeTarget(Value);
-      std::cout << "computeTarget() " << Value << " --> " << Res[Constraint]
-                << '\n';
+      auto ResultValue = UserEF->computeTarget(Value);
+      Res[Constraint] = ResultValue;
+      std::cout << Value << " --> " << ResultValue << '\n';
     }
     return Res;
   }
