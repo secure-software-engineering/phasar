@@ -59,9 +59,9 @@ AnalysisController::AnalysisController(
     std::string ProjectID, std::string OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
-      DataFlowAnalyses(move(DataFlowAnalyses)),
-      AnalysisConfigs(move(AnalysisConfigs)), EntryPoints(move(EntryPoints)),
-      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      DataFlowAnalyses(DataFlowAnalyses), AnalysisConfigs(AnalysisConfigs),
+      EntryPoints(EntryPoints), Strategy(Strategy),
+      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
       OutDirectory(OutDirectory) {
   if (OutDirectory != "") {
     // create directory for results
