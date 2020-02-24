@@ -12,6 +12,7 @@
 
 #include <map>
 
+#include <memory>
 #include <z3++.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
@@ -82,6 +83,7 @@ public:
     //  - %tobool = icmp ne i32 %0, 0
     //  - br i1 %tobool, label %if.then, label %if.else
     // if (VarICF.isPPBranchTarget(curr, succ)) {
+    // std::cout << "Found PP branch\n";
     //   return Identity<D>::getInstance();
     // }
     // otherwise just apply the user edge functions
@@ -128,7 +130,8 @@ public:
       // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
       // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
       // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
-      // VarICF.getPPConstraintOrTrue(curr, succ));
+      return std::make_shared<VariationalEdgeFunction<user_l_t>>(
+          UserEF, VarICF.getPPConstraintOrTrue(curr, succ));
     }
     // ordinary instruction, no preprocessor constraints
     std::cout << "Edge Function: " << *UserEF << '\n';
