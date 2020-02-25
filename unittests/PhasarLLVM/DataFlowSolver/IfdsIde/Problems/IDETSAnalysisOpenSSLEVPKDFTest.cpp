@@ -145,6 +145,41 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation1) {
   compareResults(gt);
 }
 
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation2) {
+  Initialize({pathToLLFiles + "key-derivation2_c.ll"});
+
+  std::map<std::size_t, std::map<std::string, int>> gt;
+  gt[40] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}};
+  gt[57] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}};
+  gt[60] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[105] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"103", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[106] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[112] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[113] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"58", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"103", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"58", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"103", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"110", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"159", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[161] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"58", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"103", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"110", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"159", OpenSSLEVPKeyDerivationState::UNINIT}};
+  gt[164] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}};
+}
+
 // main function for the test case
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
