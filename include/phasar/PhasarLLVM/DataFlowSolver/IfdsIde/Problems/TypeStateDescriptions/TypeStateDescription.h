@@ -10,6 +10,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_TYPESTATEDESCRIPTION_H_
 
+#include <llvm/IR/CallSite.h>
 #include <set>
 #include <string>
 
@@ -42,6 +43,10 @@ struct TypeStateDescription {
    * function returns the next state.
    */
   virtual State getNextState(std::string Tok, State S) const = 0;
+  virtual State getNextState(const std::string &Tok, State S,
+                             llvm::ImmutableCallSite CS) const {
+    return getNextState(Tok, S);
+  }
   virtual std::string getTypeNameOfInterest() const = 0;
   virtual std::set<int> getConsumerParamIdx(const std::string &F) const = 0;
   virtual std::set<int> getFactoryParamIdx(const std::string &F) const = 0;

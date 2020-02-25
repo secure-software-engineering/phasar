@@ -9,56 +9,41 @@
 
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKDFDESCRIPTION_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_TYPESTATEDESCRIPTIONS_OPENSSLEVPKDFDESCRIPTION_H_
-
-#include <map>
-#include <set>
-#include <string>
-
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
 
 namespace psr {
-
-/**
- * A type state description for OpenSSL's EVP Key Derivation functions. The
- * finite state machine is encoded by a two-dimensional array with rows as
- * function tokens and columns as states.
- */
 class OpenSSLEVPKDFDescription : public TypeStateDescription {
-private:
+public:
   /**
    * We use the following lattice
    *                BOT = all information
    *
-   * UNINIT   KDF_FETCHED   CTX_ATTACHED   PARAM_INIT   DERIVED   ERROR
+   *         UNINIT     KDF_FETCHED     ERROR
    *
    *                TOP = no information
    */
   enum OpenSSLEVPKDFState {
     TOP = 42,
     UNINIT = 0,
-    CTX_ATTACHED = 1,
-    PARAM_INIT = 2,
-    DERIVED = 3,
-    ERROR = 4,
-    BOT = 5
+    KDF_FETCHED = 1,
+    ERROR = 2,
+    BOT = 3
   };
 
   /**
    * The STAR token represents all functions besides EVP_KDF_fetch(),
-   * EVP_KDF_CTX_new(), EVP_KDF_CTX_set_params() ,derive() and
-   * EVP_KDF_CTX_free().
+   * EVP_KDF_fetch()  and EVP_KDF_CTX_free().
    */
   enum class OpenSSLEVTKDFToken {
-    EVP_KDF_CTX_NEW = 0,
-    EVP_KDF_CTX_SET_PARAMS = 1,
-    DERIVE = 2,
-    EVP_KDF_CTX_FREE = 3,
-    STAR = 4
+    EVP_KDF_FETCH = 0,
+    EVP_KDF_FREE = 1,
+    STAR = 2
   };
 
+private:
   static const std::map<std::string, std::set<int>> OpenSSLEVPKDFFuncs;
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKDFState delta[5][6];
+  static const OpenSSLEVPKDFState delta[3][4];
   OpenSSLEVTKDFToken funcNameToToken(const std::string &F) const;
 
 public:

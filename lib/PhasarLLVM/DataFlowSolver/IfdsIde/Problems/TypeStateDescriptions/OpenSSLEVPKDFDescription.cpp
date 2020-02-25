@@ -8,8 +8,8 @@
  *****************************************************************************/
 
 #include <cassert>
-
 #include <iostream>
+#include <map>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
 
 using namespace std;
@@ -19,47 +19,28 @@ namespace psr {
 
 // Return value is modeled as -1
 const std::map<std::string, std::set<int>>
-    OpenSSLEVPKDFDescription::OpenSSLEVPKDFFuncs = {
-        {"EVP_KDF_fetch", {-1}},
-        {"EVP_KDF_CTX_new", {-1}},
-        {"EVP_KDF_CTX_set_params", {0}},
-        {"EVP_KDF_derive", {0}},
-        {"EVP_KDF_CTX_free", {0}}
+    OpenSSLEVPKDFDescription::OpenSSLEVPKDFFuncs = {{"EVP_KDF_fetch", {-1}},
+                                                    {"EVP_KDF_free", {0}}
 
 };
 
 // delta[Token][State] = next State
-// Token: EVP_KDF_CTX_NEW = 0,
-// EVP_KDF_CTX_SET_PARAMS = 1,
-// DERIVE = 2,
-// EVP_KDF_CTX_FREE = 3,
-// STAR = 4
+// Token: EVP_KDF_FETCH = 0,
+// EVP_KDF_FREE = 1,
+// STAR = 2
 //
-// States: UNINIT = 0, CTX_ATTACHED =1, PARAM_INIT = 2,
-// DERIVED = 3, ERROR = 4, BOT = 5
+// States: UNINIT = 0, KDF_FETCHED = 1, ERROR = 2, BOT = 3
 const OpenSSLEVPKDFDescription::OpenSSLEVPKDFState
-    OpenSSLEVPKDFDescription::delta[5][6] = {
-
-        /* EVP_KDF_CTX_NEW */
-        {OpenSSLEVPKDFState::CTX_ATTACHED, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::CTX_ATTACHED, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::CTX_ATTACHED},
-        /* EVP_KDF_CTX_SET_PARAMS */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::PARAM_INIT,
-         OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::PARAM_INIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
-        /* DERIVE */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR,
-         OpenSSLEVPKDFState::DERIVED, OpenSSLEVPKDFState::DERIVED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+    OpenSSLEVPKDFDescription::delta[3][4] = {
+        /* EVP_KDF_FETCH */
+        {OpenSSLEVPKDFState::KDF_FETCHED, OpenSSLEVPKDFState::ERROR,
+         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED},
         /* EVP_KDF_CTX_FREE */
         {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::UNINIT,
-         OpenSSLEVPKDFState::UNINIT, OpenSSLEVPKDFState::UNINIT,
          OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
 
         /* STAR */
-        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::CTX_ATTACHED,
-         OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::DERIVED,
+        {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED,
          OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
 };
 
@@ -96,7 +77,7 @@ OpenSSLEVPKDFDescription::getNextState(std::string Tok,
 }
 
 std::string OpenSSLEVPKDFDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdf_ctx_st";
+  return "struct.evp_kdf_st";
 }
 
 set<int>
@@ -121,26 +102,14 @@ OpenSSLEVPKDFDescription::stateToString(TypeStateDescription::State S) const {
   switch (S) {
   case OpenSSLEVPKDFState::TOP:
     return "TOP";
-    break;
   case OpenSSLEVPKDFState::UNINIT:
     return "UNINIT";
-    break;
-
-  case OpenSSLEVPKDFState::CTX_ATTACHED:
-    return "CTX_ATTACHED";
-    break;
-  case OpenSSLEVPKDFState::PARAM_INIT:
-    return "PARAM_INIT";
-    break;
-  case OpenSSLEVPKDFState::DERIVED:
-    return "DERIVED";
-    break;
+  case OpenSSLEVPKDFState::KDF_FETCHED:
+    return "KDF_FETCHED";
   case OpenSSLEVPKDFState::ERROR:
     return "ERROR";
-    break;
   case OpenSSLEVPKDFState::BOT:
     return "BOT";
-    break;
   default:
     assert(false && "received unknown state!");
     break;
@@ -160,7 +129,7 @@ TypeStateDescription::State OpenSSLEVPKDFDescription::uninit() const {
 }
 
 TypeStateDescription::State OpenSSLEVPKDFDescription::start() const {
-  return OpenSSLEVPKDFState::CTX_ATTACHED;
+  return OpenSSLEVPKDFState::KDF_FETCHED;
 }
 
 TypeStateDescription::State OpenSSLEVPKDFDescription::error() const {
@@ -169,15 +138,10 @@ TypeStateDescription::State OpenSSLEVPKDFDescription::error() const {
 
 OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
 OpenSSLEVPKDFDescription::funcNameToToken(const std::string &F) const {
-  if (F == "EVP_KDF_CTX_new")
-    return OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW;
-  else if (F == "EVP_KDF_CTX_set_params")
-    return OpenSSLEVTKDFToken::EVP_KDF_CTX_SET_PARAMS;
-  else if (F == "EVP_KDF_derive")
-    return OpenSSLEVTKDFToken::DERIVE;
-
-  else if (F == "EVP_KDF_CTX_free")
-    return OpenSSLEVTKDFToken::EVP_KDF_CTX_FREE;
+  if (F == "EVP_KDF_fetch")
+    return OpenSSLEVTKDFToken::EVP_KDF_FETCH;
+  else if (F == "EVP_KDF_free")
+    return OpenSSLEVTKDFToken::EVP_KDF_FREE;
   else
     return OpenSSLEVTKDFToken::STAR;
 }

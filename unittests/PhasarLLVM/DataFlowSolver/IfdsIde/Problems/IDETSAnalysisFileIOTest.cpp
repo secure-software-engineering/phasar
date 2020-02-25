@@ -136,6 +136,7 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_03) {
       llvmtssolver(*TSProblem);
 
   llvmtssolver.solve();
+  llvmtssolver.printReport();
   const std::map<std::size_t, std::map<std::string, int>> gt = {
       // Entry in foo()
       {2, {{"foo.0", IOSTATE::OPENED}}},

@@ -106,8 +106,8 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (hasMatchingType(Store)) {
       auto RelevantAliasesAndAllocas = getLocalAliasesAndAllocas(
-          // Store->getPointerOperand(), // pointer- or value operand???
-          Store->getValueOperand(),
+          Store->getPointerOperand(), // pointer- or value operand???
+          // Store->getValueOperand(),
           curr->getParent()->getParent()->getName().str());
 
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
@@ -121,9 +121,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
         computeTargets(IDETypeStateAnalysis::d_t source) override {
           // We kill all relevant loacal aliases and alloca's
           if (source != Store->getValueOperand() &&
-              AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
+              // AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
               // Is simple comparison sufficient?
-              /*source == Store->getPointerOperand()*/) {
+              source == Store->getPointerOperand()) {
             return {};
           }
           // Generate all local aliases and relevant alloca's from the stored
@@ -342,9 +342,12 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
       if (currNode == getZeroValue() && succNode == Alloca) {
-        struct TSAllocaEF : public TSEdgeFunction {
-          TSAllocaEF(const TypeStateDescription &tsd, const std::string &tok)
-              : TSEdgeFunction(tsd, tok) {}
+        struct TSAllocaEF : public EdgeFunction<l_t>,
+                            public std::enable_shared_from_this<TSAllocaEF> {
+          const TypeStateDescription &TSD;
+          l_t CurrentState;
+          TSAllocaEF(const TypeStateDescription &tsd)
+              : TSD(tsd), CurrentState(tsd.top()) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
@@ -355,8 +358,48 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
           void print(std::ostream &OS, bool isForDebug = false) const override {
             OS << "Alloca(" << TSD.stateToString(CurrentState) << ")";
           }
+
+          bool equal_to(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                            other) const override {
+            if (auto *TSEF =
+                    dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(
+                        other.get())) {
+              return this->CurrentState == TSEF->getCurrentState();
+            }
+            return this == other.get();
+          }
+          std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+          composeWith(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                          secondFunction) override {
+            if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
+                    secondFunction.get())) {
+              return this->shared_from_this();
+            }
+            if (auto *EI =
+                    dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
+                        secondFunction.get())) {
+              return this->shared_from_this();
+            }
+            return make_shared<TSEdgeFunctionComposer>(
+                this->shared_from_this(), secondFunction, TSD.bottom());
+          }
+
+          std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+          joinWith(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                       otherFunction) override {
+            if (otherFunction.get() == this ||
+                otherFunction->equal_to(this->shared_from_this())) {
+              return this->shared_from_this();
+            }
+            if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
+                    otherFunction.get())) {
+              return this->shared_from_this();
+            }
+            return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(
+                TSD.bottom());
+          }
         };
-        return make_shared<TSAllocaEF>(TSD, "alloca instruction");
+        return make_shared<TSAllocaEF>(TSD);
       }
     }
   }
@@ -395,13 +438,14 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Processing factory function");
       if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
         struct TSFactoryEF : public TSEdgeFunction {
-          TSFactoryEF(const TypeStateDescription &tsd, const std::string &tok)
-              : TSEdgeFunction(tsd, tok) {}
+          TSFactoryEF(const TypeStateDescription &tsd, const std::string &tok,
+                      llvm::ImmutableCallSite cs)
+              : TSEdgeFunction(tsd, tok, cs) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
             // CurrentState = TSD.start();
-            CurrentState = TSD.getNextState(Token, source);
+            CurrentState = TSD.getNextState(Token, source, CS);
             return CurrentState;
           }
 
@@ -409,7 +453,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
             OS << "Factory(" << TSD.stateToString(CurrentState) << ")";
           }
         };
-        return make_shared<TSFactoryEF>(TSD, demangledFname);
+        return make_shared<TSFactoryEF>(TSD, demangledFname, CS);
       }
     }
 
@@ -424,7 +468,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
         if (callNode == retSiteNode &&
             PointsToAndAllocas.find(callNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, demangledFname);
+          return make_shared<TSEdgeFunction>(TSD, demangledFname, CS);
         }
       }
     }

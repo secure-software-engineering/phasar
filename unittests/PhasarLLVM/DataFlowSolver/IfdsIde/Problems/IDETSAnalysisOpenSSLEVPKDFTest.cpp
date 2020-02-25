@@ -11,6 +11,7 @@
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
@@ -31,12 +32,14 @@ protected:
   LLVMTypeHierarchy *TH;
   LLVMBasedICFG *ICFG;
   LLVMPointsToInfo *PT;
-  OpenSSLEVPKDFDescription *OpenSSLEVPKeyDerivationDesc;
-  IDETypeStateAnalysis *TSProblem;
+  OpenSSLEVPKDFCTXDescription *OpenSSLEVPKeyDerivationDesc;
+  OpenSSLEVPKDFDescription *OpenSSLEVPKDFDesc;
+  IDETypeStateAnalysis *TSProblem, *TSKDFProblem;
   IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
             IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
             IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *llvmtssolver;
+            IDETypeStateAnalysis::i_t> *llvmtssolver,
+      *kdfSolver;
 
   enum OpenSSLEVPKeyDerivationState {
     TOP = 42,
@@ -56,7 +59,17 @@ protected:
     PT = new LLVMPointsToInfo(*IRDB);
     ICFG = new LLVMBasedICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, TH,
                              PT);
-    OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFDescription();
+
+    OpenSSLEVPKDFDesc = new OpenSSLEVPKDFDescription();
+    TSKDFProblem = new IDETypeStateAnalysis(IRDB, TH, ICFG, PT,
+                                            *OpenSSLEVPKDFDesc, EntryPoints);
+    kdfSolver =
+        new IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
+                      IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
+                      IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
+                      IDETypeStateAnalysis::i_t>(*TSKDFProblem);
+
+    OpenSSLEVPKeyDerivationDesc = new OpenSSLEVPKDFCTXDescription(*kdfSolver);
     TSProblem = new IDETypeStateAnalysis(
         IRDB, TH, ICFG, PT, *OpenSSLEVPKeyDerivationDesc, EntryPoints);
 
@@ -65,6 +78,7 @@ protected:
                       IDETypeStateAnalysis::m_t, IDETypeStateAnalysis::t_t,
                       IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
                       IDETypeStateAnalysis::i_t>(*TSProblem);
+    kdfSolver->solve();
     llvmtssolver->solve();
   }
 
