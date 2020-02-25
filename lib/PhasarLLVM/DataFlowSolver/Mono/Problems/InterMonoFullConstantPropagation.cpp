@@ -45,15 +45,13 @@ BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::join(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  // TODO implement
-  return {};
+  return Lhs.setUnion(Rhs);
 }
 
 bool InterMonoFullConstantPropagation::sqSubSetEqual(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  // TODO implement
-  return true;
+  return Lhs.includes(Rhs);
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
