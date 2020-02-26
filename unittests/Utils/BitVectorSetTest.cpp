@@ -309,7 +309,7 @@ TEST(BitVectorSet, iterator) {
   BitVectorSet<int> A({10, 20, 30, 40, 50});
   // auto iterator = A.begin();
   // to be changed
-  EXPECT_EQ(A.count(10), 1);  
+  EXPECT_EQ(A.count(10), 1);
 }
 
 int main(int argc, char **argv) {

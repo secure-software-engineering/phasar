@@ -93,4 +93,4 @@ template <> struct hash<pair<const llvm::Value *, unsigned>> {
     return hp ^ (hu << 1);
   }
 };
-} // namespace std;
+} // namespace std
