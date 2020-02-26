@@ -116,8 +116,9 @@ public:
    * For example, if the points-to analysis indicates that a pointer could
    * be for multiple different types.
    */
-  typedef std::unordered_multimap<const llvm::Instruction*,
-      const llvm::Function*> OutEdgesAndTargets;
+  typedef std::unordered_multimap<const llvm::Instruction *,
+                                  const llvm::Function *>
+      OutEdgesAndTargets;
 
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
@@ -141,8 +142,8 @@ public:
    * data directly.
    * \return all call sites within a given method.
    */
-  std::vector<const llvm::Instruction* >
-  getOutEdges(const llvm::Function* F) const;
+  std::vector<const llvm::Instruction *>
+  getOutEdges(const llvm::Function *F) const;
 
   /**
    * For the supplied function, get all the output edge Instructions and
@@ -150,15 +151,14 @@ public:
    *
    * \return the edges and the target function for each edge.
    */
-  OutEdgesAndTargets
-  getOutEdgeAndTarget(const llvm::Function* F) const;
+  OutEdgesAndTargets getOutEdgeAndTarget(const llvm::Function *F) const;
 
   /**
-   * Removes all edges found for the given instruction within the sourceFunction.
-   * \return number of edges removed
+   * Removes all edges found for the given instruction within the
+   * sourceFunction. \return number of edges removed
    */
-  size_t removeEdges(const llvm::Function* sourceFunction,
-                     const llvm::Instruction* instruction);
+  size_t removeEdges(const llvm::Function *sourceFunction,
+                     const llvm::Instruction *instruction);
 
   /**
    * Removes the vertex for the given function.
@@ -166,12 +166,13 @@ public:
    * IN or OUT edges is a bad idea.
    * \return true iff the vertex was found and removed.
    */
-  bool removeVertex(const llvm::Function* F);
+  bool removeVertex(const llvm::Function *F);
 
   /**
-   * \return the total number of in edges to the vertex representing this Function.
+   * \return the total number of in edges to the vertex representing this
+   * Function.
    */
-  size_t getCallerCount(const llvm::Function* F) const;
+  size_t getCallerCount(const llvm::Function *F) const;
 
   /**
    * \return all callee methods for a given call that might be called.

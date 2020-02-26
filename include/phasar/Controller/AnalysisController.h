@@ -58,7 +58,7 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
-  SoundnessFlag SF;
+  [[maybe_unused]] SoundnessFlag SF;
 
   void executeDemandDriven();
 

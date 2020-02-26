@@ -293,16 +293,15 @@ set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
 
-std::vector<const llvm::Instruction* >
-LLVMBasedICFG::getOutEdges(const llvm::Function* F) const
-{
+std::vector<const llvm::Instruction *>
+LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
   auto functionMapIt = FunctionVertexMap.find(F);
   if (functionMapIt == FunctionVertexMap.end())
     return {};
 
-  std::vector<const llvm::Instruction* > edges;
-  for(const auto edgeIt : boost::make_iterator_range(
-      boost::out_edges(functionMapIt->second, CallGraph))) {
+  std::vector<const llvm::Instruction *> edges;
+  for (const auto edgeIt : boost::make_iterator_range(
+           boost::out_edges(functionMapIt->second, CallGraph))) {
     auto edge = CallGraph[edgeIt];
     edges.push_back(edge.CS);
   }
@@ -311,15 +310,14 @@ LLVMBasedICFG::getOutEdges(const llvm::Function* F) const
 }
 
 LLVMBasedICFG::OutEdgesAndTargets
-LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function* F) const
-{
+LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function *F) const {
   auto functionMapIt = FunctionVertexMap.find(F);
   if (functionMapIt == FunctionVertexMap.end())
     return {};
 
   OutEdgesAndTargets edges;
-  for(const auto edgeIt : boost::make_iterator_range(
-      boost::out_edges(functionMapIt->second, CallGraph))) {
+  for (const auto edgeIt : boost::make_iterator_range(
+           boost::out_edges(functionMapIt->second, CallGraph))) {
     auto edge = CallGraph[edgeIt];
     auto target = CallGraph[boost::target(edgeIt, CallGraph)];
     edges.insert(std::make_pair(edge.CS, target.F));
@@ -328,16 +326,15 @@ LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function* F) const
   return edges;
 }
 
-
-size_t
-LLVMBasedICFG::removeEdges(const llvm::Function* F, const llvm::Instruction* I) {
+size_t LLVMBasedICFG::removeEdges(const llvm::Function *F,
+                                  const llvm::Instruction *I) {
   auto functionMapIt = FunctionVertexMap.find(F);
   if (functionMapIt == FunctionVertexMap.end())
     return 0;
 
   size_t edgesRemoved = 0;
   auto outEdges = boost::out_edges(functionMapIt->second, CallGraph);
-  for(auto edgeIt : boost::make_iterator_range(outEdges)) {
+  for (auto edgeIt : boost::make_iterator_range(outEdges)) {
     auto edge = CallGraph[edgeIt];
     if (edge.CS == I) {
       boost::remove_edge(edgeIt, CallGraph);
@@ -347,8 +344,7 @@ LLVMBasedICFG::removeEdges(const llvm::Function* F, const llvm::Instruction* I) 
   return edgesRemoved;
 }
 
-bool
-LLVMBasedICFG::removeVertex(const llvm::Function* F) {
+bool LLVMBasedICFG::removeVertex(const llvm::Function *F) {
   auto functionMapIt = FunctionVertexMap.find(F);
   if (functionMapIt == FunctionVertexMap.end())
     return false;
@@ -358,8 +354,7 @@ LLVMBasedICFG::removeVertex(const llvm::Function* F) {
   return true;
 }
 
-size_t
-LLVMBasedICFG::getCallerCount(const llvm::Function* F) const {
+size_t LLVMBasedICFG::getCallerCount(const llvm::Function *F) const {
   auto mapEntry = FunctionVertexMap.find(F);
   if (mapEntry == FunctionVertexMap.end()) {
     return 0;
