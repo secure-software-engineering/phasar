@@ -28,6 +28,7 @@
 
 #include <boost/filesystem.hpp>
 
+#include <phasar/Config/Configuration.h>
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
 #include <phasar/PhasarLLVM/Passes/GeneralStatisticsAnalysis.h>
@@ -258,10 +259,10 @@ void ProjectIRDB::print() const {
 }
 
 void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) const {
-  for (auto &entry : Modules) {
-    os << "IR module: " << entry.first << '\n';
+  for (auto &[File, Module] : Modules) {
+    os << "IR module: " << File << '\n';
     // print globals
-    for (auto &glob : entry.second->globals()) {
+    for (auto &glob : Module->globals()) {
       if (shortenIR) {
         os << llvmIRToShortString(&glob);
       } else {
@@ -271,8 +272,7 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) const {
     }
     os << '\n';
     for (auto F : getAllFunctions()) {
-      if (getModuleDefiningFunction(F->getName().str())
-              ->getModuleIdentifier() == entry.first) {
+      if (!F->isDeclaration() && Module->getFunction(F->getName())) {
         os << F->getName().str() << " {\n";
         for (auto &BB : *F) {
           // do not print the label of the first BB

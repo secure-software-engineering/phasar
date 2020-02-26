@@ -23,6 +23,7 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
+#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 #include <phasar/Utils/LLVMShorthands.h>
@@ -52,7 +53,8 @@ void OTFResolver::handlePossibleTargets(
     // only if they are available
     if (!CalleeTarget->isDeclaration()) {
       auto CalleePTG = PT.getPointsToGraph(CalleeTarget);
-      WholeModulePTG.mergeWith(CalleePTG, CS, CalleeTarget);
+      WholeModulePTG.mergeWith(CalleePTG, CalleeTarget);
+      WholeModulePTG.mergeCallSite(CS, CalleeTarget);
     }
   }
 }

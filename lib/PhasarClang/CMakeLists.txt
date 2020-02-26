@@ -2,6 +2,10 @@ file(GLOB_RECURSE PHASARCLANG_SRC *.h *.cpp)
 
 include_directories(${CLANG_INCLUDE_DIRS})
 
+set(PHASAR_LINK_LIBS
+  phasar_utils
+)
+
 set(LLVM_LINK_COMPONENTS
   Support
   Core

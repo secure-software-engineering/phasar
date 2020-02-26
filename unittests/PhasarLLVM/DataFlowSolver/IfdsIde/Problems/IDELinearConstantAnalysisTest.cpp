@@ -26,7 +26,7 @@ protected:
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
-  IDELinearConstantAnalysis::lca_restults_t
+  IDELinearConstantAnalysis::lca_results_t
   doAnalysis(const std::string &llvmFilePath, bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
@@ -55,7 +55,7 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  void compareResults(IDELinearConstantAnalysis::lca_restults_t &Results,
+  void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
                       std::set<LCACompactResult_t> &GroundTruth) {
     std::set<LCACompactResult_t> RelevantResults;
     for (auto G : GroundTruth) {

@@ -29,9 +29,9 @@ template <typename V, typename N> class PointsToInfo {
 public:
   virtual ~PointsToInfo() = default;
 
-  virtual AliasResult alias(V V1, V V2, N I) = 0;
+  virtual AliasResult alias(V V1, V V2, N I = N{}) = 0;
 
-  virtual std::set<V> getPointsToSet(V V1, N I) const = 0;
+  virtual std::set<V> getPointsToSet(V V1, N I = N{}) const = 0;
 
   virtual void print(std::ostream &OS) const = 0;
 
