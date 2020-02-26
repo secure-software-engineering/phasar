@@ -20,6 +20,7 @@
 #include <phasar/Controller/AnalysisController.h>
 #include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
 #include <phasar/Utils/Logger.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 using namespace psr;
 
@@ -103,6 +104,13 @@ void validateParamCallGraphAnalysis(const std::string &Analysis) {
   }
 }
 
+void validateSoundnessFlag(const std::string &Flag) {
+  if (to_SoundnessFlag(Flag) == SoundnessFlag::Invalid) {
+    throw boost::program_options::error_with_option_name(
+        "'" + Flag + "' is not a valid soundiness flag!");
+  }
+}
+
 void validateParamAnalysisPlugin(const std::vector<std::string> &Plugins) {
   for (const auto &Plugin : Plugins) {
     boost::filesystem::path PluginPath(Plugin);
@@ -161,6 +169,7 @@ int main(int argc, const char **argv) {
       ("analysis-config", boost::program_options::value<std::vector<std::string>>()->multitoken()->zero_tokens()->composing()->notifier(&validateParamAnalysisConfig), "Set the analysis's configuration (if required)")
       ("pointer-analysis,P", boost::program_options::value<std::string>()->notifier(&validateParamPointerAnalysis)->default_value("CFLAnders"), "Set the points-to analysis to be used (CFLSteens, CFLAnders)")
       ("call-graph-analysis,C", boost::program_options::value<std::string>()->notifier(&validateParamCallGraphAnalysis)->default_value("OTF"), "Set the call-graph algorithm to be used (NORESOLVE, CHA, RTA, DTA, VTA, OTF)")
+      ("soundiness-flag", boost::program_options::value<std::string>()->notifier(&validateSoundnessFlag)->default_value("SOUNDY"), "Set the soundiness level to be used (SOUND,SOUNDY,UNSOUND)")
 			("classhierarchy-analysis,H", "Class-hierarchy analysis")
 			("statistical-analysis,S", "Statistics")
 			("mwa,M", "Enable Modulewise-program analysis mode")
@@ -300,6 +309,9 @@ int main(int argc, const char **argv) {
   // setup call-graph algorithm to be used
   CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(
       PhasarConfig::VariablesMap()["call-graph-analysis"].as<std::string>());
+  // setup soudiness level to be used
+  SoundnessFlag SF = to_SoundnessFlag(
+      PhasarConfig::VariablesMap()["soundiness-flag"].as<std::string>());
   // setup the emitter options to display the computed analysis results
   AnalysisControllerEmitterOptions EmitterOptions =
       AnalysisControllerEmitterOptions::EmitTextReport;
@@ -347,7 +359,7 @@ int main(int argc, const char **argv) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
   AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
-                                CGTy, EntryPoints, Strategy, EmitterOptions,
+                                CGTy,SF, EntryPoints, Strategy, EmitterOptions,
                                 ProjectID, OutDirectory);
   return 0;
 }

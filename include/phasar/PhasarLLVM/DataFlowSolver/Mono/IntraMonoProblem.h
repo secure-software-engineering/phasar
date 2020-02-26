@@ -25,6 +25,7 @@
 #include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
 #include <phasar/Utils/BitVectorSet.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
@@ -49,6 +50,7 @@ protected:
   const C *CF;
   const PointsToInfo<V, N> *PT;
   std::set<std::string> EntryPoints;
+  [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
 
 public:
   // denote that a problem does not require a configuration (type/file)
@@ -80,6 +82,8 @@ public:
   const C *getCFG() const { return CF; }
 
   const PointsToInfo<V, N> *getPointstoInfo() const { return PT; }
+
+  virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
 };
 
 } // namespace psr

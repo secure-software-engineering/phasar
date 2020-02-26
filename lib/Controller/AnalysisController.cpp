@@ -54,15 +54,16 @@ namespace psr {
 AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
-    CallGraphAnalysisType CGTy, std::set<std::string> EntryPoints,
-    AnalysisStrategy Strategy, AnalysisControllerEmitterOptions EmitterOptions,
-    std::string ProjectID, std::string OutDirectory)
+    CallGraphAnalysisType CGTy, SoundnessFlag SF,
+    std::set<std::string> EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions, std::string ProjectID,
+    std::string OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
       DataFlowAnalyses(DataFlowAnalyses), AnalysisConfigs(AnalysisConfigs),
       EntryPoints(EntryPoints), Strategy(Strategy),
       EmitterOptions(EmitterOptions), ProjectID(ProjectID),
-      OutDirectory(OutDirectory) {
+      OutDirectory(OutDirectory), SF(SF) {
   if (OutDirectory != "") {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();

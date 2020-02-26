@@ -52,8 +52,8 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
-    LLVMPointsToInfo *PT)
-    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT) {
+    LLVMPointsToInfo *PT, SoundnessFlag SF)
+    : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, SF) {
   auto cgCopy = ForwardICFG.CallGraph;
   boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
 }
