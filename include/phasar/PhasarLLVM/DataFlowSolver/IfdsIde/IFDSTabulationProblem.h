@@ -28,6 +28,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace psr {
 
@@ -54,6 +55,7 @@ protected:
   const PointsToInfo<V, N> *PT;
   D ZeroValue;
   std::set<std::string> EntryPoints;
+  [[maybe_unused]] SoundnessFlag SF = SoundnessFlag::UNUSED;
 
 public:
   using ConfigurationTy = HasNoConfigurationType;
@@ -98,6 +100,8 @@ public:
                                    std::ostream &OS = std::cout) {
     OS << "No graphical report available!\n";
   }
+
+  virtual bool setSoundnessFlag(SoundnessFlag SF) { return false; }
 };
 } // namespace psr
 

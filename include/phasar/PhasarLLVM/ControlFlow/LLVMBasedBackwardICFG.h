@@ -21,6 +21,7 @@
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
+#include <phasar/Utils/SoundnessFlag.h>
 
 namespace llvm {
 class Instruction;
@@ -49,7 +50,8 @@ public:
   LLVMBasedBackwardsICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                          const std::set<std::string> &EntryPoints = {},
                          LLVMTypeHierarchy *TH = nullptr,
-                         LLVMPointsToInfo *PT = nullptr);
+                         LLVMPointsToInfo *PT = nullptr,
+                         SoundnessFlag SF = SoundnessFlag::SOUNDY);
 
   ~LLVMBasedBackwardsICFG() override = default;
 

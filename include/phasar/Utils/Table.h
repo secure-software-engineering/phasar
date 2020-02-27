@@ -23,6 +23,8 @@
 #include <unordered_map>
 #include <vector>
 
+// we may wish to replace this by boost::multi_index at some point
+
 namespace psr {
 
 template <typename R, typename C, typename V> class Table {

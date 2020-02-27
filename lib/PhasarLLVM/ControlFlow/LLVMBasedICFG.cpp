@@ -84,15 +84,17 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
 // PT in case any of them is allocated within the constructor. To this end, we
 // set UserTHInfos and UserPTInfos to true here.
 LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
-    : IRDB(ICF.IRDB), CGType(ICF.CGType), UserTHInfos(true), UserPTInfos(true),
-      TH(ICF.TH), PT(ICF.PT), WholeModulePTG(ICF.WholeModulePTG),
+    : IRDB(ICF.IRDB), CGType(ICF.CGType), SF(ICF.SF), UserTHInfos(true),
+      UserPTInfos(true), TH(ICF.TH), PT(ICF.PT),
+      WholeModulePTG(ICF.WholeModulePTG),
       VisitedFunctions(ICF.VisitedFunctions), CallGraph(ICF.CallGraph),
       FunctionVertexMap(ICF.FunctionVertexMap) {}
 
 LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              const std::set<std::string> &EntryPoints,
-                             LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
-    : IRDB(IRDB), CGType(CGType), TH(TH), PT(PT) {
+                             LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT,
+                             SoundnessFlag SF)
+    : IRDB(IRDB), CGType(CGType), SF(SF), TH(TH), PT(PT) {
   PAMM_GET_INSTANCE;
   auto &lg = lg::get();
   // check for faults in the logic
@@ -291,9 +293,77 @@ set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
   return IRDB.getAllFunctions();
 }
 
-/**
- * Returns all callee methods for a given call that might be called.
- */
+std::vector<const llvm::Instruction *>
+LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
+  auto functionMapIt = FunctionVertexMap.find(F);
+  if (functionMapIt == FunctionVertexMap.end())
+    return {};
+
+  std::vector<const llvm::Instruction *> edges;
+  for (const auto edgeIt : boost::make_iterator_range(
+           boost::out_edges(functionMapIt->second, CallGraph))) {
+    auto edge = CallGraph[edgeIt];
+    edges.push_back(edge.CS);
+  }
+
+  return edges;
+}
+
+LLVMBasedICFG::OutEdgesAndTargets
+LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function *F) const {
+  auto functionMapIt = FunctionVertexMap.find(F);
+  if (functionMapIt == FunctionVertexMap.end())
+    return {};
+
+  OutEdgesAndTargets edges;
+  for (const auto edgeIt : boost::make_iterator_range(
+           boost::out_edges(functionMapIt->second, CallGraph))) {
+    auto edge = CallGraph[edgeIt];
+    auto target = CallGraph[boost::target(edgeIt, CallGraph)];
+    edges.insert(std::make_pair(edge.CS, target.F));
+  }
+
+  return edges;
+}
+
+size_t LLVMBasedICFG::removeEdges(const llvm::Function *F,
+                                  const llvm::Instruction *I) {
+  auto functionMapIt = FunctionVertexMap.find(F);
+  if (functionMapIt == FunctionVertexMap.end())
+    return 0;
+
+  size_t edgesRemoved = 0;
+  auto outEdges = boost::out_edges(functionMapIt->second, CallGraph);
+  for (auto edgeIt : boost::make_iterator_range(outEdges)) {
+    auto edge = CallGraph[edgeIt];
+    if (edge.CS == I) {
+      boost::remove_edge(edgeIt, CallGraph);
+      ++edgesRemoved;
+    }
+  }
+  return edgesRemoved;
+}
+
+bool LLVMBasedICFG::removeVertex(const llvm::Function *F) {
+  auto functionMapIt = FunctionVertexMap.find(F);
+  if (functionMapIt == FunctionVertexMap.end())
+    return false;
+
+  boost::remove_vertex(functionMapIt->second, CallGraph);
+  FunctionVertexMap.erase(functionMapIt);
+  return true;
+}
+
+size_t LLVMBasedICFG::getCallerCount(const llvm::Function *F) const {
+  auto mapEntry = FunctionVertexMap.find(F);
+  if (mapEntry == FunctionVertexMap.end()) {
+    return 0;
+  }
+
+  auto edgeIterators = boost::in_edges(mapEntry->second, CallGraph);
+  return std::distance(edgeIterators.first, edgeIterators.second);
+}
+
 set<const llvm::Function *>
 LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   if (llvm::isa<llvm::CallInst>(n) || llvm::isa<llvm::InvokeInst>(n)) {
@@ -305,10 +375,9 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
     out_edge_iterator ei, ei_end;
     for (boost::tie(ei, ei_end) = boost::out_edges(mapEntry->second, CallGraph);
          ei != ei_end; ++ei) {
-      auto source = boost::source(*ei, CallGraph);
       auto edge = CallGraph[*ei];
-      auto target = boost::target(*ei, CallGraph);
       if (n == edge.CS) {
+        auto target = boost::target(*ei, CallGraph);
         Callees.insert(CallGraph[target].F);
       }
     }
@@ -318,9 +387,6 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *n) const {
   }
 }
 
-/**
- * Returns all caller statements/nodes of a given method.
- */
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
   set<const llvm::Instruction *> CallersOf;
@@ -331,17 +397,12 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
   in_edge_iterator ei, ei_end;
   for (boost::tie(ei, ei_end) = boost::in_edges(mapEntry->second, CallGraph);
        ei != ei_end; ++ei) {
-    auto source = boost::source(*ei, CallGraph);
     auto edge = CallGraph[*ei];
-    auto target = boost::target(*ei, CallGraph);
     CallersOf.insert(edge.CS);
   }
   return CallersOf;
 }
 
-/**
- * Returns all call sites within a given method.
- */
 set<const llvm::Instruction *>
 LLVMBasedICFG::getCallsFromWithin(const llvm::Function *f) const {
   set<const llvm::Instruction *> CallSites;
