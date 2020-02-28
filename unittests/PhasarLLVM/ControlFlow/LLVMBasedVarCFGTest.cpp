@@ -14,8 +14,8 @@
 
 #include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVariabilityTabulationProblem.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
@@ -41,7 +41,7 @@ protected:
   ProjectIRDB *IRDB = nullptr;
   LLVMTypeHierarchy *TH = nullptr;
   LLVMPointsToInfo *PT = nullptr;
-  LLVMBasedVariationalICFG *VICFG = nullptr;
+  LLVMBasedVarICFG *VICFG = nullptr;
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
@@ -51,8 +51,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     TH = new LLVMTypeHierarchy(*IRDB);
     PT = new LLVMPointsToInfo(*IRDB);
-    VICFG = new LLVMBasedVariationalICFG(*IRDB, CallGraphAnalysisType::OTF,
-                                         EntryPoints, TH, PT);
+    VICFG = new LLVMBasedVarICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints,
+                                 TH, PT);
   }
   z3::expr doAnalysis(const llvm::Instruction *currInst,
                       const llvm::Instruction *succInst) {

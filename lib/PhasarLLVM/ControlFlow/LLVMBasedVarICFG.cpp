@@ -7,16 +7,16 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h>
 
 using namespace psr;
 
 namespace psr {
 
-LLVMBasedVariationalICFG::LLVMBasedVariationalICFG(
-    ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
-    const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
-    LLVMPointsToInfo *PT)
+LLVMBasedVarICFG::LLVMBasedVarICFG(ProjectIRDB &IRDB,
+                                   CallGraphAnalysisType CGType,
+                                   const std::set<std::string> &EntryPoints,
+                                   LLVMTypeHierarchy *TH, LLVMPointsToInfo *PT)
     : LLVMBasedICFG(IRDB, CGType, EntryPoints, TH, PT) {}
 
 } // namespace psr

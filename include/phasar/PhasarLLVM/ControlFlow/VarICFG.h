@@ -7,19 +7,18 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_VARIATIONALICFG_H_
-#define PHASAR_PHASARLLVM_CONTROLFLOW_VARIATIONALICFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_VARICFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_VARICFG_H_
 
 #include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/VariationalCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/VarCFG.h>
 
 namespace psr {
 
 template <typename N, typename M, typename C>
-class VariationalICFG : public virtual VariationalCFG<N, M, C>,
-                        public virtual ICFG<N, M> {
+class VarICFG : public virtual VarCFG<N, M, C>, public virtual ICFG<N, M> {
 public:
-  ~VariationalICFG() override = default;
+  ~VarICFG() override = default;
 };
 
 } // namespace psr

@@ -7,15 +7,15 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARIATIONALCFG_H_
-#define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARIATIONALCFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARCFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_LLVMBASEDVARCFG_H_
 
 #include <utility>
 
 #include <z3++.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/VariationalCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/VarCFG.h>
 
 namespace llvm {
 class Function;
@@ -28,10 +28,10 @@ class GlobalVariable;
 
 namespace psr {
 
-class LLVMBasedVariationalCFG
+class LLVMBasedVarCFG
     : public virtual LLVMBasedCFG,
-      public virtual VariationalCFG<const llvm::Instruction *,
-                                    const llvm::Function *, z3::expr> {
+      public virtual VarCFG<const llvm::Instruction *, const llvm::Function *,
+                            z3::expr> {
 private:
   // TODO: check if those variables need to be mutable, i.e. the z3
   // related member functions need to be const.
@@ -58,9 +58,9 @@ private:
   bool isPPVariable(const llvm::GlobalVariable *G, std::string &Name) const;
 
 public:
-  LLVMBasedVariationalCFG() = default;
+  LLVMBasedVarCFG() = default;
 
-  ~LLVMBasedVariationalCFG() override = default;
+  ~LLVMBasedVarCFG() override = default;
 
   std::vector<std::pair<const llvm::Instruction *, z3::expr>>
   getSuccsOfWithPPConstraints(const llvm::Instruction *Stmt) const override;

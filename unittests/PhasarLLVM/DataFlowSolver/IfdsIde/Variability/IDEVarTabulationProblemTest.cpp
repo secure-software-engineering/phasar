@@ -12,8 +12,8 @@
 #include <gtest/gtest.h>
 
 #include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVariabilityTabulationProblem.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 #include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
@@ -23,7 +23,7 @@
 using namespace psr;
 
 /* ============== TEST FIXTURE ============== */
-class IDEVariabilityTabulationProblemTest : public ::testing::Test {
+class IDEVarTabulationProblemTest : public ::testing::Test {
 protected:
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
@@ -43,8 +43,8 @@ protected:
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
-    LLVMBasedVariationalICFG VICFG(*IRDB, CallGraphAnalysisType::OTF,
-                                   EntryPoints, &TH, &PT);
+    LLVMBasedVarICFG VICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH,
+                           &PT);
     IDELinearConstantAnalysis LCAProblem(IRDB, &TH, &VICFG, &PT, EntryPoints);
     IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis> VARAProblem(
         LCAProblem, VICFG);
@@ -84,7 +84,7 @@ protected:
   }
 }; // Test Fixture
 
-// TEST_F(IDEVariabilityTabulationProblemTest,
+// TEST_F(IDEVarTabulationProblemTest,
 // HandleBasic_TwoVariablesDesugared) {
 //   auto Results = doAnalysis("twovariables_desugared_c.ll", true);
 //   // std::set<LCACompactResult_t> GroundTruth;
@@ -93,7 +93,7 @@ protected:
 //   // compareResults(Results, GroundTruth);
 // }
 
-TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
+TEST_F(IDEVarTabulationProblemTest, HandleBasic_01) {
   // auto Results = doAnalysis("basic_01_c.ll", true);
   doAnalysis("basic_01_c.ll", true);
   // std::set<LCACompactResult_t> GroundTruth;
@@ -102,7 +102,7 @@ TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
   // compareResults(Results, GroundTruth);
 }
 
-// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_02) {
+// TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
 //   // auto Results = doAnalysis("basic_01_c.ll", true);
 //   doAnalysis("basic_02_c.ll", false);
 //   // std::set<LCACompactResult_t> GroundTruth;
@@ -111,7 +111,7 @@ TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
 //   // compareResults(Results, GroundTruth);
 // }
 
-// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_03) {
+// TEST_F(IDEVarTabulationProblemTest, HandleBasic_03) {
 //   // auto Results = doAnalysis("basic_01_c.ll", true);
 //   doAnalysis("basic_03_c.ll", true);
 //   // std::set<LCACompactResult_t> GroundTruth;
@@ -120,7 +120,7 @@ TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_01) {
 //   // compareResults(Results, GroundTruth);
 // }
 
-// TEST_F(IDEVariabilityTabulationProblemTest, HandleBasic_04) {
+// TEST_F(IDEVarTabulationProblemTest, HandleBasic_04) {
 //   // auto Results = doAnalysis("basic_01_c.ll", true);
 //   doAnalysis("basic_04_c.ll", true);
 //   // std::set<LCACompactResult_t> GroundTruth;

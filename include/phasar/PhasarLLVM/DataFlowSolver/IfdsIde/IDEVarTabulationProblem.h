@@ -7,30 +7,29 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARIABILITYTABULATIONPROBLEM_H_
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARIABILITYTABULATIONPROBLEM_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARTABULATIONPROBLEM_H_
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IDEVARTABULATIONPROBLEM_H_
 
 #include <map>
-
 #include <memory>
+
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/VariationalICFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/VarICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VariationalEdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunction.h>
 
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
           typename L, typename I>
-class IDEVariabilityTabulationProblem
+class IDEVarTabulationProblem
     : public IDETabulationProblem<N, D, F, T, V, VarL<L>,
-                                  VariationalICFG<N, F, z3::expr>> {
+                                  VarICFG<N, F, z3::expr>> {
 public:
   using n_t = N;
   using d_t = D;
@@ -40,37 +39,35 @@ public:
   using user_l_t = L;
   // override l_t and i_t to capture the variability
   using l_t = VarL<L>;
-  using i_t = VariationalICFG<N, F, z3::expr>;
+  using i_t = VarICFG<N, F, z3::expr>;
 
 private:
   IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
-  LLVMBasedVariationalICFG &VarICF;
+  LLVMBasedVarICFG &VarICF;
 
   const z3::expr TRUE_CONSTRAINT = VarICF.getTrueConstraint();
   const l_t BOTTOM = {{TRUE_CONSTRAINT, IDEProblem.bottomElement()}};
   const l_t TOP = {{TRUE_CONSTRAINT, IDEProblem.topElement()}};
 
 public:
-  IDEVariabilityTabulationProblem(
-      IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem,
-      LLVMBasedVariationalICFG &VarICF)
-      : IDETabulationProblem<N, D, F, T, V, l_t,
-                             VariationalICFG<N, F, z3::expr>>(
+  IDEVarTabulationProblem(IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem,
+                          LLVMBasedVarICFG &VarICF)
+      : IDETabulationProblem<N, D, F, T, V, l_t, VarICFG<N, F, z3::expr>>(
             IDEProblem.getProjectIRDB(), IDEProblem.getTypeHierarchy(), &VarICF,
             IDEProblem.getPointstoInfo(), IDEProblem.getEntryPoints()),
         IDEProblem(IDEProblem), VarICF(VarICF) {
-    IDEVariabilityTabulationProblem::ZeroValue = createZeroValue();
+    IDEVarTabulationProblem::ZeroValue = createZeroValue();
   }
 
   // TODO also allow for solving IFDSTabulationProblems
-  // IDEVariabilityTabulationProblem(IFDSTabulationProblem ...) {}
+  // IDEVarTabulationProblem(IFDSTabulationProblem ...) {}
 
-  ~IDEVariabilityTabulationProblem() override = default;
+  ~IDEVarTabulationProblem() override = default;
 
   // Flow functions
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
                                                          N succ) override {
-    // std::cout << "IDEVariabilityTabulationProblem::getNormalFlowFunction
+    // std::cout << "IDEVarTabulationProblem::getNormalFlowFunction
     // applied on : "
     //           << IDEProblem.NtoString(curr)
     //           << '\n';
@@ -92,13 +89,13 @@ public:
 
   std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
                                                        F destMthd) override {
-    // std::cout << "IDEVariabilityTabulationProblem::getCallFlowFunction\n";
+    // std::cout << "IDEVarTabulationProblem::getCallFlowFunction\n";
     return Identity<D>::getInstance();
   }
 
   std::shared_ptr<FlowFunction<D>>
   getRetFlowFunction(N callSite, F calleeMthd, N exitStmt, N retSite) override {
-    // std::cout << "IDEVariabilityTabulationProblem::getRetFlowFunction\n";
+    // std::cout << "IDEVarTabulationProblem::getRetFlowFunction\n";
     return Identity<D>::getInstance();
   }
 
@@ -106,7 +103,7 @@ public:
   getCallToRetFlowFunction(N callSite, N retSite,
                            std::set<F> callees) override {
     // std::cout <<
-    // "IDEVariabilityTabulationProblem::getCallToRetFlowFunction\n";
+    // "IDEVarTabulationProblem::getCallToRetFlowFunction\n";
     return Identity<D>::getInstance();
   }
 
@@ -130,13 +127,12 @@ public:
       // std::cout << "\tD2: " << IDEProblem.DtoString(succNode) << '\n';
       // std::cout << "\tS : " << IDEProblem.NtoString(succ) << '\n';
       // return std::make_shared<>(EdgeIdentity<l_t>::getInstance(),
-      return std::make_shared<VariationalEdgeFunction<user_l_t>>(
+      return std::make_shared<VarEdgeFunction<user_l_t>>(
           UserEF, VarICF.getPPConstraintOrTrue(curr, succ));
     }
     // ordinary instruction, no preprocessor constraints
     std::cout << "Edge Function: " << *UserEF << '\n';
-    return std::make_shared<VariationalEdgeFunction<user_l_t>>(UserEF,
-                                                               TRUE_CONSTRAINT);
+    return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
   std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(N callStmt, D srcNode,
@@ -144,7 +140,7 @@ public:
                                                          D destNode) override {
     // auto userEdgeFn = IDEProblem.getCallEdgeFunction(
     //     callStmt, srcNode, destinationMethod, destNode);
-    // return std::make_shared<VariationalEdgeFunction<l_t>>(
+    // return std::make_shared<VarEdgeFunction<l_t>>(
     //     userEdgeFn, this->ICF->getTrueCondition());
     return EdgeIdentity<l_t>::getInstance();
   }
@@ -154,7 +150,7 @@ public:
                         N reSite, D retNode) override {
     // auto userEdgeFn = IDEProblem.getReturnEdgeFunction(
     //     callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
-    // return std::make_shared<VariationalEdgeFunction<l_t>>(
+    // return std::make_shared<VarEdgeFunction<l_t>>(
     //     userEdgeFn, this->ICF->getTrueCondition());
     return EdgeIdentity<l_t>::getInstance();
   }
@@ -164,7 +160,7 @@ public:
                            std::set<F> callees) override {
     // auto userEdgeFn = IDEProblem.getCallToRetEdgeFunction(
     //     callSite, callNode, retSite, retSiteNode, callees);
-    // return std::make_shared<VariationalEdgeFunction<l_t>>(
+    // return std::make_shared<VarEdgeFunction<l_t>>(
     //     userEdgeFn, this->ICF->getTrueCondition());
     return EdgeIdentity<l_t>::getInstance();
   }
@@ -184,7 +180,7 @@ public:
   l_t bottomElement() override { return BOTTOM; }
 
   l_t join(l_t Lhs, l_t Rhs) override {
-    // std::cout << "IDEVariabilityTabulationProblem::join\n";
+    // std::cout << "IDEVarTabulationProblem::join\n";
     // std::cout << "lhs: ";
     // printEdgeFact(std::cout, Lhs);
     // std::cout << "rhs: ";
@@ -238,17 +234,18 @@ public:
 };
 
 template <typename Problem>
-IDEVariabilityTabulationProblem(Problem &)
-    ->IDEVariabilityTabulationProblem<
-        typename Problem::n_t, typename Problem::d_t, typename Problem::f_t,
-        typename Problem::t_t, typename Problem::v_t, typename Problem::l_t,
-        typename Problem::i_t>;
+IDEVarTabulationProblem(Problem &)
+    ->IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
+                              typename Problem::f_t, typename Problem::t_t,
+                              typename Problem::v_t, typename Problem::l_t,
+                              typename Problem::i_t>;
 
 template <typename Problem>
-using IDEVariabilityTabulationProblem_P = IDEVariabilityTabulationProblem<
-    typename Problem::n_t, typename Problem::d_t, typename Problem::f_t,
-    typename Problem::t_t, typename Problem::v_t, typename Problem::l_t,
-    typename Problem::i_t>;
+using IDEVariabilityTabulationProblem_P =
+    IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
+                            typename Problem::f_t, typename Problem::t_t,
+                            typename Problem::v_t, typename Problem::l_t,
+                            typename Problem::i_t>;
 
 } // namespace psr
 

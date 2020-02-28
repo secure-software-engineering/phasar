@@ -18,15 +18,14 @@
 
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVariationalCFG.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 using namespace psr;
 
 namespace psr {
 
-z3::expr
-LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
+z3::expr LLVMBasedVarCFG::createBinOp(const llvm::BinaryOperator *val) const {
   auto lhs = val->getOperand(0);
   auto rhs = val->getOperand(1);
 
@@ -72,8 +71,8 @@ LLVMBasedVariationalCFG::createBinOp(const llvm::BinaryOperator *val) const {
   }
 }
 
-bool LLVMBasedVariationalCFG::isPPVariable(const llvm::GlobalVariable *glob,
-                                           std::string &_name) const {
+bool LLVMBasedVarCFG::isPPVariable(const llvm::GlobalVariable *glob,
+                                   std::string &_name) const {
   auto name = glob->getName();
   if (!name.startswith("_")) {
     // std::cerr << "Not starts with _" << std::endl;
@@ -98,8 +97,8 @@ bool LLVMBasedVariationalCFG::isPPVariable(const llvm::GlobalVariable *glob,
   return true;
 }
 
-z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
-    const llvm::LoadInst *val) const {
+z3::expr
+LLVMBasedVarCFG::createVariableOrGlobal(const llvm::LoadInst *val) const {
   auto pointerOp = val->getPointerOperand();
   if (auto glob = llvm::dyn_cast<llvm::GlobalVariable>(pointerOp)) {
     if (glob->isConstant() && glob->hasInitializer()) {
@@ -138,8 +137,7 @@ z3::expr LLVMBasedVariationalCFG::createVariableOrGlobal(
   llvm::report_fatal_error("Invalid preprocessor variable");
 }
 
-z3::expr
-LLVMBasedVariationalCFG::createConstant(const llvm::Constant *val) const {
+z3::expr LLVMBasedVarCFG::createConstant(const llvm::Constant *val) const {
   if (auto cnstInt = llvm::dyn_cast<llvm::ConstantInt>(val)) {
     if (cnstInt->getValue().getBitWidth() == 1)
       return CTX.bool_val(cnstInt->getLimitedValue());
@@ -152,8 +150,7 @@ LLVMBasedVariationalCFG::createConstant(const llvm::Constant *val) const {
   }
 }
 
-z3::expr
-LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
+z3::expr LLVMBasedVarCFG::createExpression(const llvm::Value *val) const {
   if (auto load = llvm::dyn_cast<llvm::LoadInst>(val)) {
     return createVariableOrGlobal(load);
   } else if (auto cmp = llvm::dyn_cast<llvm::CmpInst>(val)) {
@@ -170,9 +167,8 @@ LLVMBasedVariationalCFG::createExpression(const llvm::Value *val) const {
   llvm::report_fatal_error("Unknown expression");
 }
 
-z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
-                                                    z3::expr xInt,
-                                                    bool forEquality) const {
+z3::expr LLVMBasedVarCFG::compareBoolAndInt(z3::expr xBool, z3::expr xInt,
+                                            bool forEquality) const {
   // std::cout << "Compare bool and int: " << xBool << (forEquality ? "==" :
   // "!=")
   // << xInt << std::endl;
@@ -189,8 +185,7 @@ z3::expr LLVMBasedVariationalCFG::compareBoolAndInt(z3::expr xBool,
   return ret;
 }
 
-z3::expr
-LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
+z3::expr LLVMBasedVarCFG::inferCondition(const llvm::CmpInst *cmp) const {
   auto lhs = cmp->getOperand(0);
   auto rhs = cmp->getOperand(1);
 
@@ -250,7 +245,7 @@ LLVMBasedVariationalCFG::inferCondition(const llvm::CmpInst *cmp) const {
   return getTrueConstraint();
 }
 
-bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
+bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   if (!br->isConditional())
     return false;
   // cond will most likely be an 'icmp ne i32 ..., 0'
@@ -277,8 +272,8 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br) const {
   return false;
 }
 
-bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
-                                             z3::expr &cond) const {
+bool LLVMBasedVarCFG::isPPBranchNode(const llvm::BranchInst *br,
+                                     z3::expr &cond) const {
   if (!br->isConditional()) {
     cond = getTrueConstraint();
     return false;
@@ -319,7 +314,7 @@ bool LLVMBasedVariationalCFG::isPPBranchNode(const llvm::BranchInst *br,
 }
 
 std::vector<std::pair<const llvm::Instruction *, z3::expr>>
-LLVMBasedVariationalCFG::getSuccsOfWithPPConstraints(
+LLVMBasedVarCFG::getSuccsOfWithPPConstraints(
     const llvm::Instruction *Stmt) const {
   std::vector<std::pair<const llvm::Instruction *, z3::expr>> Successors;
   for (auto Succ : llvm::successors(Stmt)) {
@@ -329,12 +324,12 @@ LLVMBasedVariationalCFG::getSuccsOfWithPPConstraints(
   return Successors;
 }
 
-z3::expr LLVMBasedVariationalCFG::getTrueConstraint() const {
+z3::expr LLVMBasedVarCFG::getTrueConstraint() const {
   return CTX.bool_val(true);
 }
 
-bool LLVMBasedVariationalCFG::isPPBranchTarget(
-    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
+bool LLVMBasedVarCFG::isPPBranchTarget(const llvm::Instruction *Stmt,
+                                       const llvm::Instruction *Succ) const {
   if (auto *T = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (!isPPBranchNode(T))
       return false;
@@ -347,8 +342,9 @@ bool LLVMBasedVariationalCFG::isPPBranchTarget(
   return false;
 }
 
-z3::expr LLVMBasedVariationalCFG::getPPConstraintOrTrue(
-    const llvm::Instruction *Stmt, const llvm::Instruction *Succ) const {
+z3::expr
+LLVMBasedVarCFG::getPPConstraintOrTrue(const llvm::Instruction *Stmt,
+                                       const llvm::Instruction *Succ) const {
   z3::expr Constraint = getTrueConstraint();
   if (auto B = llvm::dyn_cast<llvm::BranchInst>(Stmt);
       B && B->isConditional()) {
@@ -364,6 +360,6 @@ z3::expr LLVMBasedVariationalCFG::getPPConstraintOrTrue(
   return Constraint;
 }
 
-z3::context &LLVMBasedVariationalCFG::getContext() const { return CTX; }
+z3::context &LLVMBasedVarCFG::getContext() const { return CTX; }
 
 } // namespace psr

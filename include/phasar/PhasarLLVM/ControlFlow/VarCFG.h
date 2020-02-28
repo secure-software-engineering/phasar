@@ -7,8 +7,8 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_VARIATIONALCFG_H_
-#define PHASAR_PHASARLLVM_CONTROLFLOW_VARIATIONALCFG_H_
+#ifndef PHASAR_PHASARLLVM_CONTROLFLOW_VARCFG_H_
+#define PHASAR_PHASARLLVM_CONTROLFLOW_VARCFG_H_
 
 #include <tuple>
 #include <utility>
@@ -19,9 +19,9 @@
 namespace psr {
 
 template <typename N, typename F, typename C>
-class VariationalCFG : public virtual CFG<N, F> {
+class VarCFG : public virtual CFG<N, F> {
 public:
-  ~VariationalCFG() override = default;
+  ~VarCFG() override = default;
 
   /// \brief True, iff Succ is a successor node of Stmt by an #ifdef branch, or
   /// else true

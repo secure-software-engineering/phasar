@@ -14,7 +14,7 @@ foreach(TEST_SRC ${ControlFlowSources})
 endforeach(TEST_SRC)
 
 set(VARA_PROBLEM_SOURCES
-	LLVMBasedVariabilityCFGTest.cpp
+	LLVMBasedVarCFGTest.cpp
 )
 
 foreach(TEST_SRC ${VARA_PROBLEM_SOURCES})
