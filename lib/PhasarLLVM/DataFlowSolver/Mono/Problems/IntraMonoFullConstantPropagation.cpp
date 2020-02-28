@@ -21,7 +21,6 @@
 #include <phasar/Utils/BitVectorSet.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
-
 namespace std {
 template <> struct hash<pair<const llvm::Value *, unsigned>> {
   size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
@@ -70,7 +69,7 @@ IntraMonoFullConstantPropagation::normalFlow(
 }
 
 std::unordered_map<const llvm::Instruction *,
-              BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
+                   BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
 IntraMonoFullConstantPropagation::initialSeeds() {
   return std::unordered_map<
       const llvm::Instruction *,

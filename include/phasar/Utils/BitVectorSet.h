@@ -41,88 +41,128 @@ private:
   inline static bimap_t Position;
   std::vector<bool> Bits;
 
-  class MyIterator {
+  template <typename D> class MyIterator {
     std::vector<bool> Bits;
 
   public:
-    // using iterator_category = std::random_access_iterator_tag;
-    // using value_type = bimap_t::right_iterator;
-    // using difference_type = std::ptrdiff_t;
-    // using pointer = bimap_t::right_iterator*;
-    // using reference = bimap_t::right_iterator&;
-    // MyIterator(std::vector<bool> B, bimap_t::right_iterator ptr = NULL) :
-    // Bits(B) {pos_ptr = ptr;} MyIterator(const
-    // MyIterator<bimap_t::right_iterator>& rawIterator) = default;
-    // ~MyIterator(){}
+    using iterator_category = std::random_access_iterator_tag;
+    using value_type = D;
+    using difference_type = std::ptrdiff_t;
+    using pointer = D *;
+    using reference = D &;
+    MyIterator(D ptr = NULL) : pos_ptr(ptr) {}
+    MyIterator(const MyIterator<D> &rawIterator) = default;
+    ~MyIterator() {}
 
-    // MyIterator<bimap_t::right_iterator>& operator=(const
-    // MyIterator<bimap_t::right_iterator>& rawIterator) = default;
-    // MyIterator<bimap_t::right_iterator>&  operator=(bimap_t::right_iterator*
-    // ptr){pos_ptr = ptr;return (*this);} operator bool() const { if(pos_ptr)
-    // return true; return false; }
+    MyIterator<D> &operator=(const MyIterator<D> &rawIterator) = default;
+    MyIterator<D> &operator=(D *ptr) {
+      pos_ptr = ptr;
+      return (*this);
+    }
+    operator bool() const {
+      if (pos_ptr)
+        return true;
+      return false;
+    }
 
-    // bool operator==(const MyIterator<bimap_t::right_iterator>&
-    // rawIterator)const{return (pos_ptr == rawIterator.getConstPtr());} bool
-    // operator!=(const MyIterator<bimap_t::right_iterator>&
-    // rawIterator)const{return (pos_ptr != rawIterator.getConstPtr());}
+    void setBits(std::vector<bool> B) { Bits = B; }
 
-    // MyIterator<bimap_t::right_iterator>& operator+=(const difference_type&
-    // movement){pos_ptr += movement;return (*this);}
-    // MyIterator<bimap_t::right_iterator>& operator-=(const difference_type&
-    // movement){pos_ptr -= movement;return (*this);}
-    // MyIterator<bimap_t::right_iterator>& operator++(){
-    //   do {
-    //     ++pos_ptr;
-    //   } while(!Bits[pos_ptr->first]);
-    //   return (*this);
-    // }
-    // MyIterator<bimap_t::right_iterator>& operator--(){
-    //   do {
-    //     --pos_ptr;
-    //   } while(!Bits[pos_ptr->first]);
-    //   return (*this);
-    // }
+    bool operator==(const MyIterator<D> &rawIterator) const {
+      return (pos_ptr == rawIterator.getPtr());
+    }
+    bool operator!=(const MyIterator<D> &rawIterator) const {
+      return (pos_ptr != rawIterator.getPtr());
+    }
 
-    // Recheck - test the use of default
-    // MyIterator<bimap_t::right_iterator> operator++(int){auto
-    // temp(*this);++pos_ptr;return temp;} MyIterator<bimap_t::right_iterator>
-    // operator--(int){auto temp(*this);--pos_ptr;return temp;}
-    // MyIterator<bimap_t::right_iterator> operator++(int) = default;
-    // MyIterator<bimap_t::right_iterator> operator--(int) = default;
+    MyIterator<D> &operator+=(const difference_type &movement) {
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr++;
+      return (*this);
+    }
+    MyIterator<D> &operator-=(const difference_type &movement) {
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr--;
+      return (*this);
+    }
+    MyIterator<D> &operator++() {
+      do {
+        ++pos_ptr;
+      } while (!((pos_ptr->first) >= Bits.size()) && !Bits[pos_ptr->first]);
+      return (*this);
+    }
+    MyIterator<D> &operator--() {
+      do {
+        --pos_ptr;
+      } while (!Bits[pos_ptr->first]);
+      return (*this);
+    }
 
-    // MyIterator<bimap_t::right_iterator> operator+(const difference_type&
-    // movement){auto oldPtr = pos_ptr;pos_ptr+=movement;auto
-    // temp(*this);pos_ptr = oldPtr;return temp;}
-    // MyIterator<bimap_t::right_iterator> operator-(const difference_type&
-    // movement){auto oldPtr = pos_ptr;pos_ptr-=movement;auto
-    // temp(*this);pos_ptr = oldPtr;return temp;}
+    MyIterator<D> operator++(int) {
+      auto temp(*this);
+      ++pos_ptr;
+      return temp;
+    }
+    MyIterator<D> operator--(int) {
+      auto temp(*this);
+      --pos_ptr;
+      return temp;
+    }
 
-    // difference_type operator-(const MyIterator<bimap_t::right_iterator>&
-    // rawIterator){return std::distance(rawIterator.getPtr(),this->getPtr());}
+    // ERROR: USAGE GIVING AMBIGUITY ERROR
+    MyIterator<D> operator+(const difference_type &movement) {
+      auto oldPtr = pos_ptr;
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr++;
+      auto temp(*this);
+      pos_ptr = oldPtr;
+      return temp;
+    }
+    MyIterator<D> operator-(const difference_type &movement) {
+      auto oldPtr = pos_ptr;
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr--;
+      auto temp(*this);
+      pos_ptr = oldPtr;
+      return temp;
+    }
 
-    // bimap_t::right_iterator& operator*(){return pos_ptr->second;}
-    // const bimap_t::right_iterator& operator*()const{return pos_ptr->second;}
-    // bimap_t::right_iterator* operator->(){return pos_ptr;}   //
-    // bimap_t::right_iteratoron't know what it should do
+    difference_type operator-(const MyIterator<D> &rawIterator) {
+      return std::distance(rawIterator.getPtr(), this->getPtr());
+    }
 
-    // bimap_t::right_iterator getPtr()const{return pos_ptr;}
-    // const bimap_t::right_iterator* getConstPtr()const{return pos_ptr;}
+    // T& operator*(){return pos_ptr->second;}
+    const T &operator*() const { return pos_ptr->second; }
+    D *operator->() { return pos_ptr; } // don't know what it should do
+
+    D getPtr() const { return pos_ptr; }
+    // const D* getConstPtr()const{return pos_ptr;}
 
   protected:
-    // bimap_t::right_iterator pos_ptr;
+    D pos_ptr;
   };
 
-  // bimap_t::left_iterator l_iterator;
   typedef typename bimap_t::right_iterator r_iterator;
-  // typedef MyIterator iterator;
-  r_iterator pos_ptr;
-  // typedef MyIterator<const r_iterator> const_iterator;
+  typedef MyIterator<r_iterator> iterator;
+  typedef MyIterator<const r_iterator> const_iterator;
 
 public:
-  // iterator begin() { return Position.right.find(std::distance(Bits.begin(),
-  // std::find(Bits.begin(), Bits.end(), true)); } const_iterator begin() const
-  // { return Position.right.find(std::distance(Bits.begin(),
-  // std::find(Bits.begin(), Bits.end(), true)); }
+  iterator begin() {
+    iterator ret = Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
+  }
+  iterator end() {
+    // end at "last occurence of 1" + 1
+    iterator ret = Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
+  }
+  // const_iterator begin() const {
+  //   iterator ret = Position.right.find(std::distance(Bits.begin(),
+  //   std::find(Bits.begin(), Bits.end(), true))); ret.setBits(Bits); return
+  //   ret;
+  // }
 
   BitVectorSet() = default;
 
@@ -337,6 +377,19 @@ public:
     }
     return Elements;
   }
+
+  // void printtoomuch() { // trying the behaviour
+  //   r_iterator rit = Position.right.find(0);
+  //   for (int i = 0; i < 10; i++) {
+  //     std::cout << rit->first << " " << rit->second << " -- ";
+  //     rit++;
+  //   }
+  //   // for(int i = 10; i>0;i--){
+  //   // rit--;
+  //   // NOT WORKING: PROBABLY THERE IS NO DECREMENT OPERATOR IN BIMAP
+  //   // ITERATOR std::cout << rit->first<<" " << rit->second << " -- ";
+  //   // }
+  // }
 };
 
 } // namespace psr

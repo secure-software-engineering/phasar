@@ -7,6 +7,7 @@
 #include <phasar/Utils/BitVectorSet.h>
 
 using namespace psr;
+using namespace std;
 
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
@@ -307,9 +308,29 @@ TEST(BitVectorSet, includes) {
 
 TEST(BitVectorSet, iterator) {
   BitVectorSet<int> A({10, 20, 30, 40, 50});
-  // auto iterator = A.begin();
-  // to be changed
-  EXPECT_EQ(A.count(10), 1);
+  BitVectorSet<int> D({10, 20, 30, 40, 50});
+  auto iteratorA = A.begin();
+  auto iteratorD = D.begin();
+
+  for (auto it = A.begin(); it != A.end(); it++) {
+    EXPECT_EQ(*it, *iteratorD);
+    iteratorD++;
+  }
+}
+
+TEST(BitVectorSet, iterator_movement) {
+  BitVectorSet<int> A({10, 20, 30, 40, 50});
+  BitVectorSet<int> B({30, 40, 50, 60});
+  auto iteratorA = A.begin();
+  auto iteratorB = B.begin();
+
+  iteratorA += 4;
+  iteratorB += 2;
+  EXPECT_EQ(*iteratorA, *iteratorB);
+  EXPECT_EQ(A.count(*iteratorA), 1);
+  iteratorB++;
+  EXPECT_EQ(A.count(*iteratorB), 0);
+  // B.printtoomuch();
 }
 
 int main(int argc, char **argv) {
