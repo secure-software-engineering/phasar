@@ -32,7 +32,6 @@ set(LLVM_LINK_COMPONENTS
   coverage
   coroutines
   libdriver
-  lto
   support
   analysis
   bitwriter
