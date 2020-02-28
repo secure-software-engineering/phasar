@@ -44,7 +44,9 @@ public:
             IFDSProblem.getProjectIRDB(), IFDSProblem.getTypeHierarchy(),
             IFDSProblem.getICFG(), IFDSProblem.getPointstoInfo(),
             IFDSProblem.getEntryPoints()),
-        Problem(IFDSProblem) {}
+        Problem(IFDSProblem) {
+    this->ZeroValue = Problem.createZeroValue();
+  }
 
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
                                                          N succ) override {
