@@ -7,8 +7,8 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VAREDGEFUNCTION_H_
-#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VAREDGEFUNCTION_H_
+#ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VAREDGEFUNCTIONS_H_
+#define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_VAREDGEFUNCTIONS_H_
 
 #include <map>
 #include <memory>
@@ -30,8 +30,7 @@ struct Z3Less {
 
 template <typename L> using VarL = std::map<z3::expr, L, Z3Less>;
 
-template <typename L>
-bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
+template <typename L> bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
   bool FoundKey = false;
   for (auto &[Key, Value] : M) {
     if (z3::eq(Key, E)) {
@@ -41,6 +40,37 @@ bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
   }
   return FoundKey;
 }
+
+class ConstraintEdgeFunction
+    : public EdgeFunction<z3::expr>,
+      public std::enable_shared_from_this<ConstraintEdgeFunction> {
+private:
+  z3::expr Constraint;
+
+public:
+  ConstraintEdgeFunction(z3::expr Constraint) : Constraint(Constraint) {}
+
+  ~ConstraintEdgeFunction() override = default;
+
+  z3::expr computeTarget(z3::expr Source) override { return Source; }
+
+  std::shared_ptr<EdgeFunction<z3::expr>>
+  composeWith(std::shared_ptr<EdgeFunction<z3::expr>> secondFunction) override {
+    std::cout << "ConstraintEdgeFunction::composeWith\n";
+    llvm::report_fatal_error("found unexpected edge function");
+  }
+
+  std::shared_ptr<EdgeFunction<z3::expr>>
+  joinWith(std::shared_ptr<EdgeFunction<z3::expr>> otherFunction) override {
+    std::cout << "ConstraintEdgeFunction::joinWith\n";
+    llvm::report_fatal_error("found unexpected edge function");
+  }
+
+  bool equal_to(std::shared_ptr<EdgeFunction<z3::expr>> other) const override {
+    std::cout << "ConstraintEdgeFunction::equal_to\n";
+    return false;
+  }
+};
 
 template <typename L>
 class VarEdgeFunction

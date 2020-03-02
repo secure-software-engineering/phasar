@@ -21,7 +21,7 @@
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunction.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunctions.h>
 
 namespace psr {
 
@@ -67,21 +67,21 @@ public:
   // Flow functions
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr,
                                                          N succ) override {
-    // std::cout << "IDEVarTabulationProblem::getNormalFlowFunction
-    // applied on : "
-    //           << IDEProblem.NtoString(curr)
-    //           << '\n';
-    // TODO
-    // we need some kind of bool isPPrelatedInstruction(N stmt); that triggers
-    // for all preprocessor related instructions
-    // user problem needs to ignore all preprocessor related instructions
-    // e.g. the following instructions must be ignored:
-    //  - %0 = load i32, i32* @_Djkifd_CONFIG_A_defined, align 4
-    //  - %tobool = icmp ne i32 %0, 0
-    //  - br i1 %tobool, label %if.then, label %if.else
+    // std::cout << "IDEVarTabulationProblem::getNormalFlowFunction applied to:
+    // "
+    //           << IDEProblem.NtoString(curr) << '\n';
+    // // TODO
+    // // we need some kind of bool isPPrelatedInstruction(N stmt); that
+    // triggers
+    // // for all preprocessor related instructions
+    // // user problem needs to ignore all preprocessor related instructions
+    // // e.g. the following instructions must be ignored:
+    // //  - %0 = load i32, i32* @_Djkifd_CONFIG_A_defined, align 4
+    // //  - %tobool = icmp ne i32 %0, 0
+    // //  - br i1 %tobool, label %if.then, label %if.else
     // if (VarICF.isPPBranchTarget(curr, succ)) {
-    // std::cout << "Found PP branch\n";
-    //   return Identity<D>::getInstance();
+    //   std::cout << "Found PP branch\n";
+    //   //   return Identity<D>::getInstance();
     // }
     // otherwise just apply the user edge functions
     return IDEProblem.getNormalFlowFunction(curr, succ);
@@ -90,13 +90,14 @@ public:
   std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt,
                                                        F destMthd) override {
     // std::cout << "IDEVarTabulationProblem::getCallFlowFunction\n";
-    return Identity<D>::getInstance();
+    return IDEProblem.getCallFlowFunction(callStmt, destMthd);
   }
 
   std::shared_ptr<FlowFunction<D>>
   getRetFlowFunction(N callSite, F calleeMthd, N exitStmt, N retSite) override {
     // std::cout << "IDEVarTabulationProblem::getRetFlowFunction\n";
-    return Identity<D>::getInstance();
+    return IDEProblem.getRetFlowFunction(callSite, calleeMthd, exitStmt,
+                                         retSite);
   }
 
   std::shared_ptr<FlowFunction<D>>
@@ -104,7 +105,7 @@ public:
                            std::set<F> callees) override {
     // std::cout <<
     // "IDEVarTabulationProblem::getCallToRetFlowFunction\n";
-    return Identity<D>::getInstance();
+    return IDEProblem.getCallToRetFlowFunction(callSite, retSite, callees);
   }
 
   std::shared_ptr<FlowFunction<D>> getSummaryFlowFunction(N curr,
@@ -138,31 +139,25 @@ public:
   std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(N callStmt, D srcNode,
                                                          F destinationMethod,
                                                          D destNode) override {
-    // auto userEdgeFn = IDEProblem.getCallEdgeFunction(
-    //     callStmt, srcNode, destinationMethod, destNode);
-    // return std::make_shared<VarEdgeFunction<l_t>>(
-    //     userEdgeFn, this->ICF->getTrueCondition());
-    return EdgeIdentity<l_t>::getInstance();
+    auto UserEF = IDEProblem.getCallEdgeFunction(callStmt, srcNode,
+                                                 destinationMethod, destNode);
+    return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
   std::shared_ptr<EdgeFunction<l_t>>
   getReturnEdgeFunction(N callSite, F calleeMethod, N exitStmt, D exitNode,
                         N reSite, D retNode) override {
-    // auto userEdgeFn = IDEProblem.getReturnEdgeFunction(
-    //     callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
-    // return std::make_shared<VarEdgeFunction<l_t>>(
-    //     userEdgeFn, this->ICF->getTrueCondition());
-    return EdgeIdentity<l_t>::getInstance();
+    auto UserEF = IDEProblem.getReturnEdgeFunction(
+        callSite, calleeMethod, exitStmt, exitNode, reSite, retNode);
+    return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
   std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
                            std::set<F> callees) override {
-    // auto userEdgeFn = IDEProblem.getCallToRetEdgeFunction(
-    //     callSite, callNode, retSite, retSiteNode, callees);
-    // return std::make_shared<VarEdgeFunction<l_t>>(
-    //     userEdgeFn, this->ICF->getTrueCondition());
-    return EdgeIdentity<l_t>::getInstance();
+    auto UserEF = IDEProblem.getCallToRetEdgeFunction(
+        callSite, callNode, retSite, retSiteNode, callees);
+    return std::make_shared<VarEdgeFunction<user_l_t>>(UserEF, TRUE_CONSTRAINT);
   }
 
   std::shared_ptr<EdgeFunction<l_t>>

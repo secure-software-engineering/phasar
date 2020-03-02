@@ -72,6 +72,8 @@ protected:
           for (auto &[Constraint, IntegerValue] : Value) {
             bool Found = false;
             for (auto &[TrueConstaint, TrueIntegerValue] : std::get<3>(Truth)) {
+              // std::cout << "Comparing: " << Constraint.to_string() << " and "
+              // << TrueConstaint << '\n';
               if (Constraint.to_string() == TrueConstaint) {
                 EXPECT_TRUE(IntegerValue == TrueIntegerValue);
                 Found = true;
@@ -79,7 +81,8 @@ protected:
               }
             }
             if (!Found) {
-              GTEST_NONFATAL_FAILURE_("my error");
+              FAIL() << "Could not find constraint: '" << Constraint.to_string()
+                     << "' in ground truth!";
             }
           }
         }
@@ -106,21 +109,21 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_01) {
   GroundTruth.emplace("main", 11, "x",
                       std::set<std::pair<std::string, int64_t>>{
                           {"A_defined", 42}, {"(not A_defined)", 13}});
-  // GroundTruth.emplace("main", 11, "retval",
-                      // std::set<std::pair<std::string, int64_t>>{
-                          // {"true", 0}});
-  doAnalysisAndCompareResults("basic_01_c.ll", GroundTruth, true);
+  GroundTruth.emplace("main", 11, "retval",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 0}});
+  doAnalysisAndCompareResults("basic_01_c.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
-//   // auto Results = doAnalysis("basic_01_c.ll", true);
-//   doAnalysis("basic_02_c.ll", false);
-//   // std::set<LCAVarCompactResults_t
-// > GroundTruth;
-//   // GroundTruth.emplace("main", 2, "i", 13);
-//   // GroundTruth.emplace("main", 3, "i", 13);
-//   // compareResults(Results, GroundTruth);
-// }
+TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  GroundTruth.emplace("main", 6, "x",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 150}});
+  GroundTruth.emplace("main", 6, "%0",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 150}});
+  GroundTruth.emplace("main", 6, "retval",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 0}});
+  doAnalysisAndCompareResults("basic_02_c.ll", GroundTruth, false);
+}
 
 // TEST_F(IDEVarTabulationProblemTest, HandleBasic_03) {
 //   // auto Results = doAnalysis("basic_01_c.ll", true);
@@ -140,6 +143,25 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_01) {
 //   // GroundTruth.emplace("main", 2, "i", 13);
 //   // GroundTruth.emplace("main", 3, "i", 13);
 //   // compareResults(Results, GroundTruth);
+// }
+
+// TEST_F(IDEVarTabulationProblemTest, HandleLoops_01) {
+//   std::set<LCAVarCompactResults_t> GroundTruth;
+//   // FIXME: loops do not work, yet. It's probably better if we model
+//   // the constraints (z3::expr) as edge functions as well.
+//   doAnalysisAndCompareResults("loop_01_c.ll", GroundTruth, true);
+// }
+
+TEST_F(IDEVarTabulationProblemTest, HandleCalls_01) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  doAnalysisAndCompareResults("call_01_c.ll", GroundTruth, false);
+}
+
+// TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
+//   std::set<LCAVarCompactResults_t> GroundTruth;
+// // FIXME: recursion does not work, yet. It's probably better if we model
+// // the constraints (z3::expr) as edge functions as well.
+//   doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, true);
 // }
 
 // main function for the test case/*  */
