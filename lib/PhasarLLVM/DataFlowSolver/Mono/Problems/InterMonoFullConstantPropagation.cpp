@@ -45,7 +45,7 @@ BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::join(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return Lhs.setUnion(Rhs);
+  return Lhs.setIntersect(Rhs);
 }
 
 bool InterMonoFullConstantPropagation::sqSubSetEqual(
@@ -79,12 +79,46 @@ InterMonoFullConstantPropagation::normalFlow(
   auto Out = In;
   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     if (Alloc->getAllocatedType()->isIntegerTy()) {
+      std::cout << "Alloca inserted!\n";
       Out.insert({Alloc, Top{}});
     }
   }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
-    if (Store->getValueOperand()->getType()->isIntegerTy()) {
-      // ...
+    auto ValueOp = Store->getValueOperand();
+    // Case I: Integer literal
+    if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
+      for (auto elem : In.getAsSet()) {
+        if (elem.first == Store) {
+          if (std::holds_alternative<Bottom>(elem.second)) {
+            break;
+          }
+          Out.erase(elem);
+          Out.insert({Store, val->getSExtValue()});
+          break;
+        }
+      }
+    }
+    // Case II: Storing an integer typed value
+    if (ValueOp->getType()->isIntegerTy()) {
+      LatticeDomain<int64_t> latticeVal;
+      for (auto elem : In.getAsSet()) {
+        if (elem.first == ValueOp) {
+          latticeVal = elem.second;
+          break;
+        }
+      }
+      if (!std::holds_alternative<Top>(latticeVal)){
+        for (auto elem : In.getAsSet()) {
+        if (elem.first == Store) {
+          if (std::holds_alternative<Bottom>(elem.second)) {
+            break;
+          }
+          Out.erase(elem);
+          Out.insert({Store, latticeVal});
+          break;
+        }
+      }
+      }
     }
   }
   return Out;

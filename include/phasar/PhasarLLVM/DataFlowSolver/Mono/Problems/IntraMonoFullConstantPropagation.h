@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Linus Jungemann and others
  *****************************************************************************/
 
 /*

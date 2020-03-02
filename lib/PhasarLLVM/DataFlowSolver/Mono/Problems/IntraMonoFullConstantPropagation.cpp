@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Philipp Schubert and others
+ *     Philipp Schubert, Linus Jungemann and others
  *****************************************************************************/
 
 #include <algorithm>
@@ -41,7 +41,7 @@ BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
-  return Lhs.setUnion(Rhs);
+  return Lhs.setIntersect(Rhs);
 }
 
 bool IntraMonoFullConstantPropagation::sqSubSetEqual(
@@ -60,9 +60,18 @@ IntraMonoFullConstantPropagation::normalFlow(
 unordered_map<const llvm::Instruction *,
               BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return unordered_map<
-      const llvm::Instruction *,
-      BitVectorSet<std::pair<const llvm::Value *, unsigned>>>();
+  std::unordered_map<const llvm::Instruction *,
+                     BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
+      Seeds;
+  /* for (auto &EntryPoint : EntryPoints) {
+    if (auto Fun = IRDB->getFunctionDefinition(EntryPoint)) {
+      auto Is = CF->getStartPointsOf(Fun);
+      for (auto I : Is) {
+        Seeds[I] = {};
+      }
+    }
+  } */
+  return Seeds;
 }
 
 void IntraMonoFullConstantPropagation::printNode(

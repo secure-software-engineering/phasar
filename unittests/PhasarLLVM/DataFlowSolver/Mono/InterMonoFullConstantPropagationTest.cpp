@@ -66,11 +66,13 @@ protected:
       IMSolver.dumpResults();
     }
     // do the comparison
+    bool ResultNotEmpty = false;
     for (auto &Truth : GroundTruth) {
       auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
       auto Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
       for (auto &[Fact, Value] : ResultSet.getAsSet()) {
+        ResultNotEmpty = true;
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
@@ -79,6 +81,7 @@ protected:
         }
       }
     }
+    EXPECT_TRUE(ResultNotEmpty);
   }
 
 }; // Test Fixture
