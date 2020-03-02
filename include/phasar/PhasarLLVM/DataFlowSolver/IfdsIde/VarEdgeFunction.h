@@ -22,16 +22,16 @@
 
 namespace psr {
 
-struct z3Less {
+struct Z3Less {
   bool operator()(const z3::expr &Lhs, const z3::expr &Rhs) const {
     return Lhs.id() < Rhs.id();
   }
 };
 
-template <typename UserL> using VarL = std::map<z3::expr, UserL, z3Less>;
+template <typename L> using VarL = std::map<z3::expr, L, Z3Less>;
 
-template <typename UserL>
-bool ContainsZ3Expr(const VarL<UserL> &M, const z3::expr &E) {
+template <typename L>
+bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
   bool FoundKey = false;
   for (auto &[Key, Value] : M) {
     if (z3::eq(Key, E)) {
@@ -42,18 +42,16 @@ bool ContainsZ3Expr(const VarL<UserL> &M, const z3::expr &E) {
   return FoundKey;
 }
 
-template <typename L> class EdgeFunction;
-
-template <typename UserL>
+template <typename L>
 class VarEdgeFunction
-    : public EdgeFunction<VarL<UserL>>,
-      public std::enable_shared_from_this<VarEdgeFunction<UserL>> {
+    : public EdgeFunction<VarL<L>>,
+      public std::enable_shared_from_this<VarEdgeFunction<L>> {
 public:
-  using user_l_t = UserL;
-  using l_t = VarL<UserL>;
+  using user_l_t = L;
+  using l_t = VarL<L>;
 
 private:
-  std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, z3Less>
+  std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
       UserEdgeFns;
 
 public:
@@ -65,7 +63,7 @@ public:
   }
 
   VarEdgeFunction(
-      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, z3Less>
+      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
           UserEdgeFns)
       : UserEdgeFns(UserEdgeFns) {
     std::cout << "VAREdgeFunction: UserEdgeFns\n";
@@ -112,7 +110,7 @@ public:
       std::cout << "OneEntryMap.size(): " << OneEntryMap.size()
                 << " --- MulEntryMap.size(): " << MulEntryMap.size() << '\n';
       auto UserEdgeFn = *OneEntryMap.begin();
-      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, z3Less>
+      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
           ResultUserEdgeFns;
       for (auto &[C, EF] : MulEntryMap) {
         // compose constraints and edge functions
@@ -136,7 +134,7 @@ public:
       // leads to:
       //    { <true, c x a>, <A, b>, <!A, d> }
       // initialize with an existing map
-      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, z3Less>
+      std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
           ResultUserEdgeFns = VEF->UserEdgeFns;
       for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
         bool FoundConstraint = false;
