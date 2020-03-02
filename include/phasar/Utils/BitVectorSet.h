@@ -154,6 +154,7 @@ public:
   }
   iterator end() {
     // end at "last occurence of 1" + 1
+    // FIXME: Bits.size() does not necessarily contain a "1"
     iterator ret = Position.right.find(Bits.size());
     ret.setBits(Bits);
     return ret;

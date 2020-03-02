@@ -333,6 +333,32 @@ TEST(BitVectorSet, iterator_movement) {
   // B.printtoomuch();
 }
 
+TEST(BitVectorSet, rangeFor) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  std::set<int> AS;
+  std::set<int> ASGT = {1, 2, 3, 4, 5, 6};
+  for (auto i : A) {
+    AS.insert(i);
+  }
+  EXPECT_EQ(AS, ASGT);
+
+  BitVectorSet<int> B({6, 5, 4, 3, 2, 1});
+  std::set<int> BS;
+  std::set<int> BSGT = {6, 5, 4, 3, 2, 1};
+  for (auto i : B) {
+    BS.insert(i);
+  }
+  EXPECT_EQ(BS, BSGT);
+
+  BitVectorSet<int> C({5, 6, 7, 8, 42, 13});
+  std::set<int> CS;
+  std::set<int> CSGT = {5, 6, 7, 8, 42, 13};
+  for (auto i : C) {
+    CS.insert(i);
+  }
+  EXPECT_EQ(CS, CSGT);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
