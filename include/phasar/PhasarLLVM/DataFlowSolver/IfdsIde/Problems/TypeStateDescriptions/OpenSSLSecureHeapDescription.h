@@ -14,7 +14,9 @@
 #include <set>
 #include <string>
 
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESecureHeapPropagation.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
+#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
 
 namespace psr {
 
@@ -22,26 +24,47 @@ class OpenSSLSecureHeapDescription : public TypeStateDescription {
 private:
   enum OpenSSLSecureHeapState {
     TOP = 42,
-    // TODO
-    BOT = 6
+    BOT = 0,
+    UNINIT = 1,
+    ALLOCATED = 2,
+    ZEROED = 3,
+    FREED = 4,
+    ERROR = 5
   };
 
   enum class OpenSSLSecureHeapToken {
-    // TODO
-    STAR = 5
+    SECURE_MALLOC = 0,
+    SECURE_ZALLOC = 1,
+    SECURE_FREE = 2,
+    SECURE_CLEAR_FREE = 3,
+    STAR = 4
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLSecureHeapFuncs;
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLSecureHeapState delta[6][7];
+  static const OpenSSLSecureHeapState delta[5][6];
+
+  IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
+            const llvm::StructType *, const llvm::Value *, SecureHeapValue,
+            LLVMBasedICFG> &secureHeapPropagationResults;
+
   OpenSSLSecureHeapToken funcNameToToken(const std::string &F) const;
 
 public:
+  OpenSSLSecureHeapDescription(
+      IDESolver<const llvm::Instruction *, SecureHeapFact,
+                const llvm::Function *, const llvm::StructType *,
+                const llvm::Value *, SecureHeapValue, LLVMBasedICFG>
+          &secureHeapPropagationResults);
+
   bool isFactoryFunction(const std::string &F) const override;
   bool isConsumingFunction(const std::string &F) const override;
   bool isAPIFunction(const std::string &F) const override;
   TypeStateDescription::State
   getNextState(std::string Tok, TypeStateDescription::State S) const override;
+  TypeStateDescription::State
+  getNextState(const std::string &Tok, TypeStateDescription::State S,
+               llvm::ImmutableCallSite CS) const override;
   std::string getTypeNameOfInterest() const override;
   std::set<int> getConsumerParamIdx(const std::string &F) const override;
   std::set<int> getFactoryParamIdx(const std::string &F) const override;

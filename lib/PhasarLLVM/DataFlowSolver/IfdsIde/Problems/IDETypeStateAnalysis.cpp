@@ -59,6 +59,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
 shared_ptr<FlowFunction<IDETypeStateAnalysis::d_t>>
 IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
                                             IDETypeStateAnalysis::n_t succ) {
+  std::cout << "Normal Flow" << std::endl;
   // Check if Alloca's type matches the target type. If so, generate from zero
   // value.
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
@@ -119,6 +120,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
         ~TSFlowFunction() override = default;
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t source) override {
+          std::cout << "At " << llvmIRToShortString(Store);
           // We kill all relevant loacal aliases and alloca's
           if (source != Store->getValueOperand() &&
               // AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
@@ -130,8 +132,15 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
           // value
           if (source == Store->getValueOperand()) {
             AliasesAndAllocas.insert(source);
+            std::cout << "At " << llvmIRToShortString(Store) << " Generate: {"
+                      << std::endl;
+            for (auto aaa : AliasesAndAllocas) {
+              std::cout << "\t" << llvmIRToShortString(aaa) << std::endl;
+            }
+            std::cout << std::endl;
             return AliasesAndAllocas;
           }
+          std::cout << " ID" << std::endl;
           return {source};
         }
       };

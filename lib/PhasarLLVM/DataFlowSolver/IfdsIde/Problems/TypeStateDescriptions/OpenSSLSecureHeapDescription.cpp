@@ -9,6 +9,7 @@
 
 #include <cassert>
 
+#include <llvm/ADT/StringSwitch.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h>
 
 using namespace std;
@@ -19,17 +20,44 @@ namespace psr {
 // Return value is modeled as -1
 const std::map<std::string, std::set<int>>
     OpenSSLSecureHeapDescription::OpenSSLSecureHeapFuncs = {
-        // TODO
-};
+        {"CRYPTO_secure_malloc", {-1}},
+        {"CRYPTO_secure_zalloc", {-1}},
+        {"CRYPTO_secure_free", {0}},
+        {"CRYPTO_secure_clear_free", {0}}};
 
 // delta[Token][State] = next State
-// Token: EVP_KDF_FETCH = 0, EVP_KDF_CTX_NEW = 1, EVP_KDF_CTX_SET_PARAMS = 2,
-// DERIVE = 3, EVP_KDF_CTX_FREE = 4, STAR = 5 States: UNINIT = 0, KDF_FETCHED =
-// 1, CTX_ATTACHED = 2, PARAM_INIT = 3, DERIVED = 4, ERROR = 5, BOT = 6
+// Token:  SECURE_MALLOC = 0, SECURE_ZALLOC = 1,  SECURE_FREE = 2,
+// SECURE_CLEAR_FREE = 3, STAR = 4
+//
+// States: BOT = 0, UNINIT = 1, ALLOCATED = 2, ZEROED = 3, FREED = 4, ERROR = 5
 const OpenSSLSecureHeapDescription::OpenSSLSecureHeapState
-    OpenSSLSecureHeapDescription::delta[6][7] = {
-        // TODO
+    OpenSSLSecureHeapDescription::delta[5][6] = {
+        // SECURE_MALLOC
+        {OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ALLOCATED,
+         OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ALLOCATED,
+         OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ALLOCATED},
+        // SECURE_ZALLOC
+        {OpenSSLSecureHeapState::ZEROED, OpenSSLSecureHeapState::ZEROED,
+         OpenSSLSecureHeapState::ZEROED, OpenSSLSecureHeapState::ZEROED,
+         OpenSSLSecureHeapState::ZEROED, OpenSSLSecureHeapState::ZEROED},
+        // SECURE_FREE
+        {OpenSSLSecureHeapState::ERROR, OpenSSLSecureHeapState::ERROR,
+         OpenSSLSecureHeapState::ERROR, OpenSSLSecureHeapState::FREED,
+         OpenSSLSecureHeapState::ERROR, OpenSSLSecureHeapState::ERROR},
+        // SECURE_CLEAR_FREE
+        {OpenSSLSecureHeapState::ERROR, OpenSSLSecureHeapState::ERROR,
+         OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::FREED,
+         OpenSSLSecureHeapState::ERROR, OpenSSLSecureHeapState::ERROR},
+        // STAR
+        {OpenSSLSecureHeapState::BOT, OpenSSLSecureHeapState::UNINIT,
+         OpenSSLSecureHeapState::ALLOCATED, OpenSSLSecureHeapState::ZEROED,
+         OpenSSLSecureHeapState::FREED, OpenSSLSecureHeapState::ERROR},
 };
+OpenSSLSecureHeapDescription::OpenSSLSecureHeapDescription(
+    IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
+              const llvm::StructType *, const llvm::Value *, SecureHeapValue,
+              LLVMBasedICFG> &secureHeapPropagationResults)
+    : secureHeapPropagationResults(secureHeapPropagationResults) {}
 
 bool OpenSSLSecureHeapDescription::isFactoryFunction(
     const std::string &F) const {
@@ -56,15 +84,37 @@ bool OpenSSLSecureHeapDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State OpenSSLSecureHeapDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    return delta[static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
-        funcNameToToken(Tok))][S];
+    auto ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
+        funcNameToToken(Tok));
+
+    return delta[ftok][S];
   } else {
     return OpenSSLSecureHeapState::BOT;
   }
 }
 
+TypeStateDescription::State
+OpenSSLSecureHeapDescription::getNextState(const std::string &Tok,
+                                           TypeStateDescription::State S,
+                                           llvm::ImmutableCallSite CS) const {
+  if (isAPIFunction(Tok)) {
+    auto ftok = static_cast<std::underlying_type_t<OpenSSLSecureHeapToken>>(
+        funcNameToToken(Tok));
+    auto results = secureHeapPropagationResults.resultAt(
+        CS.getInstruction(), SecureHeapFact::INITIALIZED);
+    if (results != SecureHeapValue::INITIALIZED) {
+      // std::cerr << "ERROR: SecureHeap not initialized at "
+      //          << llvmIRToShortString(CS.getInstruction()) << std::endl;
+      return error();
+    }
+    return delta[ftok][S];
+  } else {
+    return error();
+  }
+}
+
 std::string OpenSSLSecureHeapDescription::getTypeNameOfInterest() const {
-  return "struct.evp_kdp_ctx_st"; // NOT SURE WHAT TO DO WITH THIS
+  return "i8*";
 }
 
 set<int>
@@ -89,10 +139,16 @@ std::string OpenSSLSecureHeapDescription::stateToString(
   switch (S) {
   case OpenSSLSecureHeapState::TOP:
     return "TOP";
-    break;
   case OpenSSLSecureHeapState::BOT:
     return "BOT";
-    break;
+  case OpenSSLSecureHeapState::ALLOCATED:
+    return "ALLOCATED";
+  case OpenSSLSecureHeapState::UNINIT:
+    return "UNINIT";
+  case OpenSSLSecureHeapState::FREED:
+    return "FREED";
+  case OpenSSLSecureHeapState::ERROR:
+    return "ERROR";
   default:
     assert(false && "received unknown state!");
     break;
@@ -108,20 +164,27 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::top() const {
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::start() const {
+  assert(false && "TypeStateDescription::start() is deprecated");
   return OpenSSLSecureHeapState::BOT;
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::uninit() const {
-  return OpenSSLSecureHeapState::BOT;
+  return OpenSSLSecureHeapState::UNINIT;
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::error() const {
-  return OpenSSLSecureHeapState::TOP;
+  return OpenSSLSecureHeapState::ERROR;
 }
 
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapToken
 OpenSSLSecureHeapDescription::funcNameToToken(const std::string &F) const {
-  return OpenSSLSecureHeapToken::STAR;
+  return llvm::StringSwitch<OpenSSLSecureHeapToken>(F)
+      .Case("CRYPTO_secure_malloc", OpenSSLSecureHeapToken::SECURE_MALLOC)
+      .Case("CRYPTO_secure_zalloc", OpenSSLSecureHeapToken::SECURE_ZALLOC)
+      .Case("CRYPTO_secure_free", OpenSSLSecureHeapToken::SECURE_FREE)
+      .Case("CRYPTO_secure_clear_free",
+            OpenSSLSecureHeapToken::SECURE_CLEAR_FREE)
+      .Default(OpenSSLSecureHeapToken::STAR);
 }
 
 } // namespace psr
