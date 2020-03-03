@@ -79,36 +79,23 @@ private:
         pos_ptr++;
       return (*this);
     }
-    MyIterator<D> &operator-=(const difference_type &movement) {
-      for (difference_type i = 0; i < movement; i++)
-        pos_ptr--;
-      return (*this);
-    }
     MyIterator<D> &operator++() {
       do {
+        if(((pos_ptr->first) >= Bits.size()-1)){
+          ++pos_ptr;break;
+        }
         ++pos_ptr;
-      } while (!((pos_ptr->first) >= Bits.size()) && !Bits[pos_ptr->first]);
-      return (*this);
-    }
-    MyIterator<D> &operator--() {
-      do {
-        --pos_ptr;
-      } while (!Bits[pos_ptr->first]);
+      } while (!(Bits[pos_ptr->first]));
+      
       return (*this);
     }
 
     MyIterator<D> operator++(int) {
       auto temp(*this);
-      ++pos_ptr;
-      return temp;
-    }
-    MyIterator<D> operator--(int) {
-      auto temp(*this);
-      --pos_ptr;
+      ++*this;
       return temp;
     }
 
-    // ERROR: USAGE GIVING AMBIGUITY ERROR
     MyIterator<D> operator+(const difference_type &movement) {
       auto oldPtr = pos_ptr;
       for (difference_type i = 0; i < movement; i++)
@@ -117,26 +104,20 @@ private:
       pos_ptr = oldPtr;
       return temp;
     }
-    MyIterator<D> operator-(const difference_type &movement) {
-      auto oldPtr = pos_ptr;
-      for (difference_type i = 0; i < movement; i++)
-        pos_ptr--;
-      auto temp(*this);
-      pos_ptr = oldPtr;
-      return temp;
-    }
-
     difference_type operator-(const MyIterator<D> &rawIterator) {
       return std::distance(rawIterator.getPtr(), this->getPtr());
     }
 
     // T& operator*(){return pos_ptr->second;}
-    const T &operator*() const { return pos_ptr->second; }
+    const T &operator*() const {return pos_ptr->second; }
     D *operator->() { return pos_ptr; } // don't know what it should do
 
     D getPtr() const { return pos_ptr; }
     // const D* getConstPtr()const{return pos_ptr;}
 
+    // T getPos() {return pos_ptr->first;}
+    // T getVal() {return pos_ptr->second;}
+    // std::vector<bool> getBits(){return Bits;}
   protected:
     D pos_ptr;
   };
@@ -153,9 +134,8 @@ public:
     return ret;
   }
   iterator end() {
-    // end at "last occurence of 1" + 1
-    // FIXME: Bits.size() does not necessarily contain a "1"
     iterator ret = Position.right.find(Bits.size());
+    // iterator ret = Position.right.end();
     ret.setBits(Bits);
     return ret;
   }
@@ -164,6 +144,7 @@ public:
   //   std::find(Bits.begin(), Bits.end(), true))); ret.setBits(Bits); return
   //   ret;
   // }
+  
 
   BitVectorSet() = default;
 
@@ -378,7 +359,24 @@ public:
     }
     return Elements;
   }
-
+  
+  void printWholeSet(){
+    r_iterator rit = Position.right.find(0);
+    while(rit!=Position.right.end()){
+      std::cout<<rit->second<< " ";
+      rit++;
+    }
+    std::cout<<std::endl;
+  }
+  void printWholeSetDetailed(){
+    r_iterator rit = Position.right.find(0);
+    while(rit!=Position.right.end()){
+      std::cout<<"Pos: "<<rit->first<< " Val: "<<rit->second<<std::endl;
+      rit++;
+    }
+    std::cout<<std::endl;
+  }
+  
   // void printtoomuch() { // trying the behaviour
   //   r_iterator rit = Position.right.find(0);
   //   for (int i = 0; i < 10; i++) {
