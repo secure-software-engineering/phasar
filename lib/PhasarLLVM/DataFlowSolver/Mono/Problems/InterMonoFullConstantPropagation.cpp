@@ -79,7 +79,6 @@ InterMonoFullConstantPropagation::normalFlow(
   auto Out = In;
   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     if (Alloc->getAllocatedType()->isIntegerTy()) {
-      std::cout << "Alloca inserted!\n";
       Out.insert({Alloc, Top{}});
     }
   }
@@ -120,6 +119,9 @@ InterMonoFullConstantPropagation::normalFlow(
       }
       }
     }
+  }
+  for (auto x : Out.getAsSet()){
+    printDataFlowFact(std::cout,x);
   }
   return Out;
 }
@@ -172,7 +174,7 @@ void InterMonoFullConstantPropagation::printDataFlowFact(
           d.second)) {
     os << std::get<InterMonoFullConstantPropagation::plain_d_t>(d.second);
   }
-  os << " >";
+  os << " >\n";
 }
 
 void InterMonoFullConstantPropagation::printFunction(
