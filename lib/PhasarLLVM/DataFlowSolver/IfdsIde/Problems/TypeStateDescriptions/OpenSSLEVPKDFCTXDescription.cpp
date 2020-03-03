@@ -23,7 +23,6 @@ namespace psr {
 // Return value is modeled as -1
 const std::map<std::string, std::set<int>>
     OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
-        {"EVP_KDF_fetch", {-1}},
         {"EVP_KDF_CTX_new", {-1}},
         {"EVP_KDF_CTX_set_params", {0}},
         {"EVP_KDF_derive", {0}},
@@ -38,8 +37,8 @@ const std::map<std::string, std::set<int>>
 // EVP_KDF_CTX_FREE = 3,
 // STAR = 4
 //
-// States: UNINIT = 0, CTX_ATTACHED =1, PARAM_INIT = 2,
-// DERIVED = 3, ERROR = 4, BOT = 5
+// States: UNINIT = 5, CTX_ATTACHED =1, PARAM_INIT = 2,
+// DERIVED = 3, ERROR = 4, BOT = 0
 const OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFState
     OpenSSLEVPKDFCTXDescription::delta[5][6] = {
 
@@ -50,20 +49,20 @@ const OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFState
         /* EVP_KDF_CTX_SET_PARAMS */
         {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::PARAM_INIT,
          OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::PARAM_INIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
         /* DERIVE */
         {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR,
          OpenSSLEVPKDFState::DERIVED, OpenSSLEVPKDFState::DERIVED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
         /* EVP_KDF_CTX_FREE */
         {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::UNINIT,
          OpenSSLEVPKDFState::UNINIT, OpenSSLEVPKDFState::UNINIT,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
 
         /* STAR */
         {OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::CTX_ATTACHED,
          OpenSSLEVPKDFState::PARAM_INIT, OpenSSLEVPKDFState::DERIVED,
-         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::BOT},
+         OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::ERROR},
 };
 
 bool OpenSSLEVPKDFCTXDescription::isFactoryFunction(

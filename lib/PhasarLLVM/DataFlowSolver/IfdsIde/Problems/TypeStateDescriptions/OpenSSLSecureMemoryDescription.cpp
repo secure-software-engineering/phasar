@@ -30,7 +30,7 @@ const std::map<std::string, std::set<int>>
 // Token: CRYPTO_MALLOC=0, CRYPTO_ZALLOC=1, CRYPTO_FREE=2, OPENSSL_CLEANSE=3,
 // STAR = 4
 //
-// States: ALLOCATED=0, ZEROED=1, FREED=2, ERROR=3, BOT=4
+// States: ALLOCATED=4, ZEROED=1, FREED=2, ERROR=3, BOT=0
 const OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryState
     OpenSSLSecureMemoryDescription::delta[6][7] = {
         // CRYPTO_malloc

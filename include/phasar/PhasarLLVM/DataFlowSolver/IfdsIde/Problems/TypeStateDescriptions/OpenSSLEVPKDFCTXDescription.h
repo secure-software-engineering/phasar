@@ -41,12 +41,13 @@ private:
    */
   enum OpenSSLEVPKDFState {
     TOP = 42,
-    UNINIT = 0,
+    UNINIT = 5,
     CTX_ATTACHED = 1,
     PARAM_INIT = 2,
     DERIVED = 3,
     ERROR = 4,
-    BOT = 5
+    BOT = 0 // It is VERY IMPORTANT, athat BOT has value 0, since this is the
+            // default value
   };
 
   /**
