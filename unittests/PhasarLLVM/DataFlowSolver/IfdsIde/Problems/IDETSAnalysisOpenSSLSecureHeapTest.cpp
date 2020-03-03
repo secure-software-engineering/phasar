@@ -131,7 +131,24 @@ TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory6) {
   std::map<std::size_t, std::map<std::string, int>> gt;
   gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
             {"23", OpenSSLSecureHeapState::ZEROED}};
+
+  // the analysis ignores strcpy, so we are getting FREED instead of ERROR
   gt[31] = {{"9", OpenSSLSecureHeapState::FREED},
+            {"23", OpenSSLSecureHeapState::FREED},
+            {"29", OpenSSLSecureHeapState::FREED}};
+  compareResults(gt);
+}
+
+TEST_F(IDETSAnalysisOpenSSLSecureHeapTest, Memory7) {
+  Initialize({pathToLLFiles + "memory7_c.ll"});
+
+  // secureHeapPropagationResults->printReport();
+
+  std::map<std::size_t, std::map<std::string, int>> gt;
+  gt[25] = {{"9", OpenSSLSecureHeapState::ZEROED},
+            {"23", OpenSSLSecureHeapState::ZEROED}};
+  // here FREED is correct
+  gt[32] = {{"9", OpenSSLSecureHeapState::FREED},
             {"23", OpenSSLSecureHeapState::FREED},
             {"29", OpenSSLSecureHeapState::FREED}};
   compareResults(gt);
