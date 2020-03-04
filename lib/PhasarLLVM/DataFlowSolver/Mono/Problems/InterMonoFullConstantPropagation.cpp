@@ -51,7 +51,7 @@ InterMonoFullConstantPropagation::join(
 bool InterMonoFullConstantPropagation::sqSubSetEqual(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return Lhs.includes(Rhs);
+  return Rhs.includes(Lhs);
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
@@ -75,13 +75,16 @@ BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::normalFlow(
     InterMonoFullConstantPropagation::n_t S,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
-  // TODO finish implementation
   auto Out = In;
+  // TODO: Efficiency Improvemants and some Code in its own Funktion
+  // check Alloca instructions
   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     if (Alloc->getAllocatedType()->isIntegerTy()) {
       Out.insert({Alloc, Top{}});
     }
   }
+
+  // check store instructions
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     auto ValueOp = Store->getValueOperand();
     // Case I: Integer literal
@@ -99,29 +102,92 @@ InterMonoFullConstantPropagation::normalFlow(
     }
     // Case II: Storing an integer typed value
     if (ValueOp->getType()->isIntegerTy()) {
-      LatticeDomain<int64_t> latticeVal;
+      LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal;
       for (auto elem : In.getAsSet()) {
         if (elem.first == ValueOp) {
           latticeVal = elem.second;
           break;
         }
       }
-      if (!std::holds_alternative<Top>(latticeVal)){
+      if (!std::holds_alternative<Top>(latticeVal)) {
         for (auto elem : In.getAsSet()) {
-        if (elem.first == Store) {
+          if (elem.first == Store) {
+            if (std::holds_alternative<Bottom>(elem.second)) {
+              break;
+            }
+            Out.erase(elem);
+            Out.insert({Store, latticeVal});
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // check load instructions
+  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(S)) {
+    // TODO: handle load instructions Problem: What are load instructions and how are they used?
+  }
+
+  // check for binary operations: add, sub, mul, udiv/sdiv, urem/srem
+  if (auto op = llvm::dyn_cast<llvm::BinaryOperator>(S)) {
+    auto lop = S->getOperand(0);
+    auto rop = S->getOperand(1);
+    LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> lval;
+    LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> rval;
+
+    // get first operand value
+    if (auto val = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
+      lval = val->getSExtValue();
+    } else {
+      for (auto elem : In.getAsSet()) {
+        if (elem.first == lop) {
+          lval = elem.second;
+          break;
+        }
+      }
+    }
+
+    // get second operand value
+    if (auto val = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
+      rval = val->getSExtValue();
+    } else {
+      for (auto elem : In.getAsSet()) {
+        if (elem.first == rop) {
+          rval = elem.second;
+          break;
+        }
+      }
+    }
+
+    // handle Top as a operand
+    if (std::holds_alternative<Top>(lval) ||
+        std::holds_alternative<Top>(rval)) {
+
+
+      // TODO: handle Top Problem: Output?
+
+
+    } else if (std::holds_alternative<Bottom>(lval) ||
+               std::holds_alternative<Bottom>(rval)) {
+      // handle Bottom as a operand
+      for (auto elem : In.getAsSet()) {
+        if (elem.first == S) {
           if (std::holds_alternative<Bottom>(elem.second)) {
             break;
           }
           Out.erase(elem);
-          Out.insert({Store, latticeVal});
+          Out.insert({S, Bottom{}});
           break;
         }
       }
-      }
+    } else {
+      //TODO: handle normal Operation between rval and lval Problem: get Operation Type
     }
   }
-  for (auto x : Out.getAsSet()){
-    printDataFlowFact(std::cout,x);
+
+  for (auto x : Out.getAsSet()) {
+    printDataFlowFact(std::cout, x);
   }
   return Out;
 }
