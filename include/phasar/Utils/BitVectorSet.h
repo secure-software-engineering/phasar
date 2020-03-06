@@ -41,21 +41,22 @@ private:
   inline static bimap_t Position;
   std::vector<bool> Bits;
 
-  template <typename D> class MyIterator {
+  template <typename D> class BitVectorSetIterator {
     std::vector<bool> Bits;
 
   public:
-    using iterator_category = std::random_access_iterator_tag;
+    using iterator_category = std::forward_iterator_tag;
     using value_type = D;
     using difference_type = std::ptrdiff_t;
     using pointer = D *;
     using reference = D &;
-    MyIterator(D ptr = NULL) : pos_ptr(ptr) {}
-    MyIterator(const MyIterator<D> &rawIterator) = default;
-    ~MyIterator() {}
+    BitVectorSetIterator(D ptr = nullptr) : pos_ptr(ptr) {}
+    BitVectorSetIterator(const BitVectorSetIterator<D> &rawIterator) = default;
+    ~BitVectorSetIterator() {}
 
-    MyIterator<D> &operator=(const MyIterator<D> &rawIterator) = default;
-    MyIterator<D> &operator=(D *ptr) {
+    BitVectorSetIterator<D> &
+    operator=(const BitVectorSetIterator<D> &rawIterator) = default;
+    BitVectorSetIterator<D> &operator=(D *ptr) {
       pos_ptr = ptr;
       return (*this);
     }
@@ -66,37 +67,39 @@ private:
     }
 
     void setBits(std::vector<bool> B) { Bits = B; }
+    void setBits(std::vector<bool> B) const { Bits = B; }
 
-    bool operator==(const MyIterator<D> &rawIterator) const {
+    bool operator==(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr == rawIterator.getPtr());
     }
-    bool operator!=(const MyIterator<D> &rawIterator) const {
+    bool operator!=(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr != rawIterator.getPtr());
     }
 
-    MyIterator<D> &operator+=(const difference_type &movement) {
+    BitVectorSetIterator<D> &operator+=(const difference_type &movement) {
       for (difference_type i = 0; i < movement; i++)
         pos_ptr++;
       return (*this);
     }
-    MyIterator<D> &operator++() {
+    BitVectorSetIterator<D> &operator++() {
       do {
-        if(((pos_ptr->first) >= Bits.size()-1)){
-          ++pos_ptr;break;
+        if (((pos_ptr->first) >= Bits.size() - 1)) {
+          ++pos_ptr;
+          break;
         }
         ++pos_ptr;
       } while (!(Bits[pos_ptr->first]));
-      
+
       return (*this);
     }
 
-    MyIterator<D> operator++(int) {
+    BitVectorSetIterator<D> operator++(int) {
       auto temp(*this);
       ++*this;
       return temp;
     }
 
-    MyIterator<D> operator+(const difference_type &movement) {
+    BitVectorSetIterator<D> operator+(const difference_type &movement) {
       auto oldPtr = pos_ptr;
       for (difference_type i = 0; i < movement; i++)
         pos_ptr++;
@@ -104,12 +107,12 @@ private:
       pos_ptr = oldPtr;
       return temp;
     }
-    difference_type operator-(const MyIterator<D> &rawIterator) {
+    difference_type operator-(const BitVectorSetIterator<D> &rawIterator) {
       return std::distance(rawIterator.getPtr(), this->getPtr());
     }
 
     // T& operator*(){return pos_ptr->second;}
-    const T &operator*() const {return pos_ptr->second; }
+    const T &operator*() const { return pos_ptr->second; }
     D *operator->() { return pos_ptr; } // don't know what it should do
 
     D getPtr() const { return pos_ptr; }
@@ -117,14 +120,16 @@ private:
 
     // T getPos() {return pos_ptr->first;}
     // T getVal() {return pos_ptr->second;}
-    // std::vector<bool> getBits(){return Bits;}
+    std::vector<bool> getBits() { return Bits; }
+
   protected:
     D pos_ptr;
   };
 
   typedef typename bimap_t::right_iterator r_iterator;
-  typedef MyIterator<r_iterator> iterator;
-  typedef MyIterator<const r_iterator> const_iterator;
+  typedef typename bimap_t::right_const_iterator rc_iterator;
+  typedef BitVectorSetIterator<r_iterator> iterator;
+  typedef BitVectorSetIterator<rc_iterator> const_iterator;
 
 public:
   iterator begin() {
@@ -135,16 +140,20 @@ public:
   }
   iterator end() {
     iterator ret = Position.right.find(Bits.size());
-    // iterator ret = Position.right.end();
     ret.setBits(Bits);
     return ret;
   }
-  // const_iterator begin() const {
-  //   iterator ret = Position.right.find(std::distance(Bits.begin(),
-  //   std::find(Bits.begin(), Bits.end(), true))); ret.setBits(Bits); return
-  //   ret;
-  // }
-  
+  const_iterator begin() const {
+    const_iterator ret = (rc_iterator)Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
+  }
+  const_iterator end() const {
+    const_iterator ret = (rc_iterator)Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
+  }
 
   BitVectorSet() = default;
 
@@ -359,36 +368,24 @@ public:
     }
     return Elements;
   }
-  
-  void printWholeSet(){
-    r_iterator rit = Position.right.find(0);
-    while(rit!=Position.right.end()){
-      std::cout<<rit->second<< " ";
+
+  void printWholeSet() {
+    rc_iterator rit = Position.right.find(0);
+    while (rit != Position.right.end()) {
+      std::cout << rit->second << " ";
       rit++;
     }
-    std::cout<<std::endl;
+    std::cout << std::endl;
   }
-  void printWholeSetDetailed(){
-    r_iterator rit = Position.right.find(0);
-    while(rit!=Position.right.end()){
-      std::cout<<"Pos: "<<rit->first<< " Val: "<<rit->second<<std::endl;
+  void printWholeSetDetailed() {
+    rc_iterator rit = Position.right.find(0);
+    while (rit != Position.right.end()) {
+      std::cout << "Pos: " << rit->first << " Val: " << rit->second
+                << std::endl;
       rit++;
     }
-    std::cout<<std::endl;
+    std::cout << std::endl;
   }
-  
-  // void printtoomuch() { // trying the behaviour
-  //   r_iterator rit = Position.right.find(0);
-  //   for (int i = 0; i < 10; i++) {
-  //     std::cout << rit->first << " " << rit->second << " -- ";
-  //     rit++;
-  //   }
-  //   // for(int i = 10; i>0;i--){
-  //   // rit--;
-  //   // NOT WORKING: PROBABLY THERE IS NO DECREMENT OPERATOR IN BIMAP
-  //   // ITERATOR std::cout << rit->first<<" " << rit->second << " -- ";
-  //   // }
-  // }
 };
 
 } // namespace psr

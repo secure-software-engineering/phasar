@@ -309,7 +309,7 @@ TEST(BitVectorSet, includes) {
 TEST(BitVectorSet, iterator) {
   BitVectorSet<int> A({10, 20, 30, 40, 50});
   BitVectorSet<int> D({10, 20, 30, 40, 50});
-  
+
   auto iteratorD = D.begin();
   for (auto it = A.begin(); it != A.end(); it++) {
     EXPECT_EQ(*it, *iteratorD);
@@ -323,7 +323,7 @@ TEST(BitVectorSet, iterator) {
     // EXPECT_TRUE(ESGT.find(*it)!=ESGT.end()); //Extra check
     ES.insert(*it);
   }
-  EXPECT_EQ(ES,ESGT);
+  EXPECT_EQ(ES, ESGT);
 }
 
 TEST(BitVectorSet, iterator_movement) {
@@ -344,7 +344,7 @@ TEST(BitVectorSet, rangeFor) {
   BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
   std::set<int> AS;
   std::set<int> ASGT = {1, 2, 3, 4, 5, 6};
-  
+
   for (auto i : A) {
     AS.insert(i);
   }
@@ -365,6 +365,15 @@ TEST(BitVectorSet, rangeFor) {
     CS.insert(i);
   }
   EXPECT_EQ(CS, CSGT);
+
+  const BitVectorSet<int> D({5, 6, 7, 8, 42, 13});
+  std::set<int> DS;
+  std::set<int> DSGT = {5, 6, 7, 8, 42, 13};
+  auto i = D.begin();
+  for (auto i : D) {
+    DS.insert(i);
+  }
+  EXPECT_EQ(DS, DSGT);
 }
 
 int main(int argc, char **argv) {
