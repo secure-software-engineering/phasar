@@ -38,16 +38,16 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                                                               EntryPoints) {}
 
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>
-IntraMonoFullConstantPropagation::join(
+IntraMonoFullConstantPropagation::merge(
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
   return Lhs.setIntersect(Rhs);
 }
 
-bool IntraMonoFullConstantPropagation::sqSubSetEqual(
+bool IntraMonoFullConstantPropagation::equal_to(
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
     const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
-  return Lhs.includes(Rhs);
+  return Lhs == Rhs;
 }
 
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>

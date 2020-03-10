@@ -34,12 +34,21 @@ set(NoMem2RegSources
   virtual_call.cpp
 )
 
+set(NoMem2RegNoDbgSources
+  basic_01.cpp
+  branching_01.cpp
+)
+
 set(Mem2RegSources
   first_inst_call.cpp
 )
 
 foreach(TEST_SRC ${NoMem2RegSources})
   generate_ll_file(FILE ${TEST_SRC} DEBUG)
+endforeach(TEST_SRC)
+
+foreach(TEST_SRC ${NoMem2RegNoDbgSources})
+  generate_ll_file(FILE ${TEST_SRC})
 endforeach(TEST_SRC)
 
 foreach(TEST_SRC ${Mem2RegSources})

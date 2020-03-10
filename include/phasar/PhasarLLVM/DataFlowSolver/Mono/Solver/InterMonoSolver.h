@@ -193,10 +193,10 @@ public:
             Out[CTXAdd] = IMProblem.callFlow(src, ICF->getFunctionOf(dst),
                                              Analysis[src][CTX]);
             bool flowfactsstabilized =
-                IMProblem.sqSubSetEqual(Out[CTXAdd], Analysis[dst][CTXAdd]);
+                IMProblem.equal_to(Out[CTXAdd], Analysis[dst][CTXAdd]);
             if (!flowfactsstabilized) {
               Analysis[dst][CTXAdd] =
-                  IMProblem.join(Analysis[dst][CTXAdd], Out[CTXAdd]);
+                  IMProblem.merge(Analysis[dst][CTXAdd], Out[CTXAdd]);
               addToWorklist({src, dst});
             }
           }
@@ -207,9 +207,9 @@ public:
             Out[CTX] = IMProblem.callToRetFlow(
                 src, dst, ICF->getCalleesOfCallAt(src), Analysis[src][CTX]);
             bool flowfactsstabilized =
-                IMProblem.sqSubSetEqual(Out[CTX], Analysis[dst][CTX]);
+                IMProblem.equal_to(Out[CTX], Analysis[dst][CTX]);
             if (!flowfactsstabilized) {
-              Analysis[dst][CTX] = IMProblem.join(Analysis[dst][CTX], Out[CTX]);
+              Analysis[dst][CTX] = IMProblem.merge(Analysis[dst][CTX], Out[CTX]);
               addToWorklist({src, dst});
             }
           }
@@ -243,10 +243,10 @@ public:
           }
           for (auto retsite : retsites) {
             bool flowfactsstabilized =
-                IMProblem.sqSubSetEqual(Out[CTXRm], Analysis[retsite][CTXRm]);
+                IMProblem.equal_to(Out[CTXRm], Analysis[retsite][CTXRm]);
             if (!flowfactsstabilized) {
               Analysis[dst][CTXRm] =
-                  IMProblem.join(Analysis[retsite][CTXRm], Out[CTXRm]);
+                  IMProblem.merge(Analysis[retsite][CTXRm], Out[CTXRm]);
               addToWorklist({src, retsite});
             }
           }
@@ -258,9 +258,9 @@ public:
           // Check if data-flow facts have changed and if so, add edge(s) to
           // worklist again.
           bool flowfactsstabilized =
-              IMProblem.sqSubSetEqual(Out[CTX], Analysis[dst][CTX]);
+              IMProblem.equal_to(Out[CTX], Analysis[dst][CTX]);
           if (!flowfactsstabilized) {
-            Analysis[dst][CTX] = IMProblem.join(Analysis[dst][CTX], Out[CTX]);
+            Analysis[dst][CTX] = IMProblem.merge(Analysis[dst][CTX], Out[CTX]);
             addToWorklist({src, dst});
           }
         }

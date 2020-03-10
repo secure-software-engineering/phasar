@@ -56,10 +56,10 @@ public:
 
   ~InterMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<d_t> join(const BitVectorSet<d_t> &Lhs,
+  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
                          const BitVectorSet<d_t> &Rhs) override;
 
-  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
+  bool equal_to(const BitVectorSet<d_t> &Lhs,
                      const BitVectorSet<d_t> &Rhs) override;
 
   std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;

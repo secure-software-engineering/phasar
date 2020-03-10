@@ -56,10 +56,10 @@ public:
   ~InterMonoSolverTest() override = default;
 
   BitVectorSet<const llvm::Value *>
-  join(const BitVectorSet<const llvm::Value *> &Lhs,
+  merge(const BitVectorSet<const llvm::Value *> &Lhs,
        const BitVectorSet<const llvm::Value *> &Rhs) override;
 
-  bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
+  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
                      const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   BitVectorSet<const llvm::Value *>

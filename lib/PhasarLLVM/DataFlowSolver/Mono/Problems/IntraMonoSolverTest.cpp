@@ -43,17 +43,17 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
           IRDB, TH, CF, PT, EntryPoints) {}
 
 BitVectorSet<const llvm::Value *>
-IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,
-                          const BitVectorSet<const llvm::Value *> &Rhs) {
+IntraMonoSolverTest::merge(const BitVectorSet<const llvm::Value *> &Lhs,
+                           const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::join()\n";
   return Lhs.setUnion(Rhs);
 }
 
-bool IntraMonoSolverTest::sqSubSetEqual(
+bool IntraMonoSolverTest::equal_to(
     const BitVectorSet<const llvm::Value *> &Lhs,
     const BitVectorSet<const llvm::Value *> &Rhs) {
   cout << "IntraMonoSolverTest::sqSubSetEqual()\n";
-  return Lhs.includes(Rhs);
+  return Lhs == Rhs;
 }
 
 BitVectorSet<const llvm::Value *>

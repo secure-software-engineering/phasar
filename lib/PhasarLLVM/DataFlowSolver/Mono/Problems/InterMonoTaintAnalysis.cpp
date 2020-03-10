@@ -42,7 +42,7 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
       TSF(TSF) {}
 
 BitVectorSet<const llvm::Value *>
-InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
+InterMonoTaintAnalysis::merge(const BitVectorSet<const llvm::Value *> &Lhs,
                              const BitVectorSet<const llvm::Value *> &Rhs) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "InterMonoTaintAnalysis::join()");
@@ -50,13 +50,13 @@ InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
   return Lhs.setUnion(Rhs);
 }
 
-bool InterMonoTaintAnalysis::sqSubSetEqual(
+bool InterMonoTaintAnalysis::equal_to(
     const BitVectorSet<const llvm::Value *> &Lhs,
     const BitVectorSet<const llvm::Value *> &Rhs) {
   auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
-  return Rhs.includes(Lhs);
+  return Rhs == Lhs;
 }
 
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(

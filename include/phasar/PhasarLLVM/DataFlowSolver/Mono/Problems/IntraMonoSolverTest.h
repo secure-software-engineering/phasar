@@ -56,11 +56,11 @@ public:
   ~IntraMonoSolverTest() override = default;
 
   BitVectorSet<const llvm::Value *>
-  join(const BitVectorSet<const llvm::Value *> &Lhs,
-       const BitVectorSet<const llvm::Value *> &Rhs) override;
+  merge(const BitVectorSet<const llvm::Value *> &Lhs,
+        const BitVectorSet<const llvm::Value *> &Rhs) override;
 
-  bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
-                     const BitVectorSet<const llvm::Value *> &Rhs) override;
+  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
+                const BitVectorSet<const llvm::Value *> &Rhs) override;
 
   BitVectorSet<const llvm::Value *>
   normalFlow(const llvm::Instruction *S,

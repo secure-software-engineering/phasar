@@ -70,23 +70,29 @@ public:
     // step 2: Iteration (updating Worklist and Analysis)
     while (!Worklist.empty()) {
       // std::cout << "worklist size: " << Worklist.size() << "\n";
-      std::pair<N, N> path = Worklist.front();
+      std::pair<N, N> Edge = Worklist.front();
       Worklist.pop_front();
-      N src = path.first;
-      N dst = path.second;
-      BitVectorSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
-      if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
-        Analysis[dst] = IMProblem.join(Analysis[dst], Out);
-        for (auto nprimeprime : CFG->getSuccsOf(dst)) {
-          Worklist.push_back({dst, nprimeprime});
+      N Src = Edge.first;
+      N Dst = Edge.second;
+      BitVectorSet<D> Out = IMProblem.normalFlow(Src, Analysis[Src]);
+      // need to merge if Dst is a branch target
+      for (auto Pred : CFG->getPredsOf(Dst)) {
+        if (Pred != Src) {
+          Out = IMProblem.merge(Analysis[Pred], Out);
+        }
+      }
+      if (!IMProblem.equal_to(Out, Analysis[Dst])) {
+        Analysis[Dst] = Out;
+        for (auto Nprimeprime : CFG->getSuccsOf(Dst)) {
+          Worklist.push_back({Dst, Nprimeprime});
         }
       }
     }
     // step 3: Presenting the result (MFP_in and MFP_out)
     // MFP_in[s] = Analysis[s];
     // MFP out[s] = IMProblem.flow(Analysis[s]);
-    for (auto entry : Analysis) {
-      entry.second = IMProblem.normalFlow(entry.first, entry.second);
+    for (auto &[Node, FlowFacts] : Analysis) {
+      FlowFacts = IMProblem.normalFlow(Node, FlowFacts);
     }
   }
 

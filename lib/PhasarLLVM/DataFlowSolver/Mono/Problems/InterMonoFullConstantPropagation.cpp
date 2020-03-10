@@ -42,16 +42,16 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                                                               EntryPoints) {}
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
-InterMonoFullConstantPropagation::join(
+InterMonoFullConstantPropagation::merge(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
   return Lhs.setIntersect(Rhs);
 }
 
-bool InterMonoFullConstantPropagation::sqSubSetEqual(
+bool InterMonoFullConstantPropagation::equal_to(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return Rhs.includes(Lhs);
+  return Rhs == Lhs;
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,

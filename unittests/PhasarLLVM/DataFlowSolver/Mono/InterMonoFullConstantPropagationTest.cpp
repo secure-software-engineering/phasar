@@ -98,16 +98,16 @@ protected:
   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
 } */
 
-TEST_F(InterMonoFullConstantPropagationTest, sqSubSetEqualTest){
+TEST_F(InterMonoFullConstantPropagationTest, equal_toTest){
   InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr, EntryPoints);
   BitVectorSet<InterMonoFullConstantPropagation::d_t> set1;
   BitVectorSet<InterMonoFullConstantPropagation::d_t> set2;
 
-  EXPECT_TRUE(FCP.sqSubSetEqual(set2,set1));
+  EXPECT_TRUE(FCP.equal_to(set2,set1));
 
   set2.insert({nullptr,Top{}});
 
-  EXPECT_FALSE(FCP.sqSubSetEqual(set2,set1));
+  EXPECT_FALSE(FCP.equal_to(set2,set1));
 }
 
 int main(int argc, char **argv) {
