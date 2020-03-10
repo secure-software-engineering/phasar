@@ -445,7 +445,7 @@ public:
     } else if (std::holds_alternative<Bottom>(l)) {
       os << std::get<Bottom>(l);
     } else {
-      auto lset = std::get<BitVectorSet<e_t>>(l).getAsSet();
+      auto lset = std::get<BitVectorSet<e_t>>(l);
       size_t idx = 0;
       for (const auto &s : lset) {
         os << s;

@@ -75,8 +75,7 @@ protected:
       TaintSolver.dumpResults();
     }
     std::set<std::string> FoundResults;
-    for (auto result :
-         TaintSolver.getResultsAt(IRDB->getInstruction(InstId)).getAsSet()) {
+    for (auto result : TaintSolver.getResultsAt(IRDB->getInstruction(InstId))) {
       FoundResults.insert(getMetaDataID(result));
     }
     EXPECT_EQ(FoundResults, GroundTruth);

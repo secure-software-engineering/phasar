@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
-#include <iostream>
-#include <set>
 #include <vector>
 
 #include <boost/bimap.hpp>
@@ -56,10 +54,12 @@ private:
 
     BitVectorSetIterator<D> &
     operator=(const BitVectorSetIterator<D> &rawIterator) = default;
+
     BitVectorSetIterator<D> &operator=(D *ptr) {
       pos_ptr = ptr;
       return (*this);
     }
+
     operator bool() const {
       if (pos_ptr)
         return true;
@@ -67,11 +67,13 @@ private:
     }
 
     void setBits(std::vector<bool> B) { Bits = B; }
+
     void setBits(std::vector<bool> B) const { Bits = B; }
 
     bool operator==(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr == rawIterator.getPtr());
     }
+
     bool operator!=(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr != rawIterator.getPtr());
     }
@@ -81,6 +83,7 @@ private:
         pos_ptr++;
       return (*this);
     }
+
     BitVectorSetIterator<D> &operator++() {
       do {
         if (((pos_ptr->first) >= Bits.size() - 1)) {
@@ -107,19 +110,24 @@ private:
       pos_ptr = oldPtr;
       return temp;
     }
+
     difference_type operator-(const BitVectorSetIterator<D> &rawIterator) {
       return std::distance(rawIterator.getPtr(), this->getPtr());
     }
 
     // T& operator*(){return pos_ptr->second;}
     const T &operator*() const { return pos_ptr->second; }
-    D *operator->() { return pos_ptr; } // don't know what it should do
+
+    D *operator->() { return pos_ptr; }
 
     D getPtr() const { return pos_ptr; }
+
     // const D* getConstPtr()const{return pos_ptr;}
 
     // T getPos() {return pos_ptr->first;}
+
     // T getVal() {return pos_ptr->second;}
+
     std::vector<bool> getBits() { return Bits; }
 
   protected:
@@ -132,29 +140,6 @@ private:
   typedef BitVectorSetIterator<rc_iterator> const_iterator;
 
 public:
-  iterator begin() {
-    iterator ret = Position.right.find(
-        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
-    ret.setBits(Bits);
-    return ret;
-  }
-  iterator end() {
-    iterator ret = Position.right.find(Bits.size());
-    ret.setBits(Bits);
-    return ret;
-  }
-  const_iterator begin() const {
-    const_iterator ret = (rc_iterator)Position.right.find(
-        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
-    ret.setBits(Bits);
-    return ret;
-  }
-  const_iterator end() const {
-    const_iterator ret = (rc_iterator)Position.right.find(Bits.size());
-    ret.setBits(Bits);
-    return ret;
-  }
-
   BitVectorSet() = default;
 
   explicit BitVectorSet(size_t Count) : Bits(Count, false) {}
@@ -356,35 +341,30 @@ public:
     return OS;
   }
 
-  std::set<T> getAsSet() const {
-    std::set<T> Elements;
-    for (size_t idx = 0; idx < Bits.size(); ++idx) {
-      if (Bits[idx]) {
-        auto e = Position.right.find(idx);
-        if (e != Position.right.end()) {
-          Elements.insert(e->second);
-        }
-      }
-    }
-    return Elements;
+  iterator begin() {
+    iterator ret = Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
   }
 
-  void printWholeSet() {
-    rc_iterator rit = Position.right.find(0);
-    while (rit != Position.right.end()) {
-      std::cout << rit->second << " ";
-      rit++;
-    }
-    std::cout << std::endl;
+  iterator end() {
+    iterator ret = Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
   }
-  void printWholeSetDetailed() {
-    rc_iterator rit = Position.right.find(0);
-    while (rit != Position.right.end()) {
-      std::cout << "Pos: " << rit->first << " Val: " << rit->second
-                << std::endl;
-      rit++;
-    }
-    std::cout << std::endl;
+
+  const_iterator begin() const {
+    const_iterator ret = (rc_iterator)Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
+  }
+
+  const_iterator end() const {
+    const_iterator ret = (rc_iterator)Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
   }
 };
 
