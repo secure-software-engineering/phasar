@@ -13,8 +13,6 @@
 #include <algorithm>
 #include <functional>
 #include <initializer_list>
-#include <iostream>
-#include <set>
 #include <vector>
 
 #include <boost/bimap.hpp>
@@ -40,6 +38,106 @@ private:
       bimap_t;
   inline static bimap_t Position;
   std::vector<bool> Bits;
+
+  template <typename D> class BitVectorSetIterator {
+    std::vector<bool> Bits;
+
+  public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = D;
+    using difference_type = std::ptrdiff_t;
+    using pointer = D *;
+    using reference = D &;
+    BitVectorSetIterator(D ptr = nullptr) : pos_ptr(ptr) {}
+    BitVectorSetIterator(const BitVectorSetIterator<D> &rawIterator) = default;
+    ~BitVectorSetIterator() {}
+
+    BitVectorSetIterator<D> &
+    operator=(const BitVectorSetIterator<D> &rawIterator) = default;
+
+    BitVectorSetIterator<D> &operator=(D *ptr) {
+      pos_ptr = ptr;
+      return (*this);
+    }
+
+    operator bool() const {
+      if (pos_ptr)
+        return true;
+      return false;
+    }
+
+    void setBits(std::vector<bool> B) { Bits = B; }
+
+    void setBits(std::vector<bool> B) const { Bits = B; }
+
+    bool operator==(const BitVectorSetIterator<D> &rawIterator) const {
+      return (pos_ptr == rawIterator.getPtr());
+    }
+
+    bool operator!=(const BitVectorSetIterator<D> &rawIterator) const {
+      return (pos_ptr != rawIterator.getPtr());
+    }
+
+    BitVectorSetIterator<D> &operator+=(const difference_type &movement) {
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr++;
+      return (*this);
+    }
+
+    BitVectorSetIterator<D> &operator++() {
+      do {
+        if (((pos_ptr->first) >= Bits.size() - 1)) {
+          ++pos_ptr;
+          break;
+        }
+        ++pos_ptr;
+      } while (!(Bits[pos_ptr->first]));
+
+      return (*this);
+    }
+
+    BitVectorSetIterator<D> operator++(int) {
+      auto temp(*this);
+      ++*this;
+      return temp;
+    }
+
+    BitVectorSetIterator<D> operator+(const difference_type &movement) {
+      auto oldPtr = pos_ptr;
+      for (difference_type i = 0; i < movement; i++)
+        pos_ptr++;
+      auto temp(*this);
+      pos_ptr = oldPtr;
+      return temp;
+    }
+
+    difference_type operator-(const BitVectorSetIterator<D> &rawIterator) {
+      return std::distance(rawIterator.getPtr(), this->getPtr());
+    }
+
+    // T& operator*(){return pos_ptr->second;}
+    const T &operator*() const { return pos_ptr->second; }
+
+    D *operator->() { return pos_ptr; }
+
+    D getPtr() const { return pos_ptr; }
+
+    // const D* getConstPtr()const{return pos_ptr;}
+
+    // T getPos() {return pos_ptr->first;}
+
+    // T getVal() {return pos_ptr->second;}
+
+    std::vector<bool> getBits() { return Bits; }
+
+  protected:
+    D pos_ptr;
+  };
+
+  typedef typename bimap_t::right_iterator r_iterator;
+  typedef typename bimap_t::right_const_iterator rc_iterator;
+  typedef BitVectorSetIterator<r_iterator> iterator;
+  typedef BitVectorSetIterator<rc_iterator> const_iterator;
 
 public:
   BitVectorSet() = default;
@@ -243,17 +341,30 @@ public:
     return OS;
   }
 
-  std::set<T> getAsSet() const {
-    std::set<T> Elements;
-    for (size_t idx = 0; idx < Bits.size(); ++idx) {
-      if (Bits[idx]) {
-        auto e = Position.right.find(idx);
-        if (e != Position.right.end()) {
-          Elements.insert(e->second);
-        }
-      }
-    }
-    return Elements;
+  iterator begin() {
+    iterator ret = Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
+  }
+
+  iterator end() {
+    iterator ret = Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
+  }
+
+  const_iterator begin() const {
+    const_iterator ret = (rc_iterator)Position.right.find(
+        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    ret.setBits(Bits);
+    return ret;
+  }
+
+  const_iterator end() const {
+    const_iterator ret = (rc_iterator)Position.right.find(Bits.size());
+    ret.setBits(Bits);
+    return ret;
   }
 };
 

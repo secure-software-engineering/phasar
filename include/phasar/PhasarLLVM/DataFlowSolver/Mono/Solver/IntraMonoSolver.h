@@ -101,7 +101,7 @@ public:
       if (FlowFacts.empty()) {
         OS << "\tEMPTY\n";
       } else {
-        for (auto FlowFact : FlowFacts.getAsSet()) {
+        for (auto FlowFact : FlowFacts) {
           OS << this->IMProblem.DtoString(FlowFact) << '\n';
         }
       }
