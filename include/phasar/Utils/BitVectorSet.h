@@ -68,8 +68,6 @@ private:
 
     void setBits(std::vector<bool> B) { Bits = B; }
 
-    void setBits(std::vector<bool> B) const { Bits = B; }
-
     bool operator==(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr == rawIterator.getPtr());
     }
