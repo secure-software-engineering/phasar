@@ -17,7 +17,7 @@ namespace psr {
 
 enum class WPDSType {
 #define WPDS_TYPES(NAME, TYPE) TYPE,
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def"
 };
 
 WPDSType to_WPDSType(const std::string &S);

@@ -10,16 +10,16 @@
 #include <ostream>
 #include <string>
 
-#include <llvm/ADT/StringSwitch.h>
+#include "llvm/ADT/StringSwitch.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSOptions.h"
 
 namespace psr {
 
 WPDSType to_WPDSType(const std::string &S) {
   WPDSType Type = llvm::StringSwitch<WPDSType>(S)
 #define WPDS_TYPES(NAME, TYPE) .Case(NAME, WPDSType::TYPE)
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def"
                       .Default(WPDSType::None);
   return Type;
 }
@@ -31,7 +31,7 @@ std::string to_string(const WPDSType &T) {
   case WPDSType::TYPE:                                                         \
     return NAME;                                                               \
     break;
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def"
   }
 }
 

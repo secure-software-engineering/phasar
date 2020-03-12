@@ -1,7 +1,7 @@
 /*
-#include <gtest/gtest.h>
-#include <phasar/DB/DBConn.h>
-#include <phasar/DB/ProjectIRDB.h>
+#include "phasar/DB/DBConn.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;

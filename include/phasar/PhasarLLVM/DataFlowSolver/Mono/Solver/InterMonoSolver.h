@@ -24,10 +24,10 @@
 #include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 

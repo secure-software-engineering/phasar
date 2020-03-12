@@ -12,8 +12,8 @@
 
 #include <memory>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
-#include <phasar/Utils/Table.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/Utils/Table.h"
 
 namespace psr {
 

@@ -1,5 +1,5 @@
-#include <gtest/gtest.h>
-#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
+#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "gtest/gtest.h"
 
 using namespace psr;
 

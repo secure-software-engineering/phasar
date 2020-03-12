@@ -5,7 +5,7 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
 #define LOG_INFO(x)                                                            \
   do {                                                                         \

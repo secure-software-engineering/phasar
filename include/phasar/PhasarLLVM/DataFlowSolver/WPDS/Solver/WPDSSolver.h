@@ -18,29 +18,29 @@
 #include <unordered_map>
 #include <utility>
 
-#include <llvm/Support/Casting.h>
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <wali/Common.hpp>
-#include <wali/KeySource.hpp>
-#include <wali/wfa/State.hpp>
-#include <wali/wfa/WFA.hpp>
-#include <wali/witness/WitnessWrapper.hpp>
-#include <wali/wpds/Rule.hpp>
-#include <wali/wpds/RuleFunctor.hpp>
-#include <wali/wpds/WPDS.hpp>
-#include <wali/wpds/fwpds/FWPDS.hpp>
-#include <wali/wpds/fwpds/SWPDS.hpp>
+#include "wali/Common.hpp"
+#include "wali/KeySource.hpp"
+#include "wali/wfa/State.hpp"
+#include "wali/wfa/WFA.hpp"
+#include "wali/witness/WitnessWrapper.hpp"
+#include "wali/wpds/Rule.hpp"
+#include "wali/wpds/RuleFunctor.hpp"
+#include "wali/wpds/WPDS.hpp"
+#include "wali/wpds/fwpds/FWPDS.hpp"
+#include "wali/wpds/fwpds/SWPDS.hpp"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/Table.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Table.h"
 
 namespace llvm {
 class CallInst;

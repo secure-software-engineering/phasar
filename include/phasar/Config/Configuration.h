@@ -19,13 +19,13 @@
 
 #include <string>
 
-#include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
+#include "boost/filesystem.hpp"
+#include "boost/program_options.hpp"
 
-#include <llvm/ADT/iterator_range.h>
-#include <llvm/Support/ManagedStatic.h>
+#include "llvm/ADT/iterator_range.h"
+#include "llvm/Support/ManagedStatic.h"
 
-#include <phasar/Config/Version.h>
+#include "phasar/Config/Version.h"
 
 #define XSTR(S) STR(S)
 #define STR(S) #S

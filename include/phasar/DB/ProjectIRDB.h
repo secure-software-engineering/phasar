@@ -17,10 +17,10 @@
 #include <string>
 #include <vector>
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Module.h"
 
-#include <phasar/Utils/EnumFlags.h>
+#include "phasar/Utils/EnumFlags.h"
 
 namespace llvm {
 class Value;

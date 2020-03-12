@@ -22,15 +22,15 @@
 #include <set>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 
 namespace psr {
 
 enum class CallGraphAnalysisType {
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
   Invalid
 };
 

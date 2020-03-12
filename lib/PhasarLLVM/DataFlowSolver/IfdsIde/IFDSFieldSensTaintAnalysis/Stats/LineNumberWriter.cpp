@@ -2,7 +2,7 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LineNumberWriter.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/LineNumberWriter.h"
 
 namespace psr {
 

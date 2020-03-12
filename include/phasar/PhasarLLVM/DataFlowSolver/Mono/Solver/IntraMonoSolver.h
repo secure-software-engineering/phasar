@@ -23,8 +23,8 @@
 #include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace psr {
 

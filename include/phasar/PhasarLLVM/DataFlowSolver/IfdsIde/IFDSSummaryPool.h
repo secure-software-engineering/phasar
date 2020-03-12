@@ -23,7 +23,7 @@
 #include <set>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSSummary.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSSummary.h"
 
 namespace psr {
 

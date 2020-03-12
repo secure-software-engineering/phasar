@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "gtest/gtest.h"
 #include <iostream>
 #include <memory>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
 #include <string>
 
 using namespace psr;

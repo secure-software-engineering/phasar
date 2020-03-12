@@ -21,9 +21,10 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/PhasarLLVM/Utils/TaintConfiguration.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/PhasarLLVM/Utils/TaintConfiguration.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;
@@ -36,7 +37,6 @@ namespace psr {
 
 class LLVMPointsToInfo;
 class LLVMTypeHierarchy;
-class LLVMBasedICFG;
 
 class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,

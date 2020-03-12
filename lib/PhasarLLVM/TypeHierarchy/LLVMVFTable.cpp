@@ -10,9 +10,9 @@
 #include <algorithm>
 #include <iostream>
 
-#include <llvm/IR/Function.h>
+#include "llvm/IR/Function.h"
 
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
 using namespace psr;
 

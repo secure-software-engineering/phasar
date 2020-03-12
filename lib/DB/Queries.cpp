@@ -7,7 +7,7 @@
  *     Christian Stritzke and others
  *****************************************************************************/
 
-#include <phasar/DB/Queries.h>
+#include "phasar/DB/Queries.h"
 
 using namespace std;
 using namespace psr;

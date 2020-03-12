@@ -21,8 +21,8 @@
 #include <ostream>
 #include <set>
 
-//#include <phasar/DB/DBConn.h>
-#include <phasar/Utils/Table.h>
+//#include "phasar/DB/DBConn.h"
+#include "phasar/Utils/Table.h"
 
 namespace psr {
 

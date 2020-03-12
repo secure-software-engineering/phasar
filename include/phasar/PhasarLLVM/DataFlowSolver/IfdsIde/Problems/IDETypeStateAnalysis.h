@@ -17,9 +17,9 @@
 #include <string>
 #include <type_traits>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
 namespace llvm {
 class Instruction;

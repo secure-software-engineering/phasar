@@ -10,9 +10,9 @@
 #include <ostream>
 #include <string>
 
-#include <llvm/ADT/StringSwitch.h>
+#include "llvm/ADT/StringSwitch.h"
 
-#include <phasar/PhasarLLVM/Utils/IOFormat.h>
+#include "phasar/PhasarLLVM/Utils/IOFormat.h"
 
 using namespace psr;
 using namespace std;
@@ -26,19 +26,19 @@ std::string to_string(const IOFormat &D) {
   case IOFormat::TYPE:                                                         \
     return NAME;                                                               \
     break;
-#include <phasar/PhasarLLVM/Utils/IOFormat.def>
+#include "phasar/PhasarLLVM/Utils/IOFormat.def"
   }
 }
 
 IOFormat to_IOFormat(const std::string &S) {
   IOFormat Type = llvm::StringSwitch<IOFormat>(S)
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE) .Case(NAME, IOFormat::TYPE)
-#include <phasar/PhasarLLVM/Utils/IOFormat.def>
+#include "phasar/PhasarLLVM/Utils/IOFormat.def"
                       .Default(IOFormat::None);
   if (Type == IOFormat::None) {
     Type = llvm::StringSwitch<IOFormat>(S)
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE) .Case(CMDFLAG, IOFormat::TYPE)
-#include <phasar/PhasarLLVM/Utils/IOFormat.def>
+#include "phasar/PhasarLLVM/Utils/IOFormat.def"
                .Default(IOFormat::None);
   }
   return Type;

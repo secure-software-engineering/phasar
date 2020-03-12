@@ -1,16 +1,16 @@
 #include <iostream>
 
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/graph/isomorphism.hpp>
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/graph/isomorphism.hpp"
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;

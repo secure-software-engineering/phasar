@@ -13,8 +13,8 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h"
 
 namespace psr {
 

@@ -19,12 +19,12 @@
 #include <iomanip>
 #include <sstream>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/Utils/PAMM.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/PAMM.h"
 
 using namespace psr;
 using json = nlohmann::json;

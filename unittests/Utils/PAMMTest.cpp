@@ -1,6 +1,6 @@
-#include <gtest/gtest.h>
+#include "phasar/Utils/PAMM.h"
+#include "gtest/gtest.h"
 #include <iostream>
-#include <phasar/Utils/PAMM.h>
 #include <thread>
 
 using namespace psr;

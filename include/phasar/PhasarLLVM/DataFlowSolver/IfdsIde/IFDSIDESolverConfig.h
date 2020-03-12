@@ -19,7 +19,7 @@
 
 #include <iosfwd>
 
-#include <phasar/Config/Configuration.h>
+#include "phasar/Config/Configuration.h"
 
 namespace psr {
 

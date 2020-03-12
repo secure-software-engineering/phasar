@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
 
 namespace llvm {
 class Value;

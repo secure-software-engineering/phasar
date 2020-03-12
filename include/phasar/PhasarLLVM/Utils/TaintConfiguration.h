@@ -28,13 +28,13 @@
 #include <variant>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <llvm/Support/ErrorHandling.h>
+#include "llvm/Support/ErrorHandling.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
+#include "phasar/Config/Configuration.h"
 
 namespace llvm {
 class Instruction;

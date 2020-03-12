@@ -13,9 +13,9 @@
 #include <memory>
 #include <set>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 
-#include <llvm/IR/Instructions.h>
+#include "llvm/IR/Instructions.h"
 
 namespace llvm {
 class Value;

@@ -22,13 +22,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
+#include "boost/graph/adjacency_list.hpp"
 
-#include <llvm/IR/CallSite.h>
+#include "llvm/IR/CallSite.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
+#include "phasar/Config/Configuration.h"
 
 namespace llvm {
 class Value;

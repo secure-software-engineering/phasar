@@ -15,12 +15,12 @@
 #include <set>
 #include <tuple>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
 
 namespace psr {
 

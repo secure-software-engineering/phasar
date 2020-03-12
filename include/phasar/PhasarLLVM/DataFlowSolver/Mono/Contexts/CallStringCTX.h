@@ -5,8 +5,8 @@
 #include <functional>
 #include <initializer_list>
 
-#include <boost/functional/hash.hpp>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "boost/functional/hash.hpp"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 

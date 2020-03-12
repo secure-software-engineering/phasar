@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <iostream>
 #include <set>
 #include <utility>
 
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
 using namespace std;

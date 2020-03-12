@@ -7,25 +7,25 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/ADT/SetVector.h>
-#include <llvm/ADT/SmallVector.h>
-#include <llvm/ADT/StringSwitch.h>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/Analysis/BasicAliasAnalysis.h>
-#include <llvm/Analysis/CFLAndersAliasAnalysis.h>
-#include <llvm/Analysis/CFLSteensAliasAnalysis.h>
-#include <llvm/IR/Argument.h>
-#include <llvm/IR/DataLayout.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Verifier.h>
-#include <llvm/Passes/PassBuilder.h>
+#include "llvm/ADT/SetVector.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/BasicAliasAnalysis.h"
+#include "llvm/Analysis/CFLAndersAliasAnalysis.h"
+#include "llvm/Analysis/CFLSteensAliasAnalysis.h"
+#include "llvm/IR/Argument.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/IR/Value.h"
+#include "llvm/IR/Verifier.h"
+#include "llvm/Passes/PassBuilder.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
 using namespace psr;
 
@@ -82,7 +82,7 @@ std::string to_string(const PointerAnalysisType &PA) {
   case PointerAnalysisType::TYPE:                                              \
     return NAME;                                                               \
     break;
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
   }
 }
 
@@ -90,13 +90,13 @@ PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
   PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
   .Case(NAME, PointerAnalysisType::TYPE)
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
                                  .Default(PointerAnalysisType::Invalid);
   if (Type == PointerAnalysisType::Invalid) {
     Type = llvm::StringSwitch<PointerAnalysisType>(S)
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
   .Case(CMDFLAG, PointerAnalysisType::TYPE)
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
                .Default(PointerAnalysisType::Invalid);
   }
   return Type;
