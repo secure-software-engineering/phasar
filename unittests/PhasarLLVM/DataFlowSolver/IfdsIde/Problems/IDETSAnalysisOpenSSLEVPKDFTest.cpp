@@ -7,16 +7,16 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include <gtest/gtest.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
 
 using namespace psr;
 
@@ -114,7 +114,7 @@ protected:
               getMetaDataID(Result.first), Result.second));
         }
       }
-      EXPECT_EQ(results, GT);
+      EXPECT_EQ(results, GT) << " at " << llvmIRToShortString(Inst);
     }
   }
 }; // Test Fixture
@@ -186,6 +186,99 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation2) {
   // gt[164] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}};
   compareResults(gt);
 }
+
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation3) {
+  Initialize({pathToLLFiles + "key-derivation3_c.ll"});
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  // gt[56] = {{"21", OpenSSLEVPKeyDerivationState::UNINIT}}; //
+  // null-initialization kills 21
+  gt[58] = {{"56", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[93] = {{"56", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"91", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[94] = {{"56", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+            {"21", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+            {"91", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[100] = {{"56", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"21", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"91", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"98", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[101] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"21", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"91", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"98", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[148] = {{"56", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"21", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"91", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"98", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"147", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[149] = {{"56", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"21", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"91", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"98", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"147", OpenSSLEVPKeyDerivationState::UNINIT}};
+  compareResults(gt);
+}
+
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation4) {
+  Initialize({pathToLLFiles + "key-derivation4_c.ll"});
+
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  // gt[57] = {{"21", OpenSSLEVPKeyDerivationState::UNINIT}}; //
+  // null-initialization kills 21
+  gt[59] = {{"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"57", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[104] = {{"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"57", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"102", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[105] = {{"21", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"57", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"102", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+
+  // TODO: Should FREE on PARAM_INIT result in UNINIT, or in ERROR? (currently
+  // it is UNINIT)
+
+  gt[152] = {{"21", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"57", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"102", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"151", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[153] = {{"21", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"57", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"102", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"151", OpenSSLEVPKeyDerivationState::UNINIT}};
+  compareResults(gt);
+}
+
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation5) {
+  Initialize({pathToLLFiles + "key-derivation5_c.ll"});
+
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  // gt[58] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}};//
+  // null-initialization kills 22
+  gt[60] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[105] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"103", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[106] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[112] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[113] = gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+                       {"58", OpenSSLEVPKeyDerivationState::DERIVED},
+                       {"103", OpenSSLEVPKeyDerivationState::DERIVED},
+                       {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
+  // should report an error at 160? (kdf_ctx is not freed)
+  compareResults(gt);
+}
+
 TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation6) {
   Initialize({pathToLLFiles + "key-derivation6_c.ll"});
   // llvmtssolver->printReport();
@@ -199,6 +292,65 @@ TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, DISABLED_KeyDerivation6) {
                        {"107", OpenSSLEVPKeyDerivationState::ERROR}};
   compareResults(gt);
 }
+
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation7) {
+  Initialize({pathToLLFiles + "key-derivation7_c.ll"});
+  // llvmtssolver->printReport();
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  // gt[57] = {{"21", OpenSSLEVPKeyDerivationState::UNINIT}}; //
+  // null-initialization kills 21
+  gt[59] = {{"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"57", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[104] = {{"21", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"57", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"102", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[105] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
+             {"57", OpenSSLEVPKeyDerivationState::ERROR},
+             {"102", OpenSSLEVPKeyDerivationState::ERROR}};
+  gt[152] = gt[153] = {{"21", OpenSSLEVPKeyDerivationState::ERROR},
+                       {"57", OpenSSLEVPKeyDerivationState::ERROR},
+                       {"102", OpenSSLEVPKeyDerivationState::ERROR},
+                       {"151", OpenSSLEVPKeyDerivationState::ERROR}};
+  compareResults(gt);
+}
+
+TEST_F(IDETSAnalysisOpenSSLEVPKDFTest, KeyDerivation8) {
+  Initialize({pathToLLFiles + "key-derivation8_c.ll"});
+  // llvmtssolver->printReport();
+  std::map<std::size_t, std::map<std::string, int>> gt;
+
+  // gt[58] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT}}; //
+  // null-initialization kills 22
+  gt[60] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+            {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[105] = {{"22", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"58", OpenSSLEVPKeyDerivationState::CTX_ATTACHED},
+             {"103", OpenSSLEVPKeyDerivationState::CTX_ATTACHED}};
+  gt[107] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[112] = {{"22", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"58", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"103", OpenSSLEVPKeyDerivationState::PARAM_INIT},
+             {"110", OpenSSLEVPKeyDerivationState::PARAM_INIT}};
+  gt[113] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"58", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"103", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"110", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[160] = {{"22", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"58", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"103", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"110", OpenSSLEVPKeyDerivationState::DERIVED},
+             {"159", OpenSSLEVPKeyDerivationState::DERIVED}};
+  gt[161] = {{"22", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"58", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"103", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"110", OpenSSLEVPKeyDerivationState::UNINIT},
+             {"159", OpenSSLEVPKeyDerivationState::UNINIT}};
+  compareResults(gt);
+}
+
 // main function for the test case
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

@@ -9,11 +9,13 @@
 
 #include <cassert>
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include <iostream>
 #include <llvm/IR/Instruction.h>
 #include <llvm/IR/Value.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
+#include <set>
+#include <string>
 
 using namespace std;
 using namespace psr;
@@ -21,12 +23,11 @@ using namespace psr;
 namespace psr {
 
 // Return value is modeled as -1
-const std::map<std::string, std::set<int>>
-    OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
-        {"EVP_KDF_CTX_new", {-1}},
-        {"EVP_KDF_CTX_set_params", {0}},
-        {"EVP_KDF_derive", {0}},
-        {"EVP_KDF_CTX_free", {0}}
+const map<string, set<int>> OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
+    {"EVP_KDF_CTX_new", {-1}},
+    {"EVP_KDF_CTX_set_params", {0}},
+    {"EVP_KDF_derive", {0}},
+    {"EVP_KDF_CTX_free", {0}}
 
 };
 
