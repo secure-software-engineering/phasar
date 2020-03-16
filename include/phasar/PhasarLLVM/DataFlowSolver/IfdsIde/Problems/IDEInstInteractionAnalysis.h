@@ -11,10 +11,12 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 
 #include <functional>
+#include <llvm/IR/DerivedTypes.h>
 #include <map>
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -27,6 +29,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
@@ -41,7 +44,14 @@
 
 namespace psr {
 
-template <typename EdgeFactType = std::string>
+///
+/// SyntacticAnalysisOnly: Can be set if a syntactic-only analysis is desired
+/// (without using points-to information)
+///
+/// IndirectTaints: Can be set to ensure noninterference
+///
+template <typename EdgeFactType = std::string,
+          bool SyntacticAnalysisOnly = false, bool EnableIndirectTaints = false>
 class IDEInstInteractionAnalysisT
     : public IDETabulationProblem<
           const llvm::Instruction *, const llvm::Value *,
@@ -66,9 +76,6 @@ private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
   static inline l_t BottomElement = Bottom{};
   static inline l_t TopElement = Top{};
-  // can be set if a syntactic-only analysis is desired
-  // (without using points-to information)
-  const bool SyntacticAnalysisOnly = false;
 
 public:
   IDEInstInteractionAnalysisT(const ProjectIRDB *IRDB,
@@ -101,6 +108,24 @@ public:
                                                            n_t succ) override {
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
+    }
+
+    if (EnableIndirectTaints) {
+      if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
+          br && br->isConditional()) {
+        return std::make_shared<LambdaFlow<d_t>>([=](d_t src) {
+          std::set<d_t> ret = {src, br};
+          if (src == br->getCondition()) {
+            for (auto succ : br->successors()) {
+              // this->indirecrTaints[succ].insert(src);
+              for (auto &inst : succ->instructionsWithoutDebug()) {
+                ret.insert(&inst);
+              }
+            }
+          }
+          return ret;
+        });
+      }
     }
 
     if (!SyntacticAnalysisOnly) {
@@ -162,6 +187,7 @@ public:
             // still interacts with the memory locations pointed to be PTS
             if (Store->getPointerOperand() == src || PointerPTS.count(src)) {
               Facts.insert(Store);
+              Facts.erase(src);
             }
             return Facts;
           }
