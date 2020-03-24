@@ -14,22 +14,22 @@
  *      Author: pdschbrt
  */
 
+#include <memory>
+
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTContext.h"
 #include "clang/AST/RecursiveASTVisitor.h"
 #include "clang/CodeGen/CodeGenAction.h"
-
 #include "clang/Frontend/CompilerInstance.h"
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "clang/Tooling/CommonOptionsParser.h"
 #include "clang/Tooling/Tooling.h"
+
 #include "llvm/Support/CommandLine.h"
 
 #include "phasar/PhasarClang/RandomChangeASTConsumer.h"
 #include "phasar/PhasarClang/RandomChangeFrontendAction.h"
-
-#include <memory>
 
 using namespace std;
 using namespace psr;
