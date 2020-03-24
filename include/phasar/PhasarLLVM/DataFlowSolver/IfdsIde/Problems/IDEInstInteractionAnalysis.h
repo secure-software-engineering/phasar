@@ -81,7 +81,8 @@ public:
                              const llvm::Value *,
                              LatticeDomain<BitVectorSet<EdgeFactType>>,
                              LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
-    this->ZeroValue = createZeroValue();
+    this->ZeroValue =
+        IDEInstInteractionAnalysisT<EdgeFactType>::createZeroValue();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
