@@ -11,12 +11,12 @@
 #define PHASAR_UTILS_BITVECTORSET_H_
 
 #include <algorithm>
-#include <functional>
 #include <initializer_list>
-#include <vector>
 
 #include "boost/bimap.hpp"
 #include "boost/bimap/unordered_set_of.hpp"
+
+#include "llvm/ADT/BitVector.h"
 
 namespace psr {
 
@@ -37,10 +37,10 @@ private:
                        boost::bimaps::unordered_set_of<size_t>>
       bimap_t;
   inline static bimap_t Position;
-  std::vector<bool> Bits;
+  llvm::BitVector Bits;
 
   template <typename D> class BitVectorSetIterator {
-    std::vector<bool> Bits;
+    llvm::BitVector Bits;
 
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -66,7 +66,7 @@ private:
       return false;
     }
 
-    void setBits(std::vector<bool> B) { Bits = B; }
+    void setBits(llvm::BitVector B) { Bits = B; }
 
     bool operator==(const BitVectorSetIterator<D> &rawIterator) const {
       return (pos_ptr == rawIterator.getPtr());
@@ -114,6 +114,7 @@ private:
     }
 
     // T& operator*(){return pos_ptr->second;}
+
     const T &operator*() const { return pos_ptr->second; }
 
     D *operator->() { return pos_ptr; }
@@ -126,7 +127,7 @@ private:
 
     // T getVal() {return pos_ptr->second;}
 
-    std::vector<bool> getBits() { return Bits; }
+    llvm::BitVector getBits() { return Bits; }
 
   protected:
     D pos_ptr;
@@ -158,38 +159,20 @@ public:
   ~BitVectorSet() = default;
 
   BitVectorSet<T> setUnion(const BitVectorSet<T> &Other) const {
-    const std::vector<bool> *Shorter, *Longer;
-    if (Bits.size() < Other.Bits.size()) {
-      Shorter = &Bits;
-      Longer = &Other.Bits;
-    } else {
-      Shorter = &Other.Bits;
-      Longer = &Bits;
-    }
-    BitVectorSet<T> Res(Longer->size());
-    size_t idx = 0;
-    for (; idx < Shorter->size(); ++idx) {
-      Res.Bits[idx] = ((*Shorter)[idx] || (*Longer)[idx]);
-    }
-    for (; idx < Longer->size(); ++idx) {
-      Res.Bits[idx] = (*Longer)[idx];
-    }
+    size_t size = std::max(Bits.size(), Other.Bits.size());
+    BitVectorSet<T> Res(size);
+    // temp variable necessary because return type of |= is not const
+    llvm::BitVector temp = Bits;
+    Res.Bits = temp |= Other.Bits;
     return Res;
   }
 
   BitVectorSet<T> setIntersect(const BitVectorSet<T> &Other) const {
-    const std::vector<bool> *Shorter, *Longer;
-    if (Bits.size() < Other.Bits.size()) {
-      Shorter = &Bits;
-      Longer = &Other.Bits;
-    } else {
-      Shorter = &Other.Bits;
-      Longer = &Bits;
-    }
-    BitVectorSet<T> Res(Shorter->size());
-    for (size_t idx = 0; idx < Shorter->size(); ++idx) {
-      Res.Bits[idx] = ((*Shorter)[idx] && (*Longer)[idx]);
-    }
+    size_t size = std::max(Bits.size(), Other.Bits.size());
+    BitVectorSet<T> Res(size);
+    // temp variable necessary because return type of &= is not const
+    llvm::BitVector temp = Bits;
+    Res.Bits = temp &= Other.Bits;
     return Res;
   }
 
@@ -267,11 +250,9 @@ public:
     }
   }
 
-  void clear() noexcept { std::fill(Bits.begin(), Bits.end(), false); }
+  void clear() noexcept { Bits.reset(); }
 
-  bool empty() const noexcept {
-    return std::find(Bits.begin(), Bits.end(), true) == Bits.end();
-  }
+  bool empty() const noexcept { return Bits.none(); }
 
   void reserve(size_t NewCap) { Bits.reserve(NewCap); }
 
@@ -287,32 +268,10 @@ public:
     return 0;
   }
 
-  size_t size() const noexcept {
-    return std::count_if(Bits.begin(), Bits.end(),
-                         [](bool b) { return b == true; });
-  }
+  size_t size() const noexcept { return Bits.count(); }
 
   friend bool operator==(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    if (Lhs.Bits.size() == Rhs.Bits.size()) {
-      for (size_t Idx = 0; Idx < Lhs.Bits.size(); ++Idx) {
-        if (Lhs.Bits[Idx] != Rhs.Bits[Idx]) {
-          return false;
-        }
-      }
-      return true;
-    }
-    const BitVectorSet &Shorter =
-        (Lhs.Bits.size() < Rhs.Bits.size()) ? Lhs : Rhs;
-    const BitVectorSet &Longer =
-        (Lhs.Bits.size() > Rhs.Bits.size()) ? Lhs : Rhs;
-    for (size_t Idx = 0; Idx < Shorter.Bits.size(); ++Idx) {
-      if (Lhs.Bits[Idx] != Rhs.Bits[Idx]) {
-        return false;
-      }
-    }
-    return std::count_if(std::next(Longer.Bits.begin(), Shorter.Bits.size()),
-                         Longer.Bits.end(),
-                         [](bool b) { return b == true; }) == 0;
+    return Lhs.Bits == Rhs.Bits;
   }
 
   friend bool operator!=(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
@@ -320,7 +279,7 @@ public:
   }
 
   friend bool operator<(const BitVectorSet &Lhs, const BitVectorSet &Rhs) {
-    return Lhs.Bits < Rhs.Bits;
+    return Lhs.Bits.count() < Rhs.Bits.count();
   }
 
   friend std::ostream &operator<<(std::ostream &OS, const BitVectorSet &B) {
@@ -340,8 +299,10 @@ public:
   }
 
   iterator begin() {
-    iterator ret = Position.right.find(
-        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    int index = Bits.find_first();
+    if (index == -1)
+      index = Bits.size();
+    iterator ret = Position.right.find(index);
     ret.setBits(Bits);
     return ret;
   }
@@ -353,8 +314,10 @@ public:
   }
 
   const_iterator begin() const {
-    const_iterator ret = (rc_iterator)Position.right.find(
-        std::distance(Bits.begin(), std::find(Bits.begin(), Bits.end(), true)));
+    int index = Bits.find_first();
+    if (index == -1)
+      index = Bits.size();
+    const_iterator ret = (rc_iterator)Position.right.find(index);
     ret.setBits(Bits);
     return ret;
   }
