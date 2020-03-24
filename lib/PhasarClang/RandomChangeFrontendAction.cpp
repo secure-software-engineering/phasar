@@ -29,6 +29,8 @@
 #include "phasar/PhasarClang/RandomChangeASTConsumer.h"
 #include "phasar/PhasarClang/RandomChangeFrontendAction.h"
 
+#include <memory>
+
 using namespace std;
 using namespace psr;
 
@@ -48,6 +50,6 @@ RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
                                               llvm::StringRef file) {
   llvm::errs() << "** Creating AST consumer for: " << file << "\n";
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-  return llvm::make_unique<RandomChangeASTConsumer>(RW);
+  return make_unique<RandomChangeASTConsumer>(RW);
 }
 } // namespace psr
