@@ -67,6 +67,9 @@ public:
   virtual bool sqSubSetEqual(const BitVectorSet<D> &Lhs,
                              const BitVectorSet<D> &Rhs) = 0;
 
+  virtual bool equal_to(const BitVectorSet<D> &Lhs,
+                        const BitVectorSet<D> &Rhs) = 0;
+
   virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
 
   virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;

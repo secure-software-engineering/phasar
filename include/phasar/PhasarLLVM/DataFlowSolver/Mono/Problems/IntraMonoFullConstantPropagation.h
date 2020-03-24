@@ -23,6 +23,7 @@
 #include <utility>
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
+#include <phasar/PhasarLLVM/Utils/LatticeDomain.h>
 #include <phasar/Utils/BitVectorSet.h>
 
 namespace llvm {
@@ -67,6 +68,11 @@ public:
   bool sqSubSetEqual(
       const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
       const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
+      override;
+
+  bool
+  equal_to(const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+           const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
       override;
 
   BitVectorSet<std::pair<const llvm::Value *, unsigned>>

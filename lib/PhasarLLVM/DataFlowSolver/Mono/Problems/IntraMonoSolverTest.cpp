@@ -56,6 +56,13 @@ bool IntraMonoSolverTest::sqSubSetEqual(
   return Lhs.includes(Rhs);
 }
 
+bool IntraMonoSolverTest::equal_to(
+    const BitVectorSet<const llvm::Value *> &Lhs,
+    const BitVectorSet<const llvm::Value *> &Rhs) {
+  cout << "IntraMonoSolverTest::equal_to()\n";
+  return Lhs == Rhs;
+}
+
 BitVectorSet<const llvm::Value *>
 IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
                                 const BitVectorSet<const llvm::Value *> &In) {

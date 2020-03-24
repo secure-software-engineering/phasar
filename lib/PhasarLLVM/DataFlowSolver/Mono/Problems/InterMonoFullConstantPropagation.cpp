@@ -41,17 +41,74 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                        InterMonoFullConstantPropagation::i_t>(IRDB, TH, ICF, PT,
                                                               EntryPoints) {}
 
+bool InterMonoFullConstantPropagation::bitVectorHasInstr(
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &set,
+    InterMonoFullConstantPropagation::v_t instr) {
+  for (auto e : set.getAsSet()) {
+    if (e.first == instr) {
+      return true;
+    }
+  }
+  return false;
+}
+
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::join(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
-  return Lhs.setIntersect(Rhs);
+  return merge(update(Lhs, Rhs), Rhs);
+}
+
+BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::merge(
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+  BitVectorSet<InterMonoFullConstantPropagation::d_t> Out = Lhs;
+  for (auto elem : Rhs.getAsSet()) {
+    if (!bitVectorHasInstr(Lhs, elem.first)) {
+      Out.insert(elem);
+    }
+  }
+  return Out;
+}
+
+BitVectorSet<InterMonoFullConstantPropagation::d_t>
+InterMonoFullConstantPropagation::update(
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+  BitVectorSet<InterMonoFullConstantPropagation::d_t> Out = Lhs;
+  for (auto elem : Rhs.getAsSet()) {
+    if (bitVectorHasInstr(Lhs, elem.first)) {
+      for (auto elen : Out.getAsSet()) {
+        if (elem.first == elen.first &&
+            (std::holds_alternative<Top>(elen.second) ||
+             std::holds_alternative<Bottom>(elem.second))) {
+          Out.erase(elen);
+          Out.insert(elem);
+        } else if (elem.first == elen.first &&
+                   (std::holds_alternative<plain_d_t>(elem.second) &&
+                    std::holds_alternative<plain_d_t>(elen.second) &&
+                    *std::get_if<plain_d_t>(&elem.second) !=
+                        *std::get_if<plain_d_t>(&elen.second))) {
+          Out.erase(elen);
+          Out.insert({elem.first, Bottom{}});
+        }
+      }
+    }
+  }
+  return Out;
 }
 
 bool InterMonoFullConstantPropagation::sqSubSetEqual(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
   return Rhs.includes(Lhs);
+}
+
+bool InterMonoFullConstantPropagation::equal_to(
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
+    const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+  return Rhs == Lhs;
 }
 
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
@@ -76,7 +133,7 @@ InterMonoFullConstantPropagation::normalFlow(
     InterMonoFullConstantPropagation::n_t S,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
   auto Out = In;
-  // TODO: Efficiency Improvemants and some Code in its own Funktion
+
   // check Alloca instructions
   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     if (Alloc->getAllocatedType()->isIntegerTy()) {
@@ -90,13 +147,13 @@ InterMonoFullConstantPropagation::normalFlow(
     // Case I: Integer literal
     if (auto val = llvm::dyn_cast<llvm::ConstantInt>(ValueOp)) {
       for (auto elem : In.getAsSet()) {
-        if (elem.first == Store) {
+        if (elem.first == Store->getPointerOperand()) {
           if (std::holds_alternative<Bottom>(elem.second)) {
             break;
           }
           Out.erase(elem);
-          Out.insert({Store, val->getSExtValue()});
-          break;
+          Out.insert({Store->getPointerOperand(), val->getSExtValue()});
+          return Out;
         }
       }
     }
@@ -111,13 +168,13 @@ InterMonoFullConstantPropagation::normalFlow(
       }
       if (!std::holds_alternative<Top>(latticeVal)) {
         for (auto elem : In.getAsSet()) {
-          if (elem.first == Store) {
+          if (elem.first == Store->getPointerOperand()) {
             if (std::holds_alternative<Bottom>(elem.second)) {
               break;
             }
             Out.erase(elem);
-            Out.insert({Store, latticeVal});
-            break;
+            Out.insert({Store->getPointerOperand(), latticeVal});
+            return Out;
           }
         }
       }
@@ -126,7 +183,15 @@ InterMonoFullConstantPropagation::normalFlow(
 
   // check load instructions
   if (auto Load = llvm::dyn_cast<llvm::LoadInst>(S)) {
-    // TODO: handle load instructions Problem: What are load instructions and how are they used?
+    LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal;
+    for (auto elem : In.getAsSet()) {
+      if (elem.first == Load->getPointerOperand()) {
+        latticeVal = elem.second;
+        break;
+      }
+    }
+    Out.insert({Load, latticeVal});
+    return Out;
   }
 
   // check for binary operations: add, sub, mul, udiv/sdiv, urem/srem
@@ -160,35 +225,23 @@ InterMonoFullConstantPropagation::normalFlow(
       }
     }
 
-    // handle Top as a operand
+    // handle Top or Bottom as a operand
     if (std::holds_alternative<Top>(lval) ||
-        std::holds_alternative<Top>(rval)) {
+        std::holds_alternative<Top>(rval) ||
+        std::holds_alternative<Bottom>(lval) ||
+        std::holds_alternative<Bottom>(rval)) {
 
+      Out.insert({op, Bottom{}});
+      return Out;
 
-      // TODO: handle Top Problem: Output?
-
-
-    } else if (std::holds_alternative<Bottom>(lval) ||
-               std::holds_alternative<Bottom>(rval)) {
-      // handle Bottom as a operand
-      for (auto elem : In.getAsSet()) {
-        if (elem.first == S) {
-          if (std::holds_alternative<Bottom>(elem.second)) {
-            break;
-          }
-          Out.erase(elem);
-          Out.insert({S, Bottom{}});
-          break;
-        }
-      }
     } else {
-      //TODO: handle normal Operation between rval and lval Problem: get Operation Type
+      Out.insert({S, executeBinOperation(op->getOpcode(),
+                                         *std::get_if<plain_d_t>(&lval),
+                                         *std::get_if<plain_d_t>(&rval))});
+      return Out;
     }
   }
 
-  for (auto x : Out.getAsSet()) {
-    printDataFlowFact(std::cout, x);
-  }
   return Out;
 }
 
@@ -197,7 +250,16 @@ InterMonoFullConstantPropagation::callFlow(
     InterMonoFullConstantPropagation::n_t CallSite,
     InterMonoFullConstantPropagation::f_t Callee,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
-  // TODO implement
+  /*  auto Out = In;
+   if (auto A = llvm::dyn_cast<llvm::Argument>(destNode)) {
+     llvm::ImmutableCallSite CS(CallSite);
+     auto actual = CS.getArgOperand(getFunctionArgumentNr(A));
+     if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(actual)) {
+       auto IntConst = CI->getSExtValue();
+       Out.insert({actual,IntConst});
+       return Out;
+     }
+   } */
   return In;
 }
 
@@ -208,7 +270,15 @@ InterMonoFullConstantPropagation::returnFlow(
     InterMonoFullConstantPropagation::n_t ExitStmt,
     InterMonoFullConstantPropagation::n_t RetSite,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
-  // TODO implement
+  auto Out = In;
+  auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+  auto ReturnValue = Return->getReturnValue();
+  if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
+    auto IntConst = CI->getSExtValue();
+    // TODO: Fix
+    Out.insert({RetSite, IntConst});
+    return Out;
+  }
   return In;
 }
 
@@ -220,6 +290,41 @@ InterMonoFullConstantPropagation::callToRetFlow(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
   // TODO implement
   return In;
+}
+
+LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>
+InterMonoFullConstantPropagation::executeBinOperation(
+    const unsigned op, InterMonoFullConstantPropagation::plain_d_t lop,
+    InterMonoFullConstantPropagation::plain_d_t rop) {
+  // default initialize with BOTTOM (all information)
+  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> res = Bottom{};
+  switch (op) {
+  case llvm::Instruction::Add:
+    res = lop + rop;
+    break;
+
+  case llvm::Instruction::Sub:
+    res = lop - rop;
+    break;
+
+  case llvm::Instruction::Mul:
+    res = lop * rop;
+    break;
+
+  case llvm::Instruction::UDiv:
+  case llvm::Instruction::SDiv:
+    res = lop / rop;
+    break;
+
+  case llvm::Instruction::URem:
+  case llvm::Instruction::SRem:
+    res = lop % rop;
+    break;
+
+  default:
+    break;
+  }
+  return res;
 }
 
 void InterMonoFullConstantPropagation::printNode(

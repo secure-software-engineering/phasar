@@ -62,6 +62,9 @@ public:
   bool sqSubSetEqual(const BitVectorSet<const llvm::Value *> &Lhs,
                      const BitVectorSet<const llvm::Value *> &Rhs) override;
 
+  bool equal_to(const BitVectorSet<const llvm::Value *> &Lhs,
+                const BitVectorSet<const llvm::Value *> &Rhs) override;
+
   BitVectorSet<const llvm::Value *>
   normalFlow(const llvm::Instruction *Stmt,
              const BitVectorSet<const llvm::Value *> &In) override;

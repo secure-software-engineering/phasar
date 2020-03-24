@@ -50,6 +50,12 @@ bool InterMonoSolverTest::sqSubSetEqual(
   return Lhs.includes(Rhs);
 }
 
+bool InterMonoSolverTest::equal_to(
+    const BitVectorSet<const llvm::Value *> &Lhs,
+    const BitVectorSet<const llvm::Value *> &Rhs) {
+  return Rhs == Lhs;
+}
+
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
                                 const BitVectorSet<const llvm::Value *> &In) {

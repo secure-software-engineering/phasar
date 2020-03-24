@@ -50,6 +50,12 @@ bool IntraMonoFullConstantPropagation::sqSubSetEqual(
   return Lhs.includes(Rhs);
 }
 
+bool IntraMonoFullConstantPropagation::equal_to(
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
+    const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs) {
+  return Lhs == Rhs;
+}
+
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::normalFlow(
     const llvm::Instruction *S,
