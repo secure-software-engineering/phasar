@@ -79,7 +79,7 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
     auto x = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
         funcNameToToken(Tok));
 
-    std::cerr << "Retrieve delta[" << x << "][" << S << "]" << std::endl;
+    // std::cerr << "Retrieve delta[" << x << "][" << S << "]" << std::endl;
     auto ret = delta[x][S];
     // if (ret == error()) {
     //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)

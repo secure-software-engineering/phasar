@@ -346,11 +346,15 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                             public std::enable_shared_from_this<TSAllocaEF> {
           const TypeStateDescription &TSD;
           l_t CurrentState;
-          TSAllocaEF(const TypeStateDescription &tsd)
-              : TSD(tsd), CurrentState(tsd.top()) {}
+          const llvm::AllocaInst *Alloca;
+          TSAllocaEF(const TypeStateDescription &tsd,
+                     const llvm::AllocaInst *Alloca)
+              : TSD(tsd), CurrentState(tsd.top()), Alloca(Alloca) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
+            // std::cerr << "UNINIT INITIALIZATION: " << llvmIRToString(Alloca)
+            //          << std::endl;
             CurrentState = TSD.uninit();
             return CurrentState;
           }
@@ -399,7 +403,7 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
                 TSD.bottom());
           }
         };
-        return make_shared<TSAllocaEF>(TSD);
+        return make_shared<TSAllocaEF>(TSD, Alloca);
       }
     }
   }
@@ -446,7 +450,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
             // CurrentState = TSD.start();
-            CurrentState = TSD.getNextState(Token, source, CS);
+            CurrentState = TSD.getNextState(
+                Token, source == TSD.top() ? TSD.uninit() : source, CS);
             return CurrentState;
           }
 
