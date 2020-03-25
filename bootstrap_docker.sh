@@ -14,7 +14,7 @@ sudo pip install pyyaml
 sudo apt-get install libboost-all-dev -y
 
 # installing LLVM
-./utils/install-llvm.sh $NUM_THREADS . $LLVM_RELEASE
+./utils/install-llvm.sh $NUM_THREADS . "/usr/local" $LLVM_RELEASE
 # installing wllvm
 sudo pip3 install wllvm
 
