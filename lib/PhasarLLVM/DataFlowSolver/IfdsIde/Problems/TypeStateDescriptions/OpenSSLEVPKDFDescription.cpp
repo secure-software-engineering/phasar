@@ -7,10 +7,12 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <cassert>
 #include <iostream>
 #include <map>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h>
+
+#include "llvm/Support/ErrorHandling.h"
+
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 
 using namespace std;
 using namespace psr;
@@ -111,7 +113,7 @@ OpenSSLEVPKDFDescription::stateToString(TypeStateDescription::State S) const {
   case OpenSSLEVPKDFState::BOT:
     return "BOT";
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }

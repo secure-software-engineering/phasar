@@ -7,10 +7,10 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <cassert>
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/ErrorHandling.h"
 
-#include <llvm/ADT/StringSwitch.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureHeapDescription.h"
 
 using namespace std;
 using namespace psr;
@@ -150,7 +150,7 @@ std::string OpenSSLSecureHeapDescription::stateToString(
   case OpenSSLSecureHeapState::ERROR:
     return "ERROR";
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }
@@ -164,7 +164,7 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::top() const {
 }
 
 TypeStateDescription::State OpenSSLSecureHeapDescription::start() const {
-  assert(false && "TypeStateDescription::start() is deprecated");
+  llvm::report_fatal_error("TypeStateDescription::start() is deprecated");
   return OpenSSLSecureHeapState::BOT;
 }
 

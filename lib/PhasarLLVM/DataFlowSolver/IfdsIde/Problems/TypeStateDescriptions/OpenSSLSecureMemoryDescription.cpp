@@ -7,11 +7,11 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <cassert>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/ADT/StringSwitch.h"
+#include "llvm/Support/ErrorHandling.h"
 
-#include <llvm/ADT/StringRef.h>
-#include <llvm/ADT/StringSwitch.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLSecureMemoryDescription.h"
 
 using namespace std;
 using namespace psr;
@@ -124,7 +124,7 @@ std::string OpenSSLSecureMemoryDescription::stateToString(
   case OpenSSLSecureMemoryState::ERROR:
     return "ERROR";
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }

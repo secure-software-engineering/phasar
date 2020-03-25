@@ -7,15 +7,16 @@
  *     Philipp Schubert, Fabian Schiebel and others
  *****************************************************************************/
 
-#include <cassert>
+#include <iostream>
+#include <set>
+#include <string>
+
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFCTXDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
-#include <iostream>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
-#include <set>
-#include <string>
 
 using namespace std;
 using namespace psr;
@@ -178,7 +179,7 @@ std::string OpenSSLEVPKDFCTXDescription::stateToString(
     return "BOT";
     break;
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }
