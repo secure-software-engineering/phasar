@@ -3,8 +3,10 @@ set(IfdsIdeProblemSources
 	IFDSTaintAnalysisTest.cpp
 	IDEInstInteractionAnalysisTest.cpp
 	IDELinearConstantAnalysisTest.cpp
-	IDETypeStateAnalysisFileIOTest.cpp
-	IDETypeStateAnalysisOpenSSLTest.cpp
+	IDETSAnalysisFileIOTest.cpp
+	IDETSAnalysisOpenSSLEVPKDFTest.cpp
+	IDETSAnalysisOpenSSLSecureHeapTest.cpp
+	IDETSAnalysisOpenSSLSecureMemoryTest.cpp
 	IFDSUninitializedVariablesTest.cpp
 )
 

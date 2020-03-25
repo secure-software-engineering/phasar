@@ -34,7 +34,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKeyDerivationTypeStateDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
@@ -150,7 +150,7 @@ void AnalysisController::executeWholeProgram() {
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
-      OpenSSLEVPKeyDerivationTypeStateDescription TSDesc;
+      OpenSSLEVPKDFDescription TSDesc;
       WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>,
                            IDETypeStateAnalysis>
           WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
