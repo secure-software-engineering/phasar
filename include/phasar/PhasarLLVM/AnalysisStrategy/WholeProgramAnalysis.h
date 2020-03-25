@@ -17,8 +17,8 @@
 #include <type_traits>
 #include <utility>
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/AnalysisSetup.h"
 
 namespace psr {
 

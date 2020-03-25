@@ -15,7 +15,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
 
 namespace llvm {
 class Instruction;

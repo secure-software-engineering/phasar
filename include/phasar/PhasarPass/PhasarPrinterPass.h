@@ -10,7 +10,7 @@
 #ifndef PHASAR_PHASARPASS_PHASARPRINTERPASS_H_
 #define PHASAR_PHASARPASS_PHASARPRINTERPASS_H_
 
-#include <llvm/Pass.h>
+#include "llvm/Pass.h"
 
 namespace llvm {
 class Module;

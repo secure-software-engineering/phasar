@@ -21,8 +21,8 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
 
 namespace llvm {
 class Function;

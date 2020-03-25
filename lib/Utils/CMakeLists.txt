@@ -28,26 +28,6 @@ else()
   )
 endif()
 
-set(LLVM_LINK_COMPONENTS
-  coverage
-  coroutines
-  libdriver
-  support
-  analysis
-  bitwriter
-  core
-  ipo
-  irreader
-  instcombine
-  instrumentation
-  linker
-  objcarcopts
-  scalaropts
-  transformutils
-  codegen
-  vectorize
-)
-
 llvm_map_components_to_libnames(llvm_libs
   ${LLVM_LINK_COMPONENTS}
 )

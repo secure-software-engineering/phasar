@@ -17,40 +17,40 @@
 #include <cassert>
 #include <memory>
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Module.h>
-#include <llvm/Support/ErrorHandling.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Support/ErrorHandling.h"
 
-#include <boost/graph/copy.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/log/sources/record_ostream.hpp>
+#include "boost/graph/copy.hpp"
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/log/sources/record_ostream.hpp"
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/DTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/OTFResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/RTAResolver.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
 
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
-#include <phasar/DB/ProjectIRDB.h>
+#include "phasar/DB/ProjectIRDB.h"
 
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
 
 using namespace psr;
 using namespace std;

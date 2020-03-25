@@ -14,20 +14,22 @@
  *      Author: pdschbrt
  */
 
-#include <clang/AST/AST.h>
-#include <clang/AST/ASTConsumer.h>
-#include <clang/AST/ASTContext.h>
-#include <clang/AST/RecursiveASTVisitor.h>
-#include <clang/CodeGen/CodeGenAction.h>
+#include <memory>
 
-#include <clang/Frontend/CompilerInstance.h>
-#include <clang/Rewrite/Core/Rewriter.h>
-#include <clang/Tooling/CommonOptionsParser.h>
-#include <clang/Tooling/Tooling.h>
-#include <llvm/Support/CommandLine.h>
+#include "clang/AST/AST.h"
+#include "clang/AST/ASTConsumer.h"
+#include "clang/AST/ASTContext.h"
+#include "clang/AST/RecursiveASTVisitor.h"
+#include "clang/CodeGen/CodeGenAction.h"
+#include "clang/Frontend/CompilerInstance.h"
+#include "clang/Rewrite/Core/Rewriter.h"
+#include "clang/Tooling/CommonOptionsParser.h"
+#include "clang/Tooling/Tooling.h"
 
-#include <phasar/PhasarClang/RandomChangeASTConsumer.h>
-#include <phasar/PhasarClang/RandomChangeFrontendAction.h>
+#include "llvm/Support/CommandLine.h"
+
+#include "phasar/PhasarClang/RandomChangeASTConsumer.h"
+#include "phasar/PhasarClang/RandomChangeFrontendAction.h"
 
 using namespace std;
 using namespace psr;
@@ -48,6 +50,6 @@ RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
                                               llvm::StringRef file) {
   llvm::errs() << "** Creating AST consumer for: " << file << "\n";
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-  return llvm::make_unique<RandomChangeASTConsumer>(RW);
+  return make_unique<RandomChangeASTConsumer>(RW);
 }
 } // namespace psr

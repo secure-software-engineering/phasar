@@ -18,10 +18,10 @@
 #include <unordered_set>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/Utils/SoundnessFlag.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedBackwardCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace llvm {
 class Instruction;

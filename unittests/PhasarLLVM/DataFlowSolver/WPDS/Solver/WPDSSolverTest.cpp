@@ -6,23 +6,23 @@
  * Contributors:
  *     Philipp Schubert and others
  *****************************************************************************/
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <iostream>
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Solver/WPDSSolver.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/Logger.h"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <boost/filesystem/operations.hpp>
+#include "boost/filesystem/operations.hpp"
 
 using namespace std;
 using namespace psr;

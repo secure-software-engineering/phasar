@@ -16,15 +16,15 @@
 
 #include <set>
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/DerivedTypes.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/Resolver.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 

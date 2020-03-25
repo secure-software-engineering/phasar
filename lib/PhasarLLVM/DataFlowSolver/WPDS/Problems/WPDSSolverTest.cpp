@@ -7,15 +7,15 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace std;
 using namespace psr;

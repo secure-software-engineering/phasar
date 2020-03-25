@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsAlongsideCallSite.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 
 using namespace psr;
 

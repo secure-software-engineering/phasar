@@ -17,7 +17,7 @@ namespace psr {
 
 enum class IOFormat {
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/IOFormat.def>
+#include "phasar/PhasarLLVM/Utils/IOFormat.def"
 };
 
 std::string to_string(const IOFormat &D);

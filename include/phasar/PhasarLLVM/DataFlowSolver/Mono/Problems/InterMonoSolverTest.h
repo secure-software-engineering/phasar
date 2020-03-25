@@ -22,8 +22,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Instruction;

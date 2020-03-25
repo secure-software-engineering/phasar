@@ -9,7 +9,7 @@
 
 #include <ostream>
 
-#include <phasar/PhasarLLVM/Utils/Scopes.h>
+#include "phasar/PhasarLLVM/Utils/Scopes.h"
 
 using namespace std;
 using namespace psr;

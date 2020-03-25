@@ -7,6 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 using namespace psr;
 namespace psr {} // namespace psr

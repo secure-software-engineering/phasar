@@ -13,41 +13,55 @@
 #include <iostream>
 #include <set>
 
-#include <llvm/Support/ErrorHandling.h>
+#include "llvm/Support/ErrorHandling.h"
 
-#include <phasar/Controller/AnalysisController.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKeyDerivationTypeStateDescription.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Controller/AnalysisController.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/WholeProgramAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEProtoAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDESolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSConstAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSFieldSensTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSLinearConstantAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSProtoAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSignAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSUninitializedVariables.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/OpenSSLEVPKDFDescription.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/InterMonoTaintAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoSolverTest.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/InterMonoSolver.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Solver/IntraMonoSolver.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
+
+namespace std {
+
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<unsigned> hash_unsigned;
+    size_t hp = hash_ptr(p.first);
+    size_t hu = hash_unsigned(p.second);
+    return hp ^ (hu << 1);
+  }
+};
+
+} // namespace std
 
 namespace psr {
 
@@ -136,7 +150,7 @@ void AnalysisController::executeWholeProgram() {
       WPA.releaseAllHelperAnalyses();
     } break;
     case DataFlowAnalysisType::IDEOpenSSLTypeStateAnalysis: {
-      OpenSSLEVPKeyDerivationTypeStateDescription TSDesc;
+      OpenSSLEVPKDFDescription TSDesc;
       WholeProgramAnalysis<IDESolver_P<IDETypeStateAnalysis>,
                            IDETypeStateAnalysis>
           WPA(IRDB, &TSDesc, EntryPoints, &PT, &ICF, &TH);
@@ -298,17 +312,3 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
 }
 
 } // namespace psr
-
-namespace std {
-
-template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
-    return hp ^ (hu << 1);
-  }
-};
-
-} // namespace std

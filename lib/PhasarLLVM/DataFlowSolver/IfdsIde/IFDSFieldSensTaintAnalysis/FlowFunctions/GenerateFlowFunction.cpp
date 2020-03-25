@@ -2,7 +2,7 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/GenerateFlowFunction.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/GenerateFlowFunction.h"
 
 namespace psr {
 

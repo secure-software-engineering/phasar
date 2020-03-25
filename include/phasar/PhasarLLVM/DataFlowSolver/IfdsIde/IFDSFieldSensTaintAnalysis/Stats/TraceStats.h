@@ -10,7 +10,7 @@
 #include <map>
 #include <set>
 
-#include <llvm/IR/Instruction.h>
+#include "llvm/IR/Instruction.h"
 
 namespace psr {
 

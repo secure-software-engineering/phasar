@@ -16,9 +16,9 @@
 
 #include <fstream>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <phasar/Utils/IO.h>
+#include "phasar/Utils/IO.h"
 using namespace psr;
 using namespace std;
 

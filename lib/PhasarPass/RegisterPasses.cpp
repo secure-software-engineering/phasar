@@ -9,9 +9,9 @@
 
 #include <string>
 
-#include <llvm/Support/CommandLine.h>
+#include "llvm/Support/CommandLine.h"
 
-#include <phasar/PhasarPass/Options.h>
+#include "phasar/PhasarPass/Options.h"
 
 using namespace psr;
 using namespace std;

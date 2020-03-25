@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_FLOWFUNCTIONS_LAMBDAFLOW_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 #include <functional>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 #include <set>
 
 namespace psr {

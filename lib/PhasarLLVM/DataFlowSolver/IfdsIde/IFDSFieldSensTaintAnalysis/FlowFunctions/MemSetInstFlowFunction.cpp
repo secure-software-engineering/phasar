@@ -2,9 +2,9 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MemSetInstFlowFunction.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/FlowFunctions/MemSetInstFlowFunction.h"
 
-#include <llvm/IR/IntrinsicInst.h>
+#include "llvm/IR/IntrinsicInst.h"
 
 namespace psr {
 

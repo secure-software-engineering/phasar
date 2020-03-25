@@ -14,26 +14,26 @@
  *      Author: philipp
  */
 
-#include <llvm/ADT/StringRef.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/DerivedTypes.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Bitcode/BitcodeReader.h"
+#include "llvm/Bitcode/BitcodeWriter.h"
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <boost/algorithm/string/trim.hpp>
+#include "boost/algorithm/string/trim.hpp"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
 
-#include <stdlib.h>
+#include "stdlib.h"
 
 using namespace std;
 using namespace psr;

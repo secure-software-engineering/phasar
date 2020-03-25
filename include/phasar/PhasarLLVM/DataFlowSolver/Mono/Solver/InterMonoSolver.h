@@ -24,10 +24,10 @@
 #include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -88,7 +88,7 @@ protected:
 
   void printBitVectorSet(const BitVectorSet<D> &S) {
     std::cout << "SET CONTENTS:\n{ ";
-    for (auto Entry : S.getAsSet()) {
+    for (auto Entry : S) {
       std::cout << llvmIRToString(Entry) << ", ";
     }
     std::cout << "}" << std::endl;
@@ -289,7 +289,7 @@ public:
           if (FlowFacts.empty()) {
             OS << "\tEMPTY\n";
           } else {
-            for (auto FlowFact : FlowFacts.getAsSet()) {
+            for (auto FlowFact : FlowFacts) {
               OS << this->IMProblem.DtoString(FlowFact);
             }
           }

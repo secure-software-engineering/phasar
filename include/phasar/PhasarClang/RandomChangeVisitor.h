@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARCLANG_RANDOMCHANGEVISITOR_H_
 #define PHASAR_PHASARCLANG_RANDOMCHANGEVISITOR_H_
 
-#include <clang/AST/RecursiveASTVisitor.h>
+#include "clang/AST/RecursiveASTVisitor.h"
 
 namespace clang {
 class Rewriter;

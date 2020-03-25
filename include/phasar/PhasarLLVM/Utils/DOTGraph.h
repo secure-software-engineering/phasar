@@ -22,7 +22,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
