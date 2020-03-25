@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <cassert>
+#include <iostream>
 #include <llvm/Support/ErrorHandling.h>
 
 #include "llvm/Support/ErrorHandling.h"

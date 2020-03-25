@@ -113,7 +113,8 @@ public:
 
   void printEdgeFact(std::ostream &os, l_t l) const override;
 
-  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR, std::ostream &os) override;
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
+                      std::ostream &os) override;
 
   struct SHPEdgeFn : public EdgeFunction<l_t>,
                      public std::enable_shared_from_this<SHPEdgeFn> {
