@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a report to help us improve PhASAR
 title: ''
 labels: ''
 assignees: ''
@@ -51,6 +51,8 @@ Describe here the issue that you are experiencing.
   - [ ] custom build
 
 ### Possible solution
+
+We are happy to discuss possible solutions to this problem, especially if it origniates from a design flaw.
 
 ### Example files
 
