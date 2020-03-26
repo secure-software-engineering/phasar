@@ -90,8 +90,10 @@ InterMonoFullConstantPropagation::update(
                     std::holds_alternative<plain_d_t>(elen.second) &&
                     *std::get_if<plain_d_t>(&elem.second) !=
                         *std::get_if<plain_d_t>(&elen.second))) {
+
           Out.erase(elen);
           Out.insert({elem.first, Bottom{}});
+
         }
       }
     }
@@ -102,6 +104,7 @@ InterMonoFullConstantPropagation::update(
 bool InterMonoFullConstantPropagation::sqSubSetEqual(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &Rhs) {
+
   return Rhs.includes(Lhs);
 }
 
@@ -151,6 +154,7 @@ InterMonoFullConstantPropagation::normalFlow(
           if (std::holds_alternative<Bottom>(elem.second)) {
             break;
           }
+
           Out.erase(elem);
           Out.insert({Store->getPointerOperand(), val->getSExtValue()});
           return Out;
@@ -159,7 +163,7 @@ InterMonoFullConstantPropagation::normalFlow(
     }
     // Case II: Storing an integer typed value
     if (ValueOp->getType()->isIntegerTy()) {
-      LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal;
+      LatticeDomain<InterMonoFullConstantPropagation::plain_d_t> latticeVal = Top{};
       for (auto elem : In.getAsSet()) {
         if (elem.first == ValueOp) {
           latticeVal = elem.second;
@@ -172,6 +176,7 @@ InterMonoFullConstantPropagation::normalFlow(
             if (std::holds_alternative<Bottom>(elem.second)) {
               break;
             }
+
             Out.erase(elem);
             Out.insert({Store->getPointerOperand(), latticeVal});
             return Out;
@@ -191,6 +196,7 @@ InterMonoFullConstantPropagation::normalFlow(
       }
     }
     Out.insert({Load, latticeVal});
+
     return Out;
   }
 
@@ -271,15 +277,23 @@ InterMonoFullConstantPropagation::returnFlow(
     InterMonoFullConstantPropagation::n_t RetSite,
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
   auto Out = In;
-  auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
-  auto ReturnValue = Return->getReturnValue();
-  if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
-    auto IntConst = CI->getSExtValue();
-    // TODO: Fix
-    Out.insert({RetSite, IntConst});
-    return Out;
+  if (CallSite->getType()->isIntegerTy()) {
+    auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+    auto ReturnValue = Return->getReturnValue();
+
+    // Kill everything that is not returned
+    Out.clear();
+
+    // Return value is integer literal
+    if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
+      Out.insert({CallSite, CI->getSExtValue()});
+      return Out;
+    }
+    // handle Global Variables
+    // TODO:handle globals
   }
-  return In;
+  Out.clear();
+  return Out;
 }
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>

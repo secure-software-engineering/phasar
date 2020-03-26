@@ -66,6 +66,7 @@ protected:
     if (printDump) {
       IMSolver.dumpResults();
     }
+    std::cout << "Done analysis!\n";
     // do the comparison
     bool ResultNotEmpty = false;
     for (auto &Truth : GroundTruth) {
