@@ -309,6 +309,15 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       ICF.printAsDot();
     }
   }
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.json");
+      ICF.printAsJson(OFS);
+    } else {
+      ICF.printAsJson();
+    }
+  }
 }
 
 } // namespace psr

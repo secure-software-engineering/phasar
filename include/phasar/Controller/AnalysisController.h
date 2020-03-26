@@ -39,8 +39,9 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
   EmitTHAsDot = (1 << 6),
   EmitCGAsText = (1 << 7),
   EmitCGAsDot = (1 << 8),
-  EmitPTAAsText = (1 << 9),
-  EmitPTAAsDOT = (1 << 10)
+  EmitCGAsJson = (1 << 9),
+  EmitPTAAsText = (1 << 10),
+  EmitPTAAsDOT = (1 << 11),
 };
 
 class AnalysisController {

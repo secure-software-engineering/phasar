@@ -187,6 +187,7 @@ int main(int argc, const char **argv) {
       ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
       ("emit-cg-as-text", "Emit the call graph as text")
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
+      ("emit-cg-as-json", "Emit the call graph as JSON")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
@@ -341,6 +342,9 @@ int main(int argc, const char **argv) {
   }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
   }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
