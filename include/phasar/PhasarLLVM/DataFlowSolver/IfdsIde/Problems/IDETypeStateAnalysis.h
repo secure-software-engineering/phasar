@@ -17,9 +17,9 @@
 #include <string>
 #include <type_traits>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/TypeStateDescription.h"
 
 namespace llvm {
 class Instruction;
@@ -198,10 +198,12 @@ public:
     // might turn to nullptr for whatever reason...
     const std::string Token;
     l_t CurrentState;
+    llvm::ImmutableCallSite CS;
 
   public:
-    TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok)
-        : TSD(tsd), Token(tok), CurrentState(TSD.top()){};
+    TSEdgeFunction(const TypeStateDescription &tsd, const std::string tok,
+                   llvm::ImmutableCallSite cs)
+        : TSD(tsd), Token(tok), CurrentState(TSD.top()), CS(cs){};
 
     l_t computeTarget(l_t source) override;
 
@@ -214,6 +216,8 @@ public:
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override;
 
     void print(std::ostream &OS, bool isForDebug = false) const override;
+
+    l_t getCurrentState() const { return CurrentState; }
   };
 };
 

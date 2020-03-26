@@ -28,30 +28,30 @@
 #include <unordered_set>
 #include <utility>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <boost/algorithm/string/trim.hpp>
+#include "boost/algorithm/string/trim.hpp"
 
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionCache.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JoinHandlingNode.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LinkedNode.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h>
-#include <phasar/PhasarLLVM/Utils/DOTGraph.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
-#include <phasar/Utils/Table.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowEdgeFunctionCache.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/JoinLattice.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IFDSToIDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JoinHandlingNode.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/JumpFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/LinkedNode.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/PathEdge.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ZeroedFlowFunction.h"
+#include "phasar/PhasarLLVM/Utils/DOTGraph.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Table.h"
 
 namespace psr {
 
@@ -80,16 +80,13 @@ class IDESolver {
 public:
   using ProblemTy = IDETabulationProblem<N, D, F, T, V, L, I>;
 
-  IDESolver(IDETabulationProblem<N, D, F, T, V, L, I> &tabulationProblem)
-      : ideTabulationProblem(tabulationProblem),
-        zeroValue(tabulationProblem.getZeroValue()),
-        ICF(tabulationProblem.getICFG()),
-        SolverConfig(tabulationProblem.getIFDSIDESolverConfig()),
-        cachedFlowEdgeFunctions(tabulationProblem),
-        allTop(tabulationProblem.allTopFunction()),
+  IDESolver(IDETabulationProblem<N, D, F, T, V, L, I> &Problem)
+      : IDEProblem(Problem), ZeroValue(Problem.getZeroValue()),
+        ICF(Problem.getICFG()), SolverConfig(Problem.getIFDSIDESolverConfig()),
+        cachedFlowEdgeFunctions(Problem), allTop(Problem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
-            allTop, ideTabulationProblem)),
-        initialSeeds(tabulationProblem.initialSeeds()) {}
+            allTop, IDEProblem)),
+        initialSeeds(Problem.initialSeeds()) {}
 
   IDESolver &operator=(IDESolver &&) = delete;
 
@@ -112,14 +109,14 @@ public:
       N curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
         curr = cells[i].r;
-        std::string n = ideTabulationProblem.NtoString(cells[i].r);
+        std::string n = IDEProblem.NtoString(cells[i].r);
         boost::algorithm::trim(n);
         std::string node =
             ICF->getFunctionName(ICF->getFunctionOf(curr)) + "::" + n;
         J[DataFlowID][node];
-        std::string fact = ideTabulationProblem.DtoString(cells[i].c);
+        std::string fact = IDEProblem.DtoString(cells[i].c);
         boost::algorithm::trim(fact);
-        std::string value = ideTabulationProblem.LtoString(cells[i].v);
+        std::string value = IDEProblem.LtoString(cells[i].v);
         boost::algorithm::trim(value);
         J[DataFlowID][node]["Facts"] += {fact, value};
       }
@@ -159,7 +156,7 @@ public:
     // We start our analysis and construct exploded supergraph
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
                   << "Submit initial seeds, construct exploded super graph");
-    submitInitalSeeds();
+    submitInitialSeeds();
     STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     if (SolverConfig.computeValues) {
       START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
@@ -194,7 +191,7 @@ public:
     std::unordered_map<D, L> result = valtab.row(stmt);
     if (stripZero) {
       for (auto it = result.begin(); it != result.end();) {
-        if (ideTabulationProblem.isZeroValue(it->first)) {
+        if (IDEProblem.isZeroValue(it->first)) {
           it = result.erase(it);
         } else {
           ++it;
@@ -205,11 +202,11 @@ public:
   }
 
   virtual void emitTextReport(std::ostream &OS = std::cout) {
-    ideTabulationProblem.emitTextReport(getSolverResults(), OS);
+    IDEProblem.emitTextReport(getSolverResults(), OS);
   }
 
   virtual void emitGraphicalReport(std::ostream &OS = std::cout) {
-    ideTabulationProblem.emitGraphicalReport(getSolverResults(), OS);
+    IDEProblem.emitGraphicalReport(getSolverResults(), OS);
   }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
@@ -255,12 +252,12 @@ public:
         }
         if (prev != curr) {
           prev = curr;
-          std::string NString = ideTabulationProblem.NtoString(curr);
+          std::string NString = IDEProblem.NtoString(curr);
           std::string line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        OS << "\tD: " << ideTabulationProblem.DtoString(cells[i].c)
-           << " | V: " << ideTabulationProblem.LtoString(cells[i].v) << '\n';
+        OS << "\tD: " << IDEProblem.DtoString(cells[i].c)
+           << " | V: " << IDEProblem.LtoString(cells[i].v) << '\n';
       }
     }
     OS << '\n';
@@ -272,16 +269,16 @@ public:
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
       std::cout << "FROM" << std::endl;
-      ideTabulationProblem.printNode(std::cout, cell.r);
+      IDEProblem.printNode(std::cout, cell.r);
       std::cout << "TO" << std::endl;
-      ideTabulationProblem.printNode(std::cout, cell.c);
+      IDEProblem.printNode(std::cout, cell.c);
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
         std::cout << "fact" << std::endl;
-        ideTabulationProblem.printFlowFact(std::cout, fact.first);
+        IDEProblem.printFlowFact(std::cout, fact.first);
         std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
-          ideTabulationProblem.printFlowFact(std::cout, out);
+          IDEProblem.printFlowFact(std::cout, out);
         }
       }
     }
@@ -292,32 +289,31 @@ public:
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
       std::cout << "FROM" << std::endl;
-      ideTabulationProblem.printNode(std::cout, cell.r);
+      IDEProblem.printNode(std::cout, cell.r);
       std::cout << "TO" << std::endl;
-      ideTabulationProblem.printNode(std::cout, cell.c);
+      IDEProblem.printNode(std::cout, cell.c);
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
         std::cout << "fact" << std::endl;
-        ideTabulationProblem.printFlowFact(std::cout, fact.first);
+        IDEProblem.printFlowFact(std::cout, fact.first);
         std::cout << "produces" << std::endl;
         for (auto &out : fact.second) {
-          ideTabulationProblem.printFlowFact(std::cout, out);
+          IDEProblem.printFlowFact(std::cout, out);
         }
       }
     }
   }
 
   SolverResults<N, D, L> getSolverResults() {
-    return SolverResults<N, D, L>(this->valtab,
-                                  ideTabulationProblem.getZeroValue());
+    return SolverResults<N, D, L>(this->valtab, IDEProblem.getZeroValue());
   }
 
 protected:
   // have a shared point to allow for a copy constructor of IDESolver
   std::unique_ptr<IFDSToIDETabulationProblem<N, D, F, T, V, I>>
-      transformedProblem;
-  IDETabulationProblem<N, D, F, T, V, L, I> &ideTabulationProblem;
-  D zeroValue;
+      TransformedProblem;
+  IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
+  D ZeroValue;
   const I *ICF;
   const IFDSIDESolverConfig SolverConfig;
   unsigned PathEdgeCount = 0;
@@ -360,19 +356,18 @@ protected:
   // a modifiable l-value reference within the IDESolver implementation leads
   // to (massive) undefined behavior (and nightmares):
   // https://stackoverflow.com/questions/34240794/understanding-the-warning-binding-r-value-to-l-value-reference
-  IDESolver(IFDSTabulationProblem<N, D, F, T, V, I> &tabulationProblem)
-      : transformedProblem(
+  IDESolver(IFDSTabulationProblem<N, D, F, T, V, I> &Problem)
+      : TransformedProblem(
             std::make_unique<IFDSToIDETabulationProblem<N, D, F, T, V, I>>(
-                tabulationProblem)),
-        ideTabulationProblem(*transformedProblem),
-        zeroValue(ideTabulationProblem.getZeroValue()),
-        ICF(ideTabulationProblem.getICFG()),
-        SolverConfig(ideTabulationProblem.getIFDSIDESolverConfig()),
-        cachedFlowEdgeFunctions(ideTabulationProblem),
-        allTop(ideTabulationProblem.allTopFunction()),
+                Problem)),
+        IDEProblem(*TransformedProblem), ZeroValue(IDEProblem.getZeroValue()),
+        ICF(IDEProblem.getICFG()),
+        SolverConfig(IDEProblem.getIFDSIDESolverConfig()),
+        cachedFlowEdgeFunctions(IDEProblem),
+        allTop(IDEProblem.allTopFunction()),
         jumpFn(std::make_shared<JumpFunctions<N, D, F, T, V, L, I>>(
-            allTop, ideTabulationProblem)),
-        initialSeeds(ideTabulationProblem.initialSeeds()) {}
+            allTop, IDEProblem)),
+        initialSeeds(IDEProblem.initialSeeds()) {}
 
   /**
    * Lines 13-20 of the algorithm; processing a call site in the caller's
@@ -398,7 +393,7 @@ protected:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process call at target: "
-                  << ideTabulationProblem.NtoString(edge.getTarget()));
+                  << IDEProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget(); // a call node; line 14...
     D d2 = edge.factAtTarget();
@@ -413,7 +408,7 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
     for (auto ret : returnSiteNs) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  " << ideTabulationProblem.NtoString(ret));
+                    << "  " << IDEProblem.NtoString(ret));
     }
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     // for each possible callee
@@ -474,7 +469,7 @@ protected:
             // create initial self-loop
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                           << "Create initial self-loop with D: "
-                          << ideTabulationProblem.DtoString(d3));
+                          << IDEProblem.DtoString(d3));
             propagate(d3, sP, d3, EdgeIdentity<L>::getInstance(), n,
                       false); // line 15
             // register the fact that <sp,d3> has an incoming edge from <n,d2>
@@ -489,8 +484,8 @@ protected:
                     endSummary(sP, d3));
             // std::cout << "ENDSUMM" << std::endl;
             // std::cout << "Size: " << endSumm.size() << std::endl;
-            // std::cout << "sP: " << ideTabulationProblem.NtoString(sP)
-            //           << "\nd3: " << ideTabulationProblem.DtoString(d3)
+            // std::cout << "sP: " << IDEProblem.NtoString(sP)
+            //           << "\nd3: " << IDEProblem.DtoString(d3)
             //           << std::endl;
             // printEndSummaryTab();
             // still line 15.2 of Naeem/Lhotak/Rodriguez
@@ -613,7 +608,7 @@ protected:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process normal at target: "
-                  << ideTabulationProblem.NtoString(edge.getTarget()));
+                  << IDEProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
     N n = edge.getTarget();
     D d2 = edge.factAtTarget();
@@ -705,14 +700,14 @@ protected:
       return valtab.get(nHashN, nHashD);
     } else {
       // implicitly initialized to top; see line [1] of Fig. 7 in SRH96 paper
-      return ideTabulationProblem.topElement();
+      return IDEProblem.topElement();
     }
   }
 
   void setVal(N nHashN, D nHashD, L l) {
     auto &lg = lg::get();
     // TOP is the implicit default value which we do not need to store.
-    if (l == ideTabulationProblem.topElement()) {
+    if (l == IDEProblem.topElement()) {
       // do not store top values
       valtab.remove(nHashN, nHashD);
     } else {
@@ -722,11 +717,11 @@ protected:
                   << "Function : "
                   << ICF->getFunctionOf(nHashN)->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Inst.    : " << ideTabulationProblem.NtoString(nHashN));
+                  << "Inst.    : " << IDEProblem.NtoString(nHashN));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact     : " << ideTabulationProblem.DtoString(nHashD));
+                  << "Fact     : " << IDEProblem.DtoString(nHashD));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Value    : " << ideTabulationProblem.LtoString(l));
+                  << "Value    : " << IDEProblem.LtoString(l));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
@@ -736,13 +731,12 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "JumpFunctions Forward-Lookup:");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "   Source D: "
-                  << ideTabulationProblem.DtoString(edge.factAtSource()));
+                  << IDEProblem.DtoString(edge.factAtSource()));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "   Target N: "
-                  << ideTabulationProblem.NtoString(edge.getTarget()));
+                  << "   Target N: " << IDEProblem.NtoString(edge.getTarget()));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "   Target D: "
-                  << ideTabulationProblem.DtoString(edge.factAtTarget()));
+                  << IDEProblem.DtoString(edge.factAtTarget()));
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
              .count(edge.factAtTarget())) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -779,15 +773,13 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process " << PathEdgeCount << ". path edge:");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "< D source: "
-                  << ideTabulationProblem.DtoString(edge.factAtSource())
+                  << "< D source: " << IDEProblem.DtoString(edge.factAtSource())
                   << " ;");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "  N target: "
-                  << ideTabulationProblem.NtoString(edge.getTarget()) << " ;");
+                  << "  N target: " << IDEProblem.NtoString(edge.getTarget())
+                  << " ;");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "  D target: "
-                  << ideTabulationProblem.DtoString(edge.factAtTarget())
+                  << "  D target: " << IDEProblem.DtoString(edge.factAtTarget())
                   << " >");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
     bool isCall = ICF->isCallStmt(edge.getTarget());
@@ -834,8 +826,7 @@ protected:
               sourceValTargetValAndFunction.getValue();
           L targetVal = val(sP, dPrime);
           setVal(n, d,
-                 ideTabulationProblem.join(val(n, d),
-                                           fPrime->computeTarget(targetVal)));
+                 IDEProblem.join(val(n, d), fPrime->computeTarget(targetVal)));
           INC_COUNTER("Value Computation", 1, PAMM_SEVERITY_LEVEL::Full);
         }
       }
@@ -862,14 +853,14 @@ protected:
     std::map<N, std::set<D>> allSeeds(initialSeeds);
     for (N unbalancedRetSite : unbalancedRetSites) {
       if (allSeeds[unbalancedRetSite].empty()) {
-        allSeeds.insert(make_pair(unbalancedRetSite, std::set<D>({zeroValue})));
+        allSeeds.insert(make_pair(unbalancedRetSite, std::set<D>({ZeroValue})));
       }
     }
     // do processing
     for (const auto &seed : allSeeds) {
       N startPoint = seed.first;
       for (D val : seed.second) {
-        setVal(startPoint, val, ideTabulationProblem.topElement());
+        setVal(startPoint, val, IDEProblem.topElement());
         std::pair<N, D> superGraphNode(startPoint, val);
         valuePropagationTask(superGraphNode);
       }
@@ -892,26 +883,23 @@ protected:
    * Clients should only call this methods if performing synchronization on
    * their own. Normally, solve() should be called instead.
    */
-  void submitInitalSeeds() {
+  void submitInitialSeeds() {
     auto &lg = lg::get();
     PAMM_GET_INSTANCE;
-    for (const auto &seed : initialSeeds) {
-      N startPoint = seed.first;
+    for (const auto &[StartPoint, Facts] : initialSeeds) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "Start point: "
-                    << ideTabulationProblem.NtoString(startPoint));
-      for (const D &value : seed.second) {
+                    << "Start point: " << IDEProblem.NtoString(StartPoint));
+      for (const auto &Fact : Facts) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "      Value: "
-                      << ideTabulationProblem.DtoString(value));
+                      << "\tFact: " << IDEProblem.DtoString(Fact));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-        if (!ideTabulationProblem.isZeroValue(value)) {
+        if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
-        propagate(zeroValue, startPoint, value, EdgeIdentity<L>::getInstance(),
+        propagate(ZeroValue, StartPoint, Fact, EdgeIdentity<L>::getInstance(),
                   nullptr, false);
       }
-      jumpFn->addFunction(zeroValue, startPoint, zeroValue,
+      jumpFn->addFunction(ZeroValue, StartPoint, ZeroValue,
                           EdgeIdentity<L>::getInstance());
     }
   }
@@ -931,7 +919,7 @@ protected:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Process exit at target: "
-                  << ideTabulationProblem.NtoString(edge.getTarget()));
+                  << IDEProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
     F functionThatNeedsSummary = ICF->getFunctionOf(n);
@@ -1031,7 +1019,7 @@ protected:
     // be propagated into callers that have an incoming edge for this
     // condition
     if (SolverConfig.followReturnsPastSeeds && inc.empty() &&
-        ideTabulationProblem.isZeroValue(d1)) {
+        IDEProblem.isZeroValue(d1)) {
       std::set<N> callers = ICF->getCallersOf(functionThatNeedsSummary);
       for (N c : callers) {
         for (N retSiteC : ICF->getReturnSitesOfCallAt(c)) {
@@ -1040,7 +1028,7 @@ protected:
                   c, functionThatNeedsSummary, n, retSiteC);
           INC_COUNTER("FF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           std::set<D> targets = computeReturnFlowFunction(
-              retFunction, d1, d2, c, std::set<D>{zeroValue});
+              retFunction, d1, d2, c, std::set<D>{ZeroValue});
           ADD_TO_HISTOGRAM("Data-flow facts", targets.size(), 1,
                            PAMM_SEVERITY_LEVEL::Full);
           saveEdges(n, retSiteC, d2, targets, true);
@@ -1082,7 +1070,7 @@ protected:
   propagteUnbalancedReturnFlow(N retSiteC, D targetVal,
                                std::shared_ptr<EdgeFunction<L>> edgeFunction,
                                N relatedCallSite) {
-    propagate(zeroValue, retSiteC, targetVal, edgeFunction, relatedCallSite,
+    propagate(ZeroValue, retSiteC, targetVal, edgeFunction, relatedCallSite,
               true);
   }
 
@@ -1201,14 +1189,11 @@ protected:
     auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Propagate flow");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Source value  : "
-                  << ideTabulationProblem.DtoString(sourceVal));
+                  << "Source value  : " << IDEProblem.DtoString(sourceVal));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Target        : "
-                  << ideTabulationProblem.NtoString(target));
+                  << "Target        : " << IDEProblem.NtoString(target));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Target value  : "
-                  << ideTabulationProblem.DtoString(targetVal));
+                  << "Target value  : " << IDEProblem.DtoString(targetVal));
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Edge function : " << f.get()->str()
                   << " (result of previous compose)");
@@ -1235,17 +1220,15 @@ protected:
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(edge);
-      if (!ideTabulationProblem.isZeroValue(targetVal)) {
+      if (!IDEProblem.isZeroValue(targetVal)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "EDGE: <F: " << target->getFunction()->getName().str()
-                      << ", D: " << ideTabulationProblem.DtoString(sourceVal)
-                      << '>');
+                      << ", D: " << IDEProblem.DtoString(sourceVal) << '>');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << " ---> <N: " << ideTabulationProblem.NtoString(target)
+                      << " ---> <N: " << IDEProblem.NtoString(target) << ',');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                      << "       D: " << IDEProblem.DtoString(targetVal)
                       << ',');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "       D: "
-                      << ideTabulationProblem.DtoString(targetVal) << ',');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "      EF: " << fPrime->str() << '>');
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -1256,7 +1239,7 @@ protected:
   }
 
   L joinValueAt(N unit, D fact, L curr, L newVal) {
-    return ideTabulationProblem.join(curr, newVal);
+    return IDEProblem.join(curr, newVal);
   }
 
   std::set<typename Table<N, D, std::shared_ptr<EdgeFunction<L>>>::Cell>
@@ -1286,16 +1269,15 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of incomingtab entry");
     for (auto cell : incomingtab.cellSet()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << ideTabulationProblem.NtoString(cell.r));
+                    << "sP: " << IDEProblem.NtoString(cell.r));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d3: " << ideTabulationProblem.DtoString(cell.c));
+                    << "d3: " << IDEProblem.DtoString(cell.c));
       for (auto entry : cell.v) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  n: "
-                      << ideTabulationProblem.NtoString(entry.first));
+                      << "  n: " << IDEProblem.NtoString(entry.first));
         for (auto fact : entry.second) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "  d2: " << ideTabulationProblem.DtoString(fact));
+                        << "  d2: " << IDEProblem.DtoString(fact));
         }
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
@@ -1309,16 +1291,14 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of endsummarytab entry");
     for (auto cell : endsummarytab.cellVec()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << ideTabulationProblem.NtoString(cell.r));
+                    << "sP: " << IDEProblem.NtoString(cell.r));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d1: " << ideTabulationProblem.DtoString(cell.c));
+                    << "d1: " << IDEProblem.DtoString(cell.c));
       for (auto inner_cell : cell.v.cellVec()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  eP: "
-                      << ideTabulationProblem.NtoString(inner_cell.r));
+                      << "  eP: " << IDEProblem.NtoString(inner_cell.r));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  d2: "
-                      << ideTabulationProblem.DtoString(inner_cell.c));
+                      << "  d2: " << IDEProblem.DtoString(inner_cell.c));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "  EF: " << inner_cell.v->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
@@ -1343,17 +1323,15 @@ protected:
          [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
-      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
-      std::cout << "\nN1: " << ideTabulationProblem.NtoString(Edge.first)
-                << '\n'
+      std::string n2_label = IDEProblem.NtoString(Edge.second);
+      std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
                 << "N2: " << n2_label << "\n----"
                 << std::string(n2_label.size(), '-') << '\n';
       for (auto D1ToD2Set : cell.v) {
         auto D1Fact = D1ToD2Set.first;
-        std::cout << "D1: " << ideTabulationProblem.DtoString(D1Fact) << '\n';
+        std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          std::cout << "\tD2: " << ideTabulationProblem.DtoString(D2Fact)
-                    << '\n';
+          std::cout << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
         }
         std::cout << '\n';
       }
@@ -1370,17 +1348,15 @@ protected:
          [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
-      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
-      std::cout << "\nN1: " << ideTabulationProblem.NtoString(Edge.first)
-                << '\n'
+      std::string n2_label = IDEProblem.NtoString(Edge.second);
+      std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
                 << "N2: " << n2_label << "\n----"
                 << std::string(n2_label.size(), '-') << '\n';
       for (auto D1ToD2Set : cell.v) {
         auto D1Fact = D1ToD2Set.first;
-        std::cout << "D1: " << ideTabulationProblem.DtoString(D1Fact) << '\n';
+        std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
-          std::cout << "\tD2: " << ideTabulationProblem.DtoString(D2Fact)
-                    << '\n';
+          std::cout << "\tD2: " << IDEProblem.DtoString(D2Fact) << '\n';
         }
         std::cout << '\n';
       }
@@ -1418,13 +1394,13 @@ protected:
     for (auto cell : computedIntraPathEdges.cellSet()) {
       auto Edge = std::make_pair(cell.r, cell.c);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: " << ideTabulationProblem.NtoString(Edge.first));
+                    << "N1: " << IDEProblem.NtoString(Edge.first));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N2: " << ideTabulationProblem.NtoString(Edge.second));
+                    << "N2: " << IDEProblem.NtoString(Edge.second));
       for (auto D1ToD2Set : cell.v) {
         auto D1 = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "d1: " << ideTabulationProblem.DtoString(D1));
+                      << "d1: " << IDEProblem.DtoString(D1));
         auto D2Set = D1ToD2Set.second;
         intraPathEdges += D2Set.size();
         // Case 1
@@ -1435,7 +1411,7 @@ protected:
         else {
           genFacts += D2Set.size();
           // We ignore the zero value
-          if (!ideTabulationProblem.isZeroValue(D1)) {
+          if (!IDEProblem.isZeroValue(D1)) {
             killFacts++;
           }
         }
@@ -1445,7 +1421,7 @@ protected:
         }
         for (auto D2 : D2Set) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d2: " << ideTabulationProblem.DtoString(D2));
+                        << "d2: " << IDEProblem.DtoString(D2));
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
       }
@@ -1460,16 +1436,16 @@ protected:
     for (auto cell : computedInterPathEdges.cellSet()) {
       auto Edge = std::make_pair(cell.r, cell.c);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: " << ideTabulationProblem.NtoString(Edge.first));
+                    << "N1: " << IDEProblem.NtoString(Edge.first));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N2: " << ideTabulationProblem.NtoString(Edge.second));
+                    << "N2: " << IDEProblem.NtoString(Edge.second));
       /* --- Call-flow Path Edges ---
        * Case 1: d1 --> empty set
        *   Can be ignored, since killing a fact in the caller context will
        *   actually happen during  call-to-return.
        *
        * Case 2: d1 --> d2-Set
-       *   Every fact d_i != zeroValue in d2-set will be generated in the
+       *   Every fact d_i != ZeroValue in d2-set will be generated in the
        * callee context, thus counts as a new fact. Even if d1 is passed as it
        * is, it will count as a new fact. The reason for this is, that d1 can
        * be killed in the callee context, but still be valid in the caller
@@ -1482,11 +1458,11 @@ protected:
         for (auto D1ToD2Set : cell.v) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d1: " << ideTabulationProblem.DtoString(D1));
+                        << "d1: " << IDEProblem.DtoString(D1));
           auto DSet = D1ToD2Set.second;
           interPathEdges += DSet.size();
           for (auto D2 : DSet) {
-            if (!ideTabulationProblem.isZeroValue(D2)) {
+            if (!IDEProblem.isZeroValue(D2)) {
               genFacts++;
             }
             // Special case
@@ -1503,7 +1479,7 @@ protected:
               } else {
                 genFacts += SummaryDSet.size();
                 // We ignore the zero value
-                if (!ideTabulationProblem.isZeroValue(D1)) {
+                if (!IDEProblem.isZeroValue(D1)) {
                   killFacts++;
                 }
               }
@@ -1511,7 +1487,7 @@ protected:
               ProcessSummaryFacts.insert(std::make_pair(Edge.second, D2));
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "d2: " << ideTabulationProblem.DtoString(D2));
+                          << "d2: " << IDEProblem.DtoString(D2));
           }
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
         }
@@ -1528,7 +1504,7 @@ protected:
         for (auto D1ToD2Set : cell.v) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d1: " << ideTabulationProblem.DtoString(D1));
+                        << "d1: " << IDEProblem.DtoString(D1));
           auto DSet = D1ToD2Set.second;
           interPathEdges += DSet.size();
           auto CallerFacts = ValidInCallerContext[Edge.second];
@@ -1538,9 +1514,9 @@ protected:
               genFacts++;
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "d2: " << ideTabulationProblem.DtoString(D2));
+                          << "d2: " << IDEProblem.DtoString(D2));
           }
-          if (!ideTabulationProblem.isZeroValue(D1)) {
+          if (!IDEProblem.isZeroValue(D1)) {
             killFacts++;
           }
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
@@ -1552,11 +1528,9 @@ protected:
     std::size_t TotalSummaryReuse = 0;
     for (auto entry : fSummaryReuse) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: "
-                    << ideTabulationProblem.NtoString(entry.first.first));
+                    << "N1: " << IDEProblem.NtoString(entry.first.first));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "D1: "
-                    << ideTabulationProblem.DtoString(entry.first.second));
+                    << "D1: " << IDEProblem.DtoString(entry.first.second));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "#Reuse: " << entry.second);
       TotalSummaryReuse += entry.second;
     }
@@ -1627,8 +1601,8 @@ public:
          [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
-      std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
-      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+      std::string n1_label = IDEProblem.NtoString(Edge.first);
+      std::string n2_label = IDEProblem.NtoString(Edge.second);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N2: " << n2_label);
       std::string n1_stmtId = ICF->getStatementId(Edge.first);
@@ -1658,16 +1632,16 @@ public:
       for (auto D1ToD2Set : cell.v) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "d1: " << ideTabulationProblem.DtoString(D1Fact));
+                      << "d1: " << IDEProblem.DtoString(D1Fact));
 
         DOTNode D1;
-        if (ideTabulationProblem.isZeroValue(D1Fact)) {
+        if (IDEProblem.isZeroValue(D1Fact)) {
           D1 = {fnName, "Λ", n1_stmtId, 0, false, true};
           D1FactId = 0;
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string d1_label = ideTabulationProblem.DtoString(D1Fact);
+          std::string d1_label = IDEProblem.DtoString(D1Fact);
 
           // Get or create the fact subgraph
           D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
@@ -1680,13 +1654,13 @@ public:
         DOTFactSubGraph *D2_FSG = nullptr;
         for (auto D2Fact : D1ToD2Set.second) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d2: " << ideTabulationProblem.DtoString(D2Fact));
+                        << "d2: " << IDEProblem.DtoString(D2Fact));
           // We do not need to generate any intra-procedural nodes and edges
           // for the zero value since they will be auto-generated
-          if (!ideTabulationProblem.isZeroValue(D2Fact)) {
+          if (!IDEProblem.isZeroValue(D2Fact)) {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
+            std::string d2_label = IDEProblem.DtoString(D2Fact);
             DOTNode D2 = {fnName, d2_label, n2_stmtId, D2FactId, false, true};
             std::string EFLabel;
             auto EFVec = intermediateEdgeFunctions[std::make_tuple(
@@ -1695,8 +1669,7 @@ public:
               EFLabel += EF->str() + ", ";
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
-            if (D1FactId == D2FactId &&
-                !ideTabulationProblem.isZeroValue(D1Fact)) {
+            if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
               D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
               D1_FSG->edges.emplace(D1, D2, true, EFLabel);
             } else {
@@ -1724,8 +1697,8 @@ public:
          [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
     for (auto cell : cells) {
       auto Edge = std::make_pair(cell.r, cell.c);
-      std::string n1_label = ideTabulationProblem.NtoString(Edge.first);
-      std::string n2_label = ideTabulationProblem.NtoString(Edge.second);
+      std::string n1_label = IDEProblem.NtoString(Edge.first);
+      std::string n2_label = IDEProblem.NtoString(Edge.second);
       std::string fNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
       std::string fNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
       std::string n1_stmtId = ICF->getStatementId(Edge.first);
@@ -1767,14 +1740,14 @@ public:
       for (auto D1ToD2Set : cell.v) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "d1: " << ideTabulationProblem.DtoString(D1Fact));
+                      << "d1: " << IDEProblem.DtoString(D1Fact));
         DOTNode D1;
-        if (ideTabulationProblem.isZeroValue(D1Fact)) {
+        if (IDEProblem.isZeroValue(D1Fact)) {
           D1 = {fNameOfN1, "Λ", n1_stmtId, 0, false, true};
         } else {
           // Get the fact-ID
           D1FactId = G.getFactID(D1Fact);
-          std::string d1_label = ideTabulationProblem.DtoString(D1Fact);
+          std::string d1_label = IDEProblem.DtoString(D1Fact);
           D1 = {fNameOfN1, d1_label, n1_stmtId, D1FactId, false, true};
           // FG should already exist even for single statement functions
           if (!G.containsFactSG(fNameOfN1, D1FactId)) {
@@ -1787,14 +1760,14 @@ public:
         auto D2Set = D1ToD2Set.second;
         for (auto D2Fact : D2Set) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d2: " << ideTabulationProblem.DtoString(D2Fact));
+                        << "d2: " << IDEProblem.DtoString(D2Fact));
           DOTNode D2;
-          if (ideTabulationProblem.isZeroValue(D2Fact)) {
+          if (IDEProblem.isZeroValue(D2Fact)) {
             D2 = {fNameOfN2, "Λ", n2_stmtId, 0, false, true};
           } else {
             // Get the fact-ID
             D2FactId = G.getFactID(D2Fact);
-            std::string d2_label = ideTabulationProblem.DtoString(D2Fact);
+            std::string d2_label = IDEProblem.DtoString(D2Fact);
             D2 = {fNameOfN2, d2_label, n2_stmtId, D2FactId, false, true};
             // FG should already exist even for single statement functions
             if (!G.containsFactSG(fNameOfN2, D2FactId)) {
@@ -1804,8 +1777,8 @@ public:
             }
           }
 
-          if (ideTabulationProblem.isZeroValue(D1Fact) &&
-              ideTabulationProblem.isZeroValue(D2Fact)) {
+          if (IDEProblem.isZeroValue(D1Fact) &&
+              IDEProblem.isZeroValue(D2Fact)) {
             // Do not add lambda recursion edges as inter-procedural edges
             if (D1.funcName != D2.funcName) {
               G.interLambdaEdges.emplace(D1, D2, true, "AllBottom", "BOT");

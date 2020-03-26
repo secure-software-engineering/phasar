@@ -9,7 +9,7 @@
 
 #include <ostream>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
 
 using namespace std;
 using namespace psr;

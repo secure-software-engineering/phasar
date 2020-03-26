@@ -11,19 +11,19 @@
 #include <iostream>
 #include <limits>
 
-#include <boost/algorithm/string/trim.hpp>
-#include <boost/filesystem.hpp>
+#include "boost/algorithm/string/trim.hpp"
+#include "boost/filesystem.hpp"
 
-#include <llvm/IR/DebugInfoMetadata.h>
-#include <llvm/IR/DebugLoc.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/IntrinsicInst.h>
-#include <llvm/IR/Metadata.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/IR/DebugLoc.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/Utils/LLVMIRToSrc.h>
+#include "phasar/Utils/LLVMIRToSrc.h"
 
 using namespace psr;
 

@@ -19,18 +19,18 @@
 
 #include <iosfwd>
 #include <iostream>
-#include <map>
 #include <set>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
+#include "boost/graph/adjacency_list.hpp"
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace llvm {
 class Instruction;
@@ -55,6 +55,7 @@ class LLVMBasedICFG
 private:
   ProjectIRDB &IRDB;
   CallGraphAnalysisType CGType;
+  SoundnessFlag SF;
   bool UserTHInfos = true;
   bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
@@ -88,9 +89,8 @@ private:
   };
 
   /// Specify the type of graph to be used.
-  typedef boost::adjacency_list<boost::multisetS, boost::vecS,
-                                boost::bidirectionalS, VertexProperties,
-                                EdgeProperties>
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::bidirectionalS,
+                                VertexProperties, EdgeProperties>
       bidigraph_t;
 
   // Let us have some handy typedefs.
@@ -106,15 +106,24 @@ private:
   /// Maps function names to the corresponding vertex id.
   std::unordered_map<const llvm::Function *, vertex_t> FunctionVertexMap;
 
-  void constructionWalker(const llvm::Function *F, Resolver *Res);
+  void constructionWalker(const llvm::Function *F, Resolver &Resolver);
 
   struct dependency_visitor;
 
 public:
+  /**
+   * Why a multimap?  A given instruction might have multiple target functions.
+   * For example, if the points-to analysis indicates that a pointer could
+   * be for multiple different types.
+   */
+  typedef std::unordered_multimap<const llvm::Instruction *,
+                                  const llvm::Function *>
+      OutEdgesAndTargets;
+
   LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                 const std::set<std::string> &EntryPoints = {},
-                LLVMTypeHierarchy *TH = nullptr,
-                LLVMPointsToInfo *PT = nullptr);
+                LLVMTypeHierarchy *TH = nullptr, LLVMPointsToInfo *PT = nullptr,
+                SoundnessFlag SF = SoundnessFlag::SOUNDY);
 
   LLVMBasedICFG(const LLVMBasedICFG &);
 
@@ -128,12 +137,58 @@ public:
 
   const llvm::Function *getFunction(const std::string &fun) const override;
 
+  /**
+   * Essentially the same as `getCallsFromWithin`, but uses the callgraph
+   * data directly.
+   * \return all call sites within a given method.
+   */
+  std::vector<const llvm::Instruction *>
+  getOutEdges(const llvm::Function *F) const;
+
+  /**
+   * For the supplied function, get all the output edge Instructions and
+   * the corresponding Function.  This pulls data directly from the callgraph.
+   *
+   * \return the edges and the target function for each edge.
+   */
+  OutEdgesAndTargets getOutEdgeAndTarget(const llvm::Function *F) const;
+
+  /**
+   * Removes all edges found for the given instruction within the
+   * sourceFunction. \return number of edges removed
+   */
+  size_t removeEdges(const llvm::Function *sourceFunction,
+                     const llvm::Instruction *instruction);
+
+  /**
+   * Removes the vertex for the given function.
+   * CAUTION: does not remove edges, invoking this on a function with
+   * IN or OUT edges is a bad idea.
+   * \return true iff the vertex was found and removed.
+   */
+  bool removeVertex(const llvm::Function *F);
+
+  /**
+   * \return the total number of in edges to the vertex representing this
+   * Function.
+   */
+  size_t getCallerCount(const llvm::Function *F) const;
+
+  /**
+   * \return all callee methods for a given call that might be called.
+   */
   std::set<const llvm::Function *>
   getCalleesOfCallAt(const llvm::Instruction *n) const override;
 
+  /**
+   * \return all caller statements/nodes of a given method.
+   */
   std::set<const llvm::Instruction *>
   getCallersOf(const llvm::Function *m) const override;
 
+  /**
+   * \return all call sites within a given method.
+   */
   std::set<const llvm::Instruction *>
   getCallsFromWithin(const llvm::Function *m) const override;
 
@@ -162,44 +217,8 @@ public:
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;
 
-  // provide a VertexPropertyWrite to tell boost how to write a vertex
-  class CallGraphVertexWriter {
-  public:
-    CallGraphVertexWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << CGraph[v].getFunctionName() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &CGraph;
-  };
-
-  // a function to conveniently create the vertex writer
-  CallGraphVertexWriter
-  makeCallGraphVertexWriter(const bidigraph_t &CGraph) const {
-    return CallGraphVertexWriter(CGraph);
-  }
-
-  // provide a EdgePropertyWrite to tell boost how to write an edge
-  class CallGraphEdgeWriter {
-  public:
-    CallGraphEdgeWriter(const bidigraph_t &CGraph) : CGraph(CGraph) {}
-    template <class VertexOrEdge>
-    void operator()(std::ostream &out, const VertexOrEdge &v) const {
-      out << "[label=\"" << CGraph[v].getCallSiteAsString() << "\"]";
-    }
-
-  private:
-    const bidigraph_t &CGraph;
-  };
-
-  // a function to conveniently create the edge writer
-  CallGraphEdgeWriter makeCallGraphEdgeWriter(const bidigraph_t &CGraph) const {
-    return CallGraphEdgeWriter(CGraph);
-  }
-
-  void printAsDot(std::ostream &OS = std::cout) const;
+  void printAsDot(std::ostream &OS = std::cout,
+                  bool printEdgeLabels = true) const;
 
   void printInternalPTGAsDot(std::ostream &OS = std::cout) const;
 

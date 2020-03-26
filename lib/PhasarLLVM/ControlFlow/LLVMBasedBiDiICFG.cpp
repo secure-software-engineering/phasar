@@ -7,6 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/ControlFlow/BiDiICFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/BiDiICFG.h"
 
 namespace psr {} // namespace psr

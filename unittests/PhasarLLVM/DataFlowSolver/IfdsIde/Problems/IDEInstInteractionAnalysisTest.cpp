@@ -12,17 +12,17 @@
 #include <string>
 #include <tuple>
 
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h>
-#include <phasar/PhasarLLVM/Passes/ValueAnnotationPass.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEInstInteractionAnalysis.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
+#include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace psr;
 
@@ -99,77 +99,77 @@ protected:
 
 /* ============== BASIC TESTS for int ====== */
 
-// // have a minimal individual test that instantiates the
-// // IDEInstInteractionAnalysisT for a non-string template parameter
-// // IDEInstInteractionAnalysisT<int>
-// TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
-//   bool printDump = false;
-//   boost::log::core::get()->set_logging_enabled(false);
-//   ProjectIRDB IRDB(
-//       {PhasarConfig::getPhasarConfig().PhasarDirectory() +
-//        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
-//       IRDBOptions::WPA);
-//   if (printDump) {
-//     IRDB.emitPreprocessedIR(std::cout, false);
-//   }
-//   ValueAnnotationPass::resetValueID();
-//   LLVMTypeHierarchy TH(IRDB);
-//   LLVMPointsToInfo PT(IRDB);
-//   std::set<std::string> EntryPoints({"main"});
-//   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH,
-//   &PT); IDEInstInteractionAnalysisT<int> IIAProblem(&IRDB, &TH, &ICFG, &PT,
-//                                               EntryPoints);
-//   // use Phasar's instruction ids as testing labels
-//   auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
-//                       const llvm::Value *DestNode) -> std::set<int> {
-//     std::set<int> Labels;
-//     if (I->hasMetadata()) {
-//       std::string Label =
-//           llvm::cast<llvm::MDString>(
-//               I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
-//               ->getString()
-//               .str();
-//       Labels.insert(std::stoi(Label));
-//     }
-//     return Labels;
-//   };
-//   // register the above generator function
-//   IIAProblem.registerEdgeFactGenerator(Generator);
-//   IDESolver_P<IDEInstInteractionAnalysisT<int>> IIASolver(IIAProblem);
-//   IIASolver.solve();
-//   if (printDump) {
-//     IIASolver.dumpResults();
-//   }
-//   // IIASolver.emitESGasDot();
-//   // specify the ground truth
-//   using IIACompactResultInteger_t =
-//       std::tuple<std::string, std::size_t, std::string,
-//                  IDEInstInteractionAnalysisT<int>::l_t>;
-//   std::set<IIACompactResultInteger_t> GroundTruth;
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "i", {1, 4, 5}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "j", {2, 7}));
-//   GroundTruth.emplace(
-//       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
-//           "main", 9, "retval", {0, 3}));
-//   // do the comparison
-//   for (auto &Truth : GroundTruth) {
-//     auto Fun = IRDB.getFunctionDefinition(std::get<0>(Truth));
-//     auto Line = getNthInstruction(Fun, std::get<1>(Truth));
-//     auto ResultMap = IIASolver.resultsAt(Line);
-//     for (auto &[Fact, Value] : ResultMap) {
-//       std::string FactStr = llvmIRToString(Fact);
-//       llvm::StringRef FactRef(FactStr);
-//       if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-//         std::cout << "Checking variable: " << FactStr << std::endl;
-//         EXPECT_EQ(std::get<3>(Truth), Value);
-//       }
-//     }
-//   }
-// }
+// have a minimal individual test that instantiates the
+// IDEInstInteractionAnalysisT for a non-string template parameter
+// IDEInstInteractionAnalysisT<int>
+TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
+  bool printDump = false;
+  boost::log::core::get()->set_logging_enabled(false);
+  ProjectIRDB IRDB(
+      {PhasarConfig::getPhasarConfig().PhasarDirectory() +
+       "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
+      IRDBOptions::WPA);
+  if (printDump) {
+    IRDB.emitPreprocessedIR(std::cout, false);
+  }
+  ValueAnnotationPass::resetValueID();
+  LLVMTypeHierarchy TH(IRDB);
+  LLVMPointsToInfo PT(IRDB);
+  std::set<std::string> EntryPoints({"main"});
+  LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::CHA, EntryPoints, &TH, &PT);
+  IDEInstInteractionAnalysisT<int> IIAProblem(&IRDB, &TH, &ICFG, &PT,
+                                              EntryPoints);
+  // use Phasar's instruction ids as testing labels
+  auto Generator = [](const llvm::Instruction *I, const llvm::Value *SrcNode,
+                      const llvm::Value *DestNode) -> std::set<int> {
+    std::set<int> Labels;
+    if (I->hasMetadata()) {
+      std::string Label =
+          llvm::cast<llvm::MDString>(
+              I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))
+              ->getString()
+              .str();
+      Labels.insert(std::stoi(Label));
+    }
+    return Labels;
+  };
+  // register the above generator function
+  IIAProblem.registerEdgeFactGenerator(Generator);
+  IDESolver_P<IDEInstInteractionAnalysisT<int>> IIASolver(IIAProblem);
+  IIASolver.solve();
+  if (printDump) {
+    IIASolver.dumpResults();
+  }
+  // IIASolver.emitESGasDot();
+  // specify the ground truth
+  using IIACompactResultInteger_t =
+      std::tuple<std::string, std::size_t, std::string,
+                 IDEInstInteractionAnalysisT<int>::l_t>;
+  std::set<IIACompactResultInteger_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
+          "main", 9, "i", {1, 4, 5}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
+          "main", 9, "j", {1, 2, 4, 7}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
+          "main", 9, "retval", {0, 3}));
+  // do the comparison
+  for (auto &Truth : GroundTruth) {
+    auto Fun = IRDB.getFunctionDefinition(std::get<0>(Truth));
+    auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+    auto ResultMap = IIASolver.resultsAt(Line);
+    for (auto &[Fact, Value] : ResultMap) {
+      std::string FactStr = llvmIRToString(Fact);
+      llvm::StringRef FactRef(FactStr);
+      if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
+        std::cout << "Checking variable: " << FactStr << std::endl;
+        EXPECT_EQ(std::get<3>(Truth), Value);
+      }
+    }
+  }
+}
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDEInstInteractionAnalysisTest, HandleBasicTest_01) {

@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/Plugins/PluginFactories.h>
+#include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
 using namespace std;
 using namespace psr;
 

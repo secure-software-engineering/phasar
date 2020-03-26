@@ -21,7 +21,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/CHAResolver.h"
 
 namespace llvm {
 class Instruction;

@@ -9,7 +9,7 @@
 
 #include <ostream>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSSolverConfig.h"
 
 using namespace std;
 using namespace psr;

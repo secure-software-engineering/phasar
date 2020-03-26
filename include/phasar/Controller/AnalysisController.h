@@ -15,15 +15,16 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/EnumFlags.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/EnumFlags.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace psr {
 
@@ -57,6 +58,7 @@ private:
   std::string ProjectID;
   std::string OutDirectory;
   boost::filesystem::path ResultDirectory;
+  [[maybe_unused]] SoundnessFlag SF;
 
   void executeDemandDriven();
 
@@ -103,7 +105,7 @@ public:
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     std::set<std::string> EntryPoints,
+                     SoundnessFlag SF, std::set<std::string> EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
                      std::string ProjectID = "default-phasar-project",

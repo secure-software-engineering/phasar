@@ -21,7 +21,7 @@
 #include <utility> // std::pair
 #include <vector>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 namespace psr {
 

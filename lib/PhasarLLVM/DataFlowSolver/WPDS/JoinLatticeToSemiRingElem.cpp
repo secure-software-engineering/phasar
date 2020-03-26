@@ -7,7 +7,7 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/JoinLatticeToSemiRingElem.h"
 
 using namespace std;
 using namespace psr;

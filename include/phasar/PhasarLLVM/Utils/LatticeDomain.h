@@ -19,8 +19,9 @@ namespace psr {
 /// Top is the greatest element that is less than or equal to all elements of
 /// the lattice.
 struct Top {};
-inline std::ostream &operator<<(std::ostream &OS,
-                                [[maybe_unused]] const Top &T) {
+
+static inline std::ostream &operator<<(std::ostream &OS,
+                                       [[maybe_unused]] const Top &T) {
   return OS << "Top";
 }
 
@@ -28,8 +29,9 @@ inline std::ostream &operator<<(std::ostream &OS,
 /// Bottom is the least element that is greater than or equal to all elements
 /// of the lattice.
 struct Bottom {};
-inline std::ostream &operator<<(std::ostream &OS,
-                                [[maybe_unused]] const Bottom &B) {
+
+static inline std::ostream &operator<<(std::ostream &OS,
+                                       [[maybe_unused]] const Bottom &B) {
   return OS << "Bottom";
 }
 

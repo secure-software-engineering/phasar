@@ -13,7 +13,7 @@
 #include <functional>
 #include <vector>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 
 namespace llvm {
 class Value;

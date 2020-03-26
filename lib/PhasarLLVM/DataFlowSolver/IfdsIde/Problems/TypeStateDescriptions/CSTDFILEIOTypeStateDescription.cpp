@@ -7,10 +7,9 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <cassert>
+#include "llvm/Support/ErrorHandling.h"
 
-#include <iostream>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/TypeStateDescriptions/CSTDFILEIOTypeStateDescription.h"
 
 using namespace std;
 using namespace psr;
@@ -40,7 +39,8 @@ const CSTDFILEIOTypeStateDescription::CSTDFILEIOState
     CSTDFILEIOTypeStateDescription::delta[3][5] = {
         /* FOPEN */
         {CSTDFILEIOState::OPENED, CSTDFILEIOState::OPENED,
-         CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
+         CSTDFILEIOState::OPENED, CSTDFILEIOState::ERROR,
+         CSTDFILEIOState::OPENED},
         /* FCLOSE */
         {CSTDFILEIOState::ERROR, CSTDFILEIOState::CLOSED,
          CSTDFILEIOState::ERROR, CSTDFILEIOState::ERROR, CSTDFILEIOState::BOT},
@@ -75,6 +75,7 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::getNextState(
     auto x = static_cast<std::underlying_type_t<CSTDFILEIOToken>>(
         funcNameToToken(Tok));
 
+    // std::cerr << "Retrieve delta[" << x << "][" << S << "]" << std::endl;
     auto ret = delta[x][S];
     // if (ret == error()) {
     //  std::cerr << "getNextState(" << Tok << ", " << stateToString(S)
@@ -129,7 +130,7 @@ std::string CSTDFILEIOTypeStateDescription::stateToString(
     return "BOT";
     break;
   default:
-    assert(false && "received unknown state!");
+    llvm::report_fatal_error("received unknown state!");
     break;
   }
 }

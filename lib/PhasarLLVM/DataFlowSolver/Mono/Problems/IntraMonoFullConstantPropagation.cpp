@@ -10,18 +10,29 @@
 #include <algorithm>
 #include <ostream>
 
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/BitVectorSet.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/BitVectorSet.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
-using namespace std;
+namespace std {
+template <> struct hash<pair<const llvm::Value *, unsigned>> {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<unsigned> hash_unsigned;
+    size_t hp = hash_ptr(p.first);
+    size_t hu = hash_unsigned(p.second);
+    return hp ^ (hu << 1);
+  }
+};
+} // namespace std
+
 using namespace psr;
 namespace psr {
 
@@ -57,27 +68,27 @@ IntraMonoFullConstantPropagation::normalFlow(
   return BitVectorSet<std::pair<const llvm::Value *, unsigned>>();
 }
 
-unordered_map<const llvm::Instruction *,
-              BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
+std::unordered_map<const llvm::Instruction *,
+                   BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
 IntraMonoFullConstantPropagation::initialSeeds() {
-  return unordered_map<
+  return std::unordered_map<
       const llvm::Instruction *,
       BitVectorSet<std::pair<const llvm::Value *, unsigned>>>();
 }
 
 void IntraMonoFullConstantPropagation::printNode(
-    ostream &os, const llvm::Instruction *n) const {
+    std::ostream &os, const llvm::Instruction *n) const {
   os << llvmIRToString(n);
 }
 
 void IntraMonoFullConstantPropagation::printDataFlowFact(
-    ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
+    std::ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
   os << "< " + llvmIRToString(d.first)
      << ", " + std::to_string(d.second) + " >";
 }
 
 void IntraMonoFullConstantPropagation::printFunction(
-    ostream &os, const llvm::Function *m) const {
+    std::ostream &os, const llvm::Function *m) const {
   os << m->getName().str();
 }
 

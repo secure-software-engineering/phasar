@@ -21,8 +21,8 @@
 #include <string>
 #include <unordered_map>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/Mono/IntraMonoProblem.h"
+#include "phasar/Utils/BitVectorSet.h"
 
 namespace llvm {
 class Value;

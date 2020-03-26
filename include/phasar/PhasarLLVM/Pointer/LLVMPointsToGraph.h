@@ -22,13 +22,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
+#include "boost/graph/adjacency_list.hpp"
 
-#include <llvm/IR/CallSite.h>
+#include "llvm/IR/CallSite.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
+#include "phasar/Config/Configuration.h"
 
 namespace llvm {
 class Value;
@@ -77,6 +77,10 @@ public:
     VertexProperties() = default;
     VertexProperties(const llvm::Value *v);
     std::string getValueAsString() const;
+
+    // Fetching the users for V is expensive, so we cache the result.
+    mutable std::vector<const llvm::User *> users;
+    std::vector<const llvm::User *> getUsers() const;
   };
 
   /**
@@ -91,7 +95,7 @@ public:
   };
 
   /// Data structure for holding the points-to graph.
-  typedef boost::adjacency_list<boost::setS, boost::vecS, boost::undirectedS,
+  typedef boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS,
                                 VertexProperties, EdgeProperties>
       graph_t;
 
@@ -116,9 +120,12 @@ private:
 
   /// The points to graph.
   graph_t PAG;
-  std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMap;
+  typedef std::unordered_map<const llvm::Value *, vertex_t> ValueVertexMapT;
+  ValueVertexMapT ValueVertexMap;
   /// Keep track of what has already been merged into this points-to graph.
-  std::unordered_set<std::string> ContainedFunctions;
+  std::unordered_set<const llvm::Function *> ContainedFunctions;
+
+  void mergeGraph(const PointsToGraph &Other);
 
 public:
   /**
@@ -213,11 +220,13 @@ public:
   // TODO add more detailed description
   inline bool representsSingleFunction();
   void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
+
+  void mergeCallSite(const llvm::ImmutableCallSite &CS,
+                     const llvm::Function *F);
+
   void mergeWith(const PointsToGraph &Other,
                  const std::vector<std::pair<llvm::ImmutableCallSite,
                                              const llvm::Function *>> &Calls);
-  void mergeWith(PointsToGraph *Other, llvm::ImmutableCallSite CS,
-                 const llvm::Function *F);
 
   /**
    * The value-vertex-map maps each Value of the points-to graph to

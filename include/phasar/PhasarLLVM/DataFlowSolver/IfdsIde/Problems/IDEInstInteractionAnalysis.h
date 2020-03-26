@@ -11,7 +11,6 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 
 #include <functional>
-#include <llvm/IR/DerivedTypes.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -20,6 +19,7 @@
 #include <variant>
 #include <vector>
 
+#include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/Support/ErrorHandling.h"
 
@@ -35,9 +35,9 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LatticeDomain.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/LatticeDomain.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -48,7 +48,7 @@ namespace psr {
 /// SyntacticAnalysisOnly: Can be set if a syntactic-only analysis is desired
 /// (without using points-to information)
 ///
-/// IndirectTaints: Can be set to ensure noninterference
+/// IndirectTaints: Can be set to ensure non-interference
 ///
 template <typename EdgeFactType = std::string,
           bool SyntacticAnalysisOnly = false, bool EnableIndirectTaints = false>
@@ -88,7 +88,8 @@ public:
                              const llvm::Value *,
                              LatticeDomain<BitVectorSet<EdgeFactType>>,
                              LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
-    this->ZeroValue = createZeroValue();
+    this->ZeroValue =
+        IDEInstInteractionAnalysisT<EdgeFactType>::createZeroValue();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -293,11 +294,10 @@ public:
       return EdgeIdentity<l_t>::getInstance();
     }
     // check if the user has registered a fact generator function
-    l_t UserEdgeFacts;
     if (EdgeFactGen) {
       auto EdgeFacts = EdgeFactGen(curr, currNode, succNode);
       // construct BitVectorSet
-      UserEdgeFacts = l_t(EdgeFacts);
+      l_t UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
       if (!EdgeFacts.empty()) {
         // handle generating edges from zero
         // generate labels from zero when the instruction itself is the flow
@@ -472,7 +472,7 @@ public:
     } else if (std::holds_alternative<Bottom>(l)) {
       os << std::get<Bottom>(l);
     } else {
-      auto lset = std::get<BitVectorSet<e_t>>(l).getAsSet();
+      auto lset = std::get<BitVectorSet<e_t>>(l);
       size_t idx = 0;
       for (const auto &s : lset) {
         os << s;

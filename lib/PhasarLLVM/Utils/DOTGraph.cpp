@@ -18,12 +18,12 @@
 #include <iterator>
 #include <ostream>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/PhasarLLVM/Utils/DOTGraph.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/PhasarLLVM/Utils/DOTGraph.h"
 
 namespace psr {
 

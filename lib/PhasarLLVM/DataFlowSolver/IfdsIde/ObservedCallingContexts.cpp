@@ -10,7 +10,7 @@
 #include <algorithm>
 #include <iostream>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ObservedCallingContexts.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/ObservedCallingContexts.h"
 
 using namespace psr;
 using namespace std;
