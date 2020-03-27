@@ -231,6 +231,12 @@ public:
    */
   void printAsDot(std::ostream &OS = std::cout) const;
 
+  /**
+   * @brief Prints the class hierarchy to an ostream in json format.
+   * @param an outputstream
+   */
+  void printAsJson(std::ostream &OS = std::cout) const;
+
   // void printGraphAsDot(std::ostream &out);
 
   // static bidigraph_t loadGraphFormDot(std::istream &in);

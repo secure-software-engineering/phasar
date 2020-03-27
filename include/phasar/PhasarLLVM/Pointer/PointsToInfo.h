@@ -36,6 +36,8 @@ public:
   virtual void print(std::ostream &OS) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;
+
+  virtual void printAsJson(std::ostream &OS) const = 0;
 };
 
 } // namespace psr
