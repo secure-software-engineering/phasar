@@ -134,33 +134,33 @@ IDELinearConstantAnalysis::getCallFlowFunction(
   if (llvm::isa<llvm::CallInst>(callStmt) ||
       llvm::isa<llvm::InvokeInst>(callStmt)) {
     struct LCAFF : FlowFunction<const llvm::Value *> {
-      vector<const llvm::Value *> actuals;
-      vector<const llvm::Value *> formals;
-      const llvm::Function *destFun;
+      vector<const llvm::Value *> Actuals;
+      vector<const llvm::Value *> Formals;
+      const llvm::Function *DestFun;
       LCAFF(llvm::ImmutableCallSite callSite,
             IDELinearConstantAnalysis::f_t destFun)
-          : destFun(destFun) {
+          : DestFun(destFun) {
         // Set up the actual parameters
         for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-          actuals.push_back(callSite.getArgOperand(idx));
+          Actuals.push_back(callSite.getArgOperand(idx));
         }
         // Set up the formal parameters
         for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
-          formals.push_back(getNthFunctionArgument(destFun, idx));
+          Formals.push_back(getNthFunctionArgument(destFun, idx));
         }
       }
       set<IDELinearConstantAnalysis::d_t>
       computeTargets(IDELinearConstantAnalysis::d_t source) override {
         set<IDELinearConstantAnalysis::d_t> res;
-        for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-          if (source == actuals[idx]) {
+        for (unsigned idx = 0; idx < Actuals.size(); ++idx) {
+          if (source == Actuals[idx]) {
             // Check for C-style varargs: idx >= destFun->arg_size()
-            if (idx >= destFun->arg_size() && !destFun->isDeclaration()) {
+            if (idx >= DestFun->arg_size() && !DestFun->isDeclaration()) {
               // Over-approximate by trying to add the
               //   alloca [1 x %struct.__va_list_tag], align 16
               // to the results
               // find the allocated %struct.__va_list_tag and generate it
-              for (auto &BB : *destFun) {
+              for (auto &BB : *DestFun) {
                 for (auto &I : BB) {
                   if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                     if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -178,15 +178,15 @@ IDELinearConstantAnalysis::getCallFlowFunction(
               }
             } else {
               // Ordinary case: Just perform mapping
-              res.insert(formals[idx]); // corresponding formal
+              res.insert(Formals[idx]); // corresponding formal
             }
           }
           // Special case: Check if function is called with integer literals as
           // parameter (in case of varargs ignore)
           if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
-              idx < destFun->arg_size() &&
-              llvm::isa<llvm::ConstantInt>(actuals[idx])) {
-            res.insert(formals[idx]); // corresponding formal
+              idx < DestFun->arg_size() &&
+              llvm::isa<llvm::ConstantInt>(Actuals[idx])) {
+            res.insert(Formals[idx]); // corresponding formal
           }
         }
         if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
@@ -213,22 +213,22 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     auto Return = llvm::dyn_cast<llvm::ReturnInst>(exitStmt);
     auto ReturnValue = Return->getReturnValue();
     struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
-      IDELinearConstantAnalysis::n_t callSite;
+      IDELinearConstantAnalysis::n_t CallSite;
       IDELinearConstantAnalysis::d_t ReturnValue;
       LCAFF(IDELinearConstantAnalysis::n_t cs,
             IDELinearConstantAnalysis::d_t retVal)
-          : callSite(cs), ReturnValue(retVal) {}
+          : CallSite(cs), ReturnValue(retVal) {}
       set<IDELinearConstantAnalysis::d_t>
       computeTargets(IDELinearConstantAnalysis::d_t source) override {
         set<IDELinearConstantAnalysis::d_t> res;
         // Collect return value fact
         if (source == ReturnValue) {
-          res.insert(callSite);
+          res.insert(CallSite);
         }
         // Return value is integer literal
         if (LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
             llvm::isa<llvm::ConstantInt>(ReturnValue)) {
-          res.insert(callSite);
+          res.insert(CallSite);
         }
         if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
             llvm::isa<llvm::GlobalVariable>(source)) {

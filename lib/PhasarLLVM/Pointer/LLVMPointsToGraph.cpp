@@ -41,19 +41,19 @@ using namespace psr;
 namespace psr {
 struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
   // collect the allocation sites that are found
-  std::set<const llvm::Value *> &allocation_sites;
+  std::set<const llvm::Value *> &AllocationSites;
   // keeps track of the current path
-  std::vector<vertex_t> visitor_stack;
+  std::vector<vertex_t> VisitorStack;
   // the call stack that can be matched against the visitor stack
-  const std::vector<const llvm::Instruction *> &call_stack;
+  const std::vector<const llvm::Instruction *> &CallStack;
 
   AllocationSiteDFSVisitor(std::set<const llvm::Value *> &allocation_sizes,
                            const vector<const llvm::Instruction *> &call_stack)
-      : allocation_sites(allocation_sizes), call_stack(call_stack) {}
+      : AllocationSites(allocation_sizes), CallStack(call_stack) {}
 
   template <typename Vertex, typename Graph>
   void discover_vertex(Vertex u, const Graph &g) {
-    visitor_stack.push_back(u);
+    VisitorStack.push_back(u);
   }
 
   template <typename Vertex, typename Graph>
@@ -63,10 +63,10 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
     if (const llvm::AllocaInst *Alloc =
             llvm::dyn_cast<llvm::AllocaInst>(g[u].V)) {
       // If the call stack is empty, we completely ignore the calling context
-      if (matches_stack(g) || call_stack.empty()) {
+      if (matches_stack(g) || CallStack.empty()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "Found stack allocation: " << llvmIRToString(Alloc));
-        allocation_sites.insert(g[u].V);
+        AllocationSites.insert(g[u].V);
       }
     }
     // check for heap allocation
@@ -78,25 +78,25 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
               CS.getCalledFunction()->getName().str())) {
         // If the call stack is empty, we completely ignore the calling
         // context
-        if (matches_stack(g) || call_stack.empty()) {
+        if (matches_stack(g) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "Found heap allocation: "
                         << llvmIRToString(CS.getInstruction()));
-          allocation_sites.insert(g[u].V);
+          AllocationSites.insert(g[u].V);
         }
       }
     }
-    visitor_stack.pop_back();
+    VisitorStack.pop_back();
   }
 
   template <typename Graph> bool matches_stack(const Graph &g) {
     size_t call_stack_idx = 0;
     for (size_t i = 0, j = 1;
-         i < visitor_stack.size() && j < visitor_stack.size(); ++i, ++j) {
-      auto e = boost::edge(visitor_stack[i], visitor_stack[j], g);
+         i < VisitorStack.size() && j < VisitorStack.size(); ++i, ++j) {
+      auto e = boost::edge(VisitorStack[i], VisitorStack[j], g);
       if (g[e.first].V == nullptr)
         continue;
-      if (g[e.first].V != call_stack[call_stack.size() - call_stack_idx - 1]) {
+      if (g[e.first].V != CallStack[CallStack.size() - call_stack_idx - 1]) {
         return false;
       }
       call_stack_idx++;
@@ -106,11 +106,11 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
 };
 
 struct PointsToGraph::ReachabilityDFSVisitor : boost::default_dfs_visitor {
-  std::set<vertex_t> &points_to_set;
-  ReachabilityDFSVisitor(set<vertex_t> &result) : points_to_set(result) {}
+  std::set<vertex_t> &PointsToSet;
+  ReachabilityDFSVisitor(set<vertex_t> &result) : PointsToSet(result) {}
   template <typename Vertex, typename Graph>
   void finish_vertex(Vertex u, const Graph &g) {
-    points_to_set.insert(u);
+    PointsToSet.insert(u);
   }
 };
 

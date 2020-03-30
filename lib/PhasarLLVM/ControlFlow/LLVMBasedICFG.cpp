@@ -58,11 +58,11 @@ using namespace std;
 namespace psr {
 
 struct LLVMBasedICFG::dependency_visitor : boost::default_dfs_visitor {
-  std::vector<vertex_t> &vertices;
-  dependency_visitor(std::vector<vertex_t> &v) : vertices(v) {}
+  std::vector<vertex_t> &Vertices;
+  dependency_visitor(std::vector<vertex_t> &v) : Vertices(v) {}
   template <typename Vertex, typename Graph>
   void finish_vertex(Vertex u, const Graph &g) {
-    vertices.push_back(u);
+    Vertices.push_back(u);
   }
 };
 

@@ -32,16 +32,16 @@ using namespace psr;
 namespace psr {
 
 struct LazyTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
-  dfs_visitor(std::set<const llvm::StructType *> &_result) : result(_result) {}
+  dfs_visitor(std::set<const llvm::StructType *> &result) : Result(result) {}
 
   void finish_edge(edge_t e, graph_t const &u) {
     LazyTypeGraph::vertex_t src = boost::source(e, u);
     LazyTypeGraph::vertex_t target = boost::target(e, u);
 
-    result.insert(u[target].type);
+    Result.insert(u[target].type);
   }
 
-  std::set<const llvm::StructType *> &result;
+  std::set<const llvm::StructType *> &Result;
 };
 
 LazyTypeGraph::vertex_t

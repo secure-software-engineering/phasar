@@ -155,24 +155,24 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
   // all related alloca's of the formal parameter and the return value.
   struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
     llvm::ImmutableCallSite CallSite;
-    const llvm::Function *calleeFun;
+    const llvm::Function *CalleeFun;
     const llvm::ReturnInst *ExitStmt;
     IDETypeStateAnalysis *Analysis;
-    std::vector<const llvm::Value *> actuals;
-    std::vector<const llvm::Value *> formals;
+    std::vector<const llvm::Value *> Actuals;
+    std::vector<const llvm::Value *> Formals;
     TSFlowFunction(llvm::ImmutableCallSite cs, const llvm::Function *calleeFun,
                    const llvm::Instruction *exitstmt,
                    IDETypeStateAnalysis *analysis)
-        : CallSite(cs), calleeFun(calleeFun),
+        : CallSite(cs), CalleeFun(calleeFun),
           ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(exitstmt)),
           Analysis(analysis) {
       // Set up the actual parameters
       for (unsigned idx = 0; idx < CallSite.getNumArgOperands(); ++idx) {
-        actuals.push_back(CallSite.getArgOperand(idx));
+        Actuals.push_back(CallSite.getArgOperand(idx));
       }
       // Set up the formal parameters
       for (unsigned idx = 0; idx < calleeFun->arg_size(); ++idx) {
-        formals.push_back(getNthFunctionArgument(calleeFun, idx));
+        Formals.push_back(getNthFunctionArgument(calleeFun, idx));
       }
     }
 
@@ -183,10 +183,10 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
       if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
         set<const llvm::Value *> res;
         // Handle C-style varargs functions
-        if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
+        if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
           const llvm::Instruction *AllocVarArg;
           // Find the allocation of %struct.__va_list_tag
-          for (auto &BB : *calleeFun) {
+          for (auto &BB : *CalleeFun) {
             for (auto &I : BB) {
               if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                 if (Alloc->getAllocatedType()->isArrayTy() &&
@@ -205,16 +205,16 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t callSite,
           }
           // Generate the varargs things by using an over-approximation
           if (source == AllocVarArg) {
-            for (unsigned idx = formals.size(); idx < actuals.size(); ++idx) {
-              res.insert(actuals[idx]);
+            for (unsigned idx = Formals.size(); idx < Actuals.size(); ++idx) {
+              res.insert(Actuals[idx]);
             }
           }
         }
         // Handle ordinary case
         // Map formal parameter into corresponding actual parameter.
-        for (unsigned idx = 0; idx < formals.size(); ++idx) {
-          if (source == formals[idx]) {
-            res.insert(actuals[idx]); // corresponding actual
+        for (unsigned idx = 0; idx < Formals.size(); ++idx) {
+          if (source == Formals[idx]) {
+            res.insert(Actuals[idx]); // corresponding actual
           }
         }
         // Collect the return value
