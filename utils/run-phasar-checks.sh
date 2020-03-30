@@ -16,7 +16,7 @@ echo "Run clang-tidy ..."
 # You can set the number of concurrent jobs using '-j n'. For debugging it might be useful to
 # use only one job.
 
-/usr/local/llvm-9/share/clang/run-clang-tidy.py -p build/ -header-filter='phasar*.h' -j 8 -quiet -fix
+run-clang-tidy.py -p build/ -header-filter='phasar*.h'
 
 # The option '-fix' applies suggested fixes to the code, see 'run-clang-tidy.py --help'
 # run-clang-tidy.py -p build/ -header-filter='phasar*.h' -fix
