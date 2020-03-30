@@ -209,7 +209,7 @@ int main(int argc, const char **argv) {
             .run(),
         PhasarConfig::VariablesMap());
     boost::program_options::notify(PhasarConfig::VariablesMap());
-  } catch (boost::program_options::error Err) {
+  } catch (boost::program_options::error &Err) {
     std::cerr << "Could not parse command-line arguments!\n"
               << "Error: " << Err.what() << '\n';
     return 1;
@@ -225,7 +225,7 @@ int main(int argc, const char **argv) {
         boost::program_options::notify(PhasarConfig::VariablesMap());
       }
     }
-  } catch (boost::program_options::error Err) {
+  } catch (boost::program_options::error &Err) {
     std::cerr << "Could not parse configuration file!\n"
               << "Error: " << Err.what() << '\n';
     return 1;
@@ -359,7 +359,7 @@ int main(int argc, const char **argv) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
   AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
-                                CGTy,SF, EntryPoints, Strategy, EmitterOptions,
+                                CGTy, SF, EntryPoints, Strategy, EmitterOptions,
                                 ProjectID, OutDirectory);
   return 0;
 }

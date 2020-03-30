@@ -62,7 +62,7 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *curr,
     struct STA : FlowFunction<const llvm::Value *> {
       const llvm::StoreInst *Store;
       STA(const llvm::StoreInst *S) : Store(S) {}
-      set<const llvm::Value *> computeTargets(const llvm::Value *src) {
+      set<const llvm::Value *> computeTargets(const llvm::Value *src) override {
         if (Store->getValueOperand() == src) {
           return {Store->getValueOperand(), Store->getPointerOperand()};
         } else {
