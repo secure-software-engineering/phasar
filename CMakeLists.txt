@@ -83,12 +83,6 @@ else()
   message("PAMM metric severity level: Off")
 endif()
 
-# Workaround: Remove Plugins for MacOS for now
-if(APPLE)
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPHASAR_PLUGINS_ENABLED")
-endif()
-
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
@@ -215,13 +209,7 @@ llvm_map_components_to_libnames(llvm_libs
 # phasar-based binaries
 add_subdirectory(tools)
 
-# Workaround: Remove Plugins for MacOS for now
-if(APPLE)
-  set(PHASAR_PLUGINS_LIB)
-  message(WARNING "Plugins are currently not supported on MacOS platforms")
-else()
-  set(PHASAR_PLUGINS_LIB phasar_plugins)
-endif()
+set(PHASAR_PLUGINS_LIB phasar_plugins)
 
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)
