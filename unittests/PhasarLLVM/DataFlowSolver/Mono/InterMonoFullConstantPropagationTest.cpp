@@ -129,14 +129,14 @@ TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_01) {
 }
 
 // Test for Call Flow
-TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
+/* TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
   std::set<IMFCPCompactResult_t> GroundTruth;
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
           "main", 6, "i", 13));
   doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
-}
+} */
 
 TEST_F(InterMonoFullConstantPropagationTest, sqSubSetEqualTest) {
   InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr,

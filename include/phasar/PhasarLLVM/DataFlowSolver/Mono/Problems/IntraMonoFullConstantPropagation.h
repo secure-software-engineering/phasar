@@ -41,18 +41,28 @@ class LLVMBasedCFG;
 class LLVMBasedICFG;
 
 class IntraMonoFullConstantPropagation
-    : public IntraMonoProblem<const llvm::Instruction *,
-                              std::pair<const llvm::Value *, unsigned>,
-                              const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedCFG> {
+    : public IntraMonoProblem<
+          const llvm::Instruction *,
+          std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
+          const llvm::Function *, const llvm::StructType *, const llvm::Value *,
+          LLVMBasedCFG> {
 public:
-  typedef const llvm::Instruction *n_t;
-  typedef std::pair<const llvm::Value *, unsigned> d_t;
-  typedef const llvm::Function *f_t;
-  typedef const llvm::StructType *t_t;
-  typedef const llvm::Value *v_t;
-  typedef LLVMBasedCFG i_t;
+  using n_t = const llvm::Instruction *;
+  using plain_d_t = int64_t;
+  using d_t = std::pair<const llvm::Value *, LatticeDomain<plain_d_t>>;
+  using f_t = const llvm::Function *;
+  using t_t = const llvm::StructType *;
+  using v_t = const llvm::Value *;
+  using i_t = LLVMBasedCFG;
 
+  friend class InterMonoFullConstantPropagation;
+
+private:
+  bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
+  LatticeDomain<plain_d_t> executeBinOperation(const unsigned op, plain_d_t lop,
+                                               plain_d_t rop);
+
+public:
   IntraMonoFullConstantPropagation(const ProjectIRDB *IRDB,
                                    const LLVMTypeHierarchy *TH,
                                    const LLVMBasedCFG *CF,
@@ -60,39 +70,56 @@ public:
                                    std::set<std::string> EntryPoints = {});
   ~IntraMonoFullConstantPropagation() override = default;
 
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
-  join(const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-       const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
-      override;
+  BitVectorSet<d_t> join(const BitVectorSet<d_t> &Lhs,
+                         const BitVectorSet<d_t> &Rhs) override;
 
-  bool sqSubSetEqual(
-      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-      const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
-      override;
+  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
+                          const BitVectorSet<d_t> &Rhs);
 
-  bool
-  equal_to(const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Lhs,
-           const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &Rhs)
-      override;
+  BitVectorSet<d_t> update(const BitVectorSet<d_t> &Lhs,
+                           const BitVectorSet<d_t> &Rhs);
 
-  BitVectorSet<std::pair<const llvm::Value *, unsigned>>
-  normalFlow(const llvm::Instruction *S,
-             const BitVectorSet<std::pair<const llvm::Value *, unsigned>> &In)
-      override;
+  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
+                     const BitVectorSet<d_t> &Rhs) override;
 
-  std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<std::pair<const llvm::Value *, unsigned>>>
-  initialSeeds() override;
+  bool equal_to(const BitVectorSet<d_t> &Lhs,
+                const BitVectorSet<d_t> &Rhs) override;
 
-  void printNode(std::ostream &os, const llvm::Instruction *n) const override;
+  std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
 
-  void
-  printDataFlowFact(std::ostream &os,
-                    std::pair<const llvm::Value *, unsigned> d) const override;
+  BitVectorSet<d_t> normalFlow(n_t S, const BitVectorSet<d_t> &In) override;
 
-  void printFunction(std::ostream &os, const llvm::Function *m) const override;
+  void printNode(std::ostream &os, n_t n) const override;
+
+  void printDataFlowFact(std::ostream &os, d_t d) const override;
+
+  void printFunction(std::ostream &os, f_t f) const override;
 };
 
 } // namespace psr
+
+namespace std {
+
+template <>
+struct hash<std::pair<
+    const llvm::Value *,
+    psr::LatticeDomain<psr::IntraMonoFullConstantPropagation::plain_d_t>>> {
+  size_t operator()(const std::pair<const llvm::Value *,
+                                    psr::LatticeDomain<int64_t>> &P) const {
+    std::hash<const llvm::Value *> hash_ptr;
+    std::hash<int64_t> hash_unsigned;
+    size_t hp = hash_ptr(P.first);
+    size_t hu = 0;
+    // returns nullptr if P.second is Top or Bottom, a valid pointer otherwise
+    if (auto Ptr =
+            std::get_if<psr::IntraMonoFullConstantPropagation::plain_d_t>(
+                &P.second)) {
+      hu = *Ptr;
+    }
+    return hp ^ (hu << 1);
+  }
+};
+
+} // namespace std
 
 #endif
