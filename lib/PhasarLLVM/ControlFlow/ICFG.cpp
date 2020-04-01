@@ -53,8 +53,8 @@ CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
-  return os << to_string(CGA);
+ostream &operator<<(ostream &OS, const CallGraphAnalysisType &CGA) {
+  return OS << to_string(CGA);
 }
 
 } // namespace psr

@@ -74,19 +74,19 @@ IntraMonoSolverTest::initialSeeds() {
   return {};
 }
 
-void IntraMonoSolverTest::printNode(ostream &os,
-                                    const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+void IntraMonoSolverTest::printNode(ostream &OS,
+                                    const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
-void IntraMonoSolverTest::printDataFlowFact(ostream &os,
-                                            const llvm::Value *d) const {
-  os << llvmIRToString(d);
+void IntraMonoSolverTest::printDataFlowFact(ostream &OS,
+                                            const llvm::Value *D) const {
+  OS << llvmIRToString(D);
 }
 
-void IntraMonoSolverTest::printFunction(ostream &os,
-                                        const llvm::Function *m) const {
-  os << m->getName().str();
+void IntraMonoSolverTest::printFunction(ostream &OS,
+                                        const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

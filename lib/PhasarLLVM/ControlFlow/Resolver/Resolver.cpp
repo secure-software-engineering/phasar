@@ -87,13 +87,13 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
   return nullptr;
 }
 
-void Resolver::preCall(const llvm::Instruction *inst) {}
+void Resolver::preCall(const llvm::Instruction *Inst) {}
 
 void Resolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
-    std::set<const llvm::Function *> &possible_targets) {}
+    std::set<const llvm::Function *> &PossibleTargets) {}
 
-void Resolver::postCall(const llvm::Instruction *inst) {}
+void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {

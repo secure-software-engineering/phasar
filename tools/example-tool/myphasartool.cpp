@@ -28,18 +28,18 @@ class Value;
 
 using namespace psr;
 
-int main(int argc, const char **argv) {
+int main(int Argc, const char **Argv) {
   initializeLogger(false);
   auto &lg = lg::get();
-  if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
-      boost::filesystem::is_directory(argv[1])) {
+  if (Argc < 2 || !boost::filesystem::exists(Argv[1]) ||
+      boost::filesystem::is_directory(Argv[1])) {
     std::cerr << "myphasartool\n"
                  "A small PhASAR-based example program\n\n"
                  "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
   initializeLogger(false);
-  ProjectIRDB DB({argv[1]});
+  ProjectIRDB DB({Argv[1]});
   if (auto F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy

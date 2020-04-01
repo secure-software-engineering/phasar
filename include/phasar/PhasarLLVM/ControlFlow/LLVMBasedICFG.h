@@ -131,11 +131,11 @@ public:
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isIndirectFunctionCall(const llvm::Instruction *n) const override;
+  bool isIndirectFunctionCall(const llvm::Instruction *N) const override;
 
-  bool isVirtualFunctionCall(const llvm::Instruction *n) const override;
+  bool isVirtualFunctionCall(const llvm::Instruction *N) const override;
 
-  const llvm::Function *getFunction(const std::string &fun) const override;
+  const llvm::Function *getFunction(const std::string &Fun) const override;
 
   /**
    * Essentially the same as `getCallsFromWithin`, but uses the callgraph
@@ -178,41 +178,41 @@ public:
    * \return all callee methods for a given call that might be called.
    */
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *n) const override;
+  getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
   /**
    * \return all caller statements/nodes of a given method.
    */
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *m) const override;
+  getCallersOf(const llvm::Function *M) const override;
 
   /**
    * \return all call sites within a given method.
    */
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *m) const override;
+  getCallsFromWithin(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) const override;
+  getStartPointsOf(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) const override;
+  getExitPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *n) const override;
+  getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
-  bool isCallStmt(const llvm::Instruction *stmt) const override;
+  bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-  const llvm::Instruction *getLastInstructionOf(const std::string &name);
+  const llvm::Instruction *getLastInstructionOf(const std::string &Name);
 
   std::vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const std::string &name);
+  getAllInstructionsOfFunction(const std::string &Name);
 
-  void mergeWith(const LLVMBasedICFG &other);
+  void mergeWith(const LLVMBasedICFG &Other);
 
-  bool isPrimitiveFunction(const std::string &name);
+  bool isPrimitiveFunction(const std::string &Name);
 
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;

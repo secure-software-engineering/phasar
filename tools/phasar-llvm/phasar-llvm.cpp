@@ -28,9 +28,9 @@ constexpr char MoreHelp[] =
 #include "../phasar-llvm_more_help.txt"
     ;
 
-template <typename T> static std::set<T> vectorToSet(const std::vector<T> &v) {
+template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
   std::set<T> s;
-  for_each(v.begin(), v.end(), [&s](T t) { s.insert(t); });
+  for_each(V.begin(), V.end(), [&s](T Item) { s.insert(Item); });
   return s;
 }
 
@@ -143,7 +143,7 @@ void validateParamAnalysisConfig(const std::vector<std::string> &Configs) {
   }
 }
 
-int main(int argc, const char **argv) {
+int main(int Argc, const char **Argv) {
   // handling the command line parameters
   std::string ConfigFile;
   // Declare a group of options that will be allowed only on command line
@@ -204,7 +204,7 @@ int main(int argc, const char **argv) {
   Visible.add(Generic).add(Config);
   try {
     boost::program_options::store(
-        boost::program_options::command_line_parser(argc, argv)
+        boost::program_options::command_line_parser(Argc, Argv)
             .options(CmdlineOptions)
             .run(),
         PhasarConfig::VariablesMap());

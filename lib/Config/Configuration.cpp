@@ -35,12 +35,12 @@ PhasarConfig::PhasarConfig() {
   special_function_names.insert({"_Znwm", "_Znam", "_ZdlPv", "_ZdaPv"});
 }
 
-std::string PhasarConfig::readConfigFile(const std::string &path) {
+std::string PhasarConfig::readConfigFile(const std::string &Path) {
   // We use a local file reading function to make phasar_config independent of
   // other phasar libraries.
-  if (boost::filesystem::exists(path) &&
-      !boost::filesystem::is_directory(path)) {
-    std::ifstream ifs(path, std::ios::binary);
+  if (boost::filesystem::exists(Path) &&
+      !boost::filesystem::is_directory(Path)) {
+    std::ifstream ifs(Path, std::ios::binary);
     if (ifs.is_open()) {
       ifs.seekg(0, ifs.end);
       size_t file_size = ifs.tellg();
@@ -50,7 +50,7 @@ std::string PhasarConfig::readConfigFile(const std::string &path) {
       return content;
     }
   }
-  throw std::ios_base::failure("could not read file: " + path);
+  throw std::ios_base::failure("could not read file: " + Path);
 }
 
 void PhasarConfig::loadGlibcSpecialFunctionNames() {

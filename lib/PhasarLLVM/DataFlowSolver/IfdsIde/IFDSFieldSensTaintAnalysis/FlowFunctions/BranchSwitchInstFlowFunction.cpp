@@ -7,7 +7,7 @@
 namespace psr {
 
 std::set<ExtendedValue>
-BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const llvm::Value *condition = nullptr;
 
   if (const auto branchInst = llvm::dyn_cast<llvm::BranchInst>(currentInst)) {
@@ -24,8 +24,8 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
   if (condition) {
     bool isConditionTainted =
-        DataFlowUtils::isValueTainted(condition, fact) ||
-        DataFlowUtils::isMemoryLocationTainted(condition, fact);
+        DataFlowUtils::isValueTainted(condition, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(condition, Fact);
 
     if (isConditionTainted) {
       const auto startBasicBlock = currentInst->getParent();
@@ -45,11 +45,11 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       traceStats.add(currentInst);
 
-      return {fact, ev};
+      return {Fact, ev};
     }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

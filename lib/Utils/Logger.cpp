@@ -49,31 +49,31 @@ const map<severity_level, string> SeverityLevelToString = {
 
 severity_level logFilterLevel = DEBUG;
 
-void setLoggerFilterLevel(severity_level level) { logFilterLevel = level; }
+void setLoggerFilterLevel(severity_level Level) { logFilterLevel = Level; }
 
-ostream &operator<<(ostream &os, enum severity_level l) {
-  return os << SeverityLevelToString.at(l);
+ostream &operator<<(ostream &OS, enum severity_level L) {
+  return OS << SeverityLevelToString.at(L);
 }
 
-bool LogFilter(const boost::log::attribute_value_set &set) {
-  return set["Severity"].extract<severity_level>() >= logFilterLevel;
+bool LogFilter(const boost::log::attribute_value_set &Set) {
+  return Set["Severity"].extract<severity_level>() >= logFilterLevel;
 }
 
-void LogFormatter(const boost::log::record_view &view,
-                  boost::log::formatting_ostream &os) {
-  os << view.attribute_values()["LineCounter"].extract<int>() << " "
-     << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
-     << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
-     << "] " << view.attribute_values()["Message"].extract<std::string>();
+void LogFormatter(const boost::log::record_view &View,
+                  boost::log::formatting_ostream &OS) {
+  OS << View.attribute_values()["LineCounter"].extract<int>() << " "
+     << View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
+     << " - [" << View.attribute_values()["Severity"].extract<severity_level>()
+     << "] " << View.attribute_values()["Message"].extract<std::string>();
 }
 
-void LoggerExceptionHandler::operator()(const std::exception &ex) const {
-  std::cerr << "std::exception: " << ex.what() << '\n';
+void LoggerExceptionHandler::operator()(const std::exception &Ex) const {
+  std::cerr << "std::exception: " << Ex.what() << '\n';
 }
 
-void initializeLogger(bool use_logger, string log_file) {
+void initializeLogger(bool UseLogger, string LogFile) {
   // Using this call, logging can be enabled or disabled
-  boost::log::core::get()->set_logging_enabled(use_logger);
+  boost::log::core::get()->set_logging_enabled(UseLogger);
   // if (log_file == "") {
   typedef boost::log::sinks::synchronous_sink<
       boost::log::sinks::text_ostream_backend>

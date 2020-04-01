@@ -9,11 +9,11 @@
 namespace psr {
 
 std::set<ExtendedValue>
-VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   std::set<ExtendedValue> targetFacts;
-  targetFacts.insert(fact);
+  targetFacts.insert(Fact);
 
-  bool isVarArgTemplateFact = fact.isVarArgTemplate();
+  bool isVarArgTemplateFact = Fact.isVarArgTemplate();
   if (!isVarArgTemplateFact)
     return targetFacts;
 
@@ -29,14 +29,14 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
     if (isArrayDecay)
       vaListMemLocationSeq.pop_back();
 
-    ExtendedValue ev(fact);
+    ExtendedValue ev(Fact);
     ev.setVaListMemLocationSeq(vaListMemLocationSeq);
 
     targetFacts.insert(ev);
 
     LOG_DEBUG("Created new VarArg from template");
     LOG_DEBUG("Template");
-    DataFlowUtils::dumpFact(fact);
+    DataFlowUtils::dumpFact(Fact);
     LOG_DEBUG("VarArg");
     DataFlowUtils::dumpFact(ev);
   }

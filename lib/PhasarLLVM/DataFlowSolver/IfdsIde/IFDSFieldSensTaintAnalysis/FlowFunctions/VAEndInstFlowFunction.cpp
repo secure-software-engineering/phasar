@@ -9,10 +9,10 @@
 namespace psr {
 
 std::set<ExtendedValue>
-VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  bool isVarArgFact = fact.isVarArg();
+VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  bool isVarArgFact = Fact.isVarArg();
   if (!isVarArgFact)
-    return {fact};
+    return {Fact};
 
   const auto vaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
   const auto vaEndMemLocationMatr = vaEndInst->getArgList();
@@ -27,17 +27,17 @@ VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
       vaEndMemLocationSeq.pop_back();
 
     bool isVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(
-        DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
+        DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact),
         vaEndMemLocationSeq);
     if (isVaListEqual) {
       LOG_DEBUG("Killed VarArg");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
 
       return {};
     }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

@@ -35,16 +35,16 @@ DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : CHAResolver(IRDB, TH) {}
 
 bool DTAResolver::heuristic_anti_contructor_this_type(
-    const llvm::BitCastInst *bitcast) {
+    const llvm::BitCastInst *BitCast) {
   // We check if the caller is a constructor, and if the this argument has the
   // same type as the source type of the bitcast. If it is the case, it returns
   // false, true otherwise.
 
-  if (auto caller = bitcast->getFunction()) {
+  if (auto caller = BitCast->getFunction()) {
     if (isConstructor(caller->getName().str())) {
       if (auto func_ty = caller->getFunctionType()) {
         if (auto this_ty = func_ty->getParamType(0)) {
-          if (this_ty == bitcast->getSrcTy()) {
+          if (this_ty == BitCast->getSrcTy()) {
             return false;
           }
         }
@@ -56,17 +56,17 @@ bool DTAResolver::heuristic_anti_contructor_this_type(
 }
 
 bool DTAResolver::heuristic_anti_contructor_vtable_pos(
-    const llvm::BitCastInst *bitcast) {
+    const llvm::BitCastInst *BitCast) {
   // Better heuristic than the previous one, can handle the CRTP. Based on the
   // previous one.
 
-  if (heuristic_anti_contructor_this_type(bitcast))
+  if (heuristic_anti_contructor_this_type(BitCast))
     return true;
 
   // We know that we are in a constructor and the source type of the bitcast is
   // the same as the this argument. We then check where the bitcast is against
   // the store instruction of the vtable.
-  auto struct_ty = stripPointer(bitcast->getSrcTy());
+  auto struct_ty = stripPointer(BitCast->getSrcTy());
   if (struct_ty == nullptr)
     throw runtime_error(
         "struct_ty == nullptr in the heuristic_anti_contructor");
@@ -88,7 +88,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
   // WARNING: May break when changing llvm version or using clang with version
   // > 5.0.1
 
-  auto caller = bitcast->getFunction();
+  auto caller = BitCast->getFunction();
   if (caller == nullptr) {
     throw runtime_error("A bitcast instruction has no associated function");
   }
@@ -122,7 +122,7 @@ bool DTAResolver::heuristic_anti_contructor_vtable_pos(
       }
     }
 
-    if (&Inst == bitcast)
+    if (&Inst == BitCast)
       bitcast_num = i;
   }
 

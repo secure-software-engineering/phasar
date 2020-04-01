@@ -45,8 +45,8 @@ AnalysisStrategy to_AnalysisStrategy(const std::string &S) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &os, const AnalysisStrategy &S) {
-  return os << to_string(S);
+std::ostream &operator<<(std::ostream &OS, const AnalysisStrategy &S) {
+  return OS << to_string(S);
 }
 
 } // namespace psr

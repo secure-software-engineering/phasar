@@ -15,8 +15,8 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
-  bool isFactVarArgTemplate = fact.isVarArgTemplate();
+MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
+  bool isFactVarArgTemplate = Fact.isVarArgTemplate();
   if (isFactVarArgTemplate)
     return {};
 
@@ -24,9 +24,9 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
   std::set<ExtendedValue> targetParamFacts;
 
   bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact));
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
   if (isGlobalMemLocationFact)
-    targetGlobalFacts.insert(fact);
+    targetGlobalFacts.insert(Fact);
 
   long varArgIndex = 0L;
 
@@ -41,14 +41,14 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
 
     bool isVarArgParam =
         DataFlowUtils::isVarArgParam(param, zeroValue.getValue());
-    bool isVarArgFact = fact.isVarArg();
+    bool isVarArgFact = Fact.isVarArg();
 
     bool isArgMemLocation = !argMemLocationSeq.empty();
     if (isArgMemLocation) {
 
       const auto factMemLocationSeq =
-          isVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact)
-                       : DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+          isVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact)
+                       : DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
 
       bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(
           argMemLocationSeq, factMemLocationSeq);
@@ -61,7 +61,7 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
             DataFlowUtils::joinMemoryLocationSeqs(patchablePart,
                                                   relocatableMemLocationSeq);
 
-        ExtendedValue ev(fact);
+        ExtendedValue ev(Fact);
         if (isVarArgFact) {
           ev.setVaListMemLocationSeq(patchableMemLocationSeq);
         } else {
@@ -75,16 +75,16 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
 
         LOG_DEBUG("Added patchable memory location (caller -> callee)");
         LOG_DEBUG("Source");
-        DataFlowUtils::dumpFact(fact);
+        DataFlowUtils::dumpFact(Fact);
         LOG_DEBUG("Destination");
         DataFlowUtils::dumpFact(ev);
       }
     } else {
-      bool genFact = DataFlowUtils::isValueTainted(arg, fact);
+      bool genFact = DataFlowUtils::isValueTainted(arg, Fact);
       if (genFact) {
         std::vector<const llvm::Value *> patchablePart{param};
 
-        ExtendedValue ev(fact);
+        ExtendedValue ev(Fact);
         ev.setMemLocationSeq(patchablePart);
         if (isVarArgParam)
           ev.setVarArgIndex(varArgIndex);
@@ -93,7 +93,7 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
 
         LOG_DEBUG("Added patchable memory location (caller -> callee)");
         LOG_DEBUG("Source");
-        DataFlowUtils::dumpFact(fact);
+        DataFlowUtils::dumpFact(Fact);
         LOG_DEBUG("Destination");
         DataFlowUtils::dumpFact(ev);
       }

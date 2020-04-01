@@ -32,13 +32,13 @@ using namespace psr;
 namespace psr {
 
 struct CachedTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
-  dfs_visitor(graph_t *g) : G(g) {}
+  dfs_visitor(graph_t *G) : G(G) {}
 
-  void finish_edge(edge_t e, graph_t const &u) {
-    CachedTypeGraph::vertex_t src = boost::source(e, u);
-    CachedTypeGraph::vertex_t target = boost::target(e, u);
+  void finish_edge(edge_t E, graph_t const &U) {
+    CachedTypeGraph::vertex_t src = boost::source(E, U);
+    CachedTypeGraph::vertex_t target = boost::target(E, U);
 
-    for (auto target_type : u[target].types) {
+    for (auto target_type : U[target].types) {
       (*G)[src].types.insert(target_type);
     }
   }
@@ -48,13 +48,13 @@ struct CachedTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
 
 struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
     : public boost::default_dfs_visitor {
-  reverse_type_propagation_dfs_visitor(rev_graph_t *g) : G(g) {}
+  reverse_type_propagation_dfs_visitor(rev_graph_t *G) : G(G) {}
 
-  void examine_edge(rev_edge_t e, rev_graph_t const &u) {
-    auto src = boost::source(e, u);
-    auto target = boost::target(e, u);
+  void examine_edge(rev_edge_t E, rev_graph_t const &U) {
+    auto src = boost::source(E, U);
+    auto target = boost::target(E, U);
 
-    for (auto src_type : u[src].types)
+    for (auto src_type : U[src].types)
       (*G)[target].types.insert(src_type);
   }
 
@@ -62,34 +62,34 @@ struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
 };
 
 CachedTypeGraph::vertex_t
-CachedTypeGraph::addType(const llvm::StructType *new_type) {
-  auto name = new_type->getName().str();
+CachedTypeGraph::addType(const llvm::StructType *NewType) {
+  auto name = NewType->getName().str();
 
   if (type_vertex_map.find(name) == type_vertex_map.end()) {
     auto vertex = boost::add_vertex(g);
     type_vertex_map[name] = vertex;
     g[vertex].name = name;
-    g[vertex].base_type = new_type;
-    g[vertex].types.insert(new_type);
+    g[vertex].base_type = NewType;
+    g[vertex].types.insert(NewType);
   }
 
   return type_vertex_map[name];
 }
 
-bool CachedTypeGraph::addLink(const llvm::StructType *from,
-                              const llvm::StructType *to) {
+bool CachedTypeGraph::addLink(const llvm::StructType *From,
+                              const llvm::StructType *To) {
   if (already_visited)
     return false;
 
   already_visited = true;
 
-  auto from_vertex = addType(from);
-  auto to_vertex = addType(to);
+  auto from_vertex = addType(From);
+  auto to_vertex = addType(To);
 
   auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
 
   if (result_edge.second) {
-    reverseTypePropagation(to);
+    reverseTypePropagation(To);
   }
 
   already_visited = false;
@@ -97,14 +97,14 @@ bool CachedTypeGraph::addLink(const llvm::StructType *from,
 }
 
 bool CachedTypeGraph::addLinkWithoutReversePropagation(
-    const llvm::StructType *from, const llvm::StructType *to) {
+    const llvm::StructType *From, const llvm::StructType *To) {
   if (already_visited)
     return false;
 
   already_visited = true;
 
-  auto from_vertex = addType(from);
-  auto to_vertex = addType(to);
+  auto from_vertex = addType(From);
+  auto to_vertex = addType(To);
 
   auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
 
@@ -112,8 +112,8 @@ bool CachedTypeGraph::addLinkWithoutReversePropagation(
   return result_edge.second;
 }
 
-void CachedTypeGraph::printAsDot(const std::string &path) const {
-  std::ofstream ofs(path);
+void CachedTypeGraph::printAsDot(const std::string &Path) const {
+  std::ofstream ofs(Path);
   boost::write_graphviz(
       ofs, g, boost::make_label_writer(boost::get(&VertexProperties::name, g)));
 }
@@ -124,8 +124,8 @@ void CachedTypeGraph::aggregateTypes() {
 }
 
 void CachedTypeGraph::reverseTypePropagation(
-    const llvm::StructType *base_struct) {
-  auto name = base_struct->getName().str();
+    const llvm::StructType *BaseStruct) {
+  auto name = BaseStruct->getName().str();
 
   std::vector<boost::default_color_type> color_map(boost::num_vertices(g));
 
@@ -141,8 +141,8 @@ void CachedTypeGraph::reverseTypePropagation(
 }
 
 std::set<const llvm::StructType *>
-CachedTypeGraph::getTypes(const llvm::StructType *struct_type) {
-  auto struct_ty_vertex = addType(struct_type);
+CachedTypeGraph::getTypes(const llvm::StructType *StructType) {
+  auto struct_ty_vertex = addType(StructType);
   return g[struct_ty_vertex].types;
 }
 

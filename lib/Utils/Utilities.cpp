@@ -39,11 +39,11 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-string cxx_demangle(const string &mangled_name) {
-  return boost::core::demangle(mangled_name.c_str());
+string cxx_demangle(const string &MangledName) {
+  return boost::core::demangle(MangledName.c_str());
 }
 
-bool isConstructor(const string &mangled_name) {
+bool isConstructor(const string &MangledName) {
   // WARNING: Doesn't work for templated classes, should
   // the best way to do it I can think of is to use a lexer
   // on the name to detect the constructor point explained
@@ -51,17 +51,17 @@ bool isConstructor(const string &mangled_name) {
   // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
 
   // This version will not work in some edge cases
-  auto constructor = boost::algorithm::find_last(mangled_name, "C2E");
+  auto constructor = boost::algorithm::find_last(MangledName, "C2E");
 
   if (constructor.begin() != constructor.end())
     return true;
 
-  constructor = boost::algorithm::find_last(mangled_name, "C1E");
+  constructor = boost::algorithm::find_last(MangledName, "C1E");
 
   if (constructor.begin() != constructor.end())
     return true;
 
-  constructor = boost::algorithm::find_last(mangled_name, "C2E");
+  constructor = boost::algorithm::find_last(MangledName, "C2E");
 
   if (constructor.begin() != constructor.end())
     return true;
@@ -69,45 +69,45 @@ bool isConstructor(const string &mangled_name) {
   return false;
 }
 
-const llvm::Type *stripPointer(const llvm::Type *pointer) {
-  auto next = llvm::dyn_cast<llvm::PointerType>(pointer);
+const llvm::Type *stripPointer(const llvm::Type *Pointer) {
+  auto next = llvm::dyn_cast<llvm::PointerType>(Pointer);
   while (next) {
-    pointer = next->getElementType();
-    next = llvm::dyn_cast<llvm::PointerType>(pointer);
+    Pointer = next->getElementType();
+    next = llvm::dyn_cast<llvm::PointerType>(Pointer);
   }
 
-  return pointer;
+  return Pointer;
 }
 
-bool isMangled(const string &name) { return name != cxx_demangle(name); }
+bool isMangled(const string &Name) { return Name != cxx_demangle(Name); }
 
-vector<string> splitString(const string &str, const string &delimiter) {
+vector<string> splitString(const string &Str, const string &Delimiter) {
   vector<string> split_strings;
-  boost::split(split_strings, str, boost::is_any_of(delimiter),
+  boost::split(split_strings, Str, boost::is_any_of(Delimiter),
                boost::token_compress_on);
   return split_strings;
 }
 
-ostream &operator<<(ostream &os, const vector<bool> &bits) {
-  for (auto bit : bits) {
-    os << bit;
+ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
+  for (auto bit : Bits) {
+    OS << bit;
   }
-  return os;
+  return OS;
 }
 
-bool stringIDLess::operator()(const std::string &lhs,
-                              const std::string &rhs) const {
+bool stringIDLess::operator()(const std::string &Lhs,
+                              const std::string &Rhs) const {
   char *endptr1, *endptr2;
-  long lhs_val = strtol(lhs.c_str(), &endptr1, 10);
-  long rhs_val = strtol(rhs.c_str(), &endptr2, 10);
-  if (lhs.c_str() == endptr1 && lhs.c_str() == endptr2) {
-    return lhs < rhs;
-  } else if (lhs.c_str() == endptr1 && rhs.c_str() != endptr2) {
+  long lhsVal = strtol(Lhs.c_str(), &endptr1, 10);
+  long rhsVal = strtol(Rhs.c_str(), &endptr2, 10);
+  if (Lhs.c_str() == endptr1 && Lhs.c_str() == endptr2) {
+    return Lhs < Rhs;
+  } else if (Lhs.c_str() == endptr1 && Rhs.c_str() != endptr2) {
     return false;
-  } else if (lhs.c_str() != endptr1 && rhs.c_str() == endptr2) {
+  } else if (Lhs.c_str() != endptr1 && Rhs.c_str() == endptr2) {
     return true;
   } else {
-    return lhs_val < rhs_val;
+    return lhsVal < rhsVal;
   }
 }
 

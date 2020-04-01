@@ -208,19 +208,19 @@ InterMonoTaintAnalysis::initialSeeds() {
   return Seeds;
 }
 
-void InterMonoTaintAnalysis::printNode(ostream &os,
-                                       const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+void InterMonoTaintAnalysis::printNode(ostream &OS,
+                                       const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
-void InterMonoTaintAnalysis::printDataFlowFact(ostream &os,
-                                               const llvm::Value *d) const {
-  os << llvmIRToString(d) << '\n';
+void InterMonoTaintAnalysis::printDataFlowFact(ostream &OS,
+                                               const llvm::Value *D) const {
+  OS << llvmIRToString(D) << '\n';
 }
 
-void InterMonoTaintAnalysis::printFunction(ostream &os,
-                                           const llvm::Function *m) const {
-  os << m->getName().str();
+void InterMonoTaintAnalysis::printFunction(ostream &OS,
+                                           const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 const std::map<const llvm::Instruction *, std::set<const llvm::Value *>> &
 InterMonoTaintAnalysis::getAllLeaks() const {

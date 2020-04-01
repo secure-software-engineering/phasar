@@ -102,8 +102,8 @@ PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA) {
-  return os << to_string(PA);
+std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA) {
+  return OS << to_string(PA);
 }
 
 LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB, PointerAnalysisType PAT) {

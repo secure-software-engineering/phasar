@@ -75,7 +75,7 @@ public:
 
   typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &res);
+  void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
 
   // start formulating our analysis by specifying the parts required for IFDS
 

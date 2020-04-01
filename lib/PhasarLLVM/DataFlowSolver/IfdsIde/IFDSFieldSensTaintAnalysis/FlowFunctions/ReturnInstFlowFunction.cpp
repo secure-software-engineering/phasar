@@ -7,14 +7,14 @@
 namespace psr {
 
 std::set<ExtendedValue>
-ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const auto retInst = llvm::cast<llvm::ReturnInst>(currentInst);
   const auto retValMemLocationMatr = retInst->getReturnValue();
 
   if (retValMemLocationMatr) {
     bool isRetValTainted =
-        DataFlowUtils::isValueTainted(retValMemLocationMatr, fact) ||
-        DataFlowUtils::isMemoryLocationTainted(retValMemLocationMatr, fact);
+        DataFlowUtils::isValueTainted(retValMemLocationMatr, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(retValMemLocationMatr, Fact);
 
     /*
      * We don't need to GEN/KILL any facts here as this is all handled
@@ -26,7 +26,7 @@ ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
       traceStats.add(retInst);
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

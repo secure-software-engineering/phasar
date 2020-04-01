@@ -25,26 +25,26 @@
 using namespace std;
 using namespace psr;
 
-size_t hash<LCAPair>::operator()(const LCAPair &k) const {
-  return hash<const llvm::Value *>()(k.first) ^ hash<int>()(k.second);
+size_t hash<LCAPair>::operator()(const LCAPair &K) const {
+  return hash<const llvm::Value *>()(K.first) ^ hash<int>()(K.second);
 }
 
 namespace psr {
 
 LCAPair::LCAPair() : first(nullptr), second(0) {}
 
-LCAPair::LCAPair(const llvm::Value *V, int i) : first(V), second(i) {}
+LCAPair::LCAPair(const llvm::Value *V, int I) : first(V), second(I) {}
 
-bool operator==(const LCAPair &lhs, const LCAPair &rhs) {
-  return tie(lhs.first, lhs.second) == tie(rhs.first, rhs.second);
+bool operator==(const LCAPair &Lhs, const LCAPair &Rhs) {
+  return tie(Lhs.first, Lhs.second) == tie(Rhs.first, Rhs.second);
 }
 
-bool operator!=(const LCAPair &lhs, const LCAPair &rhs) {
-  return !(lhs == rhs);
+bool operator!=(const LCAPair &Lhs, const LCAPair &Rhs) {
+  return !(Lhs == Rhs);
 }
 
-bool operator<(const LCAPair &lhs, const LCAPair &rhs) {
-  return tie(lhs.first, lhs.second) < tie(rhs.first, rhs.second);
+bool operator<(const LCAPair &Lhs, const LCAPair &Rhs) {
+  return tie(Lhs.first, Lhs.second) < tie(Rhs.first, Rhs.second);
 }
 
 IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
@@ -57,39 +57,39 @@ IFDSLinearConstantAnalysis::IFDSLinearConstantAnalysis(
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getNormalFlowFunction(
-    IFDSLinearConstantAnalysis::n_t curr,
-    IFDSLinearConstantAnalysis::n_t succ) {
+    IFDSLinearConstantAnalysis::n_t Curr,
+    IFDSLinearConstantAnalysis::n_t Succ) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallFlowFunction(
-    IFDSLinearConstantAnalysis::n_t callStmt,
-    IFDSLinearConstantAnalysis::f_t destFun) {
+    IFDSLinearConstantAnalysis::n_t CallStmt,
+    IFDSLinearConstantAnalysis::f_t DestFun) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getRetFlowFunction(
-    IFDSLinearConstantAnalysis::n_t callSite,
-    IFDSLinearConstantAnalysis::f_t calleeFun,
-    IFDSLinearConstantAnalysis::n_t exitStmt,
-    IFDSLinearConstantAnalysis::n_t retSite) {
+    IFDSLinearConstantAnalysis::n_t CallSite,
+    IFDSLinearConstantAnalysis::f_t CalleeFun,
+    IFDSLinearConstantAnalysis::n_t ExitStmt,
+    IFDSLinearConstantAnalysis::n_t RetSite) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getCallToRetFlowFunction(
-    IFDSLinearConstantAnalysis::n_t callSite,
-    IFDSLinearConstantAnalysis::n_t retSite,
-    set<IFDSLinearConstantAnalysis::f_t> callees) {
+    IFDSLinearConstantAnalysis::n_t CallSite,
+    IFDSLinearConstantAnalysis::n_t RetSite,
+    set<IFDSLinearConstantAnalysis::f_t> Callees) {
   return Identity<IFDSLinearConstantAnalysis::d_t>::getInstance();
 }
 
 shared_ptr<FlowFunction<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::getSummaryFlowFunction(
-    IFDSLinearConstantAnalysis::n_t callStmt,
-    IFDSLinearConstantAnalysis::f_t destFun) {
+    IFDSLinearConstantAnalysis::n_t CallStmt,
+    IFDSLinearConstantAnalysis::f_t DestFun) {
   return nullptr;
 }
 
@@ -118,23 +118,23 @@ IFDSLinearConstantAnalysis::createZeroValue() const {
 }
 
 bool IFDSLinearConstantAnalysis::isZeroValue(
-    IFDSLinearConstantAnalysis::d_t d) const {
-  return d == ZeroValue;
+    IFDSLinearConstantAnalysis::d_t D) const {
+  return D == ZeroValue;
 }
 
 void IFDSLinearConstantAnalysis::printNode(
-    ostream &os, IFDSLinearConstantAnalysis::n_t n) const {
-  os << llvmIRToString(n);
+    ostream &OS, IFDSLinearConstantAnalysis::n_t N) const {
+  OS << llvmIRToString(N);
 }
 
 void IFDSLinearConstantAnalysis::printDataFlowFact(
-    ostream &os, IFDSLinearConstantAnalysis::d_t d) const {
-  os << '<' + llvmIRToString(d.first) + ", " + std::to_string(d.second) + '>';
+    ostream &OS, IFDSLinearConstantAnalysis::d_t D) const {
+  OS << '<' + llvmIRToString(D.first) + ", " + std::to_string(D.second) + '>';
 }
 
 void IFDSLinearConstantAnalysis::printFunction(
-    ostream &os, IFDSLinearConstantAnalysis::f_t m) const {
-  os << m->getName().str();
+    ostream &OS, IFDSLinearConstantAnalysis::f_t M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

@@ -236,9 +236,9 @@ llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
 
 std::size_t ProjectIRDB::getNumberOfModules() const { return Modules.size(); }
 
-llvm::Instruction *ProjectIRDB::getInstruction(std::size_t id) {
-  if (IDInstructionMapping.count(id))
-    return IDInstructionMapping[id];
+llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
+  if (IDInstructionMapping.count(Id))
+    return IDInstructionMapping[Id];
   return nullptr;
 }
 
@@ -258,22 +258,22 @@ void ProjectIRDB::print() const {
   }
 }
 
-void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) const {
+void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
   for (auto &[File, Module] : Modules) {
-    os << "IR module: " << File << '\n';
+    OS << "IR module: " << File << '\n';
     // print globals
     for (auto &glob : Module->globals()) {
-      if (shortenIR) {
-        os << llvmIRToShortString(&glob);
+      if (ShortenIR) {
+        OS << llvmIRToShortString(&glob);
       } else {
-        os << llvmIRToString(&glob);
+        OS << llvmIRToString(&glob);
       }
-      os << '\n';
+      OS << '\n';
     }
-    os << '\n';
+    OS << '\n';
     for (auto F : getAllFunctions()) {
       if (!F->isDeclaration() && Module->getFunction(F->getName())) {
-        os << F->getName().str() << " {\n";
+        OS << F->getName().str() << " {\n";
         for (auto &BB : *F) {
           // do not print the label of the first BB
           if (BB.getPrevNode()) {
@@ -281,23 +281,23 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &os, bool shortenIR) const {
             llvm::raw_string_ostream RSO(BBLabel);
             BB.printAsOperand(RSO, false);
             RSO.flush();
-            os << "\n<label " << BBLabel << ">\n";
+            OS << "\n<label " << BBLabel << ">\n";
           }
           // print all instructions
           for (auto &I : BB) {
-            os << "  ";
-            if (shortenIR) {
-              os << llvmIRToShortString(&I);
+            OS << "  ";
+            if (ShortenIR) {
+              OS << llvmIRToShortString(&I);
             } else {
-              os << llvmIRToString(&I);
+              OS << llvmIRToString(&I);
             }
-            os << '\n';
+            OS << '\n';
           }
         }
-        os << "}\n\n";
+        OS << "}\n\n";
       }
     }
-    os << '\n';
+    OS << '\n';
   }
 }
 

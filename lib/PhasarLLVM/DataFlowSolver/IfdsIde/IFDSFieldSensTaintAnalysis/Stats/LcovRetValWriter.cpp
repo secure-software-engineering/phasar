@@ -6,8 +6,8 @@
 
 namespace psr {
 
-static void filterReturnValues(TraceStats::FileStats &fileStats) {
-  for (auto fileStatsIt = fileStats.begin(); fileStatsIt != fileStats.end();) {
+static void filterReturnValues(TraceStats::FileStats &FileStats) {
+  for (auto fileStatsIt = FileStats.begin(); fileStatsIt != FileStats.end();) {
     const auto file = fileStatsIt->first;
     auto &functionStats = fileStatsIt->second;
 
@@ -36,7 +36,7 @@ static void filterReturnValues(TraceStats::FileStats &fileStats) {
 
     bool isFunctionStatsEmpty = functionStats.empty();
     if (isFunctionStatsEmpty) {
-      fileStatsIt = fileStats.erase(fileStatsIt);
+      fileStatsIt = FileStats.erase(fileStatsIt);
     } else {
       ++fileStatsIt;
     }

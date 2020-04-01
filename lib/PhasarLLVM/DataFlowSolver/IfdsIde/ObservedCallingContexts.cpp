@@ -32,7 +32,7 @@ void ObservedCallingContexts::print() {
   for (auto &entry : ObservedCTX) {
     cout << entry.first << "\n";
     for (auto &ctx : entry.second) {
-      for_each(ctx.begin(), ctx.end(), [](bool b) { cout << b; });
+      for_each(ctx.begin(), ctx.end(), [](bool B) { cout << B; });
     }
   }
 }

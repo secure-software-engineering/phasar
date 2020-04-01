@@ -22,12 +22,12 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCallee::MapFactsToCallee(
-    llvm::ImmutableCallSite callSite, const llvm::Function *destFun,
-    function<bool(const llvm::Value *)> predicate)
-    : destFun(destFun), predicate(predicate) {
+    llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+    function<bool(const llvm::Value *)> Predicate)
+    : destFun(DestFun), predicate(Predicate) {
   // Set up the actual parameters
-  for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-    actuals.push_back(callSite.getArgOperand(idx));
+  for (unsigned idx = 0; idx < CallSite.getNumArgOperands(); ++idx) {
+    actuals.push_back(CallSite.getArgOperand(idx));
   }
   // Set up the formal parameters
   for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
@@ -36,14 +36,14 @@ MapFactsToCallee::MapFactsToCallee(
 }
 
 set<const llvm::Value *>
-MapFactsToCallee::computeTargets(const llvm::Value *source) {
-  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
+MapFactsToCallee::computeTargets(const llvm::Value *Source) {
+  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
     set<const llvm::Value *> res;
     // Handle C-style varargs functions
     if (destFun->isVarArg()) {
       // Map actual parameter into corresponding formal parameter.
       for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-        if (source == actuals[idx] && predicate(actuals[idx])) {
+        if (Source == actuals[idx] && predicate(actuals[idx])) {
           if (idx >= destFun->arg_size() && !destFun->isDeclaration()) {
             // Over-approximate by trying to add the
             //   alloca [1 x %struct.__va_list_tag], align 16
@@ -75,14 +75,14 @@ MapFactsToCallee::computeTargets(const llvm::Value *source) {
       // Handle ordinary case
       // Map actual parameter into corresponding formal parameter.
       for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-        if (source == actuals[idx] && predicate(actuals[idx])) {
+        if (Source == actuals[idx] && predicate(actuals[idx])) {
           res.insert(formals[idx]); // corresponding formal
         }
       }
       return res;
     }
   } else {
-    return {source};
+    return {Source};
   }
 }
 

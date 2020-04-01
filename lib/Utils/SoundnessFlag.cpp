@@ -45,8 +45,8 @@ SoundnessFlag to_SoundnessFlag(const std::string &S) {
   return Type;
 }
 
-std::ostream &operator<<(std::ostream &os, const SoundnessFlag &SF) {
-  return os << to_string(SF);
+std::ostream &operator<<(std::ostream &OS, const SoundnessFlag &SF) {
+  return OS << to_string(SF);
 }
 
 } // namespace psr

@@ -44,7 +44,7 @@ IOFormat to_IOFormat(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &os, const IOFormat &D) {
-  return os << to_string(D);
+ostream &operator<<(ostream &OS, const IOFormat &D) {
+  return OS << to_string(D);
 }
 } // namespace psr

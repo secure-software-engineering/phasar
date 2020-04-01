@@ -23,11 +23,11 @@
 
 namespace std {
 template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
     std::hash<const llvm::Value *> hash_ptr;
     std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
+    size_t hp = hash_ptr(P.first);
+    size_t hu = hash_unsigned(P.second);
     return hp ^ (hu << 1);
   }
 };
@@ -77,19 +77,19 @@ IntraMonoFullConstantPropagation::initialSeeds() {
 }
 
 void IntraMonoFullConstantPropagation::printNode(
-    std::ostream &os, const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+    std::ostream &OS, const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
 void IntraMonoFullConstantPropagation::printDataFlowFact(
-    std::ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
-  os << "< " + llvmIRToString(d.first)
-     << ", " + std::to_string(d.second) + " >";
+    std::ostream &OS, std::pair<const llvm::Value *, unsigned> D) const {
+  OS << "< " + llvmIRToString(D.first)
+     << ", " + std::to_string(D.second) + " >";
 }
 
 void IntraMonoFullConstantPropagation::printFunction(
-    std::ostream &os, const llvm::Function *m) const {
-  os << m->getName().str();
+    std::ostream &OS, const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

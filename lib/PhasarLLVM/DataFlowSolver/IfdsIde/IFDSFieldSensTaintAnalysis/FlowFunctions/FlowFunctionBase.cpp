@@ -8,17 +8,17 @@
 
 namespace psr {
 
-std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue fact) {
-  bool isAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, fact);
+std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
+  bool isAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, Fact);
   if (isAutoIdentity)
-    return {fact};
+    return {Fact};
 
-  bool isBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(fact.getValue()) ||
-                              llvm::isa<llvm::SwitchInst>(fact.getValue());
+  bool isBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(Fact.getValue()) ||
+                              llvm::isa<llvm::SwitchInst>(Fact.getValue());
 
   if (isBranchOrSwitchFact) {
     bool removeTaintedBlockInst =
-        DataFlowUtils::removeTaintedBlockInst(fact, currentInst);
+        DataFlowUtils::removeTaintedBlockInst(Fact, currentInst);
     if (removeTaintedBlockInst)
       return {};
 
@@ -28,11 +28,11 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue fact) {
     if (isAutoGEN) {
       traceStats.add(currentInst);
 
-      return {fact, ExtendedValue(currentInst)};
+      return {Fact, ExtendedValue(currentInst)};
     }
 
     std::set<ExtendedValue> targetFacts;
-    targetFacts.insert(fact);
+    targetFacts.insert(Fact);
 
     /*
      * We are only intercepting the branch fact here. All other facts will still
@@ -80,7 +80,7 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue fact) {
     return targetFacts;
   }
 
-  return computeTargetsExt(fact);
+  return computeTargetsExt(Fact);
 }
 
 } // namespace psr

@@ -7,11 +7,11 @@
 namespace psr {
 
 std::set<ExtendedValue>
-GEPInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const auto gepInst = llvm::cast<llvm::GetElementPtrInst>(currentInst);
   const auto gepInstPtr = gepInst->getPointerOperand();
 
-  bool isVarArgFact = fact.isVarArg();
+  bool isVarArgFact = Fact.isVarArg();
   if (isVarArgFact) {
     bool killFact = gepInstPtr->getName().contains_lower("reg_save_area");
     if (killFact)
@@ -24,22 +24,22 @@ GEPInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
           DataFlowUtils::getMemoryLocationSeqFromMatr(gepInstPtr);
 
       bool isVaListEqual = DataFlowUtils::isSubsetMemoryLocationSeq(
-          DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
+          DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact),
           gepVaListMemLocationSeq);
       if (isVaListEqual) {
-        ExtendedValue ev(fact);
+        ExtendedValue ev(Fact);
         ev.incrementCurrentVarArgIndex();
 
         return {ev};
       }
     }
   } else {
-    bool isPtrTainted = DataFlowUtils::isValueTainted(gepInstPtr, fact);
+    bool isPtrTainted = DataFlowUtils::isValueTainted(gepInstPtr, Fact);
     if (isPtrTainted)
-      return {fact, ExtendedValue(gepInst)};
+      return {Fact, ExtendedValue(gepInst)};
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

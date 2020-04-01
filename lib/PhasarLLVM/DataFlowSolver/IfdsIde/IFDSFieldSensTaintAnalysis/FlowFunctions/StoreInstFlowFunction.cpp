@@ -7,26 +7,26 @@
 namespace psr {
 
 std::set<ExtendedValue>
-StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const auto storeInst = llvm::cast<llvm::StoreInst>(currentInst);
 
   const auto srcMemLocationMatr = storeInst->getValueOperand();
   const auto dstMemLocationMatr = storeInst->getPointerOperand();
 
   const auto factMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
   auto srcMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(srcMemLocationMatr);
   auto dstMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(dstMemLocationMatr);
 
   bool isArgumentPatch =
-      DataFlowUtils::isPatchableArgumentStore(srcMemLocationMatr, fact);
+      DataFlowUtils::isPatchableArgumentStore(srcMemLocationMatr, Fact);
   bool isVaListArgumentPatch =
-      DataFlowUtils::isPatchableVaListArgument(srcMemLocationMatr, fact);
+      DataFlowUtils::isPatchableVaListArgument(srcMemLocationMatr, Fact);
 
   bool isReturnValuePatch =
-      DataFlowUtils::isPatchableReturnValue(srcMemLocationMatr, fact);
+      DataFlowUtils::isPatchableReturnValue(srcMemLocationMatr, Fact);
 
   bool isSrcMemLocation = !srcMemLocationSeq.empty();
 
@@ -55,14 +55,14 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       const auto patchableMemLocationSeq =
           isVaListArgumentPatch
-              ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact)
-              : DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+              ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact)
+              : DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
 
       const auto patchedMemLocationSeq =
           DataFlowUtils::patchMemoryLocationFrame(patchableMemLocationSeq,
                                                   dstMemLocationSeq);
 
-      ExtendedValue ev(fact);
+      ExtendedValue ev(Fact);
 
       if (isVaListArgumentPatch) {
         ev.setVaListMemLocationSeq(patchedMemLocationSeq);
@@ -76,7 +76,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       LOG_DEBUG("Patched memory location (arg/store)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(ev);
     }
@@ -98,7 +98,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
           DataFlowUtils::patchMemoryLocationFrame(factMemLocationSeq,
                                                   dstMemLocationSeq);
 
-      ExtendedValue ev(fact);
+      ExtendedValue ev(Fact);
       ev.setMemLocationSeq(patchedMemLocationSeq);
 
       targetFacts.insert(ev);
@@ -106,7 +106,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       LOG_DEBUG("Patched memory location (ret/store)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(ev);
     }
@@ -127,7 +127,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
                                                             factMemLocationSeq);
     bool killFact = DataFlowUtils::isSubsetMemoryLocationSeq(
                         dstMemLocationSeq, factMemLocationSeq) ||
-                    DataFlowUtils::isKillAfterStoreFact(fact);
+                    DataFlowUtils::isKillAfterStoreFact(Fact);
 
     if (genFact) {
       const auto relocatableMemLocationSeq =
@@ -137,7 +137,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
           DataFlowUtils::joinMemoryLocationSeqs(dstMemLocationSeq,
                                                 relocatableMemLocationSeq);
 
-      ExtendedValue ev(fact);
+      ExtendedValue ev(Fact);
       ev.setMemLocationSeq(relocatedMemLocationSeq);
 
       targetFacts.insert(ev);
@@ -145,17 +145,17 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       LOG_DEBUG("Relocated memory location (store)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(ev);
     }
     if (!killFact)
-      targetFacts.insert(fact);
+      targetFacts.insert(Fact);
   } else {
-    bool genFact = DataFlowUtils::isValueTainted(srcMemLocationMatr, fact);
+    bool genFact = DataFlowUtils::isValueTainted(srcMemLocationMatr, Fact);
     bool killFact = DataFlowUtils::isSubsetMemoryLocationSeq(
                         dstMemLocationSeq, factMemLocationSeq) ||
-                    DataFlowUtils::isKillAfterStoreFact(fact);
+                    DataFlowUtils::isKillAfterStoreFact(Fact);
 
     if (genFact) {
       ExtendedValue ev(storeInst);
@@ -165,7 +165,7 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
       traceStats.add(storeInst, dstMemLocationSeq);
     }
     if (!killFact)
-      targetFacts.insert(fact);
+      targetFacts.insert(Fact);
   }
 
   return targetFacts;

@@ -46,7 +46,7 @@ DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &os, const DataFlowAnalysisType &D) {
-  return os << to_string(D);
+ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
+  return OS << to_string(D);
 }
 } // namespace psr

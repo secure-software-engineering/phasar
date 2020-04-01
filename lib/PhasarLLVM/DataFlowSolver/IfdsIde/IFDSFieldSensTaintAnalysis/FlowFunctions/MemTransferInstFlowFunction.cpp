@@ -9,7 +9,7 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   const auto memTransferInst =
       llvm::cast<const llvm::MemTransferInst>(currentInst);
 
@@ -17,14 +17,14 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   const auto dstMemLocationMatr = memTransferInst->getRawDest();
 
   const auto factMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
   auto srcMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(srcMemLocationMatr);
   auto dstMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(dstMemLocationMatr);
 
   bool isArgumentPatch = DataFlowUtils::isPatchableArgumentMemcpy(
-      memTransferInst->getRawSource(), srcMemLocationSeq, fact);
+      memTransferInst->getRawSource(), srcMemLocationSeq, Fact);
   std::set<ExtendedValue> targetFacts;
 
   /*
@@ -33,7 +33,7 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
   if (isArgumentPatch) {
     const auto patchedMemLocationSeq = DataFlowUtils::patchMemoryLocationFrame(
         factMemLocationSeq, dstMemLocationSeq);
-    ExtendedValue ev(fact);
+    ExtendedValue ev(Fact);
     ev.setMemLocationSeq(patchedMemLocationSeq);
     ev.resetVarArgIndex();
 
@@ -42,7 +42,7 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
     LOG_DEBUG("Patched memory location (arg/memcpy)");
     LOG_DEBUG("Source");
-    DataFlowUtils::dumpFact(fact);
+    DataFlowUtils::dumpFact(Fact);
     LOG_DEBUG("Destination");
     DataFlowUtils::dumpFact(ev);
   } else {
@@ -66,7 +66,7 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
       const auto relocatedMemLocationSeq =
           DataFlowUtils::joinMemoryLocationSeqs(dstMemLocationSeq,
                                                 relocatableMemLocationSeq);
-      ExtendedValue ev(fact);
+      ExtendedValue ev(Fact);
       ev.setMemLocationSeq(relocatedMemLocationSeq);
 
       targetFacts.insert(ev);
@@ -74,12 +74,12 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
 
       LOG_DEBUG("Relocated memory location (memcpy/memmove)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(ev);
     }
     if (!killFact)
-      targetFacts.insert(fact);
+      targetFacts.insert(Fact);
   }
 
   return targetFacts;

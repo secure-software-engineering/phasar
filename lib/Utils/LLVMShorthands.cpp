@@ -52,7 +52,7 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
   return false;
 }
 
-SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
+SpecialMemberFunctionTy specialMemberFunctionType(const std::string &S) {
   // test if Codes for Constructors, Destructors or operator= are in string
   static const std::map<std::string, SpecialMemberFunctionTy> codes{
       {"C1", SpecialMemberFunctionTy::CTOR},
@@ -67,7 +67,7 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
   std::size_t blacklist = 0;
   auto it = codes.begin();
   while (it != codes.end()) {
-    if (std::size_t index = s.find(it->first, blacklist)) {
+    if (std::size_t index = S.find(it->first, blacklist)) {
       if (index != std::string::npos) {
         found.push_back(std::make_pair(index, it->second));
         blacklist = index + 1;
@@ -84,14 +84,14 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
   // test if codes are in function name or type information
   bool noName = true;
   for (auto index : found) {
-    for (auto c = s.begin(); c < s.begin() + index.first; ++c) {
+    for (auto c = S.begin(); c < S.begin() + index.first; ++c) {
       if (isdigit(*c)) {
         short i = 0;
         while (isdigit(*(c + i))) {
           ++i;
         }
         std::string st(c, c + i);
-        if (index.first <= std::distance(s.begin(), c) + stoul(st)) {
+        if (index.first <= std::distance(S.begin(), c) + stoul(st)) {
           noName = false;
           break;
         } else {
@@ -108,8 +108,8 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &s) {
   return SpecialMemberFunctionTy::NONE;
 }
 
-SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &sr) {
-  return specialMemberFunctionType(sr.str());
+SpecialMemberFunctionTy specialMemberFunctionType(const llvm::StringRef &Sr) {
+  return specialMemberFunctionType(Sr.str());
 }
 
 bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
@@ -236,10 +236,10 @@ std::string getMetaDataID(const llvm::Value *V) {
 
 llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
 
-bool llvmValueIDLess::operator()(const llvm::Value *lhs,
-                                 const llvm::Value *rhs) const {
-  std::string lhs_id = getMetaDataID(lhs);
-  std::string rhs_id = getMetaDataID(rhs);
+bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
+                                 const llvm::Value *Rhs) const {
+  std::string lhs_id = getMetaDataID(Lhs);
+  std::string rhs_id = getMetaDataID(Rhs);
   return sless(lhs_id, rhs_id);
 }
 
@@ -255,11 +255,11 @@ int getFunctionArgumentNr(const llvm::Argument *Arg) {
 }
 
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
-                                             unsigned argNo) {
-  if (argNo < F->arg_size()) {
+                                             unsigned ArgNo) {
+  if (ArgNo < F->arg_size()) {
     unsigned current = 0;
     for (auto &A : F->args()) {
-      if (argNo == current) {
+      if (ArgNo == current) {
         return &A;
       }
       ++current;
@@ -269,11 +269,11 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
 }
 
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned idx) {
+                                           unsigned Idx) {
   unsigned i = 1;
   for (auto &BB : *F) {
     for (auto &I : BB) {
-      if (i == idx) {
+      if (i == Idx) {
         return &I;
       } else {
         ++i;
@@ -312,9 +312,9 @@ const std::string getModuleNameFromVal(const llvm::Value *V) {
   return M ? M->getModuleIdentifier() : " ";
 }
 
-std::size_t computeModuleHash(llvm::Module *M, bool considerIdentifier) {
+std::size_t computeModuleHash(llvm::Module *M, bool ConsiderIdentifier) {
   std::string SourceCode;
-  if (considerIdentifier) {
+  if (ConsiderIdentifier) {
     llvm::raw_string_ostream RSO(SourceCode);
     llvm::WriteBitcodeToFile(*M, RSO);
     RSO.flush();
@@ -338,11 +338,11 @@ std::size_t computeModuleHash(const llvm::Module *M) {
 }
 
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
-                                               unsigned termInstNo) {
+                                               unsigned TermInstNo) {
   unsigned current = 1;
   for (auto &BB : *F) {
     if (const llvm::Instruction *T = BB.getTerminator()) {
-      if (current == termInstNo) {
+      if (current == TermInstNo) {
         return T;
       }
       current++;
@@ -352,12 +352,12 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 }
 
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
-                                              unsigned stoNo) {
+                                              unsigned StoNo) {
   unsigned current = 1;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (const llvm::StoreInst *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
-        if (current == stoNo) {
+        if (current == StoNo) {
           return S;
         }
         current++;
