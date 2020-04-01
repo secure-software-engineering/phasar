@@ -185,10 +185,13 @@ int main(int argc, const char **argv) {
       ("emit-esg-as-dot", "Emit the exploded super-graph (ESG) as DOT graph")
       ("emit-th-as-text", "Emit the type hierarchy as text")
       ("emit-th-as-dot", "Emit the type hierarchy as DOT graph")
+      ("emit-th-as-json", "Emit the type hierarchy as JSON")
       ("emit-cg-as-text", "Emit the call graph as text")
       ("emit-cg-as-dot", "Emit the call graph as DOT graph")
+      ("emit-cg-as-json", "Emit the call graph as JSON")
       ("emit-pta-as-text", "Emit the points-to information as text")
       ("emit-pta-as-dot", "Emit the points-to information as DOT graph")
+      ("emit-pta-as-json", "Emit the points-to information as JSON")
       ("pamm-out,A", boost::program_options::value<std::string>()->notifier(validateParamPammOutputFile)->default_value("PAMM_data.json"), "Filename for PAMM's gathered data")
       #ifdef PHASAR_PLUGINS_ENABLED
 			("analysis-plugin", boost::program_options::value<std::vector<std::string>>()->notifier(&validateParamAnalysisPlugin), "Analysis plugin(s) (absolute path to the shared object file(s))")
@@ -336,17 +339,26 @@ int main(int argc, const char **argv) {
   if (PhasarConfig::VariablesMap().count("emit-th-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsDot;
   }
+  if (PhasarConfig::VariablesMap().count("emit-th-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitTHAsJson;
+  }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsText;
   }
   if (PhasarConfig::VariablesMap().count("emit-cg-as-dot")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsDot;
   }
+  if (PhasarConfig::VariablesMap().count("emit-cg-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitCGAsJson;
+  }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-text")) {
     EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsText;
   }
   if (PhasarConfig::VariablesMap().count("emit-pta-as-dot")) {
-    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDOT;
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsDot;
+  }
+  if (PhasarConfig::VariablesMap().count("emit-pta-as-json")) {
+    EmitterOptions |= AnalysisControllerEmitterOptions::EmitPTAAsJson;
   }
   // setup output directory
   std::string OutDirectory;

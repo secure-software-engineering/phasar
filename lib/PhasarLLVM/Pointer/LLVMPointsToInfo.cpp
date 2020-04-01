@@ -460,4 +460,8 @@ llvm::AAResults *LLVMPointsToInfo::getAAResults(const llvm::Function *F) const {
   return nullptr;
 }
 
+void LLVMPointsToInfo::printAsJson(std::ostream &OS) const {
+  OS << getAsJson();
+}
+
 } // namespace psr

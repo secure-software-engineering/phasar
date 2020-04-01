@@ -71,6 +71,8 @@ public:
 
   nlohmann::json getAsJson() const override;
 
+  void printAsJson(std::ostream &OS = std::cout) const override;
+
   llvm::AAResults *getAAResults(const llvm::Function *F) const;
 
   PointsToGraph *getPointsToGraph(const llvm::Function *F) const;

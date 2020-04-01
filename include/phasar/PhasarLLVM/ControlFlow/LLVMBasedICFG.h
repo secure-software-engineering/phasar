@@ -226,6 +226,8 @@ public:
                                  // prints
   nlohmann::json getAsJson() const override;
 
+  void printAsJson(std::ostream &OS = std::cout) const;
+
   unsigned getNumOfVertices();
 
   unsigned getNumOfEdges();
