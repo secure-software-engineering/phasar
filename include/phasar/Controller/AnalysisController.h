@@ -15,16 +15,16 @@
 #include <string>
 #include <vector>
 
-#include <boost/filesystem.hpp>
+#include "boost/filesystem.hpp"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h>
-#include <phasar/Utils/EnumFlags.h>
-#include <phasar/Utils/SoundnessFlag.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.h"
+#include "phasar/Utils/EnumFlags.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace psr {
 
@@ -37,10 +37,13 @@ enum class AnalysisControllerEmitterOptions : uint32_t {
   EmitESGAsDot = (1 << 4),
   EmitTHAsText = (1 << 5),
   EmitTHAsDot = (1 << 6),
-  EmitCGAsText = (1 << 7),
-  EmitCGAsDot = (1 << 8),
-  EmitPTAAsText = (1 << 9),
-  EmitPTAAsDOT = (1 << 10)
+  EmitTHAsJson = (1 << 7),
+  EmitCGAsText = (1 << 8),
+  EmitCGAsDot = (1 << 9),
+  EmitCGAsJson = (1 << 10),
+  EmitPTAAsText = (1 << 11),
+  EmitPTAAsDot = (1 << 12),
+  EmitPTAAsJson = (1 << 13),
 };
 
 class AnalysisController {

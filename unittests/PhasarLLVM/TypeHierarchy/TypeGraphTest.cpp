@@ -1,12 +1,12 @@
-#include <gtest/gtest.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h>
-#include <phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/Pointer/TypeGraphs/CachedTypeGraph.h"
+#include "phasar/PhasarLLVM/Pointer/TypeGraphs/LazyTypeGraph.h"
+#include "gtest/gtest.h"
 
-#include <boost/graph/isomorphism.hpp>
-#include <phasar/Config/Configuration.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Utilities.h>
+#include "boost/graph/isomorphism.hpp"
+#include "phasar/Config/Configuration.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;

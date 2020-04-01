@@ -7,10 +7,10 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/AutoKillTMPs.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/AutoKillTMPs.h"
 
 using namespace std;
 using namespace psr;

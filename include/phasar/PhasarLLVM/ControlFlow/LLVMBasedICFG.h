@@ -25,12 +25,12 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
+#include "boost/graph/adjacency_list.hpp"
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
-#include <phasar/Utils/SoundnessFlag.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace llvm {
 class Instruction;
@@ -225,6 +225,8 @@ public:
   using LLVMBasedCFG::getAsJson; // tell the compiler we wish to have both
                                  // prints
   nlohmann::json getAsJson() const override;
+
+  void printAsJson(std::ostream &OS = std::cout) const;
 
   unsigned getNumOfVertices();
 

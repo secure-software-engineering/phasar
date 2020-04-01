@@ -22,13 +22,13 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/Utils/SoundnessFlag.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSIDESolverConfig.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/SolverResults.h"
+#include "phasar/PhasarLLVM/Utils/Printer.h"
+#include "phasar/Utils/SoundnessFlag.h"
 
 namespace psr {
 

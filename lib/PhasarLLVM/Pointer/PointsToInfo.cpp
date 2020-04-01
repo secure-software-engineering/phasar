@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace psr {
 

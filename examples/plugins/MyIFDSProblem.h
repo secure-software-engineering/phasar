@@ -3,7 +3,7 @@
 
 #include <map>
 #include <memory>
-#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
+#include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 #include <set>
 #include <vector>
 

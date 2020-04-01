@@ -14,11 +14,11 @@
 #include <memory>
 #include <utility>
 
-#include <llvm/Support/ErrorHandling.h>
-
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
+#include "llvm/Support/ErrorHandling.h"
+
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 
 namespace psr {
 

@@ -15,11 +15,11 @@
 #include <string>
 #include <vector>
 
-#include <boost/format.hpp>
+#include "boost/format.hpp"
 
-#include <sqlite3.h>
+#include "sqlite3.h"
 
-#include <phasar/DB/Queries.h>
+#include "phasar/DB/Queries.h"
 
 namespace psr {
 /**

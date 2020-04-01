@@ -9,9 +9,9 @@
 
 #include <iostream>
 
-#include <llvm/IR/Module.h>
+#include "llvm/IR/Module.h"
 
-#include <phasar/PhasarLLVM/Passes/ExampleModulePass.h>
+#include "phasar/PhasarLLVM/Passes/ExampleModulePass.h"
 
 using namespace std;
 using namespace psr;

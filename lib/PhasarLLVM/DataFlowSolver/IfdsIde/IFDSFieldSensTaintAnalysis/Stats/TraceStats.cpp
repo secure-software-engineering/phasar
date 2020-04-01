@@ -2,14 +2,14 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
 
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
 
-#include <llvm/IR/DebugInfoMetadata.h>
+#include "llvm/IR/DebugInfoMetadata.h"
 
 namespace psr {
 

@@ -14,7 +14,7 @@
  *      Author: philipp
  */
 
-#include <phasar/Utils/GraphExtensions.h>
+#include "phasar/Utils/GraphExtensions.h"
 
 using namespace psr;
 

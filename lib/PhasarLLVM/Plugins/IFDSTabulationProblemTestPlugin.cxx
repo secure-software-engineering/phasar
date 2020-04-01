@@ -16,10 +16,9 @@
 
 #include <iostream>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 
 #include "IFDSTabulationProblemTestPlugin.h"
 using namespace std;

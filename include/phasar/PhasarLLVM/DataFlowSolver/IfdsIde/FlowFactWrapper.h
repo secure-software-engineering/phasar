@@ -12,7 +12,7 @@
 
 #include <ostream>
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFact.h"
 
 namespace psr {
 

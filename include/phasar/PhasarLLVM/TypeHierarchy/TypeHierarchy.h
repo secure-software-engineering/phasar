@@ -13,9 +13,9 @@
 #include <set>
 #include <string>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/TypeHierarchy/VFTable.h>
+#include "phasar/PhasarLLVM/TypeHierarchy/VFTable.h"
 
 namespace psr {
 

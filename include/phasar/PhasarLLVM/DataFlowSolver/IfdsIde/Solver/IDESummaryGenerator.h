@@ -21,7 +21,7 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
+#include "phasar/PhasarLLVM/Utils/SummaryStrategy.h"
 
 namespace psr {
 

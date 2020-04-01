@@ -9,33 +9,34 @@
 
 #include <algorithm>
 
-#include <llvm/IR/CallSite.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Value.h>
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/IR/CallSite.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Value.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillMultiple.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/PropagateLoad.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
-#include <phasar/Utils/LLVMIRToSrc.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/GenIf.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Kill.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillAll.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/KillMultiple.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/LambdaFlow.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCallee.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/MapFactsToCaller.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMFlowFunctions/PropagateLoad.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETypeStateAnalysis.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
+#include "phasar/Utils/LLVMIRToSrc.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace std;
 using namespace psr;
@@ -89,13 +90,24 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
       return make_shared<TSFlowFunction>(Load);
     }
   }
+  if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(curr)) {
+    if (hasMatchingType(Gep->getPointerOperand())) {
+      return make_shared<LambdaFlow<d_t>>([=](d_t source) -> set<d_t> {
+        // if (source == Gep->getPointerOperand()) {
+        //  return {source, Gep};
+        //}
+        return {source};
+      });
+    }
+  }
   // Check store instructions for target type. Perform a strong update, i.e.
   // kill the alloca pointed to by the pointer-operand and all alloca's related
   // to the value-operand and then generate them from the value-operand.
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
     if (hasMatchingType(Store)) {
       auto RelevantAliasesAndAllocas = getLocalAliasesAndAllocas(
-          Store->getValueOperand(),
+          Store->getPointerOperand(), // pointer- or value operand???
+          // Store->getValueOperand(),
           curr->getParent()->getParent()->getName().str());
 
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
@@ -109,7 +121,9 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t curr,
         computeTargets(IDETypeStateAnalysis::d_t source) override {
           // We kill all relevant loacal aliases and alloca's
           if (source != Store->getValueOperand() &&
-              AliasesAndAllocas.find(source) != AliasesAndAllocas.end()) {
+              // AliasesAndAllocas.find(source) != AliasesAndAllocas.end()
+              // Is simple comparison sufficient?
+              source == Store->getPointerOperand()) {
             return {};
           }
           // Generate all local aliases and relevant alloca's from the stored
@@ -328,12 +342,19 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
     if (hasMatchingType(Alloca)) {
       if (currNode == getZeroValue() && succNode == Alloca) {
-        struct TSAllocaEF : public TSEdgeFunction {
-          TSAllocaEF(const TypeStateDescription &tsd, const std::string &tok)
-              : TSEdgeFunction(tsd, tok) {}
+        struct TSAllocaEF : public EdgeFunction<l_t>,
+                            public std::enable_shared_from_this<TSAllocaEF> {
+          const TypeStateDescription &TSD;
+          l_t CurrentState;
+          const llvm::AllocaInst *Alloca;
+          TSAllocaEF(const TypeStateDescription &tsd,
+                     const llvm::AllocaInst *Alloca)
+              : TSD(tsd), CurrentState(tsd.top()), Alloca(Alloca) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
+            // std::cerr << "UNINIT INITIALIZATION: " << llvmIRToString(Alloca)
+            //          << std::endl;
             CurrentState = TSD.uninit();
             return CurrentState;
           }
@@ -341,8 +362,48 @@ IDETypeStateAnalysis::getNormalEdgeFunction(
           void print(std::ostream &OS, bool isForDebug = false) const override {
             OS << "Alloca(" << TSD.stateToString(CurrentState) << ")";
           }
+
+          bool equal_to(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                            other) const override {
+            if (auto *TSEF =
+                    dynamic_cast<IDETypeStateAnalysis::TSEdgeFunction *>(
+                        other.get())) {
+              return this->CurrentState == TSEF->getCurrentState();
+            }
+            return this == other.get();
+          }
+          std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+          composeWith(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                          secondFunction) override {
+            if (auto *AB = dynamic_cast<AllBottom<IDETypeStateAnalysis::l_t> *>(
+                    secondFunction.get())) {
+              return this->shared_from_this();
+            }
+            if (auto *EI =
+                    dynamic_cast<EdgeIdentity<IDETypeStateAnalysis::l_t> *>(
+                        secondFunction.get())) {
+              return this->shared_from_this();
+            }
+            return make_shared<TSEdgeFunctionComposer>(
+                this->shared_from_this(), secondFunction, TSD.bottom());
+          }
+
+          std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+          joinWith(std::shared_ptr<EdgeFunction<IDETypeStateAnalysis::l_t>>
+                       otherFunction) override {
+            if (otherFunction.get() == this ||
+                otherFunction->equal_to(this->shared_from_this())) {
+              return this->shared_from_this();
+            }
+            if (auto *AT = dynamic_cast<AllTop<IDETypeStateAnalysis::l_t> *>(
+                    otherFunction.get())) {
+              return this->shared_from_this();
+            }
+            return make_shared<AllBottom<IDETypeStateAnalysis::l_t>>(
+                TSD.bottom());
+          }
         };
-        return make_shared<TSAllocaEF>(TSD, "alloca instruction");
+        return make_shared<TSAllocaEF>(TSD, Alloca);
       }
     }
   }
@@ -382,12 +443,15 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Processing factory function");
       if (isZeroValue(callNode) && retSiteNode == CS.getInstruction()) {
         struct TSFactoryEF : public TSEdgeFunction {
-          TSFactoryEF(const TypeStateDescription &tsd, const std::string &tok)
-              : TSEdgeFunction(tsd, tok) {}
+          TSFactoryEF(const TypeStateDescription &tsd, const std::string &tok,
+                      llvm::ImmutableCallSite cs)
+              : TSEdgeFunction(tsd, tok, cs) {}
 
           IDETypeStateAnalysis::l_t
           computeTarget(IDETypeStateAnalysis::l_t source) override {
-            CurrentState = TSD.start();
+            // CurrentState = TSD.start();
+            CurrentState = TSD.getNextState(
+                Token, source == TSD.top() ? TSD.uninit() : source, CS);
             return CurrentState;
           }
 
@@ -395,7 +459,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
             OS << "Factory(" << TSD.stateToString(CurrentState) << ")";
           }
         };
-        return make_shared<TSFactoryEF>(TSD, demangledFname);
+        return make_shared<TSFactoryEF>(TSD, demangledFname, CS);
       }
     }
 
@@ -410,7 +474,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
 
         if (callNode == retSiteNode &&
             PointsToAndAllocas.find(callNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, demangledFname);
+          return make_shared<TSEdgeFunction>(TSD, demangledFname, CS);
         }
       }
     }
@@ -628,27 +692,31 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
   PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
   return PointsToAndAllocas;
 }
-
+bool hasMatchingTypeName(const llvm::Type *ty, const std::string &pattern) {
+  if (auto StructTy = llvm::dyn_cast<llvm::StructType>(ty)) {
+    return StructTy->getName().contains(pattern);
+  } else {
+    // primitive type
+    std::string str;
+    llvm::raw_string_ostream s(str);
+    s << *ty;
+    s.flush();
+    return str.find(pattern) != std::string::npos;
+  }
+}
 bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   // General case
   if (V->getType()->isPointerTy()) {
-    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-            V->getType()->getPointerElementType())) {
-      if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-          llvm::StringRef::npos) {
-        return true;
-      }
-    }
+    if (hasMatchingTypeName(V->getType()->getPointerElementType(),
+                            TSD.getTypeNameOfInterest()))
+      return true;
   }
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Alloca->getAllocatedType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(
+              Alloca->getAllocatedType()->getPointerElementType(),
+              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }
@@ -657,28 +725,21 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
             ->getType()
             ->getPointerElementType()
             ->isPointerTy()) {
-      if (auto StructTy =
-              llvm::dyn_cast<llvm::StructType>(Load->getPointerOperand()
-                                                   ->getType()
-                                                   ->getPointerElementType()
-                                                   ->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(Load->getPointerOperand()
+                                  ->getType()
+                                  ->getPointerElementType()
+                                  ->getPointerElementType(),
+                              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(V)) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
-      if (auto StructTy = llvm::dyn_cast<llvm::StructType>(
-              Store->getValueOperand()->getType()->getPointerElementType())) {
-        if (StructTy->getName().find(TSD.getTypeNameOfInterest()) !=
-            llvm::StringRef::npos) {
-          return true;
-        }
-      }
+      if (hasMatchingTypeName(
+              Store->getValueOperand()->getType()->getPointerElementType(),
+              TSD.getTypeNameOfInterest()))
+        return true;
     }
     return false;
   }
@@ -716,6 +777,10 @@ void IDETypeStateAnalysis::emitTextReport(
                 os << "\nAlloca : " << DtoString(res.first)
                    << "\nState  : " << LtoString(res.second) << '\n';
               }
+            } else {
+              os << "\nInst: " << NtoString(&I) << endl
+                 << "Fact: " << DtoString(res.first) << endl
+                 << "State: " << LtoString(res.second) << endl;
             }
           }
         } else {
@@ -736,6 +801,10 @@ void IDETypeStateAnalysis::emitTextReport(
                 }
                 os << "============================\n";
               }
+            } else {
+              os << "\nInst: " << NtoString(&I) << endl
+                 << "Fact: " << DtoString(res.first) << endl
+                 << "State: " << LtoString(res.second) << endl;
             }
           }
         }

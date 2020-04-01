@@ -13,27 +13,27 @@
  *  Created on: 08.02.2017
  *      Author: pdschbrt
  */
-#include <llvm/ADT/SetVector.h>
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/IR/Constants.h>
-#include <llvm/IR/InstIterator.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
+#include "llvm/ADT/SetVector.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
 
-#include <boost/graph/copy.hpp>
-#include <boost/graph/depth_first_search.hpp>
-#include <boost/graph/graph_utility.hpp>
-#include <boost/graph/graphviz.hpp>
-#include <boost/log/sources/record_ostream.hpp>
+#include "boost/graph/copy.hpp"
+#include "boost/graph/depth_first_search.hpp"
+#include "boost/graph/graph_utility.hpp"
+#include "boost/graph/graphviz.hpp"
+#include "boost/log/sources/record_ostream.hpp"
 
-#include <phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h>
+#include "phasar/PhasarLLVM/Pointer/LLVMPointsToGraph.h"
 
-#include <phasar/Utils/GraphExtensions.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Logger.h>
-#include <phasar/Utils/PAMMMacros.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/GraphExtensions.h"
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/PAMMMacros.h"
+#include "phasar/Utils/Utilities.h"
 
 using namespace std;
 using namespace psr;
@@ -369,7 +369,7 @@ void PointsToGraph::printAsDot(std::ostream &OS) const {
                         makePointerVertexOrEdgePrinter(PAG));
 }
 
-nlohmann::json PointsToGraph::getAsJson() {
+nlohmann::json PointsToGraph::getAsJson() const {
   nlohmann::json J;
   vertex_iterator vi_v, vi_v_end;
   out_edge_iterator ei, ei_end;
@@ -464,5 +464,10 @@ size_t PointsToGraph::getNumVertices() const {
 }
 
 size_t PointsToGraph::getNumEdges() const { return boost::num_edges(PAG); }
+
+void PointsToGraph::printAsJson(std::ostream &OS) const {
+  nlohmann::json J = getAsJson();
+  OS << J;
+}
 
 } // namespace psr

@@ -14,7 +14,7 @@
 #include <utility>
 #include <vector>
 
-#include <phasar/PhasarLLVM/ControlFlow/CFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/CFG.h"
 
 namespace psr {
 

@@ -9,7 +9,7 @@
 
 #include <iostream>
 
-#include <phasar/DB/Hexastore.h>
+#include "phasar/DB/Hexastore.h"
 
 using namespace psr;
 using namespace std;

@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSVARTABULATIONPROBLEM_H_
 #define PHASAR_PHASARLLVM_DATAFLOWSOLVER_IFDSIDE_IFDSVARTABULATIONPROBLEM_H_
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h>
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDEVarTabulationProblem.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
 
 namespace psr {
 

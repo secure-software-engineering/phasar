@@ -17,8 +17,8 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_EDGEFUNCTIONS_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include <memory>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
 #include <set>
 
 namespace psr {

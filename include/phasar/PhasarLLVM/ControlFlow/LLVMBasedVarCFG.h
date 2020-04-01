@@ -14,8 +14,8 @@
 
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/VarCFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/VarCFG.h"
 
 namespace llvm {
 class Function;

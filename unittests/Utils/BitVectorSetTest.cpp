@@ -1,12 +1,13 @@
-#include <gtest/gtest.h>
+#include "gtest/gtest.h"
 
 #include <iostream>
 #include <set>
 #include <utility>
 
-#include <phasar/Utils/BitVectorSet.h>
+#include "phasar/Utils/BitVectorSet.h"
 
 using namespace psr;
+using namespace std;
 
 TEST(BitVectorSet, ctor) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
@@ -303,6 +304,76 @@ TEST(BitVectorSet, includes) {
   BitVectorSet<int> Y({7});
 
   EXPECT_TRUE(X.includes(Y));
+}
+
+TEST(BitVectorSet, iterator) {
+  BitVectorSet<int> A({10, 20, 30, 40, 50});
+  BitVectorSet<int> D({10, 20, 30, 40, 50});
+
+  auto iteratorD = D.begin();
+  for (auto it = A.begin(); it != A.end(); it++) {
+    EXPECT_EQ(*it, *iteratorD);
+    iteratorD++;
+  }
+
+  BitVectorSet<int> E({25, 32, 40, 57});
+  std::set<int> ES;
+  std::set<int> ESGT = {25, 32, 40, 57};
+  for (auto it = E.begin(); it != E.end(); it++) {
+    // EXPECT_TRUE(ESGT.find(*it)!=ESGT.end()); //Extra check
+    ES.insert(*it);
+  }
+  EXPECT_EQ(ES, ESGT);
+}
+
+TEST(BitVectorSet, iterator_movement) {
+  BitVectorSet<int> A({10, 20, 30, 40, 50});
+  BitVectorSet<int> B({30, 40, 50, 60});
+  auto iteratorA = A.begin();
+  auto iteratorB = B.begin();
+
+  iteratorA += 4;
+  iteratorB += 2;
+  EXPECT_EQ(*iteratorA, *iteratorB);
+  EXPECT_EQ(A.count(*iteratorA), 1);
+  iteratorB++;
+  EXPECT_EQ(A.count(*iteratorB), 0);
+}
+
+TEST(BitVectorSet, rangeFor) {
+  BitVectorSet<int> A({1, 2, 3, 4, 5, 6});
+  std::set<int> AS;
+  std::set<int> ASGT = {1, 2, 3, 4, 5, 6};
+
+  for (auto i : A) {
+    AS.insert(i);
+  }
+  EXPECT_EQ(AS, ASGT);
+
+  BitVectorSet<int> B({6, 5, 4, 3, 2, 1});
+  std::set<int> BS;
+  std::set<int> BSGT = {6, 5, 4, 3, 2, 1};
+  for (auto i : B) {
+    BS.insert(i);
+  }
+  EXPECT_EQ(BS, BSGT);
+
+  BitVectorSet<int> C({5, 6, 7, 8, 42, 13});
+  std::set<int> CS;
+  std::set<int> CSGT = {5, 6, 7, 8, 42, 13};
+  for (auto i : C) {
+    CS.insert(i);
+  }
+  EXPECT_EQ(CS, CSGT);
+
+  const BitVectorSet<int> D({5, 6, 7, 8, 42, 13});
+  std::set<int> DS;
+  std::set<int> DSGT = {5, 6, 7, 8, 42, 13};
+  auto i = D.begin();
+  for (auto i : D) {
+    DS.insert(i);
+  }
+  EXPECT_EQ(DS, DSGT);
 }
 
 int main(int argc, char **argv) {

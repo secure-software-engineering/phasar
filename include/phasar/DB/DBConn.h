@@ -23,17 +23,17 @@
 #include <set>
 #include <string>
 
-#include <llvm/IR/Module.h>
+#include "llvm/IR/Module.h"
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h>
-#include <phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h>
-#include <phasar/PhasarLLVM/Pointer/PointsToGraph.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDESummary.h"
+#include "phasar/PhasarLLVM/Pointer/LLVMTypeHierarchy.h"
+#include "phasar/PhasarLLVM/Pointer/PointsToGraph.h"
 // If ProjectIRDB is no more returned, forward declare it and remove this
-#include <phasar/DB/ProjectIRDB.h>
+#include "phasar/DB/ProjectIRDB.h"
 
-#include <mysql_connection.h>
-#include <sqlite3.h>
+#include "mysql_connection.h"
+#include "sqlite3.h"
 
 namespace llvm {
 class GlobalVariable;

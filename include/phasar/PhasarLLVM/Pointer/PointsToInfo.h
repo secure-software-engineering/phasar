@@ -13,7 +13,7 @@
 #include <iosfwd>
 #include <set>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 namespace psr {
 
@@ -36,6 +36,8 @@ public:
   virtual void print(std::ostream &OS) const = 0;
 
   virtual nlohmann::json getAsJson() const = 0;
+
+  virtual void printAsJson(std::ostream &OS) const = 0;
 };
 
 } // namespace psr

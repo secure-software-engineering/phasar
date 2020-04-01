@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include "phasar/PhasarLLVM/Utils/SummaryStrategy.h"
 #include <ostream>
-#include <phasar/PhasarLLVM/Utils/SummaryStrategy.h>
 
 using namespace std;
 using namespace psr;

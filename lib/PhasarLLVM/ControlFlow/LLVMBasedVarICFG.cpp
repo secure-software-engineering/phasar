@@ -7,7 +7,7 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarICFG.h"
 
 using namespace psr;
 

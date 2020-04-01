@@ -7,6 +7,6 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESummaryGenerator.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESummaryGenerator.h"
 using namespace psr;
 namespace psr {} // namespace psr

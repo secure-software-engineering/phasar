@@ -14,10 +14,10 @@
 #include <set>
 #include <string>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h>
-#include <phasar/PhasarLLVM/Utils/BinaryDomain.h>
-#include <phasar/PhasarLLVM/Utils/Printer.h>
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSProblem.h"
+#include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
+#include "phasar/PhasarLLVM/Utils/Printer.h"
 
 namespace llvm {
 class Instruction;

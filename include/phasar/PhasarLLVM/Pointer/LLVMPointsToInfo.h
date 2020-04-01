@@ -14,13 +14,13 @@
 #include <memory>
 #include <string>
 
-#include <llvm/Analysis/AliasAnalysis.h>
-#include <llvm/IR/PassManager.h>
-#include <llvm/Passes/PassBuilder.h>
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Passes/PassBuilder.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/Pointer/PointsToInfo.h>
+#include "phasar/PhasarLLVM/Pointer/PointsToInfo.h"
 
 namespace llvm {
 class Value;
@@ -35,7 +35,7 @@ class PointsToGraph;
 
 enum class PointerAnalysisType {
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/Utils/AnalysisSetups.def>
+#include "phasar/PhasarLLVM/Utils/AnalysisSetups.def"
   Invalid
 };
 
@@ -70,6 +70,8 @@ public:
   void print(std::ostream &OS = std::cout) const override;
 
   nlohmann::json getAsJson() const override;
+
+  void printAsJson(std::ostream &OS = std::cout) const override;
 
   llvm::AAResults *getAAResults(const llvm::Function *F) const;
 

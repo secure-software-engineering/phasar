@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include <llvm/Support/CommandLine.h>
+#include "llvm/Support/CommandLine.h"
 
 extern llvm::cl::OptionCategory PhASARCategory;
 

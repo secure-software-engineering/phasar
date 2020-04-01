@@ -10,8 +10,8 @@
 #ifndef PHASAR_PHASARLLVM_CONTROLFLOW_VARICFG_H_
 #define PHASAR_PHASARLLVM_CONTROLFLOW_VARICFG_H_
 
-#include <phasar/PhasarLLVM/ControlFlow/ICFG.h>
-#include <phasar/PhasarLLVM/ControlFlow/VarCFG.h>
+#include "phasar/PhasarLLVM/ControlFlow/ICFG.h"
+#include "phasar/PhasarLLVM/ControlFlow/VarCFG.h"
 
 namespace psr {
 

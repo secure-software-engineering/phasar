@@ -16,9 +16,9 @@
 
 #include <set>
 
-#include <llvm/IR/CallSite.h>
+#include "llvm/IR/CallSite.h"
 
-#include <phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h>
+#include "phasar/PhasarLLVM/ControlFlow/Resolver/NOResolver.h"
 
 using namespace psr;
 

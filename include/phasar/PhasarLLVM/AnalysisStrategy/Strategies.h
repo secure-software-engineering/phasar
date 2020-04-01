@@ -17,7 +17,7 @@ namespace psr {
 
 enum class AnalysisStrategy {
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE) TYPE,
-#include <phasar/PhasarLLVM/AnalysisStrategy/Strategies.def>
+#include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.def"
 };
 
 std::string to_string(const AnalysisStrategy &S);

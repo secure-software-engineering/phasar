@@ -17,7 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
 #define PHASAR_PHASARLLVM_PASSES_VALUEANNOTATIONPASS_H_
 
-#include <llvm/IR/PassManager.h>
+#include "llvm/IR/PassManager.h"
 
 namespace llvm {
 class LLVMContext;

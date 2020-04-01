@@ -15,13 +15,13 @@
 
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/VarICFG.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunctions.h>
+#include "phasar/PhasarLLVM/ControlFlow/VarICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunctions.h"
 
 namespace psr {
 

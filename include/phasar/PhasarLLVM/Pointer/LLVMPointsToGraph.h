@@ -22,13 +22,13 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
+#include "boost/graph/adjacency_list.hpp"
 
-#include <llvm/IR/CallSite.h>
+#include "llvm/IR/CallSite.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/Config/Configuration.h>
+#include "phasar/Config/Configuration.h"
 
 namespace llvm {
 class Value;
@@ -268,10 +268,15 @@ public:
   size_t getNumVertices() const;
 
   size_t getNumEdges() const;
+
+  nlohmann::json getAsJson() const;
+
   /**
-   * @brief NOT YET IMPLEMENTED
+   * @brief Prints the points-to graph in .json format to the given output
+   * stream.
+   * @param outputstream.
    */
-  nlohmann::json getAsJson();
+  void printAsJson(std::ostream &OS = std::cout) const;
 };
 
 } // namespace psr

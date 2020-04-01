@@ -16,12 +16,12 @@
 
 #include <fstream>
 
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/filesystem.hpp>
+#include "boost/algorithm/string/classification.hpp"
+#include "boost/algorithm/string/split.hpp"
+#include "boost/filesystem.hpp"
 
-#include <phasar/Config/Configuration.h>
-#include <phasar/Config/Version.h>
+#include "phasar/Config/Configuration.h"
+#include "phasar/Config/Version.h"
 
 using namespace psr;
 

@@ -7,13 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <llvm/ADT/StringRef.h>
-#include <llvm/IR/Module.h>
-#include <llvm/PassAnalysisSupport.h>
-#include <llvm/Support/raw_ostream.h>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/IR/Module.h"
+#include "llvm/PassAnalysisSupport.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <phasar/PhasarPass/PhasarPass.h>
-#include <phasar/PhasarPass/PhasarPrinterPass.h>
+#include "phasar/PhasarPass/PhasarPass.h"
+#include "phasar/PhasarPass/PhasarPrinterPass.h"
 
 namespace psr {
 

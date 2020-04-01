@@ -9,17 +9,17 @@
 
 #include <iostream>
 
-#include <llvm/IR/CFG.h>
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/InstrTypes.h>
-#include <llvm/IR/Instruction.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/Support/ErrorHandling.h>
-
 #include <z3++.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h>
-#include <phasar/Utils/LLVMShorthands.h>
+#include "llvm/IR/CFG.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/InstrTypes.h"
+#include "llvm/IR/Instruction.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/ErrorHandling.h"
+
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedVarCFG.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 using namespace psr;
 

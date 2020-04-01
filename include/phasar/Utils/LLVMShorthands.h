@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/Utilities.h"
 
 namespace llvm {
 class Value;

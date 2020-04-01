@@ -25,17 +25,17 @@
 #include <unordered_set>
 #include <vector>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
+#include "boost/graph/adjacency_list.hpp"
+#include "boost/graph/graph_traits.hpp"
 
-#include <llvm/ADT/StringRef.h>
+#include "llvm/ADT/StringRef.h"
 
-#include <gtest/gtest_prod.h>
+#include "gtest/gtest_prod.h"
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
-#include <phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h>
-#include <phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h>
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMVFTable.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/TypeHierarchy.h"
 
 namespace llvm {
 class Module;
@@ -230,6 +230,12 @@ public:
    * 	@param an outputstream
    */
   void printAsDot(std::ostream &OS = std::cout) const;
+
+  /**
+   * @brief Prints the class hierarchy to an ostream in json format.
+   * @param an outputstream
+   */
+  void printAsJson(std::ostream &OS = std::cout) const;
 
   // void printGraphAsDot(std::ostream &out);
 

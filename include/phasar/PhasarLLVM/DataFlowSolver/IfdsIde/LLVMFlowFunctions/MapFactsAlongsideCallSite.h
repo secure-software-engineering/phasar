@@ -14,9 +14,9 @@
 #include <set>
 #include <vector>
 
-#include <llvm/IR/CallSite.h>
+#include "llvm/IR/CallSite.h"
 
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 
 namespace llvm {
 class Value;

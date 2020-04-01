@@ -6,12 +6,13 @@
  * Contributors:
  *     Linus Jungemann and others
  *****************************************************************************/
-#include <phasar/Utils/SoundnessFlag.h>
 
 #include <ostream>
 #include <string>
 
-#include <llvm/ADT/StringSwitch.h>
+#include "llvm/ADT/StringSwitch.h"
+
+#include "phasar/Utils/SoundnessFlag.h"
 
 using namespace psr;
 
@@ -24,7 +25,7 @@ std::string to_string(const SoundnessFlag &SF) {
   case SoundnessFlag::TYPE:                                                    \
     return NAME;                                                               \
     break;
-#include <phasar/Utils/SoundnessFlag.def>
+#include "phasar/Utils/SoundnessFlag.def"
   }
 }
 
@@ -32,13 +33,13 @@ SoundnessFlag to_SoundnessFlag(const std::string &S) {
   SoundnessFlag Type = llvm::StringSwitch<SoundnessFlag>(S)
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
   .Case(NAME, SoundnessFlag::TYPE)
-#include <phasar/Utils/SoundnessFlag.def>
+#include "phasar/Utils/SoundnessFlag.def"
                            .Default(SoundnessFlag::Invalid);
   if (Type == SoundnessFlag::Invalid) {
     Type = llvm::StringSwitch<SoundnessFlag>(S)
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
   .Case(CMDFLAG, SoundnessFlag::TYPE)
-#include <phasar/Utils/SoundnessFlag.def>
+#include "phasar/Utils/SoundnessFlag.def"
                .Default(SoundnessFlag::Invalid);
   }
   return Type;

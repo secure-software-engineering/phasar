@@ -10,10 +10,10 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_STRONGUPDATESTORE_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_LLVMFLOWFUNCTIONS_STRONGUPDATESTORE_H_
 
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 #include <functional>
-#include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h>
 
-#include <llvm/IR/Instructions.h>
+#include "llvm/IR/Instructions.h"
 
 namespace psr {
 

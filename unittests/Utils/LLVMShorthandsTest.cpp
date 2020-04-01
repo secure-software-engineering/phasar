@@ -1,10 +1,10 @@
-#include <gtest/gtest.h>
-#include <llvm/IR/Function.h>
-#include <llvm/IR/Instructions.h>
-#include <phasar/Config/Configuration.h>
-#include <phasar/DB/ProjectIRDB.h>
-#include <phasar/Utils/LLVMShorthands.h>
-#include <phasar/Utils/Utilities.h>
+#include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Config/Configuration.h"
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/Utils/Utilities.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Instructions.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace psr;
