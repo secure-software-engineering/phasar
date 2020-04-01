@@ -59,6 +59,12 @@ bool InterMonoTaintAnalysis::equal_to(
   return Rhs == Lhs;
 }
 
+bool InterMonoTaintAnalysis::equal_to(
+    const BitVectorSet<InterMonoTaintAnalysis::d_t> &Lhs,
+    const BitVectorSet<InterMonoTaintAnalysis::d_t> &Rhs) {
+  return Rhs == Lhs;
+}
+
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
     const llvm::Instruction *Stmt,
     const BitVectorSet<const llvm::Value *> &In) {

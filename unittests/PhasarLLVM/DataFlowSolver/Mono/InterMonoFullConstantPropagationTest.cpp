@@ -66,6 +66,7 @@ protected:
     if (printDump) {
       IMSolver.dumpResults();
     }
+    std::cout << "Done analysis!\n";
     // do the comparison
     bool ResultNotEmpty = false;
     for (auto &Truth : GroundTruth) {
@@ -73,11 +74,11 @@ protected:
       auto Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
       for (auto &[Fact, Value] : ResultSet.getAsSet()) {
-        ResultNotEmpty = true;
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
           std::cout << "Checking variable: " << FactStr << std::endl;
+          ResultNotEmpty = true;
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }
@@ -87,27 +88,84 @@ protected:
 
 }; // Test Fixture
 
-//Currently runs in infinite loop
-/* TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
+// Test for Case I of Store
+TEST_F(InterMonoFullConstantPropagationTest, BasicTest_01) {
   std::set<IMFCPCompactResult_t> GroundTruth;
-  // TODO needs to be adjusted
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string,
                  LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
-          "main", 1, "i", 13));
+          "main", 5, "i", 13));
   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
-} */
+}
 
-TEST_F(InterMonoFullConstantPropagationTest, equal_toTest){
-  InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr, EntryPoints);
+// Test for Case II of Store and Load Inst
+TEST_F(InterMonoFullConstantPropagationTest, BasicTest_02) {
+  std::set<IMFCPCompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+          "main", 8, "i", 13));
+  doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
+}
+
+// Test for Operators
+TEST_F(InterMonoFullConstantPropagationTest, BasicTest_03) {
+  std::set<IMFCPCompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+          "main", 9, "i", 13));
+  doAnalysisAndCompareResults("basic_03_cpp.ll", GroundTruth, true);
+}
+
+// Test for return Flow
+TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_01) {
+  std::set<IMFCPCompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+          "main", 6, "i", 13));
+  doAnalysisAndCompareResults("advanced_01_cpp.ll", GroundTruth, true);
+}
+
+// Test for Call Flow
+TEST_F(InterMonoFullConstantPropagationTest, AdvancedTest_02) {
+  std::set<IMFCPCompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string,
+                 LatticeDomain<InterMonoFullConstantPropagation::plain_d_t>>(
+          "main", 6, "i", 13));
+  doAnalysisAndCompareResults("advanced_02_cpp.ll", GroundTruth, true);
+}
+
+TEST_F(InterMonoFullConstantPropagationTest, sqSubSetEqualTest) {
+  InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr,
+                                       EntryPoints);
   BitVectorSet<InterMonoFullConstantPropagation::d_t> set1;
   BitVectorSet<InterMonoFullConstantPropagation::d_t> set2;
 
-  EXPECT_TRUE(FCP.equal_to(set2,set1));
+  EXPECT_TRUE(FCP.sqSubSetEqual(set2, set1));
 
-  set2.insert({nullptr,Top{}});
+  set2.insert({nullptr, Top{}});
 
-  EXPECT_FALSE(FCP.equal_to(set2,set1));
+  EXPECT_FALSE(FCP.sqSubSetEqual(set2, set1));
+}
+
+TEST_F(InterMonoFullConstantPropagationTest, joinTest) {
+  InterMonoFullConstantPropagation FCP(nullptr, nullptr, nullptr, nullptr,
+                                       EntryPoints);
+  BitVectorSet<InterMonoFullConstantPropagation::d_t> set1;
+  BitVectorSet<InterMonoFullConstantPropagation::d_t> set2;
+  BitVectorSet<InterMonoFullConstantPropagation::d_t> Out;
+
+  set1.insert({nullptr, Top{}});
+  Out = FCP.join(set1, set2);
+  EXPECT_TRUE(set1 == Out);
+
+  set2.insert({nullptr, 3});
+  Out.clear();
+  Out.insert({nullptr, 3});
+  EXPECT_TRUE(Out == FCP.join(set1, set2));
 }
 
 int main(int argc, char **argv) {

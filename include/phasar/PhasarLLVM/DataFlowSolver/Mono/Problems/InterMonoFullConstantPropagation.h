@@ -59,8 +59,19 @@ public:
   BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
                          const BitVectorSet<d_t> &Rhs) override;
 
-  bool equal_to(const BitVectorSet<d_t> &Lhs,
+  BitVectorSet<d_t> merge(const BitVectorSet<d_t> &Lhs,
+                          const BitVectorSet<d_t> &Rhs);
+
+  BitVectorSet<d_t> update(const BitVectorSet<d_t> &Lhs,
+                           const BitVectorSet<d_t> &Rhs);
+
+  bool bitVectorHasInstr(const BitVectorSet<d_t> &set, v_t instr);
+
+  bool sqSubSetEqual(const BitVectorSet<d_t> &Lhs,
                      const BitVectorSet<d_t> &Rhs) override;
+
+  bool equal_to(const BitVectorSet<d_t> &Lhs,
+                const BitVectorSet<d_t> &Rhs) override;
 
   std::unordered_map<n_t, BitVectorSet<d_t>> initialSeeds() override;
 
@@ -76,6 +87,9 @@ public:
   BitVectorSet<d_t> callToRetFlow(n_t CallSite, n_t RetSite,
                                   std::set<f_t> Callees,
                                   const BitVectorSet<d_t> &In) override;
+
+  LatticeDomain<plain_d_t> executeBinOperation(const unsigned op, plain_d_t lop,
+                                               plain_d_t rop);
 
   void printNode(std::ostream &os, n_t n) const override;
 
