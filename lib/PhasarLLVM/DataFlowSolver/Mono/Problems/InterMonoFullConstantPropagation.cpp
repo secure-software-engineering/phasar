@@ -64,18 +64,7 @@ bool InterMonoFullConstantPropagation::equal_to(
 std::unordered_map<InterMonoFullConstantPropagation::n_t,
                    BitVectorSet<InterMonoFullConstantPropagation::d_t>>
 InterMonoFullConstantPropagation::initialSeeds() {
-  std::unordered_map<InterMonoFullConstantPropagation::n_t,
-                     BitVectorSet<InterMonoFullConstantPropagation::d_t>>
-      Seeds;
-  for (auto &EntryPoint : EntryPoints) {
-    if (auto Fun = IRDB->getFunctionDefinition(EntryPoint)) {
-      auto Is = ICF->getStartPointsOf(Fun);
-      for (auto I : Is) {
-        Seeds[I] = {};
-      }
-    }
-  }
-  return Seeds;
+  return IntraPropagation.initialSeeds();
 }
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>

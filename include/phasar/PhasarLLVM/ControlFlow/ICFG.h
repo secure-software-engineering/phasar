@@ -62,10 +62,6 @@ public:
 
   virtual std::set<N> getCallsFromWithin(F fun) const = 0;
 
-  virtual std::set<N> getStartPointsOf(F fun) const = 0;
-
-  virtual std::set<N> getExitPointsOf(F fun) const = 0;
-
   virtual std::set<N> getReturnSitesOfCallAt(N stmt) const = 0;
 
   using CFG<N, F>::print; // tell the compiler we wish to have both prints

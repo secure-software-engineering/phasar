@@ -56,6 +56,12 @@ public:
   std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *fun) const override;
 
+  std::set<const llvm::Instruction *>
+  getStartPointsOf(const llvm::Function *m) const override;
+
+  std::set<const llvm::Instruction *>
+  getExitPointsOf(const llvm::Function *fun) const override;
+
   bool isExitStmt(const llvm::Instruction *stmt) const override;
 
   bool isStartPoint(const llvm::Instruction *stmt) const override;

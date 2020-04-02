@@ -15,6 +15,7 @@
 #include <llvm/IR/Value.h>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
+#include <phasar/DB/ProjectIRDB.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
@@ -124,14 +125,14 @@ IntraMonoFullConstantPropagation::initialSeeds() {
   std::unordered_map<IntraMonoFullConstantPropagation::n_t,
                      BitVectorSet<IntraMonoFullConstantPropagation::d_t>>
       Seeds;
-  /* for (auto &EntryPoint : EntryPoints) {
+  for (auto &EntryPoint : EntryPoints) {
     if (auto Fun = IRDB->getFunctionDefinition(EntryPoint)) {
-      auto Is = ICF->getStartPointsOf(Fun);
+      auto Is = CF->getStartPointsOf(Fun);
       for (auto I : Is) {
         Seeds[I] = {};
       }
     }
-  } */
+  }
   return Seeds;
 }
 

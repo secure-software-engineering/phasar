@@ -39,6 +39,7 @@ class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
 class LLVMBasedCFG;
 class LLVMBasedICFG;
+class ProjectIRDB;
 
 class IntraMonoFullConstantPropagation
     : public IntraMonoProblem<

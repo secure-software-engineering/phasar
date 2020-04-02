@@ -98,16 +98,6 @@ LLVMBasedBackwardsICFG::getCallsFromWithin(const llvm::Function *m) const {
 }
 
 std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getStartPointsOf(const llvm::Function *m) const {
-  return ForwardICFG.getExitPointsOf(m);
-}
-
-std::set<const llvm::Instruction *>
-LLVMBasedBackwardsICFG::getExitPointsOf(const llvm::Function *fun) const {
-  return ForwardICFG.getStartPointsOf(fun);
-}
-
-std::set<const llvm::Instruction *>
 LLVMBasedBackwardsICFG::getReturnSitesOfCallAt(
     const llvm::Instruction *n) const {
   std::set<const llvm::Instruction *> ReturnSites;

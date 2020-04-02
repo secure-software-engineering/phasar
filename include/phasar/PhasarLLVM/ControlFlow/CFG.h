@@ -20,6 +20,7 @@
 #include <string>
 #include <utility> // std::pair
 #include <vector>
+#include <set>
 
 #include <nlohmann/json.hpp>
 
@@ -50,6 +51,10 @@ public:
   virtual bool isFallThroughSuccessor(N stmt, N succ) const = 0;
 
   virtual bool isBranchTarget(N stmt, N succ) const = 0;
+
+  virtual std::set<N> getStartPointsOf(F fun) const = 0;
+
+  virtual std::set<N> getExitPointsOf(F fun) const = 0;
 
   virtual std::string getStatementId(N stmt) const = 0;
 
