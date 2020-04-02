@@ -1,6 +1,8 @@
 file(GLOB_RECURSE PHASARCLANG_SRC *.h *.cpp)
 
 include_directories(${CLANG_INCLUDE_DIRS})
+message(WARNING "Clang include directories:")
+message(WARNING "${CLANG_INCLUDE_DIRS}")
 
 set(PHASAR_LINK_LIBS
   phasar_utils

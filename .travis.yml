@@ -40,11 +40,10 @@ matrix:
           - libboost-thread1.65-dev
     env:
       - MATRIX_EVAL="CC=clang && CXX=clang++"
-  # TODO FIXME
-  # - os: osx
-  #   osx_image: xcode8
-  #   env:
-  #     - MATRIX_EVAL="CC=clang && CXX=clang++"
+  - os: osx
+    osx_image: xcode11.3
+    env:
+      - MATRIX_EVAL="CC=clang && CXX=clang++"
 
 branches:
     - development
@@ -61,15 +60,11 @@ install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-10; export CXX=/usr/bin/clang++-10; fi
-  - echo "checking C++ compiler"; clang++ --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle --verbose; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@9/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@10/bin:$PATH" ; fi
+  - echo "checking C++ compiler"; clang++ --version
   # Initialize all submodules
   - git submodule update --init --recursive
-  # Install boost 1.70
-  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then wget -nc https://dl.bintray.com/boostorg/release/1.70.0/source/boost_1_70_0.tar.gz; tar xf boost_1_70_0.tar.gz; cd boost_1_70_0/; ./bootstrap.sh 1> /dev/null ; fi
-  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then travis_wait 40 sudo ./b2 -j2 -d0 install ; fi
-  # - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd .. ; fi
 
 # commands that need to be run before execution
 # before_script
