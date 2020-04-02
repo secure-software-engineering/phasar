@@ -22,9 +22,7 @@
 #include <type_traits>
 #include <unordered_map>
 
-#include <phasar/Config/ContainerConfiguration.h>
 #include <phasar/PhasarLLVM/Utils/Printer.h>
-#include <phasar/Utils/BitVectorSet.h>
 
 namespace psr {
 
@@ -36,7 +34,7 @@ template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class CFG;
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename C>
+          typename C, typename ContainerTy>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
                          public FunctionPrinter<F> {
@@ -59,17 +57,18 @@ public:
                    const C *CF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
       : IRDB(IRDB), TH(TH), CF(CF), PT(PT), EntryPoints(EntryPoints) {}
+
   ~IntraMonoProblem() override = default;
 
-  virtual BitVectorSet<D> join(const BitVectorSet<D> &Lhs,
-                               const BitVectorSet<D> &Rhs) = 0;
+  virtual ContainerTy merge(const ContainerTy &Lhs,
+                            const ContainerTy &Rhs) = 0;
 
-  virtual bool sqSubSetEqual(const BitVectorSet<D> &Lhs,
-                             const BitVectorSet<D> &Rhs) = 0;
+  virtual bool equals(const ContainerTy &Lhs,
+                      const ContainerTy &Rhs) = 0;
 
-  virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
+  virtual ContainerTy normalFlow(N S, const ContainerTy &In) = 0;
 
-  virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;
+  virtual std::unordered_map<N, ContainerTy> initialSeeds() = 0;
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
 

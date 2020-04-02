@@ -26,22 +26,20 @@
 
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Contexts/CallStringCTX.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/InterMonoProblem.h>
-#include <phasar/Utils/BitVectorSet.h>
 #include <phasar/Utils/LLVMShorthands.h>
 
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I, unsigned K>
+          typename I, typename ContainerTy, unsigned K>
 class InterMonoSolver {
 public:
-  using ProblemTy = InterMonoProblem<N, D, F, T, V, I>;
+  using ProblemTy = InterMonoProblem<N, D, F, T, V, I, ContainerTy>;
 
 protected:
   InterMonoProblem<N, D, F, T, V, I> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<N,
-                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  std::unordered_map<N, std::unordered_map<CallStringCTX<N, K>, ContainerTy>>
       Analysis;
   std::unordered_set<F> AddedFunctions;
   const I *ICF;
@@ -86,7 +84,7 @@ protected:
     std::cout << "-----------------" << std::endl;
   }
 
-  void printBitVectorSet(const BitVectorSet<D> &S) {
+  void printBitVectorSet(const ContainerTy &S) {
     std::cout << "SET CONTENTS:\n{ ";
     for (auto Entry : S.getAsSet()) {
       std::cout << llvmIRToString(Entry) << ", ";
@@ -159,14 +157,18 @@ protected:
 public:
   InterMonoSolver(InterMonoProblem<N, D, F, T, V, I> &IMP)
       : IMProblem(IMP), ICF(IMP.getICFG()) {}
-  InterMonoSolver(const InterMonoSolver &) = delete;
-  InterMonoSolver &operator=(const InterMonoSolver &) = delete;
-  InterMonoSolver(InterMonoSolver &&) = delete;
-  InterMonoSolver &operator=(InterMonoSolver &&) = delete;
+
   virtual ~InterMonoSolver() = default;
 
-  std::unordered_map<N,
-                     std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
+  InterMonoSolver(const InterMonoSolver &) = delete;
+
+  InterMonoSolver &operator=(const InterMonoSolver &) = delete;
+
+  InterMonoSolver(InterMonoSolver &&) = delete;
+
+  InterMonoSolver &operator=(InterMonoSolver &&) = delete;
+
+  std::unordered_map<N, std::unordered_map<CallStringCTX<N, K>, ContainerTy>>
   getAnalysis() {
     return Analysis;
   }
@@ -182,7 +184,7 @@ public:
         addCalleesToWorklist(edge);
       }
       // Compute the data-flow facts using the respective flow function
-      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>> Out;
+      std::unordered_map<CallStringCTX<N, K>, ContainerTy> Out;
       if (ICF->isCallStmt(src)) {
         // Handle call and call-to-ret flow
         if (!isIntraEdge(edge)) {
@@ -268,8 +270,8 @@ public:
     }
   }
 
-  BitVectorSet<D> getResultsAt(N n) {
-    BitVectorSet<D> Result;
+  ContainerTy getResultsAt(N n) {
+    ContainerTy Result;
     for (auto &[CTX, Facts] : Analysis[n]) {
       Result.insert(Facts);
     }
@@ -289,7 +291,7 @@ public:
           if (FlowFacts.empty()) {
             OS << "\tEMPTY\n";
           } else {
-            for (auto FlowFact : FlowFacts.getAsSet()) {
+            for (auto FlowFact : FlowFacts) {
               OS << this->IMProblem.DtoString(FlowFact);
             }
           }
@@ -299,16 +301,21 @@ public:
     }
   }
 
-  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+  virtual void emitTextReport(std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
 
-  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
+  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
+  }
 };
 
 template <typename Problem, unsigned K>
 using InterMonoSolver_P =
     InterMonoSolver<typename Problem::n_t, typename Problem::d_t,
                     typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t, K>;
+                    typename Problem::v_t, typename Problem::i_t,
+                    typename Problem::container_t, K>;
 
 } // namespace psr
 

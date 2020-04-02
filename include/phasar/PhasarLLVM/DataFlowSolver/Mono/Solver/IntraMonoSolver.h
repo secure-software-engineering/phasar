@@ -29,15 +29,15 @@
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename C>
+          typename C, typename ContainerTy>
 class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C>;
+  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C, ContainerTy>;
 
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<N, BitVectorSet<D>> Analysis;
+  std::unordered_map<N, ContainerTy> Analysis;
   const C *CFG;
 
   void initialize() {
@@ -51,7 +51,7 @@ protected:
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
       for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, BitVectorSet<D>()));
+        Analysis.insert(std::make_pair(s, ContainerTy()));
       }
     }
     // insert initial seeds
@@ -74,7 +74,7 @@ public:
       Worklist.pop_front();
       N src = path.first;
       N dst = path.second;
-      BitVectorSet<D> Out = IMProblem.normalFlow(src, Analysis[src]);
+      ContainerTy Out = IMProblem.normalFlow(src, Analysis[src]);
       if (!IMProblem.sqSubSetEqual(Out, Analysis[dst])) {
         Analysis[dst] = IMProblem.join(Analysis[dst], Out);
         for (auto nprimeprime : CFG->getSuccsOf(dst)) {
@@ -90,7 +90,7 @@ public:
     }
   }
 
-  BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
+  ContainerTy getResultsAt(N n) { return Analysis[n]; }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
     OS << "Intra-Monotone solver results:\n"
@@ -101,7 +101,7 @@ public:
       if (FlowFacts.empty()) {
         OS << "\tEMPTY\n";
       } else {
-        for (auto FlowFact : FlowFacts.getAsSet()) {
+        for (auto FlowFact : FlowFacts) {
           OS << this->IMProblem.DtoString(FlowFact) << '\n';
         }
       }
@@ -109,22 +109,29 @@ public:
     }
   }
 
-  virtual void emitTextReport(std::ostream &OS = std::cout) {}
+  virtual void emitTextReport(std::ostream &OS = std::cout) {
+    OS << "No text report available!\n";
+  }
 
-  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {}
+  virtual void emitGraphicalReport(std::ostream &OS = std::cout) {
+    OS << "No graphical report available!\n";
+  }
+
 };
 
 template <typename Problem>
 IntraMonoSolver(Problem &)
     ->IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
                       typename Problem::f_t, typename Problem::t_t,
-                      typename Problem::v_t, typename Problem::i_t>;
+                      typename Problem::v_t, typename Problem::i_t,
+                      typename Problem::container_t>;
 
 template <typename Problem>
 using IntraMonoSolver_P =
     IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
                     typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t>;
+                    typename Problem::v_t, typename Problem::i_t,
+                    typename Problem::container_t>;
 
 } // namespace psr
 
