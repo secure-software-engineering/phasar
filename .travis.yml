@@ -60,7 +60,7 @@ before_install:
 install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-9; export CXX=/usr/bin/clang++-9; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-10; export CXX=/usr/bin/clang++-10; fi
   - echo "checking C++ compiler"; clang++ --version
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle --verbose; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@9/bin:$PATH" ; fi
