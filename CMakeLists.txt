@@ -91,13 +91,6 @@ include_directories(
 # Threads
 find_package(Threads)
 
-# Fix boost_thread dependency for MacOS
-#if(APPLE)
- # set(BOOST_THREAD thread-mt)
-#else()
-  set(BOOST_THREAD thread)
-#endif()
-
 # Boost
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})

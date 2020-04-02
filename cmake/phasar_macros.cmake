@@ -4,18 +4,6 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
-  # Fix boost_thread dependency for MacOS
-  if(APPLE)
-    set(BOOST_THREAD boost_thread-mt)
-  else()
-    set(BOOST_THREAD boost_thread)
-  endif()
-  # Workaround: Remove Plugins for MacOS for now
-  if(APPLE)
-    set(PHASAR_PLUGINS_LIB)
-  else()
-    set(PHASAR_PLUGINS_LIB phasar_plugins)
-  endif()
 
   target_link_libraries(${test}
     phasar_config
