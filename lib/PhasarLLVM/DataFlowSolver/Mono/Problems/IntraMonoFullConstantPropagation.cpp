@@ -14,8 +14,8 @@
 #include <llvm/IR/Instructions.h>
 #include <llvm/IR/Value.h>
 
-#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/DB/ProjectIRDB.h>
+#include <phasar/PhasarLLVM/ControlFlow/LLVMBasedCFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/Mono/Problems/IntraMonoFullConstantPropagation.h>
 #include <phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h>
 #include <phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h>
@@ -101,15 +101,15 @@ bool IntraMonoFullConstantPropagation::sqSubSetEqual(
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Lhs,
     const BitVectorSet<IntraMonoFullConstantPropagation::d_t> &Rhs) {
 
-  /* std::cout << "Lhs sqSubSetEqual:\n";
+  /* std::cout << "sqSubSetEqual Lhs:\n";
   for (auto elem : Lhs.getAsSet()) {
     printDataFlowFact(std::cout, elem);
   }
   std::cout << "---------Rhs:\n";
   for (auto elem : Lhs.getAsSet()) {
     printDataFlowFact(std::cout, elem);
-  }
- */
+  } */
+
   return Rhs.includes(Lhs);
 }
 

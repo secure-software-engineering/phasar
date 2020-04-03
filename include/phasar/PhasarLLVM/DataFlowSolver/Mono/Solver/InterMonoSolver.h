@@ -245,7 +245,6 @@ public:
             bool flowfactsstabilized =
                 IMProblem.sqSubSetEqual(Out[CTXRm], Analysis[retsite][CTXRm]);
             if (!flowfactsstabilized) {
-              std::cout << "Flow not stabilized!!\n";
               Analysis[dst][CTXRm] =
                   IMProblem.join(Analysis[retsite][CTXRm], Out[CTXRm]);
               addToWorklist({src, retsite});

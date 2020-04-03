@@ -185,8 +185,9 @@ InterMonoFullConstantPropagation::returnFlow(
           break;
         }
       }
-
-      Out.insert({CallSite, latticeVal});
+      if (!std::holds_alternative<Top>(latticeVal)) {
+        Out.insert({CallSite, latticeVal});
+      }
       return Out;
     }
 
