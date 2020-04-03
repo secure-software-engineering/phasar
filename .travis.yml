@@ -81,6 +81,7 @@ script:
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make
-  - llvm-config --version
+  # Override llvm-config to match the required one
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then alias llvm-config='llvm-config-10'; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/use-phasar-as-library; mkdir build; cd build/; cmake ..; make; fi

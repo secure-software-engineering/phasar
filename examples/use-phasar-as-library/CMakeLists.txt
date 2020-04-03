@@ -13,6 +13,7 @@ add_executable(myphasartool
   myphasartool.cpp
 )
 
+find_package(Threads REQUIRED)
 find_package(phasar)
 include_directories(${PHASAR_INCLUDE_DIR})
 link_directories(${PHASAR_LIBRARY_DIR})
@@ -32,6 +33,7 @@ target_link_libraries(myphasartool
   phasar::phasar_typehierarchy
   phasar::phasar_phasarllvm_utils
 #  phasar::phasar_utils #already introduced through phasar_clang
+  pthread
 )
 
 install(TARGETS myphasartool
