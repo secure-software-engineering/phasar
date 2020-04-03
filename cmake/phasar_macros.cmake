@@ -5,8 +5,6 @@ function(add_phasar_unittest test_name)
     ${test_name}
   )
 
-  find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
-
   target_link_libraries(${test}
     LINK_PUBLIC
     phasar_config

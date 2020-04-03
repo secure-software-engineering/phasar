@@ -18,7 +18,6 @@ target_link_libraries(myphasartool
   phasar_controller
   phasar_db
   phasar_experimental
-  phasar_clang
   phasar_controlflow
   phasar_ifdside
   phasar_mono
@@ -31,7 +30,6 @@ target_link_libraries(myphasartool
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
-  ${CLANG_LIBRARIES}
   ${llvm_libs}
 )
 
