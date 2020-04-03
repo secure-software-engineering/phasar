@@ -42,6 +42,7 @@ matrix:
       - MATRIX_EVAL="CC=clang && CXX=clang++"
   - os: osx
     osx_image: xcode11.3
+    sudo: enabled
     env:
       - MATRIX_EVAL="CC=clang && CXX=clang++"
 
@@ -57,11 +58,11 @@ before_install:
 
 # install all dependencies
 install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo ; cat /proc/cpuinfo ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then echo "checking machine"; cat /proc/meminfo; cat /proc/cpuinfo; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then echo "checking machine"; hostinfo; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=/usr/bin/clang-10; export CXX=/usr/bin/clang++-10; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then travis_wait 80 brew bundle --verbose; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm@10/bin:$PATH" ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="/usr/local/opt/llvm/bin:$PATH"; fi
   - echo "checking C++ compiler"; clang++ --version
   # Initialize all submodules
   - git submodule update --init --recursive
@@ -80,4 +81,6 @@ script:
   # Build the examples
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make
+  - llvm-config --version
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/use-phasar-as-library; mkdir build; cd build/; cmake ..; make; fi
