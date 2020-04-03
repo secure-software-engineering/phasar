@@ -147,12 +147,12 @@ public:
     REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
 
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "IDE solver is solving the specified problem");
+                      << "IDE solver is solving the specified problem";
+                  BOOST_LOG_SEV(lg::get(), INFO)
+                  << "Submit initial seeds, construct exploded super graph");
     // computations starting here
     START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     // We start our analysis and construct exploded supergraph
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
-                  << "Submit initial seeds, construct exploded super graph");
     submitInitialSeeds();
     STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     if (SolverConfig.computeValues) {
@@ -431,15 +431,14 @@ protected:
             std::shared_ptr<EdgeFunction<L>> sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                          << "Queried Summary Edge Function: "
-                          << sumEdgFnE->str());
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                              << "Compose: " << sumEdgFnE->str() << " * "
-                              << f->str();
-                          BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+            LOG_IF_ENABLE(
+                BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Queried Summary Edge Function: " << sumEdgFnE->str();
+                BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Compose: " << sumEdgFnE->str() << " * " << f->str();
+                BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
