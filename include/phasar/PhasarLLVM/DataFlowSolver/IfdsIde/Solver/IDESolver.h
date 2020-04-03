@@ -146,13 +146,12 @@ public:
     REG_HISTOGRAM("Data-flow facts", PAMM_SEVERITY_LEVEL::Full);
     REG_HISTOGRAM("Points-to", PAMM_SEVERITY_LEVEL::Full);
 
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                   << "IDE solver is solving the specified problem");
     // computations starting here
     START_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
     // We start our analysis and construct exploded supergraph
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                   << "Submit initial seeds, construct exploded super graph");
     submitInitialSeeds();
     STOP_TIMER("DFA Phase I", PAMM_SEVERITY_LEVEL::Full);
@@ -160,12 +159,12 @@ public:
       START_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
       // Computing the final values for the edge functions
       LOG_IF_ENABLE(
-          BOOST_LOG_SEV(lg, INFO)
+          BOOST_LOG_SEV(lg::get(), INFO)
           << "Compute the final values according to the edge functions");
       computeValues();
       STOP_TIMER("DFA Phase II", PAMM_SEVERITY_LEVEL::Full);
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Problem solved");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Problem solved");
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Core) {
       computeAndPrintStatistics();
     }
@@ -388,8 +387,7 @@ protected:
   virtual void processCall(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process call at target: "
                   << IDEProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
@@ -398,17 +396,20 @@ protected:
     std::shared_ptr<EdgeFunction<L>> f = jumpFunction(edge);
     std::set<N> returnSiteNs = ICF->getReturnSitesOfCallAt(n);
     std::set<F> callees = ICF->getCalleesOfCallAt(n);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
-    for (auto callee : callees) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  " << callee->getName().str());
-    }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
-    for (auto ret : returnSiteNs) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  " << IDEProblem.NtoString(ret));
-    }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible callees:";
+        for (auto callee
+             : callees) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << callee->getName().str();
+        } BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "Possible return sites:";
+        for (auto ret
+             : returnSiteNs) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "  " << IDEProblem.NtoString(ret);
+        } BOOST_LOG_SEV(lg::get(), DEBUG)
+        << ' ');
+
     // for each possible callee
     for (F sCalledProcN : callees) { // still line 14
       // check if a special summary for the called procedure exists
@@ -417,7 +418,7 @@ protected:
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (specialSum) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
           std::set<D> res = computeSummaryFlowFunction(specialSum, d1, d2);
@@ -430,15 +431,15 @@ protected:
             std::shared_ptr<EdgeFunction<L>> sumEdgFnE =
                 cachedFlowEdgeFunctions.getSummaryEdgeFunction(n, d2,
                                                                returnSiteN, d3);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Summary Edge Function: "
                           << sumEdgFnE->str());
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "Compose: " << sumEdgFnE->str() << " * "
-                          << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                              << "Compose: " << sumEdgFnE->str() << " * "
+                              << f->str();
+                          BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             propagate(d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
         }
@@ -453,11 +454,11 @@ protected:
         // for each callee's start point(s)
         std::set<N> startPointsOf = ICF->getStartPointsOf(sCalledProcN);
         if (startPointsOf.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "Start points of '" +
-                               ICF->getFunctionName(sCalledProcN) +
-                               "' currently not available!");
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                            << "Start points of '" +
+                                   ICF->getFunctionName(sCalledProcN) +
+                                   "' currently not available!";
+                        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         }
         // if startPointsOf is empty, the called function is a declaration
         for (N sP : startPointsOf) {
@@ -465,7 +466,7 @@ protected:
           // for each result node of the call-flow function
           for (D d3 : res) {
             // create initial self-loop
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Create initial self-loop with D: "
                           << IDEProblem.DtoString(d3));
             propagate(d3, sP, d3, EdgeIdentity<L>::getInstance(), n,
@@ -516,13 +517,13 @@ protected:
                   std::shared_ptr<EdgeFunction<L>> f4 =
                       cachedFlowEdgeFunctions.getCallEdgeFunction(
                           n, d2, sCalledProcN, d3);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Call Edge Function: " << f4->str());
                   // get return edge function
                   std::shared_ptr<EdgeFunction<L>> f5 =
                       cachedFlowEdgeFunctions.getReturnEdgeFunction(
                           n, sCalledProcN, eP, d4, retSiteN, d5);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Queried Return Edge Function: "
                                 << f5->str());
                   if (SolverConfig.emitESG) {
@@ -536,22 +537,23 @@ protected:
                   }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                                << "Compose: " << f5->str() << " * "
-                                << fCalleeSummary->str() << " * " << f4->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                    << "Compose: " << f5->str() << " * "
+                                    << fCalleeSummary->str() << " * "
+                                    << f4->str();
+                                BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
                   std::shared_ptr<EdgeFunction<L>> fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                                << "       = " << fPrime->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                    << "       = " << fPrime->str();
+                                BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                   D d5_restoredCtx = restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                                << "Compose: " << fPrime->str() << " * "
-                                << f->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                    << "Compose: " << fPrime->str() << " * "
+                                    << f->str();
+                                BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                   propagate(d1, retSiteN, d5_restoredCtx,
                             f->composeWith(fPrime), n, false);
                 }
@@ -576,7 +578,7 @@ protected:
           std::shared_ptr<EdgeFunction<L>> edgeFnE =
               cachedFlowEdgeFunctions.getCallToRetEdgeFunction(
                   n, d2, returnSiteN, d3, callees);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Queried Call-to-Return Edge Function: "
                         << edgeFnE->str());
           if (SolverConfig.emitESG) {
@@ -585,10 +587,10 @@ protected:
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
           auto fPrime = f->composeWith(edgeFnE);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "Compose: " << edgeFnE->str() << " * " << f->str()
-                        << " = " << fPrime->str());
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                            << "Compose: " << edgeFnE->str() << " * "
+                            << f->str() << " = " << fPrime->str();
+                        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
           propagate(d1, returnSiteN, d3, fPrime, n, false);
         }
       }
@@ -603,8 +605,7 @@ protected:
   virtual void processNormalFlow(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process normal at target: "
                   << IDEProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
@@ -623,17 +624,17 @@ protected:
       for (D d3 : res) {
         std::shared_ptr<EdgeFunction<L>> g =
             cachedFlowEdgeFunctions.getNormalEdgeFunction(n, d2, fn, d3);
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Normal Edge Function: " << g->str());
         std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
         if (SolverConfig.emitESG) {
           intermediateEdgeFunctions[std::make_tuple(n, d2, fn, d3)].push_back(
               fprime);
         }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "Compose: " << g->str() << " * " << f->str() << " = "
-                      << fprime->str());
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "Compose: " << g->str() << " * " << f->str()
+                          << " = " << fprime->str();
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         propagate(d1, fn, d3, fprime, nullptr, false);
       }
@@ -658,7 +659,6 @@ protected:
 
   void propagateValueAtCall(std::pair<N, D> nAndD, N n) {
     PAMM_GET_INSTANCE;
-    auto &lg = lg::get();
     D d = nAndD.second;
     for (F q : ICF->getCalleesOfCallAt(n)) {
       std::shared_ptr<FlowFunction<D>> callFlowFunction =
@@ -667,7 +667,7 @@ protected:
       for (D dPrime : callFlowFunction->computeTargets(d)) {
         std::shared_ptr<EdgeFunction<L>> edgeFn =
             cachedFlowEdgeFunctions.getCallEdgeFunction(n, d, q, dPrime);
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Queried Call Edge Function: " << edgeFn->str());
         if (SolverConfig.emitESG) {
           for (auto sP : ICF->getStartPointsOf(q)) {
@@ -703,7 +703,6 @@ protected:
   }
 
   void setVal(N nHashN, D nHashD, L l) {
-    auto &lg = lg::get();
     // TOP is the implicit default value which we do not need to store.
     if (l == IDEProblem.topElement()) {
       // do not store top values
@@ -711,42 +710,41 @@ protected:
     } else {
       valtab.insert(nHashN, nHashD, l);
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Function : "
-                  << ICF->getFunctionOf(nHashN)->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Inst.    : " << IDEProblem.NtoString(nHashN));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact     : " << IDEProblem.DtoString(nHashD));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Value    : " << IDEProblem.LtoString(l));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Function : "
+                      << ICF->getFunctionOf(nHashN)->getName().str();
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Inst.    : " << IDEProblem.NtoString(nHashN);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Fact     : " << IDEProblem.DtoString(nHashD);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Value    : " << IDEProblem.LtoString(l);
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
   }
 
   std::shared_ptr<EdgeFunction<L>> jumpFunction(PathEdge<N, D> edge) {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "JumpFunctions Forward-Lookup:");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "   Source D: "
-                  << IDEProblem.DtoString(edge.factAtSource()));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "   Target N: " << IDEProblem.NtoString(edge.getTarget()));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "   Target D: "
-                  << IDEProblem.DtoString(edge.factAtTarget()));
+    LOG_IF_ENABLE(
+        BOOST_LOG_SEV(lg::get(), DEBUG) << " ";
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "JumpFunctions Forward-Lookup:";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "   Source D: " << IDEProblem.DtoString(edge.factAtSource());
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "   Target N: " << IDEProblem.NtoString(edge.getTarget());
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "   Target D: " << IDEProblem.DtoString(edge.factAtTarget()));
     if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
              .count(edge.factAtTarget())) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "  => EdgeFn: " << allTop->str());
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "  => EdgeFn: " << allTop->str();
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
       return allTop;
     }
     auto res = jumpFn->forwardLookup(edge.factAtSource(),
                                      edge.getTarget())[edge.factAtTarget()];
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "  => EdgeFn: " << res->str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "  => EdgeFn: " << res->str();
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     return res;
   }
 
@@ -761,25 +759,21 @@ protected:
   // should be made a callable at some point
   void pathEdgeProcessingTask(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
-    auto &lg = lg::get();
     INC_COUNTER("JumpFn Construction", 1, PAMM_SEVERITY_LEVEL::Full);
     LOG_IF_ENABLE(
-        BOOST_LOG_SEV(lg, DEBUG)
-        << "-------------------------------------------- " << PathEdgeCount
-        << ". Path Edge --------------------------------------------");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Process " << PathEdgeCount << ". path edge:");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "< D source: " << IDEProblem.DtoString(edge.factAtSource())
-                  << " ;");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "  N target: " << IDEProblem.NtoString(edge.getTarget())
-                  << " ;");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "  D target: " << IDEProblem.DtoString(edge.factAtTarget())
-                  << " >");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "-------------------------------------------- " << PathEdgeCount
+            << ". Path Edge --------------------------------------------";
+        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "Process " << PathEdgeCount << ". path edge:";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "< D source: " << IDEProblem.DtoString(edge.factAtSource()) << " ;";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "  N target: " << IDEProblem.NtoString(edge.getTarget()) << " ;";
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+        << "  D target: " << IDEProblem.DtoString(edge.factAtTarget()) << " >";
+        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     bool isCall = ICF->isCallStmt(edge.getTarget());
 
     if (!isCall) {
@@ -845,8 +839,7 @@ protected:
    * Computes the final values for edge functions.
    */
   void computeValues() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start computing values");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Start computing values");
     // Phase II(i)
     std::map<N, std::set<D>> allSeeds(initialSeeds);
     for (N unbalancedRetSite : unbalancedRetSites) {
@@ -882,15 +875,14 @@ protected:
    * their own. Normally, solve() should be called instead.
    */
   void submitInitialSeeds() {
-    auto &lg = lg::get();
     PAMM_GET_INSTANCE;
     for (const auto &[StartPoint, Facts] : initialSeeds) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Start point: " << IDEProblem.NtoString(StartPoint));
       for (const auto &Fact : Facts) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "\tFact: " << IDEProblem.DtoString(Fact));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "\tFact: " << IDEProblem.DtoString(Fact);
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         if (!IDEProblem.isZeroValue(Fact)) {
           INC_COUNTER("Gen facts", 1, PAMM_SEVERITY_LEVEL::Core);
         }
@@ -914,8 +906,7 @@ protected:
   virtual void processExit(PathEdge<N, D> edge) {
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process exit at target: "
                   << IDEProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
@@ -963,13 +954,13 @@ protected:
             std::shared_ptr<EdgeFunction<L>> f4 =
                 cachedFlowEdgeFunctions.getCallEdgeFunction(
                     c, d4, ICF->getFunctionOf(n), d1);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Call Edge Function: " << f4->str());
             // get return edge function
             std::shared_ptr<EdgeFunction<L>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG) {
               for (auto sP : ICF->getStartPointsOf(ICF->getFunctionOf(n))) {
@@ -981,16 +972,16 @@ protected:
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "Compose: " << f5->str() << " * " << f->str()
-                          << " * " << f4->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                              << "Compose: " << f5->str() << " * " << f->str()
+                              << " * " << f4->str();
+                          BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
             std::shared_ptr<EdgeFunction<L>> fPrime =
                 f4->composeWith(f)->composeWith(f5);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "       = " << fPrime->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                              << "       = " << fPrime->str();
+                          BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
             for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
@@ -998,10 +989,10 @@ protected:
               if (!f3->equal_to(allTop)) {
                 D d3 = valAndFunc.first;
                 D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                              << "Compose: " << fPrime->str() << " * "
-                              << f3->str());
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                  << "Compose: " << fPrime->str() << " * "
+                                  << f3->str();
+                              BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                 propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
                           c, false);
               }
@@ -1034,16 +1025,16 @@ protected:
             std::shared_ptr<EdgeFunction<L>> f5 =
                 cachedFlowEdgeFunctions.getReturnEdgeFunction(
                     c, ICF->getFunctionOf(n), n, d2, retSiteC, d5);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Queried Return Edge Function: " << f5->str());
             if (SolverConfig.emitESG) {
               intermediateEdgeFunctions[std::make_tuple(n, d2, retSiteC, d5)]
                   .push_back(f5);
             }
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                          << "Compose: " << f5->str() << " * " << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                              << "Compose: " << f5->str() << " * " << f->str();
+                          BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             propagteUnbalancedReturnFlow(retSiteC, d5, f->composeWith(f5), c);
             // register for value processing (2nd IDE phase)
             unbalancedRetSites.insert(retSiteC);
@@ -1184,18 +1175,17 @@ protected:
             std::shared_ptr<EdgeFunction<L>> f,
             /* deliberately exposed to clients */ N relatedCallSite,
             /* deliberately exposed to clients */ bool isUnbalancedReturn) {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Propagate flow");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Source value  : " << IDEProblem.DtoString(sourceVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Target        : " << IDEProblem.NtoString(target));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Target value  : " << IDEProblem.DtoString(targetVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Propagate flow";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Source value  : " << IDEProblem.DtoString(sourceVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Target        : " << IDEProblem.NtoString(target);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Target value  : " << IDEProblem.DtoString(targetVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Edge function : " << f.get()->str()
-                  << " (result of previous compose)");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  << " (result of previous compose)";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     std::shared_ptr<EdgeFunction<L>> jumpFnE = nullptr;
     std::shared_ptr<EdgeFunction<L>> fPrime;
     if (!jumpFn->reverseLookup(target, targetVal).empty()) {
@@ -1206,33 +1196,33 @@ protected:
     }
     fPrime = jumpFnE->joinWith(f);
     bool newFunction = !(fPrime->equal_to(jumpFnE));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Join: " << jumpFnE->str() << " & " << f.get()->str()
-                  << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " "));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Join: " << jumpFnE->str() << " & " << f.get()->str()
+                      << (jumpFnE->equal_to(f) ? " (EF's are equal)" : " ");
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "    = " << fPrime->str()
-                  << (newFunction ? " (new jump func)" : " "));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  << (newFunction ? " (new jump func)" : " ");
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     if (newFunction) {
       jumpFn->addFunction(sourceVal, target, targetVal, fPrime);
       PathEdge<N, D> edge(sourceVal, target, targetVal);
       PathEdgeCount++;
       pathEdgeProcessingTask(edge);
       if (!IDEProblem.isZeroValue(targetVal)) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "EDGE: <F: " << target->getFunction()->getName().str()
-                      << ", D: " << IDEProblem.DtoString(sourceVal) << '>');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << " ---> <N: " << IDEProblem.NtoString(target) << ',');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "       D: " << IDEProblem.DtoString(targetVal)
-                      << ',');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "      EF: " << fPrime->str() << '>');
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "EDGE: <F: "
+                          << target->getFunction()->getName().str()
+                          << ", D: " << IDEProblem.DtoString(sourceVal) << '>';
+                      BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << " ---> <N: " << IDEProblem.NtoString(target) << ',';
+                      BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "       D: " << IDEProblem.DtoString(targetVal) << ',';
+                      BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "      EF: " << fPrime->str() << '>';
+                      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       }
     } else {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "PROPAGATE: No new function!");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "PROPAGATE: No new function!");
     }
   }
 
@@ -1263,51 +1253,51 @@ protected:
   }
 
   void printIncomingTab() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of incomingtab entry");
-    for (auto cell : incomingtab.cellSet()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << IDEProblem.NtoString(cell.getRowKey()));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d3: " << IDEProblem.DtoString(cell.getColumnKey()));
-      for (auto entry : cell.getValue()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  n: " << IDEProblem.NtoString(entry.first));
-        for (auto fact : entry.second) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "  d2: " << IDEProblem.DtoString(fact));
+    if (boost::log::core::get()->get_logging_enabled()) {
+      BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of incomingtab entry";
+      for (auto cell : incomingtab.cellSet()) {
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "sP: " << IDEProblem.NtoString(cell.getRowKey());
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "d3: " << IDEProblem.DtoString(cell.getColumnKey());
+        for (auto entry : cell.getValue()) {
+          BOOST_LOG_SEV(lg::get(), DEBUG)
+              << "  n: " << IDEProblem.NtoString(entry.first);
+          for (auto fact : entry.second) {
+            BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "  d2: " << IDEProblem.DtoString(fact);
+          }
         }
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "---------------";
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
+      BOOST_LOG_SEV(lg::get(), DEBUG) << "End of incomingtab entry";
+      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End of incomingtab entry");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
   void printEndSummaryTab() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of endsummarytab entry");
-    for (auto cell : endsummarytab.cellVec()) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << IDEProblem.NtoString(cell.getRowKey()));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d1: " << IDEProblem.DtoString(cell.getColumnKey()));
-      for (auto inner_cell : cell.getValue().cellVec()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  eP: "
-                      << IDEProblem.NtoString(inner_cell.getRowKey()));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  d2: "
-                      << IDEProblem.DtoString(inner_cell.getColumnKey()));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  EF: " << inner_cell.getValue()->str());
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    if (boost::log::core::get()->get_logging_enabled()) {
+      BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of endsummarytab entry";
+      for (auto cell : endsummarytab.cellVec()) {
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "sP: " << IDEProblem.NtoString(cell.getRowKey());
+        BOOST_LOG_SEV(lg::get(), DEBUG)
+            << "d1: " << IDEProblem.DtoString(cell.getColumnKey());
+        for (auto inner_cell : cell.getValue().cellVec()) {
+          BOOST_LOG_SEV(lg::get(), DEBUG)
+              << "  eP: " << IDEProblem.NtoString(inner_cell.getRowKey());
+          BOOST_LOG_SEV(lg::get(), DEBUG)
+              << "  d2: " << IDEProblem.DtoString(inner_cell.getColumnKey());
+          BOOST_LOG_SEV(lg::get(), DEBUG)
+              << "  EF: " << inner_cell.getValue()->str();
+          BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
+        }
+        BOOST_LOG_SEV(lg::get(), DEBUG) << "---------------";
+        BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+      BOOST_LOG_SEV(lg::get(), DEBUG) << "End of endsummarytab entry";
+      BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End of endsummarytab entry");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
   }
 
   void printComputedPathEdges() {
@@ -1381,7 +1371,6 @@ protected:
    * generated/killed facts, number of summary-reuses etc.
    */
   void computeAndPrintStatistics() {
-    auto &lg = lg::get();
     PAMM_GET_INSTANCE;
     // Stores all valid facts at return site in caller context; return-site is
     // key
@@ -1395,13 +1384,13 @@ protected:
      */
     for (auto cell : computedIntraPathEdges.cellSet()) {
       auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: " << IDEProblem.NtoString(Edge.first));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "N1: " << IDEProblem.NtoString(Edge.first);
+                    BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "N2: " << IDEProblem.NtoString(Edge.second));
       for (auto D1ToD2Set : cell.getValue()) {
         auto D1 = D1ToD2Set.first;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1));
         auto D2Set = D1ToD2Set.second;
         intraPathEdges += D2Set.size();
@@ -1421,25 +1410,25 @@ protected:
         if (ICF->isCallStmt(Edge.first)) {
           ValidInCallerContext[Edge.second].insert(D2Set.begin(), D2Set.end());
         }
-        for (auto D2 : D2Set) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                        << "d2: " << IDEProblem.DtoString(D2));
-        }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+        LOG_IF_ENABLE(for (auto D2
+                           : D2Set) {
+          BOOST_LOG_SEV(lg::get(), DEBUG) << "d2: " << IDEProblem.DtoString(D2);
+        } BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "----");
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
 
     // Stores all pairs of (Startpoint, Fact) for which a summary was applied
     std::set<std::pair<N, D>> ProcessSummaryFacts;
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "==============================================");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "INTER PATH EDGES");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "==============================================";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << "INTER PATH EDGES");
     for (auto cell : computedInterPathEdges.cellSet()) {
       auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: " << IDEProblem.NtoString(Edge.first));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "N1: " << IDEProblem.NtoString(Edge.first);
+                    BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "N2: " << IDEProblem.NtoString(Edge.second));
       /* --- Call-flow Path Edges ---
        * Case 1: d1 --> empty set
@@ -1459,7 +1448,7 @@ protected:
       if (ICF->isCallStmt(Edge.first)) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
           auto DSet = D1ToD2Set.second;
           interPathEdges += DSet.size();
@@ -1488,10 +1477,10 @@ protected:
             } else {
               ProcessSummaryFacts.insert(std::make_pair(Edge.second, D2));
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "d2: " << IDEProblem.DtoString(D2));
           }
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "----");
         }
       }
       /* --- Return-flow Path Edges ---
@@ -1505,7 +1494,7 @@ protected:
       if (ICF->isExitStmt(cell.getRowKey())) {
         for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
           auto DSet = D1ToD2Set.second;
           interPathEdges += DSet.size();
@@ -1515,25 +1504,26 @@ protected:
             if (CallerFacts.find(D2) == CallerFacts.end()) {
               genFacts++;
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "d2: " << IDEProblem.DtoString(D2));
           }
           if (!IDEProblem.isZeroValue(D1)) {
             killFacts++;
           }
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----");
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "----");
         }
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "SUMMARY REUSE");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "SUMMARY REUSE");
     std::size_t TotalSummaryReuse = 0;
     for (auto entry : fSummaryReuse) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "N1: " << IDEProblem.NtoString(entry.first.first));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "D1: " << IDEProblem.DtoString(entry.first.second));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "#Reuse: " << entry.second);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "N1: " << IDEProblem.NtoString(entry.first.first);
+                    BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "D1: " << IDEProblem.DtoString(entry.first.second);
+                    BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "#Reuse: " << entry.second);
       TotalSummaryReuse += entry.second;
     }
 
@@ -1543,54 +1533,53 @@ protected:
     INC_COUNTER("Intra Path Edges", intraPathEdges, PAMM_SEVERITY_LEVEL::Core);
     INC_COUNTER("Inter Path Edges", interPathEdges, PAMM_SEVERITY_LEVEL::Core);
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "----------------------------------------------");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "=== Solver Statistics ===");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "#Facts generated : " << GET_COUNTER("Gen facts"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "#Facts killed    : " << GET_COUNTER("Kill facts"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "#Summary-reuse   : " << GET_COUNTER("Summary-reuse"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                  << "#Intra Path Edges: " << GET_COUNTER("Intra Path Edges"));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                      << "----------------------------------------------";
+                  BOOST_LOG_SEV(lg::get(), INFO) << "=== Solver Statistics ===";
+                  BOOST_LOG_SEV(lg::get(), INFO)
+                  << "#Facts generated : " << GET_COUNTER("Gen facts");
+                  BOOST_LOG_SEV(lg::get(), INFO)
+                  << "#Facts killed    : " << GET_COUNTER("Kill facts");
+                  BOOST_LOG_SEV(lg::get(), INFO)
+                  << "#Summary-reuse   : " << GET_COUNTER("Summary-reuse");
+                  BOOST_LOG_SEV(lg::get(), INFO)
+                  << "#Intra Path Edges: " << GET_COUNTER("Intra Path Edges");
+                  BOOST_LOG_SEV(lg::get(), INFO)
                   << "#Inter Path Edges: " << GET_COUNTER("Inter Path Edges"));
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Flow function query count: "
-                                            << GET_COUNTER("FF Queries"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Edge function query count: "
-                                            << GET_COUNTER("EF Queries"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Data-flow value propagation count: "
-                    << GET_COUNTER("Value Propagation"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Data-flow value computation count: "
-                    << GET_COUNTER("Value Computation"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Special flow function usage count: "
-                    << GET_COUNTER("SpecialSummary-FF Application"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Jump function construciton count: "
-                    << GET_COUNTER("JumpFn Construction"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Phase I duration: " << PRINT_TIMER("DFA Phase I"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "Phase II duration: " << PRINT_TIMER("DFA Phase II"));
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
-                    << "----------------------------------------------");
+      LOG_IF_ENABLE(
+          BOOST_LOG_SEV(lg::get(), INFO)
+              << "Flow function query count: " << GET_COUNTER("FF Queries");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Edge function query count: " << GET_COUNTER("EF Queries");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Data-flow value propagation count: "
+          << GET_COUNTER("Value Propagation");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Data-flow value computation count: "
+          << GET_COUNTER("Value Computation");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Special flow function usage count: "
+          << GET_COUNTER("SpecialSummary-FF Application");
+          BOOST_LOG_SEV(lg::get(), INFO) << "Jump function construciton count: "
+                                         << GET_COUNTER("JumpFn Construction");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Phase I duration: " << PRINT_TIMER("DFA Phase I");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "Phase II duration: " << PRINT_TIMER("DFA Phase II");
+          BOOST_LOG_SEV(lg::get(), INFO)
+          << "----------------------------------------------");
       cachedFlowEdgeFunctions.print();
     }
   }
 
 public:
   void emitESGasDot() {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Emit Exploded super-graph (ESG) as DOT graph");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Process intra-procedural path egdes");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Emit Exploded super-graph (ESG) as DOT graph";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Process intra-procedural path egdes";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "=============================================");
     DOTGraph<D> G;
     DOTConfig::importDOTConfig();
@@ -1606,8 +1595,8 @@ public:
       auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       std::string n1_label = IDEProblem.NtoString(Edge.first);
       std::string n2_label = IDEProblem.NtoString(Edge.second);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N2: " << n2_label);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << n1_label;
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << n2_label);
       std::string n1_stmtId = ICF->getStatementId(Edge.first);
       std::string n2_stmtId = ICF->getStatementId(Edge.second);
       std::string fnName = ICF->getFunctionOf(Edge.first)->getName().str();
@@ -1634,7 +1623,7 @@ public:
       unsigned D2FactId = 0;
       for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
 
         DOTNode D1;
@@ -1656,7 +1645,7 @@ public:
 
         DOTFactSubGraph *D2_FSG = nullptr;
         for (auto D2Fact : D1ToD2Set.second) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d2: " << IDEProblem.DtoString(D2Fact));
           // We do not need to generate any intra-procedural nodes and edges
           // for the zero value since they will be auto-generated
@@ -1671,7 +1660,7 @@ public:
             for (auto EF : EFVec) {
               EFLabel += EF->str() + ", ";
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "EF LABEL: " << EFLabel);
             if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
               D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
               D1_FSG->edges.emplace(D1, D2, true, EFLabel);
@@ -1684,16 +1673,16 @@ public:
             }
           }
         }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "----------");
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
 
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "=============================================");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Process inter-procedural path edges");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "=============================================";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Process inter-procedural path edges";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "=============================================");
     cells = computedInterPathEdges.cellVec();
     sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
@@ -1707,8 +1696,8 @@ public:
       std::string fNameOfN2 = ICF->getFunctionOf(Edge.second)->getName().str();
       std::string n1_stmtId = ICF->getStatementId(Edge.first);
       std::string n2_stmtId = ICF->getStatementId(Edge.second);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N2: " << n2_label);
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "N1: " << n1_label;
+                    BOOST_LOG_SEV(lg::get(), DEBUG) << "N2: " << n2_label);
 
       // Add inter-procedural control flow edge
       DOTNode N1(fNameOfN1, n1_label, n1_stmtId);
@@ -1743,7 +1732,7 @@ public:
       unsigned D2FactId = 0;
       for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
         DOTNode D1;
         if (IDEProblem.isZeroValue(D1Fact)) {
@@ -1763,7 +1752,7 @@ public:
 
         auto D2Set = D1ToD2Set.second;
         for (auto D2Fact : D2Set) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "d2: " << IDEProblem.DtoString(D2Fact));
           DOTNode D2;
           if (IDEProblem.isZeroValue(D2Fact)) {
@@ -1795,13 +1784,13 @@ public:
             for (auto EF : EFVec) {
               EFLabel += EF->str() + ", ";
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "EF LABEL: " << EFLabel);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "EF LABEL: " << EFLabel);
             G.interFactEdges.emplace(D1, D2, true, EFLabel);
           }
         }
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "----------");
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "----------");
       }
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << " ");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
 
     std::ofstream dotFile("ESG.dot", std::ios::binary);

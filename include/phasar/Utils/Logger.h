@@ -47,10 +47,14 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 // that would go straight into logs if logs are deactivated
 // This macro does just that
 
-#define LOG_IF_ENABLE(computation)                                             \
-  if (boost::log::core::get()->get_logging_enabled()) {                        \
+#define LOG_IF_ENABLE_BOOL(condition, computation)                             \
+  if (condition) {                                                             \
     computation;                                                               \
   }
+
+#define LOG_IF_ENABLE(computation)                                             \
+  LOG_IF_ENABLE_BOOL(boost::log::core::get()->get_logging_enabled(),           \
+                     computation)
 
 // Register the logger and use it a singleton then, get the logger with:
 // boost::log::sources::severity_logger<severity_level>& lg = lg::get();
