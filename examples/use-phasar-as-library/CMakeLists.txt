@@ -24,7 +24,6 @@ target_link_libraries(myphasartool
   phasar::phasar_controller
   phasar::phasar_db
   phasar::phasar_experimental
-  phasar::phasar_clang
   phasar::phasar_controlflow
   phasar::phasar_ifdside
   phasar::phasar_mono
@@ -32,7 +31,7 @@ target_link_libraries(myphasartool
   phasar::phasar_pointer
   phasar::phasar_typehierarchy
   phasar::phasar_phasarllvm_utils
-#  phasar::phasar_utils #already introduced through phasar_clang
+  phasar::phasar_utils
   pthread
 )
 

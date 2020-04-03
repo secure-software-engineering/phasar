@@ -30,24 +30,23 @@ target_link_libraries(phasar_clang
   clangTooling
   clangFrontendTool
   clangFrontend
-  clangDriver
-  clangSerialization
-  clangCodeGen
-  clangParse
-  clangSema
-  clangStaticAnalyzerFrontend
-  clangStaticAnalyzerCheckers
-  clangStaticAnalyzerCore
+  # clangDriver
+  # clangSerialization
+  # clangCodeGen
+  # clangParse
+  # clangSema
+  # clangStaticAnalyzerFrontend
+  # clangStaticAnalyzerCheckers
+  # clangStaticAnalyzerCore
   clangAnalysis
-  clangARCMigrate
+  # clangARCMigrate
   clangRewrite
   clangRewriteFrontend
   clangEdit
   clangAST
   clangASTMatchers
-  clangLex
+  # clangLex
   clangBasic
-
   ${Boost_LIBRARIES}
 )
 
