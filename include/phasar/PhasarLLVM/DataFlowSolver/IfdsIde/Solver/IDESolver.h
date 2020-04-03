@@ -267,9 +267,9 @@ public:
     auto interpe = this->computedInterPathEdges.cellSet();
     for (auto &cell : interpe) {
       std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, cell.r);
+      IDEProblem.printNode(std::cout, cell.getRowKey());
       std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, cell.c);
+      IDEProblem.printNode(std::cout, cell.getColumnKey());
       std::cout << "FACTS" << std::endl;
       for (auto &fact : cell.v) {
         std::cout << "fact" << std::endl;
@@ -287,11 +287,11 @@ public:
     auto intrape = this->computedIntraPathEdges.cellSet();
     for (auto &cell : intrape) {
       std::cout << "FROM" << std::endl;
-      IDEProblem.printNode(std::cout, cell.r);
+      IDEProblem.printNode(std::cout, cell.getRowKey());
       std::cout << "TO" << std::endl;
-      IDEProblem.printNode(std::cout, cell.c);
+      IDEProblem.printNode(std::cout, cell.getColumnKey());
       std::cout << "FACTS" << std::endl;
-      for (auto &fact : cell.v) {
+      for (auto &fact : cell.getValue()) {
         std::cout << "fact" << std::endl;
         IDEProblem.printFlowFact(std::cout, fact.first);
         std::cout << "produces" << std::endl;
@@ -1319,15 +1319,16 @@ protected:
     // Sort intra-procedural path edges
     auto cells = computedIntraPathEdges.cellVec();
     StmtLess stmtless(ICF);
-    sort(cells.begin(), cells.end(),
-         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
+    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
+      return stmtless(a.getRowKey(), b.getRowKey());
+    });
     for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       std::string n2_label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
                 << "N2: " << n2_label << "\n----"
                 << std::string(n2_label.size(), '-') << '\n';
-      for (auto D1ToD2Set : cell.v) {
+      for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
@@ -1344,15 +1345,16 @@ protected:
 
     // Sort intra-procedural path edges
     cells = computedInterPathEdges.cellVec();
-    sort(cells.begin(), cells.end(),
-         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
+    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
+      return stmtless(a.getRowKey(), b.getRowKey());
+    });
     for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       std::string n2_label = IDEProblem.NtoString(Edge.second);
       std::cout << "\nN1: " << IDEProblem.NtoString(Edge.first) << '\n'
                 << "N2: " << n2_label << "\n----"
                 << std::string(n2_label.size(), '-') << '\n';
-      for (auto D1ToD2Set : cell.v) {
+      for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         std::cout << "D1: " << IDEProblem.DtoString(D1Fact) << '\n';
         for (auto D2Fact : D1ToD2Set.second) {
@@ -1392,12 +1394,12 @@ protected:
      * Case 2: d1 not in d2-Set, i.e. d1 was killed. d2-Set could be empty.
      */
     for (auto cell : computedIntraPathEdges.cellSet()) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "N1: " << IDEProblem.NtoString(Edge.first));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "N2: " << IDEProblem.NtoString(Edge.second));
-      for (auto D1ToD2Set : cell.v) {
+      for (auto D1ToD2Set : cell.getValue()) {
         auto D1 = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1));
@@ -1434,7 +1436,7 @@ protected:
                   << "==============================================");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "INTER PATH EDGES");
     for (auto cell : computedInterPathEdges.cellSet()) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                     << "N1: " << IDEProblem.NtoString(Edge.first));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -1455,7 +1457,7 @@ protected:
        *   Process the summary's #gen and #kill.
        */
       if (ICF->isCallStmt(Edge.first)) {
-        for (auto D1ToD2Set : cell.v) {
+        for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
@@ -1500,8 +1502,8 @@ protected:
        * the caller, we have to increase the number of generated facts by one.
        * Zero value does not count towards generated/killed facts.
        */
-      if (ICF->isExitStmt(cell.r)) {
-        for (auto D1ToD2Set : cell.v) {
+      if (ICF->isExitStmt(cell.getRowKey())) {
+        for (auto D1ToD2Set : cell.getValue()) {
           auto D1 = D1ToD2Set.first;
           LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                         << "d1: " << IDEProblem.DtoString(D1));
