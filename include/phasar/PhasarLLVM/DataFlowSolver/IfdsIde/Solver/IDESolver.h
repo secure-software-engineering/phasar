@@ -93,30 +93,28 @@ public:
   virtual ~IDESolver() = default;
 
   nlohmann::json getAsJson() {
+    using TableCell = typename Table<N, D, L>::Cell;
     const static std::string DataFlowID = "DataFlow";
     nlohmann::json J;
     auto results = this->valtab.cellSet();
     if (results.empty()) {
       J[DataFlowID] = "EMPTY";
     } else {
-      std::vector<typename Table<N, D, L>::Cell> cells;
-      for (auto cell : results) {
-        cells.push_back(cell);
-      }
-      sort(cells.begin(), cells.end(),
-           [](typename Table<N, D, L>::Cell a,
-              typename Table<N, D, L>::Cell b) { return a.r < b.r; });
+      std::vector<TableCell> cells(results.begin(), results.end());
+      sort(cells.begin(), cells.end(), [](TableCell a, TableCell b) {
+        return a.getRowKey() < b.getRowKey();
+      });
       N curr;
       for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].r;
-        std::string n = IDEProblem.NtoString(cells[i].r);
+        curr = cells[i].getRowKey();
+        std::string n = IDEProblem.NtoString(cells[i].getRowKey());
         boost::algorithm::trim(n);
         std::string node =
             ICF->getFunctionName(ICF->getFunctionOf(curr)) + "::" + n;
         J[DataFlowID][node];
-        std::string fact = IDEProblem.DtoString(cells[i].c);
+        std::string fact = IDEProblem.DtoString(cells[i].getColumnKey());
         boost::algorithm::trim(fact);
-        std::string value = IDEProblem.LtoString(cells[i].v);
+        std::string value = IDEProblem.LtoString(cells[i].getValue());
         boost::algorithm::trim(value);
         J[DataFlowID][node]["Facts"] += {fact, value};
       }
@@ -243,7 +241,7 @@ public:
       F prevFn = F{};
       F currFn = F{};
       for (unsigned i = 0; i < cells.size(); ++i) {
-        curr = cells[i].r;
+        curr = cells[i].getRowKey();
         currFn = ICF->getFunctionOf(curr);
         if (prevFn != currFn) {
           prevFn = currFn;
@@ -256,8 +254,8 @@ public:
           std::string line(NString.size(), '-');
           OS << "\n\nN: " << NString << "\n---" << line << '\n';
         }
-        OS << "\tD: " << IDEProblem.DtoString(cells[i].c)
-           << " | V: " << IDEProblem.LtoString(cells[i].v) << '\n';
+        OS << "\tD: " << IDEProblem.DtoString(cells[i].getColumnKey())
+           << " | V: " << IDEProblem.LtoString(cells[i].getValue()) << '\n';
       }
     }
     OS << '\n';
@@ -1269,10 +1267,10 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of incomingtab entry");
     for (auto cell : incomingtab.cellSet()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << IDEProblem.NtoString(cell.r));
+                    << "sP: " << IDEProblem.NtoString(cell.getRowKey()));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d3: " << IDEProblem.DtoString(cell.c));
-      for (auto entry : cell.v) {
+                    << "d3: " << IDEProblem.DtoString(cell.getColumnKey()));
+      for (auto entry : cell.getValue()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "  n: " << IDEProblem.NtoString(entry.first));
         for (auto fact : entry.second) {
@@ -1291,16 +1289,18 @@ protected:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start of endsummarytab entry");
     for (auto cell : endsummarytab.cellVec()) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "sP: " << IDEProblem.NtoString(cell.r));
+                    << "sP: " << IDEProblem.NtoString(cell.getRowKey()));
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                    << "d1: " << IDEProblem.DtoString(cell.c));
-      for (auto inner_cell : cell.v.cellVec()) {
+                    << "d1: " << IDEProblem.DtoString(cell.getColumnKey()));
+      for (auto inner_cell : cell.getValue().cellVec()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  eP: " << IDEProblem.NtoString(inner_cell.r));
+                      << "  eP: "
+                      << IDEProblem.NtoString(inner_cell.getRowKey()));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  d2: " << IDEProblem.DtoString(inner_cell.c));
+                      << "  d2: "
+                      << IDEProblem.DtoString(inner_cell.getColumnKey()));
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                      << "  EF: " << inner_cell.v->str());
+                      << "  EF: " << inner_cell.getValue()->str());
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "---------------");
@@ -1597,10 +1597,11 @@ public:
     // Sort intra-procedural path edges
     auto cells = computedIntraPathEdges.cellVec();
     StmtLess stmtless(ICF);
-    sort(cells.begin(), cells.end(),
-         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
+    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
+      return stmtless(a.getRowKey(), b.getRowKey());
+    });
     for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       std::string n1_label = IDEProblem.NtoString(Edge.first);
       std::string n2_label = IDEProblem.NtoString(Edge.second);
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "N1: " << n1_label);
@@ -1629,7 +1630,7 @@ public:
       DOTFactSubGraph *D1_FSG = nullptr;
       unsigned D1FactId = 0;
       unsigned D2FactId = 0;
-      for (auto D1ToD2Set : cell.v) {
+      for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
@@ -1693,10 +1694,11 @@ public:
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "=============================================");
     cells = computedInterPathEdges.cellVec();
-    sort(cells.begin(), cells.end(),
-         [&stmtless](auto a, auto b) { return stmtless(a.r, b.r); });
+    sort(cells.begin(), cells.end(), [&stmtless](auto a, auto b) {
+      return stmtless(a.getRowKey(), b.getRowKey());
+    });
     for (auto cell : cells) {
-      auto Edge = std::make_pair(cell.r, cell.c);
+      auto Edge = std::make_pair(cell.getRowKey(), cell.getColumnKey());
       std::string n1_label = IDEProblem.NtoString(Edge.first);
       std::string n2_label = IDEProblem.NtoString(Edge.second);
       std::string fNameOfN1 = ICF->getFunctionOf(Edge.first)->getName().str();
@@ -1737,7 +1739,7 @@ public:
       // interLambdaEges otherwise add Edge(D1, D2) to interFactEdges
       unsigned D1FactId = 0;
       unsigned D2FactId = 0;
-      for (auto D1ToD2Set : cell.v) {
+      for (auto D1ToD2Set : cell.getValue()) {
         auto D1Fact = D1ToD2Set.first;
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                       << "d1: " << IDEProblem.DtoString(D1Fact));
@@ -1752,7 +1754,7 @@ public:
           // FG should already exist even for single statement functions
           if (!G.containsFactSG(fNameOfN1, D1FactId)) {
             FG = &G.functions[fNameOfN1];
-            auto D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
+            auto *D1_FSG = FG->getOrCreateFactSG(D1FactId, d1_label);
             D1_FSG->nodes.insert(std::make_pair(n1_stmtId, D1));
           }
         }

@@ -33,19 +33,18 @@ private:
 
 public:
   struct Cell {
-    R r;
-    C c;
-    V v;
     Cell() = default;
+    Cell(R row, C col, V val) : r(row), c(col), v(val) {}
     ~Cell() = default;
     Cell(const Cell &) = default;
     Cell &operator=(const Cell &) = default;
     Cell(Cell &&) = default;
     Cell &operator=(Cell &&) = default;
-    Cell(R row, C col, V val) : r(row), c(col), v(val) {}
-    R getRowKey() { return r; }
-    C getColumnKey() { return c; }
-    V getValue() { return v; }
+
+    R getRowKey() const { return r; }
+    C getColumnKey() const { return c; }
+    V getValue() const { return v; }
+
     friend std::ostream &operator<<(std::ostream &os, const Cell &c) {
       return os << "Cell: " << c.r << ", " << c.c << ", " << c.v;
     }
@@ -55,6 +54,11 @@ public:
     friend bool operator==(const Cell &lhs, const Cell &rhs) {
       return std::tie(lhs.r, lhs.c, lhs.v) == std::tie(rhs.r, rhs.c, rhs.v);
     }
+
+  private:
+    R r;
+    C c;
+    V v;
   };
 
   Table() = default;
