@@ -74,7 +74,7 @@ install:
 script:
   - mkdir -p build
   - cd build
-  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DPHASAR_BUILD_UNITTESTS=ON ..
   - make -j2
   - sudo make install
   # - ctest -j2
@@ -82,6 +82,6 @@ script:
   - cd $TRAVIS_BUILD_DIR/examples/llvm-hello_world
   - make
   # Override llvm-config to match the required one
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then alias llvm-config='llvm-config-10'; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then alias llvm-config='llvm-config-10'; llvm-config --version; llvm-config --cppflags; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/plugins; make; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd $TRAVIS_BUILD_DIR/examples/use-phasar-as-library; mkdir build; cd build/; cmake ..; make; fi
