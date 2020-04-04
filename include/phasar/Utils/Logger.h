@@ -48,7 +48,7 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 // This macro does just that
 
 #define LOG_IF_ENABLE_BOOL(condition, computation)                             \
-  if (condition) {                                                             \
+  if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
   }
 
