@@ -492,7 +492,7 @@ protected:
             // <sP,d3>, create new caller-side jump functions to the return
             // sites because we have observed a potentially new incoming
             // edge into <sP,d3>
-            for (const TableCell entry : endSumm(endSummary(sP, d3))) {
+            for (const TableCell entry : endSummary(sP, d3)) {
               N eP = entry.getRowKey();
               D d4 = entry.getColumnKey();
               std::shared_ptr<EdgeFunction<L>> fCalleeSummary =
@@ -1233,7 +1233,7 @@ protected:
       auto key = std::make_pair(sP, d3);
       auto findND = fSummaryReuse.find(key);
       if (findND == fSummaryReuse.end()) {
-        fSummaryReuse.insert(std::make_pair(key, 0));
+        fSummaryReuse.emplace(key, 0);
       } else {
         fSummaryReuse[key] += 1;
       }
@@ -1472,7 +1472,7 @@ protected:
                 }
               }
             } else {
-              ProcessSummaryFacts.insert(std::make_pair(Edge.second, D2));
+              ProcessSummaryFacts.emplace(Edge.second, D2);
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "d2: " << IDEProblem.DtoString(D2));
