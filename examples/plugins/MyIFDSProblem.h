@@ -3,9 +3,10 @@
 
 #include <map>
 #include <memory>
-#include "phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h"
 #include <set>
 #include <vector>
+
+#include <phasar/PhasarLLVM/Plugins/Interfaces/IfdsIde/IFDSTabulationProblemPlugin.h>
 
 namespace psr {
 class ProjectIRDB;

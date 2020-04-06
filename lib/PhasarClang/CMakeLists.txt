@@ -9,6 +9,7 @@ set(PHASAR_LINK_LIBS
 set(LLVM_LINK_COMPONENTS
   Support
   Core
+  Option
 )
 
 if(BUILD_SHARED_LIBS)
@@ -46,7 +47,7 @@ target_link_libraries(phasar_clang
   clangASTMatchers
   clangLex
   clangBasic
-
+  LLVMFrontendOpenMP
   ${Boost_LIBRARIES}
 )
 

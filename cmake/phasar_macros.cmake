@@ -4,45 +4,31 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
-  # Fix boost_thread dependency for MacOS
-  if(APPLE)
-    set(BOOST_THREAD boost_thread-mt)
-  else()
-    set(BOOST_THREAD boost_thread)
-  endif()
-  # Workaround: Remove Plugins for MacOS for now
-  if(APPLE)
-    set(PHASAR_PLUGINS_LIB)
-  else()
-    set(PHASAR_PLUGINS_LIB phasar_plugins)
-  endif()
 
   target_link_libraries(${test}
+    LINK_PUBLIC
     phasar_config
     phasar_controller
+    phasar_controlflow
+    phasar_phasarllvm_utils
+    phasar_analysis_strategy
+    phasar_ifdside
+    phasar_utils
+    phasar_mono
     phasar_db
     phasar_experimental
-    phasar_clang
-    phasar_controlflow
-    phasar_ifdside
-    phasar_mono
+    # phasar_clang
     phasar_passes
-    ${PHASAR_PLUGINS_LIB}
+    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+    phasar_plugins
+    # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
     phasar_typehierarchy
-    phasar_phasarllvm_utils
-    phasar_utils
-    boost_program_options
-    boost_filesystem
-    boost_graph
-    boost_system
-    boost_log
-    ${BOOST_THREAD}
     ${SQLITE3_LIBRARY}
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${CLANG_LIBRARIES}
+    # ${CLANG_LIBRARIES}
     ${llvm_libs}
     curl
     gtest

@@ -430,6 +430,10 @@ void LLVMTypeHierarchy::printAsDot(std::ostream &OS) const {
                         makeTypeHierarchyVertexWriter(TypeGraph));
 }
 
+void LLVMTypeHierarchy::printAsJson(std::ostream &OS) const {
+  OS << getAsJson();
+}
+
 // void LLVMTypeHierarchy::printGraphAsDot(ostream &out) {
 //   boost::dynamic_properties dp;
 //   dp.property("node_id", get(&LLVMTypeHierarchy::VertexProperties::name,

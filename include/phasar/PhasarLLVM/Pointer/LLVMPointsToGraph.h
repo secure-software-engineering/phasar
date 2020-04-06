@@ -268,10 +268,15 @@ public:
   size_t getNumVertices() const;
 
   size_t getNumEdges() const;
+
+  nlohmann::json getAsJson()const ;
+
   /**
-   * @brief NOT YET IMPLEMENTED
+   * @brief Prints the points-to graph in .json format to the given output
+   * stream.
+   * @param outputstream.
    */
-  nlohmann::json getAsJson();
+  void printAsJson(std::ostream &OS = std::cout) const;
 };
 
 } // namespace psr

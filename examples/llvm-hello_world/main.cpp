@@ -1,4 +1,7 @@
 #include <iostream>
+#include <memory>
+#include <string>
+
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugLoc.h"
@@ -10,11 +13,10 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Verifier.h"
 #include "llvm/IRReader/IRReader.h"
+#include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/SMLoc.h"
 #include "llvm/Support/SourceMgr.h"
 #include "llvm/Support/raw_ostream.h"
-#include <memory>
-#include <string>
 
 int main(int argc, char **argv) {
   if (argc != 2) {

@@ -83,12 +83,6 @@ else()
   message("PAMM metric severity level: Off")
 endif()
 
-# Workaround: Remove Plugins for MacOS for now
-if(APPLE)
-else()
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPHASAR_PLUGINS_ENABLED")
-endif()
-
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
@@ -96,13 +90,6 @@ include_directories(
 ### Adding external libraries
 # Threads
 find_package(Threads)
-
-# Fix boost_thread dependency for MacOS
-if(APPLE)
-  set(BOOST_THREAD thread-mt)
-else()
-  set(BOOST_THREAD thread)
-endif()
 
 # Boost
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
@@ -136,7 +123,7 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 # LLVM
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
-  find_package(LLVM 9 REQUIRED CONFIG)
+  find_package(LLVM 10 REQUIRED CONFIG)
   find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
@@ -215,13 +202,7 @@ llvm_map_components_to_libnames(llvm_libs
 # phasar-based binaries
 add_subdirectory(tools)
 
-# Workaround: Remove Plugins for MacOS for now
-if(APPLE)
-  set(PHASAR_PLUGINS_LIB)
-  message(WARNING "Plugins are currently not supported on MacOS platforms")
-else()
-  set(PHASAR_PLUGINS_LIB phasar_plugins)
-endif()
+set(PHASAR_PLUGINS_LIB phasar_plugins)
 
 # Add Phasar unittests and build all IR test code
 if (PHASAR_BUILD_UNITTESTS)

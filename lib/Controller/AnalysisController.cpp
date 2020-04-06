@@ -277,6 +277,14 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       TH.printAsDot();
     }
   }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitTHAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-th.json");
+      TH.printAsJson(OFS);
+    } else {
+      TH.printAsJson();
+    }
+  }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsText) {
     if (!ResultDirectory.empty()) {
       std::ofstream OFS(ResultDirectory.string() + "/psr-pta.txt");
@@ -285,12 +293,20 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       PT.print();
     }
   }
-  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDOT) {
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsDot) {
     if (!ResultDirectory.empty()) {
       std::ofstream OFS(ResultDirectory.string() + "/psr-pta.dot");
       PT.print(OFS);
     } else {
       PT.print();
+    }
+  }
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitPTAAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-pta.json");
+      PT.printAsJson(OFS);
+    } else {
+      PT.printAsJson();
     }
   }
   if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsText) {
@@ -307,6 +323,15 @@ void AnalysisController::emitRequestedHelperAnalysisResults() {
       ICF.printAsDot(OFS);
     } else {
       ICF.printAsDot();
+    }
+  }
+
+  if (EmitterOptions & AnalysisControllerEmitterOptions::EmitCGAsJson) {
+    if (!ResultDirectory.empty()) {
+      std::ofstream OFS(ResultDirectory.string() + "/psr-cg.json");
+      ICF.printAsJson(OFS);
+    } else {
+      ICF.printAsJson();
     }
   }
 }

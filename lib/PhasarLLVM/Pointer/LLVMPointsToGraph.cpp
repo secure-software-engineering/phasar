@@ -369,7 +369,7 @@ void PointsToGraph::printAsDot(std::ostream &OS) const {
                         makePointerVertexOrEdgePrinter(PAG));
 }
 
-nlohmann::json PointsToGraph::getAsJson() {
+nlohmann::json PointsToGraph::getAsJson() const {
   nlohmann::json J;
   vertex_iterator vi_v, vi_v_end;
   out_edge_iterator ei, ei_end;
@@ -464,5 +464,10 @@ size_t PointsToGraph::getNumVertices() const {
 }
 
 size_t PointsToGraph::getNumEdges() const { return boost::num_edges(PAG); }
+
+void PointsToGraph::printAsJson(std::ostream &OS) const {
+  nlohmann::json J = getAsJson();
+  OS << J;
+}
 
 } // namespace psr
