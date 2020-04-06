@@ -10,6 +10,7 @@ set(Sources
   call_03.cpp
   call_04.cpp
   call_05.cpp
+  KillTest.cpp
 )
 
 foreach(TEST_SRC ${Sources})

@@ -311,6 +311,18 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
   doAnalysisAndCompareResults("call_05_cpp.ll", GroundTruth, false);
 }
 
+TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
+  std::set<IIACompactResult_t> gt;
+  gt.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 13, "j", {"9", "8", "1", "6"}));
+
+  gt.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 14, "j", {"13"}));
+  doAnalysisAndCompareResults("KillTest_cpp.ll", gt, true);
+}
+
 // main function for the test case/*  */
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
