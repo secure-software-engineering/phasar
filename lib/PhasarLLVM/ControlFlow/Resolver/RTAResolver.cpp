@@ -52,50 +52,50 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   // throw runtime_error("RTA is currently unabled to deal with already built "
   //                     "library, it has been disable until this is fixed");
 
-  set<const llvm::Function *> possible_call_targets;
-  auto &lg = lg::get();
+  set<const llvm::Function *> PossibleCallTargets;
+  auto &LG = lg::get();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVFTIndex(CS);
-  if (vtable_index < 0) {
+  auto VtableIndex = getVFTIndex(CS);
+  if (VtableIndex < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Virtual function table entry is: " << vtable_index);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+                << "Virtual function table entry is: " << VtableIndex);
 
-  auto receiver_type = getReceiverType(CS);
-
-  // also insert all possible subtypes vtable entries
-  auto reachable_types = Resolver::TH->getSubTypes(receiver_type);
+  auto ReceiverType = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
-  auto possible_types = IRDB.getAllocatedStructTypes();
+  auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
 
-  auto end_it = reachable_types.end();
-  for (auto possible_type : possible_types) {
-    if (auto possible_type_struct =
-            llvm::dyn_cast<llvm::StructType>(possible_type)) {
-      if (reachable_types.find(possible_type_struct) != end_it) {
+  // also insert all possible subtypes vtable entries
+  auto PossibleTypes = IRDB.getAllocatedStructTypes();
+
+  auto EndIt = ReachableTypes.end();
+  for (auto PossibleType : PossibleTypes) {
+    if (auto PossibleTypeStruct =
+            llvm::dyn_cast<llvm::StructType>(PossibleType)) {
+      if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
         auto Target =
-            getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+            getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
         if (Target) {
-          possible_call_targets.insert(Target);
+          PossibleCallTargets.insert(Target);
         }
       }
     }
   }
 
-  if (possible_call_targets.size() == 0)
+  if (PossibleCallTargets.size() == 0)
     return CHAResolver::resolveVirtualCall(CS);
 
-  return possible_call_targets;
+  return PossibleCallTargets;
 }

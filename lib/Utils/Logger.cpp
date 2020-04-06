@@ -47,16 +47,16 @@ const map<severity_level, string> SeverityLevelToString = {
     {ERROR, "ERROR"},
     {CRITICAL, "CRITICAL"}};
 
-severity_level logFilterLevel = DEBUG;
+severity_level LogFilterLevel = DEBUG;
 
-void setLoggerFilterLevel(severity_level Level) { logFilterLevel = Level; }
+void setLoggerFilterLevel(severity_level Level) { LogFilterLevel = Level; }
 
 ostream &operator<<(ostream &OS, enum severity_level L) {
   return OS << SeverityLevelToString.at(L);
 }
 
 bool LogFilter(const boost::log::attribute_value_set &Set) {
-  return Set["Severity"].extract<severity_level>() >= logFilterLevel;
+  return Set["Severity"].extract<severity_level>() >= LogFilterLevel;
 }
 
 void LogFormatter(const boost::log::record_view &View,
@@ -78,9 +78,9 @@ void initializeLogger(bool UseLogger, string LogFile) {
   typedef boost::log::sinks::synchronous_sink<
       boost::log::sinks::text_ostream_backend>
       text_sink;
-  boost::shared_ptr<text_sink> sink = boost::make_shared<text_sink>();
+  boost::shared_ptr<text_sink> Sink = boost::make_shared<text_sink>();
   // the easiest way is to write the logs to std::clog
-  boost::shared_ptr<std::ostream> stream(&std::clog, boost::null_deleter{});
+  boost::shared_ptr<std::ostream> Stream(&std::clog, boost::null_deleter{});
   // } else {
   // // get the time and make it into a string for log file nameing
   // time_t current_time = std::time(nullptr);
@@ -96,10 +96,10 @@ void initializeLogger(bool UseLogger, string LogFile) {
   // auto stream = boost::make_shared<std::ofstream>(LogFileDirectory + time +
   // log_file);
   // }
-  sink->locked_backend()->add_stream(stream);
-  sink->set_filter(&LogFilter);
-  sink->set_formatter(&LogFormatter);
-  boost::log::core::get()->add_sink(sink);
+  Sink->locked_backend()->add_stream(Stream);
+  Sink->set_filter(&LogFilter);
+  Sink->set_formatter(&LogFormatter);
+  boost::log::core::get()->add_sink(Sink);
   boost::log::core::get()->add_global_attribute(
       "LineCounter", boost::log::attributes::counter<int>{});
   boost::log::core::get()->add_global_attribute(

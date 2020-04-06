@@ -8,13 +8,13 @@ namespace psr {
 
 std::set<ExtendedValue>
 ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto retInst = llvm::cast<llvm::ReturnInst>(currentInst);
-  const auto retValMemLocationMatr = retInst->getReturnValue();
+  const auto RetInst = llvm::cast<llvm::ReturnInst>(currentInst);
+  const auto RetValMemLocationMatr = RetInst->getReturnValue();
 
-  if (retValMemLocationMatr) {
-    bool isRetValTainted =
-        DataFlowUtils::isValueTainted(retValMemLocationMatr, Fact) ||
-        DataFlowUtils::isMemoryLocationTainted(retValMemLocationMatr, Fact);
+  if (RetValMemLocationMatr) {
+    bool IsRetValTainted =
+        DataFlowUtils::isValueTainted(RetValMemLocationMatr, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(RetValMemLocationMatr, Fact);
 
     /*
      * We don't need to GEN/KILL any facts here as this is all handled
@@ -22,8 +22,8 @@ ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
      * function is to make sure that a tainted return statement of an
      * entry point is added as for that case no mapping function is called.
      */
-    if (isRetValTainted)
-      traceStats.add(retInst);
+    if (IsRetValTainted)
+      traceStats.add(RetInst);
   }
 
   return {Fact};

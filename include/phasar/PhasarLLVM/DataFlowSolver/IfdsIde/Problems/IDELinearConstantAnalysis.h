@@ -39,9 +39,9 @@ class IDELinearConstantAnalysis
                                   int64_t, LLVMBasedICFG> {
 private:
   // For debug purpose only
-  static unsigned CurrGenConstant_Id;
-  static unsigned CurrLCAID_Id;
-  static unsigned CurrBinary_Id;
+  static unsigned CurrGenConstantId;
+  static unsigned CurrLCAIDId;
+  static unsigned CurrBinaryId;
 
 public:
   typedef const llvm::Value *d_t;

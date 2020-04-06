@@ -29,9 +29,9 @@ constexpr char MoreHelp[] =
     ;
 
 template <typename T> static std::set<T> vectorToSet(const std::vector<T> &V) {
-  std::set<T> s;
-  for_each(V.begin(), V.end(), [&s](T Item) { s.insert(Item); });
-  return s;
+  std::set<T> S;
+  for_each(V.begin(), V.end(), [&S](T Item) { S.insert(Item); });
+  return S;
 }
 
 void validateParamConfigFile(const std::string &Config) {
@@ -216,11 +216,11 @@ int main(int Argc, const char **Argv) {
   }
   try {
     if (ConfigFile != "") {
-      std::ifstream ifs(ConfigFile.c_str());
-      if (!ifs) {
+      std::ifstream Ifs(ConfigFile.c_str());
+      if (!Ifs) {
       } else {
         boost::program_options::store(
-            boost::program_options::parse_config_file(ifs, ConfigFileOptions),
+            boost::program_options::parse_config_file(Ifs, ConfigFileOptions),
             PhasarConfig::VariablesMap());
         boost::program_options::notify(PhasarConfig::VariablesMap());
       }

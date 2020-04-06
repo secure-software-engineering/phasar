@@ -16,5 +16,5 @@ CheckOptions:
     value:           CamelCase
   - key:             readability-identifier-naming.UnionCase
     value:           CamelCase
-#  - key:             readability-identifier-naming.VariableCase
-#    value:           CamelCase
+  - key:             readability-identifier-naming.VariableCase
+    value:           CamelCase

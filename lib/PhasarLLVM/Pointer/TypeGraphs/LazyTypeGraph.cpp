@@ -35,10 +35,10 @@ struct LazyTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
   dfs_visitor(std::set<const llvm::StructType *> &Result) : Result(Result) {}
 
   void finish_edge(edge_t E, graph_t const &U) {
-    LazyTypeGraph::vertex_t src = boost::source(E, U);
-    LazyTypeGraph::vertex_t target = boost::target(E, U);
+    LazyTypeGraph::vertex_t Src = boost::source(E, U);
+    LazyTypeGraph::vertex_t Target = boost::target(E, U);
 
-    Result.insert(U[target].type);
+    Result.insert(U[Target].type);
   }
 
   std::set<const llvm::StructType *> &Result;
@@ -46,16 +46,16 @@ struct LazyTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
 
 LazyTypeGraph::vertex_t
 LazyTypeGraph::addType(const llvm::StructType *NewType) {
-  auto name = NewType->getName().str();
+  auto Name = NewType->getName().str();
 
-  if (type_vertex_map.find(name) == type_vertex_map.end()) {
-    auto vertex = boost::add_vertex(g);
-    type_vertex_map[name] = vertex;
-    g[vertex].name = name;
-    g[vertex].type = NewType;
+  if (type_vertex_map.find(Name) == type_vertex_map.end()) {
+    auto Vertex = boost::add_vertex(g);
+    type_vertex_map[Name] = Vertex;
+    g[Vertex].name = Name;
+    g[Vertex].type = NewType;
   }
 
-  return type_vertex_map[name];
+  return type_vertex_map[Name];
 }
 
 bool LazyTypeGraph::addLink(const llvm::StructType *From,
@@ -65,39 +65,39 @@ bool LazyTypeGraph::addLink(const llvm::StructType *From,
 
   already_visited = true;
 
-  auto from_vertex = addType(From);
-  auto to_vertex = addType(To);
+  auto FromVertex = addType(From);
+  auto ToVertex = addType(To);
 
-  auto result_edge = boost::add_edge(from_vertex, to_vertex, g);
+  auto ResultEdge = boost::add_edge(FromVertex, ToVertex, g);
 
   already_visited = false;
-  return result_edge.second;
+  return ResultEdge.second;
 }
 
 void LazyTypeGraph::printAsDot(const std::string &Path) const {
-  std::ofstream ofs(Path);
-  boost::write_graphviz(ofs, g,
+  std::ofstream Ofs(Path);
+  boost::write_graphviz(Ofs, g,
                         boost::make_label_writer(boost::get(
                             &LazyTypeGraph::VertexProperties::name, g)));
 }
 
 std::set<const llvm::StructType *>
 LazyTypeGraph::getTypes(const llvm::StructType *StructType) {
-  auto struct_ty_vertex = addType(StructType);
+  auto StructTyVertex = addType(StructType);
 
-  std::vector<boost::default_color_type> color_map(boost::num_vertices(g));
+  std::vector<boost::default_color_type> ColorMap(boost::num_vertices(g));
 
-  std::set<const llvm::StructType *> results;
-  results.insert(StructType);
+  std::set<const llvm::StructType *> Results;
+  Results.insert(StructType);
 
-  dfs_visitor vis(results);
+  dfs_visitor Vis(Results);
 
   boost::depth_first_visit(
-      g, struct_ty_vertex, vis,
+      g, StructTyVertex, Vis,
       boost::make_iterator_property_map(
-          color_map.begin(), boost::get(boost::vertex_index, g), color_map[0]));
+          ColorMap.begin(), boost::get(boost::vertex_index, g), ColorMap[0]));
 
-  return results;
+  return Results;
 }
 
 } // namespace psr

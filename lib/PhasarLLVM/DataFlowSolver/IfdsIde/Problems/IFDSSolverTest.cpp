@@ -70,8 +70,8 @@ IFDSSolverTest::getSummaryFlowFunction(IFDSSolverTest::n_t CallStmt,
 
 map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>>
 IFDSSolverTest::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "IFDSSolverTest::initialSeeds()");
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "IFDSSolverTest::initialSeeds()");
   map<IFDSSolverTest::n_t, set<IFDSSolverTest::d_t>> SeedMap;
   for (auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),

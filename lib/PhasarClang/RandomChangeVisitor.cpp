@@ -96,15 +96,15 @@ bool RandomChangeVisitor::VisitVarDecl(clang::VarDecl *V) {
       auto End = Start;
       End = Start.getLocWithOffset(V->getDeclName().getAsString().size());
       // gets the range of the total parameter - including type and argument
-      auto range = clang::CharSourceRange::getTokenRange(Start, End);
+      auto Range = clang::CharSourceRange::getTokenRange(Start, End);
       // get the stringPtr from the range and convert to std::string
-      std::string s = std::string(clang::Lexer::getSourceText(
-          range, RW.getSourceMgr(), RW.getLangOpts()));
+      std::string S = std::string(clang::Lexer::getSourceText(
+          Range, RW.getSourceMgr(), RW.getLangOpts()));
       // offset gives us the length
-      int offset = clang::Lexer::MeasureTokenLength(End, RW.getSourceMgr(),
+      int Offset = clang::Lexer::MeasureTokenLength(End, RW.getSourceMgr(),
                                                     RW.getLangOpts());
       // replace the text with the text sent
-      RW.ReplaceText(Start, s.length() - offset, "newX");
+      RW.ReplaceText(Start, S.length() - Offset, "newX");
     }
   }
   return true;

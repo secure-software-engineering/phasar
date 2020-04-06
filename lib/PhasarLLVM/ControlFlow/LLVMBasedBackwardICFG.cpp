@@ -45,8 +45,8 @@ namespace psr {
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(LLVMBasedICFG &ICFG)
     : ForwardICFG(ICFG) {
-  auto cgCopy = ForwardICFG.CallGraph;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
+  auto CgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
 }
 
 LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
@@ -54,8 +54,8 @@ LLVMBasedBackwardsICFG::LLVMBasedBackwardsICFG(
     const std::set<std::string> &EntryPoints, LLVMTypeHierarchy *TH,
     LLVMPointsToInfo *PT, SoundnessFlag SF)
     : ForwardICFG(IRDB, CGType, EntryPoints, TH, PT, SF) {
-  auto cgCopy = ForwardICFG.CallGraph;
-  boost::copy_graph(boost::make_reverse_graph(cgCopy), ForwardICFG.CallGraph);
+  auto CgCopy = ForwardICFG.CallGraph;
+  boost::copy_graph(boost::make_reverse_graph(CgCopy), ForwardICFG.CallGraph);
 }
 
 bool LLVMBasedBackwardsICFG::isCallStmt(const llvm::Instruction *Stmt) const {

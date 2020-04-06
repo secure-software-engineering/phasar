@@ -10,26 +10,26 @@ namespace psr {
 
 std::set<ExtendedValue>
 VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  bool isVarArgFact = Fact.isVarArg();
-  if (!isVarArgFact)
+  bool IsVarArgFact = Fact.isVarArg();
+  if (!IsVarArgFact)
     return {Fact};
 
-  const auto vaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
-  const auto vaEndMemLocationMatr = vaEndInst->getArgList();
+  const auto VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
+  const auto VaEndMemLocationMatr = VaEndInst->getArgList();
 
-  auto vaEndMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromMatr(vaEndMemLocationMatr);
+  auto VaEndMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(VaEndMemLocationMatr);
 
-  bool isValidMemLocationSeq = !vaEndMemLocationSeq.empty();
-  if (isValidMemLocationSeq) {
-    bool isArrayDecay = DataFlowUtils::isArrayDecay(vaEndMemLocationMatr);
-    if (isArrayDecay)
-      vaEndMemLocationSeq.pop_back();
+  bool IsValidMemLocationSeq = !VaEndMemLocationSeq.empty();
+  if (IsValidMemLocationSeq) {
+    bool IsArrayDecay = DataFlowUtils::isArrayDecay(VaEndMemLocationMatr);
+    if (IsArrayDecay)
+      VaEndMemLocationSeq.pop_back();
 
-    bool isVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(
+    bool IsVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(
         DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact),
-        vaEndMemLocationSeq);
-    if (isVaListEqual) {
+        VaEndMemLocationSeq);
+    if (IsVaListEqual) {
       LOG_DEBUG("Killed VarArg");
       DataFlowUtils::dumpFact(Fact);
 

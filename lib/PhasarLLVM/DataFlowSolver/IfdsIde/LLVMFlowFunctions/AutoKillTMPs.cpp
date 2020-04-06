@@ -24,13 +24,13 @@ AutoKillTMPs::AutoKillTMPs(
 
 std::set<const llvm::Value *>
 AutoKillTMPs::computeTargets(const llvm::Value *Source) {
-  std::set<const llvm::Value *> result = delegate->computeTargets(Source);
-  for (const llvm::Use &u : inst->operands()) {
-    if (llvm::isa<llvm::LoadInst>(u)) {
-      result.erase(u);
+  std::set<const llvm::Value *> Result = delegate->computeTargets(Source);
+  for (const llvm::Use &U : inst->operands()) {
+    if (llvm::isa<llvm::LoadInst>(U)) {
+      Result.erase(U);
     }
   }
-  return result;
+  return Result;
 }
 
 } // namespace psr

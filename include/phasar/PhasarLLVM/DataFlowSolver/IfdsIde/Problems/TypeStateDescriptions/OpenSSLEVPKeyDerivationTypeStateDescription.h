@@ -63,7 +63,7 @@ private:
       OpenSSLEVPKeyDerivationFuncs;
 
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKeyDerivationState delta[6][7];
+  static const OpenSSLEVPKeyDerivationState Delta[6][7];
 
   OpenSSLEVPKeyDerivationToken funcNameToToken(const std::string &F) const;
 

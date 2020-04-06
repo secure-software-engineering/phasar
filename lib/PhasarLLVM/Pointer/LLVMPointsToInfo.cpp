@@ -34,17 +34,17 @@ namespace psr {
 static void PrintResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
                          const llvm::Value *V2, const llvm::Module *M) {
   if (P) {
-    std::string o1, o2;
+    std::string O1, O2;
     {
-      llvm::raw_string_ostream os1(o1), os2(o2);
-      V1->printAsOperand(os1, true, M);
-      V2->printAsOperand(os2, true, M);
+      llvm::raw_string_ostream OS1(O1), OS2(O2);
+      V1->printAsOperand(OS1, true, M);
+      V2->printAsOperand(OS2, true, M);
     }
 
-    if (o2 < o1) {
-      std::swap(o1, o2);
+    if (O2 < O1) {
+      std::swap(O1, O2);
     }
-    llvm::errs() << "  " << AR << ":\t" << o1 << ", " << o2 << "\n";
+    llvm::errs() << "  " << AR << ":\t" << O1 << ", " << O2 << "\n";
   }
 }
 

@@ -129,23 +129,23 @@ shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t CallSite, IFDSTaintAnalysis::n_t RetSite,
     set<IFDSTaintAnalysis::f_t> Callees) {
-  auto &lg = lg::get();
+  auto &LG = lg::get();
   // Process the effects of source or sink functions that are called
   for (auto *Callee : ICF->getCalleesOfCallAt(CallSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "F:" << Callee->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "demangled F:" << FunctionName);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "F:" << Callee->getName().str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "demangled F:" << FunctionName);
     if (SourceSinkFunctions.isSource(FunctionName)) {
       // process generated taints
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Plugin SOURCE effects");
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
-      llvm::ImmutableCallSite callSite(CallSite);
-      if (auto pval =
+      llvm::ImmutableCallSite ICallSite(CallSite);
+      if (auto Pval =
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
-        for (unsigned i = 0; i < callSite.getNumArgOperands(); ++i) {
-          IFDSTaintAnalysis::d_t V = callSite.getArgOperand(i);
+        for (unsigned I = 0; I < ICallSite.getNumArgOperands(); ++I) {
+          IFDSTaintAnalysis::d_t V = ICallSite.getArgOperand(I);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -154,14 +154,14 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
             ToGenerate.insert(Alias);
           }
         }
-      } else if (auto pval = std::get_if<
+      } else if (auto Pval = std::get_if<
                      TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
                      &Source.TaintedArgs)) {
         // don't do anything
-      } else if (auto pval =
+      } else if (auto Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
-        for (auto FormalIndex : *pval) {
-          IFDSTaintAnalysis::d_t V = callSite.getArgOperand(FormalIndex);
+        for (auto FormalIndex : *Pval) {
+          IFDSTaintAnalysis::d_t V = ICallSite.getArgOperand(FormalIndex);
           // Insert the value V that gets tainted
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
@@ -182,7 +182,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     }
     if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite CallSite;
         IFDSTaintAnalysis::f_t CalledMthd;
@@ -223,15 +223,15 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
 shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
                                           IFDSTaintAnalysis::f_t DestFun) {
-  SpecialSummaries<IFDSTaintAnalysis::d_t> &specialSummaries =
+  SpecialSummaries<IFDSTaintAnalysis::d_t> &SS =
       SpecialSummaries<IFDSTaintAnalysis::d_t>::getInstance();
   string FunctionName = cxx_demangle(DestFun->getName().str());
   // If we have a special summary, which is neither a source function, nor
   // a sink function, then we provide it to the solver.
-  if (specialSummaries.containsSpecialSummary(FunctionName) &&
+  if (SS.containsSpecialSummary(FunctionName) &&
       !SourceSinkFunctions.isSource(FunctionName) &&
       !SourceSinkFunctions.isSink(FunctionName)) {
-    return specialSummaries.getSpecialFlowFunctionSummary(FunctionName);
+    return SS.getSpecialFlowFunctionSummary(FunctionName);
   } else {
     // Otherwise we indicate, that not special summary exists
     // and the solver thus calls the call flow function instead
@@ -241,8 +241,8 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t CallStmt,
 
 map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
@@ -265,8 +265,8 @@ IFDSTaintAnalysis::initialSeeds() {
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();

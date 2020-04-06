@@ -19,91 +19,91 @@ namespace psr {
 
 Hexastore::Hexastore(string Filename) {
   sqlite3_open(Filename.c_str(), &hs_internal_db);
-  const string query = INIT;
-  char *err;
-  sqlite3_exec(hs_internal_db, query.c_str(), callback, 0, &err);
-  if (err != NULL)
-    cout << err << "\n\n";
+  const string Query = INIT;
+  char *Err;
+  sqlite3_exec(hs_internal_db, Query.c_str(), callback, 0, &Err);
+  if (Err != NULL)
+    cout << Err << "\n\n";
 }
 
 Hexastore::~Hexastore() { sqlite3_close(hs_internal_db); }
 
 int Hexastore::callback(void *NotUsed, int Argc, char **Argv,
                         char **AzColName) {
-  for (int i = 0; i < Argc; ++i) {
-    cout << AzColName[i] << " " << (Argv[i] ? Argv[i] : "NULL") << endl;
+  for (int Idx = 0; Idx < Argc; ++Idx) {
+    cout << AzColName[Idx] << " " << (Argv[Idx] ? Argv[Idx] : "NULL") << endl;
   }
   return 0;
 }
 
 void Hexastore::put(array<string, 3> Edge) {
-  doPut(SPO_INSERT, Edge);
-  doPut(SOP_INSERT, Edge);
-  doPut(PSO_INSERT, Edge);
-  doPut(POS_INSERT, Edge);
-  doPut(OSP_INSERT, Edge);
-  doPut(OPS_INSERT, Edge);
+  doPut(SPOInsert, Edge);
+  doPut(SOPInsert, Edge);
+  doPut(PSOInsert, Edge);
+  doPut(POSInsert, Edge);
+  doPut(OSPInsert, Edge);
+  doPut(OPSInsert, Edge);
 }
 
 void Hexastore::doPut(string Query, array<string, 3> Edge) {
-  string compiled_query = str(format(Query) % Edge[0] % Edge[1] % Edge[2]);
-  char *err;
-  sqlite3_exec(hs_internal_db, compiled_query.c_str(), callback, 0, &err);
-  if (err != NULL)
-    cout << err;
+  string CompiledQuery = str(format(Query) % Edge[0] % Edge[1] % Edge[2]);
+  char *Err;
+  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), callback, 0, &Err);
+  if (Err != NULL)
+    cout << Err;
 }
 
 vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
                                  size_t ResultSizeHint) {
-  vector<hs_result> result;
-  result.reserve(ResultSizeHint);
-  string querystring;
+  vector<hs_result> Result;
+  Result.reserve(ResultSizeHint);
+  string QueryString;
   if (EdgeQuery[0] == "?") {
     if (EdgeQuery[1] == "?") {
       if (EdgeQuery[2] == "?") {
-        querystring = SEARCH_XXX;
+        QueryString = SearchXXX;
       } else {
-        querystring = SEARCH_XXO;
+        QueryString = SearchXXO;
       }
     } else {
       if (EdgeQuery[2] == "?") {
-        querystring = SEARCH_XPX;
+        QueryString = SearchXPX;
       } else {
-        querystring = SEARCH_XPO;
+        QueryString = SearchXPO;
       }
     }
   } else {
     if (EdgeQuery[1] == "?") {
       if (EdgeQuery[2] == "?") {
-        querystring = SEARCH_SXX;
+        QueryString = SearchSXX;
       } else {
-        querystring = SEARCH_SXO;
+        QueryString = SearchSXO;
       }
     } else {
       if (EdgeQuery[2] == "?") {
-        querystring = SEARCH_SPX;
+        QueryString = SearchSPX;
       } else {
-        querystring = SEARCH_SPO;
+        QueryString = SearchSPO;
       }
     }
   }
-  string compiled_query =
-      str(format(querystring) % EdgeQuery[0] % EdgeQuery[1] % EdgeQuery[2]);
+  string CompiledQuery =
+      str(format(QueryString) % EdgeQuery[0] % EdgeQuery[1] % EdgeQuery[2]);
   // this lambda will collect all of our results, since it is called on every
   // row of the result set
-  auto sqlite_cb_result_collector = [](void *CB, int Argc, char **Argv,
-                                       char **AzColName) {
-    vector<hs_result> *res = static_cast<vector<hs_result> *>(CB);
-    res->emplace_back(Argv[0], Argv[1], Argv[2]);
+  auto SqliteCBResultCollector = [](void *CB, int Argc, char **Argv,
+                                    char **AzColName) {
+    vector<hs_result> *Res = static_cast<vector<hs_result> *>(CB);
+    Res->emplace_back(Argv[0], Argv[1], Argv[2]);
     return 0;
   };
-  char *err;
-  sqlite3_exec(hs_internal_db, compiled_query.c_str(),
-               sqlite_cb_result_collector, &result, &err);
-  if (err != NULL) {
-    cout << err;
+  char *Err;
+  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), SqliteCBResultCollector,
+               &Result, &Err);
+  if (Err != NULL) {
+    cout << Err;
   }
-  return result;
+  return Result;
 }
 
 } // namespace psr

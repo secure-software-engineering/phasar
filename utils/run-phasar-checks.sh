@@ -6,7 +6,7 @@
 # Run some very useful clang-tidy checks and clang-format on the code base.
 #
 
-# hacky way to exclude external projects
+# exclude external projects from clang tidy checks
 cp .clang-tidy-ignore external/googletest/.clang-tidy
 cp .clang-tidy-ignore external/json/.clang-tidy
 cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy

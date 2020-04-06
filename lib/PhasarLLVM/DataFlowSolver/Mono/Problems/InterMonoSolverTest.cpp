@@ -94,11 +94,11 @@ BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
 unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICF->getFunction("main");
+  const llvm::Function *Main = ICF->getFunction("main");
   unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
       Seeds;
   Seeds.insert(
-      make_pair(&main->front().front(), BitVectorSet<const llvm::Value *>()));
+      make_pair(&Main->front().front(), BitVectorSet<const llvm::Value *>()));
   return Seeds;
 }
 

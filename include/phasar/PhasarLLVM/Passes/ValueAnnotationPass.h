@@ -41,7 +41,7 @@ class ValueAnnotationPass
 private:
   friend llvm::AnalysisInfoMixin<ValueAnnotationPass>;
   static llvm::AnalysisKey Key;
-  static size_t unique_value_id;
+  static size_t UniqueValueId;
 
 public:
   explicit ValueAnnotationPass();

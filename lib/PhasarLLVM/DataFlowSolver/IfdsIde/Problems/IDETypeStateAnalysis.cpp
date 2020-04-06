@@ -167,12 +167,12 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
           ExitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
           Analysis(Analysis) {
       // Set up the actual parameters
-      for (unsigned idx = 0; idx < CallSite.getNumArgOperands(); ++idx) {
-        Actuals.push_back(CallSite.getArgOperand(idx));
+      for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
+        Actuals.push_back(CallSite.getArgOperand(Idx));
       }
       // Set up the formal parameters
-      for (unsigned idx = 0; idx < CalleeFun->arg_size(); ++idx) {
-        Formals.push_back(getNthFunctionArgument(CalleeFun, idx));
+      for (unsigned Idx = 0; Idx < CalleeFun->arg_size(); ++Idx) {
+        Formals.push_back(getNthFunctionArgument(CalleeFun, Idx));
       }
     }
 
@@ -181,7 +181,7 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
     set<IDETypeStateAnalysis::d_t>
     computeTargets(IDETypeStateAnalysis::d_t Source) override {
       if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
-        set<const llvm::Value *> res;
+        set<const llvm::Value *> Res;
         // Handle C-style varargs functions
         if (CalleeFun->isVarArg() && !CalleeFun->isDeclaration()) {
           const llvm::Instruction *AllocVarArg;
@@ -205,30 +205,30 @@ IDETypeStateAnalysis::getRetFlowFunction(IDETypeStateAnalysis::n_t CallSite,
           }
           // Generate the varargs things by using an over-approximation
           if (Source == AllocVarArg) {
-            for (unsigned idx = Formals.size(); idx < Actuals.size(); ++idx) {
-              res.insert(Actuals[idx]);
+            for (unsigned Idx = Formals.size(); Idx < Actuals.size(); ++Idx) {
+              Res.insert(Actuals[Idx]);
             }
           }
         }
         // Handle ordinary case
         // Map formal parameter into corresponding actual parameter.
-        for (unsigned idx = 0; idx < Formals.size(); ++idx) {
-          if (Source == Formals[idx]) {
-            res.insert(Actuals[idx]); // corresponding actual
+        for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
+          if (Source == Formals[Idx]) {
+            Res.insert(Actuals[Idx]); // corresponding actual
           }
         }
         // Collect the return value
         if (Source == ExitStmt->getReturnValue()) {
-          res.insert(CallSite.getInstruction());
+          Res.insert(CallSite.getInstruction());
         }
         // Collect all relevant alloca's to map into caller context
         std::set<IDETypeStateAnalysis::d_t> RelAllocas;
-        for (auto fact : res) {
-          auto allocas = Analysis->getRelevantAllocas(fact);
-          RelAllocas.insert(allocas.begin(), allocas.end());
+        for (auto Fact : Res) {
+          auto Allocas = Analysis->getRelevantAllocas(Fact);
+          RelAllocas.insert(Allocas.begin(), Allocas.end());
         }
-        res.insert(RelAllocas.begin(), RelAllocas.end());
-        return res;
+        Res.insert(RelAllocas.begin(), RelAllocas.end());
+        return Res;
       } else {
         return {Source};
       }
@@ -244,9 +244,9 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     set<IDETypeStateAnalysis::f_t> Callees) {
   const llvm::ImmutableCallSite CS(CallSite);
   for (auto Callee : Callees) {
-    std::string demangledFname = cxx_demangle(Callee->getName().str());
+    std::string DemangledFname = cxx_demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
-    if (TSD.isFactoryFunction(demangledFname)) {
+    if (TSD.isFactoryFunction(DemangledFname)) {
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
         IDETypeStateAnalysis::d_t CallSite, ZeroValue;
 
@@ -278,7 +278,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     // not be killed during call-to-return, since it is not safe to assume
     // that the return value will be used afterwards, i.e. is stored to memory
     // pointed to by related alloca's.
-    if (!TSD.isAPIFunction(demangledFname) && !Callee->isDeclaration()) {
+    if (!TSD.isAPIFunction(DemangledFname) && !Callee->isDeclaration()) {
       for (auto &Arg : CS.args()) {
         if (hasMatchingType(Arg)) {
           std::set<IDETypeStateAnalysis::d_t> FactsToKill =
@@ -371,15 +371,15 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode,
     std::set<IDETypeStateAnalysis::f_t> Callees) {
-  auto &lg = lg::get();
+  auto &LG = lg::get();
   const llvm::ImmutableCallSite CS(CallSite);
   for (auto Callee : Callees) {
-    std::string demangledFname = cxx_demangle(Callee->getName().str());
+    std::string DemangledFname = cxx_demangle(Callee->getName().str());
 
     // For now we assume that we can only generate from the return value.
     // We apply the same edge function for the return value, i.e. callsite.
-    if (TSD.isFactoryFunction(demangledFname)) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Processing factory function");
+    if (TSD.isFactoryFunction(DemangledFname)) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Processing factory function");
       if (isZeroValue(CallNode) && RetSiteNode == CS.getInstruction()) {
         struct TSFactoryEF : public TSEdgeFunction {
           TSFactoryEF(const TypeStateDescription &Tsd, const std::string &Tok)
@@ -395,22 +395,22 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
             OS << "Factory(" << TSD.stateToString(CurrentState) << ")";
           }
         };
-        return make_shared<TSFactoryEF>(TSD, demangledFname);
+        return make_shared<TSFactoryEF>(TSD, DemangledFname);
       }
     }
 
     // For every consuming parameter and all its aliases and relevant alloca's
     // we apply the same edge function.
-    if (TSD.isConsumingFunction(demangledFname)) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    if (TSD.isConsumingFunction(DemangledFname)) {
+      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                     << "Processing consuming function");
-      for (auto Idx : TSD.getConsumerParamIdx(demangledFname)) {
+      for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
         std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
             getWMAliasesAndAllocas(CS.getArgument(Idx));
 
         if (CallNode == RetSiteNode &&
             PointsToAndAllocas.find(CallNode) != PointsToAndAllocas.end()) {
-          return make_shared<TSEdgeFunction>(TSD, demangledFname);
+          return make_shared<TSEdgeFunction>(TSD, DemangledFname);
         }
       }
     }
@@ -484,9 +484,9 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
     IDETypeStateAnalysis::l_t Source) {
-  auto &lg = lg::get();
+  auto &LG = lg::get();
   CurrentState = TSD.getNextState(Token, Source);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "State machine transition: (" << Token << " , "
                 << TSD.stateToString(Source) << ") -> "
                 << TSD.stateToString(CurrentState));
@@ -547,18 +547,18 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
   } else {
     auto PointsToSet = getWMPointsToSet(V);
     std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    auto &LG = lg::get();
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Compute relevant alloca's of "
                   << IDETypeStateAnalysis::DtoString(V));
     for (auto Alias : PointsToSet) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                     << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
       // Collect the pointer operand of a aliased load instruciton
       if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
         if (hasMatchingType(Alias)) {
           LOG_IF_ENABLE(
-              BOOST_LOG_SEV(lg, DEBUG)
+              BOOST_LOG_SEV(LG, DEBUG)
               << " -> Alloca: "
               << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
           RelevantAllocas.insert(Load->getPointerOperand());
@@ -567,11 +567,11 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
         // For all other types of aliases, e.g. callsites, function arguments,
         // we check store instructions where thoses aliases are value operands.
         for (auto User : Alias->users()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                         << "  User: " << IDETypeStateAnalysis::DtoString(User));
           if (auto Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
             if (hasMatchingType(Store)) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+              LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                             << "    -> Alloca: "
                             << IDETypeStateAnalysis::DtoString(
                                    Store->getPointerOperand()));
@@ -690,18 +690,18 @@ void IDETypeStateAnalysis::emitTextReport(
                         IDETypeStateAnalysis::l_t> &SR,
     std::ostream &OS) {
   OS << "\n======= TYPE STATE RESULTS =======\n";
-  for (auto &f : ICF->getAllFunctions()) {
-    OS << '\n' << getFunctionNameFromIR(f) << '\n';
-    for (auto &BB : *f) {
+  for (auto &F : ICF->getAllFunctions()) {
+    OS << '\n' << getFunctionNameFromIR(F) << '\n';
+    for (auto &BB : *F) {
       for (auto &I : BB) {
-        auto results = SR.resultsAt(&I, true);
+        auto Results = SR.resultsAt(&I, true);
         if (ICF->isExitStmt(&I)) {
           OS << "\nAt exit stmt: " << NtoString(&I) << '\n';
-          for (auto res : results) {
-            if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(res.first)) {
-              if (res.second == TSD.error()) {
+          for (auto Res : Results) {
+            if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
+              if (Res.second == TSD.error()) {
                 OS << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(res.first) << '\n';
+                   << DtoString(Res.first) << '\n';
                 for (auto Pred : ICF->getPredsOf(&I)) {
                   OS << "\nPredecessor: " << NtoString(Pred) << '\n';
                   auto PredResults = SR.resultsAt(Pred, true);
@@ -713,17 +713,17 @@ void IDETypeStateAnalysis::emitTextReport(
                 }
                 OS << "============================\n";
               } else {
-                OS << "\nAlloca : " << DtoString(res.first)
-                   << "\nState  : " << LtoString(res.second) << '\n';
+                OS << "\nAlloca : " << DtoString(Res.first)
+                   << "\nState  : " << LtoString(Res.second) << '\n';
               }
             }
           }
         } else {
-          for (auto res : results) {
-            if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(res.first)) {
-              if (res.second == TSD.error()) {
+          for (auto Res : Results) {
+            if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(Res.first)) {
+              if (Res.second == TSD.error()) {
                 OS << "\n=== ERROR STATE DETECTED ===\nAlloca: "
-                   << DtoString(res.first) << '\n'
+                   << DtoString(Res.first) << '\n'
                    << "\nAt IR Inst: " << NtoString(&I) << '\n';
                 for (auto Pred : ICF->getPredsOf(&I)) {
                   OS << "\nPredecessor: " << NtoString(Pred) << '\n';

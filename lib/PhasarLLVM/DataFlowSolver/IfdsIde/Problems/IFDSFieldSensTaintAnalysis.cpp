@@ -144,15 +144,15 @@ IFDSFieldSensTaintAnalysis::getCallToRetFlowFunction(
 std::shared_ptr<FlowFunction<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
     const llvm::Instruction *CallStmt, const llvm::Function *DestFun) {
-  const auto destFunName = DestFun->getName();
+  const auto DestFunName = DestFun->getName();
 
   /*
    * We exclude function ptr calls as they will be applied to every
    * function matching its signature (@see LLVMBasedICFG.cpp:217).
    */
-  const auto callInst = llvm::cast<llvm::CallInst>(CallStmt);
-  bool isStaticCallSite = callInst->getCalledFunction();
-  if (!isStaticCallSite)
+  const auto CallInst = llvm::cast<llvm::CallInst>(CallStmt);
+  bool IsStaticCallSite = CallInst->getCalledFunction();
+  if (!IsStaticCallSite)
     return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
 
@@ -160,7 +160,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * Exclude blacklisted functions here.
    */
 
-  if (taintConfig.isSink(destFunName))
+  if (taintConfig.isSink(DestFunName))
     return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
 
@@ -186,15 +186,15 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
   /*
    * Provide summary for tainted functions.
    */
-  if (taintConfig.isSource(destFunName))
+  if (taintConfig.isSource(DestFunName))
     return std::make_shared<GenerateFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
 
   /*
    * Skip all (other) declarations.
    */
-  bool isDeclaration = DestFun->isDeclaration();
-  if (isDeclaration)
+  bool IsDeclaration = DestFun->isDeclaration();
+  if (IsDeclaration)
     return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,
                                                   getZeroValue());
 
@@ -206,20 +206,20 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
 
 std::map<const llvm::Instruction *, std::set<ExtendedValue>>
 IFDSFieldSensTaintAnalysis::initialSeeds() {
-  std::map<const llvm::Instruction *, std::set<ExtendedValue>> seedMap;
-  for (const auto &entryPoint : this->EntryPoints) {
-    if (taintConfig.isSink(entryPoint))
+  std::map<const llvm::Instruction *, std::set<ExtendedValue>> SeedMap;
+  for (const auto &EntryPoint : this->EntryPoints) {
+    if (taintConfig.isSink(EntryPoint))
       continue;
-    seedMap.insert(
-        std::make_pair(&ICF->getFunction(entryPoint)->front().front(),
+    SeedMap.insert(
+        std::make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                        std::set<ExtendedValue>({getZeroValue()})));
   }
   // additionally, add initial seeds if there are any
-  auto taintConfigSeeds = taintConfig.getInitialSeeds();
-  for (auto &seed : taintConfigSeeds) {
-    seedMap[seed.first].insert(seed.second.begin(), seed.second.end());
+  auto TaintConfigSeeds = taintConfig.getInitialSeeds();
+  for (auto &Seed : TaintConfigSeeds) {
+    SeedMap[Seed.first].insert(Seed.second.begin(), Seed.second.end());
   }
-  return seedMap;
+  return SeedMap;
 }
 
 void IFDSFieldSensTaintAnalysis::emitTextReport(
@@ -227,24 +227,24 @@ void IFDSFieldSensTaintAnalysis::emitTextReport(
         &SolverResults,
     std::ostream &OS) {
   std::string FirstEntryPoints = *EntryPoints.begin();
-  const std::string lcovTraceFile =
+  const std::string LcovTraceFile =
       DataFlowUtils::getTraceFilenamePrefix(FirstEntryPoints + "-trace.txt");
-  const std::string lcovRetValTraceFile = DataFlowUtils::getTraceFilenamePrefix(
+  const std::string LcovRetValTraceFile = DataFlowUtils::getTraceFilenamePrefix(
       FirstEntryPoints + "-return-value-trace.txt");
 
 #ifdef DEBUG_BUILD
   // Write line number trace (for tests only)
   LineNumberWriter lineNumberWriter(traceStats, "line-numbers.txt");
-  lineNumberWriter.write();
+  LineNumberWriter.write();
 #endif
 
   // Write lcov trace
-  LcovWriter lcovWriter(traceStats, lcovTraceFile);
-  lcovWriter.write();
+  LcovWriter LcovWriter(traceStats, LcovTraceFile);
+  LcovWriter.write();
 
   // Write lcov return value trace
-  LcovRetValWriter lcovRetValWriter(traceStats, lcovRetValTraceFile);
-  lcovRetValWriter.write();
+  LcovRetValWriter LcovRetValWriter(traceStats, LcovRetValTraceFile);
+  LcovRetValWriter.write();
 }
 
 } // namespace psr

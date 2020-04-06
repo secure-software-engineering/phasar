@@ -45,8 +45,8 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
   if (Preds.empty()) {
     for (auto &BB : *I->getFunction()) {
       if (const llvm::Instruction *T = BB.getTerminator()) {
-        for (unsigned i = 0; i < T->getNumSuccessors(); ++i) {
-          if (&*T->getSuccessor(i)->begin() == I) {
+        for (unsigned Idx = 0; Idx < T->getNumSuccessors(); ++Idx) {
+          if (&*T->getSuccessor(Idx)->begin() == I) {
             Preds.push_back(T);
           }
         }
@@ -63,8 +63,8 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
     Successors.push_back(I->getNextNode());
   }
   if (I->isTerminator()) {
-    for (unsigned i = 0; i < I->getNumSuccessors(); ++i) {
-      Successors.push_back(&*I->getSuccessor(i)->begin());
+    for (unsigned Idx = 0; Idx < I->getNumSuccessors(); ++Idx) {
+      Successors.push_back(&*I->getSuccessor(Idx)->begin());
     }
   }
   return Successors;
@@ -139,8 +139,8 @@ bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Stmt,
 bool LLVMBasedCFG::isBranchTarget(const llvm::Instruction *Stmt,
                                   const llvm::Instruction *Succ) const {
   if (Stmt->isTerminator()) {
-    for (unsigned i = 0; i < Stmt->getNumSuccessors(); ++i) {
-      if (&*Stmt->getSuccessor(i)->begin() == Succ) {
+    for (unsigned I = 0; I < Stmt->getNumSuccessors(); ++I) {
+      if (&*Stmt->getSuccessor(I)->begin() == Succ) {
         return true;
       }
     }

@@ -51,7 +51,7 @@ private:
 
   static const std::map<std::string, std::set<int>> StdFileIOFuncs;
   // delta matrix to implement the state machine's delta function
-  static const CSTDFILEIOState delta[3][5];
+  static const CSTDFILEIOState Delta[3][5];
   CSTDFILEIOToken funcNameToToken(const std::string &F) const;
 
 public:

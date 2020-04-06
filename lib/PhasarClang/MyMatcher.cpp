@@ -40,12 +40,12 @@ namespace psr {
 void MyMatcher::run(const MatchFinder::MatchResult &Result) {
   if (const ForStmt *FS = Result.Nodes.getNodeAs<ForStmt>("forLoop"))
     FS->dump();
-  if (const CallExpr *callee = Result.Nodes.getNodeAs<CallExpr>("callee"))
+  if (const CallExpr *CALLEE = Result.Nodes.getNodeAs<CallExpr>("callee"))
     errs() << "CALLEE: "
-           << callee->getDirectCallee()->getNameInfo().getAsString() << "\n";
-  if (const CXXRecordDecl *caller =
+           << CALLEE->getDirectCallee()->getNameInfo().getAsString() << "\n";
+  if (const CXXRecordDecl *CALLER =
           Result.Nodes.getNodeAs<CXXRecordDecl>("caller"))
-    errs() << "CALLER: " << caller->getNameAsString() << "\n";
+    errs() << "CALLER: " << CALLER->getNameAsString() << "\n";
   if (auto Caller = Result.Nodes.getNodeAs<clang::FunctionDecl>("caller"))
     errs() << "### Caller:" << Caller->getNameInfo().getAsString() << "\n";
   if (auto Callee = Result.Nodes.getNodeAs<clang::FunctionDecl>("callee"))

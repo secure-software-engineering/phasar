@@ -38,15 +38,15 @@ LLVMBasedBackwardCFG::getFunctionOf(const llvm::Instruction *Stmt) const {
 
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *Stmt) const {
-  vector<const llvm::Instruction *> preds;
+  vector<const llvm::Instruction *> Preds;
   if (Stmt->getNextNode())
-    preds.push_back(Stmt->getNextNode());
+    Preds.push_back(Stmt->getNextNode());
   if (Stmt->isTerminator()) {
-    for (unsigned i = 0; i < Stmt->getNumSuccessors(); ++i) {
-      preds.push_back(&*Stmt->getSuccessor(i)->begin());
+    for (unsigned I = 0; I < Stmt->getNumSuccessors(); ++I) {
+      Preds.push_back(&*Stmt->getSuccessor(I)->begin());
     }
   }
-  return preds;
+  return Preds;
 }
 
 std::vector<const llvm::Instruction *>

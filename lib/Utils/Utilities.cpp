@@ -51,29 +51,29 @@ bool isConstructor(const string &MangledName) {
   // see https://itanium-cxx-abi.github.io/cxx-abi/abi.html#mangling
 
   // This version will not work in some edge cases
-  auto constructor = boost::algorithm::find_last(MangledName, "C2E");
+  auto Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (constructor.begin() != constructor.end())
+  if (Constructor.begin() != Constructor.end())
     return true;
 
-  constructor = boost::algorithm::find_last(MangledName, "C1E");
+  Constructor = boost::algorithm::find_last(MangledName, "C1E");
 
-  if (constructor.begin() != constructor.end())
+  if (Constructor.begin() != Constructor.end())
     return true;
 
-  constructor = boost::algorithm::find_last(MangledName, "C2E");
+  Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (constructor.begin() != constructor.end())
+  if (Constructor.begin() != Constructor.end())
     return true;
 
   return false;
 }
 
 const llvm::Type *stripPointer(const llvm::Type *Pointer) {
-  auto next = llvm::dyn_cast<llvm::PointerType>(Pointer);
-  while (next) {
-    Pointer = next->getElementType();
-    next = llvm::dyn_cast<llvm::PointerType>(Pointer);
+  auto Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
+  while (Next) {
+    Pointer = Next->getElementType();
+    Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
   }
 
   return Pointer;
@@ -82,32 +82,32 @@ const llvm::Type *stripPointer(const llvm::Type *Pointer) {
 bool isMangled(const string &Name) { return Name != cxx_demangle(Name); }
 
 vector<string> splitString(const string &Str, const string &Delimiter) {
-  vector<string> split_strings;
-  boost::split(split_strings, Str, boost::is_any_of(Delimiter),
+  vector<string> SplitStrings;
+  boost::split(SplitStrings, Str, boost::is_any_of(Delimiter),
                boost::token_compress_on);
-  return split_strings;
+  return SplitStrings;
 }
 
 ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
-  for (auto bit : Bits) {
-    OS << bit;
+  for (auto Bit : Bits) {
+    OS << Bit;
   }
   return OS;
 }
 
 bool stringIDLess::operator()(const std::string &Lhs,
                               const std::string &Rhs) const {
-  char *endptr1, *endptr2;
-  long lhsVal = strtol(Lhs.c_str(), &endptr1, 10);
-  long rhsVal = strtol(Rhs.c_str(), &endptr2, 10);
-  if (Lhs.c_str() == endptr1 && Lhs.c_str() == endptr2) {
+  char *Endptr1, *Endptr2;
+  long LhsVal = strtol(Lhs.c_str(), &Endptr1, 10);
+  long RhsVal = strtol(Rhs.c_str(), &Endptr2, 10);
+  if (Lhs.c_str() == Endptr1 && Lhs.c_str() == Endptr2) {
     return Lhs < Rhs;
-  } else if (Lhs.c_str() == endptr1 && Rhs.c_str() != endptr2) {
+  } else if (Lhs.c_str() == Endptr1 && Rhs.c_str() != Endptr2) {
     return false;
-  } else if (Lhs.c_str() != endptr1 && Rhs.c_str() == endptr2) {
+  } else if (Lhs.c_str() != Endptr1 && Rhs.c_str() == Endptr2) {
     return true;
   } else {
-    return lhsVal < rhsVal;
+    return LhsVal < RhsVal;
   }
 }
 

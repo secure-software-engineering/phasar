@@ -102,7 +102,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   */
 
   // check the all store instructions and kill initialized variables
-  if (auto store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       // const llvm::Value *valueop;
       // const llvm::Value *pointerop;
@@ -170,25 +170,25 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         return {Source};
       }
     };
-    return make_shared<UVFF>(store, UndefValueUses, ZeroValue);
+    return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
   }
-  if (auto alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
+  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
     return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
-        [alloc, this](IFDSUninitializedVariables::d_t Source)
+        [Alloc, this](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (isZeroValue(Source)) {
-            if (alloc->getAllocatedType()->isIntegerTy() ||
-                alloc->getAllocatedType()->isFloatingPointTy() ||
-                alloc->getAllocatedType()->isPointerTy() ||
-                alloc->getAllocatedType()->isArrayTy()) {
+            if (Alloc->getAllocatedType()->isIntegerTy() ||
+                Alloc->getAllocatedType()->isFloatingPointTy() ||
+                Alloc->getAllocatedType()->isPointerTy() ||
+                Alloc->getAllocatedType()->isArrayTy()) {
               //------------------------------------------------------------
               // Why not generate for structs, but for arrays? (would be
               // consistent to generate either both or none of them)
               //------------------------------------------------------------
 
               // generate the alloca
-              return {Source, alloc};
+              return {Source, Alloc};
             }
           }
           // otherwise propagate all facts
@@ -206,10 +206,10 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         : Inst(Inst), UndefValueUses(UVU) {}
     set<IFDSUninitializedVariables::d_t>
     computeTargets(IFDSUninitializedVariables::d_t Source) override {
-      for (auto &operand : Inst->operands()) {
-        const llvm::UndefValue *undef =
-            llvm::dyn_cast<llvm::UndefValue>(operand);
-        if (operand == Source || operand == undef) {
+      for (auto &Operand : Inst->operands()) {
+        const llvm::UndefValue *Undef =
+            llvm::dyn_cast<llvm::UndefValue>(Operand);
+        if (Operand == Source || Operand == Undef) {
           //----------------------------------------------------------------
           // It is not necessary and (from my point of view) not intended to
           // report a leak on EVERY kind of instruction.
@@ -219,7 +219,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
           if (!llvm::isa<llvm::GetElementPtrInst>(Inst) &&
               !llvm::isa<llvm::CastInst>(Inst) &&
               !llvm::isa<llvm::PHINode>(Inst))
-            UndefValueUses[Inst].insert(operand);
+            UndefValueUses[Inst].insert(Operand);
           return {Source, Inst};
         }
       }
@@ -238,7 +238,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
     IFDSUninitializedVariables::f_t DestFun) {
   if (llvm::isa<llvm::CallInst>(CallStmt) ||
       llvm::isa<llvm::InvokeInst>(CallStmt)) {
-    llvm::ImmutableCallSite callSite(CallStmt);
+    llvm::ImmutableCallSite CallSite(CallStmt);
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       const llvm::Function *DestFun;
       llvm::ImmutableCallSite CallSite;
@@ -249,15 +249,15 @@ IFDSUninitializedVariables::getCallFlowFunction(
            const llvm::Value *ZV)
           : DestFun(DM), CallSite(CS), Zerovalue(ZV) {
         // set up the actual parameters
-        for (unsigned idx = 0; idx < CallSite.getNumArgOperands(); ++idx) {
-          Actuals.push_back(CallSite.getArgOperand(idx));
+        for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
+          Actuals.push_back(CallSite.getArgOperand(Idx));
         }
         // set up the formal parameters
         /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
           formals.push_back(getNthFunctionArgument(destFun, idx));
         }*/
-        for (auto &arg : DestFun->args()) {
-          Formals.push_back(&arg);
+        for (auto &Arg : DestFun->args()) {
+          Formals.push_back(&Arg);
         }
       }
 
@@ -265,17 +265,17 @@ IFDSUninitializedVariables::getCallFlowFunction(
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // perform parameter passing
         if (Source != Zerovalue) {
-          set<const llvm::Value *> res;
+          set<const llvm::Value *> Res;
           // do the mapping from actual to formal parameters
           // caution: the loop iterates from 0 to formals.size(),
           // rather than actuals.size() as we may have more actual
           // than formal arguments in case of C-style varargs
-          for (unsigned idx = 0; idx < Formals.size(); ++idx) {
-            if (Source == Actuals[idx]) {
-              res.insert(Formals[idx]);
+          for (unsigned Idx = 0; Idx < Formals.size(); ++Idx) {
+            if (Source == Actuals[Idx]) {
+              Res.insert(Formals[Idx]);
             }
           }
-          return res;
+          return Res;
         } else {
 
           //--------------------------------------------------------------
@@ -311,7 +311,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         }
       }
     };
-    return make_shared<UVFF>(DestFun, callSite, ZeroValue);
+    return make_shared<UVFF>(DestFun, CallSite, ZeroValue);
   }
   return Identity<IFDSUninitializedVariables::d_t>::getInstance();
 }
@@ -333,26 +333,26 @@ IFDSUninitializedVariables::getRetFlowFunction(
       set<IFDSUninitializedVariables::d_t>
       computeTargets(IFDSUninitializedVariables::d_t Source) override {
         // check if we return an uninitialized value
-        set<IFDSUninitializedVariables::d_t> ret;
+        set<IFDSUninitializedVariables::d_t> Ret;
         if (Exit->getNumOperands() > 0 && Exit->getOperand(0) == Source) {
-          ret.insert(Call.getInstruction());
+          Ret.insert(Call.getInstruction());
         }
         //----------------------------------------------------------------------
         // Handle pointer/reference parameters
         //----------------------------------------------------------------------
         if (Call.getCalledFunction()) {
-          unsigned i = 0;
-          for (auto &arg : Call.getCalledFunction()->args()) {
+          unsigned I = 0;
+          for (auto &Arg : Call.getCalledFunction()->args()) {
             // auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
-            if (&arg == Source && arg.getType()->isPointerTy()) {
-              ret.insert(Call.getArgument(i));
+            if (&Arg == Source && Arg.getType()->isPointerTy()) {
+              Ret.insert(Call.getArgument(I));
             }
-            i++;
+            I++;
           }
         }
 
         // kill all other facts
-        return ret;
+        return Ret;
       }
     };
     return make_shared<UVFF>(CS, ExitStmt);
@@ -376,8 +376,8 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
-            for (auto &arg : CS.args()) {
-              if (arg.get() == Source)
+            for (auto &Arg : CS.args()) {
+              if (Arg.get() == Source)
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with
                 // field-sensitivity)
@@ -399,8 +399,8 @@ IFDSUninitializedVariables::getSummaryFlowFunction(
 
 map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "IFDSUninitializedVariables::initialSeeds()");
   map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
       SeedMap;
@@ -414,8 +414,8 @@ IFDSUninitializedVariables::initialSeeds() {
 
 IFDSUninitializedVariables::d_t
 IFDSUninitializedVariables::createZeroValue() const {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "IFDSUninitializedVariables::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();
@@ -456,9 +456,9 @@ void IFDSUninitializedVariables::emitTextReport(
             "source code mapping!\n";
       OS << "\nTotal uses of uninitialized IR Value's: "
          << UndefValueUses.size() << '\n';
-      size_t count = 0;
+      size_t Count = 0;
       for (auto User : UndefValueUses) {
-        OS << "\n---------------------------------  " << ++count
+        OS << "\n---------------------------------  " << ++Count
            << ". Use  ---------------------------------\n\n";
         OS << "At IR statement: ";
         printNode(OS, User.first);
@@ -472,14 +472,14 @@ void IFDSUninitializedVariables::emitTextReport(
       }
       OS << '\n';
     } else {
-      auto uninit_results = aggregateResults();
-      OS << "\nTotal uses of uninitialized variables: " << uninit_results.size()
+      auto UninitResults = aggregateResults();
+      OS << "\nTotal uses of uninitialized variables: " << UninitResults.size()
          << '\n';
-      size_t count = 0;
-      for (auto res : uninit_results) {
-        OS << "\n---------------------------------  " << ++count
+      size_t Count = 0;
+      for (auto Res : UninitResults) {
+        OS << "\n---------------------------------  " << ++Count
            << ". Use  ---------------------------------\n\n";
-        res.print(OS);
+        Res.print(OS);
       }
     }
   }
@@ -487,37 +487,37 @@ void IFDSUninitializedVariables::emitTextReport(
 
 std::vector<IFDSUninitializedVariables::UninitResult>
 IFDSUninitializedVariables::aggregateResults() {
-  std::vector<IFDSUninitializedVariables::UninitResult> results;
-  unsigned int line_nr = 0, curr_line_nr = 0;
-  size_t count;
+  std::vector<IFDSUninitializedVariables::UninitResult> Results;
+  unsigned int LineNr = 0, CurrLineNr = 0;
+  size_t Count;
   UninitResult UR;
   for (auto User : UndefValueUses) {
     // new line nr idicates a new uninit use on source code level
-    line_nr = getLineFromIR(User.first);
-    if (curr_line_nr != line_nr) {
-      curr_line_nr = line_nr;
-      UninitResult new_UR;
-      new_UR.line = line_nr;
-      new_UR.func_name = getFunctionNameFromIR(User.first);
-      new_UR.file_path = getFilePathFromIR(User.first);
-      new_UR.src_code = getSrcCodeFromIR(User.first);
+    LineNr = getLineFromIR(User.first);
+    if (CurrLineNr != LineNr) {
+      CurrLineNr = LineNr;
+      UninitResult NewUR;
+      NewUR.line = LineNr;
+      NewUR.func_name = getFunctionNameFromIR(User.first);
+      NewUR.file_path = getFilePathFromIR(User.first);
+      NewUR.src_code = getSrcCodeFromIR(User.first);
       if (!UR.empty())
-        results.push_back(UR);
-      UR = new_UR;
+        Results.push_back(UR);
+      UR = NewUR;
     }
     // add current IR trace
     UR.ir_trace[User.first] = User.second;
     // add (possibly) new variable names
     for (auto UndefV : User.second) {
-      auto var_name = getVarNameFromIR(UndefV);
-      if (!var_name.empty()) {
-        UR.var_names.push_back(var_name);
+      auto VarName = getVarNameFromIR(UndefV);
+      if (!VarName.empty()) {
+        UR.var_names.push_back(VarName);
       }
     }
   }
   if (!UR.empty())
-    results.push_back(UR);
-  return results;
+    Results.push_back(UR);
+  return Results;
 }
 
 bool IFDSUninitializedVariables::UninitResult::empty() { return line == 0; }
@@ -525,9 +525,9 @@ bool IFDSUninitializedVariables::UninitResult::empty() { return line == 0; }
 void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
   OS << "Variable(s): ";
   if (!var_names.empty()) {
-    for (size_t i = 0; i < var_names.size(); ++i) {
-      OS << var_names[i];
-      if (i < var_names.size() - 1)
+    for (size_t I = 0; I < var_names.size(); ++I) {
+      OS << var_names[I];
+      if (I < var_names.size() - 1)
         OS << ", ";
     }
     OS << '\n';
@@ -538,9 +538,9 @@ void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
   OS << "File       : " << file_path << '\n';
   OS << "\nCorresponding IR Statements and uninit. Values\n";
   if (!ir_trace.empty()) {
-    for (auto trace : ir_trace) {
-      OS << "At IR Statement: " << llvmIRToString(trace.first) << '\n';
-      for (auto IRVal : trace.second) {
+    for (auto Trace : ir_trace) {
+      OS << "At IR Statement: " << llvmIRToString(Trace.first) << '\n';
+      for (auto IRVal : Trace.second) {
         OS << "   Uninit Value: " << llvmIRToString(IRVal) << '\n';
       }
       // os << '\n';

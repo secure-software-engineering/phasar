@@ -54,7 +54,7 @@ bool isFunctionPointer(const llvm::Value *V) noexcept {
 
 SpecialMemberFunctionTy specialMemberFunctionType(const std::string &S) {
   // test if Codes for Constructors, Destructors or operator= are in string
-  static const std::map<std::string, SpecialMemberFunctionTy> codes{
+  static const std::map<std::string, SpecialMemberFunctionTy> Codes{
       {"C1", SpecialMemberFunctionTy::CTOR},
       {"C2", SpecialMemberFunctionTy::CTOR},
       {"C3", SpecialMemberFunctionTy::CTOR},
@@ -63,46 +63,46 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &S) {
       {"D2", SpecialMemberFunctionTy::DTOR},
       {"aSERKS_", SpecialMemberFunctionTy::CPASSIGNOP},
       {"aSEOS_", SpecialMemberFunctionTy::MVASSIGNOP}};
-  std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> found;
-  std::size_t blacklist = 0;
-  auto it = codes.begin();
-  while (it != codes.end()) {
-    if (std::size_t index = S.find(it->first, blacklist)) {
-      if (index != std::string::npos) {
-        found.push_back(std::make_pair(index, it->second));
-        blacklist = index + 1;
+  std::vector<std::pair<std::size_t, SpecialMemberFunctionTy>> Found;
+  std::size_t Blacklist = 0;
+  auto It = Codes.begin();
+  while (It != Codes.end()) {
+    if (std::size_t Index = S.find(It->first, Blacklist)) {
+      if (Index != std::string::npos) {
+        Found.push_back(std::make_pair(Index, It->second));
+        Blacklist = Index + 1;
       } else {
-        ++it;
-        blacklist = 0;
+        ++It;
+        Blacklist = 0;
       }
     }
   }
-  if (found.empty()) {
+  if (Found.empty()) {
     return SpecialMemberFunctionTy::NONE;
   }
 
   // test if codes are in function name or type information
-  bool noName = true;
-  for (auto index : found) {
-    for (auto c = S.begin(); c < S.begin() + index.first; ++c) {
-      if (isdigit(*c)) {
-        short i = 0;
-        while (isdigit(*(c + i))) {
-          ++i;
+  bool NoName = true;
+  for (auto Index : Found) {
+    for (auto C = S.begin(); C < S.begin() + Index.first; ++C) {
+      if (isdigit(*C)) {
+        short I = 0;
+        while (isdigit(*(C + I))) {
+          ++I;
         }
-        std::string st(c, c + i);
-        if (index.first <= std::distance(S.begin(), c) + stoul(st)) {
-          noName = false;
+        std::string ST(C, C + I);
+        if (Index.first <= std::distance(S.begin(), C) + stoul(ST)) {
+          NoName = false;
           break;
         } else {
-          c = c + *c;
+          C = C + *C;
         }
       }
     }
-    if (noName) {
-      return index.second;
+    if (NoName) {
+      return Index.second;
     } else {
-      noName = true;
+      NoName = true;
     }
   }
   return SpecialMemberFunctionTy::NONE;
@@ -134,12 +134,12 @@ bool matchesSignature(const llvm::Function *F,
     return false;
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
-    unsigned i = 0;
-    for (auto &arg : F->args()) {
-      if (arg.getType() != FType->getParamType(i)) {
+    unsigned Idx = 0;
+    for (auto &Arg : F->args()) {
+      if (Arg.getType() != FType->getParamType(Idx)) {
         return false;
       }
-      ++i;
+      ++Idx;
     }
     return true;
   }
@@ -198,31 +198,31 @@ std::string llvmIRToShortString(const llvm::Value *V) {
 
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
-  std::vector<const llvm::Value *> globals_used;
+  std::vector<const llvm::Value *> GlobalsUsed;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       for (auto &Op : I.operands()) {
         if (const llvm::GlobalValue *G =
                 llvm::dyn_cast<llvm::GlobalValue>(Op)) {
-          globals_used.push_back(G);
+          GlobalsUsed.push_back(G);
         }
       }
     }
   }
-  return globals_used;
+  return GlobalsUsed;
 }
 
 std::string getMetaDataID(const llvm::Value *V) {
   if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto metaData = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
-      return llvm::cast<llvm::MDString>(metaData->getOperand(0))
+    if (auto Metadata = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
+      return llvm::cast<llvm::MDString>(Metadata->getOperand(0))
           ->getString()
           .str();
     }
 
   } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (auto metaData = GV->getMetadata(PhasarConfig::MetaDataKind())) {
-      return llvm::cast<llvm::MDString>(metaData->getOperand(0))
+    if (auto Metadata = GV->getMetadata(PhasarConfig::MetaDataKind())) {
+      return llvm::cast<llvm::MDString>(Metadata->getOperand(0))
           ->getString()
           .str();
     }
@@ -238,9 +238,9 @@ llvmValueIDLess::llvmValueIDLess() : sless(stringIDLess()) {}
 
 bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
                                  const llvm::Value *Rhs) const {
-  std::string lhs_id = getMetaDataID(Lhs);
-  std::string rhs_id = getMetaDataID(Rhs);
-  return sless(lhs_id, rhs_id);
+  std::string LhsId = getMetaDataID(Lhs);
+  std::string RhsId = getMetaDataID(Rhs);
+  return sless(LhsId, RhsId);
 }
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
@@ -257,12 +257,12 @@ int getFunctionArgumentNr(const llvm::Argument *Arg) {
 const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
   if (ArgNo < F->arg_size()) {
-    unsigned current = 0;
+    unsigned Current = 0;
     for (auto &A : F->args()) {
-      if (ArgNo == current) {
+      if (ArgNo == Current) {
         return &A;
       }
-      ++current;
+      ++Current;
     }
   }
   return nullptr;
@@ -270,13 +270,13 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
 
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned Idx) {
-  unsigned i = 1;
+  unsigned Current = 1;
   for (auto &BB : *F) {
     for (auto &I : BB) {
-      if (i == Idx) {
+      if (Current == Idx) {
         return &I;
       } else {
-        ++i;
+        ++Current;
       }
     }
   }
@@ -339,13 +339,13 @@ std::size_t computeModuleHash(const llvm::Module *M) {
 
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
                                                unsigned TermInstNo) {
-  unsigned current = 1;
+  unsigned Current = 1;
   for (auto &BB : *F) {
     if (const llvm::Instruction *T = BB.getTerminator()) {
-      if (current == TermInstNo) {
+      if (Current == TermInstNo) {
         return T;
       }
-      current++;
+      Current++;
     }
   }
   return nullptr;
@@ -353,14 +353,14 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo) {
-  unsigned current = 1;
+  unsigned Current = 1;
   for (auto &BB : *F) {
     for (auto &I : BB) {
       if (const llvm::StoreInst *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
-        if (current == StoNo) {
+        if (Current == StoNo) {
           return S;
         }
-        current++;
+        Current++;
       }
     }
   }

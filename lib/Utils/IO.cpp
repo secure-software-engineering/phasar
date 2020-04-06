@@ -27,24 +27,24 @@ namespace psr {
 string readFile(const string &Path) {
   if (boost::filesystem::exists(Path) &&
       !boost::filesystem::is_directory(Path)) {
-    ifstream ifs(Path, ios::binary);
-    if (ifs.is_open()) {
-      ifs.seekg(0, ifs.end);
-      size_t file_size = ifs.tellg();
-      ifs.seekg(0, ifs.beg);
-      string content;
-      content.resize(file_size);
-      ifs.read(const_cast<char *>(content.data()), file_size);
-      return content;
+    ifstream Ifs(Path, ios::binary);
+    if (Ifs.is_open()) {
+      Ifs.seekg(0, Ifs.end);
+      size_t FileSize = Ifs.tellg();
+      Ifs.seekg(0, Ifs.beg);
+      string Content;
+      Content.resize(FileSize);
+      Ifs.read(const_cast<char *>(Content.data()), FileSize);
+      return Content;
     }
   }
   throw ios_base::failure("could not read file: " + Path);
 }
 
 void writeFile(const string &Path, const string &Content) {
-  ofstream ofs(Path, ios::binary);
-  if (ofs.is_open()) {
-    ofs.write(Content.data(), Content.size());
+  ofstream Ofs(Path, ios::binary);
+  if (Ofs.is_open()) {
+    Ofs.write(Content.data(), Content.size());
   }
   throw ios_base::failure("could not write file: " + Path);
 }

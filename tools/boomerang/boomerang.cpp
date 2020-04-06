@@ -26,7 +26,7 @@ namespace bfs = boost::filesystem;
 
 int main(int Argc, char **Argv) {
   initializeLogger(false);
-  auto &lg = lg::get();
+  auto &LG = lg::get();
   if (Argc < 2 || !bfs::exists(Argv[1]) || bfs::is_directory(Argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     std::cerr << "use programs in build/test/llvm_test_code/pointers/\n";
@@ -38,7 +38,9 @@ int main(int Argc, char **Argv) {
   LLVMPointsToInfo P(DB);
   LLVMBasedICFG ICFG(DB, CallGraphAnalysisType::OTF, {"main"}, &H, &P);
   for (auto &F : *DB.getWPAModule()) {
-    if (F.isDeclaration()) { continue; }
+    if (F.isDeclaration()) {
+      continue;
+    }
     llvm::outs() << "ANALYZE FUNCTION: " << F.getName() << '\n';
     for (auto &BB : F) {
       for (auto &I : BB) {
@@ -61,9 +63,9 @@ int main(int Argc, char **Argv) {
             llvm::outs() << '\n';
             // query SPDS solver to find the aliases
             // SyncPDSSolver SPDS(ICFG);
-            // set<const llvm::Value *> Aliases = SPDS.getAliasesOf(Load->getPointerOperand());
-            // llvm::outs() << "Found aliases:";
-            // for (auto A : Aliases) {
+            // set<const llvm::Value *> Aliases =
+            // SPDS.getAliasesOf(Load->getPointerOperand()); llvm::outs() <<
+            // "Found aliases:"; for (auto A : Aliases) {
             //   A->print(llvm::outs() << '\n');
             // }
             llvm::outs() << '\n';

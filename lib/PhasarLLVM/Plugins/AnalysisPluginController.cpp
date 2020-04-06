@@ -35,7 +35,7 @@ AnalysisPluginController::AnalysisPluginController(
     std::vector<std::string> AnalysisPlygins, const ProjectIRDB *IRDB,
     const LLVMTypeHierarchy *TH, const LLVMBasedICFG *ICF,
     const LLVMPointsToInfo *PT, std::set<std::string> EntryPoints) {
-  auto &lg = lg::get();
+  auto &LG = lg::get();
   for (const auto &AnalysisPlugin : AnalysisPlygins) {
     boost::filesystem::path LibPath(AnalysisPlugin);
     boost::system::error_code Err;
