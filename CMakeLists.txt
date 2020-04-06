@@ -93,6 +93,7 @@ find_package(Threads)
 
 # Boost
 find_package(Boost 1.65.1 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
+#find_package(Boost 1.72.0 COMPONENTS filesystem graph system program_options log ${BOOST_THREAD} REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 # JSON library
