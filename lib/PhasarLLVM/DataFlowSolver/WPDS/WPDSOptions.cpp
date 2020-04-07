@@ -16,7 +16,7 @@
 
 namespace psr {
 
-WPDSType to_WPDSType(const std::string &S) {
+WPDSType toWPDSType(const std::string &S) {
   WPDSType Type = llvm::StringSwitch<WPDSType>(S)
 #define WPDS_TYPES(NAME, TYPE) .Case(NAME, WPDSType::TYPE)
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def"
@@ -39,7 +39,7 @@ std::ostream &operator<<(std::ostream &OS, const WPDSType &T) {
   return OS << toString(T);
 }
 
-WPDSSearchDirection to_WPDSSearchDirection(const std::string &S) {
+WPDSSearchDirection toWPDSSearchDirection(const std::string &S) {
   if (S == "FORWARD") {
     return WPDSSearchDirection::FORWARD;
   } else {

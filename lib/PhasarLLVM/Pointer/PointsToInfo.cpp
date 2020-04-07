@@ -30,7 +30,7 @@ std::string toString(AliasResult AR) {
   }
 }
 
-AliasResult to_AliasResult(const std::string &S) {
+AliasResult toAliasResult(const std::string &S) {
   if (S == "NoAlias") {
     return AliasResult::NoAlias;
   } else if (S == "MayAlias") {

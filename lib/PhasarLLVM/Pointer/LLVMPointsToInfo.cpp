@@ -86,7 +86,7 @@ std::string toString(const PointerAnalysisType &PA) {
   }
 }
 
-PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
+PointerAnalysisType toPointerAnalysisType(const std::string &S) {
   PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
   .Case(NAME, PointerAnalysisType::TYPE)

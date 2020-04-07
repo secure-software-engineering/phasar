@@ -20,7 +20,7 @@ enum class WPDSType {
 #include "phasar/PhasarLLVM/DataFlowSolver/WPDS/WPDSType.def"
 };
 
-WPDSType to_WPDSType(const std::string &S);
+WPDSType toWPDSType(const std::string &S);
 
 std::string toString(const WPDSType &T);
 
@@ -28,7 +28,7 @@ std::ostream &operator<<(std::ostream &OS, const WPDSType &T);
 
 enum class WPDSSearchDirection { FORWARD, BACKWARD };
 
-WPDSSearchDirection to_WPDSSearchDirection(const std::string &S);
+WPDSSearchDirection toWPDSSearchDirection(const std::string &S);
 
 std::string toString(const WPDSSearchDirection &S);
 

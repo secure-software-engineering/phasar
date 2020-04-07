@@ -41,7 +41,7 @@ enum class PointerAnalysisType {
 
 std::string toString(const PointerAnalysisType &PA);
 
-PointerAnalysisType to_PointerAnalysisType(const std::string &S);
+PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 

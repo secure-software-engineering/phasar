@@ -22,7 +22,7 @@ enum class AnalysisStrategy {
 
 std::string toString(const AnalysisStrategy &S);
 
-AnalysisStrategy to_AnalysisStrategy(const std::string &S);
+AnalysisStrategy toAnalysisStrategy(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const AnalysisStrategy &S);
 

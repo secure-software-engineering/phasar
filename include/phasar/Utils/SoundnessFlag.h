@@ -23,7 +23,7 @@ enum class SoundnessFlag {
 
 std::string toString(const SoundnessFlag &SF);
 
-SoundnessFlag to_SoundnessFlag(const std::string &S);
+SoundnessFlag toSoundnessFlag(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const SoundnessFlag &SF);
 

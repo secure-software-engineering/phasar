@@ -37,7 +37,7 @@ std::string toString(const CallGraphAnalysisType &CGA) {
   }
 }
 
-CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S) {
+CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S) {
   CallGraphAnalysisType Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
   .Case(NAME, CallGraphAnalysisType::TYPE)

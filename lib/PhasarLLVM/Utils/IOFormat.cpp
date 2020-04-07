@@ -30,7 +30,7 @@ std::string toString(const IOFormat &D) {
   }
 }
 
-IOFormat to_IOFormat(const std::string &S) {
+IOFormat toIOFormat(const std::string &S) {
   IOFormat Type = llvm::StringSwitch<IOFormat>(S)
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE) .Case(NAME, IOFormat::TYPE)
 #include "phasar/PhasarLLVM/Utils/IOFormat.def"

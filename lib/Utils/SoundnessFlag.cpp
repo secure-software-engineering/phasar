@@ -29,7 +29,7 @@ std::string toString(const SoundnessFlag &SF) {
   }
 }
 
-SoundnessFlag to_SoundnessFlag(const std::string &S) {
+SoundnessFlag toSoundnessFlag(const std::string &S) {
   SoundnessFlag Type = llvm::StringSwitch<SoundnessFlag>(S)
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
   .Case(NAME, SoundnessFlag::TYPE)

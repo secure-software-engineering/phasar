@@ -30,7 +30,7 @@ std::string toString(const DataFlowAnalysisType &D) {
   }
 }
 
-DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
   DataFlowAnalysisType Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   .Case(NAME, DataFlowAnalysisType::TYPE)

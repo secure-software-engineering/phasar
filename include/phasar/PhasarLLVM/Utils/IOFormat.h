@@ -22,7 +22,7 @@ enum class IOFormat {
 
 std::string toString(const IOFormat &D);
 
-IOFormat to_IOFormat(const std::string &S);
+IOFormat toIOFormat(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const IOFormat &D);
 

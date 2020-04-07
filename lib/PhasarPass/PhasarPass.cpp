@@ -66,7 +66,7 @@ bool PhasarPass::runOnModule(llvm::Module &M) {
     EntryPointsSet.insert(EP);
   }
   // set up the call-graph algorithm to be used
-  CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(CallGraphAnalysis);
+  CallGraphAnalysisType CGTy = toCallGraphAnalysisType(CallGraphAnalysis);
   LLVMTypeHierarchy H(DB);
   LLVMPointsToInfo PT(DB);
   LLVMBasedCFG CFG;
@@ -187,11 +187,11 @@ bool PhasarPass::doInitialization(llvm::Module &M) {
   if (EntryPoints.empty()) {
     llvm::report_fatal_error("psr error: no entry points provided");
   }
-  if (to_CallGraphAnalysisType(CallGraphAnalysis) ==
+  if (toCallGraphAnalysisType(CallGraphAnalysis) ==
       CallGraphAnalysisType::Invalid) {
     llvm::report_fatal_error("psr error: call-graph analysis does not exist");
   }
-  if (to_DataFlowAnalysisType(DataFlowAnalysis) == DataFlowAnalysisType::None) {
+  if (toDataFlowAnalysisType(DataFlowAnalysis) == DataFlowAnalysisType::None) {
     llvm::report_fatal_error("psr error: data-flow analysis does not exist");
   }
   return false;

@@ -22,7 +22,7 @@ enum class DataFlowAnalysisType {
 
 std::string toString(const DataFlowAnalysisType &D);
 
-DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S);
+DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 
