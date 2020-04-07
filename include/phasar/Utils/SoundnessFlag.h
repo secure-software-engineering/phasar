@@ -21,9 +21,9 @@ enum class SoundnessFlag {
   Invalid
 };
 
-std::string toString(const SoundnessFlag &SF);
+std::string to_string(const SoundnessFlag &SF);
 
-SoundnessFlag toSoundnessFlag(const std::string &S);
+SoundnessFlag to_SoundnessFlag(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const SoundnessFlag &SF);
 

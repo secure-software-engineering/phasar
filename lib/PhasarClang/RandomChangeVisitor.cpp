@@ -36,7 +36,7 @@ namespace psr {
 
 RandomChangeVisitor::RandomChangeVisitor(clang::Rewriter &R) : RW(R) {}
 
-bool RandomChangeVisitor::visitStmt(clang::Stmt *S) {
+bool RandomChangeVisitor::VisitStmt(clang::Stmt *S) {
   // Only care about If statements.
   if (clang::isa<clang::IfStmt>(S)) {
     clang::IfStmt *IfStatement = clang::cast<clang::IfStmt>(S);
@@ -49,7 +49,7 @@ bool RandomChangeVisitor::visitStmt(clang::Stmt *S) {
   return true;
 }
 
-bool RandomChangeVisitor::visitFunctionDecl(clang::FunctionDecl *F) {
+bool RandomChangeVisitor::VisitFunctionDecl(clang::FunctionDecl *F) {
   // Only function definitions (with bodies), not declarations.
   if (F->hasBody()) {
     clang::Stmt *FuncBody = F->getBody();
@@ -75,13 +75,13 @@ bool RandomChangeVisitor::visitFunctionDecl(clang::FunctionDecl *F) {
   return true;
 }
 
-bool RandomChangeVisitor::visitTypeDecl(clang::TypeDecl *T) {
+bool RandomChangeVisitor::VisitTypeDecl(clang::TypeDecl *T) {
   llvm::outs() << "Found TypeDecl:\n";
   T->dump();
   return true;
 }
 
-bool RandomChangeVisitor::visitVarDecl(clang::VarDecl *V) {
+bool RandomChangeVisitor::VisitVarDecl(clang::VarDecl *V) {
   if (V->isLocalVarDecl()) {
     llvm::outs() << "Found local VarDecl: " << V->getName() << '\n';
     if (V->getName() == "x") {

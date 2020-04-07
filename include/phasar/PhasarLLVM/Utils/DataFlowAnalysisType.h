@@ -20,9 +20,9 @@ enum class DataFlowAnalysisType {
 #include "phasar/PhasarLLVM/Utils/DataFlowAnalysisType.def"
 };
 
-std::string toString(const DataFlowAnalysisType &D);
+std::string to_string(const DataFlowAnalysisType &D);
 
-DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S);
+DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const DataFlowAnalysisType &D);
 

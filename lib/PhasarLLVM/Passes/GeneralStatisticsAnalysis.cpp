@@ -91,7 +91,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           llvm::ImmutableCallSite CS(&I);
           if (CS.getCalledFunction()) {
             if (MemAllocatingFunctions.count(
-                    cxxDemangle(CS.getCalledFunction()->getName().str()))) {
+                    cxx_demangle(CS.getCalledFunction()->getName().str()))) {
               // do not add allocas from llvm internal functions
               Stats.allocaInstructions.insert(&I);
               ++Stats.allocationsites;

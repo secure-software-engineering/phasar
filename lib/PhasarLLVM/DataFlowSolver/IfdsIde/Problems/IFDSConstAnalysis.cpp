@@ -76,7 +76,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
         if (auto VTable =
                 llvm::dyn_cast<llvm::GlobalVariable>(CFInst->getOperand(0))) {
           if (VTable->hasName() &&
-              cxxDemangle(VTable->getName().str()).find("vtable") !=
+              cxx_demangle(VTable->getName().str()).find("vtable") !=
                   string::npos) {
             LOG_IF_ENABLE(
                 BOOST_LOG_SEV(LG, DEBUG)

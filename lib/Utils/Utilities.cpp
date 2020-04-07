@@ -39,7 +39,7 @@ std::string createTimeStamp() {
   return TimeStr;
 }
 
-string cxxDemangle(const string &MangledName) {
+string cxx_demangle(const string &MangledName) {
   return boost::core::demangle(MangledName.c_str());
 }
 
@@ -79,7 +79,7 @@ const llvm::Type *stripPointer(const llvm::Type *Pointer) {
   return Pointer;
 }
 
-bool isMangled(const string &Name) { return Name != cxxDemangle(Name); }
+bool isMangled(const string &Name) { return Name != cxx_demangle(Name); }
 
 vector<string> splitString(const string &Str, const string &Delimiter) {
   vector<string> SplitStrings;

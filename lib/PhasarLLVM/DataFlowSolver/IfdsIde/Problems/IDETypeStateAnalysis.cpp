@@ -132,7 +132,7 @@ IDETypeStateAnalysis::getCallFlowFunction(IDETypeStateAnalysis::n_t CallStmt,
                                           IDETypeStateAnalysis::f_t DestFun) {
   // Kill all data-flow facts if we hit a function of the target API.
   // Those functions are modled within Call-To-Return.
-  if (TSD.isAPIFunction(cxxDemangle(DestFun->getName().str()))) {
+  if (TSD.isAPIFunction(cxx_demangle(DestFun->getName().str()))) {
     return KillAll<IDETypeStateAnalysis::d_t>::getInstance();
   }
   // Otherwise, if we have an ordinary function call, we can just use the
@@ -244,7 +244,7 @@ IDETypeStateAnalysis::getCallToRetFlowFunction(
     set<IDETypeStateAnalysis::f_t> Callees) {
   const llvm::ImmutableCallSite CS(CallSite);
   for (auto Callee : Callees) {
-    std::string DemangledFname = cxxDemangle(Callee->getName().str());
+    std::string DemangledFname = cxx_demangle(Callee->getName().str());
     // Generate the return value of factory functions from zero value
     if (TSD.isFactoryFunction(DemangledFname)) {
       struct TSFlowFunction : FlowFunction<IDETypeStateAnalysis::d_t> {
@@ -374,7 +374,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
   auto &LG = lg::get();
   const llvm::ImmutableCallSite CS(CallSite);
   for (auto Callee : Callees) {
-    std::string DemangledFname = cxxDemangle(Callee->getName().str());
+    std::string DemangledFname = cxx_demangle(Callee->getName().str());
 
     // For now we assume that we can only generate from the return value.
     // We apply the same edge function for the return value, i.e. callsite.

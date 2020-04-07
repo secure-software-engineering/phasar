@@ -19,7 +19,7 @@ using namespace std;
 
 namespace psr {
 
-std::string toString(const DataFlowAnalysisType &D) {
+std::string to_string(const DataFlowAnalysisType &D) {
   switch (D) {
   default:
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
@@ -30,7 +30,7 @@ std::string toString(const DataFlowAnalysisType &D) {
   }
 }
 
-DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
+DataFlowAnalysisType to_DataFlowAnalysisType(const std::string &S) {
   DataFlowAnalysisType Type = llvm::StringSwitch<DataFlowAnalysisType>(S)
 #define DATA_FLOW_ANALYSIS_TYPES(NAME, CMDFLAG, TYPE)                          \
   .Case(NAME, DataFlowAnalysisType::TYPE)
@@ -47,6 +47,6 @@ DataFlowAnalysisType toDataFlowAnalysisType(const std::string &S) {
 }
 
 ostream &operator<<(ostream &OS, const DataFlowAnalysisType &D) {
-  return OS << toString(D);
+  return OS << to_string(D);
 }
 } // namespace psr

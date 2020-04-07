@@ -61,7 +61,7 @@ struct LLVMBasedICFG::dependency_visitor : boost::default_dfs_visitor {
   std::vector<vertex_t> &Vertices;
   dependency_visitor(std::vector<vertex_t> &V) : Vertices(V) {}
   template <typename Vertex, typename Graph>
-  void finishVertex(Vertex U, const Graph &G) {
+  void finish_vertex(Vertex U, const Graph &G) {
     Vertices.push_back(U);
   }
 };

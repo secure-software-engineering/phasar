@@ -19,7 +19,7 @@ using namespace std;
 
 namespace psr {
 
-std::string toString(const IOFormat &D) {
+std::string to_string(const IOFormat &D) {
   switch (D) {
   default:
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE)                                   \
@@ -30,7 +30,7 @@ std::string toString(const IOFormat &D) {
   }
 }
 
-IOFormat toIOFormat(const std::string &S) {
+IOFormat to_IOFormat(const std::string &S) {
   IOFormat Type = llvm::StringSwitch<IOFormat>(S)
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE) .Case(NAME, IOFormat::TYPE)
 #include "phasar/PhasarLLVM/Utils/IOFormat.def"
@@ -45,6 +45,6 @@ IOFormat toIOFormat(const std::string &S) {
 }
 
 ostream &operator<<(ostream &OS, const IOFormat &D) {
-  return OS << toString(D);
+  return OS << to_string(D);
 }
 } // namespace psr

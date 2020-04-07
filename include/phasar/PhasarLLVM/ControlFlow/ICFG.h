@@ -34,9 +34,9 @@ enum class CallGraphAnalysisType {
   Invalid
 };
 
-std::string toString(const CallGraphAnalysisType &CGA);
+std::string to_string(const CallGraphAnalysisType &CGA);
 
-CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S);
+CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const CallGraphAnalysisType &CGA);
 

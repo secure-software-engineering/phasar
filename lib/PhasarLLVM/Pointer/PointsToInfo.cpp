@@ -13,7 +13,7 @@
 
 namespace psr {
 
-std::string toString(AliasResult AR) {
+std::string to_string(AliasResult AR) {
   switch (AR) {
   case AliasResult::NoAlias:
     return "NoAlias";
@@ -30,7 +30,7 @@ std::string toString(AliasResult AR) {
   }
 }
 
-AliasResult toAliasResult(const std::string &S) {
+AliasResult to_AliasResult(const std::string &S) {
   if (S == "NoAlias") {
     return AliasResult::NoAlias;
   } else if (S == "MayAlias") {
@@ -43,7 +43,7 @@ AliasResult toAliasResult(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const AliasResult &AR) {
-  return OS << toString(AR);
+  return OS << to_string(AR);
 }
 
 } // namespace psr

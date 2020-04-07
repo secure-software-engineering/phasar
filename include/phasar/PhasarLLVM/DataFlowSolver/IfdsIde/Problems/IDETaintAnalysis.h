@@ -48,7 +48,7 @@ public:
   // keep in mind that 'char** argv' of main is a source for tainted values as
   // well
   std::set<std::string> sink_functions = {"fwrite", "write", "printf"};
-  bool setContainsStr(std::set<std::string> s, std::string str);
+  bool set_contains_str(std::set<std::string> s, std::string str);
 
   IDETaintAnalysis(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                    const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,

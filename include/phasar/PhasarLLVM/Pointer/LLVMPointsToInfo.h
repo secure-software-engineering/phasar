@@ -39,9 +39,9 @@ enum class PointerAnalysisType {
   Invalid
 };
 
-std::string toString(const PointerAnalysisType &PA);
+std::string to_string(const PointerAnalysisType &PA);
 
-PointerAnalysisType toPointerAnalysisType(const std::string &S);
+PointerAnalysisType to_PointerAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 

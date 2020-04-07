@@ -18,7 +18,7 @@ using namespace psr;
 
 namespace psr {
 
-std::string toString(const SoundnessFlag &SF) {
+std::string to_string(const SoundnessFlag &SF) {
   switch (SF) {
   default:
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
@@ -29,7 +29,7 @@ std::string toString(const SoundnessFlag &SF) {
   }
 }
 
-SoundnessFlag toSoundnessFlag(const std::string &S) {
+SoundnessFlag to_SoundnessFlag(const std::string &S) {
   SoundnessFlag Type = llvm::StringSwitch<SoundnessFlag>(S)
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
   .Case(NAME, SoundnessFlag::TYPE)
@@ -46,7 +46,7 @@ SoundnessFlag toSoundnessFlag(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const SoundnessFlag &SF) {
-  return OS << toString(SF);
+  return OS << to_string(SF);
 }
 
 } // namespace psr

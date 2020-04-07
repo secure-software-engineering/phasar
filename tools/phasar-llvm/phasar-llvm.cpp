@@ -76,7 +76,7 @@ void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
   for (auto &Analysis : Analyses) {
-    if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
+    if (to_DataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       throw boost::program_options::error_with_option_name(
           "'" + Analysis + "' is not a valid data-flow analysis!");
     }
@@ -84,28 +84,28 @@ void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
 }
 
 void validateParamAnalysisStrategy(const std::string &Strategy) {
-  if (toAnalysisStrategy(Strategy) == AnalysisStrategy::None) {
+  if (to_AnalysisStrategy(Strategy) == AnalysisStrategy::None) {
     throw boost::program_options::error_with_option_name(
         "Invalid analysis strategy '" + Strategy + "'!");
   }
 }
 
 void validateParamPointerAnalysis(const std::string &Analysis) {
-  if (toPointerAnalysisType(Analysis) == PointerAnalysisType::Invalid) {
+  if (to_PointerAnalysisType(Analysis) == PointerAnalysisType::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Analysis + "' is not a valid pointer analysis!");
   }
 }
 
 void validateParamCallGraphAnalysis(const std::string &Analysis) {
-  if (toCallGraphAnalysisType(Analysis) == CallGraphAnalysisType::Invalid) {
+  if (to_CallGraphAnalysisType(Analysis) == CallGraphAnalysisType::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Analysis + "' is not a valid call-graph analysis!");
   }
 }
 
 void validateSoundnessFlag(const std::string &Flag) {
-  if (toSoundnessFlag(Flag) == SoundnessFlag::Invalid) {
+  if (to_SoundnessFlag(Flag) == SoundnessFlag::Invalid) {
     throw boost::program_options::error_with_option_name(
         "'" + Flag + "' is not a valid soundiness flag!");
   }
@@ -261,7 +261,7 @@ int main(int Argc, const char **Argv) {
   // setup the analysis controller which executes the chosen analyses
   AnalysisStrategy Strategy = AnalysisStrategy::None;
   if (PhasarConfig::VariablesMap().count("analysis-strategy")) {
-    Strategy = toAnalysisStrategy(
+    Strategy = to_AnalysisStrategy(
         PhasarConfig::VariablesMap()["analysis-strategy"].as<std::string>());
     if (Strategy == AnalysisStrategy::None) {
       std::cout << "Invalid analysis strategy!\n";
@@ -284,7 +284,7 @@ int main(int Argc, const char **Argv) {
     auto Analyses = PhasarConfig::VariablesMap()["data-flow-analysis"]
                         .as<std::vector<std::string>>();
     for (auto &Analysis : Analyses) {
-      DataFlowAnalyses.push_back(toDataFlowAnalysisType(Analysis));
+      DataFlowAnalyses.push_back(to_DataFlowAnalysisType(Analysis));
     }
   } else {
     DataFlowAnalyses.push_back(DataFlowAnalysisType::None);
@@ -304,13 +304,13 @@ int main(int Argc, const char **Argv) {
     EntryPoints.insert("main");
   }
   // setup pointer algorithm to be used
-  PointerAnalysisType PTATy = toPointerAnalysisType(
+  PointerAnalysisType PTATy = to_PointerAnalysisType(
       PhasarConfig::VariablesMap()["pointer-analysis"].as<std::string>());
   // setup call-graph algorithm to be used
-  CallGraphAnalysisType CGTy = toCallGraphAnalysisType(
+  CallGraphAnalysisType CGTy = to_CallGraphAnalysisType(
       PhasarConfig::VariablesMap()["call-graph-analysis"].as<std::string>());
   // setup soudiness level to be used
-  SoundnessFlag SF = toSoundnessFlag(
+  SoundnessFlag SF = to_SoundnessFlag(
       PhasarConfig::VariablesMap()["soundiness-flag"].as<std::string>());
   // setup the emitter options to display the computed analysis results
   AnalysisControllerEmitterOptions EmitterOptions =
