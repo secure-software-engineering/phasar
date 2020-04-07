@@ -31,7 +31,7 @@ using namespace psr;
 
 namespace psr {
 
-static void PrintResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
+static void printResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
                          const llvm::Value *V2, const llvm::Module *M) {
   if (P) {
     std::string O1, O2;
@@ -48,7 +48,7 @@ static void PrintResults(llvm::AliasResult AR, bool P, const llvm::Value *V1,
   }
 }
 
-static inline void PrintModRefResults(const char *Msg, bool P,
+static inline void printModRefResults(const char *Msg, bool P,
                                       llvm::Instruction *I, llvm::Value *Ptr,
                                       llvm::Module *M) {
   if (P) {
@@ -58,7 +58,7 @@ static inline void PrintModRefResults(const char *Msg, bool P,
   }
 }
 
-static inline void PrintModRefResults(const char *Msg, bool P,
+static inline void printModRefResults(const char *Msg, bool P,
                                       llvm::CallBase *CallA,
                                       llvm::CallBase *CallB, llvm::Module *M) {
   if (P) {
@@ -66,7 +66,7 @@ static inline void PrintModRefResults(const char *Msg, bool P,
   }
 }
 
-static inline void PrintLoadStoreResults(llvm::AliasResult AR, bool P,
+static inline void printLoadStoreResults(llvm::AliasResult AR, bool P,
                                          const llvm::Value *V1,
                                          const llvm::Value *V2,
                                          const llvm::Module *M) {
@@ -75,7 +75,7 @@ static inline void PrintLoadStoreResults(llvm::AliasResult AR, bool P,
   }
 }
 
-std::string to_string(const PointerAnalysisType &PA) {
+std::string toString(const PointerAnalysisType &PA) {
   switch (PA) {
   default:
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
@@ -86,7 +86,7 @@ std::string to_string(const PointerAnalysisType &PA) {
   }
 }
 
-PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
+PointerAnalysisType toPointerAnalysisType(const std::string &S) {
   PointerAnalysisType Type = llvm::StringSwitch<PointerAnalysisType>(S)
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
   .Case(NAME, PointerAnalysisType::TYPE)
@@ -103,7 +103,7 @@ PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA) {
-  return OS << to_string(PA);
+  return OS << toString(PA);
 }
 
 LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB, PointerAnalysisType PAT) {
@@ -284,16 +284,16 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
         llvm::AliasResult AR = AA->alias(*I1, I1Size, *I2, I2Size);
         switch (AR) {
         case llvm::NoAlias:
-          PrintResults(AR, PrintNoAlias, *I1, *I2, F->getParent());
+          printResults(AR, PrintNoAlias, *I1, *I2, F->getParent());
           break;
         case llvm::MayAlias:
-          PrintResults(AR, PrintMayAlias, *I1, *I2, F->getParent());
+          printResults(AR, PrintMayAlias, *I1, *I2, F->getParent());
           break;
         case llvm::PartialAlias:
-          PrintResults(AR, PrintPartialAlias, *I1, *I2, F->getParent());
+          printResults(AR, PrintPartialAlias, *I1, *I2, F->getParent());
           break;
         case llvm::MustAlias:
-          PrintResults(AR, PrintMustAlias, *I1, *I2, F->getParent());
+          printResults(AR, PrintMustAlias, *I1, *I2, F->getParent());
           break;
         }
       }
@@ -308,19 +308,19 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(Store)));
           switch (AR) {
           case llvm::NoAlias:
-            PrintLoadStoreResults(AR, PrintNoAlias, Load, Store,
+            printLoadStoreResults(AR, PrintNoAlias, Load, Store,
                                   F->getParent());
             break;
           case llvm::MayAlias:
-            PrintLoadStoreResults(AR, PrintMayAlias, Load, Store,
+            printLoadStoreResults(AR, PrintMayAlias, Load, Store,
                                   F->getParent());
             break;
           case llvm::PartialAlias:
-            PrintLoadStoreResults(AR, PrintPartialAlias, Load, Store,
+            printLoadStoreResults(AR, PrintPartialAlias, Load, Store,
                                   F->getParent());
             break;
           case llvm::MustAlias:
-            PrintLoadStoreResults(AR, PrintMustAlias, Load, Store,
+            printLoadStoreResults(AR, PrintMustAlias, Load, Store,
                                   F->getParent());
             break;
           }
@@ -338,17 +338,17 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
               llvm::MemoryLocation::get(llvm::cast<llvm::StoreInst>(*I2)));
           switch (AR) {
           case llvm::NoAlias:
-            PrintLoadStoreResults(AR, PrintNoAlias, *I1, *I2, F->getParent());
+            printLoadStoreResults(AR, PrintNoAlias, *I1, *I2, F->getParent());
             break;
           case llvm::MayAlias:
-            PrintLoadStoreResults(AR, PrintMayAlias, *I1, *I2, F->getParent());
+            printLoadStoreResults(AR, PrintMayAlias, *I1, *I2, F->getParent());
             break;
           case llvm::PartialAlias:
-            PrintLoadStoreResults(AR, PrintPartialAlias, *I1, *I2,
+            printLoadStoreResults(AR, PrintPartialAlias, *I1, *I2,
                                   F->getParent());
             break;
           case llvm::MustAlias:
-            PrintLoadStoreResults(AR, PrintMustAlias, *I1, *I2, F->getParent());
+            printLoadStoreResults(AR, PrintMustAlias, *I1, *I2, F->getParent());
             break;
           }
         }
@@ -366,34 +366,34 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
 
         switch (AA->getModRefInfo(Call, Pointer, Size)) {
         case llvm::ModRefInfo::NoModRef:
-          PrintModRefResults("NoModRef", PrintNoModRef, Call, Pointer,
+          printModRefResults("NoModRef", PrintNoModRef, Call, Pointer,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Mod:
-          PrintModRefResults("Just Mod", PrintMod, Call, Pointer,
+          printModRefResults("Just Mod", PrintMod, Call, Pointer,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Ref:
-          PrintModRefResults("Just Ref", PrintRef, Call, Pointer,
+          printModRefResults("Just Ref", PrintRef, Call, Pointer,
                              F->getParent());
           break;
         case llvm::ModRefInfo::ModRef:
-          PrintModRefResults("Both ModRef", PrintModRef, Call, Pointer,
+          printModRefResults("Both ModRef", PrintModRef, Call, Pointer,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Must:
-          PrintModRefResults("Must", PrintMust, Call, Pointer, F->getParent());
+          printModRefResults("Must", PrintMust, Call, Pointer, F->getParent());
           break;
         case llvm::ModRefInfo::MustMod:
-          PrintModRefResults("Just Mod (MustAlias)", PrintMustMod, Call,
+          printModRefResults("Just Mod (MustAlias)", PrintMustMod, Call,
                              Pointer, F->getParent());
           break;
         case llvm::ModRefInfo::MustRef:
-          PrintModRefResults("Just Ref (MustAlias)", PrintMustRef, Call,
+          printModRefResults("Just Ref (MustAlias)", PrintMustRef, Call,
                              Pointer, F->getParent());
           break;
         case llvm::ModRefInfo::MustModRef:
-          PrintModRefResults("Both ModRef (MustAlias)", PrintMustModRef, Call,
+          printModRefResults("Both ModRef (MustAlias)", PrintMustModRef, Call,
                              Pointer, F->getParent());
           break;
         }
@@ -407,34 +407,34 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
           continue;
         switch (AA->getModRefInfo(CallA, CallB)) {
         case llvm::ModRefInfo::NoModRef:
-          PrintModRefResults("NoModRef", PrintNoModRef, CallA, CallB,
+          printModRefResults("NoModRef", PrintNoModRef, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Mod:
-          PrintModRefResults("Just Mod", PrintMod, CallA, CallB,
+          printModRefResults("Just Mod", PrintMod, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Ref:
-          PrintModRefResults("Just Ref", PrintRef, CallA, CallB,
+          printModRefResults("Just Ref", PrintRef, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::ModRef:
-          PrintModRefResults("Both ModRef", PrintModRef, CallA, CallB,
+          printModRefResults("Both ModRef", PrintModRef, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::Must:
-          PrintModRefResults("Must", PrintMust, CallA, CallB, F->getParent());
+          printModRefResults("Must", PrintMust, CallA, CallB, F->getParent());
           break;
         case llvm::ModRefInfo::MustMod:
-          PrintModRefResults("Just Mod (MustAlias)", PrintMustMod, CallA, CallB,
+          printModRefResults("Just Mod (MustAlias)", PrintMustMod, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::MustRef:
-          PrintModRefResults("Just Ref (MustAlias)", PrintMustRef, CallA, CallB,
+          printModRefResults("Just Ref (MustAlias)", PrintMustRef, CallA, CallB,
                              F->getParent());
           break;
         case llvm::ModRefInfo::MustModRef:
-          PrintModRefResults("Both ModRef (MustAlias)", PrintMustModRef, CallA,
+          printModRefResults("Both ModRef (MustAlias)", PrintMustModRef, CallA,
                              CallB, F->getParent());
           break;
         }

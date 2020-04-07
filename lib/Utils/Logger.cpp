@@ -55,11 +55,11 @@ ostream &operator<<(ostream &OS, enum severity_level L) {
   return OS << SeverityLevelToString.at(L);
 }
 
-bool LogFilter(const boost::log::attribute_value_set &Set) {
+bool logFilter(const boost::log::attribute_value_set &Set) {
   return Set["Severity"].extract<severity_level>() >= LogFilterLevel;
 }
 
-void LogFormatter(const boost::log::record_view &View,
+void logFormatter(const boost::log::record_view &View,
                   boost::log::formatting_ostream &OS) {
   OS << View.attribute_values()["LineCounter"].extract<int>() << " "
      << View.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
@@ -97,8 +97,8 @@ void initializeLogger(bool UseLogger, string LogFile) {
   // log_file);
   // }
   Sink->locked_backend()->add_stream(Stream);
-  Sink->set_filter(&LogFilter);
-  Sink->set_formatter(&LogFormatter);
+  Sink->set_filter(&logFilter);
+  Sink->set_formatter(&logFormatter);
   boost::log::core::get()->add_sink(Sink);
   boost::log::core::get()->add_global_attribute(
       "LineCounter", boost::log::attributes::counter<int>{});

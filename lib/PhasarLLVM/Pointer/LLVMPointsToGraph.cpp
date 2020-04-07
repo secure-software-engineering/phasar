@@ -52,18 +52,18 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
       : AllocationSites(AllocationSizes), CallStack(CallStack) {}
 
   template <typename Vertex, typename Graph>
-  void discover_vertex(Vertex U, const Graph &G) {
+  void discoverVertex(Vertex U, const Graph &G) {
     VisitorStack.push_back(U);
   }
 
   template <typename Vertex, typename Graph>
-  void finish_vertex(Vertex U, const Graph &G) {
+  void finishVertex(Vertex U, const Graph &G) {
     auto &LG = lg::get();
     // check for stack allocation
     if (const llvm::AllocaInst *Alloc =
             llvm::dyn_cast<llvm::AllocaInst>(G[U].V)) {
       // If the call stack is empty, we completely ignore the calling context
-      if (matches_stack(G) || CallStack.empty()) {
+      if (matchesStack(G) || CallStack.empty()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                       << "Found stack allocation: " << llvmIRToString(Alloc));
         AllocationSites.insert(G[U].V);
@@ -78,7 +78,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
               CS.getCalledFunction()->getName().str())) {
         // If the call stack is empty, we completely ignore the calling
         // context
-        if (matches_stack(G) || CallStack.empty()) {
+        if (matchesStack(G) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                         << "Found heap allocation: "
                         << llvmIRToString(CS.getInstruction()));
@@ -89,7 +89,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
     VisitorStack.pop_back();
   }
 
-  template <typename Graph> bool matches_stack(const Graph &G) {
+  template <typename Graph> bool matchesStack(const Graph &G) {
     size_t CallStackIdx = 0;
     for (size_t I = 0, J = 1;
          I < VisitorStack.size() && J < VisitorStack.size(); ++I, ++J) {
@@ -109,7 +109,7 @@ struct PointsToGraph::ReachabilityDFSVisitor : boost::default_dfs_visitor {
   std::set<vertex_t> &PointsToSet;
   ReachabilityDFSVisitor(set<vertex_t> &Result) : PointsToSet(Result) {}
   template <typename Vertex, typename Graph>
-  void finish_vertex(Vertex U, const Graph &G) {
+  void finishVertex(Vertex U, const Graph &G) {
     PointsToSet.insert(U);
   }
 };

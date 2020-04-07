@@ -35,14 +35,13 @@
 
 #include "stdlib.h"
 
-using namespace std;
 using namespace psr;
 
 namespace psr {
 
 /// Set of functions that allocate heap memory, e.g. new, new[], malloc.
-const set<string> HeapAllocationFunctions = {"_Znwm", "_Znam", "malloc",
-                                             "calloc", "realloc"};
+const std::set<std::string> HeapAllocationFunctions = {
+    "_Znwm", "_Znam", "malloc", "calloc", "realloc"};
 
 bool isFunctionPointer(const llvm::Value *V) noexcept {
   if (V) {
@@ -227,9 +226,9 @@ std::string getMetaDataID(const llvm::Value *V) {
           .str();
     }
   } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
-    string FName = Arg->getParent()->getName().str();
-    string ArgNr = to_string(getFunctionArgumentNr(Arg));
-    return string(FName + "." + ArgNr);
+    std::string FName = Arg->getParent()->getName().str();
+    std::string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
+    return std::string(FName + "." + ArgNr);
   }
   return "-1";
 }

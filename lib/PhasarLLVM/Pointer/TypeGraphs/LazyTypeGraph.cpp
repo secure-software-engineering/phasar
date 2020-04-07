@@ -34,7 +34,7 @@ namespace psr {
 struct LazyTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
   dfs_visitor(std::set<const llvm::StructType *> &Result) : Result(Result) {}
 
-  void finish_edge(edge_t E, graph_t const &U) {
+  void finishEdge(edge_t E, graph_t const &U) {
     LazyTypeGraph::vertex_t Src = boost::source(E, U);
     LazyTypeGraph::vertex_t Target = boost::target(E, U);
 

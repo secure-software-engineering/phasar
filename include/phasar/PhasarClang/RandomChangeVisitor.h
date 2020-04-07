@@ -48,10 +48,10 @@ private:
 public:
   RandomChangeVisitor(clang::Rewriter &R);
   virtual ~RandomChangeVisitor() = default;
-  virtual bool VisitVarDecl(clang::VarDecl *V);
-  virtual bool VisitTypeDecl(clang::TypeDecl *T);
-  virtual bool VisitStmt(clang::Stmt *S);
-  virtual bool VisitFunctionDecl(clang::FunctionDecl *F);
+  virtual bool visitVarDecl(clang::VarDecl *V);
+  virtual bool visitTypeDecl(clang::TypeDecl *T);
+  virtual bool visitStmt(clang::Stmt *S);
+  virtual bool visitFunctionDecl(clang::FunctionDecl *F);
 };
 
 } // namespace psr

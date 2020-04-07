@@ -502,7 +502,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   for (auto &[File, Module] : Modules) {
     for (auto &GV : Module->globals()) {
       if (GV.hasName()) {
-        string GVName = cxx_demangle(GV.getName().str());
+        string GVName = cxxDemangle(GV.getName().str());
         if (!IgnoredGlobalNames.count(GVName.substr(0, GVName.find(' ')))) {
           AllMemoryLoc.insert(&GV);
         }

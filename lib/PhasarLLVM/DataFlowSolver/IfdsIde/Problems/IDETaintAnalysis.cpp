@@ -27,7 +27,7 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-bool IDETaintAnalysis::set_contains_str(set<string> S, string Str) {
+bool IDETaintAnalysis::setContainsStr(set<string> S, string Str) {
   return S.find(Str) != S.end();
 }
 

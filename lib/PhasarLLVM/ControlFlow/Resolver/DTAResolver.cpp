@@ -34,7 +34,7 @@ using namespace psr;
 DTAResolver::DTAResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH)
     : CHAResolver(IRDB, TH) {}
 
-bool DTAResolver::heuristic_anti_contructor_this_type(
+bool DTAResolver::heuristicAntiConstructorThisType(
     const llvm::BitCastInst *BitCast) {
   // We check if the caller is a constructor, and if the this argument has the
   // same type as the source type of the bitcast. If it is the case, it returns
@@ -55,12 +55,12 @@ bool DTAResolver::heuristic_anti_contructor_this_type(
   return true;
 }
 
-bool DTAResolver::heuristic_anti_contructor_vtable_pos(
+bool DTAResolver::heuristicAntiConstructorVtablePos(
     const llvm::BitCastInst *BitCast) {
   // Better heuristic than the previous one, can handle the CRTP. Based on the
   // previous one.
 
-  if (heuristic_anti_contructor_this_type(BitCast))
+  if (heuristicAntiConstructorThisType(BitCast))
     return true;
 
   // We know that we are in a constructor and the source type of the bitcast is
@@ -137,7 +137,7 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
     auto DestStructType = llvm::dyn_cast<llvm::StructType>(stripPointer(Dest));
 
     if (SrcStructType && DestStructType &&
-        heuristic_anti_contructor_vtable_pos(BitCast))
+        heuristicAntiConstructorVtablePos(BitCast))
       typegraph.addLink(DestStructType, SrcStructType);
   }
 }
