@@ -63,7 +63,7 @@ if [ -x "$(command -v pacman)" ]; then
     ./utils/installBuildEAR.sh
 else
     sudo apt-get update
-    ./utils/InstallAptDependencies.sh
+    sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev bear python3 doxygen graphviz python python-dev python3-pip python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev -y
 fi
 sudo pip3 install Pygments
 sudo pip3 install pyyaml
