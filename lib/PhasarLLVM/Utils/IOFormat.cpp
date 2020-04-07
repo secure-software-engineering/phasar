@@ -19,7 +19,7 @@ using namespace std;
 
 namespace psr {
 
-std::string to_string(const IOFormat &D) {
+std::string toString(const IOFormat &D) {
   switch (D) {
   default:
 #define IO_FORMAT_TYPES(NAME, CMDFLAG, TYPE)                                   \
@@ -45,6 +45,6 @@ IOFormat to_IOFormat(const std::string &S) {
 }
 
 ostream &operator<<(ostream &OS, const IOFormat &D) {
-  return OS << to_string(D);
+  return OS << toString(D);
 }
 } // namespace psr

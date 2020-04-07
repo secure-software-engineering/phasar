@@ -18,7 +18,7 @@ using namespace psr;
 
 namespace psr {
 
-std::string to_string(const AnalysisStrategy &S) {
+std::string toString(const AnalysisStrategy &S) {
   switch (S) {
   default:
 #define ANALYSIS_STRATEGY_TYPES(NAME, CMDFLAG, TYPE)                           \
@@ -46,7 +46,7 @@ AnalysisStrategy to_AnalysisStrategy(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const AnalysisStrategy &S) {
-  return OS << to_string(S);
+  return OS << toString(S);
 }
 
 } // namespace psr

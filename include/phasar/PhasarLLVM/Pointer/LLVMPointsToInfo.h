@@ -39,7 +39,7 @@ enum class PointerAnalysisType {
   Invalid
 };
 
-std::string to_string(const PointerAnalysisType &PA);
+std::string toString(const PointerAnalysisType &PA);
 
 PointerAnalysisType to_PointerAnalysisType(const std::string &S);
 

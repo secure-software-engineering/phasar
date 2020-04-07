@@ -228,7 +228,7 @@ std::string getMetaDataID(const llvm::Value *V) {
     }
   } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     string FName = Arg->getParent()->getName().str();
-    string ArgNr = to_string(getFunctionArgumentNr(Arg));
+    string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
     return string(FName + "." + ArgNr);
   }
   return "-1";

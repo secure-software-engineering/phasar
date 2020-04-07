@@ -21,7 +21,7 @@ enum class SoundnessFlag {
   Invalid
 };
 
-std::string to_string(const SoundnessFlag &SF);
+std::string toString(const SoundnessFlag &SF);
 
 SoundnessFlag to_SoundnessFlag(const std::string &S);
 

@@ -18,7 +18,7 @@ using namespace psr;
 
 namespace psr {
 
-std::string to_string(const SoundnessFlag &SF) {
+std::string toString(const SoundnessFlag &SF) {
   switch (SF) {
   default:
 #define SOUNDNESS_FLAG_TYPE(NAME, CMDFLAG, TYPE)                               \
@@ -46,7 +46,7 @@ SoundnessFlag to_SoundnessFlag(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const SoundnessFlag &SF) {
-  return OS << to_string(SF);
+  return OS << toString(SF);
 }
 
 } // namespace psr

@@ -75,7 +75,7 @@ static inline void PrintLoadStoreResults(llvm::AliasResult AR, bool P,
   }
 }
 
-std::string to_string(const PointerAnalysisType &PA) {
+std::string toString(const PointerAnalysisType &PA) {
   switch (PA) {
   default:
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE)                       \
@@ -103,7 +103,7 @@ PointerAnalysisType to_PointerAnalysisType(const std::string &S) {
 }
 
 std::ostream &operator<<(std::ostream &OS, const PointerAnalysisType &PA) {
-  return OS << to_string(PA);
+  return OS << toString(PA);
 }
 
 LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB, PointerAnalysisType PAT) {

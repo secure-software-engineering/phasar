@@ -20,7 +20,7 @@ enum class AnalysisStrategy {
 #include "phasar/PhasarLLVM/AnalysisStrategy/Strategies.def"
 };
 
-std::string to_string(const AnalysisStrategy &S);
+std::string toString(const AnalysisStrategy &S);
 
 AnalysisStrategy to_AnalysisStrategy(const std::string &S);
 
