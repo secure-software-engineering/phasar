@@ -65,8 +65,8 @@ else
     sudo apt-get update
     ./utils/InstallAptDependencies.sh
 fi
-sudo pip install Pygments
-sudo pip install pyyaml
+sudo pip3 install Pygments
+sudo pip3 install pyyaml
 
 if [ ! -z ${DESIRED_BOOST_DIR} ]; then
     BOOST_PARAMS="-DBOOST_ROOT=${DESIRED_BOOST_DIR}" 
