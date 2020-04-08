@@ -78,15 +78,15 @@ public:
    */
   void addFunction(D sourceVal, N target, D targetVal,
                    std::shared_ptr<EdgeFunction<L>> function) {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at source : " << problem.DtoString(sourceVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at target : " << problem.DtoString(targetVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Destination    : " << problem.NtoString(target));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Start adding new jump function";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Fact at source : " << problem.DtoString(sourceVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Fact at target : " << problem.DtoString(targetVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Destination    : " << problem.NtoString(target);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Edge Function  : " << function->str());
     // we do not store the default function (all-top)
     if (function->equal_to(allTop)) {
@@ -102,8 +102,9 @@ public:
     targetValToFunc[targetVal] = function;
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "End adding new jump function";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
   }
 
   /**
