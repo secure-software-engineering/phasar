@@ -644,7 +644,11 @@ protected:
     D d = nAndD.second;
     F p = ICF->getFunctionOf(n);
     for (const N c : ICF->getCallsFromWithin(p)) {
-      for (auto entry : jumpFn->forwardLookup(d, c)) {
+      auto lookupResults = jumpFn->forwardLookup(d, c);
+      if (!lookupResults) {
+        continue;
+      }
+      for (auto entry : lookupResults->get()) {
         D dPrime = entry.first;
         std::shared_ptr<EdgeFunction<L>> fPrime = entry.second;
         N sP = n;
@@ -731,16 +735,16 @@ protected:
         << "   Target N: " << IDEProblem.NtoString(edge.getTarget());
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "   Target D: " << IDEProblem.DtoString(edge.factAtTarget()));
-    if (!jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget())
-             .count(edge.factAtTarget())) {
+
+    auto res2 = jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
+    if (!res2 || !res2->get().count(edge.factAtTarget())) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  => EdgeFn: " << allTop->str();
                     BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
       return allTop;
     }
-    auto res = jumpFn->forwardLookup(edge.factAtSource(),
-                                     edge.getTarget())[edge.factAtTarget()];
+    auto res = res2->get()[edge.factAtTarget()];
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "  => EdgeFn: " << res->str();
                   BOOST_LOG_SEV(lg::get(), DEBUG) << " ");

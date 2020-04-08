@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
+#include <functional>
 #include <memory>
 #include <ostream>
 #include <unordered_map>
@@ -25,6 +26,8 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
+
+#include "llvm/ADT/Optional.h"
 
 namespace psr {
 
@@ -121,12 +124,14 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>
+  llvm::Optional<std::reference_wrapper<
+      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   forwardLookup(D sourceVal, N target) {
-    if (!nonEmptyForwardLookup.contains(sourceVal, target))
-      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
-    else
-      return nonEmptyForwardLookup.get(sourceVal, target);
+    if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
+      return llvm::None;
+    } else {
+      return {nonEmptyForwardLookup.get(sourceVal, target)}; // TODO: look at
+    }
   }
 
   /**
