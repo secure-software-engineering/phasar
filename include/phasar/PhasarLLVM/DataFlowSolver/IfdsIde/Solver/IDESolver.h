@@ -985,17 +985,20 @@ protected:
                           BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to
             // return site using the composed function
-            for (auto valAndFunc : jumpFn->reverseLookup(c, d4)) {
-              std::shared_ptr<EdgeFunction<L>> f3 = valAndFunc.second;
-              if (!f3->equal_to(allTop)) {
-                D d3 = valAndFunc.first;
-                D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
-                                  << "Compose: " << fPrime->str() << " * "
-                                  << f3->str();
-                              BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
-                propagate(d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime),
-                          c, false);
+            auto revLookupResult = jumpFn->reverseLookup(c, d4);
+            if (revLookupResult) {
+              for (auto valAndFunc : revLookupResult->get()) {
+                std::shared_ptr<EdgeFunction<L>> f3 = valAndFunc.second;
+                if (!f3->equal_to(allTop)) {
+                  D d3 = valAndFunc.first;
+                  D d5_restoredCtx = restoreContextOnReturnedFact(c, d4, d5);
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                                    << "Compose: " << fPrime->str() << " * "
+                                    << f3->str();
+                                BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
+                  propagate(d3, retSiteC, d5_restoredCtx,
+                            f3->composeWith(fPrime), c, false);
+                }
               }
             }
           }
@@ -1189,8 +1192,9 @@ protected:
                   BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     std::shared_ptr<EdgeFunction<L>> jumpFnE = nullptr;
     std::shared_ptr<EdgeFunction<L>> fPrime;
-    if (!jumpFn->reverseLookup(target, targetVal).empty()) {
-      jumpFnE = jumpFn->reverseLookup(target, targetVal)[sourceVal];
+    auto revLookupResult = jumpFn->reverseLookup(target, targetVal);
+    if (revLookupResult && !revLookupResult->get().empty()) {
+      jumpFnE = revLookupResult->get()[sourceVal];
     }
     if (jumpFnE == nullptr) {
       jumpFnE = allTop; // jump function is initialized to all-top

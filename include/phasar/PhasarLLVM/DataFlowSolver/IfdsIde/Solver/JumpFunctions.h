@@ -111,12 +111,14 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>
+  llvm::Optional<std::reference_wrapper<
+      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   reverseLookup(N target, D targetVal) {
-    if (!nonEmptyReverseLookup.contains(target, targetVal))
-      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
-    else
-      return nonEmptyReverseLookup.get(target, targetVal);
+    if (!nonEmptyReverseLookup.contains(target, targetVal)) {
+      return llvm::None;
+    } else {
+      return {nonEmptyReverseLookup.get(target, targetVal)};
+    }
   }
 
   /**
