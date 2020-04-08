@@ -133,7 +133,7 @@ public:
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
       return llvm::None;
     } else {
-      return {nonEmptyForwardLookup.get(sourceVal, target)}; // TODO: look at
+      return {nonEmptyForwardLookup.get(sourceVal, target)};
     }
   }
 
