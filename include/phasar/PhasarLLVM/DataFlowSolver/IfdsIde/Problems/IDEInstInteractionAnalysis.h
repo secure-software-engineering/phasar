@@ -11,6 +11,9 @@
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEINSTINTERACTIONALYSIS_H_
 
 #include <functional>
+#include <iostream>
+#include <llvm/IR/Constants.h>
+#include <llvm/IR/Instructions.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -69,8 +72,7 @@ public:
   using l_t = LatticeDomain<BitVectorSet<e_t>>;
   using i_t = LLVMBasedICFG;
 
-  using EdgeFactGeneratorTy = std::set<e_t>(n_t curr, d_t srcNode,
-                                            d_t destNode);
+  using EdgeFactGeneratorTy = std::set<e_t>(n_t curr);
 
 private:
   std::function<EdgeFactGeneratorTy> EdgeFactGen;
@@ -89,7 +91,8 @@ public:
                              LatticeDomain<BitVectorSet<EdgeFactType>>,
                              LLVMBasedICFG>(IRDB, TH, ICF, PT, EntryPoints) {
     this->ZeroValue =
-        IDEInstInteractionAnalysisT<EdgeFactType>::createZeroValue();
+        IDEInstInteractionAnalysisT<EdgeFactType, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints>::createZeroValue();
   }
 
   ~IDEInstInteractionAnalysisT() override = default;
@@ -107,10 +110,14 @@ public:
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override {
+    // generate all variables
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
+      std::cout << "AllocaInst" << std::endl;
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
+    // handle indirect taints (propagate values that depend on branch conditions
+    // whose operands are tainted)
     if (EnableIndirectTaints) {
       if (auto br = llvm::dyn_cast<llvm::BranchInst>(curr);
           br && br->isConditional()) {
@@ -130,7 +137,6 @@ public:
     }
 
     if (!SyntacticAnalysisOnly) {
-
       // (ii) handle semantic propagation (pointers)
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(curr)) {
         // if one of the potentially many loaded values holds, the load itself
@@ -197,13 +203,48 @@ public:
       }
     }
 
-    // (i) handle syntactic propagation for all other statements
+    // (i) handle syntactic propagation store instructions
+    // in case store x y, we need to draw the edge x --> y such that we can
+    // transfer x's labels to y
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+      if (const auto *Load =
+              llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
+        struct IIAAFlowFunction : FlowFunction<d_t> {
+          const llvm::StoreInst *Store;
+          const llvm::LoadInst *Load;
+          IIAAFlowFunction(const llvm::StoreInst *S, const llvm::LoadInst *L)
+              : Store(S), Load(L) {}
+          ~IIAAFlowFunction() override = default;
+
+          std::set<d_t> computeTargets(d_t src) override {
+            std::set<d_t> Facts;
+            if (Load == src || Load->getPointerOperand() == src) {
+              Facts.insert(src);
+              Facts.insert(Load->getPointerOperand());
+              Facts.insert(Store->getPointerOperand());
+            } else {
+              Facts.insert(src);
+            }
+            for (const auto s : Facts) {
+              std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
+                        << llvmIRToShortString(Store) << "--> "
+                        << llvmIRToShortString(s) << '\n';
+            }
+            return Facts;
+          }
+        };
+        return std::make_shared<IIAAFlowFunction>(Store, Load);
+      }
+    }
+    // and now we can handle all other statements
     struct IIAFlowFunction : FlowFunction<d_t> {
       IDEInstInteractionAnalysisT &Problem;
       n_t Inst;
 
       IIAFlowFunction(IDEInstInteractionAnalysisT &Problem, n_t Inst)
           : Problem(Problem), Inst(Inst) {}
+
+      ~IIAFlowFunction() override = default;
 
       std::set<d_t> computeTargets(d_t src) override {
         std::set<d_t> Facts;
@@ -228,6 +269,11 @@ public:
         }
         // pass everything that already holds as identity
         Facts.insert(src);
+        for (const auto s : Facts) {
+          std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
+                    << llvmIRToShortString(Inst) << "--> "
+                    << llvmIRToShortString(s) << '\n';
+        }
         return Facts;
       }
     };
@@ -289,38 +335,109 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override {
+    std::cout << "Process edge: " << llvmIRToShortString(currNode) << " --"
+              << llvmIRToShortString(curr) << "--> "
+              << llvmIRToShortString(succNode) << '\n';
+
     // propagate zero edges as identity
     if (isZeroValue(currNode) && isZeroValue(succNode)) {
       return EdgeIdentity<l_t>::getInstance();
     }
+
     // check if the user has registered a fact generator function
+    l_t UserEdgeFacts;
+    std::set<e_t> EdgeFacts;
     if (EdgeFactGen) {
-      auto EdgeFacts = EdgeFactGen(curr, currNode, succNode);
-      // construct BitVectorSet
-      l_t UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
-      if (!EdgeFacts.empty()) {
+      EdgeFacts = EdgeFactGen(curr);
+      // fill BitVectorSet
+      UserEdgeFacts = BitVectorSet<e_t>(EdgeFacts.begin(), EdgeFacts.end());
+    }
+
+    // override at store instructions
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(curr)) {
+      if (SyntacticAnalysisOnly) {
+        // check for the overriding edges at store instructions
+        // store x y
+        // case x and y ordinary variables
+        // y obtains its values from x (and from the store itself)
+        if (const auto *Load =
+                llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
+          if (Load->getPointerOperand() == currNode &&
+              succNode == Store->getPointerOperand()) {
+            std::cout << "Var-Override: ";
+            for (const auto &EF : EdgeFacts) {
+              std::cout << EF << ", ";
+            }
+            std::cout << "at '" << llvmIRToString(curr) << "'\n";
+            return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+          }
+        }
+        // kill all labels that are propagated along the edge of the value that
+        // is overridden
+        if ((currNode == succNode) &&
+            (currNode == Store->getPointerOperand())) {
+          if (llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
+            // case x is a literal (and y an ordinary variable)
+            // y obtains its values from its original allocation and this store
+            std::cout << "Const-Replace at '" << llvmIRToString(curr) << "'\n";
+            std::cout << "Replacement label(s): ";
+            for (const auto &Item : EdgeFacts) {
+              std::cout << Item << ", ";
+            }
+            std::cout << '\n';
+            return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+          } else {
+            std::cout << "Kill at '" << llvmIRToString(curr) << "'\n";
+            return std::make_shared<IIAAKillOrReplaceEF>(*this);
+          }
+        }
+      } else {
+        // consider points-to information and find all possible overriding edges
+        // using points-to sets
+        std::set<d_t> ValuePTS;
+        if (Store->getValueOperand()->getType()->isPointerTy()) {
+          ValuePTS = this->PT->getPointsToSet(Store->getValueOperand());
+        }
+        std::set<d_t> PointerPTS =
+            this->PT->getPointsToSet(Store->getPointerOperand());
+        // overriding edge
+        if ((currNode == Store->getValueOperand() ||
+             ValuePTS.count(Store->getValueOperand()) ||
+             llvm::isa<llvm::ConstantData>(Store->getValueOperand())) &&
+            PointerPTS.count(Store->getPointerOperand())) {
+          return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
+        }
+        // kill all labels that are propagated along the edge of the
+        // value/values that is/are overridden
+        if (currNode == succNode && PointerPTS.count(currNode)) {
+          return std::make_shared<IIAAKillOrReplaceEF>(*this);
+        }
+      }
+    }
+
+    // check if the user has registered a fact generator function
+    if (auto UEF = std::get_if<BitVectorSet<e_t>>(&UserEdgeFacts)) {
+      if (!UEF->empty()) {
         // handle generating edges from zero
         // generate labels from zero when the instruction itself is the flow
         // fact that is generated
         if (isZeroValue(currNode) && curr == succNode) {
-          return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+          return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
         }
         // handle edges that may add new labels to existing facts
         if (curr == currNode && currNode == succNode) {
-          return std::make_shared<IIAALabelEdgeFunction>(*this, UserEdgeFacts);
+          return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
         }
         // generate labels from zero when an operand of the current instruction
         // is a flow fact that is generated
         for (auto &Op : curr->operands()) {
           // also propagate the labels if one of the operands holds
           if (isZeroValue(currNode) && Op == succNode) {
-            return std::make_shared<IIAALabelEdgeFunction>(*this,
-                                                           UserEdgeFacts);
+            return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
           }
           // handle edges that may add new labels to existing facts
           if (Op == currNode && currNode == succNode) {
-            return std::make_shared<IIAALabelEdgeFunction>(*this,
-                                                           UserEdgeFacts);
+            return std::make_shared<IIAAAddLabelsEF>(*this, UserEdgeFacts);
           }
         }
       }
@@ -383,17 +500,99 @@ public:
 
   // provide some handy helper edge functions to improve reuse
 
-  class IIAALabelEdgeFunction
+  // edge function that kills all labels in a set (and may replaces them with
+  // others)
+  class IIAAKillOrReplaceEF
       : public EdgeFunction<l_t>,
-        public std::enable_shared_from_this<IIAALabelEdgeFunction> {
+        public std::enable_shared_from_this<IIAAKillOrReplaceEF> {
   private:
-    IDEInstInteractionAnalysisT<e_t> &Analysis;
-    l_t Data;
+    IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
+                                EnableIndirectTaints> &Analysis;
 
   public:
-    explicit IIAALabelEdgeFunction(IDEInstInteractionAnalysisT<e_t> &Analysis,
-                                   l_t Data)
-        : Analysis(Analysis), Data(Data) {}
+    l_t Replacement;
+
+    explicit IIAAKillOrReplaceEF(
+        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints> &Analysis)
+        : Analysis(Analysis), Replacement(BitVectorSet<e_t>()) {
+      std::cout << "IIAAKillOrReplaceEF\n";
+    }
+
+    explicit IIAAKillOrReplaceEF(
+        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints> &Analysis,
+        l_t Replacement)
+        : Analysis(Analysis), Replacement(Replacement) {
+      std::cout << "IIAAKillOrReplaceEF\n";
+    }
+
+    ~IIAAKillOrReplaceEF() override = default;
+
+    l_t computeTarget(l_t Src) override { return Replacement; }
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
+      // std::cout << "IIAAKillOrReplaceEF::composeWith\n";
+      // kill or replace, previous functions are ignored
+      return this->shared_from_this();
+    }
+
+    std::shared_ptr<EdgeFunction<l_t>>
+    joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
+      // std::cout << "IIAAKillOrReplaceEF::joinWith\n";
+      if (auto *AB = dynamic_cast<AllBottom<l_t> *>(otherFunction.get())) {
+        return this->shared_from_this();
+      }
+      if (auto *ID = dynamic_cast<EdgeIdentity<l_t> *>(otherFunction.get())) {
+        return this->shared_from_this();
+      }
+      if (auto *AD = dynamic_cast<IIAAAddLabelsEF *>(otherFunction.get())) {
+        auto Union = Analysis.join(Replacement, AD->Data);
+        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+      }
+      if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
+        auto Union = Analysis.join(Replacement, KR->Replacement);
+        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+      }
+      llvm::report_fatal_error(
+          "found unexpected edge function in 'IIAAKillOrReplaceEF'");
+      // return otherFunction;
+    }
+
+    bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
+      // std::cout << "IIAAKillOrReplaceEF::equal_to\n";
+      if (auto *I = dynamic_cast<IIAAKillOrReplaceEF *>(other.get())) {
+        return Replacement == I->Replacement;
+      }
+      return this == other.get();
+    }
+
+    void print(std::ostream &OS, bool isForDebug = false) const override {
+      OS << "EF: (IIAAKillOrReplaceEF)";
+    }
+  };
+
+  // edge function that adds the given labels to existing labels
+  // add all labels provided by 'Data'
+  class IIAAAddLabelsEF : public EdgeFunction<l_t>,
+                          public std::enable_shared_from_this<IIAAAddLabelsEF> {
+  private:
+    IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
+                                EnableIndirectTaints> &Analysis;
+
+  public:
+    l_t Data;
+
+    explicit IIAAAddLabelsEF(
+        IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
+                                    EnableIndirectTaints> &Analysis,
+        l_t Data)
+        : Analysis(Analysis), Data(Data) {
+      std::cout << "IIAAAddLabelsEF\n";
+    }
+
+    ~IIAAAddLabelsEF() override = default;
 
     l_t computeTarget(l_t Src) override {
       return Analysis.join(Src, Data);
@@ -402,25 +601,28 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
-      // std::cout << "IIAALabelEdgeFunction::composeWith\n";
+      // std::cout << "IIAAAddLabelsEF::composeWith\n";
       if (auto *AB = dynamic_cast<AllBottom<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
       if (auto *EI = dynamic_cast<EdgeIdentity<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AS =
-              dynamic_cast<IIAALabelEdgeFunction *>(secondFunction.get())) {
-        // auto Union = Data.setUnion(AS->Data);
+      if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(secondFunction.get())) {
         auto Union = Analysis.join(Data, AS->Data);
-        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis, Union);
+        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
       }
-      llvm::report_fatal_error("found unexpected edge function");
+      if (auto *KR =
+              dynamic_cast<IIAAKillOrReplaceEF *>(secondFunction.get())) {
+        return secondFunction;
+      }
+      llvm::report_fatal_error(
+          "found unexpected edge function in 'IIAAAddLabelsEF'");
     }
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
-      // std::cout << "IIAALabelEdgeFunction::joinWith\n";
+      // std::cout << "IIAAAddLabelsEF::joinWith\n";
       if (otherFunction.get() == this ||
           otherFunction->equal_to(this->shared_from_this())) {
         return this->shared_from_this();
@@ -428,25 +630,28 @@ public:
       if (auto *AT = dynamic_cast<AllTop<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
-      if (auto *AS =
-              dynamic_cast<IIAALabelEdgeFunction *>(otherFunction.get())) {
+      if (auto *AS = dynamic_cast<IIAAAddLabelsEF *>(otherFunction.get())) {
         // auto Union = Data.setUnion(AS->Data);
         auto Union = Analysis.join(Data, AS->Data);
-        return std::make_shared<IIAALabelEdgeFunction>(this->Analysis, Union);
+        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
+      }
+      if (auto *KR = dynamic_cast<IIAAKillOrReplaceEF *>(otherFunction.get())) {
+        auto Union = Analysis.join(Data, KR->Replacement);
+        return std::make_shared<IIAAAddLabelsEF>(Analysis, Union);
       }
       return std::make_shared<AllBottom<l_t>>(Analysis.BottomElement);
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      // std::cout << "IIAALabelEdgeFunction::equal_to\n";
-      if (auto *I = dynamic_cast<IIAALabelEdgeFunction *>(other.get())) {
+      // std::cout << "IIAAAddLabelsEF::equal_to\n";
+      if (auto *I = dynamic_cast<IIAAAddLabelsEF *>(other.get())) {
         return (I->Data == this->Data);
       }
       return this == other.get();
     }
 
     void print(std::ostream &OS, bool isForDebug = false) const override {
-      OS << "EF: (IIAALabelEdgeFunction: ";
+      OS << "EF: (IIAAAddLabelsEF: ";
       Analysis.printEdgeFact(OS, Data);
       OS << ")";
     }
@@ -473,6 +678,7 @@ public:
       os << std::get<Bottom>(l);
     } else {
       auto lset = std::get<BitVectorSet<e_t>>(l);
+      os << "(set size: " << lset.size() << "), values: ";
       size_t idx = 0;
       for (const auto &s : lset) {
         os << s;

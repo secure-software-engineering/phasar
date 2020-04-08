@@ -706,13 +706,7 @@ protected:
 
   void setVal(N nHashN, D nHashD, L l) {
     auto &lg = lg::get();
-    // TOP is the implicit default value which we do not need to store.
-    if (l == IDEProblem.topElement()) {
-      // do not store top values
-      valtab.remove(nHashN, nHashD);
-    } else {
-      valtab.insert(nHashN, nHashD, l);
-    }
+    valtab.insert(nHashN, nHashD, l);
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Function : "
                   << ICF->getFunctionOf(nHashN)->getName().str());
@@ -860,6 +854,8 @@ protected:
     for (const auto &seed : allSeeds) {
       N startPoint = seed.first;
       for (D val : seed.second) {
+        // initialize the initial seeds with the top element as we have no
+        // information at the beginning of the value computation problem
         setVal(startPoint, val, IDEProblem.topElement());
         std::pair<N, D> superGraphNode(startPoint, val);
         valuePropagationTask(superGraphNode);
