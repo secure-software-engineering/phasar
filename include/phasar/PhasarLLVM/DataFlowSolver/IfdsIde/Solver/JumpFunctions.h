@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <ostream>
 #include <unordered_map>
 
@@ -26,8 +27,6 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
-
-#include "llvm/ADT/Optional.h"
 
 namespace psr {
 
@@ -112,11 +111,11 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  llvm::Optional<std::reference_wrapper<
+  std::optional<std::reference_wrapper<
       std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   reverseLookup(N target, D targetVal) {
     if (!nonEmptyReverseLookup.contains(target, targetVal)) {
-      return llvm::None;
+      return std::nullopt;
     } else {
       return {nonEmptyReverseLookup.get(target, targetVal)};
     }
@@ -127,11 +126,11 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  llvm::Optional<std::reference_wrapper<
+  std::optional<std::reference_wrapper<
       std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   forwardLookup(D sourceVal, N target) {
     if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
-      return llvm::None;
+      return std::nullopt;
     } else {
       return {nonEmptyForwardLookup.get(sourceVal, target)};
     }
