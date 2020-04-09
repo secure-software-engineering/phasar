@@ -736,15 +736,16 @@ protected:
         BOOST_LOG_SEV(lg::get(), DEBUG)
         << "   Target D: " << IDEProblem.DtoString(edge.factAtTarget()));
 
-    auto res2 = jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
-    if (!res2 || !res2->get().count(edge.factAtTarget())) {
+    auto fwdLookupRes =
+        jumpFn->forwardLookup(edge.factAtSource(), edge.getTarget());
+    if (!fwdLookupRes || !fwdLookupRes->get().count(edge.factAtTarget())) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  => EdgeFn: " << allTop->str();
                     BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
       // JumpFn initialized to all-top, see line [2] in SRH96 paper
       return allTop;
     }
-    auto res = res2->get()[edge.factAtTarget()];
+    auto res = fwdLookupRes->get()[edge.factAtTarget()];
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "  => EdgeFn: " << res->str();
                   BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
