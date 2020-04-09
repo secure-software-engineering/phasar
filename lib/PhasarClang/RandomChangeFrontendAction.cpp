@@ -14,6 +14,8 @@
  *      Author: pdschbrt
  */
 
+#include <memory>
+
 #include "clang/AST/AST.h"
 #include "clang/AST/ASTConsumer.h"
 #include "clang/AST/ASTContext.h"
@@ -48,6 +50,6 @@ RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
                                               llvm::StringRef File) {
   llvm::errs() << "** Creating AST consumer for: " << File << "\n";
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-  return llvm::make_unique<RandomChangeASTConsumer>(RW);
+  return std::make_unique<RandomChangeASTConsumer>(RW);
 }
 } // namespace psr
