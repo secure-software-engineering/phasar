@@ -17,6 +17,7 @@
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_SOLVER_JUMPFUNCTIONS_H_
 
+#include <functional>
 #include <memory>
 #include <ostream>
 #include <unordered_map>
@@ -25,6 +26,8 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 #include "phasar/Utils/Table.h"
+
+#include "llvm/ADT/Optional.h"
 
 namespace psr {
 
@@ -75,15 +78,15 @@ public:
    */
   void addFunction(D sourceVal, N target, D targetVal,
                    std::shared_ptr<EdgeFunction<L>> function) {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Start adding new jump function");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at source : " << problem.DtoString(sourceVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Fact at target : " << problem.DtoString(targetVal));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                  << "Destination    : " << problem.NtoString(target));
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "Start adding new jump function";
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Fact at source : " << problem.DtoString(sourceVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Fact at target : " << problem.DtoString(targetVal);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Destination    : " << problem.NtoString(target);
+                  BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Edge Function  : " << function->str());
     // we do not store the default function (all-top)
     if (function->equal_to(allTop)) {
@@ -99,8 +102,9 @@ public:
     targetValToFunc[targetVal] = function;
     // V Table::insert(R r, C c, V v) always overrides (see comments above)
     nonEmptyLookupByTargetNode[target].insert(sourceVal, targetVal, function);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "End adding new jump function");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                      << "End adding new jump function";
+                  BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
   }
 
   /**
@@ -108,12 +112,14 @@ public:
    * source values, and for each the associated edge function.
    * The return value is a mapping from source value to function.
    */
-  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>
+  llvm::Optional<std::reference_wrapper<
+      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   reverseLookup(N target, D targetVal) {
-    if (!nonEmptyReverseLookup.contains(target, targetVal))
-      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
-    else
-      return nonEmptyReverseLookup.get(target, targetVal);
+    if (!nonEmptyReverseLookup.contains(target, targetVal)) {
+      return llvm::None;
+    } else {
+      return {nonEmptyReverseLookup.get(target, targetVal)};
+    }
   }
 
   /**
@@ -121,12 +127,14 @@ public:
    * associated target values, and for each the associated edge function.
    * The return value is a mapping from target value to function.
    */
-  std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>
+  llvm::Optional<std::reference_wrapper<
+      std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>>>
   forwardLookup(D sourceVal, N target) {
-    if (!nonEmptyForwardLookup.contains(sourceVal, target))
-      return std::unordered_map<D, std::shared_ptr<EdgeFunction<L>>>{};
-    else
-      return nonEmptyForwardLookup.get(sourceVal, target);
+    if (!nonEmptyForwardLookup.contains(sourceVal, target)) {
+      return llvm::None;
+    } else {
+      return {nonEmptyForwardLookup.get(sourceVal, target)};
+    }
   }
 
   /**
