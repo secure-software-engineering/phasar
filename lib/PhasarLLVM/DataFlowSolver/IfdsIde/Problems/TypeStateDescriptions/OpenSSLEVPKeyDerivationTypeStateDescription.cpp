@@ -37,7 +37,7 @@ const std::map<std::string, std::set<int>>
 // DERIVE = 3, EVP_KDF_CTX_FREE = 4, STAR = 5 States: UNINIT = 0, KDF_FETCHED =
 // 1, CTX_ATTACHED = 2, PARAM_INIT = 3, DERIVED = 4, ERROR = 5, BOT = 6
 const OpenSSLEVPKeyDerivationTypeStateDescription::OpenSSLEVPKeyDerivationState
-    OpenSSLEVPKeyDerivationTypeStateDescription::delta[6][7] = {
+    OpenSSLEVPKeyDerivationTypeStateDescription::Delta[6][7] = {
         /* EVP_KDF_FETCH */
         {OpenSSLEVPKeyDerivationState::KDF_FETCHED,
          OpenSSLEVPKeyDerivationState::KDF_FETCHED,
@@ -115,7 +115,7 @@ TypeStateDescription::State
 OpenSSLEVPKeyDerivationTypeStateDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    return delta
+    return Delta
         [static_cast<std::underlying_type_t<OpenSSLEVPKeyDerivationToken>>(
             funcNameToToken(Tok))][S];
   } else {

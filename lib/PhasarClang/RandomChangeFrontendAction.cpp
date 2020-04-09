@@ -45,8 +45,8 @@ void RandomChangeFrontendAction::EndSourceFileAction() {
 
 std::unique_ptr<clang::ASTConsumer>
 RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
-                                              llvm::StringRef file) {
-  llvm::errs() << "** Creating AST consumer for: " << file << "\n";
+                                              llvm::StringRef File) {
+  llvm::errs() << "** Creating AST consumer for: " << File << "\n";
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
   return llvm::make_unique<RandomChangeASTConsumer>(RW);
 }

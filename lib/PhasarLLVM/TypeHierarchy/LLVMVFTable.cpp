@@ -53,8 +53,8 @@ void LLVMVFTable::print(std::ostream &OS) const {
 }
 
 nlohmann::json LLVMVFTable::getAsJson() const {
-  nlohmann::json j = "{}"_json;
-  return j;
+  nlohmann::json J = "{}"_json;
+  return J;
 }
 
 std::vector<const ::llvm::Function *>::iterator LLVMVFTable::begin() {

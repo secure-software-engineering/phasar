@@ -13,98 +13,98 @@
 
 namespace psr {
 
-long TraceStats::add(const llvm::Instruction *instruction, bool isReturnValue) {
-  const llvm::DebugLoc debugLocInst = instruction->getDebugLoc();
-  if (!debugLocInst)
+long TraceStats::add(const llvm::Instruction *Instruction, bool IsReturnValue) {
+  const llvm::DebugLoc DebugLocInst = Instruction->getDebugLoc();
+  if (!DebugLocInst)
     return 0;
 
-  const llvm::DebugLoc debugLocFn = debugLocInst.getFnDebugLoc();
-  if (!debugLocFn)
+  const llvm::DebugLoc DebugLocFn = DebugLocInst.getFnDebugLoc();
+  if (!DebugLocFn)
     return 0;
 
-  const auto function = instruction->getFunction();
-  if (!function)
+  const auto Function = Instruction->getFunction();
+  if (!Function)
     return 0;
 
-  const auto functionName = function->getName();
+  const auto FunctionName = Function->getName();
 
-  const auto fnScope = llvm::cast<llvm::DIScope>(debugLocFn.getScope());
+  const auto FnScope = llvm::cast<llvm::DIScope>(DebugLocFn.getScope());
 
-  const std::string file =
-      fnScope->getDirectory().str() + "/" + fnScope->getFilename().str();
+  const std::string File =
+      FnScope->getDirectory().str() + "/" + FnScope->getFilename().str();
 
-  unsigned int lineNumber = debugLocInst->getLine();
+  unsigned int LineNumber = DebugLocInst->getLine();
 
-  LOG_DEBUG("Tainting " << file << ":" << functionName << ":" << lineNumber
-                        << ":" << isReturnValue);
+  LOG_DEBUG("Tainting " << File << ":" << FunctionName << ":" << LineNumber
+                        << ":" << IsReturnValue);
 
-  TraceStats::LineNumberStats &lineNumberStats =
-      getLineNumberStats(file, functionName);
+  TraceStats::LineNumberStats &LineNumberStats =
+      getLineNumberStats(File, FunctionName);
 
-  LineNumberEntry lineNumberEntry(lineNumber);
+  LineNumberEntry LineNumberEntry(LineNumber);
 
-  if (isReturnValue) {
-    lineNumberStats.erase(lineNumberEntry);
-    lineNumberEntry.setReturnValue(true);
+  if (IsReturnValue) {
+    LineNumberStats.erase(LineNumberEntry);
+    LineNumberEntry.setReturnValue(true);
   }
 
-  lineNumberStats.insert(lineNumberEntry);
+  LineNumberStats.insert(LineNumberEntry);
 
   return 1;
 }
 
-long TraceStats::add(const llvm::Instruction *instruction,
-                     const std::vector<const llvm::Value *> memLocationSeq) {
-  bool isRetInstruction = llvm::isa<llvm::ReturnInst>(instruction);
-  if (isRetInstruction) {
-    const auto basicBlock = instruction->getParent();
-    const auto basicBlockName = basicBlock->getName();
+long TraceStats::add(const llvm::Instruction *Instruction,
+                     const std::vector<const llvm::Value *> MemLocationSeq) {
+  bool IsRetInstruction = llvm::isa<llvm::ReturnInst>(Instruction);
+  if (IsRetInstruction) {
+    const auto BasicBlock = Instruction->getParent();
+    const auto BasicBlockName = BasicBlock->getName();
 
-    bool isReturnBasicBlock = basicBlockName.compare_lower("return") == 0;
-    if (isReturnBasicBlock)
+    bool IsReturnBasicBlock = BasicBlockName.compare_lower("return") == 0;
+    if (IsReturnBasicBlock)
       return 0;
 
-    return add(instruction, true);
+    return add(Instruction, true);
   }
 
-  bool isGENMemoryLocation = !memLocationSeq.empty();
-  if (isGENMemoryLocation) {
-    const auto memLocationFrame = memLocationSeq.front();
+  bool IsGENMemoryLocation = !MemLocationSeq.empty();
+  if (IsGENMemoryLocation) {
+    const auto MemLocationFrame = MemLocationSeq.front();
 
-    if (const auto allocaInst =
-            llvm::dyn_cast<llvm::AllocaInst>(memLocationFrame)) {
-      const auto instructionName = allocaInst->getName();
-      bool isRetVal = instructionName.compare_lower("retval") == 0;
+    if (const auto AllocaInst =
+            llvm::dyn_cast<llvm::AllocaInst>(MemLocationFrame)) {
+      const auto InstructionName = AllocaInst->getName();
+      bool IsRetVal = InstructionName.compare_lower("retval") == 0;
 
-      if (isRetVal)
-        return add(instruction, true);
+      if (IsRetVal)
+        return add(Instruction, true);
     }
   }
 
-  return add(instruction, false);
+  return add(Instruction, false);
 }
 
-TraceStats::FunctionStats &TraceStats::getFunctionStats(std::string file) {
-  auto functionStatsEntry = stats.find(file);
-  if (functionStatsEntry != stats.end())
-    return functionStatsEntry->second;
+TraceStats::FunctionStats &TraceStats::getFunctionStats(std::string File) {
+  auto FunctionStatsEntry = stats.find(File);
+  if (FunctionStatsEntry != stats.end())
+    return FunctionStatsEntry->second;
 
-  stats.insert({file, FunctionStats()});
+  stats.insert({File, FunctionStats()});
 
-  return stats.find(file)->second;
+  return stats.find(File)->second;
 }
 
 TraceStats::LineNumberStats &
-TraceStats::getLineNumberStats(std::string file, std::string function) {
-  TraceStats::FunctionStats &functionStats = getFunctionStats(file);
+TraceStats::getLineNumberStats(std::string File, std::string Function) {
+  TraceStats::FunctionStats &FunctionStats = getFunctionStats(File);
 
-  auto lineNumberEntry = functionStats.find(function);
-  if (lineNumberEntry != functionStats.end())
-    return lineNumberEntry->second;
+  auto LineNumberEntry = FunctionStats.find(Function);
+  if (LineNumberEntry != FunctionStats.end())
+    return LineNumberEntry->second;
 
-  functionStats.insert({function, LineNumberStats()});
+  FunctionStats.insert({Function, LineNumberStats()});
 
-  return functionStats.find(function)->second;
+  return FunctionStats.find(Function)->second;
 }
 
 } // namespace psr

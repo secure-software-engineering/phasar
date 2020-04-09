@@ -45,7 +45,7 @@ public:
   }
 
   /// Specifies the directory in which Phasar is located.
-  static const std::string PhasarDirectory() { return phasar_directory; }
+  static const std::string PhasarDirectory() { return PhasarDir; }
 
   /// Name of the file storing all standard header search paths used for
   /// compilation.
@@ -129,7 +129,7 @@ private:
   }();
 
   /// Specifies the directory in which Phasar is located.
-  static const std::string phasar_directory;
+  static const std::string PhasarDir;
 
   /// Name of the file storing all glibc function names.
   const std::string GLIBCFunctionListFileName =

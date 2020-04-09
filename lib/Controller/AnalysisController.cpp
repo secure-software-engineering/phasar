@@ -52,12 +52,12 @@ using namespace psr;
 namespace std {
 
 template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
-    return hp ^ (hu << 1);
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
+    std::hash<const llvm::Value *> HashPtr;
+    std::hash<unsigned> HashUnsigned;
+    size_t Hp = HashPtr(P.first);
+    size_t Hu = HashUnsigned(P.second);
+    return Hp ^ (Hu << 1);
   }
 };
 

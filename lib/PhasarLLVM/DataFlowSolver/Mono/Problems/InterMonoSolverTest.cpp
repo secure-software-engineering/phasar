@@ -94,27 +94,27 @@ BitVectorSet<const llvm::Value *> InterMonoSolverTest::callToRetFlow(
 unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoSolverTest::initialSeeds() {
   cout << "InterMonoSolverTest::initialSeeds()\n";
-  const llvm::Function *main = ICF->getFunction("main");
+  const llvm::Function *Main = ICF->getFunction("main");
   unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
       Seeds;
   Seeds.insert(
-      make_pair(&main->front().front(), BitVectorSet<const llvm::Value *>()));
+      make_pair(&Main->front().front(), BitVectorSet<const llvm::Value *>()));
   return Seeds;
 }
 
-void InterMonoSolverTest::printNode(ostream &os,
-                                    const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+void InterMonoSolverTest::printNode(ostream &OS,
+                                    const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
-void InterMonoSolverTest::printDataFlowFact(ostream &os,
-                                            const llvm::Value *d) const {
-  os << llvmIRToString(d) << '\n';
+void InterMonoSolverTest::printDataFlowFact(ostream &OS,
+                                            const llvm::Value *D) const {
+  OS << llvmIRToString(D) << '\n';
 }
 
-void InterMonoSolverTest::printFunction(ostream &os,
-                                        const llvm::Function *m) const {
-  os << m->getName().str();
+void InterMonoSolverTest::printFunction(ostream &OS,
+                                        const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

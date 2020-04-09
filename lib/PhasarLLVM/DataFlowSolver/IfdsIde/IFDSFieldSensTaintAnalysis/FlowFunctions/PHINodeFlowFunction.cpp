@@ -7,24 +7,24 @@
 namespace psr {
 
 std::set<ExtendedValue>
-PHINodeFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  const auto phiNodeInst = llvm::cast<llvm::PHINode>(currentInst);
+PHINodeFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  const auto PhiNodeInst = llvm::cast<llvm::PHINode>(currentInst);
 
-  for (const auto block : phiNodeInst->blocks()) {
-    const auto incomingValue = phiNodeInst->getIncomingValueForBlock(block);
+  for (const auto Block : PhiNodeInst->blocks()) {
+    const auto IncomingValue = PhiNodeInst->getIncomingValueForBlock(Block);
 
-    bool isIncomingValueTainted =
-        DataFlowUtils::isValueTainted(incomingValue, fact) ||
-        DataFlowUtils::isMemoryLocationTainted(incomingValue, fact);
+    bool IsIncomingValueTainted =
+        DataFlowUtils::isValueTainted(IncomingValue, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(IncomingValue, Fact);
 
-    if (isIncomingValueTainted) {
-      traceStats.add(phiNodeInst);
+    if (IsIncomingValueTainted) {
+      traceStats.add(PhiNodeInst);
 
-      return {fact, ExtendedValue(phiNodeInst)};
+      return {Fact, ExtendedValue(PhiNodeInst)};
     }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

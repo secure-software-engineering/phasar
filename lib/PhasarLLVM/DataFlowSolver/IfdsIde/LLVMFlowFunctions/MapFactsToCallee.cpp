@@ -22,29 +22,29 @@ using namespace psr;
 namespace psr {
 
 MapFactsToCallee::MapFactsToCallee(
-    llvm::ImmutableCallSite callSite, const llvm::Function *destFun,
-    function<bool(const llvm::Value *)> predicate)
-    : destFun(destFun), predicate(predicate) {
+    llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
+    function<bool(const llvm::Value *)> Predicate)
+    : destFun(DestFun), predicate(Predicate) {
   // Set up the actual parameters
-  for (unsigned idx = 0; idx < callSite.getNumArgOperands(); ++idx) {
-    actuals.push_back(callSite.getArgOperand(idx));
+  for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
+    actuals.push_back(CallSite.getArgOperand(Idx));
   }
   // Set up the formal parameters
-  for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
-    formals.push_back(getNthFunctionArgument(destFun, idx));
+  for (unsigned Idx = 0; Idx < destFun->arg_size(); ++Idx) {
+    formals.push_back(getNthFunctionArgument(destFun, Idx));
   }
 }
 
 set<const llvm::Value *>
-MapFactsToCallee::computeTargets(const llvm::Value *source) {
-  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(source)) {
-    set<const llvm::Value *> res;
+MapFactsToCallee::computeTargets(const llvm::Value *Source) {
+  if (!LLVMZeroValue::getInstance()->isLLVMZeroValue(Source)) {
+    set<const llvm::Value *> Res;
     // Handle C-style varargs functions
     if (destFun->isVarArg()) {
       // Map actual parameter into corresponding formal parameter.
-      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-        if (source == actuals[idx] && predicate(actuals[idx])) {
-          if (idx >= destFun->arg_size() && !destFun->isDeclaration()) {
+      for (unsigned Idx = 0; Idx < actuals.size(); ++Idx) {
+        if (Source == actuals[Idx] && predicate(actuals[Idx])) {
+          if (Idx >= destFun->arg_size() && !destFun->isDeclaration()) {
             // Over-approximate by trying to add the
             //   alloca [1 x %struct.__va_list_tag], align 16
             // to the results
@@ -60,29 +60,29 @@ MapFactsToCallee::computeTargets(const llvm::Value *source) {
                       Alloc->getAllocatedType()
                               ->getArrayElementType()
                               ->getStructName() == "struct.__va_list_tag") {
-                    res.insert(Alloc);
+                    Res.insert(Alloc);
                   }
                 }
               }
             }
           } else {
-            res.insert(formals[idx]); // corresponding formal
+            Res.insert(formals[Idx]); // corresponding formal
           }
         }
       }
-      return res;
+      return Res;
     } else {
       // Handle ordinary case
       // Map actual parameter into corresponding formal parameter.
-      for (unsigned idx = 0; idx < actuals.size(); ++idx) {
-        if (source == actuals[idx] && predicate(actuals[idx])) {
-          res.insert(formals[idx]); // corresponding formal
+      for (unsigned Idx = 0; Idx < actuals.size(); ++Idx) {
+        if (Source == actuals[Idx] && predicate(actuals[Idx])) {
+          Res.insert(formals[Idx]); // corresponding formal
         }
       }
-      return res;
+      return Res;
     }
   } else {
-    return {source};
+    return {Source};
   }
 }
 

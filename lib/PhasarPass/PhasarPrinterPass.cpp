@@ -50,7 +50,7 @@ void PhasarPrinterPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 void PhasarPrinterPass::releaseMemory() {}
 
 static llvm::RegisterPass<PhasarPrinterPass>
-    phasar("phasar-printer", "PhASAR Printer Pass",
+    Phasar("phasar-printer", "PhASAR Printer Pass",
            false /* Only looks at CFG */, false /* Analysis Pass */);
 
 } // namespace psr

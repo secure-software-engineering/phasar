@@ -44,10 +44,10 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
-  auto &lg = lg::get();
+  auto &LG = lg::get();
 
   for (auto CalleeTarget : CalleeTargets) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Target name: " << CalleeTarget->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
@@ -65,55 +65,55 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 
 set<const llvm::Function *>
 OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
-  set<const llvm::Function *> possible_call_targets;
-  auto &lg = lg::get();
+  set<const llvm::Function *> PossibleCallTargets;
+  auto &LG = lg::get();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVFTIndex(CS);
-  if (vtable_index < 0) {
+  auto VtableIndex = getVFTIndex(CS);
+  if (VtableIndex < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Virtual function table entry is: " << vtable_index);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+                << "Virtual function table entry is: " << VtableIndex);
 
-  const llvm::Value *receiver = CS.getArgOperand(0);
+  const llvm::Value *Receiver = CS.getArgOperand(0);
 
-  auto alloc_sites =
-      WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
-  auto possible_allocated_types =
-      WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
+  auto AllocSites =
+      WholeModulePTG.getReachableAllocationSites(Receiver, CallStack);
+  auto PossibleAllocatedTypes =
+      WholeModulePTG.computeTypesFromAllocationSites(AllocSites);
 
-  auto receiver_type = getReceiverType(CS);
+  auto ReceiverType = getReceiverType(CS);
 
   // Now we must check if we have found some allocated struct types
-  set<const llvm::StructType *> possible_types;
-  for (auto type : possible_allocated_types) {
-    if (auto struct_type =
-            llvm::dyn_cast<llvm::StructType>(stripPointer(type))) {
-      possible_types.insert(struct_type);
+  set<const llvm::StructType *> PossibleTypes;
+  for (auto Type : PossibleAllocatedTypes) {
+    if (auto StructType =
+            llvm::dyn_cast<llvm::StructType>(stripPointer(Type))) {
+      PossibleTypes.insert(StructType);
     }
   }
 
-  for (auto possible_type_struct : possible_types) {
+  for (auto PossibleTypeStruct : PossibleTypes) {
     auto Target =
-        getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+        getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
     if (Target) {
-      possible_call_targets.insert(Target);
+      PossibleCallTargets.insert(Target);
     }
   }
-  if (possible_call_targets.empty())
+  if (PossibleCallTargets.empty())
     return CHAResolver::resolveVirtualCall(CS);
 
-  return possible_call_targets;
+  return PossibleCallTargets;
 }
 
 std::set<const llvm::Function *>

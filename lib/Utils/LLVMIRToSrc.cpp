@@ -148,14 +148,14 @@ std::string getFunctionNameFromIR(const llvm::Value *V) {
 
 std::string getFilePathFromIR(const llvm::Value *V) {
   if (auto DIF = getDIFile(V)) {
-    boost::filesystem::path file(DIF->getFilename().str());
-    boost::filesystem::path dir(DIF->getDirectory().str());
-    if (!file.empty()) {
+    boost::filesystem::path File(DIF->getFilename().str());
+    boost::filesystem::path Dir(DIF->getDirectory().str());
+    if (!File.empty()) {
       // try to concatenate file path and dir to get absolut path
-      if (!file.has_root_directory() && !dir.empty()) {
-        file = dir / file;
+      if (!File.has_root_directory() && !Dir.empty()) {
+        File = Dir / File;
       }
-      return file.string();
+      return File.string();
     }
   } else {
     /* As a fallback solution, we will return 'source_filename' info from
@@ -205,21 +205,21 @@ unsigned int getColumnFromIR(const llvm::Value *V) {
 }
 
 std::string getSrcCodeFromIR(const llvm::Value *V) {
-  unsigned int lineNr = getLineFromIR(V);
-  if (lineNr > 0) {
-    boost::filesystem::path path(getFilePathFromIR(V));
-    if (boost::filesystem::exists(path) &&
-        !boost::filesystem::is_directory(path)) {
-      std::ifstream ifs(path.string(), std::ios::binary);
-      if (ifs.is_open()) {
-        ifs.seekg(std::ios::beg);
-        std::string src_line;
-        for (unsigned int i = 0; i < lineNr - 1; ++i) {
-          ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+  unsigned int LineNr = getLineFromIR(V);
+  if (LineNr > 0) {
+    boost::filesystem::path Path(getFilePathFromIR(V));
+    if (boost::filesystem::exists(Path) &&
+        !boost::filesystem::is_directory(Path)) {
+      std::ifstream Ifs(Path.string(), std::ios::binary);
+      if (Ifs.is_open()) {
+        Ifs.seekg(std::ios::beg);
+        std::string SrcLine;
+        for (unsigned int I = 0; I < LineNr - 1; ++I) {
+          Ifs.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
-        std::getline(ifs, src_line);
-        boost::algorithm::trim(src_line);
-        return src_line;
+        std::getline(Ifs, SrcLine);
+        boost::algorithm::trim(SrcLine);
+        return SrcLine;
       }
     }
   }
