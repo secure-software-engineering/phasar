@@ -73,10 +73,9 @@ public:
 
   Table &operator=(Table &&t) = default;
 
-  V insert(R r, C c, V v) {
+  void insert(R r, C c, V v) {
     // Associates the specified value with the specified keys.
-    table[r][c] = v;
-    return v;
+    table[r][c] = std::move(v);
   }
 
   void insert(const Table &t) { table.insert(t.table.begin(), t.table.end()); }

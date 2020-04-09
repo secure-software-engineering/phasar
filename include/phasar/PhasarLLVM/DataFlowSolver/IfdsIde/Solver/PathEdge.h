@@ -23,9 +23,9 @@ namespace psr {
 
 template <typename N, typename D> class PathEdge {
 private:
-  N target;
-  D dSource;
-  D dTarget;
+  const N target;
+  const D dSource;
+  const D dTarget;
 
 public:
   PathEdge(D dSource, N target, D dTarget)
@@ -41,11 +41,11 @@ public:
 
   PathEdge &operator=(PathEdge &&) = default;
 
-  N getTarget() { return target; }
+  [[nodiscard]] N getTarget() const { return target; }
 
-  D factAtSource() { return dSource; }
+  [[nodiscard]] D factAtSource() const { return dSource; }
 
-  D factAtTarget() { return dTarget; }
+  [[nodiscard]] D factAtTarget() const { return dTarget; }
 
   friend std::ostream &operator<<(std::ostream &os, const PathEdge &pathEdge) {
     return os << "<" << pathEdge.dSource << "> -> <" << pathEdge.target << ","
