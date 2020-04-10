@@ -78,10 +78,10 @@ else
             yes | sudo pacman -S boost-libs boost
         else
             if [ -z $DESIRED_BOOST_VERSION ] ;then
-                sudo apt-get install libboost-all-dev -y
+                sudo apt install libboost-all-dev -y
             else
                 # DESIRED_BOOST_VERSION in form d.d, i.e. 1.65 (this is the latest version I found in the apt repo)
-                sudo apt-get install "libboost${DESIRED_BOOST_VERSION}-all-dev" -y
+                sudo apt install "libboost${DESIRED_BOOST_VERSION}-all-dev" -y
             fi
             #verify installation
             BOOST_VERSION=$(echo -e '#include <boost/version.hpp>\nBOOST_LIB_VERSION' | gcc -s -x c++ -E - 2>/dev/null| grep "^[^#;]" | tr -d '\"') 
@@ -108,7 +108,7 @@ else
             done
             if [ ${#additional_boost_libs[@]} -gt 0 ] ;then
                 echo "Installing additional ${#additional_boost_libs[@]} boost packages: ${additional_boost_libs[@]}"
-                sudo apt-get install ${additional_boost_libs[@]} -y
+                sudo apt install ${additional_boost_libs[@]} -y
             fi 
         fi
 	fi
