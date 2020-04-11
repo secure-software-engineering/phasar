@@ -46,7 +46,7 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 // For performance reason, we want to disable any formatting computation
 // that would go straight into logs if logs are deactivated
 // This macro does just that
-
+#ifdef DYNAMIC_LOG
 #define LOG_IF_ENABLE_BOOL(condition, computation)                             \
   if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
@@ -69,6 +69,10 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", severity_level)
 BOOST_LOG_ATTRIBUTE_KEYWORD(counter, "LineCounter", int)
 BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
 
+#else
+#define LOG_IF_ENABLE_BOOL(condition, computation) ((void)0)
+#define LOG_IF_ENABLE(computation) ((void)0)
+#endif
 /**
  * A filter function.
  */
