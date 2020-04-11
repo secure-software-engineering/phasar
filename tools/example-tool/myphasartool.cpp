@@ -7,8 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "boost/filesystem/operations.hpp"
 
@@ -30,7 +30,7 @@ using namespace psr;
 
 int main(int argc, const char **argv) {
   initializeLogger(false);
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
   if (argc < 2 || !boost::filesystem::exists(argv[1]) ||
       boost::filesystem::is_directory(argv[1])) {
     std::cerr << "myphasartool\n"

@@ -95,8 +95,8 @@ IFDSLinearConstantAnalysis::getSummaryFlowFunction(
 
 map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
 IFDSLinearConstantAnalysis::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSLinearConstantAnalysis::initialSeeds()");
   map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
       SeedMap;
@@ -110,8 +110,8 @@ IFDSLinearConstantAnalysis::initialSeeds() {
 
 IFDSLinearConstantAnalysis::d_t
 IFDSLinearConstantAnalysis::createZeroValue() const {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSLinearConstantAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LCAPair(LLVMZeroValue::getInstance(), 0);

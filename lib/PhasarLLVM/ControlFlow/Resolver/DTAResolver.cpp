@@ -148,23 +148,23 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
 set<const llvm::Function *>
 DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
   auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << vtable_index);
 
   auto receiver_type = getReceiverType(CS);
@@ -190,9 +190,9 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   if (possible_call_targets.empty())
     possible_call_targets = CHAResolver::resolveVirtualCall(CS);
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible targets are:");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible targets are:");
   for (auto entry : possible_call_targets) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << entry);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << entry);
   }
 
   return possible_call_targets;

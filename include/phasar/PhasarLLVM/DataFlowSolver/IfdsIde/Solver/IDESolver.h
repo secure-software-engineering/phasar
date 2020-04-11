@@ -1228,7 +1228,8 @@ protected:
                       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       }
     } else {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "PROPAGATE: No new function!");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "PROPAGATE: No new function!");
     }
   }
 
@@ -1259,6 +1260,7 @@ protected:
   }
 
   void printIncomingTab() const {
+#ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of incomingtab entry";
       for (auto cell : incomingtab.cellSet()) {
@@ -1279,9 +1281,11 @@ protected:
       BOOST_LOG_SEV(lg::get(), DEBUG) << "End of incomingtab entry";
       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
     }
+#endif
   }
 
   void printEndSummaryTab() const {
+#ifdef DYNAMIC_LOG
     if (boost::log::core::get()->get_logging_enabled()) {
       BOOST_LOG_SEV(lg::get(), DEBUG) << "Start of endsummarytab entry";
       for (auto cell : endsummarytab.cellVec()) {
@@ -1304,6 +1308,7 @@ protected:
       BOOST_LOG_SEV(lg::get(), DEBUG) << "End of endsummarytab entry";
       BOOST_LOG_SEV(lg::get(), DEBUG) << ' ';
     }
+#endif
   }
 
   void printComputedPathEdges() {
@@ -1666,7 +1671,8 @@ public:
             for (auto EF : EFVec) {
               EFLabel += EF->str() + ", ";
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "EF LABEL: " << EFLabel);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "EF LABEL: " << EFLabel);
             if (D1FactId == D2FactId && !IDEProblem.isZeroValue(D1Fact)) {
               D1_FSG->nodes.insert(std::make_pair(n2_stmtId, D2));
               D1_FSG->edges.emplace(D1, D2, true, EFLabel);
@@ -1790,7 +1796,8 @@ public:
             for (auto EF : EFVec) {
               EFLabel += EF->str() + ", ";
             }
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "EF LABEL: " << EFLabel);
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                          << "EF LABEL: " << EFLabel);
             G.interFactEdges.emplace(D1, D2, true, EFLabel);
           }
         }

@@ -129,15 +129,17 @@ shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getCallToRetFlowFunction(
     IFDSTaintAnalysis::n_t callSite, IFDSTaintAnalysis::n_t retSite,
     set<IFDSTaintAnalysis::f_t> callees) {
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
   // Process the effects of source or sink functions that are called
   for (auto *Callee : ICF->getCalleesOfCallAt(callSite)) {
     string FunctionName = cxx_demangle(Callee->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "F:" << Callee->getName().str());
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "demangled F:" << FunctionName);
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "F:" << Callee->getName().str());
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "demangled F:" << FunctionName);
     if (SourceSinkFunctions.isSource(FunctionName)) {
       // process generated taints
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SOURCE effects");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SOURCE effects");
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite CallSite(callSite);
@@ -182,7 +184,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     }
     if (SourceSinkFunctions.isSink(FunctionName)) {
       // process leaks
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Plugin SINK effects");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Plugin SINK effects");
       struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
         llvm::ImmutableCallSite callSite;
         IFDSTaintAnalysis::f_t calledMthd;
@@ -241,8 +243,8 @@ IFDSTaintAnalysis::getSummaryFlowFunction(IFDSTaintAnalysis::n_t callStmt,
 
 map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::initialSeeds() {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSTaintAnalysis::initialSeeds()");
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
@@ -265,8 +267,8 @@ IFDSTaintAnalysis::initialSeeds() {
 }
 
 IFDSTaintAnalysis::d_t IFDSTaintAnalysis::createZeroValue() const {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSTaintAnalysis::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();

@@ -44,10 +44,10 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
 
   for (auto CalleeTarget : CalleeTargets) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Target name: " << CalleeTarget->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
@@ -66,23 +66,23 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 set<const llvm::Function *>
 OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   set<const llvm::Function *> possible_call_targets;
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
   auto vtable_index = getVFTIndex(CS);
   if (vtable_index < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << vtable_index);
 
   const llvm::Value *receiver = CS.getArgOperand(0);

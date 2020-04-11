@@ -43,8 +43,9 @@ ValueAnnotationPass::ValueAnnotationPass() {}
 
 llvm::PreservedAnalyses
 ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO) << "Running ValueAnnotationPass");
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Running ValueAnnotationPass");
   auto &context = M.getContext();
   for (auto &global : M.globals()) {
     llvm::MDNode *node = llvm::MDNode::get(

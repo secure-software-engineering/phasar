@@ -105,10 +105,10 @@ ProjectIRDB::~ProjectIRDB() {
 
 void ProjectIRDB::preprocessModule(llvm::Module *M) {
   PAMM_GET_INSTANCE;
-  auto &lg = lg::get();
+  // auto &lg = lg::get();
   // add moduleID to timer name if performing MWA!
   START_TIMER("LLVM Passes", PAMM_SEVERITY_LEVEL::Full);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, INFO)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Preprocess module: " << M->getModuleIdentifier());
   llvm::PassBuilder PB;
   llvm::ModuleAnalysisManager MAM;

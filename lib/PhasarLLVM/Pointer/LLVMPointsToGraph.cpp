@@ -58,13 +58,13 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
 
   template <typename Vertex, typename Graph>
   void finish_vertex(Vertex u, const Graph &g) {
-    auto &lg = lg::get();
+    // auto &lg = lg::get();
     // check for stack allocation
     if (const llvm::AllocaInst *Alloc =
             llvm::dyn_cast<llvm::AllocaInst>(g[u].V)) {
       // If the call stack is empty, we completely ignore the calling context
       if (matches_stack(g) || call_stack.empty()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found stack allocation: " << llvmIRToString(Alloc));
         allocation_sites.insert(g[u].V);
       }
@@ -79,7 +79,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matches_stack(g) || call_stack.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found heap allocation: "
                         << llvmIRToString(CS.getInstruction()));
           allocation_sites.insert(g[u].V);
@@ -143,8 +143,8 @@ std::string PointsToGraph::EdgeProperties::getValueAsString() const {
 
 PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
   PAMM_GET_INSTANCE;
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyzing function: " << F->getName().str());
   ContainedFunctions.insert(F);
   bool PrintAll, PrintNoAlias, PrintMayAlias, PrintPartialAlias, PrintMustAlias,

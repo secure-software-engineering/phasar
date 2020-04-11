@@ -43,11 +43,10 @@ extern severity_level logFilterLevel;
 
 std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
-BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-    lg, boost::log::sources::severity_logger<severity_level>)
 
 #ifdef DYNAMIC_LOG
-
+BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
+    lg, boost::log::sources::severity_logger<severity_level>)
 // For performance reason, we want to disable any formatting computation
 // that would go straight into logs if logs are deactivated
 // This macro does just that
