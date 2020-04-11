@@ -174,7 +174,9 @@ int main(int argc, const char **argv) {
 			("statistical-analysis,S", "Statistics")
 			("mwa,M", "Enable Modulewise-program analysis mode")
 			("printedgerec,R", "Print exploded-super-graph edge recorder")
+      #ifdef DYNAMIC_LOG
       ("log,L", "Enable logging")
+      #endif
       ("export,E", boost::program_options::value<std::string>()->notifier(&validateParamExport), "Export mode (JSON, SARIF) (Not implemented yet!)")
       ("project-id,I", boost::program_options::value<std::string>()->default_value("default-phasar-project"), "Project id used for output")
       ("out,O", boost::program_options::value<std::string>()->notifier(&validateParamOutput)->default_value(""), "Output directory; if specified all results are written to the output directory instead of stdout")
@@ -233,7 +235,9 @@ int main(int argc, const char **argv) {
               << "Error: " << Err.what() << '\n';
     return 1;
   }
+#ifdef DYNAMIC_LOG
   initializeLogger(PhasarConfig::VariablesMap().count("log"));
+#endif
   // print PhASER version
   if (PhasarConfig::VariablesMap().count("version")) {
     std::cout << "PhASAR " << PhasarConfig::PhasarVersion() << "\n";
@@ -371,7 +375,7 @@ int main(int argc, const char **argv) {
     ProjectID = PhasarConfig::VariablesMap()["project-id"].as<std::string>();
   }
   AnalysisController Controller(IRDB, DataFlowAnalyses, AnalysisConfigs, PTATy,
-                                CGTy,SF, EntryPoints, Strategy, EmitterOptions,
+                                CGTy, SF, EntryPoints, Strategy, EmitterOptions,
                                 ProjectID, OutDirectory);
   return 0;
 }
