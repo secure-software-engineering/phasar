@@ -83,6 +83,15 @@ else()
   message("PAMM metric severity level: Off")
 endif()
 
+option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+
+if (PHASAR_ENABLE_DYNAMIC_LOG)
+  message(STATUS "Dynamic log enabled")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDYNAMIC_LOG")
+else()
+  message(STATUS "Dynamic log disabled")
+endif()
+
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
