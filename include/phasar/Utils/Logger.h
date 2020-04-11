@@ -43,10 +43,14 @@ extern severity_level logFilterLevel;
 
 std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
+BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
+    lg, boost::log::sources::severity_logger<severity_level>)
+
+#ifdef DYNAMIC_LOG
+
 // For performance reason, we want to disable any formatting computation
 // that would go straight into logs if logs are deactivated
 // This macro does just that
-#ifdef DYNAMIC_LOG
 #define LOG_IF_ENABLE_BOOL(condition, computation)                             \
   if (LLVM_UNLIKELY(condition)) {                                              \
     computation;                                                               \
@@ -58,8 +62,7 @@ std::ostream &operator<<(std::ostream &os, enum severity_level l);
 
 // Register the logger and use it a singleton then, get the logger with:
 // boost::log::sources::severity_logger<severity_level>& lg = lg::get();
-BOOST_LOG_INLINE_GLOBAL_LOGGER_DEFAULT(
-    lg, boost::log::sources::severity_logger<severity_level>)
+
 // The logger can also be used as a global variable, which is not recommended.
 // In such a case a global variable would be created like in the following
 // boost::log::sources::severity_logger<int> lg;

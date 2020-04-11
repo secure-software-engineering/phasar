@@ -54,18 +54,25 @@ void setLoggerFilterLevel(severity_level level) { logFilterLevel = level; }
 ostream &operator<<(ostream &os, enum severity_level l) {
   return os << SeverityLevelToString.at(l);
 }
-#ifdef DYNAMIC_LOG
+
 bool LogFilter(const boost::log::attribute_value_set &set) {
+#ifdef DYNAMIC_LOG
   return set["Severity"].extract<severity_level>() >= logFilterLevel;
+#else
+  return false;
+#endif
 }
 void LogFormatter(const boost::log::record_view &view,
                   boost::log::formatting_ostream &os) {
+#ifdef DYNAMIC_LOG
   os << view.attribute_values()["LineCounter"].extract<int>() << " "
      << view.attribute_values()["Timestamp"].extract<boost::posix_time::ptime>()
      << " - [" << view.attribute_values()["Severity"].extract<severity_level>()
      << "] " << view.attribute_values()["Message"].extract<std::string>();
+#endif
 }
 void initializeLogger(bool use_logger, string log_file) {
+#ifdef DYNAMIC_LOG
   // Using this call, logging can be enabled or disabled
   boost::log::core::get()->set_logging_enabled(use_logger);
   // if (log_file == "") {
@@ -101,12 +108,8 @@ void initializeLogger(bool use_logger, string log_file) {
   boost::log::core::get()->set_exception_handler(
       boost::log::make_exception_handler<std::exception>(
           LoggerExceptionHandler()));
-}
-#else
-#define LogFilter(set) false
-#define LogFormatter(view, os) ((void)0)
-#define initializeLogger(use_logger, log_file) ((void)0)
 #endif
+}
 
 void LoggerExceptionHandler::operator()(const std::exception &ex) const {
   std::cerr << "std::exception: " << ex.what() << '\n';
