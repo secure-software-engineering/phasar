@@ -1,5 +1,5 @@
 FROM ubuntu:latest
-
+ARG LLVM_INSTALL_DIR="/usr/local/llvm-10"
 LABEL Name=phasar Version=1.0.0
 
 RUN apt -y update && apt install bash sudo -y
@@ -20,16 +20,18 @@ RUN apt install libboost-all-dev -y
 
 # installing LLVM
 COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
-RUN ./utils/install-llvm.sh $(nproc) . "/usr/local/" "llvmorg-10.0.0"
+RUN ./utils/install-llvm.sh $(nproc) . ${LLVM_INSTALL_DIR} "llvmorg-10.0.0"
 
 # installing wllvm
 RUN pip3 install wllvm
 
-ENV CC /usr/local/bin/clang
-ENV CXX /usr/local/bin/clang++
+ENV CC=${LLVM_INSTALL_DIR}/bin/clang
+ENV CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
 COPY . /usr/src/phasar
 
+RUN git submodule init
+RUN git submodule update
 RUN mkdir -p build &&                       \
     cd build &&                             \
     cmake -DCMAKE_BUILD_TYPE=Release .. &&  \
