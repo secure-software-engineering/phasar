@@ -105,7 +105,7 @@ void IDESecureHeapPropagation::printDataFlowFact(std::ostream &os,
 }
 
 void IDESecureHeapPropagation::printFunction(std::ostream &os, m_t m) const {
-  os << cxx_demangle(m->getName().str());
+  os << cxxDemangle(m->getName().str());
 }
 
 // in addition provide specifications for the IDE parts

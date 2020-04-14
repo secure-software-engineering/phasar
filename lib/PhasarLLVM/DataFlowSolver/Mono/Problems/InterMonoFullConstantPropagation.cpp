@@ -123,29 +123,29 @@ InterMonoFullConstantPropagation::callToRetFlow(
 }
 
 void InterMonoFullConstantPropagation::printNode(
-    std::ostream &os, InterMonoFullConstantPropagation::n_t n) const {
-  os << llvmIRToString(n);
+    std::ostream &OS, InterMonoFullConstantPropagation::n_t N) const {
+  OS << llvmIRToString(N);
 }
 
 void InterMonoFullConstantPropagation::printDataFlowFact(
-    std::ostream &os, InterMonoFullConstantPropagation::d_t d) const {
-  os << "< " + llvmIRToString(d.first) << ", ";
-  if (std::holds_alternative<Top>(d.second)) {
-    os << std::get<Top>(d.second);
+    std::ostream &OS, InterMonoFullConstantPropagation::d_t D) const {
+  OS << "< " + llvmIRToString(D.first) << ", ";
+  if (std::holds_alternative<Top>(D.second)) {
+    OS << std::get<Top>(D.second);
   }
-  if (std::holds_alternative<Bottom>(d.second)) {
-    os << std::get<Bottom>(d.second);
+  if (std::holds_alternative<Bottom>(D.second)) {
+    OS << std::get<Bottom>(D.second);
   }
   if (std::holds_alternative<InterMonoFullConstantPropagation::plain_d_t>(
-          d.second)) {
-    os << std::get<InterMonoFullConstantPropagation::plain_d_t>(d.second);
+          D.second)) {
+    OS << std::get<InterMonoFullConstantPropagation::plain_d_t>(D.second);
   }
-  os << " >";
+  OS << " >";
 }
 
 void InterMonoFullConstantPropagation::printFunction(
-    std::ostream &os, InterMonoFullConstantPropagation::f_t f) const {
-  os << f->getName().str();
+    std::ostream &OS, InterMonoFullConstantPropagation::f_t F) const {
+  OS << F->getName().str();
 }
 
 } // namespace psr

@@ -39,7 +39,7 @@ extern const std::map<std::string, severity_level> StringToSeverityLevel;
 
 extern const std::map<severity_level, std::string> SeverityLevelToString;
 
-extern severity_level logFilterLevel;
+extern severity_level LogFilterLevel;
 
 std::ostream &operator<<(std::ostream &os, enum severity_level l);
 

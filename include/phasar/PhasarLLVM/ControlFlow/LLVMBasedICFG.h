@@ -131,11 +131,11 @@ public:
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isIndirectFunctionCall(const llvm::Instruction *n) const override;
+  bool isIndirectFunctionCall(const llvm::Instruction *Inst) const override;
 
-  bool isVirtualFunctionCall(const llvm::Instruction *n) const override;
+  bool isVirtualFunctionCall(const llvm::Instruction *Inst) const override;
 
-  const llvm::Function *getFunction(const std::string &fun) const override;
+  const llvm::Function *getFunction(const std::string &Fun) const override;
 
   /**
    * Essentially the same as `getCallsFromWithin`, but uses the callgraph
@@ -143,7 +143,7 @@ public:
    * \return all call sites within a given method.
    */
   std::vector<const llvm::Instruction *>
-  getOutEdges(const llvm::Function *F) const;
+  getOutEdges(const llvm::Function *Fun) const;
 
   /**
    * For the supplied function, get all the output edge Instructions and
@@ -151,14 +151,14 @@ public:
    *
    * \return the edges and the target function for each edge.
    */
-  OutEdgesAndTargets getOutEdgeAndTarget(const llvm::Function *F) const;
+  OutEdgesAndTargets getOutEdgeAndTarget(const llvm::Function *Fun) const;
 
   /**
    * Removes all edges found for the given instruction within the
    * sourceFunction. \return number of edges removed
    */
-  size_t removeEdges(const llvm::Function *sourceFunction,
-                     const llvm::Instruction *instruction);
+  size_t removeEdges(const llvm::Function *SourceFunction,
+                     const llvm::Instruction *Inst);
 
   /**
    * Removes the vertex for the given function.
@@ -166,53 +166,53 @@ public:
    * IN or OUT edges is a bad idea.
    * \return true iff the vertex was found and removed.
    */
-  bool removeVertex(const llvm::Function *F);
+  bool removeVertex(const llvm::Function *Fun);
 
   /**
    * \return the total number of in edges to the vertex representing this
    * Function.
    */
-  size_t getCallerCount(const llvm::Function *F) const;
+  size_t getCallerCount(const llvm::Function *Fun) const;
 
   /**
    * \return all callee methods for a given call that might be called.
    */
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *n) const override;
+  getCalleesOfCallAt(const llvm::Instruction *Inst) const override;
 
   /**
    * \return all caller statements/nodes of a given method.
    */
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *m) const override;
+  getCallersOf(const llvm::Function *Fun) const override;
 
   /**
    * \return all call sites within a given method.
    */
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *m) const override;
+  getCallsFromWithin(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) const override;
+  getStartPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) const override;
+  getExitPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *n) const override;
+  getReturnSitesOfCallAt(const llvm::Instruction *Inst) const override;
 
-  bool isCallStmt(const llvm::Instruction *stmt) const override;
+  bool isCallStmt(const llvm::Instruction *Inst) const override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-  const llvm::Instruction *getLastInstructionOf(const std::string &name);
+  const llvm::Instruction *getLastInstructionOf(const std::string &Name);
 
   std::vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const std::string &name);
+  getAllInstructionsOfFunction(const std::string &Name);
 
-  void mergeWith(const LLVMBasedICFG &other);
+  void mergeWith(const LLVMBasedICFG &Other);
 
-  bool isPrimitiveFunction(const std::string &name);
+  bool isPrimitiveFunction(const std::string &Name);
 
   using LLVMBasedCFG::print; // tell the compiler we wish to have both prints
   void print(std::ostream &OS = std::cout) const override;

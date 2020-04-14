@@ -48,7 +48,7 @@ public:
 private:
   static const std::map<std::string, std::set<int>> OpenSSLEVPKDFFuncs;
   // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKDFState delta[3][4];
+  static const OpenSSLEVPKDFState Delta[3][4];
   OpenSSLEVTKDFToken funcNameToToken(const std::string &F) const;
 
 public:

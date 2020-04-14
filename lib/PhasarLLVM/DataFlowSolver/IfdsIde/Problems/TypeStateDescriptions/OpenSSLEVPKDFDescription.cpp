@@ -26,14 +26,14 @@ const std::map<std::string, std::set<int>>
 
 };
 
-// delta[Token][State] = next State
+// Delta[Token][State] = next State
 // Token: EVP_KDF_FETCH = 0,
 // EVP_KDF_FREE = 1,
 // STAR = 2
 //
 // States: UNINIT = 0, KDF_FETCHED = 1, ERROR = 2, BOT = 3
 const OpenSSLEVPKDFDescription::OpenSSLEVPKDFState
-    OpenSSLEVPKDFDescription::delta[3][4] = {
+    OpenSSLEVPKDFDescription::Delta[3][4] = {
         /* EVP_KDF_FETCH */
         {OpenSSLEVPKDFState::KDF_FETCHED, OpenSSLEVPKDFState::ERROR,
          OpenSSLEVPKDFState::ERROR, OpenSSLEVPKDFState::KDF_FETCHED},
@@ -68,9 +68,9 @@ TypeStateDescription::State
 OpenSSLEVPKDFDescription::getNextState(std::string Tok,
                                        TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    auto ret = delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
+    auto ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
         funcNameToToken(Tok))][S];
-    // std::cout << "delta[" << Tok << ", " << stateToString(S)
+    // std::cout << "Delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
     return ret;
   } else {

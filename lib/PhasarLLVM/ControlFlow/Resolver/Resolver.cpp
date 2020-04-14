@@ -87,21 +87,21 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
   return nullptr;
 }
 
-void Resolver::preCall(const llvm::Instruction *inst) {}
+void Resolver::preCall(const llvm::Instruction *Inst) {}
 
 void Resolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
-    std::set<const llvm::Function *> &possible_targets) {}
+    std::set<const llvm::Function *> &PossibleTargets) {}
 
-void Resolver::postCall(const llvm::Instruction *inst) {}
+void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  auto &LG = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
   std::set<const llvm::Function *> CalleeTargets;

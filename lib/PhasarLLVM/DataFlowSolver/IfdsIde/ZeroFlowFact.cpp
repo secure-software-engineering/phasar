@@ -16,7 +16,7 @@ using namespace psr;
 
 namespace psr {
 
-void ZeroFlowFact::print(ostream &os) const { os << "ZeroFlowFact"; }
+void ZeroFlowFact::print(ostream &OS) const { OS << "ZeroFlowFact"; }
 
 bool ZeroFlowFact::equal_to(const FlowFact &FF) const { return false; }
 

@@ -7,8 +7,8 @@
 namespace psr {
 
 std::set<ExtendedValue>
-IdentityFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  return {fact};
+IdentityFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  return {Fact};
 }
 
 } // namespace psr
