@@ -659,9 +659,7 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
   return J;
 }
 
-void LLVMBasedICFG::printAsJson(std::ostream &OS) const {
-  OS << getAsJson();
-}
+void LLVMBasedICFG::printAsJson(std::ostream &OS) const { OS << getAsJson(); }
 
 const PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const {
   return WholeModulePTG;

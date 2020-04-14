@@ -269,7 +269,7 @@ public:
 
   size_t getNumEdges() const;
 
-  nlohmann::json getAsJson()const ;
+  nlohmann::json getAsJson() const;
 
   /**
    * @brief Prints the points-to graph in .json format to the given output

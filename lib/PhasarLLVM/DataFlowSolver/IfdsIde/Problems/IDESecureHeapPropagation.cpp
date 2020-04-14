@@ -37,19 +37,19 @@ IDESecureHeapPropagation::getNormalFlowFunction(n_t curr, n_t succ) {
 }
 
 std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
-IDESecureHeapPropagation::getCallFlowFunction(n_t callStmt, m_t destMthd) {
+IDESecureHeapPropagation::getCallFlowFunction(n_t callStmt, f_t destMthd) {
   return Identity<d_t>::getInstance();
 }
 
 std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
-IDESecureHeapPropagation::getRetFlowFunction(n_t callSite, m_t calleeMthd,
+IDESecureHeapPropagation::getRetFlowFunction(n_t callSite, f_t calleeMthd,
                                              n_t exitStmt, n_t retSite) {
   return Identity<d_t>::getInstance();
 }
 
 std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
 IDESecureHeapPropagation::getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                                                   std::set<m_t> callees) {
+                                                   std::set<f_t> callees) {
 
   llvm::ImmutableCallSite CS(callSite);
 
@@ -61,7 +61,7 @@ IDESecureHeapPropagation::getCallToRetFlowFunction(n_t callSite, n_t retSite,
   return Identity<d_t>::getInstance();
 }
 std::shared_ptr<FlowFunction<IDESecureHeapPropagation::d_t>>
-IDESecureHeapPropagation::getSummaryFlowFunction(n_t callStmt, m_t destMthd) {
+IDESecureHeapPropagation::getSummaryFlowFunction(n_t callStmt, f_t destMthd) {
   return nullptr;
 }
 
@@ -104,8 +104,8 @@ void IDESecureHeapPropagation::printDataFlowFact(std::ostream &os,
   }
 }
 
-void IDESecureHeapPropagation::printFunction(std::ostream &os, m_t m) const {
-  os << cxxDemangle(m->getName().str());
+void IDESecureHeapPropagation::printFunction(std::ostream &os, f_t f) const {
+  os << cxxDemangle(f->getName().str());
 }
 
 // in addition provide specifications for the IDE parts
@@ -117,13 +117,13 @@ IDESecureHeapPropagation::getNormalEdgeFunction(n_t curr, d_t currNode,
 }
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::getCallEdgeFunction(n_t callStmt, d_t srcNode,
-                                              m_t destinationMethod,
+                                              f_t destinationMethod,
                                               d_t destNode) {
   return IdentityEdgeFunction::getInstance();
 }
 
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
-IDESecureHeapPropagation::getReturnEdgeFunction(n_t callSite, m_t calleeMethod,
+IDESecureHeapPropagation::getReturnEdgeFunction(n_t callSite, f_t calleeMethod,
                                                 n_t exitStmt, d_t exitNode,
                                                 n_t reSite, d_t retNode) {
   return IdentityEdgeFunction::getInstance();
@@ -132,7 +132,7 @@ IDESecureHeapPropagation::getReturnEdgeFunction(n_t callSite, m_t calleeMethod,
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::getCallToRetEdgeFunction(n_t callSite, d_t callNode,
                                                    n_t retSite, d_t retSiteNode,
-                                                   std::set<m_t> callees) {
+                                                   std::set<f_t> callees) {
   if (callNode == ZeroValue && retSiteNode != ZeroValue) {
     // generate
     // std::cerr << "Generate at " << llvmIRToShortString(callSite) <<
