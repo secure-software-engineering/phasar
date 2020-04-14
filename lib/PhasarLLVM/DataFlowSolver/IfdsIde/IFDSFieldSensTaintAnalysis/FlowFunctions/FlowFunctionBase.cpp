@@ -51,7 +51,8 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
      * then all subparts of it are considered tainted. This should be the only
      * spot where such memory locations are generated.
      */
-    if (const auto StoreInst = llvm::dyn_cast<llvm::StoreInst>(currentInst)) {
+    if (const auto *const StoreInst =
+            llvm::dyn_cast<llvm::StoreInst>(currentInst)) {
       const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
               StoreInst->getPointerOperand());
@@ -61,7 +62,7 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
 
       TargetFacts.insert(EV);
       traceStats.add(StoreInst, DstMemLocationSeq);
-    } else if (const auto MemTransferInst =
+    } else if (const auto *const MemTransferInst =
                    llvm::dyn_cast<llvm::MemTransferInst>(currentInst)) {
       const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
@@ -72,7 +73,7 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
 
       TargetFacts.insert(EV);
       traceStats.add(MemTransferInst, DstMemLocationSeq);
-    } else if (const auto RetInst =
+    } else if (const auto *const RetInst =
                    llvm::dyn_cast<llvm::ReturnInst>(currentInst)) {
       traceStats.add(RetInst);
     }

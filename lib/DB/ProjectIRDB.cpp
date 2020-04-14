@@ -83,7 +83,7 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
 ProjectIRDB::ProjectIRDB(const std::vector<llvm::Module *> &Modules,
                          IRDBOptions Options)
     : ProjectIRDB(Options) {
-  for (auto M : Modules) {
+  for (auto *M : Modules) {
     insertModule(M);
   }
   if (Options & IRDBOptions::WPA) {
@@ -244,7 +244,7 @@ llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
 
 std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) const {
   std::size_t Id = 0;
-  if (auto MD = llvm::cast<llvm::MDString>(
+  if (auto *MD = llvm::cast<llvm::MDString>(
           I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))) {
     Id = stol(MD->getString().str());
   }
@@ -252,14 +252,14 @@ std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) const {
 }
 
 void ProjectIRDB::print() const {
-  for (auto &[File, Module] : Modules) {
+  for (const auto &[File, Module] : Modules) {
     std::cout << "Module: " << File << std::endl;
     llvm::outs() << *Module;
   }
 }
 
 void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
-  for (auto &[File, Module] : Modules) {
+  for (const auto &[File, Module] : Modules) {
     OS << "IR module: " << File << '\n';
     // print globals
     for (auto &Glob : Module->globals()) {
@@ -271,10 +271,10 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
       OS << '\n';
     }
     OS << '\n';
-    for (auto F : getAllFunctions()) {
+    for (const auto *F : getAllFunctions()) {
       if (!F->isDeclaration() && Module->getFunction(F->getName())) {
         OS << F->getName().str() << " {\n";
-        for (auto &BB : *F) {
+        for (const auto &BB : *F) {
           // do not print the label of the first BB
           if (BB.getPrevNode()) {
             std::string BBLabel;
@@ -284,7 +284,7 @@ void ProjectIRDB::emitPreprocessedIR(std::ostream &OS, bool ShortenIR) const {
             OS << "\n<label " << BBLabel << ">\n";
           }
           // print all instructions
-          for (auto &I : BB) {
+          for (const auto &I : BB) {
             OS << "  ";
             if (ShortenIR) {
               OS << llvmIRToShortString(&I);
@@ -308,8 +308,8 @@ ProjectIRDB::getRetOrResInstructions() const {
 
 const llvm::Function *
 ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
-  for (auto &[File, Module] : Modules) {
-    auto F = Module->getFunction(FunctionName);
+  for (const auto &[File, Module] : Modules) {
+    auto *F = Module->getFunction(FunctionName);
     if (F && !F->isDeclaration()) {
       return F;
     }
@@ -319,8 +319,8 @@ ProjectIRDB::getFunctionDefinition(const string &FunctionName) const {
 
 const llvm::Function *
 ProjectIRDB::getFunction(const std::string &FunctionName) const {
-  for (auto &[File, Module] : Modules) {
-    auto F = Module->getFunction(FunctionName);
+  for (const auto &[File, Module] : Modules) {
+    auto *F = Module->getFunction(FunctionName);
     if (F) {
       return F;
     }
@@ -330,8 +330,8 @@ ProjectIRDB::getFunction(const std::string &FunctionName) const {
 
 const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
     const std::string &GlobalVariableName) const {
-  for (auto &[File, Module] : Modules) {
-    auto G = Module->getGlobalVariable(GlobalVariableName);
+  for (const auto &[File, Module] : Modules) {
+    auto *G = Module->getGlobalVariable(GlobalVariableName);
     if (G && !G->isDeclaration()) {
       return G;
     }
@@ -342,7 +342,7 @@ const llvm::GlobalVariable *ProjectIRDB::getGlobalVariableDefinition(
 llvm::Module *
 ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) {
   for (auto &[File, Module] : Modules) {
-    auto F = Module->getFunction(FunctionName);
+    auto *F = Module->getFunction(FunctionName);
     if (F && !F->isDeclaration()) {
       return Module.get();
     }
@@ -352,8 +352,8 @@ ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) {
 
 const llvm::Module *
 ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) const {
-  for (auto &[File, Module] : Modules) {
-    auto F = Module->getFunction(FunctionName);
+  for (const auto &[File, Module] : Modules) {
+    auto *F = Module->getFunction(FunctionName);
     if (F && !F->isDeclaration()) {
       return Module.get();
     }
@@ -374,7 +374,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
                  llvm::dyn_cast<llvm::GlobalValue>(V)) {
     std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
     std::cout << "all user:\n";
-    for (auto User : V->users()) {
+    for (const auto *User : V->users()) {
       if (const llvm::Instruction *I =
               llvm::dyn_cast<llvm::Instruction>(User)) {
         std::cout << I->getFunction()->getName().str() << "\n";
@@ -386,7 +386,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
     // identified by the instruction id and the operand index.
     std::cout << "special case: WE ARE AN OPERAND\n";
     // We should only have one user in this special case
-    for (auto User : V->users()) {
+    for (const auto *User : V->users()) {
       if (const llvm::Instruction *I =
               llvm::dyn_cast<llvm::Instruction>(User)) {
         for (unsigned Idx = 0; Idx < I->getNumOperands(); ++Idx) {
@@ -422,8 +422,8 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
     unsigned OpIdx = stoi(S.substr(J + 3, S.size()));
     // std::cout << "FOUND opIdx: " << to_string(opIdx) << "\n";
     const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find(".")));
-    for (auto &BB : *F) {
-      for (auto &Inst : BB) {
+    for (const auto &BB : *F) {
+      for (const auto &Inst : BB) {
         if (getMetaDataID(&Inst) == std::to_string(InstID)) {
           return Inst.getOperand(OpIdx);
         }
@@ -432,8 +432,8 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
     llvm::report_fatal_error("Error: operand not found.");
   } else if (S.find(".") != std::string::npos) {
     const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find(".")));
-    for (auto &BB : *F) {
-      for (auto &Inst : BB) {
+    for (const auto &BB : *F) {
+      for (const auto &Inst : BB) {
         if (getMetaDataID(&Inst) == S.substr(S.find(".") + 1, S.size())) {
           return &Inst;
         }
@@ -453,7 +453,7 @@ std::set<const llvm::Instruction *> ProjectIRDB::getAllocaInstructions() const {
 
 std::set<const llvm::Function *> ProjectIRDB::getAllFunctions() const {
   std::set<const llvm::Function *> Functions;
-  for (auto &[File, Module] : Modules) {
+  for (const auto &[File, Module] : Modules) {
     for (auto &F : *Module) {
       Functions.insert(&F);
     }
@@ -476,8 +476,8 @@ set<const llvm::Type *> ProjectIRDB::getAllocatedTypes() const {
 std::set<const llvm::StructType *>
 ProjectIRDB::getAllocatedStructTypes() const {
   std::set<const llvm::StructType *> StructTypes;
-  for (auto Ty : AllocatedTypes) {
-    if (auto StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
+  for (const auto *Ty : AllocatedTypes) {
+    if (const auto *StructTy = llvm::dyn_cast<llvm::StructType>(Ty)) {
       StructTypes.insert(StructTy);
     }
   }
@@ -488,7 +488,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   // get all stack and heap alloca instructions
   auto AllocaInsts = getAllocaInstructions();
   set<const llvm::Value *> AllMemoryLoc;
-  for (auto AllocaInst : AllocaInsts) {
+  for (const auto *AllocaInst : AllocaInsts) {
     AllMemoryLoc.insert(static_cast<const llvm::Value *>(AllocaInst));
   }
   set<string> IgnoredGlobalNames = {"llvm.used",
@@ -499,7 +499,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
                                     "typeinfo"};
   // add global varibales to the memory location set, except the llvm
   // intrinsic global variables
-  for (auto &[File, Module] : Modules) {
+  for (const auto &[File, Module] : Modules) {
     for (auto &GV : Module->globals()) {
       if (GV.hasName()) {
         string GVName = cxxDemangle(GV.getName().str());
@@ -522,7 +522,7 @@ bool ProjectIRDB::debugInfoAvailable() const {
   }
   // During unittests WPAMOD might not be set
   else if (Modules.size() >= 1) {
-    for (auto &[File, Module] : Modules) {
+    for (const auto &[File, Module] : Modules) {
       if (!wasCompiledWithDebugInfo(Module.get())) {
         return false;
       }

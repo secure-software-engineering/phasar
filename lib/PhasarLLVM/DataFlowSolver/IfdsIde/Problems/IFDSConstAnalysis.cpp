@@ -69,11 +69,11 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     if (const llvm::ConstantExpr *CE =
             llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
       // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
-      auto CEInst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
+      auto *CEInst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
       if (llvm::ConstantExpr *CF =
               llvm::dyn_cast<llvm::ConstantExpr>(CEInst->getOperand(0))) {
-        auto CFInst = CF->getAsInstruction();
-        if (auto VTable =
+        auto *CFInst = CF->getAsInstruction();
+        if (auto *VTable =
                 llvm::dyn_cast<llvm::GlobalVariable>(CFInst->getOperand(0))) {
           if (VTable->hasName() &&
               cxxDemangle(VTable->getName().str()).find("vtable") !=
@@ -100,7 +100,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     // generate data-flow facts of all alias that meet the 'context-relevant'
     // requirements! (see getContextRelevantPointsToSet function)
     // NOTE: The points-to set of value x also contains the value x itself!
-    for (auto Alias : PointsToSet) {
+    for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                       << "Compute context-relevant points-to "
@@ -185,7 +185,7 @@ IFDSConstAnalysis::getCallToRetFlowFunction(
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Pointer Operand: " << llvmIRToString(PointerOp));
     set<IFDSConstAnalysis::d_t> PointsToSet = ptg.getPointsToSet(PointerOp);
-    for (auto Alias : PointsToSet) {
+    for (const auto *Alias : PointsToSet) {
       if (isInitialized(Alias)) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                       << "Compute context-relevant points-to "
@@ -217,7 +217,7 @@ map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>>
 IFDSConstAnalysis::initialSeeds() {
   // just start in main()
   map<IFDSConstAnalysis::n_t, set<IFDSConstAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSConstAnalysis::d_t>({getZeroValue()})));
   }
@@ -255,7 +255,7 @@ void IFDSConstAnalysis::printInitMemoryLocations() {
   LOG_IF_ENABLE(
       BOOST_LOG_SEV(LG, DEBUG)
       << "Printing all initialized memory location (or one of its alias)");
-  for (auto Stmt : IFDSConstAnalysis::Initialized) {
+  for (const auto *Stmt : IFDSConstAnalysis::Initialized) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << llvmIRToString(Stmt));
   }
 }
@@ -270,7 +270,7 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
               PAMM_SEVERITY_LEVEL::Full);
   auto &LG = lg::get();
   set<IFDSConstAnalysis::d_t> ToGenerate;
-  for (auto Alias : PointsToSet) {
+  for (const auto *Alias : PointsToSet) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Alias: " << llvmIRToString(Alias));
     // Case (i + ii)
@@ -323,14 +323,14 @@ void IFDSConstAnalysis::emitTextReport(
                         BinaryDomain> &SR,
     ostream &OS) {
   // 1) Remove all mutable memory locations
-  for (auto F : ICF->getAllFunctions()) {
-    for (auto Exit : ICF->getExitPointsOf(F)) {
+  for (const auto *F : ICF->getAllFunctions()) {
+    for (const auto *Exit : ICF->getExitPointsOf(F)) {
       std::set<const llvm::Value *> Facts = SR.ifdsResultsAt(Exit);
       // Empty facts means the exit statement is part of a not
       // analyzed function, thus remove all memory locations of that function
       if (Facts.empty()) {
         for (auto MemItr = AllMemLocs.begin(); MemItr != AllMemLocs.end();) {
-          if (auto Inst = llvm::dyn_cast<llvm::Instruction>(*MemItr)) {
+          if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(*MemItr)) {
             if (Inst->getParent()->getParent() == F) {
               MemItr = AllMemLocs.erase(MemItr);
             } else {
@@ -341,7 +341,7 @@ void IFDSConstAnalysis::emitTextReport(
           }
         }
       } else {
-        for (auto Fact : Facts) {
+        for (const auto *Fact : Facts) {
           if (isAllocaInstOrHeapAllocaFunction(Fact) ||
               llvm::isa<llvm::GlobalValue>(Fact)) {
             // remove memory locations that are mutable, i.e. are valid facts
@@ -357,7 +357,7 @@ void IFDSConstAnalysis::emitTextReport(
     OS << "No immutable memory locations found!\n";
   } else {
     OS << "Immutable/const stack and/or heap memory locations:\n";
-    for (auto Memloc : AllMemLocs) {
+    for (const auto *Memloc : AllMemLocs) {
       OS << "\nIR  : " << llvmIRToString(Memloc) << '\n';
     }
   }

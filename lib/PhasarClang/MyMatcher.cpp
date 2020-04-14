@@ -46,11 +46,13 @@ void MyMatcher::run(const MatchFinder::MatchResult &Result) {
   if (const CXXRecordDecl *CALLER =
           Result.Nodes.getNodeAs<CXXRecordDecl>("caller"))
     errs() << "CALLER: " << CALLER->getNameAsString() << "\n";
-  if (auto Caller = Result.Nodes.getNodeAs<clang::FunctionDecl>("caller"))
+  if (const auto *Caller =
+          Result.Nodes.getNodeAs<clang::FunctionDecl>("caller"))
     errs() << "### Caller:" << Caller->getNameInfo().getAsString() << "\n";
-  if (auto Callee = Result.Nodes.getNodeAs<clang::FunctionDecl>("callee"))
+  if (const auto *Callee =
+          Result.Nodes.getNodeAs<clang::FunctionDecl>("callee"))
     errs() << "### Callee:" << Callee->getNameInfo().getAsString() << "\n";
-  if (auto Call = Result.Nodes.getNodeAs<clang::CallExpr>("call"))
+  if (const auto *Call = Result.Nodes.getNodeAs<clang::CallExpr>("call"))
     errs() << "### with num args: " << Call->getNumArgs() << "\n";
 }
 //

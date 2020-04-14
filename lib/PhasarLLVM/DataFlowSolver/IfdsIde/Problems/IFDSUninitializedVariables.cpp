@@ -102,7 +102,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
   */
 
   // check the all store instructions and kill initialized variables
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     struct UVFF : FlowFunction<IFDSUninitializedVariables::d_t> {
       // const llvm::Value *valueop;
       // const llvm::Value *pointerop;
@@ -172,7 +172,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
     };
     return make_shared<UVFF>(Store, UndefValueUses, ZeroValue);
   }
-  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
+  if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
 
     return make_shared<LambdaFlow<IFDSUninitializedVariables::d_t>>(
         [Alloc, this](IFDSUninitializedVariables::d_t Source)
@@ -206,7 +206,7 @@ IFDSUninitializedVariables::getNormalFlowFunction(
         : Inst(Inst), UndefValueUses(UVU) {}
     set<IFDSUninitializedVariables::d_t>
     computeTargets(IFDSUninitializedVariables::d_t Source) override {
-      for (auto &Operand : Inst->operands()) {
+      for (const auto &Operand : Inst->operands()) {
         const llvm::UndefValue *Undef =
             llvm::dyn_cast<llvm::UndefValue>(Operand);
         if (Operand == Source || Operand == Undef) {
@@ -256,7 +256,7 @@ IFDSUninitializedVariables::getCallFlowFunction(
         /*for (unsigned idx = 0; idx < destFun->arg_size(); ++idx) {
           formals.push_back(getNthFunctionArgument(destFun, idx));
         }*/
-        for (auto &Arg : DestFun->args()) {
+        for (const auto &Arg : DestFun->args()) {
           Formals.push_back(&Arg);
         }
       }
@@ -342,7 +342,7 @@ IFDSUninitializedVariables::getRetFlowFunction(
         //----------------------------------------------------------------------
         if (Call.getCalledFunction()) {
           unsigned I = 0;
-          for (auto &Arg : Call.getCalledFunction()->args()) {
+          for (const auto &Arg : Call.getCalledFunction()->args()) {
             // auto arg = getNthFunctionArgument(call.getCalledFunction(), i);
             if (&Arg == Source && Arg.getType()->isPointerTy()) {
               Ret.insert(Call.getArgument(I));
@@ -376,7 +376,7 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
         [CS](IFDSUninitializedVariables::d_t Source)
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
-            for (auto &Arg : CS.args()) {
+            for (const auto &Arg : CS.args()) {
               if (Arg.get() == Source)
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with
@@ -404,7 +404,7 @@ IFDSUninitializedVariables::initialSeeds() {
                 << "IFDSUninitializedVariables::initialSeeds()");
   map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
       SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
         make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                   set<IFDSUninitializedVariables::d_t>({getZeroValue()})));
@@ -464,7 +464,7 @@ void IFDSUninitializedVariables::emitTextReport(
         printNode(OS, User.first);
         OS << "\n    in function: " << getFunctionNameFromIR(User.first);
         OS << "\n    in module  : " << getModuleIDFromIR(User.first) << "\n\n";
-        for (auto UndefV : User.second) {
+        for (const auto *UndefV : User.second) {
           OS << "   Uninit Value: ";
           printDataFlowFact(OS, UndefV);
           OS << '\n';
@@ -508,7 +508,7 @@ IFDSUninitializedVariables::aggregateResults() {
     // add current IR trace
     UR.ir_trace[User.first] = User.second;
     // add (possibly) new variable names
-    for (auto UndefV : User.second) {
+    for (const auto *UndefV : User.second) {
       auto VarName = getVarNameFromIR(UndefV);
       if (!VarName.empty()) {
         UR.var_names.push_back(VarName);
@@ -540,7 +540,7 @@ void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
   if (!ir_trace.empty()) {
     for (auto Trace : ir_trace) {
       OS << "At IR Statement: " << llvmIRToString(Trace.first) << '\n';
-      for (auto IRVal : Trace.second) {
+      for (const auto *IRVal : Trace.second) {
         OS << "   Uninit Value: " << llvmIRToString(IRVal) << '\n';
       }
       // os << '\n';

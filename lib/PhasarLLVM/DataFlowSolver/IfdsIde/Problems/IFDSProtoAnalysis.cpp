@@ -39,7 +39,7 @@ IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
 shared_ptr<FlowFunction<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::getNormalFlowFunction(IFDSProtoAnalysis::n_t Curr,
                                          IFDSProtoAnalysis::n_t Succ) {
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     return make_shared<Gen<IFDSProtoAnalysis::d_t>>(Store->getPointerOperand(),
                                                     getZeroValue());
   }
@@ -77,7 +77,7 @@ map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>>
 IFDSProtoAnalysis::initialSeeds() {
   cout << "IFDSProtoAnalysis::initialSeeds()\n";
   map<IFDSProtoAnalysis::n_t, set<IFDSProtoAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSProtoAnalysis::d_t>({getZeroValue()})));
   }

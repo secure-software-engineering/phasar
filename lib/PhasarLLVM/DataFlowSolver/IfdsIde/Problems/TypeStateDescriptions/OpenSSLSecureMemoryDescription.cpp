@@ -32,7 +32,7 @@ const std::map<std::string, std::set<int>>
 //
 // States: ALLOCATED=4, ZEROED=1, FREED=2, ERROR=3, BOT=0
 const OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryState
-    OpenSSLSecureMemoryDescription::delta[6][7] = {
+    OpenSSLSecureMemoryDescription::Delta[6][7] = {
         // CRYPTO_malloc
         {OpenSSLSecureMemoryState::ALLOCATED,
          OpenSSLSecureMemoryState::ALLOCATED,
@@ -80,7 +80,7 @@ bool OpenSSLSecureMemoryDescription::isAPIFunction(const std::string &F) const {
 TypeStateDescription::State OpenSSLSecureMemoryDescription::getNextState(
     std::string Tok, TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    return delta[static_cast<std::underlying_type_t<OpenSSLSecureMemoryToken>>(
+    return Delta[static_cast<std::underlying_type_t<OpenSSLSecureMemoryToken>>(
         funcNameToToken(Tok))][S];
   } else {
     return OpenSSLSecureMemoryState::BOT;

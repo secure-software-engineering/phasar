@@ -62,7 +62,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
           ++Stats.allocationsites;
         } // check bitcast instructions for possible types
         else {
-          for (auto User : I.users()) {
+          for (auto *User : I.users()) {
             if (const llvm::BitCastInst *Cast =
                     llvm::dyn_cast<llvm::BitCastInst>(User)) {
               // types.insert(cast->getDestTy());
@@ -97,13 +97,13 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
               ++Stats.allocationsites;
               // check if an instance of a user-defined type is allocated on the
               // heap
-              for (auto User : I.users()) {
-                if (auto Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
+              for (auto *User : I.users()) {
+                if (auto *Cast = llvm::dyn_cast<llvm::BitCastInst>(User)) {
                   if (Cast->getDestTy()
                           ->getPointerElementType()
                           ->isStructTy()) {
                     // finally check for ctor call
-                    for (auto User : Cast->users()) {
+                    for (auto *User : Cast->users()) {
                       if (llvm::isa<llvm::CallInst>(User) ||
                           llvm::isa<llvm::InvokeInst>(User)) {
                         // potential call to the structures ctor
@@ -171,7 +171,7 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
     BOOST_LOG_SEV(LG, INFO)
         << "Store Instructions : " << Stats.storeInstructions;
     BOOST_LOG_SEV(LG, INFO) << ' ';
-    for (auto Type : Stats.allocatedTypes) {
+    for (const auto *Type : Stats.allocatedTypes) {
       std::string TypeStr;
       llvm::raw_string_ostream Rso(TypeStr);
       Type->print(Rso);

@@ -23,7 +23,7 @@ MapTaintedValuesToCaller::computeTargets(ExtendedValue Fact) {
   if (IsGlobalMemLocationFact)
     TargetGlobalFacts.insert(Fact);
 
-  const auto RetValMemLocationMatr = retInst->getReturnValue();
+  auto *const RetValMemLocationMatr = retInst->getReturnValue();
   if (!RetValMemLocationMatr)
     return TargetGlobalFacts;
 

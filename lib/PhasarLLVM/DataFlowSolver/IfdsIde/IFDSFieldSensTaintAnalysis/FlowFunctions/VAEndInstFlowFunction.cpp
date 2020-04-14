@@ -14,8 +14,8 @@ VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   if (!IsVarArgFact)
     return {Fact};
 
-  const auto VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
-  const auto VaEndMemLocationMatr = VaEndInst->getArgList();
+  const auto *const VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
+  auto *const VaEndMemLocationMatr = VaEndInst->getArgList();
 
   auto VaEndMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(VaEndMemLocationMatr);

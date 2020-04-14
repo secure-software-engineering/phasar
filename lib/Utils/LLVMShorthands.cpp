@@ -135,7 +135,7 @@ bool matchesSignature(const llvm::Function *F,
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     unsigned Idx = 0;
-    for (auto &Arg : F->args()) {
+    for (const auto &Arg : F->args()) {
       if (Arg.getType() != FType->getParamType(Idx)) {
         return false;
       }
@@ -199,9 +199,9 @@ std::string llvmIRToShortString(const llvm::Value *V) {
 std::vector<const llvm::Value *>
 globalValuesUsedinFunction(const llvm::Function *F) {
   std::vector<const llvm::Value *> GlobalsUsed;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
-      for (auto &Op : I.operands()) {
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
+      for (const auto &Op : I.operands()) {
         if (const llvm::GlobalValue *G =
                 llvm::dyn_cast<llvm::GlobalValue>(Op)) {
           GlobalsUsed.push_back(G);
@@ -213,20 +213,20 @@ globalValuesUsedinFunction(const llvm::Function *F) {
 }
 
 std::string getMetaDataID(const llvm::Value *V) {
-  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
-    if (auto Metadata = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+    if (auto *Metadata = Inst->getMetadata(PhasarConfig::MetaDataKind())) {
       return llvm::cast<llvm::MDString>(Metadata->getOperand(0))
           ->getString()
           .str();
     }
 
-  } else if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
-    if (auto Metadata = GV->getMetadata(PhasarConfig::MetaDataKind())) {
+  } else if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(V)) {
+    if (auto *Metadata = GV->getMetadata(PhasarConfig::MetaDataKind())) {
       return llvm::cast<llvm::MDString>(Metadata->getOperand(0))
           ->getString()
           .str();
     }
-  } else if (auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+  } else if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     string FName = Arg->getParent()->getName().str();
     string ArgNr = std::to_string(getFunctionArgumentNr(Arg));
     return string(FName + "." + ArgNr);
@@ -245,7 +245,7 @@ bool llvmValueIDLess::operator()(const llvm::Value *Lhs,
 
 int getFunctionArgumentNr(const llvm::Argument *Arg) {
   int ArgNr = 0;
-  for (auto &A : Arg->getParent()->args()) {
+  for (const auto &A : Arg->getParent()->args()) {
     if (&A == Arg) {
       return ArgNr;
     }
@@ -258,7 +258,7 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
                                              unsigned ArgNo) {
   if (ArgNo < F->arg_size()) {
     unsigned Current = 0;
-    for (auto &A : F->args()) {
+    for (const auto &A : F->args()) {
       if (ArgNo == Current) {
         return &A;
       }
@@ -271,8 +271,8 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
                                            unsigned Idx) {
   unsigned Current = 1;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
       if (Current == Idx) {
         return &I;
       } else {
@@ -340,7 +340,7 @@ std::size_t computeModuleHash(const llvm::Module *M) {
 const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
                                                unsigned TermInstNo) {
   unsigned Current = 1;
-  for (auto &BB : *F) {
+  for (const auto &BB : *F) {
     if (const llvm::Instruction *T = BB.getTerminator()) {
       if (Current == TermInstNo) {
         return T;
@@ -354,8 +354,8 @@ const llvm::Instruction *getNthTermInstruction(const llvm::Function *F,
 const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
                                               unsigned StoNo) {
   unsigned Current = 1;
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
       if (const llvm::StoreInst *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
         if (Current == StoNo) {
           return S;

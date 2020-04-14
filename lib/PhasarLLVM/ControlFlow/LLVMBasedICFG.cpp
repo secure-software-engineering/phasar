@@ -136,7 +136,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       break;
     }
   }());
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     const llvm::Function *F = IRDB.getFunctionDefinition(EntryPoint);
     if (F == nullptr) {
       llvm::report_fatal_error("Could not retrieve function for entry point");
@@ -192,8 +192,8 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   }
 
   // iterate all instructions of the current function
-  for (auto &BB : *F) {
-    for (auto &I : BB) {
+  for (const auto &BB : *F) {
+    for (const auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
         Resolver.preCall(&I);
 
@@ -237,7 +237,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         Resolver.handlePossibleTargets(CS, PossibleTargets);
         // Insert possible target inside the graph and add the link with
         // the current function
-        for (auto &PossibleTarget : PossibleTargets) {
+        for (const auto &PossibleTarget : PossibleTargets) {
           vertex_t TargetVertex;
           auto TargetFvmItr = FunctionVertexMap.find(PossibleTarget);
           if (TargetFvmItr != FunctionVertexMap.end())
@@ -252,7 +252,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         }
 
         // continue resolving
-        for (auto PossibleTarget : PossibleTargets) {
+        for (const auto *PossibleTarget : PossibleTargets) {
           constructionWalker(PossibleTarget, Resolver);
         }
 
@@ -272,7 +272,7 @@ bool LLVMBasedICFG::isIndirectFunctionCall(const llvm::Instruction *N) const {
 bool LLVMBasedICFG::isVirtualFunctionCall(const llvm::Instruction *N) const {
   llvm::ImmutableCallSite CS(N);
   // check potential receiver type
-  auto RecType = getReceiverType(CS);
+  const auto *RecType = getReceiverType(CS);
   if (!RecType) {
     return false;
   }
@@ -459,10 +459,10 @@ LLVMBasedICFG::getExitPointsOf(const llvm::Function *Fun) const {
 set<const llvm::Instruction *>
 LLVMBasedICFG::getReturnSitesOfCallAt(const llvm::Instruction *N) const {
   set<const llvm::Instruction *> ReturnSites;
-  if (auto Call = llvm::dyn_cast<llvm::CallInst>(N)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(N)) {
     ReturnSites.insert(Call->getNextNode());
   }
-  if (auto Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
+  if (const auto *Invoke = llvm::dyn_cast<llvm::InvokeInst>(N)) {
     ReturnSites.insert(&Invoke->getNormalDest()->front());
     ReturnSites.insert(&Invoke->getUnwindDest()->front());
   }
@@ -479,7 +479,7 @@ bool LLVMBasedICFG::isCallStmt(const llvm::Instruction *Stmt) const {
  */
 set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
   set<const llvm::Instruction *> NonCallStartNodes;
-  for (auto M : IRDB.getAllModules()) {
+  for (auto *M : IRDB.getAllModules()) {
     for (auto &F : *M) {
       for (auto &BB : F) {
         for (auto &I : BB) {
@@ -496,7 +496,7 @@ set<const llvm::Instruction *> LLVMBasedICFG::allNonCallStartNodes() const {
 
 vector<const llvm::Instruction *>
 LLVMBasedICFG::getAllInstructionsOfFunction(const string &Name) {
-  auto F = IRDB.getFunctionDefinition(Name);
+  const auto *F = IRDB.getFunctionDefinition(Name);
   if (F) {
     return getAllInstructionsOf(F);
   }
@@ -505,7 +505,7 @@ LLVMBasedICFG::getAllInstructionsOfFunction(const string &Name) {
 
 const llvm::Instruction *
 LLVMBasedICFG::getLastInstructionOf(const string &Name) {
-  auto F = IRDB.getFunctionDefinition(Name);
+  const auto *F = IRDB.getFunctionDefinition(Name);
   if (!F) {
     return nullptr;
   }
@@ -576,8 +576,8 @@ bool LLVMBasedICFG::isPrimitiveFunction(const string &Name) {
   if (!IRDB.getFunctionDefinition(Name)) {
     return false;
   }
-  for (auto &BB : *IRDB.getFunctionDefinition(Name)) {
-    for (auto &I : BB) {
+  for (const auto &BB : *IRDB.getFunctionDefinition(Name)) {
+    for (const auto &I : BB) {
       if (llvm::isa<llvm::CallInst>(&I) || llvm::isa<llvm::InvokeInst>(&I)) {
         return false;
       }

@@ -62,10 +62,10 @@ InterMonoFullConstantPropagation::initialSeeds() {
   std::unordered_map<InterMonoFullConstantPropagation::n_t,
                      BitVectorSet<InterMonoFullConstantPropagation::d_t>>
       Seeds;
-  for (auto &EntryPoint : EntryPoints) {
-    if (auto Fun = IRDB->getFunctionDefinition(EntryPoint)) {
+  for (const auto &EntryPoint : EntryPoints) {
+    if (const auto *Fun = IRDB->getFunctionDefinition(EntryPoint)) {
       auto Is = ICF->getStartPointsOf(Fun);
-      for (auto I : Is) {
+      for (const auto *I : Is) {
         Seeds[I] = {};
       }
     }
@@ -79,12 +79,12 @@ InterMonoFullConstantPropagation::normalFlow(
     const BitVectorSet<InterMonoFullConstantPropagation::d_t> &In) {
   // TODO finish implementation
   auto Out = In;
-  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
+  if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     if (Alloc->getAllocatedType()->isIntegerTy()) {
       Out.insert({Alloc, Top{}});
     }
   }
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     if (Store->getValueOperand()->getType()->isIntegerTy()) {
       // ...
     }

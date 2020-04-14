@@ -73,7 +73,7 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_GET_INSTANCE;
   auto &LG = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO) << "Construct type hierarchy");
-  for (auto M : IRDB.getAllModules()) {
+  for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
   REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
@@ -166,19 +166,20 @@ LLVMTypeHierarchy::getSubTypes(const llvm::Module &M,
                                const llvm::StructType &Type) {
   // find corresponding type info variable
   std::vector<const llvm::StructType *> SubTypes;
-  if (auto TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
-    if (auto I = llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-      for (auto &Op : I->operands()) {
-        if (auto CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
+  if (const auto *TI = ClearNameTIMap[removeStructOrClassPrefix(Type)]) {
+    if (const auto *I =
+            llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+      for (const auto &Op : I->operands()) {
+        if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(Op)) {
           // caution: getAsInstruction allocates, need to delete later
-          auto AsI = CE->getAsInstruction();
-          if (auto BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+          auto *AsI = CE->getAsInstruction();
+          if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
             if (BC->getOperand(0)->hasName()) {
               auto Name = BC->getOperand(0)->getName();
               if (Name.find(TypeInfoPrefix) != llvm::StringRef::npos) {
                 auto ClearName = removeTypeInfoPrefix(
                     boost::core::demangle(Name.str().c_str()));
-                if (auto Type = ClearNameTypeMap[ClearName]) {
+                if (const auto *Type = ClearNameTypeMap[ClearName]) {
                   SubTypes.push_back(Type);
                 }
               }
@@ -197,18 +198,19 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
                                        const llvm::StructType &Type) {
   auto ClearName = removeStructOrClassPrefix(Type.getName().str());
   std::vector<const llvm::Function *> VFS;
-  if (auto TV = ClearNameTVMap[ClearName]) {
-    if (auto TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
-      if (auto I = llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
-        for (auto &Op : I->operands()) {
-          if (auto CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
+  if (const auto *TV = ClearNameTVMap[ClearName]) {
+    if (const auto *TI = llvm::dyn_cast<llvm::GlobalVariable>(TV)) {
+      if (const auto *I =
+              llvm::dyn_cast<llvm::ConstantStruct>(TI->getInitializer())) {
+        for (const auto &Op : I->operands()) {
+          if (auto *CA = llvm::dyn_cast<llvm::ConstantArray>(Op)) {
             for (auto &COp : CA->operands()) {
-              if (auto CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
+              if (auto *CE = llvm::dyn_cast<llvm::ConstantExpr>(COp)) {
                 // caution: getAsInstruction allocates, need to delete later
-                auto AsI = CE->getAsInstruction();
-                if (auto BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
+                auto *AsI = CE->getAsInstruction();
+                if (auto *BC = llvm::dyn_cast<llvm::BitCastInst>(AsI)) {
                   if (BC->getOperand(0)->hasName()) {
-                    if (auto F = M.getFunction(BC->getOperand(0)->getName())) {
+                    if (auto *F = M.getFunction(BC->getOperand(0)->getName())) {
                       VFS.push_back(F);
                     }
                   }
@@ -232,10 +234,10 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
   VisitedModules.insert(&M);
   auto StructTypes = M.getIdentifiedStructTypes();
   // build helper maps
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     ClearNameTypeMap[removeStructOrClassPrefix(*StructType)] = StructType;
   }
-  for (auto &Global : M.globals()) {
+  for (const auto &Global : M.globals()) {
     if (Global.hasName()) {
       if (isTypeInfo(Global.getName().str())) {
         auto Demang = boost::core::demangle(Global.getName().str().c_str());
@@ -250,7 +252,7 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
     }
   }
   // iterate struct types and add vertices
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     if (!TypeVertexMap.count(StructType)) {
       auto Vertex = boost::add_vertex(TypeGraph);
       TypeVertexMap[StructType] = Vertex;
@@ -259,10 +261,10 @@ void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
     }
   }
   // construct the edges between a type and its subtypes
-  for (auto StructType : StructTypes) {
+  for (auto *StructType : StructTypes) {
     // use type information to check if it is really a subtype
     auto SubTypes = getSubTypes(M, *StructType);
-    for (auto SubType : SubTypes) {
+    for (const auto *SubType : SubTypes) {
       boost::add_edge(TypeVertexMap[SubType], TypeVertexMap[StructType],
                       TypeGraph);
     }
@@ -354,7 +356,7 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "VFTables:\n";
   for (const auto &[Ty, VFT] : TypeVFTMap) {
     OS << "Virtual function table for: " << Ty->getName().str() << '\n';
-    for (auto F : VFT) {
+    for (const auto *F : VFT) {
       OS << "\t-" << F->getName().str() << '\n';
     }
   }

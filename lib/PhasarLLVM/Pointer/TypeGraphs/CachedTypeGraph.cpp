@@ -32,33 +32,33 @@ using namespace psr;
 namespace psr {
 
 struct CachedTypeGraph::dfs_visitor : public boost::default_dfs_visitor {
-  dfs_visitor(graph_t *G) : g(G) {}
+  dfs_visitor(graph_t *G) : G(G) {}
 
   void finish_edge(edge_t E, graph_t const &U) {
     CachedTypeGraph::vertex_t Src = boost::source(E, U);
     CachedTypeGraph::vertex_t Target = boost::target(E, U);
 
-    for (auto TargetType : U[Target].types) {
-      (*g)[Src].types.insert(TargetType);
+    for (const auto *TargetType : U[Target].types) {
+      (*G)[Src].types.insert(TargetType);
     }
   }
 
-  graph_t *g;
+  graph_t *G;
 };
 
 struct CachedTypeGraph::reverse_type_propagation_dfs_visitor
     : public boost::default_dfs_visitor {
-  reverse_type_propagation_dfs_visitor(rev_graph_t *G) : g(G) {}
+  reverse_type_propagation_dfs_visitor(rev_graph_t *G) : G(G) {}
 
   void examine_edge(rev_edge_t E, rev_graph_t const &U) {
     auto Src = boost::source(E, U);
     auto Target = boost::target(E, U);
 
-    for (auto SrcType : U[Src].types)
-      (*g)[Target].types.insert(SrcType);
+    for (const auto *SrcType : U[Src].types)
+      (*G)[Target].types.insert(SrcType);
   }
 
-  rev_graph_t *g;
+  rev_graph_t *G;
 };
 
 CachedTypeGraph::vertex_t

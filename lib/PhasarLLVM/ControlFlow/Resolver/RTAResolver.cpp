@@ -72,7 +72,7 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  auto ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CS);
 
   // also insert all possible subtypes vtable entries
   auto ReachableTypes = Resolver::TH->getSubTypes(ReceiverType);
@@ -81,11 +81,11 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   auto PossibleTypes = IRDB.getAllocatedStructTypes();
 
   auto EndIt = ReachableTypes.end();
-  for (auto PossibleType : PossibleTypes) {
-    if (auto PossibleTypeStruct =
+  for (const auto *PossibleType : PossibleTypes) {
+    if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       if (ReachableTypes.find(PossibleTypeStruct) != EndIt) {
-        auto Target =
+        const auto *Target =
             getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
         if (Target) {
           PossibleCallTargets.insert(Target);

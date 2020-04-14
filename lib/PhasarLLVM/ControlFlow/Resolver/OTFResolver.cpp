@@ -46,13 +46,13 @@ void OTFResolver::handlePossibleTargets(
     std::set<const llvm::Function *> &CalleeTargets) {
   auto &LG = lg::get();
 
-  for (auto CalleeTarget : CalleeTargets) {
+  for (const auto *CalleeTarget : CalleeTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Target name: " << CalleeTarget->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
     if (!CalleeTarget->isDeclaration()) {
-      auto CalleePTG = PT.getPointsToGraph(CalleeTarget);
+      auto *CalleePTG = PT.getPointsToGraph(CalleeTarget);
       WholeModulePTG.mergeWith(CalleePTG, CalleeTarget);
       WholeModulePTG.mergeCallSite(CS, CalleeTarget);
     }
@@ -92,19 +92,19 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   auto PossibleAllocatedTypes =
       WholeModulePTG.computeTypesFromAllocationSites(AllocSites);
 
-  auto ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CS);
 
   // Now we must check if we have found some allocated struct types
   set<const llvm::StructType *> PossibleTypes;
-  for (auto Type : PossibleAllocatedTypes) {
-    if (auto StructType =
+  for (const auto *Type : PossibleAllocatedTypes) {
+    if (const auto *StructType =
             llvm::dyn_cast<llvm::StructType>(stripPointer(Type))) {
       PossibleTypes.insert(StructType);
     }
   }
 
-  for (auto PossibleTypeStruct : PossibleTypes) {
-    auto Target =
+  for (const auto *PossibleTypeStruct : PossibleTypes) {
+    const auto *Target =
         getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
     if (Target) {
       PossibleCallTargets.insert(Target);
@@ -120,10 +120,10 @@ std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
   auto PTS = PT.getPointsToSet(CS.getCalledValue());
-  for (auto P : PTS) {
+  for (const auto *P : PTS) {
     if (P->getType()->isPointerTy() &&
         P->getType()->getPointerElementType()->isFunctionTy()) {
-      if (auto F = llvm::dyn_cast<llvm::Function>(P)) {
+      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
         Callees.insert(F);
       }
     }

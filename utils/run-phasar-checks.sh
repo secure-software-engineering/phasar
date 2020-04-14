@@ -13,7 +13,7 @@ cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
 
-run-clang-tidy.py -p build/ -header-filter='phasar*.h'
+run-clang-tidy.py -p build/ -header-filter='phasar*.h' -fix
 
 echo "Run clang-format ..."
 ./utils/run-clang-format.py

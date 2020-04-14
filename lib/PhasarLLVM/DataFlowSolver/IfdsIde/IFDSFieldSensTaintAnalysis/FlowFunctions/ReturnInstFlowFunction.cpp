@@ -8,8 +8,8 @@ namespace psr {
 
 std::set<ExtendedValue>
 ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto RetInst = llvm::cast<llvm::ReturnInst>(currentInst);
-  const auto RetValMemLocationMatr = RetInst->getReturnValue();
+  const auto *const RetInst = llvm::cast<llvm::ReturnInst>(currentInst);
+  auto *const RetValMemLocationMatr = RetInst->getReturnValue();
 
   if (RetValMemLocationMatr) {
     bool IsRetValTainted =

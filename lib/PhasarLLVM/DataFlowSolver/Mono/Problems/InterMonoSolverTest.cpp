@@ -56,7 +56,7 @@ InterMonoSolverTest::normalFlow(const llvm::Instruction *Stmt,
   cout << "InterMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result = Result.setUnion(In);
-  if (const auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
+  if (const auto *const Alloc = llvm::dyn_cast<llvm::AllocaInst>(Stmt)) {
     Result.insert(Alloc);
   }
   return In;
@@ -69,7 +69,7 @@ InterMonoSolverTest::callFlow(const llvm::Instruction *CallSite,
   cout << "InterMonoSolverTest::callFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result.setUnion(In);
-  if (const auto Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
+  if (const auto *const Call = llvm::dyn_cast<llvm::CallInst>(CallSite)) {
     Result.insert(Call);
   }
   return In;

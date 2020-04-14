@@ -145,23 +145,23 @@ AliasResult LLVMPointsToInfo::alias(const llvm::Value *V1,
   const llvm::Function *V1F;
   const llvm::Function *V2F;
   // determine V1F
-  if (auto T = llvm::dyn_cast<llvm::Instruction>(V1)) {
+  if (const auto *T = llvm::dyn_cast<llvm::Instruction>(V1)) {
     V1F = T->getFunction();
   }
-  if (auto T = llvm::dyn_cast<llvm::BasicBlock>(V1)) {
+  if (const auto *T = llvm::dyn_cast<llvm::BasicBlock>(V1)) {
     V1F = T->getParent();
   }
-  if (auto T = llvm::dyn_cast<llvm::Argument>(V1)) {
+  if (const auto *T = llvm::dyn_cast<llvm::Argument>(V1)) {
     V1F = T->getParent();
   }
   // determine V2F
-  if (auto T = llvm::dyn_cast<llvm::Instruction>(V2)) {
+  if (const auto *T = llvm::dyn_cast<llvm::Instruction>(V2)) {
     V2F = T->getFunction();
   }
-  if (auto T = llvm::dyn_cast<llvm::BasicBlock>(V2)) {
+  if (const auto *T = llvm::dyn_cast<llvm::BasicBlock>(V2)) {
     V2F = T->getParent();
   }
-  if (auto T = llvm::dyn_cast<llvm::Argument>(V2)) {
+  if (const auto *T = llvm::dyn_cast<llvm::Argument>(V2)) {
     V2F = T->getParent();
   }
   if (V1F != V2F) {
@@ -193,10 +193,10 @@ LLVMPointsToInfo::getPointsToSet(const llvm::Value *V,
   //  -InlineAsm
   //  -MetadataAsValue
   //  -User
-  if (auto Arg = llvm::dyn_cast<llvm::Argument>(V)) {
+  if (const auto *Arg = llvm::dyn_cast<llvm::Argument>(V)) {
     return getPointsToGraph(Arg->getParent())->getPointsToSet(V);
   }
-  if (auto Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
+  if (const auto *Inst = llvm::dyn_cast<llvm::Instruction>(V)) {
     return getPointsToGraph(Inst->getFunction())->getPointsToSet(V);
   }
   return {};
@@ -357,7 +357,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
 
     // Mod/ref alias analysis: compare all pairs of calls and values
     for (llvm::CallBase *Call : Calls) {
-      for (auto Pointer : Pointers) {
+      for (auto *Pointer : Pointers) {
         auto Size = llvm::LocationSize::unknown();
         llvm::Type *ElTy =
             llvm::cast<llvm::PointerType>(Pointer->getType())->getElementType();

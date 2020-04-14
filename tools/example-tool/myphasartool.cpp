@@ -40,7 +40,7 @@ int main(int Argc, const char **Argv) {
   }
   initializeLogger(false);
   ProjectIRDB DB({Argv[1]});
-  if (auto F = DB.getFunctionDefinition("main")) {
+  if (const auto *F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
     // print type hierarchy
     H.print();

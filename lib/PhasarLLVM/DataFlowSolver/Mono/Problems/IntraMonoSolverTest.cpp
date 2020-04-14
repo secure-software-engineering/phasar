@@ -62,7 +62,7 @@ IntraMonoSolverTest::normalFlow(const llvm::Instruction *S,
   cout << "IntraMonoSolverTest::normalFlow()\n";
   BitVectorSet<const llvm::Value *> Result;
   Result.insert(In);
-  if (const auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
+  if (const auto *const Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
     Result.insert(Store);
   }
   return Result;

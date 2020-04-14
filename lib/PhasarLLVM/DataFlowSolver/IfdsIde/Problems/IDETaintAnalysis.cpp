@@ -79,7 +79,7 @@ map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>>
 IDETaintAnalysis::initialSeeds() {
   // just start in main()
   map<IDETaintAnalysis::n_t, set<IDETaintAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IDETaintAnalysis::d_t>({getZeroValue()})));
   }

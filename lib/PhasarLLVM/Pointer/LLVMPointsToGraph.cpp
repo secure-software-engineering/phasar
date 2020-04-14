@@ -63,7 +63,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
     if (const llvm::AllocaInst *Alloc =
             llvm::dyn_cast<llvm::AllocaInst>(G[U].V)) {
       // If the call stack is empty, we completely ignore the calling context
-      if (matches_stack(G) || CallStack.empty()) {
+      if (matchesStack(G) || CallStack.empty()) {
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                       << "Found stack allocation: " << llvmIRToString(Alloc));
         AllocationSites.insert(G[U].V);
@@ -78,7 +78,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
               CS.getCalledFunction()->getName().str())) {
         // If the call stack is empty, we completely ignore the calling
         // context
-        if (matches_stack(G) || CallStack.empty()) {
+        if (matchesStack(G) || CallStack.empty()) {
           LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                         << "Found heap allocation: "
                         << llvmIRToString(CS.getInstruction()));
@@ -89,7 +89,7 @@ struct PointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
     VisitorStack.pop_back();
   }
 
-  template <typename Graph> bool matches_stack(const Graph &G) {
+  template <typename Graph> bool matchesStack(const Graph &G) {
     size_t CallStackIdx = 0;
     for (size_t I = 0, J = 1;
          I < VisitorStack.size() && J < VisitorStack.size(); ++I, ++J) {
@@ -199,7 +199,7 @@ PointsToGraph::PointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
   INC_COUNTER("GS Pointer", Pointers.size(), PAMM_SEVERITY_LEVEL::Core);
 
   // make vertices for all pointers
-  for (auto P : Pointers) {
+  for (auto *P : Pointers) {
     ValueVertexMap[P] = boost::add_vertex(VertexProperties(P), PAG);
   }
   // iterate over the worklist, and run the full (n^2)/2 disambiguations
@@ -248,8 +248,8 @@ vector<const llvm::Value *>
 PointsToGraph::getPointersEscapingThroughReturns() const {
   vector<const llvm::Value *> EscapingPointers;
   for (auto VertexIter : boost::make_iterator_range(boost::vertices(PAG))) {
-    auto &Vertex = PAG[VertexIter];
-    for (const auto User : Vertex.getUsers()) {
+    const auto &Vertex = PAG[VertexIter];
+    for (const auto *const User : Vertex.getUsers()) {
       if (llvm::isa<llvm::ReturnInst>(User)) {
         EscapingPointers.push_back(Vertex.V);
       }
@@ -263,9 +263,9 @@ PointsToGraph::getPointersEscapingThroughReturnsForFunction(
     const llvm::Function *F) const {
   vector<const llvm::Value *> EscapingPointers;
   for (auto VertexIter : boost::make_iterator_range(boost::vertices(PAG))) {
-    auto &Vertex = PAG[VertexIter];
-    for (const auto User : Vertex.getUsers()) {
-      if (auto R = llvm::dyn_cast<llvm::ReturnInst>(User)) {
+    const auto &Vertex = PAG[VertexIter];
+    for (const auto *const User : Vertex.getUsers()) {
+      if (const auto *R = llvm::dyn_cast<llvm::ReturnInst>(User)) {
         if (R->getFunction() == F)
           EscapingPointers.push_back(Vertex.V);
       }
@@ -298,7 +298,7 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
   set<const llvm::Type *> Types;
   // an allocation site can either be an AllocaInst or a call to an allocating
   // function
-  for (auto V : AS) {
+  for (const auto *V : AS) {
     if (const llvm::AllocaInst *Alloc = llvm::dyn_cast<llvm::AllocaInst>(V)) {
       Types.insert(Alloc->getAllocatedType());
     } else {
@@ -306,7 +306,7 @@ PointsToGraph::computeTypesFromAllocationSites(set<const llvm::Value *> AS) {
       // bit-casted
       // to the desired allocated value and hence we can determine it from the
       // destination type of that cast instruction.
-      for (auto User : V->users()) {
+      for (const auto *User : V->users()) {
         if (const llvm::BitCastInst *Cast =
                 llvm::dyn_cast<llvm::BitCastInst>(User)) {
           Types.insert(Cast->getDestTy());
@@ -409,7 +409,7 @@ void PointsToGraph::mergeGraph(const PointsToGraph &Other) {
 void PointsToGraph::mergeCallSite(const llvm::ImmutableCallSite &CS,
                                   const llvm::Function *F) {
   auto FormalArgRange = F->args();
-  auto FormalIter = FormalArgRange.begin();
+  const auto *FormalIter = FormalArgRange.begin();
   auto MapEnd = ValueVertexMap.end();
   for (const auto &Arg : CS.args()) {
     const llvm::Argument *Formal = &*FormalIter++;
@@ -423,7 +423,7 @@ void PointsToGraph::mergeCallSite(const llvm::ImmutableCallSite &CS,
       break;
   }
 
-  for (auto Formal : getPointersEscapingThroughReturnsForFunction(F)) {
+  for (const auto *Formal : getPointersEscapingThroughReturnsForFunction(F)) {
     auto InstrMapIter = ValueVertexMap.find(CS.getInstruction());
     auto FormalMapIter = ValueVertexMap.find(Formal);
     if (InstrMapIter != MapEnd && FormalMapIter != MapEnd) {

@@ -8,10 +8,10 @@ namespace psr {
 
 std::set<ExtendedValue>
 PHINodeFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto PhiNodeInst = llvm::cast<llvm::PHINode>(currentInst);
+  const auto *const PhiNodeInst = llvm::cast<llvm::PHINode>(currentInst);
 
-  for (const auto Block : PhiNodeInst->blocks()) {
-    const auto IncomingValue = PhiNodeInst->getIncomingValueForBlock(Block);
+  for (auto *const Block : PhiNodeInst->blocks()) {
+    auto *const IncomingValue = PhiNodeInst->getIncomingValueForBlock(Block);
 
     bool IsIncomingValueTainted =
         DataFlowUtils::isValueTainted(IncomingValue, Fact) ||

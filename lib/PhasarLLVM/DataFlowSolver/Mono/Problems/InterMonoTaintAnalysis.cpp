@@ -66,19 +66,19 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
   BitVectorSet<const llvm::Value *> Out(In);
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
     if (In.count(Store->getValueOperand())) {
       Out.insert(Store->getPointerOperand());
     } else if (In.count(Store->getPointerOperand())) {
       Out.erase(Store->getPointerOperand());
     }
   }
-  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
     if (In.count(Load->getPointerOperand())) {
       Out.insert(Load);
     }
   }
-  if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Stmt)) {
+  if (const auto *Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(Stmt)) {
     if (In.count(Gep->getPointerOperand())) {
       Out.insert(Gep);
     }
@@ -105,7 +105,7 @@ InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
   /* for (unsigned idx = 0; idx < Callee->arg_size(); ++idx) {
     Formals.push_back(getNthFunctionArgument(Callee, idx));
   }*/
-  for (auto &Arg : Callee->args()) {
+  for (const auto &Arg : Callee->args()) {
     Formals.push_back(&Arg);
   }
   for (unsigned Idx = 0; Idx < Actuals.size(); ++Idx) {
@@ -124,7 +124,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
   BitVectorSet<const llvm::Value *> Out;
-  if (auto Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
+  if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
     if (In.count(Ret->getReturnValue())) {
       Out.insert(CallSite);
     }
@@ -133,7 +133,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
   // them
   llvm::ImmutableCallSite CS(CallSite);
   unsigned Index = 0;
-  for (auto &Arg : Callee->args()) {
+  for (const auto &Arg : Callee->args()) {
     if (Arg.getType()->isPointerTy() && In.count(&Arg)) {
       Out.insert(CS.getArgOperand(Index));
     }
@@ -154,7 +154,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
   //-----------------------------------------------------------------------------
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
-  for (auto Callee : Callees) {
+  for (const auto *Callee : Callees) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "InterMonoTaintAnalysis::callToRetFlow()::"
                   << Callee->getName().str());

@@ -31,7 +31,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class InterMonoTaintAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/full_constant/";
   const std::set<std::string> EntryPoints = {"main"};
@@ -47,11 +47,11 @@ protected:
   }
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(std::string llvmFilePath,
+  void doAnalysisAndCompareResults(std::string LlvmFilePath,
                                    std::set<IMFCPCompactResult_t> GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
-    if (printDump) {
+                                   bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
     ValueAnnotationPass::resetValueID();
@@ -62,15 +62,15 @@ protected:
     InterMonoFullConstantPropagation FCP(IRDB, &TH, &ICFG, &PT, EntryPoints);
     InterMonoSolver_P<InterMonoFullConstantPropagation, 3> IMSolver(FCP);
     IMSolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       IMSolver.dumpResults();
     }
     // do the comparison
-    for (auto &Truth : GroundTruth) {
-      auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
-      auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+    for (const auto &Truth : GroundTruth) {
+      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultSet = IMSolver.getResultsAt(Line);
-      for (auto &[Fact, Value] : ResultSet) {
+      for (const auto &[Fact, Value] : ResultSet) {
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
@@ -93,7 +93,7 @@ TEST_F(InterMonoTaintAnalysisTest, BasicTest_01) {
   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

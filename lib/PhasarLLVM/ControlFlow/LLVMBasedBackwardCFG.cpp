@@ -55,7 +55,7 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *Stmt) const {
   if (Stmt->getPrevNode()) {
     Preds.push_back(Stmt->getPrevNode());
   }
-  for (auto PredBlock : llvm::predecessors(Stmt->getParent())) {
+  for (const auto *PredBlock : llvm::predecessors(Stmt->getParent())) {
     Preds.push_back(&PredBlock->back());
   }
   return Preds;
@@ -64,10 +64,10 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *Stmt) const {
 std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
-  for (auto &BB : *Fun) {
-    for (auto &I : BB) {
+  for (const auto &BB : *Fun) {
+    for (const auto &I : BB) {
       auto Successors = getSuccsOf(&I);
-      for (auto Successor : Successors) {
+      for (const auto *Successor : Successors) {
         Edges.insert(Edges.begin(), make_pair(Successor, &I));
       }
     }
@@ -78,8 +78,8 @@ LLVMBasedBackwardCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getAllInstructionsOf(const llvm::Function *Fun) const {
   vector<const llvm::Instruction *> Instructions;
-  for (auto &BB : *Fun) {
-    for (auto &I : BB) {
+  for (const auto &BB : *Fun) {
+    for (const auto &I : BB) {
       Instructions.insert(Instructions.begin(), &I);
     }
   }
@@ -113,7 +113,7 @@ bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
 bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *Stmt,
                                           const llvm::Instruction *Succ) const {
   if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(Succ)) {
-    for (auto BB : B->successors()) {
+    for (const auto *BB : B->successors()) {
       if (Stmt == &(BB->front())) {
         return true;
       }

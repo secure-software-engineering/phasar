@@ -44,9 +44,9 @@ int main(int Argc, char **Argv) {
     llvm::outs() << "ANALYZE FUNCTION: " << F.getName() << '\n';
     for (auto &BB : F) {
       for (auto &I : BB) {
-        if (auto Store = llvm::dyn_cast<llvm::StoreInst>(&I)) {
+        if (auto *Store = llvm::dyn_cast<llvm::StoreInst>(&I)) {
           // direct store to memory location
-          if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(
+          if (auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(
                   Store->getPointerOperand())) {
             llvm::outs() << "Found trivial store at: ";
             Store->print(llvm::outs());
@@ -54,7 +54,7 @@ int main(int Argc, char **Argv) {
             Alloca->print(llvm::outs());
             llvm::outs() << '\n';
             // indirect store to a loaded value
-          } else if (auto Load = llvm::dyn_cast<llvm::LoadInst>(
+          } else if (auto *Load = llvm::dyn_cast<llvm::LoadInst>(
                          Store->getPointerOperand())) {
             llvm::outs() << "Found non-trivial store at: ";
             Store->print(llvm::outs());

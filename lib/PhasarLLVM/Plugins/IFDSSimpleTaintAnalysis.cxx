@@ -58,7 +58,7 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
                                                const llvm::Instruction *Succ) {
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     struct STA : FlowFunction<const llvm::Value *> {
       const llvm::StoreInst *Store;
       STA(const llvm::StoreInst *S) : Store(S) {}
@@ -78,7 +78,7 @@ IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getCallFlowFunction(const llvm::Instruction *CallStmt,
                                              const llvm::Function *DestFun) {
-  if (auto Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
+  if (const auto *Call = llvm::dyn_cast<llvm::CallInst>(CallStmt)) {
     if (DestFun->getName().str() == "taint") {
       return make_shared<Gen<const llvm::Value *>>(Call, getZeroValue());
     } else if (DestFun->getName().str() == "leak") {

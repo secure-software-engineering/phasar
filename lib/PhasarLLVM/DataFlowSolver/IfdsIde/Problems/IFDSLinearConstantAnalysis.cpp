@@ -100,7 +100,7 @@ IFDSLinearConstantAnalysis::initialSeeds() {
                 << "IFDSLinearConstantAnalysis::initialSeeds()");
   map<IFDSLinearConstantAnalysis::n_t, set<IFDSLinearConstantAnalysis::d_t>>
       SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(
         make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                   set<IFDSLinearConstantAnalysis::d_t>({getZeroValue()})));

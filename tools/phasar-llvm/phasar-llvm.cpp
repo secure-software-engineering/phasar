@@ -75,7 +75,7 @@ void validateParamOutput(const std::string &Output) {
 void validateParamPammOutputFile(const std::string &Output) {}
 
 void validateParamDataFlowAnalysis(const std::vector<std::string> &Analyses) {
-  for (auto &Analysis : Analyses) {
+  for (const auto &Analysis : Analyses) {
     if (toDataFlowAnalysisType(Analysis) == DataFlowAnalysisType::None) {
       throw boost::program_options::error_with_option_name(
           "'" + Analysis + "' is not a valid data-flow analysis!");

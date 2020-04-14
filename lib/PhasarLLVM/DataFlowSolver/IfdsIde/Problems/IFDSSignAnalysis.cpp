@@ -72,7 +72,7 @@ map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>>
 IFDSSignAnalysis::initialSeeds() {
   cout << "IFDSSignAnalysis::initialSeeds()\n";
   map<IFDSSignAnalysis::n_t, set<IFDSSignAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IFDSSignAnalysis::d_t>({getZeroValue()})));
   }

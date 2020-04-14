@@ -74,7 +74,7 @@ IDELinearConstantAnalysis::~IDELinearConstantAnalysis() {
 shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getNormalFlowFunction(
     IDELinearConstantAnalysis::n_t Curr, IDELinearConstantAnalysis::n_t Succ) {
-  if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
+  if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(Curr)) {
     if (Alloca->getAllocatedType()->isIntegerTy()) {
       return make_shared<Gen<IDELinearConstantAnalysis::d_t>>(Alloca,
                                                               getZeroValue());
@@ -82,7 +82,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   }
   // Check store instructions. Store instructions override previous value
   // of their pointer operand, i.e. kills previous fact (= pointer operand).
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     IDELinearConstantAnalysis::d_t PointerOp = Store->getPointerOperand();
     IDELinearConstantAnalysis::d_t ValueOp = Store->getValueOperand();
     // Case I: Storing a constant integer.
@@ -101,7 +101,7 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
     }
   }
   // check load instructions
-  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     // only consider i32 load
     if (Load->getPointerOperandType()->getPointerElementType()->isIntegerTy()) {
       return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
@@ -112,8 +112,8 @@ IDELinearConstantAnalysis::getNormalFlowFunction(
   }
   // check for binary operations: add, sub, mul, udiv/sdiv, urem/srem
   if (llvm::isa<llvm::BinaryOperator>(Curr)) {
-    auto Lop = Curr->getOperand(0);
-    auto Rop = Curr->getOperand(1);
+    auto *Lop = Curr->getOperand(0);
+    auto *Rop = Curr->getOperand(1);
     return make_shared<GenIf<IDELinearConstantAnalysis::d_t>>(
         Curr, [this, Lop, Rop](IDELinearConstantAnalysis::d_t Source) {
           return (Lop == Source && llvm::isa<llvm::ConstantInt>(Rop)) ||
@@ -160,9 +160,10 @@ IDELinearConstantAnalysis::getCallFlowFunction(
               //   alloca [1 x %struct.__va_list_tag], align 16
               // to the results
               // find the allocated %struct.__va_list_tag and generate it
-              for (auto &BB : *DestFun) {
-                for (auto &I : BB) {
-                  if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+              for (const auto &BB : *DestFun) {
+                for (const auto &I : BB) {
+                  if (const auto *Alloc =
+                          llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                     if (Alloc->getAllocatedType()->isArrayTy() &&
                         Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
                         Alloc->getAllocatedType()
@@ -210,8 +211,8 @@ IDELinearConstantAnalysis::getRetFlowFunction(
     IDELinearConstantAnalysis::n_t RetSite) {
   // Handle the case: %x = call i32 ...
   if (CallSite->getType()->isIntegerTy()) {
-    auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
-    auto ReturnValue = Return->getReturnValue();
+    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+    auto *ReturnValue = Return->getReturnValue();
     struct LCAFF : FlowFunction<IDELinearConstantAnalysis::d_t> {
       IDELinearConstantAnalysis::n_t CallSite;
       IDELinearConstantAnalysis::d_t ReturnValue;
@@ -250,7 +251,7 @@ shared_ptr<FlowFunction<IDELinearConstantAnalysis::d_t>>
 IDELinearConstantAnalysis::getCallToRetFlowFunction(
     IDELinearConstantAnalysis::n_t CallSite,
     IDELinearConstantAnalysis::n_t RetSite, set<f_t> Callees) {
-  for (auto Callee : Callees) {
+  for (const auto *Callee : Callees) {
     if (!ICF->getStartPointsOf(Callee).empty()) {
       return make_shared<KillIf<IDELinearConstantAnalysis::d_t>>(
           [this](IDELinearConstantAnalysis::d_t Source) {
@@ -278,11 +279,11 @@ IDELinearConstantAnalysis::initialSeeds() {
   map<IDELinearConstantAnalysis::n_t, set<IDELinearConstantAnalysis::d_t>>
       SeedMap;
   // Collect global variables of integer type
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     set<IDELinearConstantAnalysis::d_t> Globals;
     for (const auto &G :
          IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
-      if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
+      if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer() &&
             llvm::isa<llvm::ConstantInt>(GV->getInitializer())) {
           Globals.insert(GV);
@@ -297,7 +298,7 @@ IDELinearConstantAnalysis::initialSeeds() {
     // Collect commandline arguments of integer type
     if (EntryPoint == "main") {
       set<IDELinearConstantAnalysis::d_t> CmdArgs;
-      for (auto &Arg : ICF->getFunction(EntryPoint)->args()) {
+      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         if (Arg.getType()->isIntegerTy()) {
           CmdArgs.insert(&Arg);
         }
@@ -341,8 +342,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Case: Intialize global variable at entry point.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
-    auto GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
-    auto CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
+    const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
+    const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
     auto IntConst = CI->getSExtValue();
     return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
   }
@@ -357,7 +358,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   }
 
   // Check store instruction
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     IDELinearConstantAnalysis::d_t PointerOperand = Store->getPointerOperand();
     IDELinearConstantAnalysis::d_t ValueOperand = Store->getValueOperand();
     if (PointerOperand == SuccNode) {
@@ -366,7 +367,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                       << "Case: Storing constant integer.");
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
-        auto CI = llvm::dyn_cast<llvm::ConstantInt>(ValueOperand);
+        const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ValueOperand);
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
       }
@@ -381,7 +382,7 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   }
 
   // Check load instruction
-  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     if (Load == SuccNode) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                     << "Case: Loading an integer typed value.");
@@ -395,8 +396,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Case: Binary operation.");
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
     unsigned OP = Curr->getOpcode();
-    auto Lop = Curr->getOperand(0);
-    auto Rop = Curr->getOperand(1);
+    auto *Lop = Curr->getOperand(0);
+    auto *Rop = Curr->getOperand(1);
     // For non linear constant computation we propagate bottom
     if (CurrNode == ZeroValue && !llvm::isa<llvm::ConstantInt>(Lop) &&
         !llvm::isa<llvm::ConstantInt>(Rop)) {
@@ -421,10 +422,10 @@ IDELinearConstantAnalysis::getCallEdgeFunction(
     IDELinearConstantAnalysis::d_t DestNode) {
   // Case: Passing constant integer as parameter
   if (isZeroValue(SrcNode) && !isZeroValue(DestNode)) {
-    if (auto A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
+    if (const auto *A = llvm::dyn_cast<llvm::Argument>(DestNode)) {
       llvm::ImmutableCallSite CS(CallStmt);
-      auto Actual = CS.getArgOperand(getFunctionArgumentNr(A));
-      if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
+      const auto *Actual = CS.getArgOperand(getFunctionArgumentNr(A));
+      if (const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(Actual)) {
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
       }
@@ -443,9 +444,9 @@ IDELinearConstantAnalysis::getReturnEdgeFunction(
     IDELinearConstantAnalysis::d_t RetNode) {
   // Case: Returning constant integer
   if (isZeroValue(ExitNode) && !isZeroValue(RetNode)) {
-    auto Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
-    auto ReturnValue = Return->getReturnValue();
-    if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
+    const auto *Return = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt);
+    auto *ReturnValue = Return->getReturnValue();
+    if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ReturnValue)) {
       auto IntConst = CI->getSExtValue();
       return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
     }
@@ -649,18 +650,18 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
 
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
       llvm::isa<llvm::ConstantInt>(lop) && llvm::isa<llvm::ConstantInt>(rop)) {
-    auto Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
-    auto Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
     return IDELinearConstantAnalysis::executeBinOperation(
         Op, Lic->getSExtValue(), Ric->getSExtValue());
   } else if (Source == BOTTOM) {
     return BOTTOM;
   } else if (lop == currNode && llvm::isa<llvm::ConstantInt>(rop)) {
-    auto Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
+    const auto *Ric = llvm::dyn_cast<llvm::ConstantInt>(rop);
     return IDELinearConstantAnalysis::executeBinOperation(Op, Source,
                                                           Ric->getSExtValue());
   } else if (rop == currNode && llvm::isa<llvm::ConstantInt>(lop)) {
-    auto Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
+    const auto *Lic = llvm::dyn_cast<llvm::ConstantInt>(lop);
     return IDELinearConstantAnalysis::executeBinOperation(
         Op, Lic->getSExtValue(), Source);
   }
@@ -713,13 +714,13 @@ bool IDELinearConstantAnalysis::BinOp::equal_to(
 
 void IDELinearConstantAnalysis::BinOp::print(ostream &OS,
                                              bool IsForDebug) const {
-  if (auto LIC = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
+  if (const auto *LIC = llvm::dyn_cast<llvm::ConstantInt>(lop)) {
     OS << LIC->getSExtValue();
   } else {
     OS << "ID:" << getMetaDataID(lop);
   }
   OS << ' ' << opToChar(Op) << ' ';
-  if (auto RIC = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
+  if (const auto *RIC = llvm::dyn_cast<llvm::ConstantInt>(rop)) {
     OS << RIC->getSExtValue();
   } else {
     OS << "ID:" << getMetaDataID(rop);
@@ -833,11 +834,11 @@ void IDELinearConstantAnalysis::emitTextReport(
     // Emit only IR code, function name and module info
     OS << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (auto F : ICF->getAllFunctions()) {
+    for (const auto *F : ICF->getAllFunctions()) {
       std::string FName = getFunctionNameFromIR(F);
       OS << "\nFunction: " << FName << "\n----------"
          << std::string(FName.size(), '-') << '\n';
-      for (auto Stmt : ICF->getAllInstructionsOf(F)) {
+      for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
         auto Results = SR.resultsAt(Stmt, true);
         stripBottomResults(Results);
         if (!Results.empty()) {
@@ -887,12 +888,12 @@ IDELinearConstantAnalysis::getLCAResults(
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> AggResults;
   std::cout << "\n==== Computing LCA Results ====\n";
-  for (auto F : ICF->getAllFunctions()) {
+  for (const auto *F : ICF->getAllFunctions()) {
     std::string FName = getFunctionNameFromIR(F);
     std::cout << "\n-- Function: " << FName << " --\n";
     std::map<unsigned, LCAResult> FResults;
     std::set<std::string> AllocatedVars;
-    for (auto Stmt : ICF->getAllInstructionsOf(F)) {
+    for (const auto *Stmt : ICF->getAllInstructionsOf(F)) {
       unsigned Lnr = getLineFromIR(Stmt);
       std::cout << "\nIR : " << NtoString(Stmt) << "\nLNR: " << Lnr << '\n';
       // We skip statements with no source code mapping
@@ -924,7 +925,7 @@ IDELinearConstantAnalysis::getLCAResults(
           Results = SR.resultsAt(Stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor
-          auto Succ = ICF->getSuccsOf(Stmt)[0];
+          const auto *Succ = ICF->getSuccsOf(Stmt)[0];
           std::cout << "Succ stmt: " << NtoString(Succ) << '\n';
           Results = SR.resultsAt(Succ, true);
         }
@@ -986,7 +987,7 @@ void IDELinearConstantAnalysis::LCAResult::print(std::ostream &OS) {
     OS << It->first << " = " << It->second;
   }
   OS << "\nCorresponding IR Instructions:\n";
-  for (auto Ir : ir_trace) {
+  for (const auto *Ir : ir_trace) {
     OS << "  " << llvmIRToString(Ir) << '\n';
   }
 }

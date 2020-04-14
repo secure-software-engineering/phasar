@@ -49,7 +49,7 @@ shared_ptr<FlowFunction<IFDSTaintAnalysis::d_t>>
 IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
                                          IFDSTaintAnalysis::n_t Succ) {
   // If a tainted value is stored, the store location must be tainted too
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     struct TAFF : FlowFunction<IFDSTaintAnalysis::d_t> {
       const llvm::StoreInst *Store;
       TAFF(const llvm::StoreInst *S) : Store(S){};
@@ -69,7 +69,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
     return make_shared<TAFF>(Store);
   }
   // If a tainted value is loaded, the loaded value is of course tainted
-  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
         Load, [Load](IFDSTaintAnalysis::d_t Source) {
           return Source == Load->getPointerOperand();
@@ -77,7 +77,7 @@ IFDSTaintAnalysis::getNormalFlowFunction(IFDSTaintAnalysis::n_t Curr,
   }
   // Check if an address is computed from a tainted base pointer of an
   // aggregated object
-  if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
+  if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(Curr)) {
     return make_shared<GenIf<IFDSTaintAnalysis::d_t>>(
         GEP, [GEP](IFDSTaintAnalysis::d_t Source) {
           return Source == GEP->getPointerOperand();
@@ -131,7 +131,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
     set<IFDSTaintAnalysis::f_t> Callees) {
   auto &LG = lg::get();
   // Process the effects of source or sink functions that are called
-  for (auto *Callee : ICF->getCalleesOfCallAt(CallSite)) {
+  for (const auto *Callee : ICF->getCalleesOfCallAt(CallSite)) {
     string FunctionName = cxxDemangle(Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "F:" << Callee->getName().str());
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "demangled F:" << FunctionName);
@@ -141,7 +141,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
       auto Source = SourceSinkFunctions.getSource(FunctionName);
       set<IFDSTaintAnalysis::d_t> ToGenerate;
       llvm::ImmutableCallSite ICallSite(CallSite);
-      if (auto Pval =
+      if (auto *Pval =
               std::get_if<TaintConfiguration<IFDSTaintAnalysis::d_t>::All>(
                   &Source.TaintedArgs)) {
         for (unsigned I = 0; I < ICallSite.getNumArgOperands(); ++I) {
@@ -150,15 +150,15 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
           auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
-          for (auto Alias : PTS) {
+          for (const auto *Alias : PTS) {
             ToGenerate.insert(Alias);
           }
         }
-      } else if (auto Pval = std::get_if<
+      } else if (auto *Pval = std::get_if<
                      TaintConfiguration<IFDSTaintAnalysis::d_t>::None>(
                      &Source.TaintedArgs)) {
         // don't do anything
-      } else if (auto Pval =
+      } else if (auto *Pval =
                      std::get_if<std::vector<unsigned>>(&Source.TaintedArgs)) {
         for (auto FormalIndex : *Pval) {
           IFDSTaintAnalysis::d_t V = ICallSite.getArgOperand(FormalIndex);
@@ -166,7 +166,7 @@ IFDSTaintAnalysis::getCallToRetFlowFunction(
           ToGenerate.insert(V);
           // We also have to collect all aliases of V and generate them
           auto PTS = ICF->getWholeModulePTG().getPointsToSet(V);
-          for (auto Alias : PTS) {
+          for (const auto *Alias : PTS) {
             ToGenerate.insert(Alias);
           }
         }
@@ -247,10 +247,10 @@ IFDSTaintAnalysis::initialSeeds() {
   // If main function is the entry point, commandline arguments have to be
   // tainted. Otherwise we just use the zero value to initialize the analysis.
   map<IFDSTaintAnalysis::n_t, set<IFDSTaintAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     if (EntryPoint == "main") {
       set<IFDSTaintAnalysis::d_t> CmdArgs;
-      for (auto &Arg : ICF->getFunction(EntryPoint)->args()) {
+      for (const auto &Arg : ICF->getFunction(EntryPoint)->args()) {
         CmdArgs.insert(&Arg);
       }
       CmdArgs.insert(getZeroValue());
@@ -299,10 +299,10 @@ void IFDSTaintAnalysis::emitTextReport(
     for (auto Leak : Leaks) {
       OS << "At instruction\nIR  : " << llvmIRToString(Leak.first) << '\n';
       OS << "\n\nLeak(s):\n";
-      for (auto LeakedValue : Leak.second) {
+      for (const auto *LeakedValue : Leak.second) {
         OS << "IR  : ";
         // Get the actual leaked alloca instruction if possible
-        if (auto Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
+        if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(LeakedValue)) {
           OS << llvmIRToString(Load->getPointerOperand()) << '\n';
         } else {
           OS << llvmIRToString(LeakedValue) << '\n';

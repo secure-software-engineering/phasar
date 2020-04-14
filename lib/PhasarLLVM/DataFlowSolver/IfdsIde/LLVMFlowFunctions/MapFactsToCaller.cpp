@@ -50,9 +50,9 @@ MapFactsToCaller::computeTargets(const llvm::Value *Source) {
     if (calleeFun->isVarArg() && !calleeFun->isDeclaration()) {
       const llvm::Instruction *AllocVarArg;
       // Find the allocation of %struct.__va_list_tag
-      for (auto &BB : *calleeFun) {
-        for (auto &I : BB) {
-          if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+      for (const auto &BB : *calleeFun) {
+        for (const auto &I : BB) {
+          if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
             if (Alloc->getAllocatedType()->isArrayTy() &&
                 Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
                 Alloc->getAllocatedType()

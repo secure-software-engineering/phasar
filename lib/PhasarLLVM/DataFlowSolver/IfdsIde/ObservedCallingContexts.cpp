@@ -31,7 +31,7 @@ set<vector<bool>> ObservedCallingContexts::getObservedCTX(string FName) {
 void ObservedCallingContexts::print() {
   for (auto &Entry : ObservedCTX) {
     cout << Entry.first << "\n";
-    for (auto &Ctx : Entry.second) {
+    for (const auto &Ctx : Entry.second) {
       for_each(Ctx.begin(), Ctx.end(), [](bool B) { cout << B; });
     }
   }

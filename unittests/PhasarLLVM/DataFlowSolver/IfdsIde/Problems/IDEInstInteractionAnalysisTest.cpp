@@ -29,7 +29,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDEInstInteractionAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/inst_interaction/";
   const std::set<std::string> EntryPoints = {"main"};
@@ -42,11 +42,11 @@ protected:
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   //   IDEInstInteractionAnalysis::lca_restults_t
-  void doAnalysisAndCompareResults(const std::string &llvmFilePath,
+  void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
                                    std::set<IIACompactResult_t> GroundTruth,
-                                   bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
-    if (printDump) {
+                                   bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
+    if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);
     }
     ValueAnnotationPass::resetValueID();
@@ -73,14 +73,14 @@ protected:
     IIAProblem.registerEdgeFactGenerator(Generator);
     IDESolver_P<IDEInstInteractionAnalysis> IIASolver(IIAProblem);
     IIASolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       IIASolver.dumpResults();
     }
     // IIASolver.emitESGasDot();
     // do the comparison
-    for (auto &Truth : GroundTruth) {
-      auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
-      auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+    for (const auto &Truth : GroundTruth) {
+      const auto *Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
+      const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
       auto ResultMap = IIASolver.resultsAt(Line);
       for (auto &[Fact, Value] : ResultMap) {
         std::string FactStr = llvmIRToString(Fact);
@@ -103,13 +103,13 @@ protected:
 // IDEInstInteractionAnalysisT for a non-string template parameter
 // IDEInstInteractionAnalysisT<int>
 TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
-  bool printDump = false;
+  bool PrintDump = false;
   boost::log::core::get()->set_logging_enabled(false);
   ProjectIRDB IRDB(
       {PhasarConfig::getPhasarConfig().PhasarDirectory() +
        "build/test/llvm_test_code/inst_interaction/basic_01_cpp.ll"},
       IRDBOptions::WPA);
-  if (printDump) {
+  if (PrintDump) {
     IRDB.emitPreprocessedIR(std::cout, false);
   }
   ValueAnnotationPass::resetValueID();
@@ -137,7 +137,7 @@ TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
   IIAProblem.registerEdgeFactGenerator(Generator);
   IDESolver_P<IDEInstInteractionAnalysisT<int>> IIASolver(IIAProblem);
   IIASolver.solve();
-  if (printDump) {
+  if (PrintDump) {
     IIASolver.dumpResults();
   }
   // IIASolver.emitESGasDot();
@@ -156,9 +156,9 @@ TEST(IDEInstInteractionAnalysisTTest, HandleInterger) {
       std::tuple<std::string, size_t, std::string, BitVectorSet<int>>(
           "main", 9, "retval", {0, 3}));
   // do the comparison
-  for (auto &Truth : GroundTruth) {
-    auto Fun = IRDB.getFunctionDefinition(std::get<0>(Truth));
-    auto Line = getNthInstruction(Fun, std::get<1>(Truth));
+  for (const auto &Truth : GroundTruth) {
+    const auto *Fun = IRDB.getFunctionDefinition(std::get<0>(Truth));
+    const auto *Line = getNthInstruction(Fun, std::get<1>(Truth));
     auto ResultMap = IIASolver.resultsAt(Line);
     for (auto &[Fact, Value] : ResultMap) {
       std::string FactStr = llvmIRToString(Fact);
@@ -312,7 +312,7 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
 }
 
 // main function for the test case/*  */
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

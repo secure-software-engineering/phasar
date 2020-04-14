@@ -65,8 +65,8 @@ private:
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLEVPKDFFuncs;
-  // delta matrix to implement the state machine's delta function
-  static const OpenSSLEVPKDFState delta[5][6];
+  // Delta matrix to implement the state machine's Delta function
+  static const OpenSSLEVPKDFState Delta[5][6];
 
   // std::map<std::pair<const llvm::Instruction *, const llvm::Value *>, int>
   //     requiredKDFState;

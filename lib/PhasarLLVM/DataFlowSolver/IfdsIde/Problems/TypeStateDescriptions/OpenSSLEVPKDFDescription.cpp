@@ -68,11 +68,11 @@ TypeStateDescription::State
 OpenSSLEVPKDFDescription::getNextState(std::string Tok,
                                        TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    auto ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
+    auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
         funcNameToToken(Tok))][S];
     // std::cout << "Delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
-    return ret;
+    return Ret;
   } else {
     return OpenSSLEVPKDFState::BOT;
   }

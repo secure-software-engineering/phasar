@@ -22,13 +22,13 @@ long TraceStats::add(const llvm::Instruction *Instruction, bool IsReturnValue) {
   if (!DebugLocFn)
     return 0;
 
-  const auto Function = Instruction->getFunction();
+  const auto *const Function = Instruction->getFunction();
   if (!Function)
     return 0;
 
   const auto FunctionName = Function->getName();
 
-  const auto FnScope = llvm::cast<llvm::DIScope>(DebugLocFn.getScope());
+  auto *const FnScope = llvm::cast<llvm::DIScope>(DebugLocFn.getScope());
 
   const std::string File =
       FnScope->getDirectory().str() + "/" + FnScope->getFilename().str();
@@ -57,7 +57,7 @@ long TraceStats::add(const llvm::Instruction *Instruction,
                      const std::vector<const llvm::Value *> MemLocationSeq) {
   bool IsRetInstruction = llvm::isa<llvm::ReturnInst>(Instruction);
   if (IsRetInstruction) {
-    const auto BasicBlock = Instruction->getParent();
+    const auto *const BasicBlock = Instruction->getParent();
     const auto BasicBlockName = BasicBlock->getName();
 
     bool IsReturnBasicBlock = BasicBlockName.compare_lower("return") == 0;
@@ -69,9 +69,9 @@ long TraceStats::add(const llvm::Instruction *Instruction,
 
   bool IsGENMemoryLocation = !MemLocationSeq.empty();
   if (IsGENMemoryLocation) {
-    const auto MemLocationFrame = MemLocationSeq.front();
+    const auto *const MemLocationFrame = MemLocationSeq.front();
 
-    if (const auto AllocaInst =
+    if (const auto *const AllocaInst =
             llvm::dyn_cast<llvm::AllocaInst>(MemLocationFrame)) {
       const auto InstructionName = AllocaInst->getName();
       bool IsRetVal = InstructionName.compare_lower("retval") == 0;

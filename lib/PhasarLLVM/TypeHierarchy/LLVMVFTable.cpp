@@ -44,7 +44,7 @@ bool LLVMVFTable::empty() const { return VFT.empty(); }
 size_t LLVMVFTable::size() const { return VFT.size(); }
 
 void LLVMVFTable::print(std::ostream &OS) const {
-  for (auto F : VFT) {
+  for (const auto *F : VFT) {
     OS << F->getName().str();
     if (F != VFT.back()) {
       OS << '\n';

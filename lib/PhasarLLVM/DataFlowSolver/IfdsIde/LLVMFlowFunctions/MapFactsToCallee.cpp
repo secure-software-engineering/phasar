@@ -49,9 +49,9 @@ MapFactsToCallee::computeTargets(const llvm::Value *Source) {
             //   alloca [1 x %struct.__va_list_tag], align 16
             // to the results
             // find the allocated %struct.__va_list_tag and generate it
-            for (auto &BB : *destFun) {
-              for (auto &I : BB) {
-                if (auto Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
+            for (const auto &BB : *destFun) {
+              for (const auto &I : BB) {
+                if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(&I)) {
                   if (Alloc->getAllocatedType()->isArrayTy() &&
                       Alloc->getAllocatedType()->getArrayNumElements() > 0 &&
                       Alloc->getAllocatedType()

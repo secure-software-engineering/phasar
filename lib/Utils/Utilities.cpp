@@ -70,7 +70,7 @@ bool isConstructor(const string &MangledName) {
 }
 
 const llvm::Type *stripPointer(const llvm::Type *Pointer) {
-  auto Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
+  const auto *Next = llvm::dyn_cast<llvm::PointerType>(Pointer);
   while (Next) {
     Pointer = Next->getElementType();
     Next = llvm::dyn_cast<llvm::PointerType>(Pointer);

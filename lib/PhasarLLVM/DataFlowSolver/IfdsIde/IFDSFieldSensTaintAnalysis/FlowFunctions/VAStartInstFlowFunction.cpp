@@ -17,8 +17,8 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   if (!IsVarArgTemplateFact)
     return TargetFacts;
 
-  const auto VaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
-  const auto VaListMemLocationMatr = VaStartInst->getArgList();
+  const auto *const VaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
+  auto *const VaListMemLocationMatr = VaStartInst->getArgList();
 
   auto VaListMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(VaListMemLocationMatr);

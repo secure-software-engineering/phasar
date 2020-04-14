@@ -35,9 +35,9 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
 
   for (const auto &ArgParamTriple : SanitizedArgList) {
 
-    const auto Arg = std::get<0>(ArgParamTriple);
+    const auto *const Arg = std::get<0>(ArgParamTriple);
     const auto ArgMemLocationSeq = std::get<1>(ArgParamTriple);
-    const auto Param = std::get<2>(ArgParamTriple);
+    const auto *const Param = std::get<2>(ArgParamTriple);
 
     bool IsVarArgParam =
         DataFlowUtils::isVarArgParam(Param, zeroValue.getValue());

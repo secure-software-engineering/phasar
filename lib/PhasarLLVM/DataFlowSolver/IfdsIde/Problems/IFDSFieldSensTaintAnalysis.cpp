@@ -150,7 +150,7 @@ IFDSFieldSensTaintAnalysis::getSummaryFlowFunction(
    * We exclude function ptr calls as they will be applied to every
    * function matching its signature (@see LLVMBasedICFG.cpp:217).
    */
-  const auto CallInst = llvm::cast<llvm::CallInst>(CallStmt);
+  const auto *const CallInst = llvm::cast<llvm::CallInst>(CallStmt);
   bool IsStaticCallSite = CallInst->getCalledFunction();
   if (!IsStaticCallSite)
     return std::make_shared<IdentityFlowFunction>(CallStmt, traceStats,

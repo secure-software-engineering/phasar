@@ -40,10 +40,10 @@ bool DTAResolver::heuristicAntiConstructorThisType(
   // same type as the source type of the bitcast. If it is the case, it returns
   // false, true otherwise.
 
-  if (auto Caller = BitCast->getFunction()) {
+  if (const auto *Caller = BitCast->getFunction()) {
     if (isConstructor(Caller->getName().str())) {
-      if (auto FuncTy = Caller->getFunctionType()) {
-        if (auto ThisTy = FuncTy->getParamType(0)) {
+      if (auto *FuncTy = Caller->getFunctionType()) {
+        if (auto *ThisTy = FuncTy->getParamType(0)) {
           if (ThisTy == BitCast->getSrcTy()) {
             return false;
           }
@@ -66,7 +66,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // We know that we are in a constructor and the source type of the bitcast is
   // the same as the this argument. We then check where the bitcast is against
   // the store instruction of the vtable.
-  auto StructTy = stripPointer(BitCast->getSrcTy());
+  const auto *StructTy = stripPointer(BitCast->getSrcTy());
   if (StructTy == nullptr)
     throw runtime_error("StructTy == nullptr in the heuristic_anti_contructor");
 
@@ -87,7 +87,7 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // WARNING: May break when changing llvm version or using clang with version
   // > 5.0.1
 
-  auto Caller = BitCast->getFunction();
+  const auto *Caller = BitCast->getFunction();
   if (Caller == nullptr) {
     throw runtime_error("A bitcast instruction has no associated function");
   }
@@ -98,17 +98,18 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
        ++I, ++Idx) {
     const auto &Inst = *I;
 
-    if (auto Store = llvm::dyn_cast<llvm::StoreInst>(&Inst)) {
+    if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(&Inst)) {
       // We got a store instruction, now we are checking if it is a vtable
       // storage
-      if (auto BitcastExpr =
+      if (const auto *BitcastExpr =
               llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
         if (BitcastExpr->isCast()) {
-          if (auto ConstGep = llvm::dyn_cast<llvm::ConstantExpr>(
+          if (auto *ConstGep = llvm::dyn_cast<llvm::ConstantExpr>(
                   BitcastExpr->getOperand(0))) {
-            auto GepAsInst = ConstGep->getAsInstruction();
-            if (auto Gep = llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst)) {
-              if (auto Vtable = llvm::dyn_cast<llvm::Constant>(
+            auto *GepAsInst = ConstGep->getAsInstruction();
+            if (auto *Gep =
+                    llvm::dyn_cast<llvm::GetElementPtrInst>(GepAsInst)) {
+              if (auto *Vtable = llvm::dyn_cast<llvm::Constant>(
                       Gep->getPointerOperand())) {
                 // We can here assume that we found a vtable
                 VtableNum = Idx;
@@ -128,13 +129,15 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
 }
 
 void DTAResolver::otherInst(const llvm::Instruction *Inst) {
-  if (auto BitCast = llvm::dyn_cast<llvm::BitCastInst>(Inst)) {
+  if (const auto *BitCast = llvm::dyn_cast<llvm::BitCastInst>(Inst)) {
     // We add the connection between the two types in the DTA graph
-    auto Src = BitCast->getSrcTy();
-    auto Dest = BitCast->getDestTy();
+    auto *Src = BitCast->getSrcTy();
+    auto *Dest = BitCast->getDestTy();
 
-    auto SrcStructType = llvm::dyn_cast<llvm::StructType>(stripPointer(Src));
-    auto DestStructType = llvm::dyn_cast<llvm::StructType>(stripPointer(Dest));
+    const auto *SrcStructType =
+        llvm::dyn_cast<llvm::StructType>(stripPointer(Src));
+    const auto *DestStructType =
+        llvm::dyn_cast<llvm::StructType>(stripPointer(Dest));
 
     if (SrcStructType && DestStructType &&
         heuristicAntiConstructorVtablePos(BitCast))
@@ -164,7 +167,7 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
-  auto ReceiverType = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CS);
 
   auto PossibleTypes = typegraph.getTypes(ReceiverType);
 
@@ -172,11 +175,11 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   // unabled to get the types allocated in the used libraries
   // auto allocated_types = IRDB.getAllocatedTypes();
   // auto end_it = allocated_types.end();
-  for (auto PossibleType : PossibleTypes) {
-    if (auto PossibleTypeStruct =
+  for (const auto *PossibleType : PossibleTypes) {
+    if (const auto *PossibleTypeStruct =
             llvm::dyn_cast<llvm::StructType>(PossibleType)) {
       // if ( allocated_types.find(possible_type_struct) != end_it ) {
-      auto Target =
+      const auto *Target =
           getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
       if (Target) {
         PossibleCallTargets.insert(Target);
@@ -188,7 +191,7 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
     PossibleCallTargets = CHAResolver::resolveVirtualCall(CS);
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Possible targets are:");
-  for (auto Entry : PossibleCallTargets) {
+  for (const auto *Entry : PossibleCallTargets) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << Entry);
   }
 

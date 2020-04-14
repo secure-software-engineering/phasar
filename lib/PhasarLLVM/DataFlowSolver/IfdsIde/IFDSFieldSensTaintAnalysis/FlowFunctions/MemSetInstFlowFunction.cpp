@@ -10,8 +10,9 @@ namespace psr {
 
 std::set<ExtendedValue>
 MemSetInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
-  const auto MemSetInst = llvm::cast<const llvm::MemSetInst>(currentInst);
-  const auto DstMemLocationMatr = MemSetInst->getRawDest();
+  const auto *const MemSetInst =
+      llvm::cast<const llvm::MemSetInst>(currentInst);
+  auto *const DstMemLocationMatr = MemSetInst->getRawDest();
 
   bool KillFact =
       DataFlowUtils::isMemoryLocationTainted(DstMemLocationMatr, Fact);

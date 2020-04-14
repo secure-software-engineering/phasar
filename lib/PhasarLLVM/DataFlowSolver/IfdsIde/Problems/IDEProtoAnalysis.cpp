@@ -78,7 +78,7 @@ map<IDEProtoAnalysis::n_t, set<IDEProtoAnalysis::d_t>>
 IDEProtoAnalysis::initialSeeds() {
   cout << "IDEProtoAnalysis::initialSeeds()\n";
   map<IDEProtoAnalysis::n_t, set<IDEProtoAnalysis::d_t>> SeedMap;
-  for (auto &EntryPoint : EntryPoints) {
+  for (const auto &EntryPoint : EntryPoints) {
     SeedMap.insert(make_pair(&ICF->getFunction(EntryPoint)->front().front(),
                              set<IDEProtoAnalysis::d_t>({getZeroValue()})));
   }

@@ -43,7 +43,7 @@ LLVMBasedCFG::getPredsOf(const llvm::Instruction *I) const {
    * lead to our instruction in question!
    */
   if (Preds.empty()) {
-    for (auto &BB : *I->getFunction()) {
+    for (const auto &BB : *I->getFunction()) {
       if (const llvm::Instruction *T = BB.getTerminator()) {
         for (unsigned Idx = 0; Idx < T->getNumSuccessors(); ++Idx) {
           if (&*T->getSuccessor(Idx)->begin() == I) {
@@ -73,10 +73,10 @@ LLVMBasedCFG::getSuccsOf(const llvm::Instruction *I) const {
 vector<pair<const llvm::Instruction *, const llvm::Instruction *>>
 LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
   vector<pair<const llvm::Instruction *, const llvm::Instruction *>> Edges;
-  for (auto &BB : *Fun) {
-    for (auto &I : BB) {
+  for (const auto &BB : *Fun) {
+    for (const auto &I : BB) {
       auto Successors = getSuccsOf(&I);
-      for (auto Successor : Successors) {
+      for (const auto *Successor : Successors) {
         Edges.push_back(make_pair(&I, Successor));
       }
     }
@@ -87,8 +87,8 @@ LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
 vector<const llvm::Instruction *>
 LLVMBasedCFG::getAllInstructionsOf(const llvm::Function *Fun) const {
   vector<const llvm::Instruction *> Instructions;
-  for (auto &BB : *Fun) {
-    for (auto &I : BB) {
+  for (const auto &BB : *Fun) {
+    for (const auto &I : BB) {
       Instructions.push_back(&I);
     }
   }
@@ -104,8 +104,8 @@ bool LLVMBasedCFG::isStartPoint(const llvm::Instruction *Stmt) const {
 }
 
 bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *Stmt) const {
-  if (auto Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
-    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
+  if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Stmt)) {
+    if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Load->getPointerOperand())) {
       return true;
     }
@@ -114,8 +114,8 @@ bool LLVMBasedCFG::isFieldLoad(const llvm::Instruction *Stmt) const {
 }
 
 bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *Stmt) const {
-  if (auto Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
-    if (auto GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
+    if (const auto *GEP = llvm::dyn_cast<llvm::GetElementPtrInst>(
             Store->getPointerOperand())) {
       return true;
     }

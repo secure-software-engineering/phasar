@@ -26,7 +26,6 @@
 
 using namespace std;
 using namespace psr;
-namespace bfs = boost::filesystem;
 
 // int main(int argc, char **argv) {
 //   initializeLogger(false);
@@ -101,7 +100,7 @@ namespace bfs = boost::filesystem;
 //   return 0;
 // }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

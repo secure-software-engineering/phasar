@@ -43,7 +43,7 @@ int getVFTIndex(llvm::ImmutableCallSite CS) {
   if (GEP == nullptr) {
     return -2;
   }
-  if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
+  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
     return CI->getZExtValue();
   }
   return -3;
@@ -63,7 +63,7 @@ const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS) {
 }
 
 std::string getReceiverTypeName(llvm::ImmutableCallSite CS) {
-  const auto RT = getReceiverType(CS);
+  const auto *const RT = getReceiverType(CS);
   if (RT) {
     return RT->getName().str();
   }
@@ -79,7 +79,7 @@ const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                                     llvm::ImmutableCallSite CS) {
   if (TH->hasVFTable(T)) {
-    auto Target = TH->getVFTable(T)->getFunction(Idx);
+    const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
       return Target;
     }
@@ -111,7 +111,7 @@ Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
       CS.getCalledValue()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CS.getCalledValue()->getType()->getPointerElementType())) {
-      for (auto F : IRDB.getAllFunctions()) {
+      for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {
           CalleeTargets.insert(F);
         }

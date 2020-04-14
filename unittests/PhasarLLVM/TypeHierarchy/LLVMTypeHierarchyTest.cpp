@@ -18,7 +18,7 @@ using namespace psr;
 namespace psr {
 class LTHTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/";
 };
@@ -26,7 +26,7 @@ protected:
 // Check basic type hierarchy construction
 TEST_F(LTHTest, BasicTHReconstruction_1) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -58,7 +58,7 @@ TEST_F(LTHTest, BasicTHReconstruction_1) {
 
 TEST_F(LTHTest, BasicTHReconstruction_2) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_2_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_2_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -90,7 +90,7 @@ TEST_F(LTHTest, BasicTHReconstruction_2) {
 
 TEST_F(LTHTest, BasicTHReconstruction_3) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_3_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_3_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -128,7 +128,7 @@ TEST_F(LTHTest, BasicTHReconstruction_3) {
 
 TEST_F(LTHTest, BasicTHReconstruction_4) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_4_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_4_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -169,7 +169,7 @@ TEST_F(LTHTest, BasicTHReconstruction_4) {
 
 TEST_F(LTHTest, BasicTHReconstruction_5) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_5_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_5_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -233,7 +233,7 @@ TEST_F(LTHTest, BasicTHReconstruction_5) {
 
 TEST_F(LTHTest, BasicTHReconstruction_6) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_12_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_12_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("class.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -265,7 +265,7 @@ TEST_F(LTHTest, BasicTHReconstruction_6) {
 
 TEST_F(LTHTest, BasicTHReconstruction_7) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_11_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_11_cpp.ll"});
   LLVMTypeHierarchy LTH(IRDB);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Base")), true);
   EXPECT_EQ(LTH.hasType(LTH.getType("struct.Child")), true);
@@ -299,15 +299,15 @@ TEST_F(LTHTest, BasicTHReconstruction_7) {
 // check if the vtables are constructed correctly in more complex scenarios
 TEST_F(LTHTest, VTableConstruction) {
   ProjectIRDB IRDB1(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
   ProjectIRDB IRDB2(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
   ProjectIRDB IRDB3(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
   ProjectIRDB IRDB4(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
   ProjectIRDB IRDB5(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
 
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
@@ -451,15 +451,15 @@ TEST_F(LTHTest, VTableConstruction) {
 
 TEST_F(LTHTest, TransitivelyReachableTypes) {
   ProjectIRDB IRDB1(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_1_cpp.ll"});
   ProjectIRDB IRDB2(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_7_cpp.ll"});
   ProjectIRDB IRDB3(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_8_cpp.ll"});
   ProjectIRDB IRDB4(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_9_cpp.ll"});
   ProjectIRDB IRDB5(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_10_cpp.ll"});
   // Creates an empty type hierarchy
   LLVMTypeHierarchy TH1(IRDB1);
   LLVMTypeHierarchy TH2(IRDB2);
@@ -467,89 +467,89 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
   LLVMTypeHierarchy TH4(IRDB4);
   LLVMTypeHierarchy TH5(IRDB5);
 
-  auto reachable_types_base_1 = TH1.getSubTypes(TH1.getType("struct.Base"));
-  auto reachable_types_child_1 = TH1.getSubTypes(TH1.getType("struct.Child"));
+  auto ReachableTypesBase1 = TH1.getSubTypes(TH1.getType("struct.Base"));
+  auto ReachableTypesChild1 = TH1.getSubTypes(TH1.getType("struct.Child"));
 
-  auto reachable_types_A_2 = TH2.getSubTypes(TH2.getType("struct.A"));
-  auto reachable_types_B_2 = TH2.getSubTypes(TH2.getType("struct.B"));
-  auto reachable_types_C_2 = TH2.getSubTypes(TH2.getType("struct.C"));
-  auto reachable_types_D_2 = TH2.getSubTypes(TH2.getType("struct.D"));
-  auto reachable_types_X_2 = TH2.getSubTypes(TH2.getType("struct.X"));
-  auto reachable_types_Y_2 = TH2.getSubTypes(TH2.getType("struct.Y"));
-  auto reachable_types_Z_2 = TH2.getSubTypes(TH2.getType("struct.Z"));
+  auto ReachableTypesA2 = TH2.getSubTypes(TH2.getType("struct.A"));
+  auto ReachableTypesB2 = TH2.getSubTypes(TH2.getType("struct.B"));
+  auto ReachableTypesC2 = TH2.getSubTypes(TH2.getType("struct.C"));
+  auto ReachableTypesD2 = TH2.getSubTypes(TH2.getType("struct.D"));
+  auto ReachableTypesX2 = TH2.getSubTypes(TH2.getType("struct.X"));
+  auto ReachableTypesY2 = TH2.getSubTypes(TH2.getType("struct.Y"));
+  auto ReachableTypesZ2 = TH2.getSubTypes(TH2.getType("struct.Z"));
 
-  auto reachable_types_base_3 = TH3.getSubTypes(TH3.getType("struct.Base"));
-  auto reachable_types_child_3 = TH3.getSubTypes(TH3.getType("struct.Child"));
-  auto reachable_types_nonvirtualclass_3 =
+  auto ReachableTypesBase3 = TH3.getSubTypes(TH3.getType("struct.Base"));
+  auto ReachableTypesChild3 = TH3.getSubTypes(TH3.getType("struct.Child"));
+  auto ReachableTypesNonvirtualclass3 =
       TH3.getSubTypes(TH3.getType("class.NonvirtualClass"));
-  auto reachable_types_nonvirtualstruct_3 =
+  auto ReachableTypesNonvirtualstruct3 =
       TH3.getSubTypes(TH3.getType("struct.NonvirtualStruct"));
 
-  auto reachable_types_base_4 = TH4.getSubTypes(TH4.getType("struct.Base"));
-  auto reachable_types_child_4 = TH4.getSubTypes(TH4.getType("struct.Child"));
+  auto ReachableTypesBase4 = TH4.getSubTypes(TH4.getType("struct.Base"));
+  auto ReachableTypesChild4 = TH4.getSubTypes(TH4.getType("struct.Child"));
 
-  auto reachable_types_base_5 = TH5.getSubTypes(TH5.getType("struct.Base"));
-  auto reachable_types_child_5 = TH5.getSubTypes(TH5.getType("struct.Child"));
+  auto ReachableTypesBase5 = TH5.getSubTypes(TH5.getType("struct.Base"));
+  auto ReachableTypesChild5 = TH5.getSubTypes(TH5.getType("struct.Child"));
 
   // Will be way less dangerous to have an interface (like a map) between the
   // llvm given name of class & struct (i.e. struct.Base.base ...) and the name
   // inside phasar (i.e. just Base) and never work with the llvm name inside
   // phasar
-  ASSERT_TRUE(reachable_types_base_1.count(TH1.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_1.count(TH1.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_1.size() == 2);
-  ASSERT_FALSE(reachable_types_child_1.count(TH1.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_child_1.count(TH1.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_1.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase1.count(TH1.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase1.count(TH1.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase1.size() == 2);
+  ASSERT_FALSE(ReachableTypesChild1.count(TH1.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesChild1.count(TH1.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild1.size() == 1);
 
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.A")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.B")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.C")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_A_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_A_2.size() == 5);
-  ASSERT_TRUE(reachable_types_B_2.count(TH2.getType("struct.B")));
-  ASSERT_TRUE(reachable_types_B_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_B_2.size() == 2);
-  ASSERT_TRUE(reachable_types_C_2.count(TH2.getType("struct.C")));
-  ASSERT_TRUE(reachable_types_C_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_C_2.size() == 2);
-  ASSERT_TRUE(reachable_types_D_2.count(TH2.getType("struct.D")));
-  ASSERT_TRUE(reachable_types_D_2.size() == 1);
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.X")));
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.Y")));
-  ASSERT_TRUE(reachable_types_X_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_X_2.size() == 3);
-  ASSERT_TRUE(reachable_types_Y_2.count(TH2.getType("struct.Y")));
-  ASSERT_TRUE(reachable_types_Y_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_Y_2.size() == 2);
-  ASSERT_TRUE(reachable_types_Z_2.count(TH2.getType("struct.Z")));
-  ASSERT_TRUE(reachable_types_Z_2.size() == 1);
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.A")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.B")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.C")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesA2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesA2.size() == 5);
+  ASSERT_TRUE(ReachableTypesB2.count(TH2.getType("struct.B")));
+  ASSERT_TRUE(ReachableTypesB2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesB2.size() == 2);
+  ASSERT_TRUE(ReachableTypesC2.count(TH2.getType("struct.C")));
+  ASSERT_TRUE(ReachableTypesC2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesC2.size() == 2);
+  ASSERT_TRUE(ReachableTypesD2.count(TH2.getType("struct.D")));
+  ASSERT_TRUE(ReachableTypesD2.size() == 1);
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.X")));
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.Y")));
+  ASSERT_TRUE(ReachableTypesX2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesX2.size() == 3);
+  ASSERT_TRUE(ReachableTypesY2.count(TH2.getType("struct.Y")));
+  ASSERT_TRUE(ReachableTypesY2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesY2.size() == 2);
+  ASSERT_TRUE(ReachableTypesZ2.count(TH2.getType("struct.Z")));
+  ASSERT_TRUE(ReachableTypesZ2.size() == 1);
 
-  ASSERT_TRUE(reachable_types_base_3.count(TH3.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_3.count(TH3.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_3.size() == 2);
-  ASSERT_TRUE(reachable_types_child_3.count(TH3.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_3.size() == 1);
-  ASSERT_TRUE(reachable_types_nonvirtualclass_3.count(
+  ASSERT_TRUE(ReachableTypesBase3.count(TH3.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase3.count(TH3.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase3.size() == 2);
+  ASSERT_TRUE(ReachableTypesChild3.count(TH3.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild3.size() == 1);
+  ASSERT_TRUE(ReachableTypesNonvirtualclass3.count(
       TH3.getType("class.NonvirtualClass")));
-  ASSERT_TRUE(reachable_types_nonvirtualclass_3.size() == 1);
-  ASSERT_TRUE(reachable_types_nonvirtualstruct_3.count(
+  ASSERT_TRUE(ReachableTypesNonvirtualclass3.size() == 1);
+  ASSERT_TRUE(ReachableTypesNonvirtualstruct3.count(
       TH3.getType("struct.NonvirtualStruct")));
-  ASSERT_TRUE(reachable_types_nonvirtualstruct_3.size() == 1);
+  ASSERT_TRUE(ReachableTypesNonvirtualstruct3.size() == 1);
 
-  ASSERT_TRUE(reachable_types_base_4.count(TH4.getType("struct.Base")));
-  ASSERT_FALSE(reachable_types_base_4.count(TH4.getType("struct.Base.base")));
-  ASSERT_TRUE(reachable_types_base_4.count(TH4.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_4.size() == 2);
-  ASSERT_TRUE(reachable_types_child_4.count(TH4.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_4.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Base")));
+  ASSERT_FALSE(ReachableTypesBase4.count(TH4.getType("struct.Base.base")));
+  ASSERT_TRUE(ReachableTypesBase4.count(TH4.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase4.size() == 2);
+  ASSERT_TRUE(ReachableTypesChild4.count(TH4.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild4.size() == 1);
 
-  ASSERT_TRUE(reachable_types_base_5.count(TH5.getType("struct.Base")));
-  ASSERT_TRUE(reachable_types_base_5.count(TH5.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_base_5.size() == 2);
-  ASSERT_TRUE(reachable_types_child_5.count(TH5.getType("struct.Child")));
-  ASSERT_TRUE(reachable_types_child_5.size() == 1);
+  ASSERT_TRUE(ReachableTypesBase5.count(TH5.getType("struct.Base")));
+  ASSERT_TRUE(ReachableTypesBase5.count(TH5.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesBase5.size() == 2);
+  ASSERT_TRUE(ReachableTypesChild5.count(TH5.getType("struct.Child")));
+  ASSERT_TRUE(ReachableTypesChild5.size() == 1);
 }
 
 // TEST_F(LTHTest, HandleLoadAndPrintOfNonEmptyGraph) {
@@ -655,7 +655,7 @@ TEST_F(LTHTest, TransitivelyReachableTypes) {
 
 TEST_F(LTHTest, HandleSTLString) {
   ProjectIRDB IRDB(
-      {pathToLLFiles + "type_hierarchies/type_hierarchy_13_cpp.ll"});
+      {PathToLlFiles + "type_hierarchies/type_hierarchy_13_cpp.ll"});
   LLVMTypeHierarchy TH(IRDB);
   EXPECT_EQ(TH.getAllTypes().size(), 4);
   EXPECT_TRUE(TH.hasType(TH.getType("class.std::__cxx11::basic_string")));
@@ -684,9 +684,9 @@ TEST_F(LTHTest, HandleSTLString) {
 
 } // namespace psr
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
-  auto res = RUN_ALL_TESTS();
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
+  auto Res = RUN_ALL_TESTS();
   llvm::llvm_shutdown();
-  return res;
+  return Res;
 }
