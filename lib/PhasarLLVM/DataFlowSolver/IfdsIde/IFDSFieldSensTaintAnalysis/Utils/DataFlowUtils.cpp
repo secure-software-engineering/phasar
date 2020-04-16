@@ -778,7 +778,7 @@ static std::vector<llvm::BasicBlock *> getPostDominators(
   bool IsStartBasicBlock = CurrentBasicBlock == StartBasicBlock;
 
   if (IsStartBasicBlock) {
-    return { CurrentBasicBlock };
+    return {CurrentBasicBlock};
   }
 
   for (auto *const PostDomTreeChild : PostDomTreeNode->getChildren()) {
@@ -1070,7 +1070,7 @@ std::set<std::string> DataFlowUtils::getTaintedFunctions() {
   std::set<std::string> TaintedFunctions =
       readFileFromEnvVar("TAINTED_FUNCTIONS_LOCATION");
   if (TaintedFunctions.empty()) {
-    TaintedFunctions = { "getenv", "secure_getenv" };
+    TaintedFunctions = {"getenv", "secure_getenv"};
   }
 
   LOG_INFO("Tainted functions:");
@@ -1085,7 +1085,7 @@ std::set<std::string> DataFlowUtils::getBlacklistedFunctions() {
   std::set<std::string> BlacklistedFunctions =
       readFileFromEnvVar("BLACKLISTED_FUNCTIONS_LOCATION");
   if (BlacklistedFunctions.empty()) {
-    BlacklistedFunctions = { "printf" };
+    BlacklistedFunctions = {"printf"};
   }
 
   LOG_INFO("Blacklisted functions:");

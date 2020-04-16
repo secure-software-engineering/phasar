@@ -104,8 +104,9 @@ TraceStats::getFunctionStats(const std::string &File) {
 }
 
 TraceStats::LineNumberStats &
-TraceStats::getLineNumberStats(std::string File, const std::string &Function) {
-  TraceStats::FunctionStats &FunctionStats = getFunctionStats(std::move(File));
+TraceStats::getLineNumberStats(const std::string &File,
+                               const std::string &Function) {
+  TraceStats::FunctionStats &FunctionStats = getFunctionStats(File);
 
   auto LineNumberEntry = FunctionStats.find(Function);
   if (LineNumberEntry != FunctionStats.end()) {

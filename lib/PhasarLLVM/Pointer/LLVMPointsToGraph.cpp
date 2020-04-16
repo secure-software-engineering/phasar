@@ -33,7 +33,8 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
-struct LLVMPointsToGraph::AllocationSiteDFSVisitor : boost::default_dfs_visitor {
+struct LLVMPointsToGraph::AllocationSiteDFSVisitor
+    : boost::default_dfs_visitor {
   // collect the allocation sites that are found
   std::set<const llvm::Value *> &AllocationSites;
   // keeps track of the current path
@@ -127,7 +128,8 @@ LLVMPointsToGraph::VertexProperties::getUsers() const {
   return users;
 }
 
-LLVMPointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *V) : V(V) {}
+LLVMPointsToGraph::EdgeProperties::EdgeProperties(const llvm::Value *V)
+    : V(V) {}
 
 std::string LLVMPointsToGraph::EdgeProperties::getValueAsString() const {
   return llvmIRToString(V);
@@ -232,8 +234,10 @@ LLVMPointsToGraph::LLVMPointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
       switch (AA.alias(I1->first, I1Size, I2->first, I2Size)) {
       case llvm::NoAlias:
         break;
-      case llvm::MayAlias:     // no break
+      case llvm::MayAlias: // no break
+        [[fallthrough]];
       case llvm::PartialAlias: // no break
+        [[fallthrough]];
       case llvm::MustAlias:
         boost::add_edge(I1->second, I2->second, PAG);
         break;
@@ -428,7 +432,7 @@ void LLVMPointsToGraph::mergeGraph(const LLVMPointsToGraph &Other) {
 }
 
 void LLVMPointsToGraph::mergeCallSite(const llvm::ImmutableCallSite &CS,
-                                  const llvm::Function *F) {
+                                      const llvm::Function *F) {
   auto FormalArgRange = F->args();
   const auto *FormalIter = FormalArgRange.begin();
   auto MapEnd = ValueVertexMap.end();
@@ -456,7 +460,7 @@ void LLVMPointsToGraph::mergeCallSite(const llvm::ImmutableCallSite &CS,
 }
 
 void LLVMPointsToGraph::mergeWith(const LLVMPointsToGraph *Other,
-                              const llvm::Function *F) {
+                                  const llvm::Function *F) {
   if (ContainedFunctions.insert(F).second) {
     mergeGraph(*Other);
   }

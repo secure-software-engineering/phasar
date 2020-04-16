@@ -7,6 +7,7 @@
 # the code base.
 #
 
+build_dir=${1}
 
 if [ "$#" -ne 1 ] || ! [ -d "${build_dir}" ]; then
 	echo "usage: <prog> <build dir>" >&2
@@ -20,9 +21,9 @@ cp .clang-tidy-ignore external/json/.clang-tidy
 cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
-cd build/
+cd ${build_dir}
 run-clang-tidy.py -p ./ -header-filter='phasar*.h' -fix
-cd ..
+cd -
 echo "Run clang-format ..."
 ./utils/run-clang-format.py
 

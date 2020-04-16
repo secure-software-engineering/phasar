@@ -269,13 +269,9 @@ TEST_F(TypeGraphTest, TypeAggregation) {
 
   unsigned int NbStruct = 0;
   llvm::StructType *StructA = nullptr;
-
   llvm::StructType *StructB = nullptr;
-
   llvm::StructType *StructC = nullptr;
-
   llvm::StructType *StructD = nullptr;
-
   llvm::StructType *StructE = nullptr;
 
   CachedTypeGraph Tg;

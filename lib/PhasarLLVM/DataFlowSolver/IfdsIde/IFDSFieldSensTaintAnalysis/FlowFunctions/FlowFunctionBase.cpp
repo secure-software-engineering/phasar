@@ -11,7 +11,7 @@ namespace psr {
 std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
   bool IsAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, Fact);
   if (IsAutoIdentity) {
-    return { Fact };
+    return {Fact};
   }
 
   bool IsBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(Fact.getValue()) ||

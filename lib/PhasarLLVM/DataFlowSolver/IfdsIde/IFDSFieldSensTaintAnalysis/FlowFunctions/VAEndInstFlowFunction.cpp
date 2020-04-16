@@ -12,7 +12,7 @@ std::set<ExtendedValue>
 VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   bool IsVarArgFact = Fact.isVarArg();
   if (!IsVarArgFact) {
-    return { Fact };
+    return {Fact};
   }
 
   const auto *const VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);

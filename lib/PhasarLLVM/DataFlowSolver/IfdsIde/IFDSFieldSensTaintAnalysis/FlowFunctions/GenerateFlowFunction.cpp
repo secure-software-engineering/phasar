@@ -11,7 +11,7 @@ GenerateFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   traceStats.add(currentInst);
 
   if (Fact == zeroValue) {
-    return { ExtendedValue(currentInst) };
+    return {ExtendedValue(currentInst)};
   }
 
   return {Fact};

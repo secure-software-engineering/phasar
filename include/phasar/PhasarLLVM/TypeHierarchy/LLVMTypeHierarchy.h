@@ -112,7 +112,7 @@ private:
 
   static const std::string TypeInfoPrefixDemang;
 
-  std::string removeStructOrClassPrefix(const llvm::StructType &T);
+  static std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
   static std::string removeStructOrClassPrefix(const std::string &TypeName);
 
@@ -124,7 +124,7 @@ private:
 
   static bool isVTable(const std::string &VarName);
 
-  bool isStruct(const llvm::StructType &T);
+  static bool isStruct(const llvm::StructType &T);
 
   static bool isStruct(llvm::StringRef TypeName);
 

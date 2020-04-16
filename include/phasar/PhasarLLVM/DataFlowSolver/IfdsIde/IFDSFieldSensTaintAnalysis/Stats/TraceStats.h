@@ -34,7 +34,7 @@ private:
   long add(const llvm::Instruction *instruction, bool isReturnValue);
 
   FunctionStats &getFunctionStats(const std::string &file);
-  LineNumberStats &getLineNumberStats(std::string file,
+  LineNumberStats &getLineNumberStats(const std::string &file,
                                       const std::string &function);
   FileStats stats;
 };

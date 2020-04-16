@@ -37,7 +37,7 @@ GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   } else {
     bool IsPtrTainted = DataFlowUtils::isValueTainted(GepInstPtr, Fact);
     if (IsPtrTainted) {
-      return { Fact, ExtendedValue(GepInst) };
+      return {Fact, ExtendedValue(GepInst)};
     }
   }
 

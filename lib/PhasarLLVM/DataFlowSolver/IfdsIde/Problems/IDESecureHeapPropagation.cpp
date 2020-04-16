@@ -72,7 +72,7 @@ IDESecureHeapPropagation::initialSeeds() {
   for (const auto &Entry : EntryPoints) {
     const auto *Fn = ICF->getFunction(Entry);
     if (Fn && !Fn->isDeclaration()) {
-      Seeds[&Fn->front().front()] = { getZeroValue() };
+      Seeds[&Fn->front().front()] = {getZeroValue()};
     }
   }
   return Seeds;
