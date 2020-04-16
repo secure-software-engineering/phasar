@@ -28,12 +28,12 @@ protected:
       "build/test/llvm_test_code/typestate_analysis_fileio/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc;
-  IDETypeStateAnalysis *TSProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  CSTDFILEIOTypeStateDescription *CSTDFILEIODesc{};
+  IDETypeStateAnalysis *TSProblem{};
   enum IOSTATE {
     TOP = 42,
     UNINIT = 0,
@@ -81,7 +81,7 @@ protected:
                 IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
                 IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
                 IDETypeStateAnalysis::i_t> &Solver) {
-    for (auto InstToGroundTruth : GroundTruth) {
+    for (const auto &InstToGroundTruth : GroundTruth) {
       auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       // std::cout << "Handle results at " << InstToGroundTruth.first <<
       // std::endl;
@@ -524,10 +524,11 @@ TEST_F(IDETSAnalysisFileIOTest, HandleTypeState_16) {
   std::cout << "PointsTo(2) = {";
   bool Frst = true;
   for (const auto *P : Pts) {
-    if (Frst)
+    if (Frst) {
       Frst = false;
-    else
+    } else {
       std::cout << ", ";
+    }
     std::cout << llvmIRToShortString(P);
   }
   std::cout << "}" << std::endl;

@@ -128,12 +128,12 @@ std::string LLVMTypeHierarchy::removeVTablePrefix(std::string VarName) {
   return VarName;
 }
 
-bool LLVMTypeHierarchy::isTypeInfo(std::string VarName) {
+bool LLVMTypeHierarchy::isTypeInfo(const std::string &VarName) {
   auto Demang = boost::core::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(TypeInfoPrefixDemang);
 }
 
-bool LLVMTypeHierarchy::isVTable(std::string VarName) {
+bool LLVMTypeHierarchy::isVTable(const std::string &VarName) {
   auto Demang = boost::core::demangle(VarName.c_str());
   return llvm::StringRef(Demang).startswith(VTablePrefixDemang);
 }
@@ -344,13 +344,18 @@ bool LLVMTypeHierarchy::empty() const { return size() == 0; }
 
 void LLVMTypeHierarchy::print(std::ostream &OS) const {
   OS << "Type Hierarchy:\n";
-  vertex_iterator UI, UIEnd;
+  vertex_iterator UI;
+
+  vertex_iterator UIEnd;
   for (boost::tie(UI, UIEnd) = boost::vertices(TypeGraph); UI != UIEnd; ++UI) {
     OS << TypeGraph[*UI].getTypeName() << " --> ";
-    out_edge_iterator EI, EIEnd;
+    out_edge_iterator EI;
+
+    out_edge_iterator EIEnd;
     for (boost::tie(EI, EIEnd) = boost::out_edges(*UI, TypeGraph); EI != EIEnd;
-         ++EI)
+         ++EI) {
       OS << TypeGraph[target(*EI, TypeGraph)].getTypeName() << " ";
+    }
     OS << '\n';
   }
   OS << "VFTables:\n";
@@ -364,8 +369,12 @@ void LLVMTypeHierarchy::print(std::ostream &OS) const {
 
 nlohmann::json LLVMTypeHierarchy::getAsJson() const {
   nlohmann::json J;
-  vertex_iterator VIv, VIvEnd;
-  out_edge_iterator EI, EIEnd;
+  vertex_iterator VIv;
+
+  vertex_iterator VIvEnd;
+  out_edge_iterator EI;
+
+  out_edge_iterator EIEnd;
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(TypeGraph); VIv != VIvEnd;
        ++VIv) {

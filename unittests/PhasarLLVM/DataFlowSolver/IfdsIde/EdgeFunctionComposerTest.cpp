@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <utility>
 
 using namespace psr;
 
@@ -13,7 +14,7 @@ static unsigned CurrAddTwoEfId = 0;
 struct MyEFC : EdgeFunctionComposer<int> {
   MyEFC(std::shared_ptr<EdgeFunction<int>> F,
         std::shared_ptr<EdgeFunction<int>> G)
-      : EdgeFunctionComposer<int>(F, G){};
+      : EdgeFunctionComposer<int>(std::move(F), std::move(G)){};
   std::shared_ptr<EdgeFunction<int>>
   joinWith(std::shared_ptr<EdgeFunction<int>> OtherFunction) override {
     return std::make_shared<AllBottom<int>>(-1);

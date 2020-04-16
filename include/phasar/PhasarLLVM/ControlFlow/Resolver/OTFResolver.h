@@ -51,7 +51,7 @@ public:
 
   void handlePossibleTargets(
       llvm::ImmutableCallSite CS,
-      std::set<const llvm::Function *> &possible_targets) override;
+      std::set<const llvm::Function *> &CalleeTargets) override;
 
   void postCall(const llvm::Instruction *Inst) override;
 

@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Function.h"
 
@@ -18,7 +19,8 @@ using namespace psr;
 
 namespace psr {
 
-LLVMVFTable::LLVMVFTable(std::vector<const llvm::Function *> Fs) : VFT(Fs) {}
+LLVMVFTable::LLVMVFTable(std::vector<const llvm::Function *> Fs)
+    : VFT(std::move(Fs)) {}
 
 const llvm::Function *LLVMVFTable::getFunction(unsigned Idx) const {
   if (Idx < size()) {

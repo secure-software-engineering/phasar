@@ -110,8 +110,9 @@ OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
       PossibleCallTargets.insert(Target);
     }
   }
-  if (PossibleCallTargets.empty())
+  if (PossibleCallTargets.empty()) {
     return CHAResolver::resolveVirtualCall(CS);
+  }
 
   return PossibleCallTargets;
 }

@@ -55,8 +55,15 @@ TEST_F(TypeGraphTest, ReverseTypePropagation) {
       IRDB.getModule(PathToLlFiles + "basic/seven_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
-  llvm::StructType *StructA = nullptr, *StructB = nullptr, *StructC = nullptr,
-                   *StructD = nullptr, *StructE = nullptr;
+  llvm::StructType *StructA = nullptr;
+
+  llvm::StructType *StructB = nullptr;
+
+  llvm::StructType *StructC = nullptr;
+
+  llvm::StructType *StructD = nullptr;
+
+  llvm::StructType *StructE = nullptr;
 
   CachedTypeGraph Tg;
 
@@ -141,14 +148,15 @@ TEST_F(TypeGraphTest, ReverseTypePropagation) {
     ASSERT_TRUE(NumberEdge <= 4);
 
     ASSERT_TRUE(Src == NodeA || Src == NodeB || Src == NodeC || Src == NodeE);
-    if (Src == NodeA)
+    if (Src == NodeA) {
       ASSERT_TRUE(Target == NodeB);
-    else if (Src == NodeB)
+    } else if (Src == NodeB) {
       ASSERT_TRUE(Target == NodeC);
-    else if (Src == NodeC)
+    } else if (Src == NodeC) {
       ASSERT_TRUE(Target == NodeD);
-    else if (Src == NodeE)
+    } else if (Src == NodeE) {
       ASSERT_TRUE(Target == NodeB);
+    }
   }
 
   ASSERT_TRUE(NumberEdge == 4);
@@ -191,7 +199,9 @@ TEST_F(TypeGraphTest, AddLinkSimple) {
   llvm::Module *M = IRDB.getModule(PathToLlFiles + "basic/two_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
-  llvm::StructType *StructA = nullptr, *StructB = nullptr;
+  llvm::StructType *StructA = nullptr;
+
+  llvm::StructType *StructB = nullptr;
 
   CachedTypeGraph Tg;
   CachedTypeGraph::graph_t G;
@@ -258,8 +268,15 @@ TEST_F(TypeGraphTest, TypeAggregation) {
       IRDB.getModule(PathToLlFiles + "basic/seven_structs_cpp.ll");
 
   unsigned int NbStruct = 0;
-  llvm::StructType *StructA = nullptr, *StructB = nullptr, *StructC = nullptr,
-                   *StructD = nullptr, *StructE = nullptr;
+  llvm::StructType *StructA = nullptr;
+
+  llvm::StructType *StructB = nullptr;
+
+  llvm::StructType *StructC = nullptr;
+
+  llvm::StructType *StructD = nullptr;
+
+  llvm::StructType *StructE = nullptr;
 
   CachedTypeGraph Tg;
 
@@ -344,14 +361,15 @@ TEST_F(TypeGraphTest, TypeAggregation) {
     ASSERT_TRUE(NumberEdge <= 4);
 
     ASSERT_TRUE(Src == NodeA || Src == NodeB || Src == NodeC || Src == NodeE);
-    if (Src == NodeA)
+    if (Src == NodeA) {
       ASSERT_TRUE(Target == NodeB);
-    else if (Src == NodeB)
+    } else if (Src == NodeB) {
       ASSERT_TRUE(Target == NodeC);
-    else if (Src == NodeC)
+    } else if (Src == NodeC) {
       ASSERT_TRUE(Target == NodeD);
-    else if (Src == NodeE)
+    } else if (Src == NodeE) {
       ASSERT_TRUE(Target == NodeB);
+    }
   }
 
   ASSERT_TRUE(NumberEdge == 4);

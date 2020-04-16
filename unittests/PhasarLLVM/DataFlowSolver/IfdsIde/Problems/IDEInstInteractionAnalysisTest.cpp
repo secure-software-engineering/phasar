@@ -42,9 +42,10 @@ protected:
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   //   IDEInstInteractionAnalysis::lca_restults_t
-  void doAnalysisAndCompareResults(const std::string &LlvmFilePath,
-                                   std::set<IIACompactResult_t> GroundTruth,
-                                   bool PrintDump = false) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::set<IIACompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);

@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <unordered_map>
+#include <utility>
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -38,7 +39,7 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
                        InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
                        InterMonoTaintAnalysis::v_t,
                        InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
-                                                    EntryPoints),
+                                                    std::move(EntryPoints)),
       TSF(TSF) {}
 
 BitVectorSet<const llvm::Value *>

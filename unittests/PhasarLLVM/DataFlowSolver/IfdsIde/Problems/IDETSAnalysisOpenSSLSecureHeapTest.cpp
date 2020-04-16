@@ -29,20 +29,20 @@ protected:
       "build/test/llvm_test_code/openssl/secure_heap/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  OpenSSLSecureHeapDescription *Desc;
-  IDETypeStateAnalysis *TSProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  OpenSSLSecureHeapDescription *Desc{};
+  IDETypeStateAnalysis *TSProblem{};
   IDESolver<IDETypeStateAnalysis::n_t, IDETypeStateAnalysis::d_t,
             IDETypeStateAnalysis::f_t, IDETypeStateAnalysis::t_t,
             IDETypeStateAnalysis::v_t, IDETypeStateAnalysis::l_t,
-            IDETypeStateAnalysis::i_t> *Llvmtssolver = 0;
+            IDETypeStateAnalysis::i_t> *Llvmtssolver = nullptr;
   IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
             const llvm::StructType *, const llvm::Value *, SecureHeapValue,
-            LLVMBasedICFG> *SecureHeapPropagationResults;
-  IDESecureHeapPropagation *SecureHeapPropagationProblem;
+            LLVMBasedICFG> *SecureHeapPropagationResults{};
+  IDESecureHeapPropagation *SecureHeapPropagationProblem{};
   enum OpenSSLSecureHeapState {
     TOP = 42,
     BOT = 0,
@@ -105,7 +105,7 @@ protected:
    */
   void compareResults(
       const std::map<std::size_t, std::map<std::string, int>> &GroundTruth) {
-    for (auto InstToGroundTruth : GroundTruth) {
+    for (const auto &InstToGroundTruth : GroundTruth) {
       auto *Inst = IRDB->getInstruction(InstToGroundTruth.first);
       auto GT = InstToGroundTruth.second;
       std::map<std::string, int> Results;

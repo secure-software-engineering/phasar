@@ -42,9 +42,9 @@ std::string PhasarConfig::readConfigFile(const std::string &Path) {
       !boost::filesystem::is_directory(Path)) {
     std::ifstream Ifs(Path, std::ios::binary);
     if (Ifs.is_open()) {
-      Ifs.seekg(0, Ifs.end);
+      Ifs.seekg(0, std::ifstream::end);
       size_t FileSize = Ifs.tellg();
-      Ifs.seekg(0, Ifs.beg);
+      Ifs.seekg(0, std::ifstream::beg);
       std::string Content(FileSize + 1, '\0');
       Ifs.read(const_cast<char *>(Content.data()), FileSize);
       return Content;

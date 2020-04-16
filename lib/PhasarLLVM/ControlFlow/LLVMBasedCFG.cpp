@@ -77,7 +77,7 @@ LLVMBasedCFG::getAllControlFlowEdges(const llvm::Function *Fun) const {
     for (const auto &I : BB) {
       auto Successors = getSuccsOf(&I);
       for (const auto *Successor : Successors) {
-        Edges.push_back(make_pair(&I, Successor));
+        Edges.emplace_back(&I, Successor);
       }
     }
   }
@@ -126,7 +126,7 @@ bool LLVMBasedCFG::isFieldStore(const llvm::Instruction *Stmt) const {
 bool LLVMBasedCFG::isFallThroughSuccessor(const llvm::Instruction *Stmt,
                                           const llvm::Instruction *Succ) const {
   // assert(false && "FallThrough not valid in LLVM IR");
-  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
+  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Stmt)) {
     if (B->isConditional()) {
       return &B->getSuccessor(1)->front() == Succ;
     } else {

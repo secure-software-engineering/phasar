@@ -57,31 +57,31 @@ public:
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isCallStmt(const llvm::Instruction *Inst) const override;
+  bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isIndirectFunctionCall(const llvm::Instruction *Inst) const override;
+  bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
 
-  bool isVirtualFunctionCall(const llvm::Instruction *Inst) const override;
+  bool isVirtualFunctionCall(const llvm::Instruction *Stmt) const override;
 
   const llvm::Function *getFunction(const std::string &Fun) const override;
 
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *Inst) const override;
+  getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *Fun) const override;
+  getCallersOf(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *Fun) const override;
+  getCallsFromWithin(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *Fun) const override;
+  getStartPointsOf(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
   getExitPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *Inst) const override;
+  getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 

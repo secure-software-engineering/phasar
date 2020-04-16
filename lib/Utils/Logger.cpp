@@ -71,7 +71,7 @@ void LoggerExceptionHandler::operator()(const std::exception &Ex) const {
   std::cerr << "std::exception: " << Ex.what() << '\n';
 }
 
-void initializeLogger(bool UseLogger, string LogFile) {
+void initializeLogger(bool UseLogger, const string &LogFile) {
   // Using this call, logging can be enabled or disabled
   boost::log::core::get()->set_logging_enabled(UseLogger);
   // if (log_file == "") {

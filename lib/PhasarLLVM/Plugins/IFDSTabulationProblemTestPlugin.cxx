@@ -15,6 +15,7 @@
  */
 
 #include <iostream>
+#include <utility>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 
@@ -32,7 +33,8 @@ unique_ptr<IFDSTabulationProblemPlugin> makeIFDSTabulationProblemTestPlugin(
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSTabulationProblemTestPlugin(IRDB, TH, ICF, PT, EntryPoints));
+      new IFDSTabulationProblemTestPlugin(IRDB, TH, ICF, PT,
+                                          std::move(EntryPoints)));
 }
 
 __attribute__((constructor)) void init() {
@@ -49,7 +51,7 @@ IFDSTabulationProblemTestPlugin::IFDSTabulationProblemTestPlugin(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSTabulationProblemTestPlugin::getNormalFlowFunction(

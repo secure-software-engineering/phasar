@@ -20,14 +20,14 @@ protected:
       "build/test/llvm_test_code/uninitialized_variables/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  IFDSUninitializedVariables *UninitProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  IFDSUninitializedVariables *UninitProblem{};
 
-  IFDSUninitializedVariablesTest() {}
-  ~IFDSUninitializedVariablesTest() override {}
+  IFDSUninitializedVariablesTest() = default;
+  ~IFDSUninitializedVariablesTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
@@ -55,7 +55,7 @@ protected:
   void compareResults(map<int, set<string>> &GroundTruth) {
 
     map<int, set<string>> FoundUninitUses;
-    for (auto Kvp : UninitProblem->getAllUndefUses()) {
+    for (const auto &Kvp : UninitProblem->getAllUndefUses()) {
       auto InstID = stoi(getMetaDataID(Kvp.first));
       set<string> UndefValueIds;
       for (const auto *UV : Kvp.second) {

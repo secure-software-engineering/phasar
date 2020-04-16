@@ -15,8 +15,9 @@ CallToRetFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
    */
   bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
       DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
-  if (IsGlobalMemLocationFact)
+  if (IsGlobalMemLocationFact) {
     return {};
+  }
 
   /*
    * For functions that kill facts and are handled in getSummaryFlowFunction()
@@ -32,8 +33,9 @@ CallToRetFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       llvm::isa<llvm::MemSetInst>(currentInst) ||
       llvm::isa<llvm::VAEndInst>(currentInst);
 
-  if (IsHandledInSummaryFlowFunction)
+  if (IsHandledInSummaryFlowFunction) {
     return {};
+  }
 
   return {Fact};
 }

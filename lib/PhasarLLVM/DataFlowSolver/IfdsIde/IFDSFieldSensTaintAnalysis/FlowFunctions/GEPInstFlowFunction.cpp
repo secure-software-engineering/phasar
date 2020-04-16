@@ -14,8 +14,9 @@ GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   bool IsVarArgFact = Fact.isVarArg();
   if (IsVarArgFact) {
     bool KillFact = GepInstPtr->getName().contains_lower("reg_save_area");
-    if (KillFact)
+    if (KillFact) {
       return {};
+    }
 
     bool IncrementCurrentVarArgIndex =
         GepInst->getName().contains_lower("overflow_arg_area.next");
@@ -35,8 +36,9 @@ GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     }
   } else {
     bool IsPtrTainted = DataFlowUtils::isValueTainted(GepInstPtr, Fact);
-    if (IsPtrTainted)
-      return {Fact, ExtendedValue(GepInst)};
+    if (IsPtrTainted) {
+      return { Fact, ExtendedValue(GepInst) };
+    }
   }
 
   return {Fact};

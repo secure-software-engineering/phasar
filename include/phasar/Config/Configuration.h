@@ -107,7 +107,7 @@ public:
 private:
   PhasarConfig();
 
-  std::string readConfigFile(const std::string &path);
+  static std::string readConfigFile(const std::string &path);
   void loadGlibcSpecialFunctionNames();
   void loadLLVMSpecialFunctionNames();
 

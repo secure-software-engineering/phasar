@@ -67,9 +67,9 @@ struct hs_result {
  */
 class Hexastore {
 private:
-  sqlite3 *hs_internal_db;
+  sqlite3 *hs_internal_db{};
   static int callback(void *NotUsed, int argc, char **argv, char **azColName);
-  void doPut(std::string query, std::array<std::string, 3> edge);
+  void doPut(const std::string &query, std::array<std::string, 3> edge);
 
 public:
   /**
@@ -80,7 +80,7 @@ public:
    * @brief Constructs a Hexastore under the given filename.
    * @param filename Filename of the Hexastore.
    */
-  Hexastore(std::string filename);
+  Hexastore(const std::string &filename);
 
   /**
    * Destructor.
@@ -98,7 +98,7 @@ public:
    *        hexastore.put({{"subject", "predicate", "object"}});
    * @param edge New entry in the form of a 3-tuple.
    */
-  void put(std::array<std::string, 3> edge);
+  void put(const std::array<std::string, 3> &edge);
 
   /**
    * A query is always in the form of a 3-tuple (source, edge, destination)
@@ -115,8 +115,8 @@ public:
    * @param result_size_hint Used for possible optimization.
    * @return An object of hs_result, holding the queried information.
    */
-  std::vector<hs_result> get(std::array<std::string, 3> edge_query,
-                             size_t result_size_hint = 0);
+  std::vector<hs_result> get(std::array<std::string, 3> EdgeQuery,
+                             size_t ResultSizeHint = 0);
 };
 
 } // namespace psr

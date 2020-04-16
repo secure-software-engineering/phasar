@@ -55,15 +55,15 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
-                      std::set<LCACompactResult_t> &GroundTruth) {
+  static void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
+                             std::set<LCACompactResult_t> &GroundTruth) {
     std::set<LCACompactResult_t> RelevantResults;
     for (auto G : GroundTruth) {
       std::string FName = std::get<0>(G);
       unsigned Line = std::get<1>(G);
       if (Results.find(FName) != Results.end()) {
         if (auto It = Results[FName].find(Line); It != Results[FName].end()) {
-          for (auto VarToVal : It->second.variableToValue) {
+          for (const auto &VarToVal : It->second.variableToValue) {
             RelevantResults.emplace(FName, Line, VarToVal.first,
                                     VarToVal.second);
           }

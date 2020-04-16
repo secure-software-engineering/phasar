@@ -33,12 +33,11 @@ namespace psr {
 int getVFTIndex(llvm::ImmutableCallSite CS) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
-  const llvm::LoadInst *Load =
-      llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+  const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
   if (Load == nullptr) {
     return -1;
   }
-  const llvm::GetElementPtrInst *GEP =
+  const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
   if (GEP == nullptr) {
     return -2;

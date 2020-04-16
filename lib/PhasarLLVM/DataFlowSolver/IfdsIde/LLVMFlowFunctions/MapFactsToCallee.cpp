@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Value.h"
@@ -24,7 +26,7 @@ namespace psr {
 MapFactsToCallee::MapFactsToCallee(
     llvm::ImmutableCallSite CallSite, const llvm::Function *DestFun,
     function<bool(const llvm::Value *)> Predicate)
-    : destFun(DestFun), predicate(Predicate) {
+    : destFun(DestFun), predicate(std::move(Predicate)) {
   // Set up the actual parameters
   for (unsigned Idx = 0; Idx < CallSite.getNumArgOperands(); ++Idx) {
     actuals.push_back(CallSite.getArgOperand(Idx));

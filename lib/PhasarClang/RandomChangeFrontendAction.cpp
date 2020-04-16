@@ -36,7 +36,7 @@ using namespace psr;
 
 namespace psr {
 
-RandomChangeFrontendAction::RandomChangeFrontendAction() {}
+RandomChangeFrontendAction::RandomChangeFrontendAction() = default;
 
 void RandomChangeFrontendAction::EndSourceFileAction() {
   clang::SourceManager &SM = RW.getSourceMgr();

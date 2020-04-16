@@ -39,12 +39,13 @@ RandomChangeVisitor::RandomChangeVisitor(clang::Rewriter &R) : RW(R) {}
 bool RandomChangeVisitor::visitStmt(clang::Stmt *S) {
   // Only care about If statements.
   if (clang::isa<clang::IfStmt>(S)) {
-    clang::IfStmt *IfStatement = clang::cast<clang::IfStmt>(S);
+    auto *IfStatement = clang::cast<clang::IfStmt>(S);
     clang::Stmt *Then = IfStatement->getThen();
     RW.InsertText(Then->getBeginLoc(), "// the 'if' part\n", true, true);
     clang::Stmt *Else = IfStatement->getElse();
-    if (Else)
+    if (Else) {
       RW.InsertText(Else->getBeginLoc(), "// the 'else' part\n", true, true);
+    }
   }
   return true;
 }

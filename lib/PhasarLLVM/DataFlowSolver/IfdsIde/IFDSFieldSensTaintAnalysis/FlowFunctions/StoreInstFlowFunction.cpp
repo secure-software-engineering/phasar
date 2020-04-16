@@ -120,8 +120,9 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
    */
   else if (IsSrcMemLocation) {
     bool IsArrayDecay = DataFlowUtils::isArrayDecay(SrcMemLocationMatr);
-    if (IsArrayDecay)
+    if (IsArrayDecay) {
       SrcMemLocationSeq.pop_back();
+    }
 
     bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(SrcMemLocationSeq,
                                                             FactMemLocationSeq);
@@ -149,8 +150,9 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(EV);
     }
-    if (!KillFact)
+    if (!KillFact) {
       TargetFacts.insert(Fact);
+    }
   } else {
     bool GenFact = DataFlowUtils::isValueTainted(SrcMemLocationMatr, Fact);
     bool KillFact = DataFlowUtils::isSubsetMemoryLocationSeq(
@@ -164,8 +166,9 @@ StoreInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       TargetFacts.insert(EV);
       traceStats.add(StoreInst, DstMemLocationSeq);
     }
-    if (!KillFact)
+    if (!KillFact) {
       TargetFacts.insert(Fact);
+    }
   }
 
   return TargetFacts;

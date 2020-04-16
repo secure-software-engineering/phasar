@@ -31,12 +31,12 @@ protected:
   }
   void TearDown() override { delete IRDB; }
 
-  const std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
-  doAnalysis(std::string LlvmFilePath, bool PrintDump = false) {
+  std::map<llvm::Instruction const *, std::set<llvm::Value const *>>
+  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToInfo(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
@@ -58,13 +58,13 @@ protected:
     return Leaks;
   }
 
-  void doAnalysisAndCompare(std::string LlvmFilePath, size_t InstId,
-                            std::set<std::string> GroundTruth,
+  void doAnalysisAndCompare(const std::string &LlvmFilePath, size_t InstId,
+                            const std::set<std::string> &GroundTruth,
                             bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
-    LLVMPointsToInfo *PT = new LLVMPointsToInfo(*IRDB);
+    auto *PT = new LLVMPointsToInfo(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::OTF, EntryPoints, &TH, PT);
     TaintConfiguration<InterMonoTaintAnalysis::d_t> TC;
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
@@ -84,10 +84,10 @@ protected:
     EXPECT_EQ(FoundResults, GroundTruth);
   }
 
-  void compareResults(
+  static void compareResults(
       std::map<llvm::Instruction const *, std::set<llvm::Value const *>> &Leaks,
       std::map<int, std::set<std::string>> &GroundTruth,
-      std::string ErrorMessage = "") {
+      const std::string &ErrorMessage = "") {
     std::map<int, std::set<std::string>> LeakIds;
     for (const auto &Kvp : Leaks) {
       int InstId = stoi(getMetaDataID(Kvp.first));

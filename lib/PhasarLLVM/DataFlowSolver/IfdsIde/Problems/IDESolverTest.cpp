@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -36,7 +38,7 @@ IDESolverTest::IDESolverTest(const ProjectIRDB *IRDB,
                              const LLVMBasedICFG *ICF,
                              const LLVMPointsToInfo *PT,
                              std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 

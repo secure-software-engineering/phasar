@@ -7,12 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
+#include <utility>
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDETaintAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/LLVMShorthands.h"
@@ -27,7 +29,7 @@ using namespace std;
 using namespace psr;
 namespace psr {
 
-bool IDETaintAnalysis::setContainsStr(set<string> S, string Str) {
+bool IDETaintAnalysis::setContainsStr(set<string> S, const string &Str) {
   return S.find(Str) != S.end();
 }
 
@@ -36,7 +38,7 @@ IDETaintAnalysis::IDETaintAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMBasedICFG *ICF,
                                    const LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 

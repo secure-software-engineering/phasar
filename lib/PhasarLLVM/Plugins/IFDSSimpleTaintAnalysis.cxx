@@ -15,6 +15,7 @@
  */
 
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -36,7 +37,7 @@ unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSimpleTaintAnalysis(
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSSimpleTaintAnalysis(IRDB, TH, ICF, PT, EntryPoints));
+      new IFDSSimpleTaintAnalysis(IRDB, TH, ICF, PT, std::move(EntryPoints)));
 }
 
 __attribute__((constructor)) void init() {
@@ -53,7 +54,7 @@ IFDSSimpleTaintAnalysis::IFDSSimpleTaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSimpleTaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,

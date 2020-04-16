@@ -25,10 +25,10 @@ class LLVMPointsToInfo;
 
 class AnalysisPluginController {
 public:
-  AnalysisPluginController(std::vector<std::string> AnalysisPlygins,
+  AnalysisPluginController(const std::vector<std::string> &AnalysisPlygins,
                            const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                            const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
-                           std::set<std::string> EntryPoints = {"main"});
+                           const std::set<std::string> &EntryPoints = {"main"});
 };
 
 } // namespace psr

@@ -22,8 +22,9 @@ ReturnInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
      * function is to make sure that a tainted return statement of an
      * entry point is added as for that case no mapping function is called.
      */
-    if (IsRetValTainted)
+    if (IsRetValTainted) {
       traceStats.add(RetInst);
+    }
   }
 
   return {Fact};

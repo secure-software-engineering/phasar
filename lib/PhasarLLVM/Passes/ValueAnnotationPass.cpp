@@ -39,7 +39,7 @@ llvm::AnalysisKey ValueAnnotationPass::Key;
 
 size_t ValueAnnotationPass::UniqueValueId = 0;
 
-ValueAnnotationPass::ValueAnnotationPass() {}
+ValueAnnotationPass::ValueAnnotationPass() = default;
 
 llvm::PreservedAnalyses
 ValueAnnotationPass::run(llvm::Module &M, llvm::ModuleAnalysisManager &AM) {

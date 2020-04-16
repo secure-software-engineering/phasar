@@ -194,7 +194,7 @@ std::string getDirectoryFromIR(const llvm::Value *V) {
   } else if (auto *DIGV = getDIGlobalVariable(V)) { // Globals
     return DIGV->getDirectory();
   }
-  return 0;
+  return nullptr;
 }
 
 unsigned int getColumnFromIR(const llvm::Value *V) {

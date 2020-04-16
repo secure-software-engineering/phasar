@@ -7,10 +7,12 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
+#include <utility>
+
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IFDSTypeAnalysis.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 
@@ -27,7 +29,7 @@ IFDSTypeAnalysis::IFDSTypeAnalysis(const ProjectIRDB *IRDB,
                                    const LLVMBasedICFG *ICF,
                                    const LLVMPointsToInfo *PT,
                                    std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSTypeAnalysis::ZeroValue = createZeroValue();
 }
 

@@ -33,7 +33,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Utilities.h"
 
-#include "stdlib.h"
+#include <cstdlib>
 
 using namespace std;
 using namespace psr;
@@ -69,7 +69,7 @@ SpecialMemberFunctionTy specialMemberFunctionType(const std::string &S) {
   while (It != Codes.end()) {
     if (std::size_t Index = S.find(It->first, Blacklist)) {
       if (Index != std::string::npos) {
-        Found.push_back(std::make_pair(Index, It->second));
+        Found.emplace_back(Index, It->second);
         Blacklist = Index + 1;
       } else {
         ++It;
@@ -130,8 +130,9 @@ bool isAllocaInstOrHeapAllocaFunction(const llvm::Value *V) noexcept {
 bool matchesSignature(const llvm::Function *F,
                       const llvm::FunctionType *FType) {
   // FType->print(llvm::outs());
-  if (F == nullptr || FType == nullptr)
+  if (F == nullptr || FType == nullptr) {
     return false;
+  }
   if (F->arg_size() == FType->getNumParams() &&
       F->getReturnType() == FType->getReturnType()) {
     unsigned Idx = 0;
@@ -148,8 +149,9 @@ bool matchesSignature(const llvm::Function *F,
 
 bool matchesSignature(const llvm::FunctionType *FType1,
                       const llvm::FunctionType *FType2) {
-  if (FType1 == nullptr || FType2 == nullptr)
+  if (FType1 == nullptr || FType2 == nullptr) {
     return false;
+  }
   if (FType1->getNumParams() == FType2->getNumParams() &&
       FType1->getReturnType() == FType2->getReturnType()) {
     for (unsigned Idx = 0; Idx < FType1->getNumParams(); ++Idx) {
@@ -284,30 +286,35 @@ const llvm::Instruction *getNthInstruction(const llvm::Function *F,
 }
 
 const llvm::Module *getModuleFromVal(const llvm::Value *V) {
-  if (const llvm::Argument *MA = llvm::dyn_cast<llvm::Argument>(V))
+  if (const auto *MA = llvm::dyn_cast<llvm::Argument>(V)) {
     return MA->getParent() ? MA->getParent()->getParent() : nullptr;
+  }
 
-  if (const llvm::BasicBlock *BB = llvm::dyn_cast<llvm::BasicBlock>(V))
+  if (const auto *BB = llvm::dyn_cast<llvm::BasicBlock>(V)) {
     return BB->getParent() ? BB->getParent()->getParent() : nullptr;
+  }
 
-  if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(V)) {
+  if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     const llvm::Function *F =
         I->getParent() ? I->getParent()->getParent() : nullptr;
     return F ? F->getParent() : nullptr;
   }
-  if (const llvm::GlobalValue *GV = llvm::dyn_cast<llvm::GlobalValue>(V))
+  if (const auto *GV = llvm::dyn_cast<llvm::GlobalValue>(V)) {
     return GV->getParent();
+  }
   if (const auto *MAV = llvm::dyn_cast<llvm::MetadataAsValue>(V)) {
-    for (const llvm::User *U : MAV->users())
-      if (llvm::isa<llvm::Instruction>(U))
-        if (const llvm::Module *M = getModuleFromVal(U))
+    for (const llvm::User *U : MAV->users()) {
+      if (llvm::isa<llvm::Instruction>(U)) {
+        if (const llvm::Module *M = getModuleFromVal(U)) {
           return M;
-    return nullptr;
+        }
+      }
+    }
   }
   return nullptr;
 }
 
-const std::string getModuleNameFromVal(const llvm::Value *V) {
+std::string getModuleNameFromVal(const llvm::Value *V) {
   const llvm::Module *M = getModuleFromVal(V);
   return M ? M->getModuleIdentifier() : " ";
 }
@@ -356,7 +363,7 @@ const llvm::StoreInst *getNthStoreInstruction(const llvm::Function *F,
   unsigned Current = 1;
   for (const auto &BB : *F) {
     for (const auto &I : BB) {
-      if (const llvm::StoreInst *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
+      if (const auto *S = llvm::dyn_cast<llvm::StoreInst>(&I)) {
         if (Current == StoNo) {
           return S;
         }

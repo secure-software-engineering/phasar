@@ -17,16 +17,18 @@ namespace psr {
 std::set<ExtendedValue>
 MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
   bool IsFactVarArgTemplate = Fact.isVarArgTemplate();
-  if (IsFactVarArgTemplate)
+  if (IsFactVarArgTemplate) {
     return {};
+  }
 
   std::set<ExtendedValue> TargetGlobalFacts;
   std::set<ExtendedValue> TargetParamFacts;
 
   bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
       DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
-  if (IsGlobalMemLocationFact)
+  if (IsGlobalMemLocationFact) {
     TargetGlobalFacts.insert(Fact);
+  }
 
   long VarArgIndex = 0L;
 
@@ -36,7 +38,7 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
   for (const auto &ArgParamTriple : SanitizedArgList) {
 
     const auto *const Arg = std::get<0>(ArgParamTriple);
-    const auto ArgMemLocationSeq = std::get<1>(ArgParamTriple);
+    const auto &ArgMemLocationSeq = std::get<1>(ArgParamTriple);
     const auto *const Param = std::get<2>(ArgParamTriple);
 
     bool IsVarArgParam =
@@ -68,8 +70,9 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
           EV.setMemLocationSeq(PatchableMemLocationSeq);
         }
 
-        if (IsVarArgParam)
+        if (IsVarArgParam) {
           EV.setVarArgIndex(VarArgIndex);
+        }
 
         TargetParamFacts.insert(EV);
 
@@ -86,8 +89,9 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
 
         ExtendedValue EV(Fact);
         EV.setMemLocationSeq(PatchablePart);
-        if (IsVarArgParam)
+        if (IsVarArgParam) {
           EV.setVarArgIndex(VarArgIndex);
+        }
 
         TargetParamFacts.insert(EV);
 
@@ -99,13 +103,15 @@ MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
       }
     }
 
-    if (IsVarArgParam)
+    if (IsVarArgParam) {
       ++VarArgIndex;
+    }
   }
 
   bool AddLineNumber = !TargetParamFacts.empty();
-  if (AddLineNumber)
+  if (AddLineNumber) {
     traceStats.add(callInst);
+  }
 
   std::set<ExtendedValue> TargetFacts;
   std::set_union(TargetGlobalFacts.begin(), TargetGlobalFacts.end(),

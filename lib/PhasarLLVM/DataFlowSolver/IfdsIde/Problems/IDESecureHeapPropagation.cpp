@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <array>
+#include <utility>
 
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Instruction.h"
@@ -27,7 +28,7 @@ IDESecureHeapPropagation::IDESecureHeapPropagation(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   ZeroValue = createZeroValue();
 }
 
@@ -70,8 +71,9 @@ IDESecureHeapPropagation::initialSeeds() {
   std::map<n_t, std::set<d_t>> Seeds;
   for (const auto &Entry : EntryPoints) {
     const auto *Fn = ICF->getFunction(Entry);
-    if (Fn && !Fn->isDeclaration())
-      Seeds[&Fn->front().front()] = {getZeroValue()};
+    if (Fn && !Fn->isDeclaration()) {
+      Seeds[&Fn->front().front()] = { getZeroValue() };
+    }
   }
   return Seeds;
 }
@@ -163,12 +165,15 @@ IDESecureHeapPropagation::l_t IDESecureHeapPropagation::bottomElement() {
 }
 
 IDESecureHeapPropagation::l_t IDESecureHeapPropagation::join(l_t Lhs, l_t Rhs) {
-  if (Lhs == Rhs)
+  if (Lhs == Rhs) {
     return Lhs;
-  if (Lhs == l_t::TOP)
+  }
+  if (Lhs == l_t::TOP) {
     return Rhs;
-  if (Rhs == l_t::TOP)
+  }
+  if (Rhs == l_t::TOP) {
     return Lhs;
+  }
   return l_t::BOT;
 }
 
@@ -236,8 +241,9 @@ void IDESecureHeapPropagation::IdentityEdgeFunction::print(
 std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::IdentityEdgeFunction::composeWith(
     std::shared_ptr<EdgeFunction<l_t>> SecondFunction) {
-  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get()))
+  if (dynamic_cast<AllBottom<l_t> *>(SecondFunction.get())) {
     return shared_from_this();
+  }
   return SecondFunction;
 }
 std::shared_ptr<IDESecureHeapPropagation::IdentityEdgeFunction>
@@ -250,8 +256,9 @@ std::shared_ptr<EdgeFunction<IDESecureHeapPropagation::l_t>>
 IDESecureHeapPropagation::SHPEdgeFn::joinWith(
     std::shared_ptr<EdgeFunction<l_t>> OtherFunction) {
 
-  if (OtherFunction.get() != this)
+  if (OtherFunction.get() != this) {
     return SHPGenEdgeFn::getInstance(l_t::BOT);
+  }
   return shared_from_this();
 }
 

@@ -177,7 +177,7 @@ TypeStateDescription::State OpenSSLSecureHeapDescription::error() const {
 }
 
 OpenSSLSecureHeapDescription::OpenSSLSecureHeapToken
-OpenSSLSecureHeapDescription::funcNameToToken(const std::string &F) const {
+OpenSSLSecureHeapDescription::funcNameToToken(const std::string &F) {
   return llvm::StringSwitch<OpenSSLSecureHeapToken>(F)
       .Case("CRYPTO_secure_malloc", OpenSSLSecureHeapToken::SECURE_MALLOC)
       .Case("CRYPTO_secure_zalloc", OpenSSLSecureHeapToken::SECURE_ZALLOC)

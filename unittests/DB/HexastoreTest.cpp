@@ -113,7 +113,9 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,
                                         boost::undirectedS, Vertex, Edge>;
   using vertex_t = boost::graph_traits<graph_t>::vertex_descriptor;
-  typename boost::graph_traits<graph_t>::edge_iterator EiStart, EEnd;
+  typename boost::graph_traits<graph_t>::edge_iterator EiStart;
+
+  typename boost::graph_traits<graph_t>::edge_iterator EEnd;
 
   // graph with unlabeled edges
   graph_t G;
@@ -159,7 +161,7 @@ TEST(HexastoreTest, StoreGraphNoEdgeLabels) {
 
   vector<hs_result> ResultSet = HS.get({{"?", "no label", "?"}}, 20);
 
-  for (auto Entry : ResultSet) {
+  for (const auto &Entry : ResultSet) {
     if (Recognized.find(Entry.subject) == Recognized.end()) {
       Vertices[Entry.subject] = boost::add_vertex(H);
       H[Vertices[Entry.subject]].Name = Entry.subject;
@@ -192,7 +194,9 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   using graph_t = boost::adjacency_list<boost::setS, boost::vecS,
                                         boost::undirectedS, Vertex, Edge>;
   using vertex_t = boost::graph_traits<graph_t>::vertex_descriptor;
-  typename boost::graph_traits<graph_t>::edge_iterator EiStart, EEnd;
+  typename boost::graph_traits<graph_t>::edge_iterator EiStart;
+
+  typename boost::graph_traits<graph_t>::edge_iterator EEnd;
 
   // graph with labeled edges
   graph_t I;
@@ -243,7 +247,7 @@ TEST(HexastoreTest, StoreGraphWithEdgeLabels) {
   set<string> RecognizedVertices;
   map<string, vertex_t> Vertices;
   vector<hs_result> HsiRes = HS.get({{"?", "?", "?"}}, 10);
-  for (auto Entry : HsiRes) {
+  for (const auto &Entry : HsiRes) {
     if (RecognizedVertices.find(Entry.subject) == RecognizedVertices.end()) {
       Vertices[Entry.subject] = boost::add_vertex(J);
       J[Vertices[Entry.subject]].Name = Entry.subject;

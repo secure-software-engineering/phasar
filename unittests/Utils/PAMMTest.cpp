@@ -9,8 +9,8 @@ using namespace psr;
 class PAMMTest : public ::testing::Test {
 protected:
   typedef std::chrono::high_resolution_clock::time_point time_point;
-  PAMMTest() {}
-  ~PAMMTest() override {}
+  PAMMTest() = default;
+  ~PAMMTest() override = default;
 
   void SetUp() override {}
 

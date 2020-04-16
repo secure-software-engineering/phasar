@@ -52,16 +52,20 @@ ProjectIRDB::ProjectIRDB(const std::vector<std::string> &IRFiles,
     : ProjectIRDB(Options | IRDBOptions::OWNS) {
   for (const auto &File : IRFiles) {
     // if we have a file that is already compiled to llvm ir
-    if ((File.find(".ll") != File.npos || File.find(".bc") != File.npos) &&
+    if ((File.find(".ll") != std::basic_string<char, std::char_traits<char>,
+                                               std::allocator<char>>::npos ||
+         File.find(".bc") != std::basic_string<char, std::char_traits<char>,
+                                               std::allocator<char>>::npos) &&
         boost::filesystem::exists(File)) {
       llvm::SMDiagnostic Diag;
       std::unique_ptr<llvm::LLVMContext> C(new llvm::LLVMContext);
       std::unique_ptr<llvm::Module> M = llvm::parseIRFile(File, Diag, *C);
       bool BrokenDebugInfo = false;
-      if (M.get() == nullptr)
+      if (M == nullptr) {
         Diag.print(File.c_str(), llvm::errs());
+      }
       /* Crash in presence of llvm-3.9.1 module (segfault) */
-      if (M.get() == nullptr ||
+      if (M == nullptr ||
           llvm::verifyModule(*M, &llvm::errs(), &BrokenDebugInfo)) {
         throw std::runtime_error(File + " could not be parsed correctly");
       }
@@ -160,7 +164,7 @@ void ProjectIRDB::linkForWPA() {
         std::unique_ptr<llvm::Module> TmpMod =
             llvm::parseIR(*MemBuffer, ErrorDiagnostics, MainMod->getContext());
         bool BrokenDebugInfo = false;
-        if (TmpMod.get() == nullptr ||
+        if (TmpMod == nullptr ||
             llvm::verifyModule(*TmpMod, &llvm::errs(), &BrokenDebugInfo)) {
           llvm::report_fatal_error("Error: module is broken!");
         }
@@ -229,20 +233,22 @@ bool ProjectIRDB::containsSourceFile(const std::string &File) const {
 }
 
 llvm::Module *ProjectIRDB::getModule(const std::string &ModuleName) {
-  if (Modules.count(ModuleName))
+  if (Modules.count(ModuleName)) {
     return Modules[ModuleName].get();
+  }
   return nullptr;
 }
 
 std::size_t ProjectIRDB::getNumberOfModules() const { return Modules.size(); }
 
 llvm::Instruction *ProjectIRDB::getInstruction(std::size_t Id) {
-  if (IDInstructionMapping.count(Id))
+  if (IDInstructionMapping.count(Id)) {
     return IDInstructionMapping[Id];
+  }
   return nullptr;
 }
 
-std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) const {
+std::size_t ProjectIRDB::getInstructionID(const llvm::Instruction *I) {
   std::size_t Id = 0;
   if (auto *MD = llvm::cast<llvm::MDString>(
           I->getMetadata(PhasarConfig::MetaDataKind())->getOperand(0))) {
@@ -364,19 +370,16 @@ ProjectIRDB::getModuleDefiningFunction(const std::string &FunctionName) const {
 std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(V)) {
     return LLVMZeroValue::getInstance()->getName();
-  } else if (const llvm::Instruction *I =
-                 llvm::dyn_cast<llvm::Instruction>(V)) {
+  } else if (const auto *I = llvm::dyn_cast<llvm::Instruction>(V)) {
     return I->getFunction()->getName().str() + "." + getMetaDataID(I);
-  } else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(V)) {
+  } else if (const auto *A = llvm::dyn_cast<llvm::Argument>(V)) {
     return A->getParent()->getName().str() + ".f" +
            std::to_string(A->getArgNo());
-  } else if (const llvm::GlobalValue *G =
-                 llvm::dyn_cast<llvm::GlobalValue>(V)) {
+  } else if (const auto *G = llvm::dyn_cast<llvm::GlobalValue>(V)) {
     std::cout << "special case: WE ARE AN GLOBAL VARIABLE\n";
     std::cout << "all user:\n";
     for (const auto *User : V->users()) {
-      if (const llvm::Instruction *I =
-              llvm::dyn_cast<llvm::Instruction>(User)) {
+      if (const auto *I = llvm::dyn_cast<llvm::Instruction>(User)) {
         std::cout << I->getFunction()->getName().str() << "\n";
       }
     }
@@ -387,8 +390,7 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
     std::cout << "special case: WE ARE AN OPERAND\n";
     // We should only have one user in this special case
     for (const auto *User : V->users()) {
-      if (const llvm::Instruction *I =
-              llvm::dyn_cast<llvm::Instruction>(User)) {
+      if (const auto *I = llvm::dyn_cast<llvm::Instruction>(User)) {
         for (unsigned Idx = 0; Idx < I->getNumOperands(); ++Idx) {
           if (I->getOperand(Idx) == V) {
             return I->getFunction()->getName().str() + "." + getMetaDataID(I) +
@@ -405,23 +407,24 @@ std::string ProjectIRDB::valueToPersistedString(const llvm::Value *V) {
   }
 }
 
-const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
+const llvm::Value *
+ProjectIRDB::persistedStringToValue(const std::string &S) const {
   if (S.find(LLVMZeroValue::getInstance()->getName()) != std::string::npos) {
     return LLVMZeroValue::getInstance();
-  } else if (S.find(".") == std::string::npos) {
+  } else if (S.find('.') == std::string::npos) {
     return getGlobalVariableDefinition(S);
   } else if (S.find(".f") != std::string::npos) {
     unsigned Argno = stoi(S.substr(S.find(".f") + 2, S.size()));
     return getNthFunctionArgument(
         getFunctionDefinition(S.substr(0, S.find(".f"))), Argno);
   } else if (S.find(".o.") != std::string::npos) {
-    unsigned I = S.find(".");
+    unsigned I = S.find('.');
     unsigned J = S.find(".o.");
     unsigned InstID = stoi(S.substr(I + 1, J));
     // std::cout << "FOUND instID: " << instID << "\n";
     unsigned OpIdx = stoi(S.substr(J + 3, S.size()));
     // std::cout << "FOUND opIdx: " << to_string(opIdx) << "\n";
-    const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find(".")));
+    const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find('.')));
     for (const auto &BB : *F) {
       for (const auto &Inst : BB) {
         if (getMetaDataID(&Inst) == std::to_string(InstID)) {
@@ -430,11 +433,11 @@ const llvm::Value *ProjectIRDB::persistedStringToValue(const std::string &S) {
       }
     }
     llvm::report_fatal_error("Error: operand not found.");
-  } else if (S.find(".") != std::string::npos) {
-    const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find(".")));
+  } else if (S.find('.') != std::string::npos) {
+    const llvm::Function *F = getFunctionDefinition(S.substr(0, S.find('.')));
     for (const auto &BB : *F) {
       for (const auto &Inst : BB) {
-        if (getMetaDataID(&Inst) == S.substr(S.find(".") + 1, S.size())) {
+        if (getMetaDataID(&Inst) == S.substr(S.find('.') + 1, S.size())) {
           return &Inst;
         }
       }
@@ -465,7 +468,7 @@ bool ProjectIRDB::empty() const { return Modules.empty(); }
 
 void ProjectIRDB::insertModule(llvm::Module *M) {
   Contexts.push_back(std::unique_ptr<llvm::LLVMContext>(&M->getContext()));
-  Modules.insert(std::make_pair(M->getModuleIdentifier(), std::move(M)));
+  Modules.insert(std::make_pair(M->getModuleIdentifier(), M));
   preprocessModule(M);
 }
 
@@ -512,7 +515,7 @@ set<const llvm::Value *> ProjectIRDB::getAllMemoryLocations() const {
   return AllMemoryLoc;
 }
 
-bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) const {
+bool ProjectIRDB::wasCompiledWithDebugInfo(llvm::Module *M) {
   return M->getNamedMetadata("llvm.dbg.cu") != nullptr;
 }
 
@@ -521,7 +524,7 @@ bool ProjectIRDB::debugInfoAvailable() const {
     return wasCompiledWithDebugInfo(WPAModule);
   }
   // During unittests WPAMOD might not be set
-  else if (Modules.size() >= 1) {
+  else if (!Modules.empty()) {
     for (const auto &[File, Module] : Modules) {
       if (!wasCompiledWithDebugInfo(Module.get())) {
         return false;

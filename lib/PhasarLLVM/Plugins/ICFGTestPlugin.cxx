@@ -30,12 +30,12 @@ __attribute__((constructor)) void init() {
 __attribute__((destructor)) void fini() { cout << "fini - ICFGTestPlugin\n"; }
 
 unique_ptr<ICFGPlugin> makeICFGTestPlugin(ProjectIRDB &IRDB,
-                                          const vector<string> EntryPoints) {
+                                          const vector<string> &EntryPoints) {
   return unique_ptr<ICFGPlugin>(new ICFGTestPlugin(IRDB, EntryPoints));
 }
 
 ICFGTestPlugin::ICFGTestPlugin(ProjectIRDB &IRDB,
-                               const vector<string> EntryPoints)
+                               const vector<string> &EntryPoints)
     : ICFGPlugin(IRDB, EntryPoints) {}
 
 ICFGTestPlugin::f_t

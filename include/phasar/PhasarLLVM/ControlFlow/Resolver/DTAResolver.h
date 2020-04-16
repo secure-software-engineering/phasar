@@ -44,7 +44,8 @@ protected:
    * An heuristic that return true if the bitcast instruction is interesting to
    * take into the DTA relational graph
    */
-  bool heuristicAntiConstructorThisType(const llvm::BitCastInst *bitcast);
+  static bool
+  heuristicAntiConstructorThisType(const llvm::BitCastInst *bitcast);
 
   /**
    * Another heuristic that return true if the bitcast instruction is

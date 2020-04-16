@@ -65,7 +65,7 @@ void validateParamExport(const std::string &Export) {
 }
 
 void validateParamOutput(const std::string &Output) {
-  if (Output != "" && !boost::filesystem::is_directory(Output)) {
+  if (!Output.empty() && !boost::filesystem::is_directory(Output)) {
     throw boost::program_options::error_with_option_name(
         "'" + Output +
         "' does not exist, a valid output directory is required!");
@@ -218,7 +218,7 @@ int main(int Argc, const char **Argv) {
     return 1;
   }
   try {
-    if (ConfigFile != "") {
+    if (!ConfigFile.empty()) {
       std::ifstream Ifs(ConfigFile.c_str());
       if (!Ifs) {
       } else {

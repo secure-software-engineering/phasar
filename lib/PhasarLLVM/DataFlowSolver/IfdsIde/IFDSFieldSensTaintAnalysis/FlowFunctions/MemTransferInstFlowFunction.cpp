@@ -47,12 +47,14 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
     DataFlowUtils::dumpFact(EV);
   } else {
     bool IsSrcArrayDecay = DataFlowUtils::isArrayDecay(SrcMemLocationMatr);
-    if (IsSrcArrayDecay)
+    if (IsSrcArrayDecay) {
       SrcMemLocationSeq.pop_back();
+    }
 
     bool IsDstArrayDecay = DataFlowUtils::isArrayDecay(DstMemLocationMatr);
-    if (IsDstArrayDecay)
+    if (IsDstArrayDecay) {
       DstMemLocationSeq.pop_back();
+    }
 
     bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(SrcMemLocationSeq,
                                                             FactMemLocationSeq);
@@ -78,8 +80,9 @@ MemTransferInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
       LOG_DEBUG("Destination");
       DataFlowUtils::dumpFact(EV);
     }
-    if (!KillFact)
+    if (!KillFact) {
       TargetFacts.insert(Fact);
+    }
   }
 
   return TargetFacts;

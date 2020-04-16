@@ -11,8 +11,9 @@ namespace psr {
 std::set<ExtendedValue>
 VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   bool IsVarArgFact = Fact.isVarArg();
-  if (!IsVarArgFact)
-    return {Fact};
+  if (!IsVarArgFact) {
+    return { Fact };
+  }
 
   const auto *const VaEndInst = llvm::cast<llvm::VAEndInst>(currentInst);
   auto *const VaEndMemLocationMatr = VaEndInst->getArgList();
@@ -23,8 +24,9 @@ VAEndInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   bool IsValidMemLocationSeq = !VaEndMemLocationSeq.empty();
   if (IsValidMemLocationSeq) {
     bool IsArrayDecay = DataFlowUtils::isArrayDecay(VaEndMemLocationMatr);
-    if (IsArrayDecay)
+    if (IsArrayDecay) {
       VaEndMemLocationSeq.pop_back();
+    }
 
     bool IsVaListEqual = DataFlowUtils::isMemoryLocationSeqsEqual(
         DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact),

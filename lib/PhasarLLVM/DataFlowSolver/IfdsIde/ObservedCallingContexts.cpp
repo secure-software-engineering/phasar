@@ -16,15 +16,16 @@ using namespace psr;
 using namespace std;
 namespace psr {
 
-void ObservedCallingContexts::addObservedCTX(string FName, vector<bool> CTX) {
+void ObservedCallingContexts::addObservedCTX(const string &FName,
+                                             const vector<bool> &CTX) {
   ObservedCTX[FName].insert(CTX);
 }
 
-bool ObservedCallingContexts::containsCTX(string FName) {
+bool ObservedCallingContexts::containsCTX(const string &FName) {
   return ObservedCTX.find(FName) != ObservedCTX.end();
 }
 
-set<vector<bool>> ObservedCallingContexts::getObservedCTX(string FName) {
+set<vector<bool>> ObservedCallingContexts::getObservedCTX(const string &FName) {
   return ObservedCTX[FName];
 }
 

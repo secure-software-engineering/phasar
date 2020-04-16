@@ -114,19 +114,19 @@ private:
 
   std::string removeStructOrClassPrefix(const llvm::StructType &T);
 
-  std::string removeStructOrClassPrefix(const std::string &TypeName);
+  static std::string removeStructOrClassPrefix(const std::string &TypeName);
 
-  std::string removeTypeInfoPrefix(std::string VarName);
+  static std::string removeTypeInfoPrefix(std::string VarName);
 
-  std::string removeVTablePrefix(std::string VarName);
+  static std::string removeVTablePrefix(std::string VarName);
 
-  bool isTypeInfo(std::string VarName);
+  static bool isTypeInfo(const std::string &VarName);
 
-  bool isVTable(std::string VarName);
+  static bool isVTable(const std::string &VarName);
 
   bool isStruct(const llvm::StructType &T);
 
-  bool isStruct(llvm::StringRef TypeName);
+  static bool isStruct(llvm::StringRef TypeName);
 
   std::vector<const llvm::StructType *>
   getSubTypes(const llvm::Module &M, const llvm::StructType &Type);

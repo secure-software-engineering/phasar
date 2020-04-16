@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -40,7 +41,7 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
     : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
                        IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
                        IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t>(
-          IRDB, TH, CF, PT, EntryPoints) {}
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>
 IntraMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,

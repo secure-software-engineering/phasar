@@ -15,6 +15,7 @@
  */
 
 #include <iostream>
+#include <utility>
 
 #include <phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h>
 #include <phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Gen.h>
@@ -31,7 +32,7 @@ unique_ptr<IFDSTabulationProblemPlugin> makeIFDSSFB901TaintAnalysis(
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints) {
   return unique_ptr<IFDSTabulationProblemPlugin>(
-      new IFDSSFB901TaintAnalysis(IRDB, TH, ICF, PT, EntryPoints));
+      new IFDSSFB901TaintAnalysis(IRDB, TH, ICF, PT, std::move(EntryPoints)));
 }
 
 __attribute__((constructor)) void init() {
@@ -48,7 +49,7 @@ IFDSSFB901TaintAnalysis::IFDSSFB901TaintAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, EntryPoints) {}
+    : IFDSTabulationProblemPlugin(IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<const llvm::Value *>>
 IFDSSFB901TaintAnalysis::getNormalFlowFunction(const llvm::Instruction *Curr,

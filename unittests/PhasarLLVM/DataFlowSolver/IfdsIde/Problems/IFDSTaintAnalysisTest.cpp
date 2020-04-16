@@ -19,15 +19,15 @@ protected:
       "build/test/llvm_test_code/taint_analysis/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  IFDSTaintAnalysis *TaintProblem;
-  TaintConfiguration<const llvm::Value *> *TSF;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  IFDSTaintAnalysis *TaintProblem{};
+  TaintConfiguration<const llvm::Value *> *TSF{};
 
-  IFDSTaintAnalysisTest() {}
-  ~IFDSTaintAnalysisTest() override {}
+  IFDSTaintAnalysisTest() = default;
+  ~IFDSTaintAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);
@@ -59,7 +59,7 @@ protected:
   void compareResults(map<int, set<string>> &GroundTruth) {
     // std::map<n_t, std::set<d_t>> Leaks;
     map<int, set<string>> FoundLeaks;
-    for (auto Leak : TaintProblem->Leaks) {
+    for (const auto &Leak : TaintProblem->Leaks) {
       int SinkId = stoi(getMetaDataID(Leak.first));
       set<string> LeakedValueIds;
       for (const auto *LV : Leak.second) {

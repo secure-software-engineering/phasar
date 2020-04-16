@@ -20,12 +20,14 @@ MapTaintedValuesToCaller::computeTargets(ExtendedValue Fact) {
 
   bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
       DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
-  if (IsGlobalMemLocationFact)
+  if (IsGlobalMemLocationFact) {
     TargetGlobalFacts.insert(Fact);
+  }
 
   auto *const RetValMemLocationMatr = retInst->getReturnValue();
-  if (!RetValMemLocationMatr)
+  if (!RetValMemLocationMatr) {
     return TargetGlobalFacts;
+  }
 
   auto RetValMemLocationSeq =
       DataFlowUtils::getMemoryLocationSeqFromMatr(RetValMemLocationMatr);
@@ -36,8 +38,9 @@ MapTaintedValuesToCaller::computeTargets(ExtendedValue Fact) {
         DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
 
     bool IsArrayDecay = DataFlowUtils::isArrayDecay(RetValMemLocationMatr);
-    if (IsArrayDecay)
+    if (IsArrayDecay) {
       RetValMemLocationSeq.pop_back();
+    }
 
     bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(
         RetValMemLocationSeq, FactMemLocationSeq);
@@ -86,8 +89,9 @@ MapTaintedValuesToCaller::computeTargets(ExtendedValue Fact) {
   }
 
   bool AddLineNumbers = !TargetRetFacts.empty();
-  if (AddLineNumbers)
+  if (AddLineNumbers) {
     traceStats.add(callInst);
+  }
 
   std::set<ExtendedValue> TargetFacts;
   std::set_union(TargetGlobalFacts.begin(), TargetGlobalFacts.end(),

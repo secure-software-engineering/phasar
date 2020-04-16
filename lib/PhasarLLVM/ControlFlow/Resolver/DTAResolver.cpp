@@ -60,15 +60,17 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
   // Better heuristic than the previous one, can handle the CRTP. Based on the
   // previous one.
 
-  if (heuristicAntiConstructorThisType(BitCast))
+  if (heuristicAntiConstructorThisType(BitCast)) {
     return true;
+  }
 
   // We know that we are in a constructor and the source type of the bitcast is
   // the same as the this argument. We then check where the bitcast is against
   // the store instruction of the vtable.
   const auto *StructTy = stripPointer(BitCast->getSrcTy());
-  if (StructTy == nullptr)
+  if (StructTy == nullptr) {
     throw runtime_error("StructTy == nullptr in the heuristic_anti_contructor");
+  }
 
   // If it doesn't contain vtable, there is no reason to call this class in the
   // DTA graph, so no need to add it
@@ -92,7 +94,11 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
     throw runtime_error("A bitcast instruction has no associated function");
   }
 
-  int Idx = 0, VtableNum = 0, BitcastNum = 0;
+  int Idx = 0;
+
+  int VtableNum = 0;
+
+  int BitcastNum = 0;
 
   for (auto I = llvm::inst_begin(Caller), E = llvm::inst_end(Caller); I != E;
        ++I, ++Idx) {
@@ -121,8 +127,9 @@ bool DTAResolver::heuristicAntiConstructorVtablePos(
       }
     }
 
-    if (&Inst == BitCast)
+    if (&Inst == BitCast) {
       BitcastNum = Idx;
+    }
   }
 
   return (BitcastNum > VtableNum);
@@ -140,8 +147,9 @@ void DTAResolver::otherInst(const llvm::Instruction *Inst) {
         llvm::dyn_cast<llvm::StructType>(stripPointer(Dest));
 
     if (SrcStructType && DestStructType &&
-        heuristicAntiConstructorVtablePos(BitCast))
+        heuristicAntiConstructorVtablePos(BitCast)) {
       typegraph.addLink(DestStructType, SrcStructType);
+    }
   }
 }
 
@@ -187,8 +195,9 @@ DTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
     }
   }
 
-  if (PossibleCallTargets.empty())
+  if (PossibleCallTargets.empty()) {
     PossibleCallTargets = CHAResolver::resolveVirtualCall(CS);
+  }
 
   LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Possible targets are:");
   for (const auto *Entry : PossibleCallTargets) {

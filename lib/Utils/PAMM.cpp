@@ -96,7 +96,7 @@ unsigned long PAMM::elapsedTime(const std::string &TimerId) {
 std::unordered_map<std::string, std::vector<unsigned long>>
 PAMM::elapsedTimeOfRepeatingTimer() {
   std::unordered_map<std::string, std::vector<unsigned long>> AccTimes;
-  for (auto Timer : RepeatingTimer) {
+  for (const auto &Timer : RepeatingTimer) {
     std::vector<unsigned long> AccTimeVec;
     for (auto Timepair : Timer.second) {
       auto Duration = std::chrono::duration_cast<PAMM::Duration_t>(
@@ -116,16 +116,20 @@ std::string PAMM::getPrintableDuration(unsigned long Duration) {
   unsigned long Hours =
       (((((Duration - Milliseconds) / 1000) - Seconds) / 60) - Minutes) / 60;
   std::ostringstream Oss;
-  if (Hours)
+  if (Hours) {
     Oss << Hours << "h ";
-  if (Minutes)
+  }
+  if (Minutes) {
     Oss << Minutes << "m ";
-  if (Seconds)
+  }
+  if (Seconds) {
     Oss << Seconds << "sec ";
-  if (Milliseconds)
+  }
+  if (Milliseconds) {
     Oss << Milliseconds << "ms";
-  else
+  } else {
     Oss << "0 ms";
+  }
   return Oss.str();
 }
 
@@ -164,7 +168,7 @@ int PAMM::getCounter(const std::string &CounterId) {
 
 int PAMM::getSumCount(const std::set<std::string> &CounterIds) {
   int Sum = 0;
-  for (std::string Id : CounterIds) {
+  for (const std::string &Id : CounterIds) {
     int Count = getCounter(Id);
     assert(Count != -1 && "getSumCount failed due to an invalid counter id");
     if (Count != -1) {
@@ -205,7 +209,7 @@ void PAMM::printTimers(std::ostream &Os) {
   }
   Os << "Single Timer\n";
   Os << "------------\n";
-  for (auto Timer : StoppedTimer) {
+  for (const auto &Timer : StoppedTimer) {
     unsigned long Time = elapsedTime(Timer.first);
     Os << Timer.first << " : " << getPrintableDuration(Time) << '\n';
   }
@@ -216,7 +220,7 @@ void PAMM::printTimers(std::ostream &Os) {
   }
   Os << "Repeating Timer\n";
   Os << "---------------\n";
-  for (auto Timer : elapsedTimeOfRepeatingTimer()) {
+  for (const auto &Timer : elapsedTimeOfRepeatingTimer()) {
     unsigned long Sum = 0;
     Os << Timer.first << " Timer:\n";
     for (auto Duration : Timer.second) {
@@ -235,7 +239,7 @@ void PAMM::printTimers(std::ostream &Os) {
 void PAMM::printCounters(std::ostream &Os) {
   Os << "\nCounter\n";
   Os << "-------\n";
-  for (auto Counter : Counter) {
+  for (const auto &Counter : Counter) {
     Os << Counter.first << " : " << Counter.second << '\n';
   }
   if (Counter.empty()) {
@@ -248,10 +252,10 @@ void PAMM::printCounters(std::ostream &Os) {
 void PAMM::printHistograms(std::ostream &Os) {
   Os << "\nHistograms\n";
   Os << "--------------\n";
-  for (auto H : Histogram) {
+  for (const auto &H : Histogram) {
     Os << H.first << " Histogram\n";
     Os << "Value : #Occurrences\n";
-    for (auto Entry : H.second) {
+    for (const auto &Entry : H.second) {
       Os << Entry.first << " : " << Entry.second << '\n';
     }
     Os << '\n';
@@ -278,20 +282,20 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
     stopTimer(std::string(RunningTimer.begin()->first));
   }
   json JTimer;
-  for (auto Timer : StoppedTimer) {
+  for (const auto &Timer : StoppedTimer) {
     unsigned long Time = elapsedTime(Timer.first);
     JTimer[Timer.first] = Time;
   }
-  for (auto Timer : elapsedTimeOfRepeatingTimer()) {
+  for (const auto &Timer : elapsedTimeOfRepeatingTimer()) {
     JTimer[Timer.first] = Timer.second;
   }
   JsonData["Timer"] = JTimer;
 
   // add histogram data if available
   json JHistogram;
-  for (auto H : Histogram) {
+  for (const auto &H : Histogram) {
     json JSetH;
-    for (auto Entry : H.second) {
+    for (const auto &Entry : H.second) {
       JSetH[Entry.first] = Entry.second;
     }
     JHistogram[H.first] = JSetH;
@@ -301,7 +305,7 @@ void PAMM::exportMeasuredData(std::string OutputPath) {
   }
   // add counter data
   json JCounter;
-  for (auto Counter : Counter) {
+  for (const auto &Counter : Counter) {
     JCounter[Counter.first] = Counter.second;
   }
   JsonData["Counter"] = JCounter;

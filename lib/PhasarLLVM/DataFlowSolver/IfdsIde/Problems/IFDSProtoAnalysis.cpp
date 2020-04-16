@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -32,7 +33,7 @@ IFDSProtoAnalysis::IFDSProtoAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMBasedICFG *ICF,
                                      const LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSProtoAnalysis::ZeroValue = createZeroValue();
 }
 

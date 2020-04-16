@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <ostream>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -45,8 +46,8 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                        IntraMonoFullConstantPropagation::f_t,
                        IntraMonoFullConstantPropagation::t_t,
                        IntraMonoFullConstantPropagation::v_t,
-                       IntraMonoFullConstantPropagation::i_t>(IRDB, TH, CF, PT,
-                                                              EntryPoints) {}
+                       IntraMonoFullConstantPropagation::i_t>(
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(

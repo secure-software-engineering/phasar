@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <iostream>
+#include <utility>
 
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
@@ -31,7 +32,8 @@ MapFactsToCaller::MapFactsToCaller(
     function<bool(const llvm::Function *)> ReturnPredicate)
     : callSite(Cs), calleeFun(CalleeFun),
       exitStmt(llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)),
-      paramPredicate(ParamPredicate), returnPredicate(ReturnPredicate) {
+      paramPredicate(std::move(ParamPredicate)),
+      returnPredicate(std::move(ReturnPredicate)) {
   // Set up the actual parameters
   for (unsigned Idx = 0; Idx < callSite.getNumArgOperands(); ++Idx) {
     actuals.push_back(callSite.getArgOperand(Idx));

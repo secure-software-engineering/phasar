@@ -73,7 +73,7 @@ private:
   IDESolver<const llvm::Instruction *, const llvm::Value *,
             const llvm::Function *, const llvm::StructType *,
             const llvm::Value *, int, LLVMBasedICFG> &kdfAnalysisResults;
-  OpenSSLEVTKDFToken funcNameToToken(const std::string &F) const;
+  static OpenSSLEVTKDFToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLEVPKDFCTXDescription(

@@ -7,12 +7,14 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h"
+#include <utility>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSAliasCollector.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
@@ -31,7 +33,8 @@ WPDSAliasCollector::WPDSAliasCollector(const ProjectIRDB *IRDB,
     : WPDSProblem<WPDSAliasCollector::n_t, WPDSAliasCollector::d_t,
                   WPDSAliasCollector::f_t, WPDSAliasCollector::t_t,
                   WPDSAliasCollector::v_t, WPDSAliasCollector::l_t,
-                  WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
+                  WPDSAliasCollector::i_t>(IRDB, TH, ICF, PT,
+                                           std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<WPDSAliasCollector::d_t>>
 WPDSAliasCollector::getNormalFlowFunction(WPDSAliasCollector::n_t Curr,

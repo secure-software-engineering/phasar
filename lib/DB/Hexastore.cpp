@@ -17,13 +17,14 @@ using namespace boost;
 
 namespace psr {
 
-Hexastore::Hexastore(string Filename) {
+Hexastore::Hexastore(const string &Filename) {
   sqlite3_open(Filename.c_str(), &hs_internal_db);
   const string Query = INIT;
   char *Err;
-  sqlite3_exec(hs_internal_db, Query.c_str(), callback, 0, &Err);
-  if (Err != NULL)
+  sqlite3_exec(hs_internal_db, Query.c_str(), callback, nullptr, &Err);
+  if (Err != nullptr) {
     cout << Err << "\n\n";
+  }
 }
 
 Hexastore::~Hexastore() { sqlite3_close(hs_internal_db); }
@@ -36,7 +37,7 @@ int Hexastore::callback(void *NotUsed, int Argc, char **Argv,
   return 0;
 }
 
-void Hexastore::put(array<string, 3> Edge) {
+void Hexastore::put(const array<string, 3> &Edge) {
   doPut(SPOInsert, Edge);
   doPut(SOPInsert, Edge);
   doPut(PSOInsert, Edge);
@@ -45,12 +46,13 @@ void Hexastore::put(array<string, 3> Edge) {
   doPut(OPSInsert, Edge);
 }
 
-void Hexastore::doPut(string Query, array<string, 3> Edge) {
+void Hexastore::doPut(const string &Query, array<string, 3> Edge) {
   string CompiledQuery = str(format(Query) % Edge[0] % Edge[1] % Edge[2]);
   char *Err;
-  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), callback, 0, &Err);
-  if (Err != NULL)
+  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), callback, nullptr, &Err);
+  if (Err != nullptr) {
     cout << Err;
+  }
 }
 
 vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
@@ -93,14 +95,14 @@ vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
   // row of the result set
   auto SqliteCBResultCollector = [](void *CB, int Argc, char **Argv,
                                     char **AzColName) {
-    vector<hs_result> *Res = static_cast<vector<hs_result> *>(CB);
+    auto *Res = static_cast<vector<hs_result> *>(CB);
     Res->emplace_back(Argv[0], Argv[1], Argv[2]);
     return 0;
   };
   char *Err;
   sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), SqliteCBResultCollector,
                &Result, &Err);
-  if (Err != NULL) {
+  if (Err != nullptr) {
     cout << Err;
   }
   return Result;

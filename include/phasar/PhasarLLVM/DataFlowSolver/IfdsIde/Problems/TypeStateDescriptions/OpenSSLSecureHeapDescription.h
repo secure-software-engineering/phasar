@@ -48,7 +48,7 @@ private:
             const llvm::StructType *, const llvm::Value *, SecureHeapValue,
             LLVMBasedICFG> &secureHeapPropagationResults;
 
-  OpenSSLSecureHeapToken funcNameToToken(const std::string &F) const;
+  static OpenSSLSecureHeapToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLSecureHeapDescription(

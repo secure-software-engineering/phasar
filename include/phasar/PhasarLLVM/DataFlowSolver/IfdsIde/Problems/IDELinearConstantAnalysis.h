@@ -75,7 +75,7 @@ public:
 
   typedef std::map<std::string, std::map<unsigned, LCAResult>> lca_results_t;
 
-  void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
+  static void stripBottomResults(std::unordered_map<d_t, l_t> &Res);
 
   // start formulating our analysis by specifying the parts required for IFDS
 
@@ -233,7 +233,7 @@ public:
 
   static char opToChar(const unsigned op);
 
-  bool isEntryPoint(std::string FunctionName) const;
+  bool isEntryPoint(const std::string &FunctionName) const;
 
   void printNode(std::ostream &os, n_t n) const override;
 

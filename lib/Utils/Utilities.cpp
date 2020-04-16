@@ -53,18 +53,21 @@ bool isConstructor(const string &MangledName) {
   // This version will not work in some edge cases
   auto Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (Constructor.begin() != Constructor.end())
+  if (Constructor.begin() != Constructor.end()) {
     return true;
+  }
 
   Constructor = boost::algorithm::find_last(MangledName, "C1E");
 
-  if (Constructor.begin() != Constructor.end())
+  if (Constructor.begin() != Constructor.end()) {
     return true;
+  }
 
   Constructor = boost::algorithm::find_last(MangledName, "C2E");
 
-  if (Constructor.begin() != Constructor.end())
+  if (Constructor.begin() != Constructor.end()) {
     return true;
+  }
 
   return false;
 }
@@ -97,7 +100,9 @@ ostream &operator<<(ostream &OS, const vector<bool> &Bits) {
 
 bool stringIDLess::operator()(const std::string &Lhs,
                               const std::string &Rhs) const {
-  char *Endptr1, *Endptr2;
+  char *Endptr1;
+
+  char *Endptr2;
   long LhsVal = strtol(Lhs.c_str(), &Endptr1, 10);
   long RhsVal = strtol(Rhs.c_str(), &Endptr2, 10);
   if (Lhs.c_str() == Endptr1 && Lhs.c_str() == Endptr2) {

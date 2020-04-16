@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include <algorithm>
+#include <utility>
 
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
@@ -49,7 +50,7 @@ IDETypeStateAnalysis::IDETypeStateAnalysis(const ProjectIRDB *IRDB,
                                            const LLVMPointsToInfo *PT,
                                            const TypeStateDescription &TSD,
                                            std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints), TSD(TSD),
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)), TSD(TSD),
       TOP(TSD.top()), BOTTOM(TSD.bottom()) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
@@ -115,7 +116,7 @@ IDETypeStateAnalysis::getNormalFlowFunction(IDETypeStateAnalysis::n_t Curr,
         std::set<IDETypeStateAnalysis::d_t> AliasesAndAllocas;
         TSFlowFunction(const llvm::StoreInst *S,
                        std::set<IDETypeStateAnalysis::d_t> AA)
-            : Store(S), AliasesAndAllocas(AA) {}
+            : Store(S), AliasesAndAllocas(std::move(AA)) {}
         ~TSFlowFunction() override = default;
         set<IDETypeStateAnalysis::d_t>
         computeTargets(IDETypeStateAnalysis::d_t Source) override {
@@ -659,8 +660,9 @@ IDETypeStateAnalysis::getWMPointsToSet(IDETypeStateAnalysis::d_t V) {
   } else {
     auto PointsToSet = ICF->getWholeModulePTG().getPointsToSet(V);
     for (const auto *Alias : PointsToSet) {
-      if (hasMatchingType(Alias))
+      if (hasMatchingType(Alias)) {
         PointsToCache[Alias] = PointsToSet;
+      }
     }
     return PointsToSet;
   }
@@ -685,8 +687,9 @@ IDETypeStateAnalysis::getLocalAliasesAndAllocas(IDETypeStateAnalysis::d_t V,
       Aliases; // =
                // IRDB->getPointsToGraph(Fname)->getPointsToSet(V);
   for (const auto *Alias : Aliases) {
-    if (hasMatchingType(Alias))
+    if (hasMatchingType(Alias)) {
       PointsToAndAllocas.insert(Alias);
+    }
   }
   // PointsToAndAllocas.insert(Aliases.begin(), Aliases.end());
   PointsToAndAllocas.insert(RelevantAllocas.begin(), RelevantAllocas.end());
@@ -708,15 +711,17 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
   // General case
   if (V->getType()->isPointerTy()) {
     if (hasMatchingTypeName(V->getType()->getPointerElementType(),
-                            TSD.getTypeNameOfInterest()))
+                            TSD.getTypeNameOfInterest())) {
       return true;
+    }
   }
   if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(V)) {
     if (Alloca->getAllocatedType()->isPointerTy()) {
       if (hasMatchingTypeName(
               Alloca->getAllocatedType()->getPointerElementType(),
-              TSD.getTypeNameOfInterest()))
+              TSD.getTypeNameOfInterest())) {
         return true;
+      }
     }
     return false;
   }
@@ -729,8 +734,9 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
                                   ->getType()
                                   ->getPointerElementType()
                                   ->getPointerElementType(),
-                              TSD.getTypeNameOfInterest()))
+                              TSD.getTypeNameOfInterest())) {
         return true;
+      }
     }
     return false;
   }
@@ -738,8 +744,9 @@ bool IDETypeStateAnalysis::hasMatchingType(IDETypeStateAnalysis::d_t V) {
     if (Store->getValueOperand()->getType()->isPointerTy()) {
       if (hasMatchingTypeName(
               Store->getValueOperand()->getType()->getPointerElementType(),
-              TSD.getTypeNameOfInterest()))
+              TSD.getTypeNameOfInterest())) {
         return true;
+      }
     }
     return false;
   }

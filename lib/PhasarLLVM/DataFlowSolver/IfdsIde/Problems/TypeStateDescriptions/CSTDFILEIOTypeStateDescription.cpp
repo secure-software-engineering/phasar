@@ -155,13 +155,14 @@ TypeStateDescription::State CSTDFILEIOTypeStateDescription::error() const {
 }
 
 CSTDFILEIOTypeStateDescription::CSTDFILEIOToken
-CSTDFILEIOTypeStateDescription::funcNameToToken(const std::string &F) const {
-  if (F == "fopen" || F == "fdopen")
+CSTDFILEIOTypeStateDescription::funcNameToToken(const std::string &F) {
+  if (F == "fopen" || F == "fdopen") {
     return CSTDFILEIOToken::FOPEN;
-  else if (F == "fclose")
+  } else if (F == "fclose") {
     return CSTDFILEIOToken::FCLOSE;
-  else
+  } else {
     return CSTDFILEIOToken::STAR;
+  }
 }
 
 } // namespace psr

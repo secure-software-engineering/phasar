@@ -14,8 +14,9 @@ BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
           llvm::dyn_cast<llvm::BranchInst>(currentInst)) {
     bool IsConditional = BranchInst->isConditional();
 
-    if (IsConditional)
+    if (IsConditional) {
       Condition = BranchInst->getCondition();
+    }
   } else if (const auto *const SwitchInst =
                  llvm::dyn_cast<llvm::SwitchInst>(currentInst)) {
     Condition = SwitchInst->getCondition();

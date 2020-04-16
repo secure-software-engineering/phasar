@@ -21,13 +21,13 @@ protected:
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/llvmIRtoSrc/";
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMPointsToInfo *PT;
-  LLVMBasedICFG *ICFG;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMPointsToInfo *PT{};
+  LLVMBasedICFG *ICFG{};
 
-  LLVMIRToSrcTest() {}
-  ~LLVMIRToSrcTest() override {}
+  LLVMIRToSrcTest() = default;
+  ~LLVMIRToSrcTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);

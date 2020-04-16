@@ -2,6 +2,8 @@
  * @author Sebastian Roland <seroland86@gmail.com>
  */
 
+#include <utility>
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Stats/TraceStats.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IFDSFieldSensTaintAnalysis/Utils/Log.h"
@@ -14,17 +16,20 @@
 namespace psr {
 
 long TraceStats::add(const llvm::Instruction *Instruction, bool IsReturnValue) {
-  const llvm::DebugLoc DebugLocInst = Instruction->getDebugLoc();
-  if (!DebugLocInst)
+  const llvm::DebugLoc &DebugLocInst = Instruction->getDebugLoc();
+  if (!DebugLocInst) {
     return 0;
+  }
 
   const llvm::DebugLoc DebugLocFn = DebugLocInst.getFnDebugLoc();
-  if (!DebugLocFn)
+  if (!DebugLocFn) {
     return 0;
+  }
 
   const auto *const Function = Instruction->getFunction();
-  if (!Function)
+  if (!Function) {
     return 0;
+  }
 
   const auto FunctionName = Function->getName();
 
@@ -54,15 +59,16 @@ long TraceStats::add(const llvm::Instruction *Instruction, bool IsReturnValue) {
 }
 
 long TraceStats::add(const llvm::Instruction *Instruction,
-                     const std::vector<const llvm::Value *> MemLocationSeq) {
+                     const std::vector<const llvm::Value *> &MemLocationSeq) {
   bool IsRetInstruction = llvm::isa<llvm::ReturnInst>(Instruction);
   if (IsRetInstruction) {
     const auto *const BasicBlock = Instruction->getParent();
     const auto BasicBlockName = BasicBlock->getName();
 
     bool IsReturnBasicBlock = BasicBlockName.compare_lower("return") == 0;
-    if (IsReturnBasicBlock)
+    if (IsReturnBasicBlock) {
       return 0;
+    }
 
     return add(Instruction, true);
   }
@@ -76,18 +82,21 @@ long TraceStats::add(const llvm::Instruction *Instruction,
       const auto InstructionName = AllocaInst->getName();
       bool IsRetVal = InstructionName.compare_lower("retval") == 0;
 
-      if (IsRetVal)
+      if (IsRetVal) {
         return add(Instruction, true);
+      }
     }
   }
 
   return add(Instruction, false);
 }
 
-TraceStats::FunctionStats &TraceStats::getFunctionStats(std::string File) {
+TraceStats::FunctionStats &
+TraceStats::getFunctionStats(const std::string &File) {
   auto FunctionStatsEntry = stats.find(File);
-  if (FunctionStatsEntry != stats.end())
+  if (FunctionStatsEntry != stats.end()) {
     return FunctionStatsEntry->second;
+  }
 
   stats.insert({File, FunctionStats()});
 
@@ -95,12 +104,13 @@ TraceStats::FunctionStats &TraceStats::getFunctionStats(std::string File) {
 }
 
 TraceStats::LineNumberStats &
-TraceStats::getLineNumberStats(std::string File, std::string Function) {
-  TraceStats::FunctionStats &FunctionStats = getFunctionStats(File);
+TraceStats::getLineNumberStats(std::string File, const std::string &Function) {
+  TraceStats::FunctionStats &FunctionStats = getFunctionStats(std::move(File));
 
   auto LineNumberEntry = FunctionStats.find(Function);
-  if (LineNumberEntry != FunctionStats.end())
+  if (LineNumberEntry != FunctionStats.end()) {
     return LineNumberEntry->second;
+  }
 
   FunctionStats.insert({Function, LineNumberStats()});
 

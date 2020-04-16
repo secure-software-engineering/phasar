@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/LLVMContext.h"
@@ -38,7 +40,7 @@ IFDSUninitializedVariables::IFDSUninitializedVariables(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IFDSUninitializedVariables::ZeroValue = createZeroValue();
 }
 
@@ -159,13 +161,14 @@ IFDSUninitializedVariables::getNormalFlowFunction(
          */
         if (Source == Store->getValueOperand() ||
             (Source == Zero &&
-             llvm::isa<llvm::UndefValue>(Store->getValueOperand())))
+             llvm::isa<llvm::UndefValue>(Store->getValueOperand()))) {
           return {Source, Store->getPointerOperand()};
-        else if (Source ==
-                 Store->getPointerOperand()) // storing an initialized value
-                                             // kills the variable as it is
-                                             // now initialized too
+        } else if (Source ==
+                   Store->getPointerOperand()) { // storing an initialized value
+                                                 // kills the variable as it is
+                                                 // now initialized too
           return {};
+        }
         // pass all other facts as identity
         return {Source};
       }
@@ -218,8 +221,9 @@ IFDSUninitializedVariables::getNormalFlowFunction(
           //----------------------------------------------------------------
           if (!llvm::isa<llvm::GetElementPtrInst>(Inst) &&
               !llvm::isa<llvm::CastInst>(Inst) &&
-              !llvm::isa<llvm::PHINode>(Inst))
+              !llvm::isa<llvm::PHINode>(Inst)) {
             UndefValueUses[Inst].insert(Operand);
+          }
           return {Source, Inst};
         }
       }
@@ -377,11 +381,12 @@ IFDSUninitializedVariables::getCallToRetFlowFunction(
             -> set<IFDSUninitializedVariables::d_t> {
           if (Source->getType()->isPointerTy()) {
             for (const auto &Arg : CS.args()) {
-              if (Arg.get() == Source)
+              if (Arg.get() == Source) {
                 // do not propagate pointer arguments, since the function may
                 // initialize them (would be much more precise with
                 // field-sensitivity)
                 return {};
+              }
             }
           }
           return {Source};
@@ -457,7 +462,7 @@ void IFDSUninitializedVariables::emitTextReport(
       OS << "\nTotal uses of uninitialized IR Value's: "
          << UndefValueUses.size() << '\n';
       size_t Count = 0;
-      for (auto User : UndefValueUses) {
+      for (const auto &User : UndefValueUses) {
         OS << "\n---------------------------------  " << ++Count
            << ". Use  ---------------------------------\n\n";
         OS << "At IR statement: ";
@@ -488,10 +493,12 @@ void IFDSUninitializedVariables::emitTextReport(
 std::vector<IFDSUninitializedVariables::UninitResult>
 IFDSUninitializedVariables::aggregateResults() {
   std::vector<IFDSUninitializedVariables::UninitResult> Results;
-  unsigned int LineNr = 0, CurrLineNr = 0;
+  unsigned int LineNr = 0;
+
+  unsigned int CurrLineNr = 0;
   size_t Count;
   UninitResult UR;
-  for (auto User : UndefValueUses) {
+  for (const auto &User : UndefValueUses) {
     // new line nr idicates a new uninit use on source code level
     LineNr = getLineFromIR(User.first);
     if (CurrLineNr != LineNr) {
@@ -501,8 +508,9 @@ IFDSUninitializedVariables::aggregateResults() {
       NewUR.func_name = getFunctionNameFromIR(User.first);
       NewUR.file_path = getFilePathFromIR(User.first);
       NewUR.src_code = getSrcCodeFromIR(User.first);
-      if (!UR.empty())
+      if (!UR.empty()) {
         Results.push_back(UR);
+      }
       UR = NewUR;
     }
     // add current IR trace
@@ -515,20 +523,24 @@ IFDSUninitializedVariables::aggregateResults() {
       }
     }
   }
-  if (!UR.empty())
+  if (!UR.empty()) {
     Results.push_back(UR);
+  }
   return Results;
 }
 
-bool IFDSUninitializedVariables::UninitResult::empty() { return line == 0; }
+bool IFDSUninitializedVariables::UninitResult::empty() const {
+  return line == 0;
+}
 
 void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
   OS << "Variable(s): ";
   if (!var_names.empty()) {
     for (size_t I = 0; I < var_names.size(); ++I) {
       OS << var_names[I];
-      if (I < var_names.size() - 1)
+      if (I < var_names.size() - 1) {
         OS << ", ";
+      }
     }
     OS << '\n';
   }
@@ -538,7 +550,7 @@ void IFDSUninitializedVariables::UninitResult::print(std::ostream &OS) {
   OS << "File       : " << file_path << '\n';
   OS << "\nCorresponding IR Statements and uninit. Values\n";
   if (!ir_trace.empty()) {
-    for (auto Trace : ir_trace) {
+    for (const auto &Trace : ir_trace) {
       OS << "At IR Statement: " << llvmIRToString(Trace.first) << '\n';
       for (const auto *IRVal : Trace.second) {
         OS << "   Uninit Value: " << llvmIRToString(IRVal) << '\n';

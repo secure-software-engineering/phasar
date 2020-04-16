@@ -19,14 +19,14 @@ protected:
       "build/test/llvm_test_code/constness/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMBasedICFG *ICFG;
-  LLVMPointsToInfo *PT;
-  IFDSConstAnalysis *Constproblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMBasedICFG *ICFG{};
+  LLVMPointsToInfo *PT{};
+  IFDSConstAnalysis *Constproblem{};
 
-  IFDSConstAnalysisTest() {}
-  ~IFDSConstAnalysisTest() override {}
+  IFDSConstAnalysisTest() = default;
+  ~IFDSConstAnalysisTest() override = default;
 
   void initialize(const std::vector<std::string> &IRFiles) {
     IRDB = new ProjectIRDB(IRFiles, IRDBOptions::WPA);

@@ -42,13 +42,13 @@ public:
   virtual ~LLVMBasedBackwardCFG() = default;
 
   const llvm::Function *
-  getFunctionOf(const llvm::Instruction *Inst) const override;
+  getFunctionOf(const llvm::Instruction *Stmt) const override;
 
   std::vector<const llvm::Instruction *>
-  getPredsOf(const llvm::Instruction *Inst) const override;
+  getPredsOf(const llvm::Instruction *Stmt) const override;
 
   std::vector<const llvm::Instruction *>
-  getSuccsOf(const llvm::Instruction *Inst) const override;
+  getSuccsOf(const llvm::Instruction *Stmt) const override;
 
   std::vector<std::pair<const llvm::Instruction *, const llvm::Instruction *>>
   getAllControlFlowEdges(const llvm::Function *Fun) const override;
@@ -56,23 +56,23 @@ public:
   std::vector<const llvm::Instruction *>
   getAllInstructionsOf(const llvm::Function *Fun) const override;
 
-  bool isExitStmt(const llvm::Instruction *Inst) const override;
+  bool isExitStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isStartPoint(const llvm::Instruction *Inst) const override;
+  bool isStartPoint(const llvm::Instruction *Stmt) const override;
 
-  bool isFieldLoad(const llvm::Instruction *Inst) const override;
+  bool isFieldLoad(const llvm::Instruction *Stmt) const override;
 
-  bool isFieldStore(const llvm::Instruction *Inst) const override;
+  bool isFieldStore(const llvm::Instruction *Stmt) const override;
 
   bool isFallThroughSuccessor(const llvm::Instruction *Inst,
                               const llvm::Instruction *succ) const override;
 
-  bool isBranchTarget(const llvm::Instruction *Inst,
+  bool isBranchTarget(const llvm::Instruction *Stmt,
                       const llvm::Instruction *succ) const override;
 
   std::string getFunctionName(const llvm::Function *Fun) const override;
 
-  std::string getStatementId(const llvm::Instruction *Inst) const override;
+  std::string getStatementId(const llvm::Instruction *Stmt) const override;
 
   void print(const llvm::Function *Fun, std::ostream &OS) const override;
 

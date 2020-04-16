@@ -10,8 +10,9 @@ namespace psr {
 
 std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
   bool IsAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, Fact);
-  if (IsAutoIdentity)
-    return {Fact};
+  if (IsAutoIdentity) {
+    return { Fact };
+  }
 
   bool IsBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(Fact.getValue()) ||
                               llvm::isa<llvm::SwitchInst>(Fact.getValue());
@@ -19,8 +20,9 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
   if (IsBranchOrSwitchFact) {
     bool RemoveTaintedBlockInst =
         DataFlowUtils::removeTaintedBlockInst(Fact, currentInst);
-    if (RemoveTaintedBlockInst)
+    if (RemoveTaintedBlockInst) {
       return {};
+    }
 
     // traceStats.add(currentInst);
 

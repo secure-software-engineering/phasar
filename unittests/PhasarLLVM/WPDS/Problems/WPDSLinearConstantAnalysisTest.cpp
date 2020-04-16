@@ -19,11 +19,11 @@ protected:
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
 
-  ProjectIRDB *IRDB;
-  LLVMTypeHierarchy *TH;
-  LLVMPointsToInfo *PT;
-  LLVMBasedICFG *ICFG;
-  WPDSLinearConstantAnalysis *LCAProblem;
+  ProjectIRDB *IRDB{};
+  LLVMTypeHierarchy *TH{};
+  LLVMPointsToInfo *PT{};
+  LLVMBasedICFG *ICFG{};
+  WPDSLinearConstantAnalysis *LCAProblem{};
 
   WPDSLinearConstantAnalysisTest() = default;
   ~WPDSLinearConstantAnalysisTest() override = default;

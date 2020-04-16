@@ -27,7 +27,7 @@ llvm::StringRef PhasarPrinterPass::getPassName() const {
 
 bool PhasarPrinterPass::runOnModule(llvm::Module &M) {
   llvm::outs() << "PhasarPrinterPass::runOnModule()\n";
-  PhasarPass &Results = getAnalysis<PhasarPass>();
+  auto &Results = getAnalysis<PhasarPass>();
   Results.print(llvm::outs(), &M);
   return false;
 }

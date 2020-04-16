@@ -228,8 +228,8 @@ public:
    * @param PointsToSet that is refined.
    * @param Context dictates which points-to information is relevant.
    */ // clang-format on
-  std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
-                                              f_t Context);
+  static std::set<d_t> getContextRelevantPointsToSet(std::set<d_t> &PointsToSet,
+                                                     f_t Context);
 };
 
 } // namespace psr

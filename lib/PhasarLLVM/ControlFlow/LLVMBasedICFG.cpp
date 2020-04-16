@@ -84,8 +84,7 @@ std::string LLVMBasedICFG::EdgeProperties::getCallSiteAsString() const {
 // PT in case any of them is allocated within the constructor. To this end, we
 // set UserTHInfos and UserPTInfos to true here.
 LLVMBasedICFG::LLVMBasedICFG(const LLVMBasedICFG &ICF)
-    : IRDB(ICF.IRDB), CGType(ICF.CGType), SF(ICF.SF), UserTHInfos(true),
-      UserPTInfos(true), TH(ICF.TH), PT(ICF.PT),
+    : IRDB(ICF.IRDB), CGType(ICF.CGType), SF(ICF.SF), TH(ICF.TH), PT(ICF.PT),
       WholeModulePTG(ICF.WholeModulePTG),
       VisitedFunctions(ICF.VisitedFunctions), CallGraph(ICF.CallGraph),
       FunctionVertexMap(ICF.FunctionVertexMap) {}
@@ -145,7 +144,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       PointsToGraph *PTG = PT->getPointsToGraph(F);
       WholeModulePTG.mergeWith(PTG, F);
     }
-    constructionWalker(F, *Res.get());
+    constructionWalker(F, *Res);
   }
   REG_COUNTER("WM-PTG Vertices", WholeModulePTG.getNumOfVertices(),
               PAMM_SEVERITY_LEVEL::Full);
@@ -183,9 +182,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
   // add a node for function F to the call graph (if not present already)
   vertex_t ThisFunctionVertexDescriptor;
   auto FvmItr = FunctionVertexMap.find(F);
-  if (FvmItr != FunctionVertexMap.end())
+  if (FvmItr != FunctionVertexMap.end()) {
     ThisFunctionVertexDescriptor = FvmItr->second;
-  else {
+  } else {
     ThisFunctionVertexDescriptor =
         boost::add_vertex(VertexProperties(F), CallGraph);
     FunctionVertexMap[F] = ThisFunctionVertexDescriptor;
@@ -240,9 +239,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         for (const auto &PossibleTarget : PossibleTargets) {
           vertex_t TargetVertex;
           auto TargetFvmItr = FunctionVertexMap.find(PossibleTarget);
-          if (TargetFvmItr != FunctionVertexMap.end())
+          if (TargetFvmItr != FunctionVertexMap.end()) {
             TargetVertex = TargetFvmItr->second;
-          else {
+          } else {
             TargetVertex =
                 boost::add_vertex(VertexProperties(PossibleTarget), CallGraph);
             FunctionVertexMap[PossibleTarget] = TargetVertex;
@@ -296,8 +295,9 @@ set<const llvm::Function *> LLVMBasedICFG::getAllFunctions() const {
 std::vector<const llvm::Instruction *>
 LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
   auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end())
+  if (FunctionMapIt == FunctionVertexMap.end()) {
     return {};
+  }
 
   std::vector<const llvm::Instruction *> Edges;
   for (const auto EdgeIt : boost::make_iterator_range(
@@ -312,8 +312,9 @@ LLVMBasedICFG::getOutEdges(const llvm::Function *F) const {
 LLVMBasedICFG::OutEdgesAndTargets
 LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function *F) const {
   auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end())
+  if (FunctionMapIt == FunctionVertexMap.end()) {
     return {};
+  }
 
   OutEdgesAndTargets Edges;
   for (const auto EdgeIt : boost::make_iterator_range(
@@ -329,8 +330,9 @@ LLVMBasedICFG::getOutEdgeAndTarget(const llvm::Function *F) const {
 size_t LLVMBasedICFG::removeEdges(const llvm::Function *F,
                                   const llvm::Instruction *I) {
   auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end())
+  if (FunctionMapIt == FunctionVertexMap.end()) {
     return 0;
+  }
 
   size_t EdgesRemoved = 0;
   auto OutEdges = boost::out_edges(FunctionMapIt->second, CallGraph);
@@ -346,8 +348,9 @@ size_t LLVMBasedICFG::removeEdges(const llvm::Function *F,
 
 bool LLVMBasedICFG::removeVertex(const llvm::Function *F) {
   auto FunctionMapIt = FunctionVertexMap.find(F);
-  if (FunctionMapIt == FunctionVertexMap.end())
+  if (FunctionMapIt == FunctionVertexMap.end()) {
     return false;
+  }
 
   boost::remove_vertex(FunctionMapIt->second, CallGraph);
   FunctionVertexMap.erase(FunctionMapIt);
@@ -372,7 +375,9 @@ LLVMBasedICFG::getCalleesOfCallAt(const llvm::Instruction *N) const {
     if (MapEntry == FunctionVertexMap.end()) {
       return Callees;
     }
-    out_edge_iterator EI, EIEnd;
+    out_edge_iterator EI;
+
+    out_edge_iterator EIEnd;
     for (boost::tie(EI, EIEnd) = boost::out_edges(MapEntry->second, CallGraph);
          EI != EIEnd; ++EI) {
       auto Edge = CallGraph[*EI];
@@ -394,7 +399,9 @@ LLVMBasedICFG::getCallersOf(const llvm::Function *F) const {
   if (MapEntry == FunctionVertexMap.end()) {
     return CallersOf;
   }
-  in_edge_iterator EI, EIEnd;
+  in_edge_iterator EI;
+
+  in_edge_iterator EIEnd;
   for (boost::tie(EI, EIEnd) = boost::in_edges(MapEntry->second, CallGraph);
        EI != EIEnd; ++EI) {
     auto Edge = CallGraph[*EI];
@@ -516,7 +523,7 @@ LLVMBasedICFG::getLastInstructionOf(const string &Name) {
 
 void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
   typedef bidigraph_t::vertex_descriptor vertex_t;
-  typedef std::map<vertex_t, vertex_t> vertex_map_t;
+  using vertex_map_t = std::map<vertex_t, vertex_t>;
   vertex_map_t OldToNewVertexMapping;
   boost::associative_property_map<vertex_map_t> VertexMapWrapper(
       OldToNewVertexMapping);
@@ -526,7 +533,13 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
   // This vector holds the call-sites that are used to merge the whole-module
   // points-to graphs
   vector<pair<llvm::ImmutableCallSite, const llvm::Function *>> Calls;
-  vertex_iterator VIv, VIvEnd, VIu, VIuEnd;
+  vertex_iterator VIv;
+
+  vertex_iterator VIvEnd;
+
+  vertex_iterator VIu;
+
+  vertex_iterator VIuEnd;
   // Iterate the vertices of this graph 'v'
   for (boost::tie(VIv, VIvEnd) = boost::vertices(CallGraph); VIv != VIvEnd;
        ++VIv) {
@@ -538,15 +551,17 @@ void LLVMBasedICFG::mergeWith(const LLVMBasedICFG &Other) {
       if (CallGraph[*VIv].F == CallGraph[*VIu].F &&
           CallGraph[*VIv].F->isDeclaration() &&
           !CallGraph[*VIu].F->isDeclaration()) {
-        in_edge_iterator EI, EIEnd;
+        in_edge_iterator EI;
+
+        in_edge_iterator EIEnd;
         for (boost::tie(EI, EIEnd) = boost::in_edges(*VIv, CallGraph);
              EI != EIEnd; ++EI) {
           auto Source = boost::source(*EI, CallGraph);
           auto Edge = CallGraph[*EI];
           // This becomes the new edge for this graph to the other graph
           boost::add_edge(Source, *VIu, Edge.CS, CallGraph);
-          Calls.push_back(
-              make_pair(llvm::ImmutableCallSite(Edge.CS), CallGraph[*VIu].F));
+          Calls.emplace_back(llvm::ImmutableCallSite(Edge.CS),
+                             CallGraph[*VIu].F);
           // Remove the old edge flowing into the virtual node
           boost::remove_edge(Source, *VIv, CallGraph);
         }
@@ -588,13 +603,18 @@ bool LLVMBasedICFG::isPrimitiveFunction(const string &Name) {
 
 void LLVMBasedICFG::print(ostream &OS) const {
   OS << "Call Graph:\n";
-  vertex_iterator UI, UIEnd;
+  vertex_iterator UI;
+
+  vertex_iterator UIEnd;
   for (boost::tie(UI, UIEnd) = boost::vertices(CallGraph); UI != UIEnd; ++UI) {
     OS << CallGraph[*UI].getFunctionName() << " --> ";
-    out_edge_iterator EI, EIEnd;
+    out_edge_iterator EI;
+
+    out_edge_iterator EIEnd;
     for (boost::tie(EI, EIEnd) = boost::out_edges(*UI, CallGraph); EI != EIEnd;
-         ++EI)
+         ++EI) {
       OS << CallGraph[target(*EI, CallGraph)].getFunctionName() << " ";
+    }
     OS << '\n';
   }
 }
@@ -643,8 +663,12 @@ void LLVMBasedICFG::printInternalPTGAsDot(std::ostream &OS) const {
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {
   nlohmann::json J;
-  vertex_iterator VIv, VIvEnd;
-  out_edge_iterator EI, EIEnd;
+  vertex_iterator VIv;
+
+  vertex_iterator VIvEnd;
+  out_edge_iterator EI;
+
+  out_edge_iterator EIEnd;
   // iterate all graph vertices
   for (boost::tie(VIv, VIvEnd) = boost::vertices(CallGraph); VIv != VIvEnd;
        ++VIv) {

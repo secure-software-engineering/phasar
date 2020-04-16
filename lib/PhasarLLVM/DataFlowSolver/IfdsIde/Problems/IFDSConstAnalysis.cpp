@@ -7,6 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
+#include <utility>
+
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
@@ -40,8 +42,8 @@ IFDSConstAnalysis::IFDSConstAnalysis(const ProjectIRDB *IRDB,
                                      const LLVMBasedICFG *ICF,
                                      const LLVMPointsToInfo *PT,
                                      std::set<std::string> EntryPoints)
-    : IFDSTabulationProblem(IRDB, TH, ICF, PT, EntryPoints),
-      ptg(ICF->getWholeModulePTG()), AllMemLocs() {
+    : IFDSTabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)),
+      ptg(ICF->getWholeModulePTG()) {
   PAMM_GET_INSTANCE;
   REG_HISTOGRAM("Context-relevant Pointer", PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("[Calls] getContextRelevantPointsToSet", 0,
@@ -54,7 +56,7 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
                                          IFDSConstAnalysis::n_t Succ) {
   auto &LG = lg::get();
   // Check all store instructions.
-  if (const llvm::StoreInst *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
+  if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Curr)) {
     // If the store instruction sets up or updates the vtable, i.e. value
     // operand is vtable pointer, ignore it!
     // Setting up the vtable is counted towards the initialization of an
@@ -66,11 +68,11 @@ IFDSConstAnalysis::getNormalFlowFunction(IFDSConstAnalysis::n_t Curr,
     //
     // WARNING: The VTT could also be stored, which would make this analysis
     // fail
-    if (const llvm::ConstantExpr *CE =
+    if (const auto *CE =
             llvm::dyn_cast<llvm::ConstantExpr>(Store->getValueOperand())) {
       // llvm::ConstantExpr *CE = const_cast<llvm::ConstantExpr *>(ConstCE);
       auto *CEInst = const_cast<llvm::ConstantExpr *>(CE)->getAsInstruction();
-      if (llvm::ConstantExpr *CF =
+      if (auto *CF =
               llvm::dyn_cast<llvm::ConstantExpr>(CEInst->getOperand(0))) {
         auto *CFInst = CF->getAsInstruction();
         if (auto *VTable =
@@ -274,7 +276,7 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
     LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                   << "Alias: " << llvmIRToString(Alias));
     // Case (i + ii)
-    if (const llvm::Instruction *I = llvm::dyn_cast<llvm::Instruction>(Alias)) {
+    if (const auto *I = llvm::dyn_cast<llvm::Instruction>(Alias)) {
       if (isAllocaInstOrHeapAllocaFunction(Alias)) {
         ToGenerate.insert(Alias);
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
@@ -291,7 +293,7 @@ set<IFDSConstAnalysis::d_t> IFDSConstAnalysis::getContextRelevantPointsToSet(
       LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
                     << "global variable will be generated as a new fact!");
     } // Case (iii)
-    else if (const llvm::Argument *A = llvm::dyn_cast<llvm::Argument>(Alias)) {
+    else if (const auto *A = llvm::dyn_cast<llvm::Argument>(Alias)) {
       if (A->getParent() == CurrentContext) {
         ToGenerate.insert(Alias);
         LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)

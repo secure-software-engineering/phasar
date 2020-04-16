@@ -190,9 +190,9 @@ public:
    * an allocating function.
    * @return Set of Allocation sites.
    */
-  std::set<const llvm::Value *>
-  getReachableAllocationSites(const llvm::Value *V,
-                              std::vector<const llvm::Instruction *> CallStack);
+  std::set<const llvm::Value *> getReachableAllocationSites(
+      const llvm::Value *V,
+      const std::vector<const llvm::Instruction *> &CallStack);
 
   /**
    * @brief Computes all possible types from a given std::set of allocation
@@ -202,8 +202,8 @@ public:
    * @param AS Set of Allocation site.
    * @return Set of Types.
    */
-  std::set<const llvm::Type *>
-  computeTypesFromAllocationSites(std::set<const llvm::Value *> AS);
+  static std::set<const llvm::Type *>
+  computeTypesFromAllocationSites(const std::set<const llvm::Value *> &AS);
 
   /**
    * @brief Checks if a given value is represented by a vertex in the points-to

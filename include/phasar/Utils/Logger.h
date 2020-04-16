@@ -95,7 +95,7 @@ struct LoggerExceptionHandler {
 /**
  * Initializes the logger.
  */
-void initializeLogger(bool use_logger, std::string log_file = "");
+void initializeLogger(bool UseLogger, const std::string &log_file = "");
 
 } // namespace psr
 

@@ -46,7 +46,8 @@ private:
 public:
   explicit ValueAnnotationPass();
 
-  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
+  static llvm::PreservedAnalyses run(llvm::Module &M,
+                                     llvm::ModuleAnalysisManager &AM);
 
   /**
    * @brief Resets the global ID - only used for unit testing!

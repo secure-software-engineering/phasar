@@ -59,7 +59,7 @@ IDELinearConstantAnalysis::IDELinearConstantAnalysis(
     const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
     const LLVMBasedICFG *ICF, const LLVMPointsToInfo *PT,
     std::set<std::string> EntryPoints)
-    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints) {
+    : IDETabulationProblem(IRDB, TH, ICF, PT, std::move(EntryPoints)) {
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 
@@ -754,7 +754,8 @@ char IDELinearConstantAnalysis::opToChar(const unsigned Op) {
   return OpAsChar;
 }
 
-bool IDELinearConstantAnalysis::isEntryPoint(std::string FunctionName) const {
+bool IDELinearConstantAnalysis::isEntryPoint(
+    const std::string &FunctionName) const {
   return std::find(EntryPoints.begin(), EntryPoints.end(), FunctionName) !=
          EntryPoints.end();
 }
@@ -856,7 +857,7 @@ void IDELinearConstantAnalysis::emitTextReport(
     }
   } else {
     auto LcaResults = getLCAResults(SR);
-    for (auto Entry : LcaResults) {
+    for (const auto &Entry : LcaResults) {
       OS << "\nFunction: " << Entry.first
          << "\n==========" << std::string(Entry.first.size(), '=') << '\n';
       for (auto FResult : Entry.second) {

@@ -94,8 +94,9 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
     }
   }
 
-  if (PossibleCallTargets.size() == 0)
+  if (PossibleCallTargets.empty()) {
     return CHAResolver::resolveVirtualCall(CS);
+  }
 
   return PossibleCallTargets;
 }

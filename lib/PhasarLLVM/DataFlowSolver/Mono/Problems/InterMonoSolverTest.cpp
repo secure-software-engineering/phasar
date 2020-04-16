@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <set>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -34,7 +35,7 @@ InterMonoSolverTest::InterMonoSolverTest(const ProjectIRDB *IRDB,
     : InterMonoProblem<InterMonoSolverTest::n_t, InterMonoSolverTest::d_t,
                        InterMonoSolverTest::f_t, InterMonoSolverTest::t_t,
                        InterMonoSolverTest::v_t, InterMonoSolverTest::i_t>(
-          IRDB, TH, ICF, PT, EntryPoints) {}
+          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>
 InterMonoSolverTest::join(const BitVectorSet<const llvm::Value *> &Lhs,

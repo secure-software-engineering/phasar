@@ -39,8 +39,9 @@ LLVMBasedBackwardCFG::getFunctionOf(const llvm::Instruction *Stmt) const {
 std::vector<const llvm::Instruction *>
 LLVMBasedBackwardCFG::getPredsOf(const llvm::Instruction *Stmt) const {
   vector<const llvm::Instruction *> Preds;
-  if (Stmt->getNextNode())
+  if (Stmt->getNextNode()) {
     Preds.push_back(Stmt->getNextNode());
+  }
   if (Stmt->isTerminator()) {
     for (unsigned I = 0; I < Stmt->getNumSuccessors(); ++I) {
       Preds.push_back(&*Stmt->getSuccessor(I)->begin());
@@ -112,7 +113,7 @@ bool LLVMBasedBackwardCFG::isFallThroughSuccessor(
 
 bool LLVMBasedBackwardCFG::isBranchTarget(const llvm::Instruction *Stmt,
                                           const llvm::Instruction *Succ) const {
-  if (const llvm::BranchInst *B = llvm::dyn_cast<llvm::BranchInst>(Succ)) {
+  if (const auto *B = llvm::dyn_cast<llvm::BranchInst>(Succ)) {
     for (const auto *BB : B->successors()) {
       if (Stmt == &(BB->front())) {
         return true;

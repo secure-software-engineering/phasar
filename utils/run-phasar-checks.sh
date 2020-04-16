@@ -12,9 +12,9 @@ cp .clang-tidy-ignore external/json/.clang-tidy
 cp .clang-tidy-ignore external/WALi-OpenNWA/.clang-tidy
 
 echo "Run clang-tidy ..."
-
-run-clang-tidy.py -p build/ -header-filter='phasar*.h' -fix
-
+cd build/
+run-clang-tidy.py -p ./ -header-filter='phasar*.h' -fix
+cd ..
 echo "Run clang-format ..."
 ./utils/run-clang-format.py
 

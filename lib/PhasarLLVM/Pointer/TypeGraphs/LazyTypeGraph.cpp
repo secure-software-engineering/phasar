@@ -60,8 +60,9 @@ LazyTypeGraph::addType(const llvm::StructType *NewType) {
 
 bool LazyTypeGraph::addLink(const llvm::StructType *From,
                             const llvm::StructType *To) {
-  if (already_visited)
+  if (already_visited) {
     return false;
+  }
 
   already_visited = true;
 

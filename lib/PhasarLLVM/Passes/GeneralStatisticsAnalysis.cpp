@@ -36,7 +36,7 @@ namespace psr {
 
 llvm::AnalysisKey GeneralStatisticsAnalysis::Key;
 
-GeneralStatisticsAnalysis::GeneralStatisticsAnalysis() {}
+GeneralStatisticsAnalysis::GeneralStatisticsAnalysis() = default;
 
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,

@@ -7,11 +7,13 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
+#include <utility>
+
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/WPDS/Problems/WPDSSolverTest.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/PhasarLLVM/Utils/BinaryDomain.h"
@@ -29,7 +31,8 @@ WPDSSolverTest::WPDSSolverTest(const ProjectIRDB *IRDB,
                                std::set<std::string> EntryPoints)
     : WPDSProblem<WPDSSolverTest::n_t, WPDSSolverTest::d_t, WPDSSolverTest::f_t,
                   WPDSSolverTest::t_t, WPDSSolverTest::v_t, WPDSSolverTest::l_t,
-                  WPDSSolverTest::i_t>(IRDB, TH, ICF, PT, EntryPoints) {}
+                  WPDSSolverTest::i_t>(IRDB, TH, ICF, PT,
+                                       std::move(EntryPoints)) {}
 
 shared_ptr<FlowFunction<WPDSSolverTest::d_t>>
 WPDSSolverTest::getNormalFlowFunction(WPDSSolverTest::n_t Curr,

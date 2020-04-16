@@ -23,6 +23,7 @@
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include <unordered_map>
+#include <utility>
 
 using namespace std;
 using namespace psr;
@@ -38,8 +39,8 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                        InterMonoFullConstantPropagation::f_t,
                        InterMonoFullConstantPropagation::t_t,
                        InterMonoFullConstantPropagation::v_t,
-                       InterMonoFullConstantPropagation::i_t>(IRDB, TH, ICF, PT,
-                                                              EntryPoints) {}
+                       InterMonoFullConstantPropagation::i_t>(
+          IRDB, TH, ICF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>
 InterMonoFullConstantPropagation::join(

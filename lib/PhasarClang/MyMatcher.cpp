@@ -38,22 +38,27 @@ namespace psr {
 // callee(functionDecl().bind("callee"))).bind("call");
 //
 void MyMatcher::run(const MatchFinder::MatchResult &Result) {
-  if (const ForStmt *FS = Result.Nodes.getNodeAs<ForStmt>("forLoop"))
+  if (const auto *FS = Result.Nodes.getNodeAs<ForStmt>("forLoop")) {
     FS->dump();
-  if (const CallExpr *CALLEE = Result.Nodes.getNodeAs<CallExpr>("callee"))
+  }
+  if (const auto *CALLEE = Result.Nodes.getNodeAs<CallExpr>("callee")) {
     errs() << "CALLEE: "
            << CALLEE->getDirectCallee()->getNameInfo().getAsString() << "\n";
-  if (const CXXRecordDecl *CALLER =
-          Result.Nodes.getNodeAs<CXXRecordDecl>("caller"))
+  }
+  if (const auto *CALLER = Result.Nodes.getNodeAs<CXXRecordDecl>("caller")) {
     errs() << "CALLER: " << CALLER->getNameAsString() << "\n";
+  }
   if (const auto *Caller =
-          Result.Nodes.getNodeAs<clang::FunctionDecl>("caller"))
+          Result.Nodes.getNodeAs<clang::FunctionDecl>("caller")) {
     errs() << "### Caller:" << Caller->getNameInfo().getAsString() << "\n";
+  }
   if (const auto *Callee =
-          Result.Nodes.getNodeAs<clang::FunctionDecl>("callee"))
+          Result.Nodes.getNodeAs<clang::FunctionDecl>("callee")) {
     errs() << "### Callee:" << Callee->getNameInfo().getAsString() << "\n";
-  if (const auto *Call = Result.Nodes.getNodeAs<clang::CallExpr>("call"))
+  }
+  if (const auto *Call = Result.Nodes.getNodeAs<clang::CallExpr>("call")) {
     errs() << "### with num args: " << Call->getNumArgs() << "\n";
+  }
 }
 //
 ////void dumpdiag(clang::SourceRange R) {

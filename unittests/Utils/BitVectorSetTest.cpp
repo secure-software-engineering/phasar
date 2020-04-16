@@ -71,7 +71,7 @@ TEST(BitVectorSet, copyAssign) {
 
 TEST(BitVectorSet, move) {
   BitVectorSet<int> B({10, 20, 30, 40, 50});
-  BitVectorSet<int> C(std::move(B));
+  BitVectorSet<int> C(B);
 
   EXPECT_EQ(C.count(10), 1);
   EXPECT_EQ(C.count(20), 1);

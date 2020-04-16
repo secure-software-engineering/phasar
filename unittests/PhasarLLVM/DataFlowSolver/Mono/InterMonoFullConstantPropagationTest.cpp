@@ -47,9 +47,10 @@ protected:
   }
   void TearDown() override { delete IRDB; }
 
-  void doAnalysisAndCompareResults(std::string LlvmFilePath,
-                                   std::set<IMFCPCompactResult_t> GroundTruth,
-                                   bool PrintDump = false) {
+  void
+  doAnalysisAndCompareResults(const std::string &LlvmFilePath,
+                              const std::set<IMFCPCompactResult_t> &GroundTruth,
+                              bool PrintDump = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     if (PrintDump) {
       IRDB->emitPreprocessedIR(std::cout, false);

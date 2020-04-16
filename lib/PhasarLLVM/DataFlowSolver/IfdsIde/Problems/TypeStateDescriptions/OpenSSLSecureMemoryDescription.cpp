@@ -150,7 +150,7 @@ TypeStateDescription::State OpenSSLSecureMemoryDescription::error() const {
 }
 
 OpenSSLSecureMemoryDescription::OpenSSLSecureMemoryToken
-OpenSSLSecureMemoryDescription::funcNameToToken(const std::string &F) const {
+OpenSSLSecureMemoryDescription::funcNameToToken(const std::string &F) {
   return llvm::StringSwitch<OpenSSLSecureMemoryToken>(F)
       .Case("CRYPTO_malloc", OpenSSLSecureMemoryToken::CRYPTO_MALLOC)
       .Case("CRYPTO_zalloc", OpenSSLSecureMemoryToken::CRYPTO_ZALLOC)

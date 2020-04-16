@@ -8,6 +8,7 @@
  *****************************************************************************/
 
 #include "phasar/PhasarLLVM/Plugins/PluginFactories.h"
+
 using namespace std;
 using namespace psr;
 
@@ -33,7 +34,7 @@ map<string, unique_ptr<InterMonoProblemPlugin> (*)()>
     InterMonoProblemPluginFactory;
 
 map<string,
-    unique_ptr<ICFGPlugin> (*)(ProjectIRDB &, const vector<string> EntryPoints)>
+    unique_ptr<ICFGPlugin> (*)(ProjectIRDB &, const vector<string> &EntryPoints)>
     ICFGPluginFactory;
 
 } // namespace psr

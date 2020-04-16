@@ -14,8 +14,9 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   TargetFacts.insert(Fact);
 
   bool IsVarArgTemplateFact = Fact.isVarArgTemplate();
-  if (!IsVarArgTemplateFact)
+  if (!IsVarArgTemplateFact) {
     return TargetFacts;
+  }
 
   const auto *const VaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
   auto *const VaListMemLocationMatr = VaStartInst->getArgList();
@@ -26,8 +27,9 @@ VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   bool IsValidMemLocationSeq = !VaListMemLocationSeq.empty();
   if (IsValidMemLocationSeq) {
     bool IsArrayDecay = DataFlowUtils::isArrayDecay(VaListMemLocationMatr);
-    if (IsArrayDecay)
+    if (IsArrayDecay) {
       VaListMemLocationSeq.pop_back();
+    }
 
     ExtendedValue EV(Fact);
     EV.setVaListMemLocationSeq(VaListMemLocationSeq);

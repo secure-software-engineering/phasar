@@ -139,13 +139,14 @@ TypeStateDescription::State OpenSSLEVPKDFDescription::error() const {
 }
 
 OpenSSLEVPKDFDescription::OpenSSLEVTKDFToken
-OpenSSLEVPKDFDescription::funcNameToToken(const std::string &F) const {
-  if (F == "EVP_KDF_fetch")
+OpenSSLEVPKDFDescription::funcNameToToken(const std::string &F) {
+  if (F == "EVP_KDF_fetch") {
     return OpenSSLEVTKDFToken::EVP_KDF_FETCH;
-  else if (F == "EVP_KDF_free")
+  } else if (F == "EVP_KDF_free") {
     return OpenSSLEVTKDFToken::EVP_KDF_FREE;
-  else
+  } else {
     return OpenSSLEVTKDFToken::STAR;
+  }
 }
 
 } // namespace psr
