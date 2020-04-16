@@ -132,7 +132,7 @@ LLVMPointsToInfo::LLVMPointsToInfo(ProjectIRDB &IRDB, PointerAnalysisType PAT) {
         llvm::AAResults &AAR = FAM.getResult<llvm::AAManager>(F);
         AAInfos.insert(std::make_pair(&F, &AAR));
         PointsToGraphs.insert(std::make_pair(
-            &F, std::make_unique<PointsToGraph>(&F, *AAInfos.at(&F))));
+            &F, std::make_unique<LLVMPointsToGraph>(&F, *AAInfos.at(&F))));
       }
     }
   }
@@ -445,7 +445,7 @@ void LLVMPointsToInfo::print(std::ostream &OS) const {
 
 nlohmann::json LLVMPointsToInfo::getAsJson() const { return ""_json; }
 
-PointsToGraph *
+LLVMPointsToGraph *
 LLVMPointsToInfo::getPointsToGraph(const llvm::Function *F) const {
   if (PointsToGraphs.count(F)) {
     return PointsToGraphs.at(F).get();

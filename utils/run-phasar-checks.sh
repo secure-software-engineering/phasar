@@ -2,9 +2,17 @@
 #
 # author: Philipp Schubert
 #
-# Ensure the overall code quality and the look and feel of the PhASAR project.
-# Run some very useful clang-tidy checks and clang-format on the code base.
+# Ensure the overall code quality and an unified look and feel of the PhASAR
+# project by running some very useful clang-tidy checks and clang-format on
+# the code base.
 #
+
+
+if [ "$#" -ne 1 ] || ! [ -d "${build_dir}" ]; then
+	echo "usage: <prog> <build dir>" >&2
+	exit 1
+fi
+
 
 # exclude external projects from clang tidy checks
 cp .clang-tidy-ignore external/googletest/.clang-tidy

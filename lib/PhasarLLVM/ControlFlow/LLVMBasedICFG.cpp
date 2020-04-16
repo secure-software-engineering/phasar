@@ -141,7 +141,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
       llvm::report_fatal_error("Could not retrieve function for entry point");
     }
     if (PT && (CGType == CallGraphAnalysisType::OTF)) {
-      PointsToGraph *PTG = PT->getPointsToGraph(F);
+      LLVMPointsToGraph *PTG = PT->getPointsToGraph(F);
       WholeModulePTG.mergeWith(PTG, F);
     }
     constructionWalker(F, *Res);
@@ -657,8 +657,8 @@ void LLVMBasedICFG::printAsDot(std::ostream &OS, bool PrintEdgeLabels) const {
 void LLVMBasedICFG::printInternalPTGAsDot(std::ostream &OS) const {
   boost::write_graphviz(
       OS, WholeModulePTG.PAG,
-      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG),
-      PointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG));
+      LLVMPointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG),
+      LLVMPointsToGraph::makePointerVertexOrEdgePrinter(WholeModulePTG.PAG));
 }
 
 nlohmann::json LLVMBasedICFG::getAsJson() const {
@@ -685,7 +685,7 @@ nlohmann::json LLVMBasedICFG::getAsJson() const {
 
 void LLVMBasedICFG::printAsJson(std::ostream &OS) const { OS << getAsJson(); }
 
-const PointsToGraph &LLVMBasedICFG::getWholeModulePTG() const {
+const LLVMPointsToGraph &LLVMBasedICFG::getWholeModulePTG() const {
   return WholeModulePTG;
 }
 

@@ -56,7 +56,7 @@ public:
   typedef LLVMBasedICFG i_t;
 
 private:
-  const PointsToGraph &ptg;
+  const LLVMPointsToGraph &ptg;
   // Holds all allocated memory locations, including global variables
   std::set<d_t> AllMemLocs; // FIXME: initialize within the constructor body!
   // Holds all initialized variables and objects.

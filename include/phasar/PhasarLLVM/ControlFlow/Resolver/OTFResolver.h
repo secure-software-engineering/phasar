@@ -33,17 +33,17 @@ namespace psr {
 class ProjectIRDB;
 class LLVMTypeHierarchy;
 class LLVMPointsToInfo;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 class OTFResolver : public CHAResolver {
 protected:
   LLVMPointsToInfo &PT;
-  PointsToGraph &WholeModulePTG;
+  LLVMPointsToGraph &WholeModulePTG;
   std::vector<const llvm::Instruction *> CallStack;
 
 public:
   OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH, LLVMPointsToInfo &PT,
-              PointsToGraph &WholeModulePTG);
+              LLVMPointsToGraph &WholeModulePTG);
 
   ~OTFResolver() override = default;
 

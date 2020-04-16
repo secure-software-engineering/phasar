@@ -60,7 +60,7 @@ private:
   bool UserPTInfos = true;
   LLVMTypeHierarchy *TH;
   LLVMPointsToInfo *PT;
-  PointsToGraph WholeModulePTG;
+  LLVMPointsToGraph WholeModulePTG;
   std::unordered_set<const llvm::Function *> VisitedFunctions;
   /// Keeps track of the call-sites already resolved
   // std::vector<const llvm::Instruction *> CallStack;
@@ -231,7 +231,7 @@ public:
 
   unsigned getNumOfEdges();
 
-  const PointsToGraph &getWholeModulePTG() const;
+  const LLVMPointsToGraph &getWholeModulePTG() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

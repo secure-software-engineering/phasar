@@ -72,7 +72,7 @@ public:
   static const std::string JsonTypeHierarchyID() { return "TypeHierarchy"; }
 
   /// Identifier for points-to graph export
-  static const std::string JsonPointToGraphID() { return "PointsToGraph"; }
+  static const std::string JsonPointsToGraphID() { return "PointsToGraph"; }
 
   /// Identifier for data-flow results export
   static const std::string JsonDataFlowID() { return "DataFlowInformation"; }

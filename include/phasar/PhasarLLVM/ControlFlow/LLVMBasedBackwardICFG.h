@@ -36,7 +36,7 @@ namespace psr {
 class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 class LLVMBasedBackwardsICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -110,7 +110,7 @@ public:
 
   unsigned getNumOfEdges();
 
-  const PointsToGraph &getWholeModulePTG() const;
+  const LLVMPointsToGraph &getWholeModulePTG() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

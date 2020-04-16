@@ -170,7 +170,7 @@ unsigned LLVMBasedBackwardsICFG::getNumOfEdges() {
   return ForwardICFG.getNumOfEdges();
 }
 
-const PointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() const {
+const LLVMPointsToGraph &LLVMBasedBackwardsICFG::getWholeModulePTG() const {
   return ForwardICFG.getWholeModulePTG();
 }
 

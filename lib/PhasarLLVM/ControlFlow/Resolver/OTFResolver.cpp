@@ -34,7 +34,7 @@ using namespace std;
 using namespace psr;
 
 OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMPointsToInfo &PT, PointsToGraph &WholeModulePTG)
+                         LLVMPointsToInfo &PT, LLVMPointsToGraph &WholeModulePTG)
     : CHAResolver(IRDB, TH), PT(PT), WholeModulePTG(WholeModulePTG) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {
