@@ -4,7 +4,7 @@
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/ConstantHelper.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 bool isConstant(const llvm::Value *val) {
   // is constantInt, constantFP or constant string
   if (llvm::isa<llvm::ConstantInt>(val)) // const int
@@ -29,4 +29,4 @@ bool isConstant(const llvm::Value *val) {
   }
   return false;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

@@ -11,7 +11,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValueSet.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 
 std::ostream &printSemantics(const llvm::APFloat &fl) {
 
@@ -620,4 +620,4 @@ std::string EdgeValue::typeToString(Type ty) {
     return "Top";
   }
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

@@ -2,7 +2,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 std::shared_ptr<AllBot::type> AllBot::getInstance() {
   static std::shared_ptr<type> ret =
       std::make_shared<type>(IDELinearConstantPropagation::v_t{nullptr});
@@ -30,4 +30,4 @@ bool AllBot::isBot(
     bool nonRec) {
   return isBot(edgeFn.get(), nonRec);
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

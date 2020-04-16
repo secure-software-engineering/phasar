@@ -4,7 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class IdentityEdgeFunction
     : public psr::EdgeFunction<IDELinearConstantPropagation::v_t>,
       public std::enable_shared_from_this<IdentityEdgeFunction> {
@@ -30,6 +30,8 @@ public:
   void print(std::ostream &OS, bool isForDebug = false) const override;
   static std::shared_ptr<IdentityEdgeFunction> getInstance(size_t maxSize);
 };
+
 // typedef psr::EdgeIdentity<IDELinearConstantPropagation::v_t>
 //   IdentityEdgeFunction;
-} // namespace CCPP::LCUtils
+
+} // namespace psr::LCUtils

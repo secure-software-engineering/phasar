@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeFunctionComposer.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 
 IDELinearConstantPropagation::v_t
 BinaryEdgeFunction::computeTarget(IDELinearConstantPropagation::v_t source) {
@@ -61,4 +61,4 @@ bool BinaryEdgeFunction::equal_to(
 void BinaryEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
   OS << "Binary_" << op;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

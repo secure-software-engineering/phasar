@@ -1,6 +1,6 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValueSet.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 EdgeValueSet::EdgeValueSet() : underlying({EdgeValue(nullptr)}) {}
 
 EdgeValueSet::EdgeValueSet(std::initializer_list<EdgeValue> ilist)
@@ -43,4 +43,4 @@ bool EdgeValueSet::operator==(const EdgeValueSet &other) const {
 bool EdgeValueSet::operator!=(const EdgeValueSet &other) const {
   return underlying != other.underlying;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

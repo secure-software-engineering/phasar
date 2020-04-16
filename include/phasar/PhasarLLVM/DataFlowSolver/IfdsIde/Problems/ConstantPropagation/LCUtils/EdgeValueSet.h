@@ -1,10 +1,11 @@
 #pragma once
+
 #include <initializer_list>
 #include <unordered_set>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValue.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class EdgeValueSet {
   std::unordered_set<EdgeValue> underlying;
 
@@ -28,4 +29,4 @@ public:
   bool operator==(const EdgeValueSet &other) const;
   bool operator!=(const EdgeValueSet &other) const;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

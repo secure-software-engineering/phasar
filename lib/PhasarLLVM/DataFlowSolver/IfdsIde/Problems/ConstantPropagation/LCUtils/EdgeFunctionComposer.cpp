@@ -8,7 +8,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 /*IDELinearConstantPropagation::v_t
 EdgeFunctionComposer::computeTarget(IDELinearConstantPropagation::v_t source) {
   auto ret = this->psr::EdgeFunctionComposer<
@@ -74,4 +74,4 @@ const std::shared_ptr<psr::EdgeFunction<IDELinearConstantPropagation::v_t>> &
 EdgeFunctionComposer::getSecond() const {
   return G;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

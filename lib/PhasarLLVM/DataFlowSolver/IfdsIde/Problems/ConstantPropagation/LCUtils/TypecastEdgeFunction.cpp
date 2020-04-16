@@ -2,7 +2,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 
 IDELinearConstantPropagation::v_t
 TypecastEdgeFunction::computeTarget(IDELinearConstantPropagation::v_t source) {
@@ -43,4 +43,4 @@ void TypecastEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
   OS << "TypecastEdgeFn[to=" << EdgeValue::typeToString(dest)
      << "; bits=" << bits << "]";
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

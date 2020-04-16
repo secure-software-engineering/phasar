@@ -1,9 +1,10 @@
 #pragma once
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValueSet.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class EdgeFunctionComposer
     : public psr::EdgeFunctionComposer<IDELinearConstantPropagation::v_t> {
   size_t maxSize;
@@ -28,4 +29,4 @@ public:
   const std::shared_ptr<psr::EdgeFunction<IDELinearConstantPropagation::v_t>> &
   getSecond() const;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

@@ -12,7 +12,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class MapFactsToCallerFlowFunction
     : public psr::FlowFunction<const llvm::Value *> {
   std::vector<const llvm::Value *> actuals;
@@ -28,4 +28,4 @@ public:
   std::set<const llvm::Value *>
   computeTargets(const llvm::Value *source) override;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

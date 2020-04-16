@@ -1,8 +1,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/MapFactsToCallerFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/ConstantHelper.h"
 
-
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 MapFactsToCallerFlowFunction::MapFactsToCallerFlowFunction(
     llvm::ImmutableCallSite cs, const llvm::Instruction *exitStmt,
     const llvm::Function *calleeMthd)
@@ -61,4 +60,4 @@ MapFactsToCallerFlowFunction::computeTargets(const llvm::Value *source) {
   }
   return res;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

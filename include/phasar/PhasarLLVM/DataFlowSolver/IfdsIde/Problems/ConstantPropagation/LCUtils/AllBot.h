@@ -1,9 +1,9 @@
 #pragma once
+
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 
-
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 struct AllBot {
   using type = psr::AllBottom<IDELinearConstantPropagation::v_t>;
   static std::shared_ptr<type> getInstance();
@@ -16,4 +16,4 @@ struct AllBot {
         bool nonRec = false);
 };
 
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

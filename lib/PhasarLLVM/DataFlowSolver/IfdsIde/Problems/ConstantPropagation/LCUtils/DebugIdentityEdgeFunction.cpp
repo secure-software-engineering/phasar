@@ -3,7 +3,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 DebugIdentityEdgeFunction::DebugIdentityEdgeFunction(
     const llvm::Instruction *from, const llvm::Instruction *to, size_t maxSize)
     : from(from), to(to), maxSize(maxSize) {}
@@ -43,4 +43,4 @@ void DebugIdentityEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
   OS << "FROM " << psr::llvmIRToString(from) << " TO "
      << psr::llvmIRToString(to) << std::endl;
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

@@ -5,7 +5,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/IdentityEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 JoinEdgeFunction::JoinEdgeFunction(
     const std::shared_ptr<psr::EdgeFunction<IDELinearConstantPropagation::v_t>>
         &frst,
@@ -114,4 +114,4 @@ JoinEdgeFunction::getSecond() const {
   return scnd;
 }
 
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

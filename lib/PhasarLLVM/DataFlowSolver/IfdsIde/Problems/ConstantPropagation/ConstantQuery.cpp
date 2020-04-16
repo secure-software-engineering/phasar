@@ -1,7 +1,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/ConstantQuery.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValue.h"
 
-namespace CCPP {
+namespace psr {
 IDELinearConstantPropagation::v_t getConstantValue(
     psr::IDESolver<const llvm::Instruction *, const llvm::Value *,
                    const llvm::Function *, IDELinearConstantPropagation::v_t,
@@ -12,6 +12,6 @@ IDELinearConstantPropagation::v_t getConstantValue(
     return {ev};
   else
     return solver->resultAt(inst, val);
-  // TODO implement
+  // TODO: implement
 }
-} // namespace CCPP
+} // namespace psr

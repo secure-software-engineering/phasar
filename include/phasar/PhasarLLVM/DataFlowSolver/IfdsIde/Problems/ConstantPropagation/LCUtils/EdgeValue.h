@@ -1,4 +1,5 @@
 #pragma once
+
 #include <iostream>
 #include <memory>
 #include <unordered_set>
@@ -10,7 +11,7 @@
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Instructions.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class EdgeValue {
 public:
   enum Type { Top, Integer, String, FloatingPoint };
@@ -90,11 +91,12 @@ ev_t join(const ev_t &v1, const ev_t &v2, size_t maxSize);
 bool operator<(const ev_t &v1, const ev_t &v2);
 bool isTopValue(const ev_t &v);
 std::ostream &operator<<(std::ostream &os, const ev_t &v);
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils
+
 namespace std {
-template <> struct hash<CCPP::LCUtils::EdgeValue> {
+template <> struct hash<psr::LCUtils::EdgeValue> {
   hash() {}
-  size_t operator()(const CCPP::LCUtils::EdgeValue &val) const {
+  size_t operator()(const psr::LCUtils::EdgeValue &val) const {
     auto hc = hash<int>()(val.getKind());
     uint64_t asInt;
     double asFloat;

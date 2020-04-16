@@ -24,8 +24,7 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-
-namespace CCPP {
+namespace psr {
 using namespace std;
 using namespace psr;
 using namespace LCUtils;
@@ -41,8 +40,8 @@ flow(std::function<std::set<IDELinearConstantPropagation::d_t>(
 IDELinearConstantPropagation::IDELinearConstantPropagation(
     LLVMBasedICFG &icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
     size_t maxSetSize)
-    : LLVMDefaultIDETabulationProblem(icfg, th, irdb), maxSetSize(maxSetSize) {
-  LLVMDefaultIDETabulationProblem::zerovalue = createZeroValue();
+    : IDETabulationProblem(icfg, th, irdb), maxSetSize(maxSetSize) {
+  IDETabulationProblem::zerovalue = createZeroValue();
 }
 // flow functions
 shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
@@ -480,7 +479,7 @@ IDELinearConstantPropagation::v_t
 IDELinearConstantPropagation::join(IDELinearConstantPropagation::v_t lhs,
                                    IDELinearConstantPropagation::v_t rhs) {
   // sets are passed by value
-  return CCPP::join(lhs, rhs, maxSetSize);
+  return psr::join(lhs, rhs, maxSetSize);
 }
 shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::allTopFunction() {
@@ -707,4 +706,4 @@ bool IDELinearConstantPropagation::isEntryPoint(const std::string &name) const {
   // For now, the only entrypoint is main
   return name == "main";
 }
-} // namespace CCPP
+} // namespace psr

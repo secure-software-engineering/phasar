@@ -5,7 +5,7 @@
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Value.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class MapFactsToCalleeFlowFunction
     : public psr::FlowFunction<const llvm::Value *> {
   llvm::ImmutableCallSite cs;
@@ -19,4 +19,4 @@ public:
   std::set<const llvm::Value *>
   computeTargets(const llvm::Value *source) override;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

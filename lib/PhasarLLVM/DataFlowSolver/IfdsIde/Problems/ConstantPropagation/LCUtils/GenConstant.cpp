@@ -6,7 +6,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 GenConstant::GenConstant(const IDELinearConstantPropagation::v_t &val,
                          size_t maxSize)
     : val(val), maxSize(maxSize) {
@@ -79,4 +79,4 @@ bool GenConstant::equal_to(
 void GenConstant::print(std::ostream &OS, bool isForDebug) const {
   OS << "GenConstantEdgeFn(" << val << ")";
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

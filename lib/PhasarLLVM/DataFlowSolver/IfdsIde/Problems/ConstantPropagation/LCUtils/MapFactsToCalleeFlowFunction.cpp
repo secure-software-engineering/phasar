@@ -9,7 +9,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/MapFactsToCalleeFlowFunction.h"
 #include "phasar/Utils/LLVMShorthands.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 
 MapFactsToCalleeFlowFunction::MapFactsToCalleeFlowFunction(
     llvm::ImmutableCallSite cs, const llvm::Function *destMthd)
@@ -36,7 +36,7 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *source) {
     for (unsigned idx = 0; idx < actuals.size(); ++idx) {
       if (source == actuals[idx] ||
           (psr::LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
-           CCPP::LCUtils::isConstant(actuals[idx]))) {
+           psr::LCUtils::isConstant(actuals[idx]))) {
         if (idx >= destMthd->arg_size() && !destMthd->isDeclaration()) {
           // Over-approximate by trying to add the
           //   alloca [1 x %struct.__va_list_tag], align 16
@@ -72,7 +72,7 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *source) {
     for (unsigned idx = 0; idx < actuals.size(); ++idx) {
       if (source == actuals[idx] ||
           (psr::LLVMZeroValue::getInstance()->isLLVMZeroValue(source) &&
-           CCPP::LCUtils::isConstant(actuals[idx]))) {
+           psr::LCUtils::isConstant(actuals[idx]))) {
         res.insert(formals[idx]); // corresponding formal
         // std::cout << "Map actual to formal: " < < < < std::endl;
         // llvm::outs() << "Map actual " << *actuals[idx] << " to formal "
@@ -84,4 +84,4 @@ MapFactsToCalleeFlowFunction::computeTargets(const llvm::Value *source) {
     return res;
   }
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

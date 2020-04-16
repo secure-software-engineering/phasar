@@ -9,13 +9,13 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValueSet.h"
 
-namespace CCPP {
+namespace psr {
 /// \brief An implementation of a linear constant analysis, similar to
 /// psr::IDELinearConstantAnalysis from phasar, but with an extended edge-value
 /// domain. Instead of using single values, we use a bounded set of cadidates to
 /// increase precision
 class IDELinearConstantPropagation
-    : public psr::LLVMDefaultIDETabulationProblem<
+    : public psr::IDETabulationProblem<
           const llvm::Value *, LCUtils::EdgeValueSet, psr::LLVMBasedICFG &> {
   size_t maxSetSize;
 
@@ -114,4 +114,4 @@ private:
 
 public:
 };
-} // namespace CCPP
+} // namespace psr 

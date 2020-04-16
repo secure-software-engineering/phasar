@@ -3,7 +3,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class GenConstant : public psr::EdgeFunction<IDELinearConstantPropagation::v_t>,
                     public std::enable_shared_from_this<GenConstant> {
   IDELinearConstantPropagation::v_t val;
@@ -29,4 +29,4 @@ public:
   void print(std::ostream &OS, bool isForDebug = false) const override;
 };
 
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

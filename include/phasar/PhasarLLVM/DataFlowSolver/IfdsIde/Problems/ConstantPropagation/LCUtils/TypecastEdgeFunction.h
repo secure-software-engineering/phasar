@@ -4,7 +4,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/EdgeValueSet.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class TypecastEdgeFunction
     : public psr::EdgeFunction<IDELinearConstantPropagation::v_t>,
       public std::enable_shared_from_this<TypecastEdgeFunction> {
@@ -34,4 +34,4 @@ public:
 
   void print(std::ostream &OS, bool isForDebug = false) const override;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

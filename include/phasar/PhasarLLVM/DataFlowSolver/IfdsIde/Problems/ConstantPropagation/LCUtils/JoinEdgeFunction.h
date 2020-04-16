@@ -3,7 +3,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 class JoinEdgeFunction
     : public psr::EdgeFunction<IDELinearConstantPropagation::v_t>,
       public std::enable_shared_from_this<JoinEdgeFunction> {
@@ -39,4 +39,4 @@ public:
   const std::shared_ptr<psr::EdgeFunction<IDELinearConstantPropagation::v_t>> &
   getSecond() const;
 };
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

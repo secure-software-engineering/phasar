@@ -6,7 +6,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/LCUtils/JoinEdgeFunction.h"
 
-namespace CCPP::LCUtils {
+namespace psr::LCUtils {
 IdentityEdgeFunction::IdentityEdgeFunction(size_t maxSize) : maxSize(maxSize) {}
 IDELinearConstantPropagation::v_t
 IdentityEdgeFunction::computeTarget(IDELinearConstantPropagation::v_t source) {
@@ -62,4 +62,4 @@ IdentityEdgeFunction::getInstance(size_t maxSize) {
 void IdentityEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
   OS << "IdentityEdgeFn";
 }
-} // namespace CCPP::LCUtils
+} // namespace psr::LCUtils

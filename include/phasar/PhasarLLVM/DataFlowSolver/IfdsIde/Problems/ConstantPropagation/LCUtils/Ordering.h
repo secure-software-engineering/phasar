@@ -1,5 +1,5 @@
 #pragma once
 
-namespace CCPP {
+namespace psr {
 enum class Ordering { Less, Greater, Equal, Incomparable };
 }
