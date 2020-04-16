@@ -111,10 +111,6 @@ else()
   include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googlemock/include)
 endif()
 
-# WALi-OpenNWA
-add_subdirectory(external/WALi-OpenNWA)
-include_directories(external/WALi-OpenNWA/Source/wali/include)
-
 # SQL
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
@@ -124,17 +120,23 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
   find_package(LLVM 10 REQUIRED CONFIG)
-  find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 
+find_library(LLVM_LIBRARY NAMES LLVM REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+message(${LLVM_LIBRARY})
+if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+  message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
+  set(USE_LLVM_FAT_LIB on)
+endif()
+
 # Clang
 if (NOT PHASAR_IN_TREE)
   # Only search for clang if we build out of tree
-  find_library(CLANG_LIBRARY NAMES clang REQUIRED)
+  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
   link_directories(${CLANG_LIB_PATH})
 endif()
 
@@ -147,28 +149,10 @@ if (PHASAR_IN_TREE)
   )
 endif()
 
-set(CLANG_LIBRARIES
- clangTooling
- clangFrontendTool
- clangFrontend
- clangDriver
- clangSerialization
- clangCodeGen
- clangParse
- clangSema
- clangStaticAnalyzerFrontend
- clangStaticAnalyzerCheckers
- clangStaticAnalyzerCore
- clangAnalysis
- clangARCMigrate
- clangRewrite
- clangRewriteFrontend
- clangEdit
- clangAST
- clangASTMatchers
- clangLex
- clangBasic
- )
+# WALi-OpenNWA
+add_subdirectory(external/WALi-OpenNWA)
+include_directories(external/WALi-OpenNWA/Source/wali/include)
+
 
 # Add the Phasar subdirectories
 add_subdirectory(include)

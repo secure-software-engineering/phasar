@@ -28,6 +28,11 @@ endif()
 
 
 find_package(Boost COMPONENTS log filesystem program_options REQUIRED)
+if(USE_LLVM_FAT_LIB)
+  llvm_config(phasar_plugins USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(phasar_plugins ${LLVM_LINK_COMPONENTS})
+endif()
 target_link_libraries(phasar_plugins
   LINK_PUBLIC
   ${Boost_LIBRARIES}
@@ -45,8 +50,6 @@ foreach(plugin ${PLUGINS_SO})
     phasar_utils
     phasar_ifdside
     phasar_mono
-    LLVMCore
-    LLVMSupport
     )
 endforeach()
 

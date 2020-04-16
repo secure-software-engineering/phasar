@@ -10,6 +10,11 @@ else()
 endif()
 
 find_package(Boost COMPONENTS log filesystem program_options graph ${BOOST_THREAD} REQUIRED)
+if(USE_LLVM_FAT_LIB)
+  llvm_config(phasar-clang USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(phasar-clang ${LLVM_LINK_COMPONENTS})
+endif()
 target_link_libraries(phasar-clang
   LINK_PUBLIC
   phasar_config
@@ -33,15 +38,8 @@ target_link_libraries(phasar-clang
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
-  # ${CLANG_LIBRARIES}
+  # ${CLANG_LIBRARY}
 )
-
-if(NOT PHASAR_IN_TREE)
-target_link_libraries(phasar-clang
-  LINK_PUBLIC
-  ${llvm_libs}
-)
-endif()
 
 set(LLVM_LINK_COMPONENTS
 )
