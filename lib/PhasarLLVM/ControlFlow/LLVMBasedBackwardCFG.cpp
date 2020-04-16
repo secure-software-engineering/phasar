@@ -56,8 +56,10 @@ LLVMBasedBackwardCFG::getSuccsOf(const llvm::Instruction *Stmt) const {
   if (Stmt->getPrevNode()) {
     Preds.push_back(Stmt->getPrevNode());
   }
-  for (const auto *PredBlock : llvm::predecessors(Stmt->getParent())) {
-    Preds.push_back(&PredBlock->back());
+  if (Stmt == &Stmt->getParent()->front()) {
+    for (const auto *PredBlock : llvm::predecessors(Stmt->getParent())) {
+      Preds.push_back(&PredBlock->back());
+    }
   }
   return Preds;
 }
