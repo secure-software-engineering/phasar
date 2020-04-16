@@ -20,7 +20,7 @@ RUN apt-get install libboost-all-dev -y
 
 # installing LLVM
 COPY utils/install-llvm.sh /usr/src/phasar/utils/install-llvm.sh
-RUN ./utils/install-llvm.sh $(nproc) . "/usr/local/" "llvmorg-9.0.0"
+RUN ./utils/install-llvm.sh $(nproc) . "/usr/local/" "llvmorg-10.0.0"
 
 # installing wllvm
 RUN pip3 install wllvm
