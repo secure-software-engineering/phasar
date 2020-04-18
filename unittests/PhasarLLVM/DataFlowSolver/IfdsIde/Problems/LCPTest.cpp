@@ -1,6 +1,6 @@
 // TODO: try running this unit test
 
-#include <experimental/filesystem>
+//#include <filesystem>
 #include <iostream>
 #include <unordered_set>
 #include <vector>
@@ -11,6 +11,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/ConstantPropagation/IDELinearConstantPropagation.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
+#include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
 #define DELETE(x)                                                              \
@@ -19,47 +20,58 @@
     (x) = nullptr;                                                             \
   }
 
-using namespace CCPP;
-using namespace CCPP::LCUtils;
+using namespace psr;
+using namespace psr::LCUtils;
+
 typedef std::tuple<const IDELinearConstantPropagation::v_t, unsigned, unsigned>
     groundTruth_t;
+
 /* ============== TEST FIXTURE ============== */
 
 class LCPTest : public ::testing::Test {
 
 protected:
-  const std::string pathToLLFiles = "../../../test/llvmIR/LCP/";
+  // TODO: move IR files into another directory
+  const std::string pathToLLFiles =
+      PhasarConfig::getPhasarConfig().PhasarDirectory() +
+      "build/test/llvm_test_code/lcp/";
 
-  psr::ProjectIRDB *irdb = nullptr;
-  psr::LLVMTypeHierarchy *th = nullptr;
-  psr::LLVMBasedICFG *icfg = nullptr;
+  ProjectIRDB *irdb = nullptr;
+  LLVMTypeHierarchy *th = nullptr;
+  LLVMBasedICFG *icfg = nullptr;
   IDELinearConstantPropagation *LCP = nullptr;
-  psr::LLVMIDESolver<const llvm::Value *, IDELinearConstantPropagation::v_t,
-                     psr::LLVMBasedICFG &> *solver = nullptr;
+  IDESolver<const llvm::Instruction *, const llvm::Value *,
+            const llvm::Function *, const llvm::StructType *,
+            const llvm::Value *, LCUtils::EdgeValueSet, LLVMBasedICFG> *solver =
+      nullptr;
 
   LCPTest() {}
   virtual ~LCPTest() {}
 
-  void Initialize(const std::string &llFile, bool generateOutput = false,
-                  size_t maxSetSize = 2) {
-    ASSERT_EQ(true, std::filesystem::exists(pathToLLFiles + llFile))
-        << "for file " << llFile;
+  void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
+    // ASSERT_EQ(true, std::filesystem::exists(pathToLLFiles + llFile))
+    //    << "for file " << llFile;
 
-    irdb =
-        new psr::ProjectIRDB({pathToLLFiles + llFile}, psr::IRDBOptions::WPA);
+    irdb = new ProjectIRDB({pathToLLFiles + llFile}, IRDBOptions::WPA);
 
-    irdb->preprocessIR();
+    // irdb->preprocessIR();
     // irdb->print();
-    th = new psr::LLVMTypeHierarchy(*irdb);
 
-    icfg = new psr::LLVMBasedICFG(*th, *irdb, psr::CallGraphAnalysisType::RTA,
-                                  {"main"});
+    th = new LLVMTypeHierarchy(*irdb);
 
-    LCP = new IDELinearConstantPropagation(*icfg, *th, *irdb, maxSetSize);
+    icfg = new LLVMBasedICFG(*irdb, CallGraphAnalysisType::RTA, {"main"}, th);
 
-    solver = new psr::LLVMIDESolver<const llvm::Value *,
-                                    IDELinearConstantPropagation::v_t,
-                                    psr::LLVMBasedICFG &>(*LCP, generateOutput);
+    // TODO: remove this
+    // is PointsToInfo object necessary?
+    // if not, update constructor
+    const PointsToInfo<const llvm::Value *, const llvm::Instruction *> *pt;
+    LCP = new IDELinearConstantPropagation(irdb, th, icfg, pt, {"main"},
+                                           maxSetSize);
+
+    solver = new IDESolver<const llvm::Instruction *, const llvm::Value *,
+                           const llvm::Function *, const llvm::StructType *,
+                           const llvm::Value *, LCUtils::EdgeValueSet,
+                           LLVMBasedICFG>(*LCP);
     // try {
     solver->solve();
     /*} catch (std::exception &e) {
@@ -71,8 +83,9 @@ protected:
   }
 
   void SetUp() override {
-    bl::core::get()->set_logging_enabled(false);
-    psr::ValueAnnotationPass::resetValueID();
+    // TODO: fix this, what is bl?
+    // bl::core::get()->set_logging_enabled(false);
+    ValueAnnotationPass::resetValueID();
   }
 
   void TearDown() override {
@@ -100,7 +113,7 @@ protected:
 }; // class Fixture
 
 TEST_F(LCPTest, SimpleTest) {
-  Initialize("SimpleTest.ll", false);
+  Initialize("SimpleTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(10)}, 3, 20});
   groundTruth.push_back({{EdgeValue(15)}, 4, 20});
@@ -108,7 +121,7 @@ TEST_F(LCPTest, SimpleTest) {
 }
 
 TEST_F(LCPTest, BranchTest) {
-  Initialize("BranchTest.ll", false);
+  Initialize("BranchTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(25), EdgeValue(43)}, 3, 22});
   groundTruth.push_back({{EdgeValue(24)}, 4, 22});
@@ -116,21 +129,21 @@ TEST_F(LCPTest, BranchTest) {
 }
 
 TEST_F(LCPTest, FPtest) {
-  Initialize("FPtest.ll", false);
+  Initialize("FPtest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(4.5)}, 1, 16});
   groundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, StringTest) {
-  Initialize("StringTest.ll", false);
+  Initialize("StringTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
   groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, StringBranchTest) {
-  Initialize("StringBranchTest.ll", false);
+  Initialize("StringBranchTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back(
       {{EdgeValue("Hello, World"), EdgeValue("Hello Hello")}, 3, 15});
@@ -138,7 +151,7 @@ TEST_F(LCPTest, StringBranchTest) {
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, FloatDivisionTest) {
-  Initialize("FloatDivision.ll", false);
+  Initialize("FloatDivision_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(nullptr)}, 1, 24}); // i
   groundTruth.push_back({{EdgeValue(1.0)}, 2, 24});     // j
@@ -146,14 +159,14 @@ TEST_F(LCPTest, FloatDivisionTest) {
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, SimpleFunctionTest) {
-  Initialize("SimpleFunctionTest.ll", false);
+  Initialize("SimpleFunctionTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(48)}, 10, 31});      // i
   groundTruth.push_back({{EdgeValue(nullptr)}, 11, 31}); // j
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, GlobalVariableTest) {
-  Initialize("GlobalVariableTest.ll", false);
+  Initialize("GlobalVariableTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(50)}, 7, 13});       // i
   groundTruth.push_back({{EdgeValue(nullptr)}, 10, 13}); // j
@@ -161,7 +174,7 @@ TEST_F(LCPTest, GlobalVariableTest) {
 }
 TEST_F(LCPTest, Imprecision) {
   // bl::core::get()->set_logging_enabled(true);
-  Initialize("Imprecision.ll", false, 2);
+  Initialize("Imprecision_c.ll", 2);
   auto xInst = irdb->getInstruction(0); // foo.x
   auto yInst = irdb->getInstruction(1); // foo.y
   auto barInst = irdb->getInstruction(7);
@@ -175,13 +188,13 @@ TEST_F(LCPTest, Imprecision) {
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, ReturnConstTest) {
-  Initialize("ReturnConstTest.ll", false);
+  Initialize("ReturnConstTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(43)}, 7, 8}); // i
   compareResults(groundTruth);
 }
 TEST_F(LCPTest, NullTest) {
-  Initialize("NullTest.ll", true);
+  Initialize("NullTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue("")}, 4, 5}); // foo(null)
   compareResults(groundTruth);
