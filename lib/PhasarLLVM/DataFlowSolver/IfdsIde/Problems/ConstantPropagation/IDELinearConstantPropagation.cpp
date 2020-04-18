@@ -1,7 +1,9 @@
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/Instructions.h>
-#include <llvm/Support/Casting.h>
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/Support/Casting.h"
 
+#include "phasar/DB/ProjectIRDB.h"
+#include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
@@ -24,24 +26,34 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-namespace psr {
 using namespace std;
 using namespace psr;
 using namespace LCUtils;
+
+namespace psr {
+
+template <typename V> std::string VtoString(V v) {
+  std::stringstream ss;
+  ss << v;
+  return ss.str();
+}
 
 inline std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 flow(std::function<std::set<IDELinearConstantPropagation::d_t>(
          IDELinearConstantPropagation::d_t)>
          fn) {
-  return std::make_shared<psr::LambdaFlow<IDELinearConstantPropagation::d_t>>(
-      fn);
+  return std::make_shared<LambdaFlow<IDELinearConstantPropagation::d_t>>(fn);
 }
 
 IDELinearConstantPropagation::IDELinearConstantPropagation(
-    LLVMBasedICFG &icfg, const LLVMTypeHierarchy &th, const ProjectIRDB &irdb,
-    size_t maxSetSize)
-    : IDETabulationProblem(icfg, th, irdb), maxSetSize(maxSetSize) {
-  IDETabulationProblem::zerovalue = createZeroValue();
+    const ProjectIRDB *IRDB,
+    const TypeHierarchy<const llvm::StructType *, const llvm::Function *> *TH,
+    const LLVMBasedICFG *ICF,
+    const PointsToInfo<const llvm::Value *, const llvm::Instruction *> *PT,
+    std::set<std::string> EntryPoints, size_t MaxSetSize)
+    : IDETabulationProblem(IRDB, TH, ICF, PT, EntryPoints),
+      maxSetSize(MaxSetSize) {
+  IDETabulationProblem::ZeroValue = createZeroValue();
 }
 // flow functions
 shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
@@ -144,7 +156,7 @@ IDELinearConstantPropagation::getNormalFlowFunction(
     });
   }
 */
-  return psr::Identity<IDELinearConstantPropagation::d_t>::getInstance();
+  return Identity<IDELinearConstantPropagation::d_t>::getInstance();
 }
 shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getCallFlowFunction(
@@ -189,7 +201,7 @@ IDELinearConstantPropagation::getCallToRetFlowFunction(
       return {source};
     });
   } else
-    return psr::Identity<d_t>::getInstance();
+    return Identity<d_t>::getInstance();
 }
 shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getSummaryFlowFunction(
@@ -208,7 +220,7 @@ IDELinearConstantPropagation::initialSeeds() {
   for (auto &EntryPoint : EntryPoints) {
     set<IDELinearConstantPropagation::d_t> Globals;
     for (const auto &G :
-         irdb.getModuleDefiningFunction(EntryPoint)->globals()) {
+         IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
       if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
         if (GV->hasInitializer()) {
           if (llvm::isa<llvm::ConstantInt>(GV->getInitializer()) ||
@@ -217,10 +229,15 @@ IDELinearConstantPropagation::initialSeeds() {
         }
       }
     }
-    Globals.insert(zeroValue());
+
+    // maybe front() returns unique pointer which is uncopyable
+    Globals.insert(ZeroValue);
     if (!Globals.empty()) {
-      SeedMap.insert(
-          make_pair(&icfg.getMethod(EntryPoint)->front().front(), Globals));
+      // TODO: fix this
+      SeedMap.insert(make_pair(nullptr, Globals));
+      //      SeedMap.insert(make_pair(
+      //          std::move(ICF->getFunction(EntryPoint)->front()).front(),
+      //          Globals));
     }
   }
   // SeedMap.insert(
@@ -229,12 +246,12 @@ IDELinearConstantPropagation::initialSeeds() {
   return SeedMap;
 }
 IDELinearConstantPropagation::d_t
-IDELinearConstantPropagation::createZeroValue() {
-  return psr::LLVMZeroValue::getInstance();
+IDELinearConstantPropagation::createZeroValue() const {
+  return LLVMZeroValue::getInstance();
 }
 bool IDELinearConstantPropagation::isZeroValue(
     IDELinearConstantPropagation::d_t d) const {
-  return psr::LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
+  return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // edge functions
@@ -244,7 +261,7 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
     IDELinearConstantPropagation::d_t currNode,
     IDELinearConstantPropagation::n_t succ,
     IDELinearConstantPropagation::d_t succNode) {
-  auto &lg = psr::lg::get();
+  auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                 << "IDELinearConstantPropagation::getNormalEdgeFunction()");
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
@@ -262,8 +279,8 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
   //  normal edge fn
 
   // Initialize global variables at entry point
-  if (!isZeroValue(currNode) && icfg.isStartPoint(curr) &&
-      isEntryPoint(icfg.getMethodOf(curr)->getName().str()) &&
+  if (!isZeroValue(currNode) && ICF->isStartPoint(curr) &&
+      isEntryPoint(ICF->getFunctionOf(curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(currNode) && currNode == succNode) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
                   << "Case: Intialize global variable at entry point.");
@@ -294,8 +311,7 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
 
   // All_Bottom for zero value
   if (isZeroValue(currNode) && isZeroValue(succNode)) {
-    static auto allBottom =
-        std::make_shared<psr::AllBottom<v_t>>(bottomElement());
+    static auto allBottom = std::make_shared<AllBottom<v_t>>(bottomElement());
     return allBottom;
   }
   // Check store instruction
@@ -410,9 +426,9 @@ IDELinearConstantPropagation::getCallEdgeFunction(
   auto len =
       std::min<size_t>(cs.getNumArgOperands(), destinationMethod->arg_size());
 
-  if (psr::LLVMZeroValue::getInstance()->isLLVMZeroValue(srcNode)) {
+  if (LLVMZeroValue::getInstance()->isLLVMZeroValue(srcNode)) {
     for (size_t i = 0; i < len; ++i) {
-      auto formalArg = psr::getNthFunctionArgument(destinationMethod, i);
+      auto formalArg = getNthFunctionArgument(destinationMethod, i);
       if (destNode == formalArg) {
         auto actualArg = cs.getArgOperand(i);
         // if (isConstant(actualArg))  // -> always const, since srcNode is zero
@@ -479,18 +495,18 @@ IDELinearConstantPropagation::v_t
 IDELinearConstantPropagation::join(IDELinearConstantPropagation::v_t lhs,
                                    IDELinearConstantPropagation::v_t rhs) {
   // sets are passed by value
-  return psr::join(lhs, rhs, maxSetSize);
+  return ::join(lhs, rhs, maxSetSize);
 }
 shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::allTopFunction() {
   static shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>> alltopFn =
-      std::make_shared<psr::AllTop<v_t>>(topElement());
+      std::make_shared<AllTop<v_t>>(topElement());
   return alltopFn;
 }
 
 void IDELinearConstantPropagation::printNode(
     std::ostream &os, IDELinearConstantPropagation::n_t n) const {
-  os << psr::llvmIRToString(n);
+  os << llvmIRToString(n);
 }
 
 void IDELinearConstantPropagation::printDataFlowFact(
@@ -499,12 +515,12 @@ void IDELinearConstantPropagation::printDataFlowFact(
   os << llvmIRToString(d);
 }
 
-void IDELinearConstantPropagation::printMethod(
+void IDELinearConstantPropagation::printFunction(
     std::ostream &os, IDELinearConstantPropagation::m_t m) const {
   os << m->getName().str();
 }
 
-void IDELinearConstantPropagation::printValue(
+void IDELinearConstantPropagation::printEdgeFact(
     std::ostream &os, IDELinearConstantPropagation::v_t v) const {
   os << v;
 }
@@ -535,22 +551,24 @@ void IDELinearConstantPropagation::printValue(
     os << "----------------\n";
   }
 }*/
+
 void IDELinearConstantPropagation::emitTextReport(
-    std::ostream &os,
-    const psr::SolverResults<IDELinearConstantPropagation::n_t,
-                             IDELinearConstantPropagation::d_t,
-                             IDELinearConstantPropagation::v_t> &SR) {
+    const SolverResults<IDELinearConstantPropagation::n_t,
+                        IDELinearConstantPropagation::d_t,
+                        IDELinearConstantPropagation::v_t> &SR,
+    std::ostream &os) {
+
   os << "\n====================== IDE-Linear-Constant-Analysis Report "
         "======================\n";
-  if (!irdb.debugInfoAvailable()) {
+  if (!IRDB->debugInfoAvailable()) {
     // Emit only IR code, function name and module info
     os << "\nWARNING: No Debug Info available - emiting results without "
           "source code mapping!\n";
-    for (auto f : icfg.getAllMethods()) {
+    for (auto f : ICF->getAllFunctions()) {
       std::string fName = getFunctionNameFromIR(f);
       os << "\nFunction: " << fName << "\n----------"
          << std::string(fName.size(), '-') << '\n';
-      for (auto stmt : icfg.getAllInstructionsOf(f)) {
+      for (auto stmt : ICF->getAllInstructionsOf(f)) {
         auto results = SR.resultsAt(stmt, true);
         stripBottomResults(results);
         if (!results.empty()) {
@@ -591,7 +609,7 @@ void IDELinearConstantPropagation::stripBottomResults(
     }
   }
 }
-IDELinearConstantPropagation::lca_restults_t
+IDELinearConstantPropagation::lca_results_t
 IDELinearConstantPropagation::getLCAResults(
     SolverResults<IDELinearConstantPropagation::n_t,
                   IDELinearConstantPropagation::d_t,
@@ -599,12 +617,12 @@ IDELinearConstantPropagation::getLCAResults(
         SR) {
   std::map<std::string, std::map<unsigned, LCAResult>> aggResults;
   std::cout << "\n==== Computing LCA Results ====\n";
-  for (auto f : icfg.getAllMethods()) {
+  for (auto f : ICF->getAllFunctions()) {
     std::string fName = getFunctionNameFromIR(f);
     std::cout << "\n-- Function: " << fName << " --\n";
     std::map<unsigned, LCAResult> fResults;
     std::set<std::string> allocatedVars;
-    for (auto stmt : icfg.getAllInstructionsOf(f)) {
+    for (auto stmt : ICF->getAllInstructionsOf(f)) {
       unsigned lnr = getLineFromIR(stmt);
       std::cout << "\nIR : " << NtoString(stmt) << "\nLNR: " << lnr << '\n';
       // We skip statements with no source code mapping
@@ -626,17 +644,17 @@ IDELinearConstantPropagation::getLCAResults(
         lcaRes->line_nr = lnr;
       }
       lcaRes->ir_trace.push_back(stmt);
-      if (stmt->isTerminator() && !icfg.isExitStmt(stmt)) {
+      if (stmt->isTerminator() && !ICF->isExitStmt(stmt)) {
         std::cout << "Delete result since stmt is Terminator or Exit!\n";
         fResults.erase(lnr);
       } else {
         // check results of succ(stmt)
         std::unordered_map<d_t, v_t> results;
-        if (icfg.isExitStmt(stmt)) {
+        if (ICF->isExitStmt(stmt)) {
           results = SR.resultsAt(stmt, true);
         } else {
           // It's not a terminator inst, hence it has only a single successor
-          auto succ = icfg.getSuccsOf(stmt)[0];
+          auto succ = ICF->getSuccsOf(stmt)[0];
           std::cout << "Succ stmt: " << NtoString(succ) << '\n';
           results = SR.resultsAt(succ, true);
         }

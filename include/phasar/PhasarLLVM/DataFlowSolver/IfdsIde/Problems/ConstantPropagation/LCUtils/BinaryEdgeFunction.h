@@ -8,10 +8,10 @@ namespace psr::LCUtils {
 class BinaryEdgeFunction
     : public psr::EdgeFunction<IDELinearConstantPropagation::v_t>,
       public std::enable_shared_from_this<BinaryEdgeFunction> {
+  llvm::BinaryOperator::BinaryOps op;
   const IDELinearConstantPropagation::v_t cnst;
   bool leftConst;
   size_t maxSize;
-  llvm::BinaryOperator::BinaryOps op;
 
 public:
   BinaryEdgeFunction(llvm::BinaryOperator::BinaryOps op,
