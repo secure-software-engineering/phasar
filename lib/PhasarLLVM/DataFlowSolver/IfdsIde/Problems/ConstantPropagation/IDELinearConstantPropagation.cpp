@@ -1,3 +1,8 @@
+// TODO:
+// - add authors
+// - run clang-tidy and fix identifier naming
+// - rename file to make clear that is a generalized LCA
+
 #include "llvm/IR/GlobalVariable.h"
 #include "llvm/IR/Instructions.h"
 #include "llvm/Support/Casting.h"
@@ -26,7 +31,6 @@
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
 
-using namespace std;
 using namespace psr;
 using namespace LCUtils;
 
@@ -56,7 +60,7 @@ IDELinearConstantPropagation::IDELinearConstantPropagation(
   IDETabulationProblem::ZeroValue = createZeroValue();
 }
 // flow functions
-shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
+std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getNormalFlowFunction(
     IDELinearConstantPropagation::n_t curr,
     IDELinearConstantPropagation::n_t succ) {
@@ -138,7 +142,7 @@ IDELinearConstantPropagation::getNormalFlowFunction(
                     -> std::set<IDELinearConstantPropagation::d_t> {
       // std::cout << "BLUBB" << std::endl;
       if (source == lhs || source == rhs ||
-          (bothConst || noneConst) && isZeroValue(source))
+          ((bothConst || noneConst) && isZeroValue(source)))
         return {source, curr};
       else
         return {source};
@@ -158,7 +162,7 @@ IDELinearConstantPropagation::getNormalFlowFunction(
 */
   return Identity<IDELinearConstantPropagation::d_t>::getInstance();
 }
-shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
+std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getCallFlowFunction(
     IDELinearConstantPropagation::n_t callStmt,
     IDELinearConstantPropagation::m_t destMthd) {
@@ -168,7 +172,8 @@ IDELinearConstantPropagation::getCallFlowFunction(
   return std::make_shared<MapFactsToCalleeFlowFunction>(
       llvm::ImmutableCallSite(callStmt), destMthd);
 }
-shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
+
+std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getRetFlowFunction(
     IDELinearConstantPropagation::n_t callSite,
     IDELinearConstantPropagation::m_t calleeMthd,
@@ -183,10 +188,10 @@ IDELinearConstantPropagation::getRetFlowFunction(
   return std::make_shared<MapFactsToCallerFlowFunction>(
       llvm::ImmutableCallSite(callSite), exitStmt, calleeMthd);
 }
-shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
+std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getCallToRetFlowFunction(
     IDELinearConstantPropagation::n_t callSite,
-    IDELinearConstantPropagation::n_t retSite, set<m_t> callees) {
+    IDELinearConstantPropagation::n_t retSite, std::set<m_t> callees) {
   // std::cout << "CTR flow: " << psr::llvmIRToString(callSite) << std::endl;
   if (auto call = llvm::dyn_cast<llvm::CallBase>(callSite)) {
 
@@ -203,7 +208,7 @@ IDELinearConstantPropagation::getCallToRetFlowFunction(
   } else
     return Identity<d_t>::getInstance();
 }
-shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
+std::shared_ptr<FlowFunction<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::getSummaryFlowFunction(
     IDELinearConstantPropagation::n_t callStmt,
     IDELinearConstantPropagation::m_t destMthd) {
@@ -211,14 +216,16 @@ IDELinearConstantPropagation::getSummaryFlowFunction(
   // std::endl;
   return nullptr;
 }
-map<IDELinearConstantPropagation::n_t, set<IDELinearConstantPropagation::d_t>>
+std::map<IDELinearConstantPropagation::n_t,
+         std::set<IDELinearConstantPropagation::d_t>>
 IDELinearConstantPropagation::initialSeeds() {
-  map<IDELinearConstantPropagation::n_t, set<IDELinearConstantPropagation::d_t>>
+  std::map<IDELinearConstantPropagation::n_t,
+           std::set<IDELinearConstantPropagation::d_t>>
       SeedMap;
   // For now, out only entrypoint is main:
   std::vector<std::string> EntryPoints = {"main"};
   for (auto &EntryPoint : EntryPoints) {
-    set<IDELinearConstantPropagation::d_t> Globals;
+    std::set<IDELinearConstantPropagation::d_t> Globals;
     for (const auto &G :
          IRDB->getModuleDefiningFunction(EntryPoint)->globals()) {
       if (auto GV = llvm::dyn_cast<llvm::GlobalVariable>(&G)) {
@@ -230,14 +237,10 @@ IDELinearConstantPropagation::initialSeeds() {
       }
     }
 
-    // maybe front() returns unique pointer which is uncopyable
     Globals.insert(ZeroValue);
     if (!Globals.empty()) {
-      // TODO: fix this
-      SeedMap.insert(make_pair(nullptr, Globals));
-      //      SeedMap.insert(make_pair(
-      //          std::move(ICF->getFunction(EntryPoint)->front()).front(),
-      //          Globals));
+      SeedMap.insert(std::make_pair(
+          &ICF->getFunction(EntryPoint)->front().front(), Globals));
     }
   }
   // SeedMap.insert(
@@ -245,17 +248,19 @@ IDELinearConstantPropagation::initialSeeds() {
   //              set<IDELinearConstantPropagation::d_t>({zeroValue()})));
   return SeedMap;
 }
+
 IDELinearConstantPropagation::d_t
 IDELinearConstantPropagation::createZeroValue() const {
   return LLVMZeroValue::getInstance();
 }
+
 bool IDELinearConstantPropagation::isZeroValue(
     IDELinearConstantPropagation::d_t d) const {
   return LLVMZeroValue::getInstance()->isLLVMZeroValue(d);
 }
 
 // edge functions
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::getNormalEdgeFunction(
     IDELinearConstantPropagation::n_t curr,
     IDELinearConstantPropagation::d_t currNode,
@@ -293,18 +298,18 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
       if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer())) {
 
         auto IntConst = CI->getValue();
-        return make_shared<GenConstant>(v_t({EdgeValue(std::move(IntConst))}),
-                                        maxSetSize);
+        return std::make_shared<GenConstant>(
+            v_t({EdgeValue(std::move(IntConst))}), maxSetSize);
       } else if (auto CF =
                      llvm::dyn_cast<llvm::ConstantFP>(GV->getInitializer())) {
         auto FPConst = CF->getValueAPF();
-        return make_shared<GenConstant>(v_t({EdgeValue(std::move(FPConst))}),
-                                        maxSetSize);
+        return std::make_shared<GenConstant>(
+            v_t({EdgeValue(std::move(FPConst))}), maxSetSize);
       } else if (auto CS = llvm::dyn_cast<llvm::ConstantDataArray>(
                      GV->getInitializer())) {
         auto StringConst = CS->getAsCString();
-        return make_shared<GenConstant>(v_t({EdgeValue(StringConst.str())}),
-                                        maxSetSize);
+        return std::make_shared<GenConstant>(
+            v_t({EdgeValue(StringConst.str())}), maxSetSize);
       }
     }
   }
@@ -331,7 +336,7 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
       // Case I: Storing a constant value.
       if (isZeroValue(currNode) && isConstant(valueOperand)) {
         EdgeValue ev(valueOperand);
-        return make_shared<GenConstant>(v_t({ev}), maxSetSize);
+        return std::make_shared<GenConstant>(v_t({ev}), maxSetSize);
       }
       // Case II: Storing an integer typed value.
       /*if (currNode != succNode && valueOperand->getType()->isIntegerTy()) {
@@ -400,7 +405,8 @@ IDELinearConstantPropagation::getNormalEdgeFunction(
   // return std::make_shared<DebugIdentityEdgeFunction>(curr, succ,
   // maxSetSize);
 }
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::getCallEdgeFunction(
     IDELinearConstantPropagation::n_t callStmt,
     IDELinearConstantPropagation::d_t srcNode,
@@ -441,7 +447,8 @@ IDELinearConstantPropagation::getCallEdgeFunction(
   }
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::getReturnEdgeFunction(
     IDELinearConstantPropagation::n_t callSite,
     IDELinearConstantPropagation::m_t calleeMethod,
@@ -464,17 +471,18 @@ IDELinearConstantPropagation::getReturnEdgeFunction(
   // return edge-identity
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::getCallToRetEdgeFunction(
     IDELinearConstantPropagation::n_t callSite,
     IDELinearConstantPropagation::d_t callNode,
     IDELinearConstantPropagation::n_t retSite,
     IDELinearConstantPropagation::d_t retSiteNode,
-    set<IDELinearConstantPropagation::m_t> callees) {
+    std::set<IDELinearConstantPropagation::m_t> callees) {
   // return edge-identity
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::getSummaryEdgeFunction(
     IDELinearConstantPropagation::n_t callStmt,
     IDELinearConstantPropagation::d_t callNode,
@@ -483,6 +491,7 @@ IDELinearConstantPropagation::getSummaryEdgeFunction(
   // return edge-identity
   return IdentityEdgeFunction::getInstance(maxSetSize);
 }
+
 IDELinearConstantPropagation::v_t IDELinearConstantPropagation::topElement() {
   return v_t({});
 }
@@ -497,10 +506,11 @@ IDELinearConstantPropagation::join(IDELinearConstantPropagation::v_t lhs,
   // sets are passed by value
   return ::join(lhs, rhs, maxSetSize);
 }
-shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+
+std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
 IDELinearConstantPropagation::allTopFunction() {
-  static shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>> alltopFn =
-      std::make_shared<AllTop<v_t>>(topElement());
+  static std::shared_ptr<EdgeFunction<IDELinearConstantPropagation::v_t>>
+      alltopFn = std::make_shared<AllTop<v_t>>(topElement());
   return alltopFn;
 }
 
