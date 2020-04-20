@@ -433,7 +433,6 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     IDETypeStateAnalysis::n_t CallSite, IDETypeStateAnalysis::d_t CallNode,
     IDETypeStateAnalysis::n_t RetSite, IDETypeStateAnalysis::d_t RetSiteNode,
     std::set<IDETypeStateAnalysis::f_t> Callees) {
-  auto &LG = lg::get();
   const llvm::ImmutableCallSite CS(CallSite);
   for (const auto *Callee : Callees) {
     std::string DemangledFname = cxxDemangle(Callee->getName().str());
@@ -441,7 +440,8 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     // For now we assume that we can only generate from the return value.
     // We apply the same edge function for the return value, i.e. callsite.
     if (TSD.isFactoryFunction(DemangledFname)) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Processing factory function");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "Processing factory function");
       if (isZeroValue(CallNode) && RetSiteNode == CS.getInstruction()) {
         struct TSFactoryEF : public TSEdgeFunction {
           TSFactoryEF(const TypeStateDescription &Tsd, const std::string &Tok,
@@ -467,7 +467,7 @@ IDETypeStateAnalysis::getCallToRetEdgeFunction(
     // For every consuming parameter and all its aliases and relevant alloca's
     // we apply the same edge function.
     if (TSD.isConsumingFunction(DemangledFname)) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Processing consuming function");
       for (auto Idx : TSD.getConsumerParamIdx(DemangledFname)) {
         std::set<IDETypeStateAnalysis::d_t> PointsToAndAllocas =
@@ -549,9 +549,8 @@ IDETypeStateAnalysis::TSEdgeFunctionComposer::joinWith(
 
 IDETypeStateAnalysis::l_t IDETypeStateAnalysis::TSEdgeFunction::computeTarget(
     IDETypeStateAnalysis::l_t Source) {
-  auto &LG = lg::get();
   CurrentState = TSD.getNextState(Token, Source);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "State machine transition: (" << Token << " , "
                 << TSD.stateToString(Source) << ") -> "
                 << TSD.stateToString(CurrentState));
@@ -612,18 +611,17 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
   } else {
     auto PointsToSet = getWMPointsToSet(V);
     std::set<IDETypeStateAnalysis::d_t> RelevantAllocas;
-    auto &LG = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Compute relevant alloca's of "
                   << IDETypeStateAnalysis::DtoString(V));
     for (const auto *Alias : PointsToSet) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Alias: " << IDETypeStateAnalysis::DtoString(Alias));
       // Collect the pointer operand of a aliased load instruciton
       if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Alias)) {
         if (hasMatchingType(Alias)) {
           LOG_IF_ENABLE(
-              BOOST_LOG_SEV(LG, DEBUG)
+              BOOST_LOG_SEV(lg::get(), DEBUG)
               << " -> Alloca: "
               << IDETypeStateAnalysis::DtoString(Load->getPointerOperand()));
           RelevantAllocas.insert(Load->getPointerOperand());
@@ -632,11 +630,11 @@ IDETypeStateAnalysis::getRelevantAllocas(IDETypeStateAnalysis::d_t V) {
         // For all other types of aliases, e.g. callsites, function arguments,
         // we check store instructions where thoses aliases are value operands.
         for (const auto *User : Alias->users()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  User: " << IDETypeStateAnalysis::DtoString(User));
           if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(User)) {
             if (hasMatchingType(Store)) {
-              LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                             << "    -> Alloca: "
                             << IDETypeStateAnalysis::DtoString(
                                    Store->getPointerOperand()));

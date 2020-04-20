@@ -99,8 +99,7 @@ Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
   std::set<const llvm::Function *> CalleeTargets;

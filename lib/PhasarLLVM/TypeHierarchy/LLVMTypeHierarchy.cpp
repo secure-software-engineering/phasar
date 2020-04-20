@@ -71,8 +71,7 @@ std::string LLVMTypeHierarchy::VertexProperties::getTypeName() const {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
   PAMM_GET_INSTANCE;
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO) << "Construct type hierarchy");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   for (auto *M : IRDB.getAllModules()) {
     buildLLVMTypeHierarchy(*M);
   }
@@ -82,8 +81,7 @@ LLVMTypeHierarchy::LLVMTypeHierarchy(ProjectIRDB &IRDB) {
 
 LLVMTypeHierarchy::LLVMTypeHierarchy(const llvm::Module &M) {
   PAMM_GET_INSTANCE;
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO) << "Construct type hierarchy");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO) << "Construct type hierarchy");
   buildLLVMTypeHierarchy(M);
   REG_COUNTER("CH Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CH Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
@@ -227,8 +225,7 @@ LLVMTypeHierarchy::getVirtualFunctions(const llvm::Module &M,
 }
 
 void LLVMTypeHierarchy::constructHierarchy(const llvm::Module &M) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyze types in module: " << M.getModuleIdentifier());
   // store analyzed module
   VisitedModules.insert(&M);

@@ -53,23 +53,22 @@ RTAResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
   //                     "library, it has been disable until this is fixed");
 
   set<const llvm::Function *> PossibleCallTargets;
-  auto &LG = lg::get();
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
   auto VtableIndex = getVFTIndex(CS);
   if (VtableIndex < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Virtual function table entry is: " << VtableIndex);
 
   const auto *ReceiverType = getReceiverType(CS);

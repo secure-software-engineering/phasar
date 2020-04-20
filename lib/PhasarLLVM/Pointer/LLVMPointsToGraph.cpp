@@ -53,12 +53,11 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
 
   template <typename Vertex, typename Graph>
   void finish_vertex(Vertex U, const Graph &G) {
-    auto &LG = lg::get();
     // check for stack allocation
     if (const auto *Alloc = llvm::dyn_cast<llvm::AllocaInst>(G[U].V)) {
       // If the call stack is empty, we completely ignore the calling context
       if (matchesStack(G) || CallStack.empty()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found stack allocation: " << llvmIRToString(Alloc));
         AllocationSites.insert(G[U].V);
       }
@@ -73,7 +72,7 @@ struct LLVMPointsToGraph::AllocationSiteDFSVisitor
         // If the call stack is empty, we completely ignore the calling
         // context
         if (matchesStack(G) || CallStack.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Found heap allocation: "
                         << llvmIRToString(CS.getInstruction()));
           AllocationSites.insert(G[U].V);
@@ -139,8 +138,7 @@ std::string LLVMPointsToGraph::EdgeProperties::getValueAsString() const {
 
 LLVMPointsToGraph::LLVMPointsToGraph(llvm::Function *F, llvm::AAResults &AA) {
   PAMM_GET_INSTANCE;
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Analyzing function: " << F->getName().str());
   ContainedFunctions.insert(F);
   bool PrintAll;

@@ -45,8 +45,8 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
 BitVectorSet<const llvm::Value *>
 InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
                              const BitVectorSet<const llvm::Value *> &Rhs) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "InterMonoTaintAnalysis::join()");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "InterMonoTaintAnalysis::join()");
   // cout << "InterMonoTaintAnalysis::join()\n";
   return Lhs.setUnion(Rhs);
 }
@@ -54,8 +54,7 @@ InterMonoTaintAnalysis::join(const BitVectorSet<const llvm::Value *> &Lhs,
 bool InterMonoTaintAnalysis::sqSubSetEqual(
     const BitVectorSet<const llvm::Value *> &Lhs,
     const BitVectorSet<const llvm::Value *> &Rhs) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::sqSubSetEqual()");
   return Rhs.includes(Lhs);
 }
@@ -63,8 +62,7 @@ bool InterMonoTaintAnalysis::sqSubSetEqual(
 BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::normalFlow(
     const llvm::Instruction *Stmt,
     const BitVectorSet<const llvm::Value *> &In) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::normalFlow()");
   BitVectorSet<const llvm::Value *> Out(In);
   if (const auto *Store = llvm::dyn_cast<llvm::StoreInst>(Stmt)) {
@@ -91,8 +89,7 @@ BitVectorSet<const llvm::Value *>
 InterMonoTaintAnalysis::callFlow(const llvm::Instruction *CallSite,
                                  const llvm::Function *Callee,
                                  const BitVectorSet<const llvm::Value *> &In) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callFlow()");
   BitVectorSet<const llvm::Value *> Out;
   llvm::ImmutableCallSite CS(CallSite);
@@ -121,8 +118,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::returnFlow(
     const llvm::Instruction *CallSite, const llvm::Function *Callee,
     const llvm::Instruction *ExitStmt, const llvm::Instruction *RetSite,
     const BitVectorSet<const llvm::Value *> &In) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::returnFlow()");
   BitVectorSet<const llvm::Value *> Out;
   if (const auto *Ret = llvm::dyn_cast<llvm::ReturnInst>(ExitStmt)) {
@@ -147,8 +143,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
     const llvm::Instruction *CallSite, const llvm::Instruction *RetSite,
     set<const llvm::Function *> Callees,
     const BitVectorSet<const llvm::Value *> &In) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::callToRetFlow()");
   BitVectorSet<const llvm::Value *> Out(In);
   llvm::ImmutableCallSite CS(CallSite);
@@ -156,7 +151,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
   // Handle virtual calls in the loop
   //-----------------------------------------------------------------------------
   for (const auto *Callee : Callees) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "InterMonoTaintAnalysis::callToRetFlow()::"
                   << Callee->getName().str());
 
@@ -195,8 +190,7 @@ BitVectorSet<const llvm::Value *> InterMonoTaintAnalysis::callToRetFlow(
 
 unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>
 InterMonoTaintAnalysis::initialSeeds() {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "InterMonoTaintAnalysis::initialSeeds()");
   const llvm::Function *Main = ICF->getFunction("main");
   unordered_map<const llvm::Instruction *, BitVectorSet<const llvm::Value *>>

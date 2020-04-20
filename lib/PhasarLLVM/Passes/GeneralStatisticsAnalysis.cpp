@@ -41,8 +41,8 @@ GeneralStatisticsAnalysis::GeneralStatisticsAnalysis() = default;
 GeneralStatistics
 GeneralStatisticsAnalysis::run(llvm::Module &M,
                                llvm::ModuleAnalysisManager &AM) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO) << "Running GeneralStatisticsAnalysis");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Running GeneralStatisticsAnalysis");
   static const std::set<std::string> MemAllocatingFunctions = {
       "operator new(unsigned long)", "operator new[](unsigned long)", "malloc",
       "calloc", "realloc"};
@@ -155,27 +155,34 @@ GeneralStatisticsAnalysis::run(llvm::Module &M,
   // Using the logging guard explicitly since we are printing allocated types
   // manually
   if (boost::log::core::get()->get_logging_enabled()) {
-    auto &LG = lg::get();
-    BOOST_LOG_SEV(LG, INFO) << "GeneralStatisticsAnalysis summary for module: '"
-                            << M.getName().str() << "'";
-    BOOST_LOG_SEV(LG, INFO) << "Instructions       : " << Stats.instructions;
-    BOOST_LOG_SEV(LG, INFO)
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "GeneralStatisticsAnalysis summary for module: '"
+        << M.getName().str() << "'";
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Instructions       : " << Stats.instructions;
+    BOOST_LOG_SEV(lg::get(), INFO)
         << "Allocated Types    : " << Stats.allocatedTypes.size();
-    BOOST_LOG_SEV(LG, INFO) << "Allocation Sites   : " << Stats.allocationsites;
-    BOOST_LOG_SEV(LG, INFO) << "Basic Blocks       : " << Stats.basicblocks;
-    BOOST_LOG_SEV(LG, INFO) << "Calls Sites        : " << Stats.callsites;
-    BOOST_LOG_SEV(LG, INFO) << "Functions          : " << Stats.functions;
-    BOOST_LOG_SEV(LG, INFO) << "Globals            : " << Stats.globals;
-    BOOST_LOG_SEV(LG, INFO) << "Global Pointer     : " << Stats.globalPointers;
-    BOOST_LOG_SEV(LG, INFO) << "Memory Intrinsics  : " << Stats.memIntrinsic;
-    BOOST_LOG_SEV(LG, INFO)
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Allocation Sites   : " << Stats.allocationsites;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Basic Blocks       : " << Stats.basicblocks;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Calls Sites        : " << Stats.callsites;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Functions          : " << Stats.functions;
+    BOOST_LOG_SEV(lg::get(), INFO) << "Globals            : " << Stats.globals;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Global Pointer     : " << Stats.globalPointers;
+    BOOST_LOG_SEV(lg::get(), INFO)
+        << "Memory Intrinsics  : " << Stats.memIntrinsic;
+    BOOST_LOG_SEV(lg::get(), INFO)
         << "Store Instructions : " << Stats.storeInstructions;
-    BOOST_LOG_SEV(LG, INFO) << ' ';
+    BOOST_LOG_SEV(lg::get(), INFO) << ' ';
     for (const auto *Type : Stats.allocatedTypes) {
       std::string TypeStr;
       llvm::raw_string_ostream Rso(TypeStr);
       Type->print(Rso);
-      BOOST_LOG_SEV(LG, INFO) << "  " << Rso.str();
+      BOOST_LOG_SEV(lg::get(), INFO) << "  " << Rso.str();
     }
   }
   // now we are done and can return the results

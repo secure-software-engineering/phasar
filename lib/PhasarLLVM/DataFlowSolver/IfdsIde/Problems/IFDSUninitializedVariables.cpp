@@ -404,8 +404,7 @@ IFDSUninitializedVariables::getSummaryFlowFunction(
 
 map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
 IFDSUninitializedVariables::initialSeeds() {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSUninitializedVariables::initialSeeds()");
   map<IFDSUninitializedVariables::n_t, set<IFDSUninitializedVariables::d_t>>
       SeedMap;
@@ -419,8 +418,7 @@ IFDSUninitializedVariables::initialSeeds() {
 
 IFDSUninitializedVariables::d_t
 IFDSUninitializedVariables::createZeroValue() const {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "IFDSUninitializedVariables::createZeroValue()");
   // create a special value to represent the zero value!
   return LLVMZeroValue::getInstance();

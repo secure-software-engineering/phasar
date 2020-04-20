@@ -95,7 +95,6 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
                              SoundnessFlag SF)
     : IRDB(IRDB), CGType(CGType), SF(SF), TH(TH), PT(PT) {
   PAMM_GET_INSTANCE;
-  auto &LG = lg::get();
   // check for faults in the logic
   if (!TH && (CGType != CallGraphAnalysisType::NORESOLVE)) {
     // no type hierarchy information provided by the user,
@@ -109,7 +108,7 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
     this->PT = new LLVMPointsToInfo(IRDB);
     UserPTInfos = false;
   }
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
                 << "Starting CallGraphAnalysisType: " << CGType);
   VisitedFunctions.reserve(IRDB.getAllFunctions().size());
   unique_ptr<Resolver> Res([CGType, &IRDB, TH, PT,
@@ -152,7 +151,8 @@ LLVMBasedICFG::LLVMBasedICFG(ProjectIRDB &IRDB, CallGraphAnalysisType CGType,
               PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Vertices", getNumOfVertices(), PAMM_SEVERITY_LEVEL::Full);
   REG_COUNTER("CG Edges", getNumOfEdges(), PAMM_SEVERITY_LEVEL::Full);
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, INFO) << "Call graph has been constructed");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)
+                << "Call graph has been constructed");
 }
 
 LLVMBasedICFG::~LLVMBasedICFG() {
@@ -169,11 +169,11 @@ LLVMBasedICFG::~LLVMBasedICFG() {
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                                        Resolver &Resolver) {
   PAMM_GET_INSTANCE;
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  // auto &lg = lg::get();
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Walking in function: " << F->getName().str());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Function already visited or only declaration: "
                   << F->getName().str());
     return;
@@ -201,8 +201,9 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
         // check if function call can be resolved statically
         if (CS.getCalledFunction() != nullptr) {
           PossibleTargets.insert(CS.getCalledFunction());
-          LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Found static call-site: ");
-          LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "Found static call-site: ");
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "  " << llvmIRToString(CS.getInstruction()));
         } else {
           // still try to resolve the called function statically
@@ -211,14 +212,14 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
               !SV->hasName() ? nullptr : IRDB.getFunction(SV->getName());
           if (ValueFunction) {
             PossibleTargets.insert(ValueFunction);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found static call-site: "
                           << llvmIRToString(CS.getInstruction()));
           } else {
             // the function call must be resolved dynamically
-            LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Found dynamic call-site: ");
-            LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "  " << llvmIRToString(CS.getInstruction()));
             // call the resolve routine
             if (isVirtualFunctionCall(CS.getInstruction())) {
@@ -229,7 +230,7 @@ void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
           }
         }
 
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found " << PossibleTargets.size()
                       << " possible target(s)");
 
@@ -427,19 +428,18 @@ LLVMBasedICFG::getCallsFromWithin(const llvm::Function *F) const {
  * more than one start point in case of a backward analysis.
  */
 set<const llvm::Instruction *>
-LLVMBasedICFG::getStartPointsOf(const llvm::Function *M) const {
-  if (!M) {
+LLVMBasedICFG::getStartPointsOf(const llvm::Function *Fun) const {
+  if (!Fun) {
     return {};
   }
-  if (!M->isDeclaration()) {
-    return {&M->front().front()};
+  if (!Fun->isDeclaration()) {
+    return {&Fun->front().front()};
     // } else if (!getStartPointsOf(getMethod(m->getName().str())).empty()) {
     // return getStartPointsOf(getMethod(m->getName().str()));
   } else {
-    auto &LG = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
-                  << "Could not get starting points of '" << M->getName().str()
-                  << "' because it is a declaration");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Could not get starting points of '"
+                  << Fun->getName().str() << "' because it is a declaration");
     return {};
   }
 }
@@ -449,8 +449,7 @@ LLVMBasedICFG::getExitPointsOf(const llvm::Function *Fun) const {
   if (!Fun->isDeclaration()) {
     return {&Fun->back().back()};
   } else {
-    auto &LG = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Could not get exit points of '" << Fun->getName().str()
                   << "' which is declaration!");
     return {};

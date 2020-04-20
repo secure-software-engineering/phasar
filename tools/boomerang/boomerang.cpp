@@ -26,13 +26,11 @@ namespace bfs = boost::filesystem;
 
 int main(int Argc, char **Argv) {
   initializeLogger(false);
-  auto &LG = lg::get();
   if (Argc < 2 || !bfs::exists(Argv[1]) || bfs::is_directory(Argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     std::cerr << "use programs in build/test/llvm_test_code/pointers/\n";
     return 1;
   }
-  initializeLogger(false);
   ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
   LLVMTypeHierarchy H(DB);
   LLVMPointsToInfo P(DB);

@@ -334,14 +334,13 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     IDELinearConstantAnalysis::d_t CurrNode,
     IDELinearConstantAnalysis::n_t Succ,
     IDELinearConstantAnalysis::d_t SuccNode) {
-  auto &LG = lg::get();
   // Initialize global variables at entry point
   if (!isZeroValue(CurrNode) && ICF->isStartPoint(Curr) &&
       isEntryPoint(ICF->getFunctionOf(Curr)->getName().str()) &&
       llvm::isa<llvm::GlobalVariable>(CurrNode) && CurrNode == SuccNode) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Case: Intialize global variable at entry point.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(CurrNode);
     const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GV->getInitializer());
     auto IntConst = CI->getSExtValue();
@@ -351,8 +350,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   // ALL_BOTTOM for zero value
   if ((isZeroValue(CurrNode) && isZeroValue(SuccNode)) ||
       (llvm::isa<llvm::AllocaInst>(Curr) && isZeroValue(CurrNode))) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Case: Zero value.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Zero value.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     return make_shared<AllBottom<IDELinearConstantAnalysis::l_t>>(
         IDELinearConstantAnalysis::BOTTOM);
   }
@@ -364,18 +363,18 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     if (PointerOperand == SuccNode) {
       // Case I: Storing a constant integer.
       if (isZeroValue(CurrNode) && llvm::isa<llvm::ConstantInt>(ValueOperand)) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Case: Storing constant integer.");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         const auto *CI = llvm::dyn_cast<llvm::ConstantInt>(ValueOperand);
         auto IntConst = CI->getSExtValue();
         return make_shared<IDELinearConstantAnalysis::GenConstant>(IntConst);
       }
       // Case II: Storing an integer typed value.
       if (CurrNode != SuccNode && ValueOperand->getType()->isIntegerTy()) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Case: Storing an integer typed value.");
-        LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         return make_shared<IDELinearConstantAnalysis::LCAIdentity>();
       }
     }
@@ -384,17 +383,17 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
   // Check load instruction
   if (const auto *Load = llvm::dyn_cast<llvm::LoadInst>(Curr)) {
     if (Load == SuccNode) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "Case: Loading an integer typed value.");
-      LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
       return make_shared<IDELinearConstantAnalysis::LCAIdentity>();
     }
   }
 
   // Check for binary operations add, sub, mul, udiv/sdiv and urem/srem
   if (Curr == SuccNode && llvm::isa<llvm::BinaryOperator>(Curr)) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Case: Binary operation.");
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Binary operation.");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
     unsigned OP = Curr->getOpcode();
     auto *Lop = Curr->getOperand(0);
     auto *Rop = Curr->getOperand(1);
@@ -409,8 +408,8 @@ IDELinearConstantAnalysis::getNormalEdgeFunction(
     }
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Case: Edge identity.");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Case: Edge identity.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
   return EdgeIdentity<IDELinearConstantAnalysis::l_t>::getInstance();
 }
 
@@ -639,14 +638,13 @@ IDELinearConstantAnalysis::BinOp::BinOp(const unsigned Op,
 
 IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::BinOp::computeTarget(
     IDELinearConstantAnalysis::l_t Source) {
-  auto &LG = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Left Op   : " << llvmIRToString(lop));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Right Op  : " << llvmIRToString(rop));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Curr Node : " << llvmIRToString(currNode));
-  LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << ' ');
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
 
   if (LLVMZeroValue::getInstance()->isLLVMZeroValue(currNode) &&
       llvm::isa<llvm::ConstantInt>(lop) && llvm::isa<llvm::ConstantInt>(rop)) {
@@ -789,10 +787,10 @@ IDELinearConstantAnalysis::l_t IDELinearConstantAnalysis::executeBinOperation(
     break;
 
   default:
-    auto &LG = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(LG, DEBUG) << "Operation not supported by "
-                                              "IDELinearConstantAnalysis::"
-                                              "executeBinOperation()");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "Operation not supported by "
+                     "IDELinearConstantAnalysis::"
+                     "executeBinOperation()");
     break;
   }
   return Res;

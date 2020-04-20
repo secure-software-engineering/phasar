@@ -30,7 +30,6 @@ using namespace psr;
 
 int main(int Argc, const char **Argv) {
   initializeLogger(false);
-  auto &LG = lg::get();
   if (Argc < 2 || !boost::filesystem::exists(Argv[1]) ||
       boost::filesystem::is_directory(Argv[1])) {
     std::cerr << "myphasartool\n"
@@ -38,7 +37,6 @@ int main(int Argc, const char **Argv) {
                  "Usage: myphasartool <LLVM IR file>\n";
     return 1;
   }
-  initializeLogger(false);
   ProjectIRDB DB({Argv[1]});
   if (const auto *F = DB.getFunctionDefinition("main")) {
     LLVMTypeHierarchy H(DB);
