@@ -62,7 +62,9 @@ if [ -x "$(command -v pacman)" ]; then
     yes | sudo pacman -Syu which zlib sqlite3 ncurses make python3 doxygen libxml2 swig gcc cmake z3 libedit graphviz python-sphinx openmp curl python-pip
     ./utils/installBuildEAR.sh
 else
-    ./utils/InstallAptDependencies.sh
+    sudo apt-get update
+    sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev bear python3 doxygen graphviz python python-dev python3-pip python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev ninja -y
+
 fi
 sudo pip3 install Pygments pyyaml
 

@@ -16,11 +16,11 @@ using namespace psr;
 
 namespace psr {
 
-WPDSSolverConfig::WPDSSolverConfig(bool recordWitnesses,
-                                   WPDSSearchDirection searchDirection,
-                                   WPDSType wpdsty)
-    : recordWitnesses(recordWitnesses), searchDirection(searchDirection),
-      wpdsty(wpdsty) {}
+WPDSSolverConfig::WPDSSolverConfig(bool RecordWitnesses,
+                                   WPDSSearchDirection SearchDirection,
+                                   WPDSType Wpdsty)
+    : recordWitnesses(RecordWitnesses), searchDirection(SearchDirection),
+      wpdsty(Wpdsty) {}
 
 ostream &operator<<(ostream &OS, const WPDSSolverConfig &SC) {
   return OS << "WPDSSolverConfig:\n"

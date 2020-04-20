@@ -14,7 +14,7 @@ using namespace psr;
 /* ============== TEST FIXTURE ============== */
 class IDELinearConstantAnalysisTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/linear_constant/";
   const std::set<std::string> EntryPoints = {"main"};
@@ -27,8 +27,8 @@ protected:
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   IDELinearConstantAnalysis::lca_results_t
-  doAnalysis(const std::string &llvmFilePath, bool printDump = false) {
-    IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
+    IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
@@ -41,7 +41,7 @@ protected:
               IDELinearConstantAnalysis::i_t>
         LCASolver(LCAProblem);
     LCASolver.solve();
-    if (printDump) {
+    if (PrintDump) {
       LCASolver.dumpResults();
     }
     return LCAProblem.getLCAResults(LCASolver.getSolverResults());
@@ -55,17 +55,17 @@ protected:
    * @param groundTruth results to compare against
    * @param solver provides the results
    */
-  void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
-                      std::set<LCACompactResult_t> &GroundTruth) {
+  static void compareResults(IDELinearConstantAnalysis::lca_results_t &Results,
+                             std::set<LCACompactResult_t> &GroundTruth) {
     std::set<LCACompactResult_t> RelevantResults;
     for (auto G : GroundTruth) {
-      std::string fName = std::get<0>(G);
-      unsigned line = std::get<1>(G);
-      if (Results.find(fName) != Results.end()) {
-        if (auto it = Results[fName].find(line); it != Results[fName].end()) {
-          for (auto varToVal : it->second.variableToValue) {
-            RelevantResults.emplace(fName, line, varToVal.first,
-                                    varToVal.second);
+      std::string FName = std::get<0>(G);
+      unsigned Line = std::get<1>(G);
+      if (Results.find(FName) != Results.end()) {
+        if (auto It = Results[FName].find(Line); It != Results[FName].end()) {
+          for (const auto &VarToVal : It->second.variableToValue) {
+            RelevantResults.emplace(FName, Line, VarToVal.first,
+                                    VarToVal.second);
           }
         }
       }
@@ -626,7 +626,7 @@ TEST_F(IDELinearConstantAnalysisTest, HandleGlobalsTest_08) {
 }
 
 // main function for the test case/*  */
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

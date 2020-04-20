@@ -7,39 +7,41 @@
 namespace psr {
 
 std::set<ExtendedValue>
-GEPInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  const auto gepInst = llvm::cast<llvm::GetElementPtrInst>(currentInst);
-  const auto gepInstPtr = gepInst->getPointerOperand();
+GEPInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  const auto *const GepInst = llvm::cast<llvm::GetElementPtrInst>(currentInst);
+  const auto *const GepInstPtr = GepInst->getPointerOperand();
 
-  bool isVarArgFact = fact.isVarArg();
-  if (isVarArgFact) {
-    bool killFact = gepInstPtr->getName().contains_lower("reg_save_area");
-    if (killFact)
+  bool IsVarArgFact = Fact.isVarArg();
+  if (IsVarArgFact) {
+    bool KillFact = GepInstPtr->getName().contains_lower("reg_save_area");
+    if (KillFact) {
       return {};
+    }
 
-    bool incrementCurrentVarArgIndex =
-        gepInst->getName().contains_lower("overflow_arg_area.next");
-    if (incrementCurrentVarArgIndex) {
-      const auto gepVaListMemLocationSeq =
-          DataFlowUtils::getMemoryLocationSeqFromMatr(gepInstPtr);
+    bool IncrementCurrentVarArgIndex =
+        GepInst->getName().contains_lower("overflow_arg_area.next");
+    if (IncrementCurrentVarArgIndex) {
+      const auto GepVaListMemLocationSeq =
+          DataFlowUtils::getMemoryLocationSeqFromMatr(GepInstPtr);
 
-      bool isVaListEqual = DataFlowUtils::isSubsetMemoryLocationSeq(
-          DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact),
-          gepVaListMemLocationSeq);
-      if (isVaListEqual) {
-        ExtendedValue ev(fact);
-        ev.incrementCurrentVarArgIndex();
+      bool IsVaListEqual = DataFlowUtils::isSubsetMemoryLocationSeq(
+          DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact),
+          GepVaListMemLocationSeq);
+      if (IsVaListEqual) {
+        ExtendedValue EV(Fact);
+        EV.incrementCurrentVarArgIndex();
 
-        return {ev};
+        return {EV};
       }
     }
   } else {
-    bool isPtrTainted = DataFlowUtils::isValueTainted(gepInstPtr, fact);
-    if (isPtrTainted)
-      return {fact, ExtendedValue(gepInst)};
+    bool IsPtrTainted = DataFlowUtils::isValueTainted(GepInstPtr, Fact);
+    if (IsPtrTainted) {
+      return {Fact, ExtendedValue(GepInst)};
+    }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

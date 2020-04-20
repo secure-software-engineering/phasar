@@ -12,6 +12,7 @@
 #include <functional>
 #include <iostream>
 #include <set>
+#include <utility>
 
 #include "llvm/Support/ErrorHandling.h"
 
@@ -52,12 +53,12 @@ using namespace psr;
 namespace std {
 
 template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
-    return hp ^ (hu << 1);
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
+    std::hash<const llvm::Value *> HashPtr;
+    std::hash<unsigned> HashUnsigned;
+    size_t Hp = HashPtr(P.first);
+    size_t Hu = HashUnsigned(P.second);
+    return Hp ^ (Hu << 1);
   }
 };
 
@@ -69,16 +70,16 @@ AnalysisController::AnalysisController(
     ProjectIRDB &IRDB, std::vector<DataFlowAnalysisType> DataFlowAnalyses,
     std::vector<std::string> AnalysisConfigs, PointerAnalysisType PTATy,
     CallGraphAnalysisType CGTy, SoundnessFlag SF,
-    std::set<std::string> EntryPoints, AnalysisStrategy Strategy,
-    AnalysisControllerEmitterOptions EmitterOptions, std::string ProjectID,
-    std::string OutDirectory)
+    const std::set<std::string> &EntryPoints, AnalysisStrategy Strategy,
+    AnalysisControllerEmitterOptions EmitterOptions,
+    const std::string &ProjectID, const std::string &OutDirectory)
     : IRDB(IRDB), TH(IRDB), PT(IRDB, PTATy),
       ICF(IRDB, CGTy, EntryPoints, &TH, &PT),
-      DataFlowAnalyses(DataFlowAnalyses), AnalysisConfigs(AnalysisConfigs),
-      EntryPoints(EntryPoints), Strategy(Strategy),
-      EmitterOptions(EmitterOptions), ProjectID(ProjectID),
+      DataFlowAnalyses(std::move(DataFlowAnalyses)),
+      AnalysisConfigs(std::move(AnalysisConfigs)), EntryPoints(EntryPoints),
+      Strategy(Strategy), EmitterOptions(EmitterOptions), ProjectID(ProjectID),
       OutDirectory(OutDirectory), SF(SF) {
-  if (OutDirectory != "") {
+  if (!OutDirectory.empty()) {
     // create directory for results
     ResultDirectory = OutDirectory + "/" + ProjectID + "-" + createTimeStamp();
     boost::filesystem::create_directory(ResultDirectory);

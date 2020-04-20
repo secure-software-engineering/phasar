@@ -7,15 +7,8 @@
  *     Philipp Schubert and others
  *****************************************************************************/
 
-/*
- * PointsToGraph.h
- *
- *  Created on: 08.02.2017
- *      Author: pdschbrt
- */
-
-#ifndef PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
-#define PHASAR_PHASARLLVM_POINTER_POINTSTOGRAPH_H_
+#ifndef PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
+#define PHASAR_PHASARLLVM_POINTER_LLVMPOINTSTOGRAPH_H_
 
 #include <iostream>
 #include <unordered_map>
@@ -61,7 +54,7 @@ static inline bool isInterestingPointer(llvm::Value *V) {
  *
  *	@brief Represents the points-to graph of a function.
  */
-class PointsToGraph {
+class LLVMPointsToGraph {
 public:
   // Call-graph firends
   friend class LLVMBasedICFG;
@@ -125,7 +118,7 @@ private:
   /// Keep track of what has already been merged into this points-to graph.
   std::unordered_set<const llvm::Function *> ContainedFunctions;
 
-  void mergeGraph(const PointsToGraph &Other);
+  void mergeGraph(const LLVMPointsToGraph &Other);
 
 public:
   /**
@@ -139,15 +132,15 @@ public:
    *                              False, if May and Must Aliases should be
    * considered.
    */
-  PointsToGraph(llvm::Function *F, llvm::AAResults &AA);
+  LLVMPointsToGraph(llvm::Function *F, llvm::AAResults &AA);
 
   /**
    * @brief This will create an empty points-to graph. It is used when points-to
    * graphs are merged.
    */
-  PointsToGraph() = default;
+  LLVMPointsToGraph() = default;
 
-  virtual ~PointsToGraph() = default;
+  virtual ~LLVMPointsToGraph() = default;
 
   /**
    * @brief Returns true if graph contains 0 nodes.
@@ -190,9 +183,9 @@ public:
    * an allocating function.
    * @return Set of Allocation sites.
    */
-  std::set<const llvm::Value *>
-  getReachableAllocationSites(const llvm::Value *V,
-                              std::vector<const llvm::Instruction *> CallStack);
+  std::set<const llvm::Value *> getReachableAllocationSites(
+      const llvm::Value *V,
+      const std::vector<const llvm::Instruction *> &CallStack);
 
   /**
    * @brief Computes all possible types from a given std::set of allocation
@@ -202,8 +195,8 @@ public:
    * @param AS Set of Allocation site.
    * @return Set of Types.
    */
-  std::set<const llvm::Type *>
-  computeTypesFromAllocationSites(std::set<const llvm::Value *> AS);
+  static std::set<const llvm::Type *>
+  computeTypesFromAllocationSites(const std::set<const llvm::Value *> &AS);
 
   /**
    * @brief Checks if a given value is represented by a vertex in the points-to
@@ -219,12 +212,12 @@ public:
 
   // TODO add more detailed description
   inline bool representsSingleFunction();
-  void mergeWith(const PointsToGraph *Other, const llvm::Function *F);
+  void mergeWith(const LLVMPointsToGraph *Other, const llvm::Function *F);
 
   void mergeCallSite(const llvm::ImmutableCallSite &CS,
                      const llvm::Function *F);
 
-  void mergeWith(const PointsToGraph &Other,
+  void mergeWith(const LLVMPointsToGraph &Other,
                  const std::vector<std::pair<llvm::ImmutableCallSite,
                                              const llvm::Function *>> &Calls);
 
@@ -269,7 +262,7 @@ public:
 
   size_t getNumEdges() const;
 
-  nlohmann::json getAsJson()const ;
+  nlohmann::json getAsJson() const;
 
   /**
    * @brief Prints the points-to graph in .json format to the given output

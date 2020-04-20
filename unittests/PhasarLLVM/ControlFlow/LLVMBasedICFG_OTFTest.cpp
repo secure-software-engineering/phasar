@@ -10,13 +10,13 @@ using namespace psr;
 
 class LLVMBasedICFG_OTFTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_7_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_7_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMPointsToInfo PT(IRDB);
@@ -31,7 +31,7 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
   set<const llvm::Instruction *> Insts;
   Insts.insert(getNthInstruction(F, 19));
   Insts.insert(getNthInstruction(F, 25));
-  for (auto *I : Insts) {
+  for (const auto *I : Insts) {
     if (llvm::isa<llvm::CallInst>(I) || llvm::isa<llvm::InvokeInst>(I)) {
       set<const llvm::Function *> Callees = ICFG.getCalleesOfCallAt(I);
       ASSERT_TRUE(ICFG.isVirtualFunctionCall(I));
@@ -65,7 +65,7 @@ TEST_F(LLVMBasedICFG_OTFTest, VirtualCallSite_7) {
 //   ASSERT_TRUE(Callees2.count(FooC));
 // }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

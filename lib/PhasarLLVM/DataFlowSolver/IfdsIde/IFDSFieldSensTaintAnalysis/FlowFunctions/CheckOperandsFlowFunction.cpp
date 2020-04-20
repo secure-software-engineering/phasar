@@ -7,22 +7,22 @@
 namespace psr {
 
 std::set<ExtendedValue>
-CheckOperandsFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  for (const auto &use : currentInst->operands()) {
-    const auto &operand = use.get();
+CheckOperandsFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  for (const auto &Use : currentInst->operands()) {
+    const auto &Operand = Use.get();
 
-    bool isOperandTainted =
-        DataFlowUtils::isValueTainted(operand, fact) ||
-        DataFlowUtils::isMemoryLocationTainted(operand, fact);
+    bool IsOperandTainted =
+        DataFlowUtils::isValueTainted(Operand, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(Operand, Fact);
 
-    if (isOperandTainted) {
+    if (IsOperandTainted) {
       traceStats.add(currentInst);
 
-      return {fact, ExtendedValue(currentInst)};
+      return {Fact, ExtendedValue(currentInst)};
     }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

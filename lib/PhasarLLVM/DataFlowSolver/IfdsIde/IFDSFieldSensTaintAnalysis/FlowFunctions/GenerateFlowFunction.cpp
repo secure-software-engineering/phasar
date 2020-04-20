@@ -7,13 +7,14 @@
 namespace psr {
 
 std::set<ExtendedValue>
-GenerateFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+GenerateFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   traceStats.add(currentInst);
 
-  if (fact == zeroValue)
+  if (Fact == zeroValue) {
     return {ExtendedValue(currentInst)};
+  }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

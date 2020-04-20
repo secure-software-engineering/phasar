@@ -19,13 +19,13 @@ namespace bfs = boost::filesystem;
 using namespace std;
 using namespace psr;
 
-int main(int argc, const char **argv) {
-  if (argc < 2 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
+int main(int Argc, const char **Argv) {
+  if (Argc < 2 || !bfs::exists(Argv[1]) || bfs::is_directory(Argv[1])) {
     std::cerr << "usage: <prog> <ir file>\n";
     return 1;
   }
   initializeLogger(false);
-  ProjectIRDB DB({argv[1]}, IRDBOptions::WPA);
+  ProjectIRDB DB({Argv[1]}, IRDBOptions::WPA);
   if (DB.getFunction("main")) {
   } else {
     std::cerr << "error: file does not contain a 'main' function!\n";
