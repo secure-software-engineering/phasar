@@ -134,9 +134,38 @@ if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
 endif()
 
 # Clang
+# The clang-cpp shared library is now the preferred way to link dynamically against libclang.
+find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+# As fallback, look for the small clang libraries
+if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
+  find_library(CLANG_LIBRARY NAMES
+    clangFrontend
+    clangAST
+    clangTooling
+    clangFrontendTool
+    clangFrontend
+    clangDriver
+    clangSerialization
+    clangCodeGen
+    clangParse
+    clangSema
+    clangStaticAnalyzerFrontend
+    clangStaticAnalyzerCheckers
+    clangStaticAnalyzerCore
+    clangAnalysis
+    clangARCMigrate
+    clangRewrite
+    clangRewriteFrontend
+    clangEdit
+    clangAST
+    clangASTMatchers
+    clangLex
+    clangBasic
+    LLVMFrontendOpenMP
+  REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+endif()
 if (NOT PHASAR_IN_TREE)
   # Only search for clang if we build out of tree
-  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
   link_directories(${CLANG_LIB_PATH})
 endif()
 
