@@ -39,12 +39,25 @@ target_link_libraries(phasar_plugins
   ${CMAKE_DL_LIBS}
 )
 
+set_target_properties(phasar_plugins
+  PROPERTIES
+  LINKER_LANGUAGE CXX
+  PREFIX "lib"
+)
+
+
 # Handle all plugins
 foreach(plugin ${PLUGINS_SO})
   get_filename_component(plugin_name ${plugin} NAME_WE)
   add_library(${plugin_name} SHARED ${plugin})
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${plugin_name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(${plugin_name} ${LLVM_LINK_COMPONENTS})
+  endif()
   set_target_properties(${plugin_name} PROPERTIES PREFIX "")
   target_link_libraries(${plugin_name}
+    LINK_PRIVATE
     phasar_plugins
     phasar_config
     phasar_utils
@@ -53,8 +66,3 @@ foreach(plugin ${PLUGINS_SO})
     )
 endforeach()
 
-set_target_properties(phasar_plugins
-  PROPERTIES
-  LINKER_LANGUAGE CXX
-  PREFIX "lib"
-)
