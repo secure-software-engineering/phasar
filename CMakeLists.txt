@@ -127,20 +127,22 @@ endif()
 add_definitions(${LLVM_DEFINITIONS})
 
 find_library(LLVM_LIBRARY NAMES LLVM REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
-message(${LLVM_LIBRARY})
 if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
   message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
   set(USE_LLVM_FAT_LIB on)
 endif()
 
 # Clang
-# The clang-cpp shared library is now the preferred way to link dynamically against libclang.
-find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+# The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
+if(NOT PHASAR_IN_TREE)
+  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+  if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
+    set(NEED_LIBCLANG_COMPONENT_LIBS on)
+  endif()
+endif()
 # As fallback, look for the small clang libraries
-if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
-  find_library(CLANG_LIBRARY NAMES
-    clangFrontend
-    clangAST
+if(PHASAR_IN_TREE OR NEED_LIBCLANG_COMPONENT_LIBS)
+  set(CLANG_LIBRARY
     clangTooling
     clangFrontendTool
     clangFrontend
@@ -161,8 +163,7 @@ if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
     clangASTMatchers
     clangLex
     clangBasic
-    LLVMFrontendOpenMP
-  REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+    LLVMFrontendOpenMP)
 endif()
 if (NOT PHASAR_IN_TREE)
   # Only search for clang if we build out of tree
