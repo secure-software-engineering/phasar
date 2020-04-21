@@ -19,6 +19,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <type_traits>
 
 #include "boost/log/sinks.hpp"
 #include "boost/log/sources/global_logger_storage.hpp"
@@ -26,6 +27,8 @@
 #include "boost/log/support/date_time.hpp"
 // Not useful here but enable all logging macros in files that include Logger.h
 #include "boost/log/sources/record_ostream.hpp"
+
+#include "llvm/Support/ErrorHandling.h"
 
 namespace psr {
 
@@ -77,6 +80,24 @@ BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "Timestamp", boost::posix_time::ptime)
 #else
 #define LOG_IF_ENABLE_BOOL(condition, computation) ((void)0)
 #define LOG_IF_ENABLE(computation) ((void)0)
+// Have a mechanism to prevent logger usage if the code is not compiled using
+// the DYNAMIC_LOG option:
+template <typename T> struct __lg__ {
+  // Make the static assert dependent on a template-parameter to prevent the
+  // compiler raising an error on declaration rather than on
+  // template-instantiation.
+  static_assert(!std::is_same_v<void, T>,
+                "The dynamic log is disabled. Please move this call "
+                "to lg::get() into LOG_IF_ENABLE, or use the "
+                "cmake option 'PHASAR_ENABLE_DYNAMIC_LOG=ON'.");
+  static inline boost::log::sources::severity_logger<severity_level> &get() {
+    llvm::report_fatal_error(
+        "The dynamic log is disabled. Please move this call "
+        "to lg::get() into LOG_IF_ENABLE, or use the "
+        "cmake option 'PHASAR_ENABLE_DYNAMIC_LOG=ON'.");
+  }
+};
+#define lg __lg__<void>
 #endif
 
 /**
