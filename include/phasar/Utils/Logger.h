@@ -90,7 +90,7 @@ template <typename T> struct __lg__ {
                 "The dynamic log is disabled. Please move this call "
                 "to lg::get() into LOG_IF_ENABLE, or use the "
                 "cmake option '-DPHASAR_ENABLE_DYNAMIC_LOG=ON'.");
-  static inline boost::log::sources::severity_logger<severity_level> &get() {
+  static inline boost::log::sources::severity_logger<SeverityLevel> &get() {
     llvm::report_fatal_error(
         "The dynamic log is disabled. Please move this call "
         "to lg::get() into LOG_IF_ENABLE, or use the "
