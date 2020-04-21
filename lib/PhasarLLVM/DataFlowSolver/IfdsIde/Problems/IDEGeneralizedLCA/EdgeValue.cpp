@@ -14,7 +14,6 @@
 namespace psr {
 
 std::ostream &printSemantics(const llvm::APFloat &fl) {
-
   if (&fl.getSemantics() == &llvm::APFloat::IEEEdouble()) {
     return std::cout << "IEEEdouble";
   } else if (&fl.getSemantics() == &llvm::APFloat::IEEEhalf()) {
@@ -35,6 +34,7 @@ std::ostream &printSemantics(const llvm::APFloat &fl) {
 }
 
 const EdgeValue EdgeValue::top = EdgeValue(nullptr);
+
 EdgeValue::EdgeValue(const llvm::Value *val) : type(Top) {
   memset(&value, 0, sizeof(value));
   if (auto cnst = llvm::dyn_cast<llvm::Constant>(val)) {
@@ -101,11 +101,13 @@ EdgeValue::EdgeValue(const EdgeValue &ev) : type(ev.type) {
     break;
   }
 }
+
 EdgeValue &EdgeValue::operator=(const EdgeValue &ev) {
   this->~EdgeValue();
   new (this) EdgeValue(ev);
   return *this;
 }
+
 EdgeValue::~EdgeValue() {
   switch (type) {
   case Integer:
@@ -121,12 +123,15 @@ EdgeValue::~EdgeValue() {
     break;
   }
 }
+
 EdgeValue::EdgeValue(llvm::APInt &&vi) : type(EdgeValue::Integer) {
   new (&value.asInt) llvm::APInt(std::move(vi));
 }
+
 EdgeValue::EdgeValue(const llvm::APInt &vi) : type(EdgeValue::Integer) {
   new (&value.asInt) llvm::APInt(vi);
 }
+
 EdgeValue::EdgeValue(llvm::APFloat &&vf) : type(EdgeValue::FloatingPoint) {
   // value.asFP = vf;
   new (&value.asFP) llvm::APFloat(std::move(vf));
@@ -134,23 +139,29 @@ EdgeValue::EdgeValue(llvm::APFloat &&vf) : type(EdgeValue::FloatingPoint) {
   value.asFP.convert(llvm::APFloat::IEEEdouble(),
                      llvm::APFloat::roundingMode::rmNearestTiesToEven, &unused);
 }
+
 EdgeValue::EdgeValue(long long vi) : type(EdgeValue::Integer) {
   new (&value.asInt) llvm::APInt(llvm::APInt(sizeof(long long) << 3, vi));
 }
+
 EdgeValue::EdgeValue(int vi) : type(EdgeValue::Integer) {
   new (&value.asInt) llvm::APInt(llvm::APInt(sizeof(int) << 3, vi));
 }
+
 EdgeValue::EdgeValue(double d) : type(EdgeValue::FloatingPoint) {
   // value.asFP = llvm::APFloat(d);
   new (&value.asFP) llvm::APFloat(d);
 }
+
 EdgeValue::EdgeValue(float d) : type(EdgeValue::FloatingPoint) {
   // value.asFP = llvm::APFloat(d);
   new (&value.asFP) llvm::APFloat(d);
 }
+
 EdgeValue::EdgeValue(std::string &&vs) : type(EdgeValue::String) {
   new (&value.asString) std::string(vs);
 }
+
 EdgeValue::EdgeValue(std::nullptr_t) : type(EdgeValue::Top) {}
 bool EdgeValue::tryGetInt(uint64_t &res) const {
   if (type != Integer)
@@ -158,12 +169,14 @@ bool EdgeValue::tryGetInt(uint64_t &res) const {
   res = value.asInt.getLimitedValue();
   return true;
 }
+
 bool EdgeValue::tryGetFP(double &res) const {
   if (type != FloatingPoint)
     return false;
   res = value.asFP.convertToDouble();
   return true;
 }
+
 bool EdgeValue::tryGetString(std::string &res) const {
   if (type != String)
     return false;
@@ -172,11 +185,15 @@ bool EdgeValue::tryGetString(std::string &res) const {
 }
 
 bool EdgeValue::isTop() const { return type == Top; }
+
 bool EdgeValue::isNumeric() const {
   return type == Integer || type == FloatingPoint;
 }
+
 bool EdgeValue::isString() const { return type == String; }
+
 EdgeValue::Type EdgeValue::getKind() const { return type; }
+
 EdgeValue::operator bool() {
   switch (type) {
   case Integer:
@@ -191,6 +208,7 @@ EdgeValue::operator bool() {
   }
   return false;
 }
+
 bool operator==(const EdgeValue &v1, const EdgeValue &v2) {
   // std::cout << "Compare edge values" << std::endl;
   if (v1.type != v2.type) {
@@ -226,6 +244,7 @@ bool operator==(const EdgeValue &v1, const EdgeValue &v2) {
     return false;
   }
 }
+
 bool EdgeValue::sqSubsetEq(const EdgeValue &other) const {
   return other.isTop() || other.type == type;
 }
@@ -245,6 +264,7 @@ EdgeValue operator+(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator-(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -259,6 +279,7 @@ EdgeValue operator-(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator*(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -271,6 +292,7 @@ EdgeValue operator*(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator/(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -283,6 +305,7 @@ EdgeValue operator/(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator%(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -298,6 +321,7 @@ EdgeValue operator%(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator&(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -308,6 +332,7 @@ EdgeValue operator&(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator|(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -318,6 +343,7 @@ EdgeValue operator|(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator^(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -328,6 +354,7 @@ EdgeValue operator^(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator<<(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -338,6 +365,7 @@ EdgeValue operator<<(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 EdgeValue operator>>(const EdgeValue &v1, const EdgeValue &v2) {
   if (v1.type != v2.type)
     return EdgeValue(nullptr);
@@ -348,17 +376,20 @@ EdgeValue operator>>(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   }
 }
+
 // unary operators
 EdgeValue EdgeValue::operator-() const {
   if (type == Integer)
     return EdgeValue(-value.asInt);
   return EdgeValue(nullptr);
 }
+
 EdgeValue EdgeValue::operator~() const {
   if (type == Integer)
     return EdgeValue(~value.asInt);
   return EdgeValue(nullptr);
 }
+
 int EdgeValue::compare(const EdgeValue &v1, const EdgeValue &v2) {
   switch (v1.type) {
   case EdgeValue::Integer: {
@@ -417,6 +448,7 @@ std::ostream &operator<<(std::ostream &os, const EdgeValue &ev) {
     return os << "<TOP>";
   }
 }
+
 EdgeValue EdgeValue::typecast(Type dest, unsigned bits) const {
   switch (dest) {
 
@@ -516,6 +548,7 @@ EdgeValue EdgeValue::performBinOp(llvm::BinaryOperator::BinaryOps op,
     return EdgeValue(nullptr);
   }
 }
+
 ev_t performBinOp(llvm::BinaryOperator::BinaryOps op, const ev_t &v1,
                   const ev_t &v2, size_t maxSize) {
   // std::cout << "Perform Binop on " << v1 << " and " << v2 << std::endl;
@@ -538,6 +571,7 @@ ev_t performBinOp(llvm::BinaryOperator::BinaryOps op, const ev_t &v1,
   // std::cout << "\t=> " << ret << std::endl;
   return ret;
 }
+
 ev_t performTypecast(const ev_t &ev, EdgeValue::Type dest, unsigned bits) {
   if (ev.empty() || isTopValue(ev)) {
     // std::cout << "\t=> <TOP>" << std::endl;
@@ -552,6 +586,7 @@ ev_t performTypecast(const ev_t &ev, EdgeValue::Type dest, unsigned bits) {
   }
   return ret;
 }
+
 Ordering compare(const ev_t &v1, const ev_t &v2) {
   auto &smaller = v1.size() <= v2.size() ? v1 : v2;
   auto &larger = v1.size() > v2.size() ? v1 : v2;
@@ -565,6 +600,7 @@ Ordering compare(const ev_t &v1, const ev_t &v2) {
              ? Ordering::Equal
              : (&smaller == &v1 ? Ordering::Less : Ordering::Greater);
 }
+
 ev_t join(const ev_t &v1, const ev_t &v2, size_t maxSize) {
   // std::cout << "Join " << v1 << " and " << v2 << std::endl;
   if (isTopValue(v1) || isTopValue(v2)) {
@@ -584,6 +620,7 @@ ev_t join(const ev_t &v1, const ev_t &v2, size_t maxSize) {
 
   return ret;
 }
+
 bool isTopValue(const ev_t &v) { return v.size() == 1 && v.begin()->isTop(); }
 std::ostream &operator<<(std::ostream &os, const ev_t &v) {
   os << "{";
@@ -597,6 +634,7 @@ std::ostream &operator<<(std::ostream &os, const ev_t &v) {
   }
   return os << "}";
 }
+
 bool operator<(const ev_t &v1, const ev_t &v2) {
   if (v1.size() >= v2.size()) {
     return v1 != v2 && (v1.empty() || v2 == ev_t({EdgeValue::top}));
@@ -608,6 +646,7 @@ bool operator<(const ev_t &v1, const ev_t &v2) {
     return true;
   }
 }
+
 std::string EdgeValue::typeToString(Type ty) {
   switch (ty) {
   case Integer:
@@ -621,4 +660,4 @@ std::string EdgeValue::typeToString(Type ty) {
   }
 }
 
-} // namespace 
+} // namespace psr

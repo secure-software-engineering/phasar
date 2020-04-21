@@ -6,14 +6,14 @@
 
 namespace psr {
 
-class EdgeFunctionComposer
+class LCAEdgeFunctionComposer
     : public EdgeFunctionComposer<IDEGeneralizedLCA::v_t> {
   size_t maxSize;
 
 public:
-  EdgeFunctionComposer(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> F,
-                       std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> G,
-                       size_t maxSize);
+  LCAEdgeFunctionComposer(
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> F,
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> G, size_t maxSize);
   // IDEGeneralizedLCA::v_t
   // computeTarget(IDEGeneralizedLCA::v_t source) override;
   std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> composeWith(

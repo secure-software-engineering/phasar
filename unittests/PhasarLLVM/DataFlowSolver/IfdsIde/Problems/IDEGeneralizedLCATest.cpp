@@ -30,12 +30,13 @@ protected:
   // TODO: move IR files into another directory
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
-      "build/test/llvm_test_code/general_linear_constant";
+      "build/test/llvm_test_code/general_linear_constant/";
 
   ProjectIRDB *irdb = nullptr;
   LLVMTypeHierarchy *th = nullptr;
   LLVMBasedICFG *icfg = nullptr;
-  IDEGeneralizedLCA *LCP = nullptr;
+  PointsToInfo<const llvm::Value *, const llvm::Instruction *> *pt = nullptr;
+  IDEGeneralizedLCA *LCA = nullptr;
   IDESolver<const llvm::Instruction *, const llvm::Value *,
             const llvm::Function *, const llvm::StructType *,
             const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *solver = nullptr;
@@ -44,47 +45,28 @@ protected:
   virtual ~IDEGeneralizedLCATest() {}
 
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
-    // ASSERT_EQ(true, std::filesystem::exists(pathToLLFiles + llFile))
-    //    << "for file " << llFile;
-
     irdb = new ProjectIRDB({pathToLLFiles + llFile}, IRDBOptions::WPA);
-
-    // irdb->preprocessIR();
-    // irdb->print();
-
     th = new LLVMTypeHierarchy(*irdb);
-
     icfg = new LLVMBasedICFG(*irdb, CallGraphAnalysisType::RTA, {"main"}, th);
 
-    // TODO: remove this
-    // is PointsToInfo object necessary?
-    // if not, update constructor
-    const PointsToInfo<const llvm::Value *, const llvm::Instruction *> *pt;
-    LCP = new IDEGeneralizedLCA(irdb, th, icfg, pt, {"main"}, maxSetSize);
+    LCA = new IDEGeneralizedLCA(irdb, th, icfg, pt, {"main"}, maxSetSize);
 
     solver =
         new IDESolver<const llvm::Instruction *, const llvm::Value *,
                       const llvm::Function *, const llvm::StructType *,
-                      const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(*LCP);
-    // try {
-    solver->solve();
-    /*} catch (std::exception &e) {
+                      const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(*LCA);
 
-      std::cerr << "ERROR: " << e.what()
-                << " at: " << boost::stacktrace::stacktrace() << std::endl;
-    }
-    std::cout << "Hello" << std::endl;*/
+    solver->solve();
   }
 
   void SetUp() override {
-    // TODO: fix this, what is bl?
-    // bl::core::get()->set_logging_enabled(false);
+    boost::log::core::get()->set_logging_enabled(false);
     ValueAnnotationPass::resetValueID();
   }
 
   void TearDown() override {
     DELETE(solver);
-    DELETE(LCP);
+    DELETE(LCA);
     DELETE(icfg);
     DELETE(th);
     DELETE(irdb);
@@ -129,6 +111,7 @@ TEST_F(IDEGeneralizedLCATest, FPtest) {
   groundTruth.push_back({{EdgeValue(2.0)}, 2, 16});
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, StringTest) {
   Initialize("StringTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -136,6 +119,7 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   Initialize("StringBranchTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -144,6 +128,7 @@ TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   groundTruth.push_back({{EdgeValue("Hello Hello")}, 4, 15});
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
   Initialize("FloatDivision_c.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -152,6 +137,7 @@ TEST_F(IDEGeneralizedLCATest, FloatDivisionTest) {
   groundTruth.push_back({{EdgeValue(-7.0)}, 3, 24});    // k
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
   Initialize("SimpleFunctionTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -159,6 +145,7 @@ TEST_F(IDEGeneralizedLCATest, SimpleFunctionTest) {
   groundTruth.push_back({{EdgeValue(nullptr)}, 11, 31}); // j
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   Initialize("GlobalVariableTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
@@ -166,6 +153,7 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
   groundTruth.push_back({{EdgeValue(nullptr)}, 10, 13}); // j
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
   // bl::core::get()->set_logging_enabled(true);
   Initialize("Imprecision_c.ll", 2);
@@ -181,18 +169,21 @@ TEST_F(IDEGeneralizedLCATest, Imprecision) {
   groundTruth.push_back({{EdgeValue(2), EdgeValue(3)}, 1, 7}); // j
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, ReturnConstTest) {
   Initialize("ReturnConstTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(43)}, 7, 8}); // i
   compareResults(groundTruth);
 }
+
 TEST_F(IDEGeneralizedLCATest, NullTest) {
   Initialize("NullTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue("")}, 4, 5}); // foo(null)
   compareResults(groundTruth);
 }
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

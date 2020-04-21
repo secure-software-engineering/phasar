@@ -98,9 +98,9 @@ std::ostream &operator<<(std::ostream &os, const ev_t &v);
 // TODO: remove this, bad practice
 namespace std {
 
-template <> struct hash<EdgeValue> {
+template <> struct hash<psr::EdgeValue> {
   hash() {}
-  size_t operator()(const EdgeValue &val) const {
+  size_t operator()(const psr::EdgeValue &val) const {
     auto hc = hash<int>()(val.getKind());
     uint64_t asInt;
     double asFloat;

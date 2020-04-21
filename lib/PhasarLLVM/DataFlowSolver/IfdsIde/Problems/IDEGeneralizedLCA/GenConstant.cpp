@@ -1,15 +1,13 @@
 #include <iostream>
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/AllBot.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/JoinEdgeFunction.h"
 
 namespace psr {
 
-GenConstant::GenConstant(const IDEGeneralizedLCA::v_t &val,
-                         size_t maxSize)
+GenConstant::GenConstant(const IDEGeneralizedLCA::v_t &val, size_t maxSize)
     : val(val), maxSize(maxSize) {
   /*std::cout << "GenConstant: {";
   bool frst = true;
@@ -29,14 +27,11 @@ GenConstant::computeTarget(IDEGeneralizedLCA::v_t source) {
   return val;
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-GenConstant::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        secondFunction) {
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::composeWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
   // std::cout << "GenConstant composing" << std::endl;
   if (dynamic_cast<IdentityEdgeFunction *>(secondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(
-          secondFunction.get())) {
+      dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(secondFunction.get())) {
 
     return shared_from_this();
   }
@@ -48,10 +43,8 @@ GenConstant::composeWith(
                                        maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-GenConstant::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        other) {
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::joinWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) {
   if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
     switch (compare(val, otherConst->val)) {
     case Ordering::Equal:
@@ -70,8 +63,7 @@ GenConstant::joinWith(
 }
 
 bool GenConstant::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other)
-    const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) const {
   if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
     return val == otherConst->val && maxSize == otherConst->maxSize;
   }

@@ -124,11 +124,10 @@ public:
 
   lca_results_t getLCAResults(SolverResults<n_t, d_t, v_t> SR);
 
-  template <typename V> std::string VtoString(V v);
-
 private:
   void stripBottomResults(std::unordered_map<d_t, v_t> &res);
   bool isEntryPoint(const std::string &name) const;
+  template <typename V> std::string VtoString(V v);
 };
 
 } // namespace psr

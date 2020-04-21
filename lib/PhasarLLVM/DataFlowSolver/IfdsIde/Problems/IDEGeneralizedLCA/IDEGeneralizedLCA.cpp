@@ -1,7 +1,6 @@
 // TODO:
 // - add authors
 // - run clang-tidy and fix identifier naming
-// - rename file to make clear that is a generalized LCA
 // - minimize files
 
 #include <sstream>
@@ -22,10 +21,9 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/LLVMZeroValue.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/BinaryEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/ConstantHelper.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/DebugIdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeValueSet.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/GenConstant.h"
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDELinearIDEGeneralizedLCA.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IdentityEdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCalleeFlowFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/MapFactsToCallerFlowFunction.h"
@@ -472,10 +470,11 @@ IDEGeneralizedLCA::v_t IDEGeneralizedLCA::topElement() { return v_t({}); }
 IDEGeneralizedLCA::v_t IDEGeneralizedLCA::bottomElement() {
   return v_t({EdgeValue::top});
 }
+
 IDEGeneralizedLCA::v_t IDEGeneralizedLCA::join(IDEGeneralizedLCA::v_t lhs,
                                                IDEGeneralizedLCA::v_t rhs) {
   // sets are passed by value
-  return ::join(lhs, rhs, maxSetSize);
+  return psr::join(lhs, rhs, maxSetSize);
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
@@ -702,7 +701,7 @@ bool IDEGeneralizedLCA::isEntryPoint(const std::string &name) const {
   return name == "main";
 }
 
-template <typename V> std::string VtoString(V v) {
+template <typename V> std::string IDEGeneralizedLCA::VtoString(V v) {
   std::stringstream ss;
   ss << v;
   return ss.str();

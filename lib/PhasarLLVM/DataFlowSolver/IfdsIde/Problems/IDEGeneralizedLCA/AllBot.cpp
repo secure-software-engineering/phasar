@@ -9,9 +9,9 @@ std::shared_ptr<AllBot::type> AllBot::getInstance() {
       std::make_shared<type>(IDEGeneralizedLCA::v_t{nullptr});
   return ret;
 }
-bool AllBot::isBot(
-    const EdgeFunction<IDEGeneralizedLCA::v_t> *edgeFn,
-    bool nonRec) {
+
+bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::v_t> *edgeFn,
+                   bool nonRec) {
   if (edgeFn == nullptr)
     return false;
   if (edgeFn == getInstance().get())
@@ -25,9 +25,9 @@ bool AllBot::isBot(
   }
   return false;
 }
+
 bool AllBot::isBot(
-    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        &edgeFn,
+    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &edgeFn,
     bool nonRec) {
   return isBot(edgeFn.get(), nonRec);
 }

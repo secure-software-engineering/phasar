@@ -1,4 +1,4 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/EdgeFunctionComposer.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/LCAEdgeFunctionComposer.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllTop.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
@@ -17,22 +17,20 @@ EdgeFunctionComposer::computeTarget(IDEGeneralizedLCA::v_t source) {
   std::cout << "Compose(" << source << ") = " << ret << std::endl;
   return ret;
 }*/
-EdgeFunctionComposer::EdgeFunctionComposer(
+
+LCAEdgeFunctionComposer::LCAEdgeFunctionComposer(
     std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> F,
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> G,
-    size_t maxSize)
-    : EdgeFunctionComposer<IDEGeneralizedLCA::v_t>(F, G),
-      maxSize(maxSize) {}
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> G, size_t maxSize)
+    : EdgeFunctionComposer<IDEGeneralizedLCA::v_t>(F, G), maxSize(maxSize) {}
+
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-EdgeFunctionComposer::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        secondFunction) {
+LCAEdgeFunctionComposer::composeWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
   // see <phasar/PhasarLVM/IfdsIde/IDELinearConstantAnalysis.h>
 
   if (dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::v_t> *>(
           secondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(
-          secondFunction.get())) {
+      dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(secondFunction.get())) {
     return shared_from_this();
   }
   if (dynamic_cast<IdentityEdgeFunction *>(secondFunction.get())) {
@@ -49,16 +47,15 @@ EdgeFunctionComposer::composeWith(
 }
 
 std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-EdgeFunctionComposer::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        otherFunction) {
+LCAEdgeFunctionComposer::joinWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction) {
   // see <phasar/PhasarLVM/IfdsIde/IDELinearConstantAnalysis.h>
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
-  if (auto *AT = dynamic_cast<AllTop<IDEGeneralizedLCA::v_t> *>(
-          otherFunction.get())) {
+  if (auto *AT =
+          dynamic_cast<AllTop<IDEGeneralizedLCA::v_t> *>(otherFunction.get())) {
     return this->shared_from_this();
   }
   if (AllBot::isBot(otherFunction)) {
@@ -67,12 +64,14 @@ EdgeFunctionComposer::joinWith(
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
                                             maxSize);
 }
+
 const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
-EdgeFunctionComposer::getFirst() const {
+LCAEdgeFunctionComposer::getFirst() const {
   return F;
 }
+
 const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
-EdgeFunctionComposer::getSecond() const {
+LCAEdgeFunctionComposer::getSecond() const {
   return G;
 }
 
