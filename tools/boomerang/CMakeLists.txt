@@ -30,12 +30,14 @@ target_link_libraries(boomerang
   ${Boost_LIBRARIES}
   ${CMAKE_DL_LIBS}
   ${CMAKE_THREAD_LIBS_INIT}
+  ${llvm_libs}
 )
 
-if(USE_LLVM_FAT_LIB)
-  llvm_config(boomerang USE_SHARED ${LLVM_LINK_COMPONENTS})
-else()
-  llvm_config(boomerang ${LLVM_LINK_COMPONENTS})
+if(NOT PHASAR_IN_TREE)
+target_link_libraries(boomerang
+  LINK_PUBLIC
+  ${llvm_libs}
+)
 endif()
 
 set(LLVM_LINK_COMPONENTS
