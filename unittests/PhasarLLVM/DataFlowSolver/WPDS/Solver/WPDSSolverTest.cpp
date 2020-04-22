@@ -29,7 +29,6 @@ using namespace psr;
 
 // int main(int argc, char **argv) {
 //   initializeLogger(false);
-//   auto &lg = lg::get();
 //   if (argc < 4 || !bfs::exists(argv[1]) || bfs::is_directory(argv[1])) {
 //     std::cerr << "usage: <prog> <ir file> <ID or LCA> <DIRECTION>\n";
 //     return 1;

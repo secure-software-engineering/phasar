@@ -101,7 +101,7 @@ public:
   ~WPDSSolver() override = default;
 
   void solve() override {
-    // auto &lg = lg::get();
+
     // Construct the PDS
     IDESolver<N, D, F, T, V, L, I>::submitInitalSeeds();
     std::ofstream pdsfile("pds.dot");
@@ -180,7 +180,6 @@ public:
   }
 
   void processNormalFlow(PathEdge<N, D> edge) override {
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processNormal");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -239,7 +238,6 @@ public:
   }
 
   void processCall(PathEdge<N, D> edge) override {
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processCall");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
@@ -504,7 +502,6 @@ public:
   }
 
   void processExit(PathEdge<N, D> edge) override {
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processExit");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);

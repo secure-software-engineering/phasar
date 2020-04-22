@@ -169,7 +169,6 @@ LLVMBasedICFG::~LLVMBasedICFG() {
 void LLVMBasedICFG::constructionWalker(const llvm::Function *F,
                                        Resolver &Resolver) {
   PAMM_GET_INSTANCE;
-  // auto &lg = lg::get();
   LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Walking in function: " << F->getName().str());
   if (F->isDeclaration() || !VisitedFunctions.insert(F).second) {

@@ -106,7 +106,6 @@ public:
 
   std::shared_ptr<FlowFunction<D>> getNormalFlowFunction(N curr, N succ) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal flow function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -136,7 +135,6 @@ public:
 
   std::shared_ptr<FlowFunction<D>> getCallFlowFunction(N callStmt, F destFun) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call flow function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -168,7 +166,6 @@ public:
   std::shared_ptr<FlowFunction<D>> getRetFlowFunction(N callSite, F calleeFun,
                                                       N exitStmt, N retSite) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return flow function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -205,7 +202,6 @@ public:
   std::shared_ptr<FlowFunction<D>>
   getCallToRetFlowFunction(N callSite, N retSite, std::set<F> callees) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return flow function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -245,7 +241,6 @@ public:
                                                           F destFun) {
     // PAMM_GET_INSTANCE;
     // INC_COUNTER("Summary-FF Construction", 1, PAMM_SEVERITY_LEVEL::Full);
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Summary flow function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -260,7 +255,6 @@ public:
   std::shared_ptr<EdgeFunction<L>> getNormalEdgeFunction(N curr, D currNode,
                                                          N succ, D succNode) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Normal edge function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -293,7 +287,6 @@ public:
                                                        F destinationFunction,
                                                        D destNode) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call edge function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -329,7 +322,6 @@ public:
                                                          N exitStmt, D exitNode,
                                                          N reSite, D retNode) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Return edge function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -368,7 +360,6 @@ public:
   getCallToRetEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode,
                            std::set<F> callees) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Call-to-Return edge function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -406,7 +397,6 @@ public:
   std::shared_ptr<EdgeFunction<L>>
   getSummaryEdgeFunction(N callSite, D callNode, N retSite, D retSiteNode) {
     PAMM_GET_INSTANCE;
-    // auto &lg = lg::get();
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Summary edge function factory call");
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -438,7 +428,6 @@ public:
   }
 
   void print() {
-    // auto &lg = lg::get();
     if constexpr (PAMM_CURR_SEV_LEVEL >= PAMM_SEVERITY_LEVEL::Full) {
       PAMM_GET_INSTANCE;
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), INFO)

@@ -145,7 +145,6 @@ void ProjectIRDB::linkForWPA() {
   // the linkage. This is still very fast compared to compiling and
   // pre-processing
   // all modules.
-  // auto &lg = lg::get();
   if (Modules.size() > 1) {
     llvm::Module *MainMod = getModuleDefiningFunction("main");
     assert(MainMod && "could not find main function");
