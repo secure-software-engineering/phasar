@@ -27,7 +27,7 @@ llvm::StringRef PhasarPrinterPass::getPassName() const {
 
 bool PhasarPrinterPass::runOnModule(llvm::Module &M) {
   llvm::outs() << "PhasarPrinterPass::runOnModule()\n";
-  PhasarPass &Results = getAnalysis<PhasarPass>();
+  auto &Results = getAnalysis<PhasarPass>();
   Results.print(llvm::outs(), &M);
   return false;
 }
@@ -50,7 +50,7 @@ void PhasarPrinterPass::getAnalysisUsage(llvm::AnalysisUsage &AU) const {
 void PhasarPrinterPass::releaseMemory() {}
 
 static llvm::RegisterPass<PhasarPrinterPass>
-    phasar("phasar-printer", "PhASAR Printer Pass",
+    Phasar("phasar-printer", "PhASAR Printer Pass",
            false /* Only looks at CFG */, false /* Analysis Pass */);
 
 } // namespace psr

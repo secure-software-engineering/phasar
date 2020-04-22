@@ -31,7 +31,7 @@ class Instruction;
 namespace psr {
 
 class ProjectIRDB;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 enum class PointerAnalysisType {
 #define ANALYSIS_SETUP_POINTER_TYPE(NAME, CMDFLAG, TYPE) TYPE,
@@ -39,9 +39,9 @@ enum class PointerAnalysisType {
   Invalid
 };
 
-std::string to_string(const PointerAnalysisType &PA);
+std::string toString(const PointerAnalysisType &PA);
 
-PointerAnalysisType to_PointerAnalysisType(const std::string &S);
+PointerAnalysisType toPointerAnalysisType(const std::string &S);
 
 std::ostream &operator<<(std::ostream &os, const PointerAnalysisType &PA);
 
@@ -51,7 +51,7 @@ private:
   llvm::PassBuilder PB;
   llvm::FunctionAnalysisManager FAM;
   mutable std::unordered_map<const llvm::Function *, llvm::AAResults *> AAInfos;
-  std::map<const llvm::Function *, std::unique_ptr<PointsToGraph>>
+  std::map<const llvm::Function *, std::unique_ptr<LLVMPointsToGraph>>
       PointsToGraphs;
 
 public:
@@ -75,7 +75,7 @@ public:
 
   llvm::AAResults *getAAResults(const llvm::Function *F) const;
 
-  PointsToGraph *getPointsToGraph(const llvm::Function *F) const;
+  LLVMPointsToGraph *getPointsToGraph(const llvm::Function *F) const;
 };
 
 } // namespace psr

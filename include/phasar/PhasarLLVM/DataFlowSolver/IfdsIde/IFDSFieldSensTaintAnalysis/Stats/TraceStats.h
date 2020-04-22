@@ -25,7 +25,7 @@ public:
   ~TraceStats() = default;
 
   long add(const llvm::Instruction *instruction,
-           const std::vector<const llvm::Value *> memLocationSeq =
+           const std::vector<const llvm::Value *> &memLocationSeq =
                std::vector<const llvm::Value *>());
 
   const FileStats getStats() const { return stats; }
@@ -33,8 +33,9 @@ public:
 private:
   long add(const llvm::Instruction *instruction, bool isReturnValue);
 
-  FunctionStats &getFunctionStats(std::string file);
-  LineNumberStats &getLineNumberStats(std::string file, std::string function);
+  FunctionStats &getFunctionStats(const std::string &file);
+  LineNumberStats &getLineNumberStats(const std::string &file,
+                                      const std::string &function);
   FileStats stats;
 };
 

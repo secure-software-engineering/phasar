@@ -14,7 +14,7 @@ TEST(TaintConfigurationTest, HandleSSImport) {
             TSF.getSink("write"));
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

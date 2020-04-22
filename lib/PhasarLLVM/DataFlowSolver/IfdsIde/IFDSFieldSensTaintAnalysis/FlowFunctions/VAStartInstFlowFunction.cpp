@@ -9,39 +9,41 @@
 namespace psr {
 
 std::set<ExtendedValue>
-VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  std::set<ExtendedValue> targetFacts;
-  targetFacts.insert(fact);
+VAStartInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  std::set<ExtendedValue> TargetFacts;
+  TargetFacts.insert(Fact);
 
-  bool isVarArgTemplateFact = fact.isVarArgTemplate();
-  if (!isVarArgTemplateFact)
-    return targetFacts;
+  bool IsVarArgTemplateFact = Fact.isVarArgTemplate();
+  if (!IsVarArgTemplateFact) {
+    return TargetFacts;
+  }
 
-  const auto vaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
-  const auto vaListMemLocationMatr = vaStartInst->getArgList();
+  const auto *const VaStartInst = llvm::cast<llvm::VAStartInst>(currentInst);
+  auto *const VaListMemLocationMatr = VaStartInst->getArgList();
 
-  auto vaListMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromMatr(vaListMemLocationMatr);
+  auto VaListMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(VaListMemLocationMatr);
 
-  bool isValidMemLocationSeq = !vaListMemLocationSeq.empty();
-  if (isValidMemLocationSeq) {
-    bool isArrayDecay = DataFlowUtils::isArrayDecay(vaListMemLocationMatr);
-    if (isArrayDecay)
-      vaListMemLocationSeq.pop_back();
+  bool IsValidMemLocationSeq = !VaListMemLocationSeq.empty();
+  if (IsValidMemLocationSeq) {
+    bool IsArrayDecay = DataFlowUtils::isArrayDecay(VaListMemLocationMatr);
+    if (IsArrayDecay) {
+      VaListMemLocationSeq.pop_back();
+    }
 
-    ExtendedValue ev(fact);
-    ev.setVaListMemLocationSeq(vaListMemLocationSeq);
+    ExtendedValue EV(Fact);
+    EV.setVaListMemLocationSeq(VaListMemLocationSeq);
 
-    targetFacts.insert(ev);
+    TargetFacts.insert(EV);
 
     LOG_DEBUG("Created new VarArg from template");
     LOG_DEBUG("Template");
-    DataFlowUtils::dumpFact(fact);
+    DataFlowUtils::dumpFact(Fact);
     LOG_DEBUG("VarArg");
-    DataFlowUtils::dumpFact(ev);
+    DataFlowUtils::dumpFact(EV);
   }
 
-  return targetFacts;
+  return TargetFacts;
 }
 
 } // namespace psr

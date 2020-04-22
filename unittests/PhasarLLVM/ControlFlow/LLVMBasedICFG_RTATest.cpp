@@ -9,13 +9,13 @@ using namespace psr;
 
 class LLVMBasedICFG_RTATest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/";
 };
 
 TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_9_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_9_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
@@ -41,7 +41,7 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_9) {
 }
 
 TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/virtual_call_3_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/virtual_call_3_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
@@ -60,7 +60,7 @@ TEST_F(LLVMBasedICFG_RTATest, VirtualCallSite_3) {
 }
 
 TEST_F(LLVMBasedICFG_RTATest, StaticCallSite_13) {
-  ProjectIRDB IRDB({pathToLLFiles + "call_graphs/static_callsite_13_cpp.ll"},
+  ProjectIRDB IRDB({PathToLlFiles + "call_graphs/static_callsite_13_cpp.ll"},
                    IRDBOptions::WPA);
   LLVMTypeHierarchy TH(IRDB);
   LLVMBasedICFG ICFG(IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH);
@@ -78,7 +78,7 @@ TEST_F(LLVMBasedICFG_RTATest, StaticCallSite_13) {
   }
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }

@@ -25,7 +25,7 @@
 
 namespace psr {
 
-extern const std::shared_ptr<AllBottom<BinaryDomain>> ALL_BOTTOM;
+extern const std::shared_ptr<AllBottom<BinaryDomain>> ALLBOTTOM;
 
 /**
  * This class promotes a given IFDSTabulationProblem to an IDETabulationProblem
@@ -101,7 +101,7 @@ public:
   std::shared_ptr<EdgeFunction<BinaryDomain>>
   getNormalEdgeFunction(N src, D srcNode, N tgt, D tgtNode) override {
     if (Problem.isZeroValue(srcNode))
-      return ALL_BOTTOM;
+      return ALLBOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -110,7 +110,7 @@ public:
   getCallEdgeFunction(N callStmt, D srcNode, F destinationFunction,
                       D destNode) override {
     if (Problem.isZeroValue(srcNode))
-      return ALL_BOTTOM;
+      return ALLBOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -119,7 +119,7 @@ public:
   getReturnEdgeFunction(N callSite, F calleeFunction, N exitStmt, D exitNode,
                         N returnSite, D retNode) override {
     if (Problem.isZeroValue(exitNode))
-      return ALL_BOTTOM;
+      return ALLBOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::getInstance();
   }
@@ -128,7 +128,7 @@ public:
   getCallToRetEdgeFunction(N callStmt, D callNode, N returnSite,
                            D returnSideNode, std::set<F> callees) override {
     if (Problem.isZeroValue(callNode))
-      return ALL_BOTTOM;
+      return ALLBOTTOM;
     else
       return EdgeIdentity<BinaryDomain>::getInstance();
   }

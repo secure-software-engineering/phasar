@@ -36,7 +36,7 @@ using namespace psr;
 
 namespace psr {
 
-RandomChangeFrontendAction::RandomChangeFrontendAction() {}
+RandomChangeFrontendAction::RandomChangeFrontendAction() = default;
 
 void RandomChangeFrontendAction::EndSourceFileAction() {
   clang::SourceManager &SM = RW.getSourceMgr();
@@ -47,9 +47,9 @@ void RandomChangeFrontendAction::EndSourceFileAction() {
 
 std::unique_ptr<clang::ASTConsumer>
 RandomChangeFrontendAction::CreateASTConsumer(clang::CompilerInstance &CI,
-                                              llvm::StringRef file) {
-  llvm::errs() << "** Creating AST consumer for: " << file << "\n";
+                                              llvm::StringRef File) {
+  llvm::errs() << "** Creating AST consumer for: " << File << "\n";
   RW.setSourceMgr(CI.getSourceManager(), CI.getLangOpts());
-  return make_unique<RandomChangeASTConsumer>(RW);
+  return std::make_unique<RandomChangeASTConsumer>(RW);
 }
 } // namespace psr
