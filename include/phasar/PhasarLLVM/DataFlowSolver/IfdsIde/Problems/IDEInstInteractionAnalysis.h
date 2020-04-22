@@ -112,7 +112,7 @@ public:
                                                            n_t succ) override {
     // generate all variables
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
-      std::cout << "AllocaInst" << std::endl;
+      // std::cout << "AllocaInst" << std::endl;
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());
     }
 
@@ -226,9 +226,9 @@ public:
               Facts.insert(src);
             }
             for (const auto s : Facts) {
-              std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
-                        << llvmIRToShortString(Store) << "--> "
-                        << llvmIRToShortString(s) << '\n';
+              // std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
+              //           << llvmIRToShortString(Store) << "--> "
+              //           << llvmIRToShortString(s) << '\n';
             }
             return Facts;
           }
@@ -270,9 +270,9 @@ public:
         // pass everything that already holds as identity
         Facts.insert(src);
         for (const auto s : Facts) {
-          std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
-                    << llvmIRToShortString(Inst) << "--> "
-                    << llvmIRToShortString(s) << '\n';
+          // std::cout << "Create edge: " << llvmIRToShortString(src) << " --"
+          //           << llvmIRToShortString(Inst) << "--> "
+          //           << llvmIRToShortString(s) << '\n';
         }
         return Facts;
       }
@@ -335,9 +335,9 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override {
-    std::cout << "Process edge: " << llvmIRToShortString(currNode) << " --"
-              << llvmIRToShortString(curr) << "--> "
-              << llvmIRToShortString(succNode) << '\n';
+    // std::cout << "Process edge: " << llvmIRToShortString(currNode) << " --"
+    //           << llvmIRToShortString(curr) << "--> "
+    //           << llvmIRToShortString(succNode) << '\n';
 
     // propagate zero edges as identity
     if (isZeroValue(currNode) && isZeroValue(succNode)) {
@@ -364,11 +364,11 @@ public:
                 llvm::dyn_cast<llvm::LoadInst>(Store->getValueOperand())) {
           if (Load->getPointerOperand() == currNode &&
               succNode == Store->getPointerOperand()) {
-            std::cout << "Var-Override: ";
-            for (const auto &EF : EdgeFacts) {
-              std::cout << EF << ", ";
-            }
-            std::cout << "at '" << llvmIRToString(curr) << "'\n";
+            // std::cout << "Var-Override: ";
+            // for (const auto &EF : EdgeFacts) {
+            //   std::cout << EF << ", ";
+            // }
+            // std::cout << "at '" << llvmIRToString(curr) << "'\n";
             return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
           }
         }
@@ -379,15 +379,15 @@ public:
           if (llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
             // case x is a literal (and y an ordinary variable)
             // y obtains its values from its original allocation and this store
-            std::cout << "Const-Replace at '" << llvmIRToString(curr) << "'\n";
-            std::cout << "Replacement label(s): ";
+            // std::cout << "Const-Replace at '" << llvmIRToString(curr) << "'\n";
+            // std::cout << "Replacement label(s): ";
             for (const auto &Item : EdgeFacts) {
               std::cout << Item << ", ";
             }
-            std::cout << '\n';
+            // std::cout << '\n';
             return std::make_shared<IIAAKillOrReplaceEF>(*this, UserEdgeFacts);
           } else {
-            std::cout << "Kill at '" << llvmIRToString(curr) << "'\n";
+            // std::cout << "Kill at '" << llvmIRToString(curr) << "'\n";
             return std::make_shared<IIAAKillOrReplaceEF>(*this);
           }
         }
@@ -516,7 +516,7 @@ public:
         IDEInstInteractionAnalysisT<e_t, SyntacticAnalysisOnly,
                                     EnableIndirectTaints> &Analysis)
         : Analysis(Analysis), Replacement(BitVectorSet<e_t>()) {
-      std::cout << "IIAAKillOrReplaceEF\n";
+      // std::cout << "IIAAKillOrReplaceEF\n";
     }
 
     explicit IIAAKillOrReplaceEF(
@@ -524,7 +524,7 @@ public:
                                     EnableIndirectTaints> &Analysis,
         l_t Replacement)
         : Analysis(Analysis), Replacement(Replacement) {
-      std::cout << "IIAAKillOrReplaceEF\n";
+      // std::cout << "IIAAKillOrReplaceEF\n";
     }
 
     ~IIAAKillOrReplaceEF() override = default;
@@ -589,7 +589,7 @@ public:
                                     EnableIndirectTaints> &Analysis,
         l_t Data)
         : Analysis(Analysis), Data(Data) {
-      std::cout << "IIAAAddLabelsEF\n";
+      // std::cout << "IIAAAddLabelsEF\n";
     }
 
     ~IIAAAddLabelsEF() override = default;
