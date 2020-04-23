@@ -1585,6 +1585,7 @@ protected:
   }
 
 public:
+  void enableESAasDot() { SolverConfig.emitESG = true; }
   void emitESGasDot() {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Emit Exploded super-graph (ESG) as DOT graph";
@@ -1794,7 +1795,9 @@ public:
             auto EFVec = intermediateEdgeFunctions[std::make_tuple(
                 Edge.first, D1Fact, Edge.second, D2Fact)];
             for (auto EF : EFVec) {
-              EFLabel += EF->str() + ", ";
+              LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                            << "Partial EF Label: " << EF->str());
+              EFLabel.append(EF->str() + ", ");
             }
             LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "EF LABEL: " << EFLabel);
@@ -1823,10 +1826,11 @@ public:
 };
 
 template <typename Problem>
-IDESolver(Problem &) -> IDESolver<typename Problem::n_t, typename Problem::d_t,
-                                  typename Problem::f_t, typename Problem::t_t,
-                                  typename Problem::v_t, typename Problem::l_t,
-                                  typename Problem::i_t>;
+IDESolver(Problem &)
+    ->IDESolver<typename Problem::n_t, typename Problem::d_t,
+                typename Problem::f_t, typename Problem::t_t,
+                typename Problem::v_t, typename Problem::l_t,
+                typename Problem::i_t>;
 
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::n_t, typename Problem::d_t,

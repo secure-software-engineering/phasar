@@ -20,11 +20,14 @@
 #include <iosfwd>
 
 #include "phasar/Config/Configuration.h"
+#include "phasar/Utils/Logger.h"
+#include "phasar/Utils/Utilities.h"
 
 namespace psr {
 
 struct IFDSIDESolverConfig {
   IFDSIDESolverConfig() = default;
+
   IFDSIDESolverConfig(bool followReturnsPastSeeds, bool autoAddZero,
                       bool computeValues, bool recordEdges, bool emitESG,
                       bool computePersistedSummaries);
@@ -37,10 +40,7 @@ struct IFDSIDESolverConfig {
   bool autoAddZero = true;
   bool computeValues = true;
   bool recordEdges = true;
-  bool emitESG =
-      (PhasarConfig::VariablesMap().count("emit-esg-as-dot"))
-          ? PhasarConfig::VariablesMap()["emit-esg-as-dot"].as<bool>()
-          : false;
+  bool emitESG = PhasarConfig::VariablesMap().count("emit-esg-as-dot");
   bool computePersistedSummaries = false;
   friend std::ostream &operator<<(std::ostream &os,
                                   const IFDSIDESolverConfig &sc);
