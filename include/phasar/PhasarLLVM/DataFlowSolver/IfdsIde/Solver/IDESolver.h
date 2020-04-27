@@ -315,7 +315,7 @@ protected:
   IDETabulationProblem<N, D, F, T, V, L, I> &IDEProblem;
   D ZeroValue;
   const I *ICF;
-  const IFDSIDESolverConfig SolverConfig;
+  IFDSIDESolverConfig SolverConfig;
   unsigned PathEdgeCount = 0;
 
   FlowEdgeFunctionCache<N, D, F, T, V, L, I> cachedFlowEdgeFunctions;
@@ -1826,11 +1826,10 @@ public:
 };
 
 template <typename Problem>
-IDESolver(Problem &)
-    ->IDESolver<typename Problem::n_t, typename Problem::d_t,
-                typename Problem::f_t, typename Problem::t_t,
-                typename Problem::v_t, typename Problem::l_t,
-                typename Problem::i_t>;
+IDESolver(Problem &) -> IDESolver<typename Problem::n_t, typename Problem::d_t,
+                                  typename Problem::f_t, typename Problem::t_t,
+                                  typename Problem::v_t, typename Problem::l_t,
+                                  typename Problem::i_t>;
 
 template <typename Problem>
 using IDESolver_P = IDESolver<typename Problem::n_t, typename Problem::d_t,
