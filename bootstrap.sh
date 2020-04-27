@@ -3,7 +3,7 @@ set -e
 
 readonly PHASAR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 readonly PHASAR_INSTALL_DIR="/usr/local/phasar"
-readonly LLVM_INSTALL_DIR="/usr/local/llvm-9"
+readonly LLVM_INSTALL_DIR="/usr/local/llvm-10"
 
 NUM_THREADS=$(nproc)
 LLVM_RELEASE=llvmorg-10.0.0
@@ -60,9 +60,9 @@ set -- "${POSITIONAL[@]}" # restore positional parameters
 echo "installing phasar dependencies..."
 
 sudo apt-get update
-sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev bear python3 doxygen graphviz python python-dev python3-pip python-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python-sphinx libomp-dev libcurl4-openssl-dev -y
-sudo pip install Pygments
-sudo pip install pyyaml
+sudo apt-get install zlib1g-dev sqlite3 libsqlite3-dev bear python3 doxygen graphviz python3-pip libxml2 libxml2-dev libncurses5-dev libncursesw5-dev swig build-essential g++ cmake libz3-dev libedit-dev python3-sphinx libomp-dev libcurl4-openssl-dev -y
+sudo pip3 install Pygments
+sudo pip3 install pyyaml
 
 if [ ! -z ${DESIRED_BOOST_DIR} ]; then
     BOOST_PARAMS="-DBOOST_ROOT=${DESIRED_BOOST_DIR}" 
@@ -108,7 +108,7 @@ fi
 
 
 # installing LLVM
-tmp_dir=`mktemp -d "llvm-9_build.XXXXXXXX" --tmpdir`
+tmp_dir=`mktemp -d "llvm-10_build.XXXXXXXX" --tmpdir`
 ./utils/install-llvm.sh ${NUM_THREADS} ${tmp_dir} ${LLVM_INSTALL_DIR} ${LLVM_RELEASE}
 rm -rf ${tmp_dir}
 sudo pip3 install wllvm
@@ -120,6 +120,7 @@ ${DO_UNIT_TESTS} && echo "with unit tests."
 git submodule init
 git submodule update
 
+export LD_LIBRARY_PATH=${LLVM_INSTALL_DIR}/lib:$LD_LIBRARY_PATH
 export CC=${LLVM_INSTALL_DIR}/bin/clang
 export CXX=${LLVM_INSTALL_DIR}/bin/clang++
 
