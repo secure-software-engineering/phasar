@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
 
 #include <iostream>
 #include <memory>
@@ -116,3 +117,5 @@ template <> struct hash<psr::EdgeValue> {
 };
 
 } // namespace std
+
+#endif

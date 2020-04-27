@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDEGENERALIZEDLCA_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDEGENERALIZEDLCA_H_
 
 #include <map>
 #include <string>
@@ -131,3 +132,5 @@ private:
 };
 
 } // namespace psr
+
+#endif

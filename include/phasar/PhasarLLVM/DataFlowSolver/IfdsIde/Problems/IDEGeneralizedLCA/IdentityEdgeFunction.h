@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDENTITYEDGEFUNCTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_IDENTITYEDGEFUNCTION_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/EdgeIdentity.h"
@@ -36,3 +37,5 @@ public:
 //   IdentityEdgeFunction;
 
 } // namespace psr
+
+#endif

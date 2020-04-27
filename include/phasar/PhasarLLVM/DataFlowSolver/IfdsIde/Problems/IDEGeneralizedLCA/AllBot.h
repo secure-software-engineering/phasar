@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_ALLBOT_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_ALLBOT_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunctions/AllBottom.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDEGeneralizedLCA/IDEGeneralizedLCA.h"
@@ -16,3 +17,5 @@ struct AllBot {
 };
 
 } // namespace psr
+
+#endif

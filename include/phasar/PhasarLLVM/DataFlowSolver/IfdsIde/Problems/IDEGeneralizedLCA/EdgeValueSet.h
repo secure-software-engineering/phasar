@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUESET_H_
 
 #include <initializer_list>
 #include <unordered_set>
@@ -32,3 +33,5 @@ public:
 };
 
 } // namespace psr
+
+#endif

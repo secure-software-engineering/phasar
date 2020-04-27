@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLEEFLOWFUNCTION_H_
+#define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_MAPFACTSTOCALLEEFLOWFUNCTION_H_
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunction.h"
 
@@ -22,3 +23,5 @@ public:
 };
 
 } // namespace psr
+
+#endif
