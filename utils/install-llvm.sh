@@ -23,7 +23,7 @@ if [ -x ${dest_dir}/bin/llvm-config ]; then
 fi
 
 echo "Getting the LLVM source code..."
-tmp_dir=/tmp/${llvm_release}
+tmp_dir=$(mktemp -d -t phasar-llvm-${llvm_release}-XXXXXXXXXX)
 if [ ! -d "${tmp_dir}/llvm-project" ]; then
     echo "Getting the complete LLVM source code"
 	git clone https://github.com/llvm/llvm-project.git ${tmp_dir}/llvm-project
