@@ -14,6 +14,8 @@
 #include <iostream>
 #include <llvm/IR/Constants.h>
 #include <llvm/IR/Instructions.h>
+#include <llvm/IR/Value.h>
+#include <llvm/Support/Compiler.h>
 #include <map>
 #include <memory>
 #include <set>
@@ -97,6 +99,7 @@ private:
   std::function<EdgeFactGeneratorTy> edgeFactGen;
   static inline l_t BottomElement = Bottom{};
   static inline l_t TopElement = Top{};
+  // bool GeneratedGlobalVariables = false;
 
   inline BitVectorSet<e_t> edgeFactGenToBitVectorSet(n_t curr) {
     if (edgeFactGen) {
@@ -138,7 +141,19 @@ public:
 
   std::shared_ptr<FlowFunction<d_t>> getNormalFlowFunction(n_t curr,
                                                            n_t succ) override {
-    // generate all variables
+    // generate all global variables (only once)
+    // if (LLVM_UNLIKELY(!GeneratedGlobalVariables)) {
+    //   if (const llvm::Module *M = curr->getModule()) {
+    //     for (const auto &Global : M->globals()) {
+    //       if (const auto *GV = llvm::dyn_cast<llvm::GlobalVariable>(&Global)) {
+    //         return std::make_shared<Gen<d_t>>(GV, this->getZeroValue());
+    //       }
+    //     }
+    //   }
+    //   GeneratedGlobalVariables = true;
+    // }
+
+    // generate all local variables as they occur
     if (const auto *Alloca = llvm::dyn_cast<llvm::AllocaInst>(curr)) {
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "AllocaInst");
       return std::make_shared<Gen<d_t>>(Alloca, this->getZeroValue());

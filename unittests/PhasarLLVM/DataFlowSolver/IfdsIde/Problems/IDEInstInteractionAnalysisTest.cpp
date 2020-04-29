@@ -23,6 +23,7 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/BitVectorSet.h"
 #include "phasar/Utils/LLVMShorthands.h"
+#include "phasar/Utils/Logger.h"
 
 using namespace psr;
 
@@ -92,7 +93,7 @@ protected:
         std::string FactStr = llvmIRToString(Fact);
         llvm::StringRef FactRef(FactStr);
         if (FactRef.startswith("%" + std::get<2>(Truth) + " ")) {
-          // std::cout << "Checking variable: " << FactStr << std::endl;
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "Checking variable: " << FactStr);
           EXPECT_EQ(std::get<3>(Truth), Value);
         }
       }
@@ -431,8 +432,42 @@ TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_05) {
   GroundTruth.emplace(
       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
           "main", 10, "j", {"1", "7", "10", "12", "13"}));
-  doAnalysisAndCompareResults("call_05_cpp.ll", GroundTruth, true);
+  doAnalysisAndCompareResults("call_05_cpp.ll", GroundTruth, false);
 }
+
+TEST_F(IDEInstInteractionAnalysisTest, HandleCallTest_06) {
+  std::set<IIACompactResult_t> GroundTruth;
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "retval", {"6", "11"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "i", {"1", "4", "2", "7", "0", "3", "16", "18", "12", "28"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "j", {"1", "4", "19", "2", "0", "21", "3", "13", "8"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "k", {"1", "4", "22", "2", "14", "0", "3", "9", "24"}));
+  GroundTruth.emplace(
+      std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+          "main", 24, "l", {"1", "4", "2", "15", "0", "3", "10", "25", "27"}));
+  doAnalysisAndCompareResults("call_06_cpp.ll", GroundTruth, false);
+}
+
+// TEST_F(IDEInstInteractionAnalysisTest, HandleGlobalTest_01) {
+//   std::set<IIACompactResult_t> GroundTruth;
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 9, "retval", {"1", "3"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 9, "i", {"0", "7", "8"}));
+//   GroundTruth.emplace(
+//       std::tuple<std::string, size_t, std::string, BitVectorSet<std::string>>(
+//           "main", 9, "j", {"2", "6", "5", "0"}));
+//   doAnalysisAndCompareResults("global_01_cpp.ll", GroundTruth, true);
+// }
 
 TEST_F(IDEInstInteractionAnalysisTest, KillTest_01) {
   std::set<IIACompactResult_t> GroundTruth;

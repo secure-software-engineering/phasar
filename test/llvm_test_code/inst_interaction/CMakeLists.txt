@@ -14,6 +14,8 @@ set(Sources
   call_03.cpp
   call_04.cpp
   call_05.cpp
+  call_06.cpp
+  global_01.cpp
   KillTest.cpp
 )
 
