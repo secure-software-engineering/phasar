@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2020 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #include <iostream>
 #include <unordered_set>
 #include <vector>
@@ -11,12 +20,6 @@
 #include "phasar/PhasarLLVM/TypeHierarchy/LLVMTypeHierarchy.h"
 #include "phasar/Utils/Logger.h"
 
-#define DELETE(x)                                                              \
-  if (x) {                                                                     \
-    delete (x);                                                                \
-    (x) = nullptr;                                                             \
-  }
-
 using namespace psr;
 
 typedef std::tuple<const IDEGeneralizedLCA::v_t, unsigned, unsigned>
@@ -27,36 +30,30 @@ typedef std::tuple<const IDEGeneralizedLCA::v_t, unsigned, unsigned>
 class IDEGeneralizedLCATest : public ::testing::Test {
 
 protected:
-  // TODO: move IR files into another directory
   const std::string pathToLLFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/general_linear_constant/";
 
-  ProjectIRDB *irdb = nullptr;
-  LLVMTypeHierarchy *th = nullptr;
-  LLVMBasedICFG *icfg = nullptr;
-  PointsToInfo<const llvm::Value *, const llvm::Instruction *> *pt = nullptr;
-  IDEGeneralizedLCA *LCA = nullptr;
+  ProjectIRDB *IRDB = nullptr;
   IDESolver<const llvm::Instruction *, const llvm::Value *,
             const llvm::Function *, const llvm::StructType *,
-            const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *solver = nullptr;
+            const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *LCASolver = nullptr;
 
   IDEGeneralizedLCATest() {}
   virtual ~IDEGeneralizedLCATest() {}
 
   void Initialize(const std::string &llFile, size_t maxSetSize = 2) {
-    irdb = new ProjectIRDB({pathToLLFiles + llFile}, IRDBOptions::WPA);
-    th = new LLVMTypeHierarchy(*irdb);
-    icfg = new LLVMBasedICFG(*irdb, CallGraphAnalysisType::RTA, {"main"}, th);
-
-    LCA = new IDEGeneralizedLCA(irdb, th, icfg, pt, {"main"}, maxSetSize);
-
-    solver =
+    IRDB = new ProjectIRDB({pathToLLFiles + llFile}, IRDBOptions::WPA);
+    LLVMTypeHierarchy TH(*IRDB);
+    LLVMPointsToInfo PT(*IRDB);
+    LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
+    IDEGeneralizedLCA LCAProblem(IRDB, &TH, &ICFG, &PT, {"main"}, maxSetSize);
+    LCASolver =
         new IDESolver<const llvm::Instruction *, const llvm::Value *,
                       const llvm::Function *, const llvm::StructType *,
-                      const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(*LCA);
+                      const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(LCAProblem);
 
-    solver->solve();
+    LCASolver->solve();
   }
 
   void SetUp() override {
@@ -65,11 +62,8 @@ protected:
   }
 
   void TearDown() override {
-    DELETE(solver);
-    DELETE(LCA);
-    DELETE(icfg);
-    DELETE(th);
-    DELETE(irdb);
+    delete IRDB;
+    delete LCASolver;
   }
 
   //  compare results
@@ -77,11 +71,11 @@ protected:
   /// alloca, inst)
   void compareResults(const std::vector<groundTruth_t> &expected) {
     for (auto &[val, vrId, instId] : expected) {
-      auto vr = irdb->getInstruction(vrId);
-      auto inst = irdb->getInstruction(instId);
+      auto vr = IRDB->getInstruction(vrId);
+      auto inst = IRDB->getInstruction(instId);
       ASSERT_NE(nullptr, vr);
       ASSERT_NE(nullptr, inst);
-      auto result = solver->resultAt(inst, vr);
+      auto result = LCASolver->resultAt(inst, vr);
       EXPECT_EQ(val, result);
     }
   }
@@ -157,12 +151,12 @@ TEST_F(IDEGeneralizedLCATest, GlobalVariableTest) {
 TEST_F(IDEGeneralizedLCATest, Imprecision) {
   // bl::core::get()->set_logging_enabled(true);
   Initialize("Imprecision_c.ll", 2);
-  auto xInst = irdb->getInstruction(0); // foo.x
-  auto yInst = irdb->getInstruction(1); // foo.y
-  auto barInst = irdb->getInstruction(7);
+  auto xInst = IRDB->getInstruction(0); // foo.x
+  auto yInst = IRDB->getInstruction(1); // foo.y
+  auto barInst = IRDB->getInstruction(7);
 
-  std::cout << "foo.x = " << solver->resultAt(barInst, xInst) << std::endl;
-  std::cout << "foo.y = " << solver->resultAt(barInst, yInst) << std::endl;
+  std::cout << "foo.x = " << LCASolver->resultAt(barInst, xInst) << std::endl;
+  std::cout << "foo.y = " << LCASolver->resultAt(barInst, yInst) << std::endl;
 
   std::vector<groundTruth_t> groundTruth;
   groundTruth.push_back({{EdgeValue(1), EdgeValue(2)}, 0, 7}); // i
