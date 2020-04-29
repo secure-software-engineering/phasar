@@ -1,3 +1,12 @@
+/******************************************************************************
+ * Copyright (c) 2020 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
+
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
 #define PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
 
@@ -96,7 +105,6 @@ std::ostream &operator<<(std::ostream &os, const ev_t &v);
 
 } // namespace psr
 
-// TODO: remove this, bad practice
 namespace std {
 
 template <> struct hash<psr::EdgeValue> {

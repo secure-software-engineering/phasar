@@ -1,7 +1,11 @@
-// TODO:
-// - add authors
-// - run clang-tidy and fix identifier naming
-// - minimize files
+/******************************************************************************
+ * Copyright (c) 2020 Fabian Schiebel.
+ * All rights reserved. This program and the accompanying materials are made
+ * available under the terms of LICENSE.txt.
+ *
+ * Contributors:
+ *     Fabian Schiebel and others
+ *****************************************************************************/
 
 #include <sstream>
 
