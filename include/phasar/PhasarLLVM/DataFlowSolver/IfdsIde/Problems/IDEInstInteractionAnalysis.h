@@ -361,7 +361,7 @@ public:
 
   inline std::shared_ptr<FlowFunction<d_t>>
   getSummaryFlowFunction(n_t callStmt, f_t destMthd) override {
-    // do not use summaries
+    // do not use user-crafted summaries
     return nullptr;
   }
 
@@ -582,7 +582,7 @@ public:
   inline std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
                          d_t retSiteNode) override {
-    // do not use summaries
+    // do not use user-crafted summaries
     return nullptr;
   }
 
@@ -646,11 +646,9 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
-      std::cout << "IIAAKillOrReplaceEF::composeWith(): ";
-      print(std::cout);
-      std::cout << " * ";
-      secondFunction->print(std::cout);
-      std::cout << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                    << "IIAAKillOrReplaceEF::composeWith(): " << this->str()
+                    << " * " << secondFunction->str());
       // kill or replace, previous functions are ignored
       if (auto *KR =
               dynamic_cast<IIAAKillOrReplaceEF *>(secondFunction.get())) {
@@ -663,7 +661,8 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
-      // std::cout << "IIAAKillOrReplaceEF::joinWith\n";
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // "IIAAKillOrReplaceEF::joinWith");
       if (auto *AB = dynamic_cast<AllBottom<l_t> *>(otherFunction.get())) {
         return this->shared_from_this();
       }
@@ -685,7 +684,8 @@ public:
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      // std::cout << "IIAAKillOrReplaceEF::equal_to\n";
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // "IIAAKillOrReplaceEF::equal_to");
       if (auto *I = dynamic_cast<IIAAKillOrReplaceEF *>(other.get())) {
         return Replacement == I->Replacement;
       }
@@ -726,7 +726,7 @@ public:
                                     EnableIndirectTaints> &Analysis,
         l_t Data)
         : Analysis(Analysis), Data(Data) {
-      std::cout << "IIAAAddLabelsEF\n";
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) << "IIAAAddLabelsEF");
     }
 
     ~IIAAAddLabelsEF() override = default;
@@ -738,11 +738,9 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
-      std::cout << "IIAAAddLabelEF::composeWith(): ";
-      print(std::cout);
-      std::cout << " * ";
-      secondFunction->print(std::cout);
-      std::cout << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG)
+                    << "IIAAAddLabelEF::composeWith(): " << this->str() << " * "
+                    << secondFunction->str());
       if (auto *AB = dynamic_cast<AllBottom<l_t> *>(secondFunction.get())) {
         return this->shared_from_this();
       }
@@ -765,7 +763,8 @@ public:
 
     std::shared_ptr<EdgeFunction<l_t>>
     joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
-      // std::cout << "IIAAAddLabelsEF::joinWith\n";
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // "IIAAAddLabelsEF::joinWith");
       if (otherFunction.get() == this ||
           otherFunction->equal_to(this->shared_from_this())) {
         return this->shared_from_this();
@@ -786,7 +785,8 @@ public:
     }
 
     bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-      // std::cout << "IIAAAddLabelsEF::equal_to\n";
+      // LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DFADEBUG) <<
+      // "IIAAAddLabelsEF::equal_to");
       if (auto *I = dynamic_cast<IIAAAddLabelsEF *>(other.get())) {
         return (I->Data == this->Data);
       }

@@ -42,7 +42,7 @@ public:
     OS << "EdgeFunction";
   }
 
-  std::string str() {
+  std::string str() const {
     std::ostringstream oss;
     print(oss);
     return oss.str();
