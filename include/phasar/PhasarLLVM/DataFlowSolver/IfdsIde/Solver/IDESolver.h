@@ -627,7 +627,7 @@ protected:
         std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
         if (SolverConfig.emitESG()) {
           intermediateEdgeFunctions[std::make_tuple(n, d2, fn, d3)].push_back(
-              fprime);
+              g);
         }
         LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << g->str() << " * " << f->str()
