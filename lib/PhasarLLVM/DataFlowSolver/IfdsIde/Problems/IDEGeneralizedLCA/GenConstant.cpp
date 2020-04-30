@@ -16,7 +16,7 @@
 
 namespace psr {
 
-GenConstant::GenConstant(const IDEGeneralizedLCA::v_t &val, size_t maxSize)
+GenConstant::GenConstant(const IDEGeneralizedLCA::l_t &val, size_t maxSize)
     : val(val), maxSize(maxSize) {
   /*std::cout << "GenConstant: {";
   bool frst = true;
@@ -29,18 +29,18 @@ GenConstant::GenConstant(const IDEGeneralizedLCA::v_t &val, size_t maxSize)
   }
   std::cout << "}" << std::endl;*/
 }
-IDEGeneralizedLCA::v_t
-GenConstant::computeTarget(IDEGeneralizedLCA::v_t source) {
+IDEGeneralizedLCA::l_t
+GenConstant::computeTarget(IDEGeneralizedLCA::l_t source) {
   // std::cout << "GenConstant computation (" << source << ")"
   //         << " = " << val << std::endl;
   return val;
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::composeWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
   // std::cout << "GenConstant composing" << std::endl;
   if (dynamic_cast<IdentityEdgeFunction *>(secondFunction.get()) ||
-      dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(secondFunction.get())) {
+      dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get())) {
 
     return shared_from_this();
   }
@@ -52,8 +52,8 @@ std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::composeWith(
                                        maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) {
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> GenConstant::joinWith(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) {
   if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
     switch (compare(val, otherConst->val)) {
     case Ordering::Equal:
@@ -72,7 +72,7 @@ std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> GenConstant::joinWith(
 }
 
 bool GenConstant::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
   if (auto otherConst = dynamic_cast<GenConstant *>(other.get())) {
     return val == otherConst->val && maxSize == otherConst->maxSize;
   }

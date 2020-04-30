@@ -42,15 +42,17 @@ class IDEGeneralizedLCA
 public:
   typedef const llvm::Value *d_t;
   typedef const llvm::Instruction *n_t;
-  typedef const llvm::Function *m_t;
-  typedef EdgeValueSet v_t;
+  typedef const llvm::Function *f_t;
+  typedef const llvm::StructType *t_t;
+  typedef const llvm::Value *v_t;
   typedef LLVMBasedICFG &i_t;
+  typedef EdgeValueSet l_t;
 
   struct LCAResult {
     LCAResult() = default;
     unsigned line_nr = 0;
     std::string src_code;
-    std::map<std::string, v_t> variableToValue;
+    std::map<std::string, l_t> variableToValue;
     std::vector<n_t> ir_trace;
     void print(std::ostream &os);
   };
@@ -68,19 +70,19 @@ public:
                                                            n_t succ) override;
 
   std::shared_ptr<FlowFunction<d_t>> getCallFlowFunction(n_t callStmt,
-                                                         m_t destMthd) override;
+                                                         f_t destMthd) override;
 
   std::shared_ptr<FlowFunction<d_t>> getRetFlowFunction(n_t callSite,
-                                                        m_t calleeMthd,
+                                                        f_t calleeMthd,
                                                         n_t exitStmt,
                                                         n_t retSite) override;
 
   std::shared_ptr<FlowFunction<d_t>>
   getCallToRetFlowFunction(n_t callSite, n_t retSite,
-                           std::set<m_t> callees) override;
+                           std::set<f_t> callees) override;
 
   std::shared_ptr<FlowFunction<d_t>>
-  getSummaryFlowFunction(n_t callStmt, m_t destMthd) override;
+  getSummaryFlowFunction(n_t callStmt, f_t destMthd) override;
 
   std::map<n_t, std::set<d_t>> initialSeeds() override;
 
@@ -90,52 +92,52 @@ public:
 
   // in addition provide specifications for the IDE parts
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getNormalEdgeFunction(n_t curr, d_t currNode, n_t succ,
                         d_t succNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> getCallEdgeFunction(n_t callStmt,
+  std::shared_ptr<EdgeFunction<l_t>> getCallEdgeFunction(n_t callStmt,
                                                          d_t srcNode,
-                                                         m_t destinationMethod,
+                                                         f_t destinationMethod,
                                                          d_t destNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
-  getReturnEdgeFunction(n_t callSite, m_t calleeMethod, n_t exitStmt,
+  std::shared_ptr<EdgeFunction<l_t>>
+  getReturnEdgeFunction(n_t callSite, f_t calleeMethod, n_t exitStmt,
                         d_t exitNode, n_t reSite, d_t retNode) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getCallToRetEdgeFunction(n_t callSite, d_t callNode, n_t retSite,
-                           d_t retSiteNode, std::set<m_t> callees) override;
+                           d_t retSiteNode, std::set<f_t> callees) override;
 
-  std::shared_ptr<EdgeFunction<v_t>>
+  std::shared_ptr<EdgeFunction<l_t>>
   getSummaryEdgeFunction(n_t callStmt, d_t callNode, n_t retSite,
                          d_t retSiteNode) override;
 
-  v_t topElement() override;
+  l_t topElement() override;
 
-  v_t bottomElement() override;
+  l_t bottomElement() override;
 
-  v_t join(v_t lhs, v_t rhs) override;
+  l_t join(l_t lhs, l_t rhs) override;
 
-  std::shared_ptr<EdgeFunction<v_t>> allTopFunction() override;
+  std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
   void printNode(std::ostream &os, n_t n) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 
-  void printFunction(std::ostream &os, m_t m) const override;
+  void printFunction(std::ostream &os, f_t m) const override;
 
-  void printEdgeFact(std::ostream &os, v_t v) const override;
+  void printEdgeFact(std::ostream &os, l_t v) const override;
 
   // void printIDEReport(std::ostream &os,
-  // SolverResults<n_t, d_t, v_t> &SR) override;
-  void emitTextReport(const SolverResults<n_t, d_t, v_t> &SR,
+  // SolverResults<n_t, d_t, l_t> &SR) override;
+  void emitTextReport(const SolverResults<n_t, d_t, l_t> &SR,
                       std::ostream &os) override;
 
-  lca_results_t getLCAResults(SolverResults<n_t, d_t, v_t> SR);
+  lca_results_t getLCAResults(SolverResults<n_t, d_t, l_t> SR);
 
 private:
-  void stripBottomResults(std::unordered_map<d_t, v_t> &res);
+  void stripBottomResults(std::unordered_map<d_t, l_t> &res);
   bool isEntryPoint(const std::string &name) const;
   template <typename V> std::string VtoString(V v);
 };

@@ -13,29 +13,29 @@
 
 namespace psr {
 
-IDEGeneralizedLCA::v_t
-TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::v_t source) {
+IDEGeneralizedLCA::l_t
+TypecastEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
   return performTypecast(source, dest, bits);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(secondFunction.get()))
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
+  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get()))
     return shared_from_this();
   return std::make_shared<LCAEdgeFunctionComposer>(shared_from_this(),
                                                    secondFunction, maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 TypecastEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
                                             maxSize);
 }
 
 bool TypecastEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
   if (this == other.get())
     return true;
   if (auto otherTC = dynamic_cast<TypecastEdgeFunction *>(other.get())) {

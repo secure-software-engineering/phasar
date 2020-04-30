@@ -17,8 +17,7 @@
 
 namespace psr {
 
-class MapFactsToCalleeFlowFunction
-    : public FlowFunction<const llvm::Value *> {
+class MapFactsToCalleeFlowFunction : public FlowFunction<const llvm::Value *> {
   llvm::ImmutableCallSite cs;
   const llvm::Function *destMthd;
   std::vector<const llvm::Value *> actuals;

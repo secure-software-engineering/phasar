@@ -38,7 +38,8 @@ protected:
   ProjectIRDB *IRDB = nullptr;
   IDESolver<const llvm::Instruction *, const llvm::Value *,
             const llvm::Function *, const llvm::StructType *,
-            const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *LCASolver = nullptr;
+            const llvm::Value *, EdgeValueSet, LLVMBasedICFG> *LCASolver =
+      nullptr;
 
   IDEGeneralizedLCATest() {}
   virtual ~IDEGeneralizedLCATest() {}
@@ -49,10 +50,10 @@ protected:
     LLVMPointsToInfo PT(*IRDB);
     LLVMBasedICFG ICFG(*IRDB, CallGraphAnalysisType::RTA, {"main"}, &TH, &PT);
     IDEGeneralizedLCA LCAProblem(IRDB, &TH, &ICFG, &PT, {"main"}, maxSetSize);
-    LCASolver =
-        new IDESolver<const llvm::Instruction *, const llvm::Value *,
-                      const llvm::Function *, const llvm::StructType *,
-                      const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(LCAProblem);
+    LCASolver = new IDESolver<const llvm::Instruction *, const llvm::Value *,
+                              const llvm::Function *, const llvm::StructType *,
+                              const llvm::Value *, EdgeValueSet, LLVMBasedICFG>(
+        LCAProblem);
 
     LCASolver->solve();
   }

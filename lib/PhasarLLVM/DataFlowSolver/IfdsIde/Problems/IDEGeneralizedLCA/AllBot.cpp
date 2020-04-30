@@ -15,11 +15,11 @@ namespace psr {
 
 std::shared_ptr<AllBot::type> AllBot::getInstance() {
   static std::shared_ptr<type> ret =
-      std::make_shared<type>(IDEGeneralizedLCA::v_t{nullptr});
+      std::make_shared<type>(IDEGeneralizedLCA::l_t{nullptr});
   return ret;
 }
 
-bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::v_t> *edgeFn,
+bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *edgeFn,
                    bool nonRec) {
   if (edgeFn == nullptr)
     return false;
@@ -36,7 +36,7 @@ bool AllBot::isBot(const EdgeFunction<IDEGeneralizedLCA::v_t> *edgeFn,
 }
 
 bool AllBot::isBot(
-    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &edgeFn,
+    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &edgeFn,
     bool nonRec) {
   return isBot(edgeFn.get(), nonRec);
 }

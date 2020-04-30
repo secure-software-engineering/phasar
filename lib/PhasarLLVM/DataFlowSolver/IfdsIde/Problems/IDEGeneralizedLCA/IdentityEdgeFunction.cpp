@@ -18,23 +18,21 @@
 namespace psr {
 
 IdentityEdgeFunction::IdentityEdgeFunction(size_t maxSize) : maxSize(maxSize) {}
-IDEGeneralizedLCA::v_t
-IdentityEdgeFunction::computeTarget(IDEGeneralizedLCA::v_t source) {
+IDEGeneralizedLCA::l_t
+IdentityEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
   return source;
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IdentityEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        secondFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
   // std::cout << "Identity composing" << std::endl;
   return secondFunction;
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 IdentityEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-        otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
   // std::cout << "Identity join" << std::endl;
   // see <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
   if ((otherFunction.get() == this) ||
@@ -42,16 +40,15 @@ IdentityEdgeFunction::joinWith(
     return this->shared_from_this();
   if (AllBot::isBot(otherFunction))
     return AllBot::getInstance();
-  if (auto at = dynamic_cast<AllTop<IDEGeneralizedLCA::v_t> *>(
-          otherFunction.get()))
+  if (auto at =
+          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(otherFunction.get()))
     return this->shared_from_this();
   return std::make_shared<JoinEdgeFunction>(shared_from_this(), otherFunction,
                                             maxSize);
 }
 
 bool IdentityEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other)
-    const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
   // see <phasar/PhasarLLVM/IfdsIde/EdgeFunctions/EdgeIdentity.h>
   return other.get() == this;
 }

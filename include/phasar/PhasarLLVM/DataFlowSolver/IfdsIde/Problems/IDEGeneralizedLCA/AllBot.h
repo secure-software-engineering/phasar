@@ -16,12 +16,12 @@
 namespace psr {
 
 struct AllBot {
-  using type = AllBottom<IDEGeneralizedLCA::v_t>;
+  using type = AllBottom<IDEGeneralizedLCA::l_t>;
   static std::shared_ptr<type> getInstance();
-  static bool isBot(const EdgeFunction<IDEGeneralizedLCA::v_t> *edgeFn,
+  static bool isBot(const EdgeFunction<IDEGeneralizedLCA::l_t> *edgeFn,
                     bool nonRec = false);
   static bool
-  isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &edgeFn,
+  isBot(const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &edgeFn,
         bool nonRec = false);
 };
 

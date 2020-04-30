@@ -15,39 +15,32 @@
 
 namespace psr {
 
-class JoinEdgeFunction
-    : public EdgeFunction<IDEGeneralizedLCA::v_t>,
-      public std::enable_shared_from_this<JoinEdgeFunction> {
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> frst;
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> scnd;
+class JoinEdgeFunction : public EdgeFunction<IDEGeneralizedLCA::l_t>,
+                         public std::enable_shared_from_this<JoinEdgeFunction> {
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> frst;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> scnd;
   size_t maxSize;
 
 public:
   JoinEdgeFunction(
-      const std::shared_ptr<
-          EdgeFunction<IDEGeneralizedLCA::v_t>> &frst,
-      const std::shared_ptr<
-          EdgeFunction<IDEGeneralizedLCA::v_t>> &scnd,
+      const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &frst,
+      const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &scnd,
       size_t maxSize);
-  IDEGeneralizedLCA::v_t
-  computeTarget(IDEGeneralizedLCA::v_t source) override;
+  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t source) override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-          secondFunction) override;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
+      override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-               otherFunction) override;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
+      override;
 
-  bool
-  equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-               other) const override;
+  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other)
+      const override;
   void print(std::ostream &OS, bool isForDebug = false) const override;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
-  getFirst() const;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
+  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &getFirst() const;
+  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
   getSecond() const;
 };
 

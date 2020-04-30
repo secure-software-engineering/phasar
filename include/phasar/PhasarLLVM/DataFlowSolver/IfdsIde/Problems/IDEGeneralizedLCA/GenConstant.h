@@ -15,24 +15,24 @@
 
 namespace psr {
 
-class GenConstant : public EdgeFunction<IDEGeneralizedLCA::v_t>,
+class GenConstant : public EdgeFunction<IDEGeneralizedLCA::l_t>,
                     public std::enable_shared_from_this<GenConstant> {
-  IDEGeneralizedLCA::v_t val;
+  IDEGeneralizedLCA::l_t val;
   size_t maxSize;
 
 public:
-  GenConstant(const IDEGeneralizedLCA::v_t &val, size_t maxSize);
-  IDEGeneralizedLCA::v_t computeTarget(IDEGeneralizedLCA::v_t source) override;
+  GenConstant(const IDEGeneralizedLCA::l_t &val, size_t maxSize);
+  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t source) override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction)
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
       override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction)
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
       override;
 
-  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other)
+  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other)
       const override;
   void print(std::ostream &OS, bool isForDebug = false) const override;
 };

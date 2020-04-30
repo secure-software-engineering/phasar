@@ -16,8 +16,8 @@
 
 namespace psr {
 
-IDEGeneralizedLCA::v_t
-BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::v_t source) {
+IDEGeneralizedLCA::l_t
+BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
   /*auto ret = leftConst ? performBinOp(op, cnst, source, maxSize)
                        : performBinOp(op, source, cnst, maxSize);
   std::cout << "Binary(" << source << ") = " << ret << std::endl;
@@ -29,14 +29,14 @@ BinaryEdgeFunction::computeTarget(IDEGeneralizedLCA::v_t source) {
   }
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 BinaryEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
-  if (auto *EI = dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::v_t> *>(
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
+  if (auto *EI = dynamic_cast<EdgeIdentity<IDEGeneralizedLCA::l_t> *>(
           secondFunction.get())) {
     return this->shared_from_this();
   }
-  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(secondFunction.get())) {
+  if (dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(secondFunction.get())) {
     // print(std::cout << "Compose ");
     // std::cout << " with ALLBOT" << std::endl;
     return shared_from_this();
@@ -45,23 +45,23 @@ BinaryEdgeFunction::composeWith(
                                                    secondFunction, maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 BinaryEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
   if (otherFunction.get() == this ||
       otherFunction->equal_to(this->shared_from_this())) {
     return this->shared_from_this();
   }
   if (auto *AT =
-          dynamic_cast<AllTop<IDEGeneralizedLCA::v_t> *>(otherFunction.get())) {
+          dynamic_cast<AllTop<IDEGeneralizedLCA::l_t> *>(otherFunction.get())) {
     return this->shared_from_this();
   }
-  return std::make_shared<AllBottom<IDEGeneralizedLCA::v_t>>(
-      IDEGeneralizedLCA::v_t({EdgeValue(nullptr)}));
+  return std::make_shared<AllBottom<IDEGeneralizedLCA::l_t>>(
+      IDEGeneralizedLCA::l_t({EdgeValue(nullptr)}));
 }
 
 bool BinaryEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
   return this == other.get();
 }
 

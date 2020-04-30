@@ -17,8 +17,8 @@
 namespace psr {
 
 JoinEdgeFunction::JoinEdgeFunction(
-    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &frst,
-    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &scnd,
+    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &frst,
+    const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &scnd,
     size_t maxSize)
     : frst(frst), scnd(scnd), maxSize(maxSize) {
 
@@ -26,8 +26,8 @@ JoinEdgeFunction::JoinEdgeFunction(
   // This only used for debug purposes. So you can safely remove it, but you
   // also may use it, if there are termination problems
 
-  std::unordered_set<EdgeFunction<IDEGeneralizedLCA::v_t> *> seen;
-  std::vector<EdgeFunction<IDEGeneralizedLCA::v_t> *> q = {frst.get(),
+  std::unordered_set<EdgeFunction<IDEGeneralizedLCA::l_t> *> seen;
+  std::vector<EdgeFunction<IDEGeneralizedLCA::l_t> *> q = {frst.get(),
                                                            scnd.get()};
   unsigned ctr = 0;
   while (!q.empty()) {
@@ -36,7 +36,7 @@ JoinEdgeFunction::JoinEdgeFunction(
     q.pop_back();
     auto ins = seen.insert(top);
     if (!ins.second &&
-        !dynamic_cast<AllBottom<IDEGeneralizedLCA::v_t> *>(top)) {
+        !dynamic_cast<AllBottom<IDEGeneralizedLCA::l_t> *>(top)) {
       std::cerr << "WARNING: cyclic dependency! @" << ctr << "#";
       top->print(std::cerr);
       std::cerr << std::endl;
@@ -53,16 +53,16 @@ JoinEdgeFunction::JoinEdgeFunction(
     }
   }
 }
-IDEGeneralizedLCA::v_t
-JoinEdgeFunction::computeTarget(IDEGeneralizedLCA::v_t source) {
+IDEGeneralizedLCA::l_t
+JoinEdgeFunction::computeTarget(IDEGeneralizedLCA::l_t source) {
 
   return join(frst->computeTarget(source), scnd->computeTarget(source),
               maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 JoinEdgeFunction::composeWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction) {
   // std::cout << "JoinFn composing" << std::endl;
   // TODO be more precise here
   if (dynamic_cast<GenConstant *>(secondFunction.get())) {
@@ -75,9 +75,9 @@ JoinEdgeFunction::composeWith(
                                                    secondFunction, maxSize);
 }
 
-std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
+std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
 JoinEdgeFunction::joinWith(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction) {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction) {
   if (otherFunction.get() == this)
     return shared_from_this();
   if (AllBot::isBot(otherFunction)) {
@@ -89,7 +89,7 @@ JoinEdgeFunction::joinWith(
 }
 
 bool JoinEdgeFunction::equal_to(
-    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> other) const {
+    std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other) const {
 
   if (this == other.get())
     return true;
@@ -108,11 +108,11 @@ void JoinEdgeFunction::print(std::ostream &OS, bool isForDebug) const {
   scnd->print(OS);
   OS << "]";
 }
-const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
+const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
 JoinEdgeFunction::getFirst() const {
   return frst;
 }
-const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
+const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
 JoinEdgeFunction::getSecond() const {
   return scnd;
 }

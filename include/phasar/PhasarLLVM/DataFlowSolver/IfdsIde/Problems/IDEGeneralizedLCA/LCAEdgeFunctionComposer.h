@@ -17,24 +17,24 @@
 namespace psr {
 
 class LCAEdgeFunctionComposer
-    : public EdgeFunctionComposer<IDEGeneralizedLCA::v_t> {
+    : public EdgeFunctionComposer<IDEGeneralizedLCA::l_t> {
   size_t maxSize;
 
 public:
   LCAEdgeFunctionComposer(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> F,
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> G, size_t maxSize);
-  // IDEGeneralizedLCA::v_t
-  // computeTarget(IDEGeneralizedLCA::v_t source) override;
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> secondFunction)
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> F,
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> G, size_t maxSize);
+  // IDEGeneralizedLCA::l_t
+  // computeTarget(IDEGeneralizedLCA::l_t source) override;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
       override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> otherFunction)
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
       override;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &getFirst() const;
-  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>> &
+  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &getFirst() const;
+  const std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> &
   getSecond() const;
 };
 

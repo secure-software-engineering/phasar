@@ -17,32 +17,29 @@
 namespace psr {
 
 class IdentityEdgeFunction
-    : public EdgeFunction<IDEGeneralizedLCA::v_t>,
+    : public EdgeFunction<IDEGeneralizedLCA::l_t>,
       public std::enable_shared_from_this<IdentityEdgeFunction> {
   size_t maxSize;
 
 public:
   IdentityEdgeFunction(size_t maxSize);
-  IDEGeneralizedLCA::v_t
-  computeTarget(IDEGeneralizedLCA::v_t source) override;
+  IDEGeneralizedLCA::l_t computeTarget(IDEGeneralizedLCA::l_t source) override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  composeWith(
-      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-          secondFunction) override;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> composeWith(
+      std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> secondFunction)
+      override;
 
-  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-               otherFunction) override;
+  std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>>
+  joinWith(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> otherFunction)
+      override;
 
-  bool
-  equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::v_t>>
-               other) const override;
+  bool equal_to(std::shared_ptr<EdgeFunction<IDEGeneralizedLCA::l_t>> other)
+      const override;
   void print(std::ostream &OS, bool isForDebug = false) const override;
   static std::shared_ptr<IdentityEdgeFunction> getInstance(size_t maxSize);
 };
 
-// typedef EdgeIdentity<IDEGeneralizedLCA::v_t>
+// typedef EdgeIdentity<IDEGeneralizedLCA::l_t>
 //   IdentityEdgeFunction;
 
 } // namespace psr
