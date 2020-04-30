@@ -8,31 +8,33 @@
 
 namespace psr {
 
-std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue fact) {
-  bool isAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, fact);
-  if (isAutoIdentity)
-    return {fact};
+std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue Fact) {
+  bool IsAutoIdentity = DataFlowUtils::isAutoIdentity(currentInst, Fact);
+  if (IsAutoIdentity) {
+    return {Fact};
+  }
 
-  bool isBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(fact.getValue()) ||
-                              llvm::isa<llvm::SwitchInst>(fact.getValue());
+  bool IsBranchOrSwitchFact = llvm::isa<llvm::BranchInst>(Fact.getValue()) ||
+                              llvm::isa<llvm::SwitchInst>(Fact.getValue());
 
-  if (isBranchOrSwitchFact) {
-    bool removeTaintedBlockInst =
-        DataFlowUtils::removeTaintedBlockInst(fact, currentInst);
-    if (removeTaintedBlockInst)
+  if (IsBranchOrSwitchFact) {
+    bool RemoveTaintedBlockInst =
+        DataFlowUtils::removeTaintedBlockInst(Fact, currentInst);
+    if (RemoveTaintedBlockInst) {
       return {};
+    }
 
     // traceStats.add(currentInst);
 
-    bool isAutoGEN = DataFlowUtils::isAutoGENInTaintedBlock(currentInst);
-    if (isAutoGEN) {
+    bool IsAutoGEN = DataFlowUtils::isAutoGENInTaintedBlock(currentInst);
+    if (IsAutoGEN) {
       traceStats.add(currentInst);
 
-      return {fact, ExtendedValue(currentInst)};
+      return {Fact, ExtendedValue(currentInst)};
     }
 
-    std::set<ExtendedValue> targetFacts;
-    targetFacts.insert(fact);
+    std::set<ExtendedValue> TargetFacts;
+    TargetFacts.insert(Fact);
 
     /*
      * We are only intercepting the branch fact here. All other facts will still
@@ -51,36 +53,37 @@ std::set<ExtendedValue> FlowFunctionBase::computeTargets(ExtendedValue fact) {
      * then all subparts of it are considered tainted. This should be the only
      * spot where such memory locations are generated.
      */
-    if (const auto storeInst = llvm::dyn_cast<llvm::StoreInst>(currentInst)) {
-      const auto dstMemLocationSeq =
+    if (const auto *const StoreInst =
+            llvm::dyn_cast<llvm::StoreInst>(currentInst)) {
+      const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
-              storeInst->getPointerOperand());
+              StoreInst->getPointerOperand());
 
-      ExtendedValue ev(currentInst);
-      ev.setMemLocationSeq(dstMemLocationSeq);
+      ExtendedValue EV(currentInst);
+      EV.setMemLocationSeq(DstMemLocationSeq);
 
-      targetFacts.insert(ev);
-      traceStats.add(storeInst, dstMemLocationSeq);
-    } else if (const auto memTransferInst =
+      TargetFacts.insert(EV);
+      traceStats.add(StoreInst, DstMemLocationSeq);
+    } else if (const auto *const MemTransferInst =
                    llvm::dyn_cast<llvm::MemTransferInst>(currentInst)) {
-      const auto dstMemLocationSeq =
+      const auto DstMemLocationSeq =
           DataFlowUtils::getMemoryLocationSeqFromMatr(
-              memTransferInst->getRawDest());
+              MemTransferInst->getRawDest());
 
-      ExtendedValue ev(currentInst);
-      ev.setMemLocationSeq(dstMemLocationSeq);
+      ExtendedValue EV(currentInst);
+      EV.setMemLocationSeq(DstMemLocationSeq);
 
-      targetFacts.insert(ev);
-      traceStats.add(memTransferInst, dstMemLocationSeq);
-    } else if (const auto retInst =
+      TargetFacts.insert(EV);
+      traceStats.add(MemTransferInst, DstMemLocationSeq);
+    } else if (const auto *const RetInst =
                    llvm::dyn_cast<llvm::ReturnInst>(currentInst)) {
-      traceStats.add(retInst);
+      traceStats.add(RetInst);
     }
 
-    return targetFacts;
+    return TargetFacts;
   }
 
-  return computeTargetsExt(fact);
+  return computeTargetsExt(Fact);
 }
 
 } // namespace psr

@@ -145,12 +145,14 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
 //   // compareResults(Results, GroundTruth);
 // }
 
-// TEST_F(IDEVarTabulationProblemTest, HandleLoops_01) {
-//   std::set<LCAVarCompactResults_t> GroundTruth;
-//   // FIXME: loops do not work, yet. It's probably better if we model
-//   // the constraints (z3::expr) as edge functions as well.
-//   doAnalysisAndCompareResults("loop_01_c.ll", GroundTruth, true);
-// }
+TEST_F(IDEVarTabulationProblemTest, HandleLoops_01) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  // GroundTruth.emplace("main", 6, "x",
+  // std::set<std::pair<std::string, int64_t>>{{"true", 150}});
+  // FIXME: loops do not work, yet. It's probably better if we model
+  // the constraints (z3::expr) as edge functions as well.
+  doAnalysisAndCompareResults("loop_01_c.ll", GroundTruth, true);
+}
 
 TEST_F(IDEVarTabulationProblemTest, HandleCalls_01) {
   std::set<LCAVarCompactResults_t> GroundTruth;

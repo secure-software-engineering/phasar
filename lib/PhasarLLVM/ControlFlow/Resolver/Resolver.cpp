@@ -33,17 +33,16 @@ namespace psr {
 int getVFTIndex(llvm::ImmutableCallSite CS) {
   // deal with a virtual member function
   // retrieve the vtable entry that is called
-  const llvm::LoadInst *Load =
-      llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
+  const auto *Load = llvm::dyn_cast<llvm::LoadInst>(CS.getCalledValue());
   if (Load == nullptr) {
     return -1;
   }
-  const llvm::GetElementPtrInst *GEP =
+  const auto *GEP =
       llvm::dyn_cast<llvm::GetElementPtrInst>(Load->getPointerOperand());
   if (GEP == nullptr) {
     return -2;
   }
-  if (auto CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
+  if (auto *CI = llvm::dyn_cast<llvm::ConstantInt>(GEP->getOperand(1))) {
     return CI->getZExtValue();
   }
   return -3;
@@ -63,7 +62,7 @@ const llvm::StructType *getReceiverType(llvm::ImmutableCallSite CS) {
 }
 
 std::string getReceiverTypeName(llvm::ImmutableCallSite CS) {
-  const auto RT = getReceiverType(CS);
+  const auto *const RT = getReceiverType(CS);
   if (RT) {
     return RT->getName().str();
   }
@@ -79,7 +78,7 @@ const llvm::Function *
 Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
                                     llvm::ImmutableCallSite CS) {
   if (TH->hasVFTable(T)) {
-    auto Target = TH->getVFTable(T)->getFunction(Idx);
+    const auto *Target = TH->getVFTable(T)->getFunction(Idx);
     if (Target->getName() != "__cxa_pure_virtual") {
       return Target;
     }
@@ -87,21 +86,20 @@ Resolver::getNonPureVirtualVFTEntry(const llvm::StructType *T, unsigned Idx,
   return nullptr;
 }
 
-void Resolver::preCall(const llvm::Instruction *inst) {}
+void Resolver::preCall(const llvm::Instruction *Inst) {}
 
 void Resolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
-    std::set<const llvm::Function *> &possible_targets) {}
+    std::set<const llvm::Function *> &PossibleTargets) {}
 
-void Resolver::postCall(const llvm::Instruction *inst) {}
+void Resolver::postCall(const llvm::Instruction *Inst) {}
 
 std::set<const llvm::Function *>
 Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   // we may wish to optimise this function
   // naive implementation that considers every function whose signature
   // matches the call-site's signature as a callee target
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call function pointer: "
                 << llvmIRToString(CS.getInstruction()));
   std::set<const llvm::Function *> CalleeTargets;
@@ -111,7 +109,7 @@ Resolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
       CS.getCalledValue()->getType()->isPointerTy()) {
     if (const llvm::FunctionType *FTy = llvm::dyn_cast<llvm::FunctionType>(
             CS.getCalledValue()->getType()->getPointerElementType())) {
-      for (auto F : IRDB.getAllFunctions()) {
+      for (const auto *F : IRDB.getAllFunctions()) {
         if (matchesSignature(F, FTy)) {
           CalleeTargets.insert(F);
         }

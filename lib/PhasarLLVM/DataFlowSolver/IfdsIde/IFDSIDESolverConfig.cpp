@@ -16,21 +16,21 @@ using namespace psr;
 
 namespace psr {
 
-IFDSIDESolverConfig::IFDSIDESolverConfig(bool followReturnsPastSeeds,
-                                         bool autoAddZero, bool computeValues,
-                                         bool recordEdges, bool emitESG,
-                                         bool computePersistedSummaries)
-    : followReturnsPastSeeds(followReturnsPastSeeds), autoAddZero(autoAddZero),
-      computeValues(computeValues), recordEdges(recordEdges), emitESG(emitESG),
-      computePersistedSummaries(computePersistedSummaries) {}
+IFDSIDESolverConfig::IFDSIDESolverConfig(bool FollowReturnsPastSeeds,
+                                         bool AutoAddZero, bool ComputeValues,
+                                         bool RecordEdges, bool EmitESG,
+                                         bool ComputePersistedSummaries)
+    : followReturnsPastSeeds(FollowReturnsPastSeeds), autoAddZero(AutoAddZero),
+      computeValues(ComputeValues), recordEdges(RecordEdges), emitESG(EmitESG),
+      computePersistedSummaries(ComputePersistedSummaries) {}
 
-ostream &operator<<(ostream &os, const IFDSIDESolverConfig &sc) {
-  return os << "IFDSIDESolverConfig:\n"
-            << "\tfollowReturnsPastSeeds: " << sc.followReturnsPastSeeds << "\n"
-            << "\tautoAddZero: " << sc.autoAddZero << "\n"
-            << "\tcomputeValues: " << sc.computeValues << "\n"
-            << "\trecordEdges: " << sc.recordEdges << "\n"
-            << "\tcomputePersistedSummaries: " << sc.computePersistedSummaries;
+ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
+  return OS << "IFDSIDESolverConfig:\n"
+            << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds << "\n"
+            << "\tautoAddZero: " << SC.autoAddZero << "\n"
+            << "\tcomputeValues: " << SC.computeValues << "\n"
+            << "\trecordEdges: " << SC.recordEdges << "\n"
+            << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries;
 }
 
 } // namespace psr

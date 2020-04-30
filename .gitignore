@@ -3,8 +3,9 @@
 # bin/ directory
 bin/*
 
-# build directory for cmake
+# build directories for cmake
 build/
+build_*/
 
 # LLVM project
 llvm-project/*

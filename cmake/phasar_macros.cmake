@@ -4,47 +4,38 @@ function(add_phasar_unittest test_name)
   add_executable(${test}
     ${test_name}
   )
-  # Fix boost_thread dependency for MacOS
-  if(APPLE)
-    set(BOOST_THREAD boost_thread-mt)
+
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
   else()
-    set(BOOST_THREAD boost_thread)
-  endif()
-  # Workaround: Remove Plugins for MacOS for now
-  if(APPLE)
-    set(PHASAR_PLUGINS_LIB)
-  else()
-    set(PHASAR_PLUGINS_LIB phasar_plugins)
+    llvm_config(${test} ${LLVM_LINK_COMPONENTS})
   endif()
 
   target_link_libraries(${test}
+    LINK_PUBLIC
     phasar_config
     phasar_controller
+    phasar_controlflow
+    phasar_phasarllvm_utils
+    phasar_analysis_strategy
+    phasar_ifdside
+    phasar_utils
+    phasar_mono
     phasar_db
     phasar_experimental
-    phasar_clang
-    phasar_controlflow
-    phasar_ifdside
-    phasar_mono
+    # phasar_clang
     phasar_passes
-    ${PHASAR_PLUGINS_LIB}
+    # FIXME: cmake variable ${PHASAR_PLUGINS_LIB} is empty although it should contain phasar_plugins 
+    phasar_plugins
+    # ${PHASAR_PLUGINS_LIB}
     phasar_pointer
     phasar_typehierarchy
-    phasar_phasarllvm_utils
-    phasar_utils
-    boost_program_options
-    boost_filesystem
-    boost_graph
-    boost_system
-    boost_log
-    ${BOOST_THREAD}
     ${SQLITE3_LIBRARY}
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    ${CLANG_LIBRARIES}
-    ${llvm_libs}
     curl
+    z3
     gtest
   )
 
@@ -183,7 +174,11 @@ macro(add_phasar_library name)
   endif(PHASAR_LINK_LIBS)
 
   if( LLVM_LINK_COMPONENTS )
-    llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    if( USE_LLVM_FAT_LIB )
+      llvm_config(${name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+    else()
+      llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    endif()
   endif( LLVM_LINK_COMPONENTS )
 
   # z3 links

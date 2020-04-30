@@ -14,41 +14,44 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MapTaintedValuesToCaller::computeTargets(ExtendedValue fact) {
-  std::set<ExtendedValue> targetGlobalFacts;
-  std::set<ExtendedValue> targetRetFacts;
+MapTaintedValuesToCaller::computeTargets(ExtendedValue Fact) {
+  std::set<ExtendedValue> TargetGlobalFacts;
+  std::set<ExtendedValue> TargetRetFacts;
 
-  bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact));
-  if (isGlobalMemLocationFact)
-    targetGlobalFacts.insert(fact);
+  bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
+  if (IsGlobalMemLocationFact) {
+    TargetGlobalFacts.insert(Fact);
+  }
 
-  const auto retValMemLocationMatr = retInst->getReturnValue();
-  if (!retValMemLocationMatr)
-    return targetGlobalFacts;
+  auto *const RetValMemLocationMatr = retInst->getReturnValue();
+  if (!RetValMemLocationMatr) {
+    return TargetGlobalFacts;
+  }
 
-  auto retValMemLocationSeq =
-      DataFlowUtils::getMemoryLocationSeqFromMatr(retValMemLocationMatr);
+  auto RetValMemLocationSeq =
+      DataFlowUtils::getMemoryLocationSeqFromMatr(RetValMemLocationMatr);
 
-  bool isRetValMemLocation = !retValMemLocationSeq.empty();
-  if (isRetValMemLocation) {
-    const auto factMemLocationSeq =
-        DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+  bool IsRetValMemLocation = !RetValMemLocationSeq.empty();
+  if (IsRetValMemLocation) {
+    const auto FactMemLocationSeq =
+        DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
 
-    bool isArrayDecay = DataFlowUtils::isArrayDecay(retValMemLocationMatr);
-    if (isArrayDecay)
-      retValMemLocationSeq.pop_back();
+    bool IsArrayDecay = DataFlowUtils::isArrayDecay(RetValMemLocationMatr);
+    if (IsArrayDecay) {
+      RetValMemLocationSeq.pop_back();
+    }
 
-    bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(
-        retValMemLocationSeq, factMemLocationSeq);
-    if (genFact) {
-      const auto relocatableMemLocationSeq =
-          DataFlowUtils::getRelocatableMemoryLocationSeq(factMemLocationSeq,
-                                                         retValMemLocationSeq);
-      std::vector<const llvm::Value *> patchablePart{callInst};
-      const auto patchableMemLocationSeq =
-          DataFlowUtils::joinMemoryLocationSeqs(patchablePart,
-                                                relocatableMemLocationSeq);
+    bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(
+        RetValMemLocationSeq, FactMemLocationSeq);
+    if (GenFact) {
+      const auto RelocatableMemLocationSeq =
+          DataFlowUtils::getRelocatableMemoryLocationSeq(FactMemLocationSeq,
+                                                         RetValMemLocationSeq);
+      std::vector<const llvm::Value *> PatchablePart{callInst};
+      const auto PatchableMemLocationSeq =
+          DataFlowUtils::joinMemoryLocationSeqs(PatchablePart,
+                                                RelocatableMemLocationSeq);
 
       /*
        * We need to set this to call inst because we can have the case where we
@@ -56,45 +59,46 @@ MapTaintedValuesToCaller::computeTargets(ExtendedValue fact) {
        * a memory address). We then land in the else branch below and need to
        * find the call instance (see test case 230-function-ptr-2).
        */
-      ExtendedValue ev(callInst);
-      ev.setMemLocationSeq(patchableMemLocationSeq);
+      ExtendedValue EV(callInst);
+      EV.setMemLocationSeq(PatchableMemLocationSeq);
 
-      targetRetFacts.insert(ev);
+      TargetRetFacts.insert(EV);
 
       LOG_DEBUG("Added patchable memory location (caller <- callee)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
-      DataFlowUtils::dumpFact(ev);
+      DataFlowUtils::dumpFact(EV);
     }
   } else {
-    bool genFact = DataFlowUtils::isValueTainted(retValMemLocationMatr, fact);
-    if (genFact) {
-      std::vector<const llvm::Value *> patchablePart{callInst};
+    bool GenFact = DataFlowUtils::isValueTainted(RetValMemLocationMatr, Fact);
+    if (GenFact) {
+      std::vector<const llvm::Value *> PatchablePart{callInst};
 
-      ExtendedValue ev(callInst);
-      ev.setMemLocationSeq(patchablePart);
+      ExtendedValue EV(callInst);
+      EV.setMemLocationSeq(PatchablePart);
 
-      targetRetFacts.insert(ev);
+      TargetRetFacts.insert(EV);
 
       LOG_DEBUG("Added patchable memory location (caller <- callee)");
       LOG_DEBUG("Source");
-      DataFlowUtils::dumpFact(fact);
+      DataFlowUtils::dumpFact(Fact);
       LOG_DEBUG("Destination");
-      DataFlowUtils::dumpFact(ev);
+      DataFlowUtils::dumpFact(EV);
     }
   }
 
-  bool addLineNumbers = !targetRetFacts.empty();
-  if (addLineNumbers)
+  bool AddLineNumbers = !TargetRetFacts.empty();
+  if (AddLineNumbers) {
     traceStats.add(callInst);
+  }
 
-  std::set<ExtendedValue> targetFacts;
-  std::set_union(targetGlobalFacts.begin(), targetGlobalFacts.end(),
-                 targetRetFacts.begin(), targetRetFacts.end(),
-                 std::inserter(targetFacts, targetFacts.begin()));
+  std::set<ExtendedValue> TargetFacts;
+  std::set_union(TargetGlobalFacts.begin(), TargetGlobalFacts.end(),
+                 TargetRetFacts.begin(), TargetRetFacts.end(),
+                 std::inserter(TargetFacts, TargetFacts.begin()));
 
-  return targetFacts;
+  return TargetFacts;
 }
 
 } // namespace psr

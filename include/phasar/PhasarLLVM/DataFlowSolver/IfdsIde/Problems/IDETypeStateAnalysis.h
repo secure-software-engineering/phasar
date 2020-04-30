@@ -166,7 +166,7 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>> allTopFunction() override;
 
-  void printNode(std::ostream &os, n_t d) const override;
+  void printNode(std::ostream &os, n_t N) const override;
 
   void printDataFlowFact(std::ostream &os, d_t d) const override;
 

@@ -41,12 +41,13 @@ class ValueAnnotationPass
 private:
   friend llvm::AnalysisInfoMixin<ValueAnnotationPass>;
   static llvm::AnalysisKey Key;
-  static size_t unique_value_id;
+  static size_t UniqueValueId;
 
 public:
   explicit ValueAnnotationPass();
 
-  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &AM);
+  static llvm::PreservedAnalyses run(llvm::Module &M,
+                                     llvm::ModuleAnalysisManager &AM);
 
   /**
    * @brief Resets the global ID - only used for unit testing!

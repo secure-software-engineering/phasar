@@ -193,26 +193,27 @@ public:
 
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
     std::cout << "VarEdgeFunction::equal_to\n";
-    if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
-      if (UserEdgeFns.size() != VEF->UserEdgeFns.size()) {
-        return false;
-      }
-      for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
-        bool FoundEntry = false;
-        for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
-          if (z3::eq(Constraint, InConstraint)) {
-            if (UserEdgeFn->equal_to(InUserEdgeFn)) {
-              FoundEntry = true;
-              break;
-            }
-          }
-        }
-        if (!FoundEntry) {
-          return false;
-        }
-      }
-    }
-    return false;
+    // if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
+    //   if (UserEdgeFns.size() != VEF->UserEdgeFns.size()) {
+    //     return false;
+    //   }
+    //   for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
+    //     bool FoundEntry = false;
+    //     for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
+    //       if (z3::eq(Constraint, InConstraint)) {
+    //         if (UserEdgeFn->equal_to(InUserEdgeFn)) {
+    //           FoundEntry = true;
+    //           break;
+    //         }
+    //       }
+    //     }
+    //     if (!FoundEntry) {
+    //       return false;
+    //     }
+    //   }
+    // }
+    // return false;
+    return true;
   }
 };
 

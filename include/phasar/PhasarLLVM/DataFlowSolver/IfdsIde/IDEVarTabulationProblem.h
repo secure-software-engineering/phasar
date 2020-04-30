@@ -22,6 +22,7 @@
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/FlowFunctions/Identity.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/IDETabulationProblem.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/VarEdgeFunctions.h"
+#include "phasar/Utils/LLVMShorthands.h"
 
 namespace psr {
 
@@ -79,10 +80,10 @@ public:
     // //  - %0 = load i32, i32* @_Djkifd_CONFIG_A_defined, align 4
     // //  - %tobool = icmp ne i32 %0, 0
     // //  - br i1 %tobool, label %if.then, label %if.else
-    // if (VarICF.isPPBranchTarget(curr, succ)) {
-    //   std::cout << "Found PP branch\n";
-    //   //   return Identity<D>::getInstance();
-    // }
+    if (VarICF.isPPBranchTarget(curr, succ)) {
+      std::cout << "Found PP branch: " << llvmIRToString(curr) << '\n';
+      //   //   return Identity<D>::getInstance();
+    }
     // otherwise just apply the user edge functions
     return IDEProblem.getNormalFlowFunction(curr, succ);
   }
@@ -118,7 +119,7 @@ public:
   getNormalEdgeFunction(N curr, D currNode, N succ, D succNode) override {
     auto UserEF =
         IDEProblem.getNormalEdgeFunction(curr, currNode, succ, succNode);
-    // curr is a special preprocessor #ifdef instruction, we need to add a
+    // if curr is a special preprocessor #ifdef instruction, we need to add a
     // preprocessor constraint
     if (VarICF.isPPBranchTarget(curr, succ)) {
       std::cout << "PP-Edge constaint: "
@@ -230,10 +231,10 @@ public:
 
 template <typename Problem>
 IDEVarTabulationProblem(Problem &)
-    ->IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
-                              typename Problem::f_t, typename Problem::t_t,
-                              typename Problem::v_t, typename Problem::l_t,
-                              typename Problem::i_t>;
+    -> IDEVarTabulationProblem<typename Problem::n_t, typename Problem::d_t,
+                               typename Problem::f_t, typename Problem::t_t,
+                               typename Problem::v_t, typename Problem::l_t,
+                               typename Problem::i_t>;
 
 template <typename Problem>
 using IDEVariabilityTabulationProblem_P =

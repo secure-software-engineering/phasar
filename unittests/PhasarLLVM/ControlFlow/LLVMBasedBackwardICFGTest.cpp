@@ -10,7 +10,7 @@ using namespace psr;
 
 class LLVMBasedBackwardICFGTest : public ::testing::Test {
 protected:
-  const std::string pathToLLFiles =
+  const std::string PathToLlFiles =
       PhasarConfig::getPhasarConfig().PhasarDirectory() +
       "build/test/llvm_test_code/";
 };
@@ -20,7 +20,7 @@ TEST_F(LLVMBasedBackwardICFGTest, test1) {
   // ASSERT_FALSE(true);
 }
 
-int main(int argc, char **argv) {
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int Argc, char **Argv) {
+  ::testing::InitGoogleTest(&Argc, Argv);
   return RUN_ALL_TESTS();
 }
