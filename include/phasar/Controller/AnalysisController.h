@@ -10,7 +10,7 @@
 #ifndef PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
 #define PHASAR_CONTROLLER_ANALYSIS_CONTROLLER_H_
 
-#include <iosfwd>
+#include <iostream>
 #include <set>
 #include <string>
 #include <vector>
@@ -100,6 +100,9 @@ private:
       } else {
         WPA.dumpResults();
       }
+    }
+    if (EmitterOptions & AnalysisControllerEmitterOptions::EmitESGAsDot) {
+      std::cout << "Front-end support for 'EmitESGAsDot' to be implemented\n";
     }
   }
 

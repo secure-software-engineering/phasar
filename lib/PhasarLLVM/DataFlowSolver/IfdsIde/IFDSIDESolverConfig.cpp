@@ -17,48 +17,48 @@ using namespace psr;
 namespace psr {
 IFDSIDESolverConfig::IFDSIDESolverConfig() {
   setFlag(
-      options, SolverConfigOptions::EmitESG,
+      Options, SolverConfigOptions::EmitESG,
       PhasarConfig::getPhasarConfig().VariablesMap().count("emit-esg-as-dot"));
 }
-IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions options)
-    : options(options) {}
+IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions Options)
+    : Options(Options) {}
 
 bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
-  return hasFlag(options, SolverConfigOptions::FollowReturnsPastSeeds);
+  return hasFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds);
 }
 bool IFDSIDESolverConfig::autoAddZero() const {
-  return hasFlag(options, SolverConfigOptions::AutoAddZero);
+  return hasFlag(Options, SolverConfigOptions::AutoAddZero);
 }
 bool IFDSIDESolverConfig::computeValues() const {
-  return hasFlag(options, SolverConfigOptions::ComputeValues);
+  return hasFlag(Options, SolverConfigOptions::ComputeValues);
 }
 bool IFDSIDESolverConfig::recordEdges() const {
-  return hasFlag(options, SolverConfigOptions::RecordEdges);
+  return hasFlag(Options, SolverConfigOptions::RecordEdges);
 }
 bool IFDSIDESolverConfig::emitESG() const {
-  return hasFlag(options, SolverConfigOptions::EmitESG);
+  return hasFlag(Options, SolverConfigOptions::EmitESG);
 }
 bool IFDSIDESolverConfig::computePersistedSummaries() const {
-  return hasFlag(options, SolverConfigOptions::ComputePersistedSummaries);
+  return hasFlag(Options, SolverConfigOptions::ComputePersistedSummaries);
 }
 
-void IFDSIDESolverConfig::setFollowReturnsPastSeeds(bool set) {
-  setFlag(options, SolverConfigOptions::FollowReturnsPastSeeds, set);
+void IFDSIDESolverConfig::setFollowReturnsPastSeeds(bool Set) {
+  setFlag(Options, SolverConfigOptions::FollowReturnsPastSeeds, Set);
 }
-void IFDSIDESolverConfig::setAutoAddZero(bool set) {
-  setFlag(options, SolverConfigOptions::AutoAddZero, set);
+void IFDSIDESolverConfig::setAutoAddZero(bool Set) {
+  setFlag(Options, SolverConfigOptions::AutoAddZero, Set);
 }
-void IFDSIDESolverConfig::setComputeValues(bool set) {
-  setFlag(options, SolverConfigOptions::ComputeValues, set);
+void IFDSIDESolverConfig::setComputeValues(bool Set) {
+  setFlag(Options, SolverConfigOptions::ComputeValues, Set);
 }
-void IFDSIDESolverConfig::setRecordEdges(bool set) {
-  setFlag(options, SolverConfigOptions::RecordEdges, set);
+void IFDSIDESolverConfig::setRecordEdges(bool Set) {
+  setFlag(Options, SolverConfigOptions::RecordEdges, Set);
 }
-void IFDSIDESolverConfig::setEmitESG(bool set) {
-  setFlag(options, SolverConfigOptions::EmitESG, set);
+void IFDSIDESolverConfig::setEmitESG(bool Set) {
+  setFlag(Options, SolverConfigOptions::EmitESG, Set);
 }
-void IFDSIDESolverConfig::setComputePersistedSummaries(bool set) {
-  setFlag(options, SolverConfigOptions::ComputePersistedSummaries, set);
+void IFDSIDESolverConfig::setComputePersistedSummaries(bool Set) {
+  setFlag(Options, SolverConfigOptions::ComputePersistedSummaries, Set);
 }
 
 ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
