@@ -19,6 +19,7 @@
 #include "llvm/Support/ErrorHandling.h"
 
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/EdgeFunction.h"
+#include "phasar/Utils/Logger.h"
 
 namespace psr {
 
@@ -40,37 +41,6 @@ template <typename L> bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
   }
   return FoundKey;
 }
-
-// class ConstraintEdgeFunction
-//     : public EdgeFunction<z3::expr>,
-//       public std::enable_shared_from_this<ConstraintEdgeFunction> {
-// private:
-//   z3::expr Constraint;
-
-// public:
-//   ConstraintEdgeFunction(z3::expr Constraint) : Constraint(Constraint) {}
-
-//   ~ConstraintEdgeFunction() override = default;
-
-//   z3::expr computeTarget(z3::expr Source) override { return Source; }
-
-//   std::shared_ptr<EdgeFunction<z3::expr>>
-//   composeWith(std::shared_ptr<EdgeFunction<z3::expr>> secondFunction) override {
-//     std::cout << "ConstraintEdgeFunction::composeWith\n";
-//     llvm::report_fatal_error("found unexpected edge function");
-//   }
-
-//   std::shared_ptr<EdgeFunction<z3::expr>>
-//   joinWith(std::shared_ptr<EdgeFunction<z3::expr>> otherFunction) override {
-//     std::cout << "ConstraintEdgeFunction::joinWith\n";
-//     llvm::report_fatal_error("found unexpected edge function");
-//   }
-
-//   bool equal_to(std::shared_ptr<EdgeFunction<z3::expr>> other) const override {
-//     std::cout << "ConstraintEdgeFunction::equal_to\n";
-//     return false;
-//   }
-// };
 
 template <typename T>
 bool operator==(
@@ -112,48 +82,51 @@ public:
   VarEdgeFunction(std::shared_ptr<EdgeFunction<user_l_t>> UserEdgeFn,
                   z3::expr Constraint)
       : UserEdgeFns({std::make_pair(Constraint, UserEdgeFn)}) {
-    std::cout << "VAREdgeFunction: UserEdgeFn, Constraint: "
-              << Constraint.to_string() << '\n';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "construct VAREdgeFunction with '"
+                  << Constraint.to_string() << "'");
   }
 
   VarEdgeFunction(
       std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
           UserEdgeFns)
       : UserEdgeFns(UserEdgeFns) {
-    std::cout << "VAREdgeFunction: UserEdgeFns\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "construct VAREdgeFunction with existing UserEdgeFns");
   }
 
   ~VarEdgeFunction() override = default;
 
   l_t computeTarget(l_t Source) override {
-    std::cout << "IN --> Source.size(): " << Source.size()
-              << ", UserEdgeFns.size(): " << UserEdgeFns.size() << '\n';
-    // for (auto &[C, V] : Source) {
-    //   std::cout << "<" << C.to_string() << " , " << V << ">, ";
-    // }
-    // std::cout << '\n';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "computeTarget: Source.size(): " << Source.size()
+                  << ", UserEdgeFns.size(): " << UserEdgeFns.size());
     auto ResSource = Source;
     for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
-      std::cout << "ContainsZ3Expr( " << Constraint.to_string() << " ) --> "
-                << ContainsZ3Expr(Source, Constraint) << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "contains z3 expression '" << Constraint.to_string()
+                    << "' --> " << ContainsZ3Expr(Source, Constraint));
       if (ContainsZ3Expr(Source, Constraint)) {
         ResSource[Constraint] = UserEdgeFn->computeTarget(Source[Constraint]);
       } else {
-        ResSource[Constraint] = UserEdgeFn->computeTarget(0);
+        ResSource[Constraint] = UserEdgeFn->computeTarget(user_l_t{});
       }
     }
-    std::cout << "OUT --> ResSource.size(): " << ResSource.size() << '\n';
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "ResSource.size(): " << ResSource.size());
     return ResSource;
   }
 
   std::shared_ptr<EdgeFunction<l_t>>
   composeWith(std::shared_ptr<EdgeFunction<l_t>> secondFunction) override {
-    std::cout << "VarEdgeFunction::composeWith\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "VarEdgeFunction::composeWith");
     if (auto VEF =
             dynamic_cast<VarEdgeFunction<user_l_t> *>(secondFunction.get())) {
-      std::cout << "UserEdgeFns.size(): " << UserEdgeFns.size()
-                << " --- VEF->UserEdgeFns.size(): " << VEF->UserEdgeFns.size()
-                << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "UserEdgeFns.size(): " << UserEdgeFns.size()
+                    << " --- VEF->UserEdgeFns.size(): "
+                    << VEF->UserEdgeFns.size());
       // We need to compose the constraints as well as the user edge functions.
       // One of the maps will contain one entry only that needs to be composed
       // with the other map (which may contains multiple entries).
@@ -161,8 +134,10 @@ public:
           (VEF->UserEdgeFns.size() == 1) ? VEF->UserEdgeFns : UserEdgeFns;
       auto &MulEntryMap =
           (VEF->UserEdgeFns.size() != 1) ? VEF->UserEdgeFns : UserEdgeFns;
-      std::cout << "OneEntryMap.size(): " << OneEntryMap.size()
-                << " --- MulEntryMap.size(): " << MulEntryMap.size() << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "OneEntryMap.size(): " << OneEntryMap.size()
+                    << " --- MulEntryMap.size(): " << MulEntryMap.size());
+      // access first (and only) element
       auto UserEdgeFn = *OneEntryMap.begin();
       std::map<z3::expr, std::shared_ptr<EdgeFunction<user_l_t>>, Z3Less>
           ResultUserEdgeFns;
@@ -179,7 +154,8 @@ public:
 
   std::shared_ptr<EdgeFunction<l_t>>
   joinWith(std::shared_ptr<EdgeFunction<l_t>> otherFunction) override {
-    std::cout << "VarEdgeFunction::joinWith\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "VarEdgeFunction::joinWith");
     if (auto VEF =
             dynamic_cast<VarEdgeFunction<user_l_t> *>(otherFunction.get())) {
       // We need to call user-joinWith for pair-wise equal constraints.
@@ -193,9 +169,10 @@ public:
       for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
         bool FoundConstraint = false;
         for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
-          std::cout << "z3::eq " << Constraint.to_string() << " <--> "
-                    << InConstraint.to_string() << " --> "
-                    << z3::eq(Constraint, InConstraint) << '\n';
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                        << "z3::eq " << Constraint.to_string() << " <--> "
+                        << InConstraint.to_string() << " --> "
+                        << z3::eq(Constraint, InConstraint));
           if (z3::eq(Constraint, InConstraint)) {
             FoundConstraint = true;
             ResultUserEdgeFns[InConstraint] =
@@ -208,16 +185,19 @@ public:
       }
       // unique constraints in VEF->UserEdgeFns are already handled by
       // ResultUserEdgeFns's initialization
-      std::cout << "ResultUserEdgeFns.size() --> " << ResultUserEdgeFns.size()
-                << '\n';
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                    << "ResultUserEdgeFns.size() --> "
+                    << ResultUserEdgeFns.size());
       return std::make_shared<VarEdgeFunction<user_l_t>>(ResultUserEdgeFns);
     }
     llvm::report_fatal_error("found unexpected edge function");
   }
 
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
-    std::cout << "VarEdgeFunction::equal_to\n";
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                  << "VarEdgeFunction::equal_to");
     if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
+      // calling overloaded operator==
       return UserEdgeFns == VEF->UserEdgeFns;
     }
     return false;

@@ -190,8 +190,6 @@ TEST_F(IDEVarTabulationProblemTest, HandleCalls_01) {
 
 TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
   std::set<LCAVarCompactResults_t> GroundTruth;
-  // FIXME: recursion does not work, yet. It's probably better if we model
-  // the constraints (z3::expr) as edge functions as well.
   GroundTruth.emplace(
       "main", 13, "x",
       std::set<std::pair<std::string, int64_t>>{
