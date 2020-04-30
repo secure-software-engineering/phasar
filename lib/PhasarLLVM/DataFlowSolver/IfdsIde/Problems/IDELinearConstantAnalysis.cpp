@@ -38,7 +38,6 @@
 #include "phasar/Utils/LLVMIRToSrc.h"
 #include "phasar/Utils/LLVMShorthands.h"
 #include "phasar/Utils/Logger.h"
-#include <utility>
 
 using namespace std;
 using namespace psr;

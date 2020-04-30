@@ -7,7 +7,9 @@
  *     Fabian Schiebel, Philipp Schubert and others
  *****************************************************************************/
 
+#include <limits>
 #include <tuple>
+#include <utility>
 
 #include "gtest/gtest.h"
 
@@ -42,12 +44,19 @@ protected:
 
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
+  const int64_t TOP = std::numeric_limits<int64_t>::min();
+
+  const int64_t BOTTOM = std::numeric_limits<int64_t>::max();
+
   // IDELinearConstantAnalysis::lca_restults_t
   void
   doAnalysisAndCompareResults(const std::string &llvmFilePath,
                               std::set<LCAVarCompactResults_t> &GroundTruth,
                               bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath}, IRDBOptions::WPA);
+    if (printDump) {
+      IRDB->emitPreprocessedIR(std::cout, false);
+    }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     LLVMPointsToInfo PT(*IRDB);
@@ -58,10 +67,13 @@ protected:
         LCAProblem, VICFG);
     IDESolver_P<IDEVariabilityTabulationProblem_P<IDELinearConstantAnalysis>>
         LCASolver(VARAProblem);
+    // LCASolver.enableESGAsDot();
     LCASolver.solve();
     if (printDump) {
       LCASolver.dumpResults();
     }
+    // std::ofstream OFS(llvmFilePath + "-ESG.dot");
+    // LCASolver.emitESGAsDot(OFS);
     for (auto &Truth : GroundTruth) {
       auto Fun = IRDB->getFunctionDefinition(std::get<0>(Truth));
       auto Inst = getNthInstruction(Fun, std::get<1>(Truth));
@@ -125,46 +137,71 @@ TEST_F(IDEVarTabulationProblemTest, HandleBasic_02) {
   doAnalysisAndCompareResults("basic_02_c.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEVarTabulationProblemTest, HandleBasic_03) {
-//   // auto Results = doAnalysis("basic_01_c.ll", true);
-//   doAnalysis("basic_03_c.ll", true);
-//   // std::set<LCAVarCompactResults_t
-// > GroundTruth;
-//   // GroundTruth.emplace("main", 2, "i", 13);
-//   // GroundTruth.emplace("main", 3, "i", 13);
-//   // compareResults(Results, GroundTruth);
-// }
+TEST_F(IDEVarTabulationProblemTest, HandleBasic_03) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  GroundTruth.emplace("main", 14, "x",
+                      std::set<std::pair<std::string, int64_t>>{
+                          {"A_defined", 42}, {"(not A_defined)", 13}});
+  GroundTruth.emplace("main", 14, "y",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 210}});
+  GroundTruth.emplace("main", 14, "retval",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 0}});
+  doAnalysisAndCompareResults("basic_03_c.ll", GroundTruth, false);
+}
 
-// TEST_F(IDEVarTabulationProblemTest, HandleBasic_04) {
-//   // auto Results = doAnalysis("basic_01_c.ll", true);
-//   doAnalysis("basic_04_c.ll", true);
-//   // std::set<LCAVarCompactResults_t
-// > GroundTruth;
-//   // GroundTruth.emplace("main", 2, "i", 13);
-//   // GroundTruth.emplace("main", 3, "i", 13);
-//   // compareResults(Results, GroundTruth);
-// }
+TEST_F(IDEVarTabulationProblemTest, HandleBasic_04) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  GroundTruth.emplace("main", 9, "x",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 301}});
+  GroundTruth.emplace("main", 9, "retval",
+                      std::set<std::pair<std::string, int64_t>>{{"true", 0}});
+  doAnalysisAndCompareResults("basic_03_c.ll", GroundTruth, false);
+}
 
 TEST_F(IDEVarTabulationProblemTest, HandleLoops_01) {
   std::set<LCAVarCompactResults_t> GroundTruth;
-  // GroundTruth.emplace("main", 6, "x",
-  // std::set<std::pair<std::string, int64_t>>{{"true", 150}});
-  // FIXME: loops do not work, yet. It's probably better if we model
-  // the constraints (z3::expr) as edge functions as well.
-  doAnalysisAndCompareResults("loop_01_c.ll", GroundTruth, true);
+  GroundTruth.emplace(
+      "main", 24, "x",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", BOTTOM}, {"(not A_defined)", 0}});
+  GroundTruth.emplace(
+      "main", 24, "i",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", BOTTOM}, {"(not A_defined)", BOTTOM}});
+  GroundTruth.emplace(
+      "main", 24, "retval",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", 0}, {"(not A_defined)", 0}});
+  doAnalysisAndCompareResults("loop_01_c.ll", GroundTruth, false);
 }
 
 TEST_F(IDEVarTabulationProblemTest, HandleCalls_01) {
   std::set<LCAVarCompactResults_t> GroundTruth;
+  GroundTruth.emplace(
+      "main", 13, "x",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", 100}, {"(not A_defined)", 99}});
+  GroundTruth.emplace(
+      "main", 13, "retval",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", 0}, {"(not A_defined)", 0}});
   doAnalysisAndCompareResults("call_01_c.ll", GroundTruth, false);
 }
 
-// TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
-//   std::set<LCAVarCompactResults_t> GroundTruth;
-// // FIXME: recursion does not work, yet. It's probably better if we model
-// // the constraints (z3::expr) as edge functions as well.
-//   doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, true);
-// }
+TEST_F(IDEVarTabulationProblemTest, HandleRecursion_01) {
+  std::set<LCAVarCompactResults_t> GroundTruth;
+  // FIXME: recursion does not work, yet. It's probably better if we model
+  // the constraints (z3::expr) as edge functions as well.
+  GroundTruth.emplace(
+      "main", 13, "x",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", BOTTOM}, {"(not A_defined)", 5}});
+  GroundTruth.emplace(
+      "main", 13, "retval",
+      std::set<std::pair<std::string, int64_t>>{
+          {"true", TOP}, {"A_defined", 0}, {"(not A_defined)", 0}});
+  doAnalysisAndCompareResults("recursion_01_c.ll", GroundTruth, true);
+}
 
 // main function for the test case/*  */
 int main(int argc, char **argv) {

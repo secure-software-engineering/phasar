@@ -41,36 +41,60 @@ template <typename L> bool ContainsZ3Expr(const VarL<L> &M, const z3::expr &E) {
   return FoundKey;
 }
 
-class ConstraintEdgeFunction
-    : public EdgeFunction<z3::expr>,
-      public std::enable_shared_from_this<ConstraintEdgeFunction> {
-private:
-  z3::expr Constraint;
+// class ConstraintEdgeFunction
+//     : public EdgeFunction<z3::expr>,
+//       public std::enable_shared_from_this<ConstraintEdgeFunction> {
+// private:
+//   z3::expr Constraint;
 
-public:
-  ConstraintEdgeFunction(z3::expr Constraint) : Constraint(Constraint) {}
+// public:
+//   ConstraintEdgeFunction(z3::expr Constraint) : Constraint(Constraint) {}
 
-  ~ConstraintEdgeFunction() override = default;
+//   ~ConstraintEdgeFunction() override = default;
 
-  z3::expr computeTarget(z3::expr Source) override { return Source; }
+//   z3::expr computeTarget(z3::expr Source) override { return Source; }
 
-  std::shared_ptr<EdgeFunction<z3::expr>>
-  composeWith(std::shared_ptr<EdgeFunction<z3::expr>> secondFunction) override {
-    std::cout << "ConstraintEdgeFunction::composeWith\n";
-    llvm::report_fatal_error("found unexpected edge function");
-  }
+//   std::shared_ptr<EdgeFunction<z3::expr>>
+//   composeWith(std::shared_ptr<EdgeFunction<z3::expr>> secondFunction) override {
+//     std::cout << "ConstraintEdgeFunction::composeWith\n";
+//     llvm::report_fatal_error("found unexpected edge function");
+//   }
 
-  std::shared_ptr<EdgeFunction<z3::expr>>
-  joinWith(std::shared_ptr<EdgeFunction<z3::expr>> otherFunction) override {
-    std::cout << "ConstraintEdgeFunction::joinWith\n";
-    llvm::report_fatal_error("found unexpected edge function");
-  }
+//   std::shared_ptr<EdgeFunction<z3::expr>>
+//   joinWith(std::shared_ptr<EdgeFunction<z3::expr>> otherFunction) override {
+//     std::cout << "ConstraintEdgeFunction::joinWith\n";
+//     llvm::report_fatal_error("found unexpected edge function");
+//   }
 
-  bool equal_to(std::shared_ptr<EdgeFunction<z3::expr>> other) const override {
-    std::cout << "ConstraintEdgeFunction::equal_to\n";
+//   bool equal_to(std::shared_ptr<EdgeFunction<z3::expr>> other) const override {
+//     std::cout << "ConstraintEdgeFunction::equal_to\n";
+//     return false;
+//   }
+// };
+
+template <typename T>
+bool operator==(
+    const std::map<z3::expr, std::shared_ptr<EdgeFunction<T>>, Z3Less> &Lhs,
+    const std::map<z3::expr, std::shared_ptr<EdgeFunction<T>>, Z3Less> &Rhs) {
+  if (Lhs.size() != Rhs.size()) {
     return false;
   }
-};
+  for (auto &[LhsConstraint, LhsEF] : Lhs) {
+    bool FoundEntry = false;
+    for (auto &[RhsConstraint, RhsEF] : Rhs) {
+      if (z3::eq(LhsConstraint, RhsConstraint)) {
+        if (LhsEF->equal_to(RhsEF)) {
+          FoundEntry = true;
+          break;
+        }
+      }
+    }
+    if (!FoundEntry) {
+      return false;
+    }
+  }
+  return true;
+}
 
 template <typename L>
 class VarEdgeFunction
@@ -193,27 +217,20 @@ public:
 
   bool equal_to(std::shared_ptr<EdgeFunction<l_t>> other) const override {
     std::cout << "VarEdgeFunction::equal_to\n";
-    // if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
-    //   if (UserEdgeFns.size() != VEF->UserEdgeFns.size()) {
-    //     return false;
-    //   }
-    //   for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
-    //     bool FoundEntry = false;
-    //     for (auto &[InConstraint, InUserEdgeFn] : VEF->UserEdgeFns) {
-    //       if (z3::eq(Constraint, InConstraint)) {
-    //         if (UserEdgeFn->equal_to(InUserEdgeFn)) {
-    //           FoundEntry = true;
-    //           break;
-    //         }
-    //       }
-    //     }
-    //     if (!FoundEntry) {
-    //       return false;
-    //     }
-    //   }
-    // }
-    // return false;
-    return true;
+    if (auto VEF = dynamic_cast<VarEdgeFunction<user_l_t> *>(other.get())) {
+      return UserEdgeFns == VEF->UserEdgeFns;
+    }
+    return false;
+  }
+
+  void print(std::ostream &OS, bool isForDebug = false) const override {
+    OS << "(EF: ";
+    for (auto &[Constraint, UserEdgeFn] : UserEdgeFns) {
+      OS << "<" << Constraint.to_string() << ", ";
+      UserEdgeFn->print(OS);
+      OS << ">";
+    }
+    OS << ")";
   }
 };
 

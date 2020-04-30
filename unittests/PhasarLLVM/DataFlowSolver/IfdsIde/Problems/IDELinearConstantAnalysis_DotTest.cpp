@@ -44,7 +44,7 @@ protected:
     LCASolver.solve();
     if (emitESG) {
       boost::log::core::get()->set_logging_enabled(true);
-      LCASolver.emitESGasDot();
+      LCASolver.emitESGAsDot();
       boost::log::core::get()->set_logging_enabled(false);
     }
     if (PrintDump) {
