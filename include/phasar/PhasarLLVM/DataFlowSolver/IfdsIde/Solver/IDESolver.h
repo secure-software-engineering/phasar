@@ -1585,8 +1585,9 @@ protected:
   }
 
 public:
-  void enableESAasDot() { SolverConfig.setEmitESG(); }
-  void emitESGasDot() {
+  void enableESGAsDot() { SolverConfig.setEmitESG(); }
+
+  void emitESGAsDot(std::ostream &OS = std::cout) {
     LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Emit Exploded super-graph (ESG) as DOT graph";
                   BOOST_LOG_SEV(lg::get(), DEBUG)
@@ -1808,10 +1809,7 @@ public:
       }
       LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << " ");
     }
-
-    std::ofstream dotFile("ESG.dot", std::ios::binary);
-    dotFile << G;
-    dotFile.close();
+    OS << G;
   }
 
   /// @brief: Allows less-than comparison based on the statement ID.
