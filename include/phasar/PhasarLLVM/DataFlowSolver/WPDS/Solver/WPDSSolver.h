@@ -101,7 +101,7 @@ public:
   ~WPDSSolver() override = default;
 
   void solve() override {
-    auto &lg = lg::get();
+
     // Construct the PDS
     IDESolver<N, D, F, T, V, L, I>::submitInitalSeeds();
     std::ofstream pdsfile("pds.dot");
@@ -113,7 +113,7 @@ public:
     // Solve the PDS
     wali::sem_elem_t ret = nullptr;
     if (WPDSSearchDirection::FORWARD == SolverConf.searchDirection) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "FORWARD");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "FORWARD");
       doForwardSearch(Answer);
       Answer.path_summary();
       // another way not using path summary
@@ -133,7 +133,7 @@ public:
           wali::getKey(&IDESolver<N, D, F, T, V, L, I>::ICF->getFunction("main")
                             ->back()
                             .back());
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "BACKWARD");
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "BACKWARD");
       doBackwardSearch(retnode, Answer);
       Answer.path_summary();
 
@@ -180,11 +180,10 @@ public:
   }
 
   void processNormalFlow(PathEdge<N, D> edge) override {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processNormal");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processNormal");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Normal", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process normal at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
@@ -218,7 +217,7 @@ public:
         wali::ref_ptr<JoinLatticeToSemiRingElem<L>> wptr;
         wptr = new JoinLatticeToSemiRingElem<L>(
             g, static_cast<JoinLattice<L> &>(Problem));
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "ADD NORMAL RULE: " << Problem.DtoString(d2) << " | "
                       << Problem.NtoString(n) << " --> "
                       << Problem.DtoString(d3) << " | " << Problem.DtoString(f)
@@ -228,9 +227,9 @@ public:
           SRElem = wptr;
         }
         std::shared_ptr<EdgeFunction<L>> fprime = f->composeWith(g);
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Compose: " << g->str() << " * " << f->str());
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
         INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
         IDESolver<N, D, F, T, V, L, I>::propagate(d1, f, d3, fprime, nullptr,
                                                   false);
@@ -239,11 +238,10 @@ public:
   }
 
   void processCall(PathEdge<N, D> edge) override {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processCall");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processCall");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Call", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process call at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
     D d1 = edge.factAtSource();
@@ -255,14 +253,14 @@ public:
         IDESolver<N, D, F, T, V, L, I>::ICF->getReturnSitesOfCallAt(n);
     std::set<F> callees =
         IDESolver<N, D, F, T, V, L, I>::ICF->getCalleesOfCallAt(n);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible callees:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible callees:");
     for (auto callee : callees) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "  " << callee->getName().str());
     }
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Possible return sites:");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Possible return sites:");
     for (auto ret : returnSiteNs) {
-      LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+      LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                     << "  " << this->ideTabulationProblem.NtoString(ret));
     }
     // for each possible callee
@@ -274,7 +272,7 @@ public:
       // if a special summary is available, treat this as a normal flow
       // and use the summary flow and edge functions
       if (specialSum) {
-        LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+        LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                       << "Found and process special summary");
         for (N returnSiteN : returnSiteNs) {
           std::set<D> res =
@@ -292,10 +290,10 @@ public:
                     .getSummaryEdgeFunction(n, d2, returnSiteN, d3);
             INC_COUNTER("SpecialSummary-EF Queries", 1,
                         PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << sumEdgFnE->str() << " * "
                           << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             IDESolver<N, D, F, T, V, L, I>::propagate(
                 d1, returnSiteN, d3, f->composeWith(sumEdgFnE), n, false);
           }
@@ -315,7 +313,7 @@ public:
         std::set<N> startPointsOf =
             IDESolver<N, D, F, T, V, L, I>::ICF->getStartPointsOf(sCalledProcN);
         if (startPointsOf.empty()) {
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Start points of '" +
                                this->ICF->getFunctionName(sCalledProcN) +
                                "' currently not available!");
@@ -387,7 +385,7 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<L>> wptrCall(
                       new JoinLatticeToSemiRingElem<L>(
                           f4, static_cast<JoinLattice<L> &>(Problem)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "ADD CALL RULE: " << Problem.DtoString(d2)
                                 << ", " << Problem.NtoString(n) << ", "
                                 << Problem.DtoString(d3) << ", "
@@ -410,7 +408,7 @@ public:
                   wali::ref_ptr<JoinLatticeToSemiRingElem<L>> wptrRet(
                       new JoinLatticeToSemiRingElem<L>(
                           f5, static_cast<JoinLattice<L> &>(Problem)));
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "ADD RET RULE (CALL): "
                                 << Problem.DtoString(d4) << ", "
                                 << Problem.NtoString(retSiteN) << ", "
@@ -428,24 +426,24 @@ public:
                   }
                   INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
                   // compose call * calleeSummary * return edge functions
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Compose: " << f5->str() << " * "
                                 << fCalleeSummary->str() << " * " << f4->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "         (return * calleeSummary * call)");
                   std::shared_ptr<EdgeFunction<L>> fPrime =
                       f4->composeWith(fCalleeSummary)->composeWith(f5);
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "       = " << fPrime->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                   D d5_restoredCtx =
                       IDESolver<N, D, F, T, V, L,
                                 I>::restoreContextOnReturnedFact(n, d2, d5);
                   // propagte the effects of the entire call
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                                 << "Compose: " << fPrime->str() << " * "
                                 << f->str());
-                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                   IDESolver<N, D, F, T, V, L, I>::propagate(
                       d1, retSiteN, d5_restoredCtx, f->composeWith(fPrime), n,
                       false);
@@ -483,7 +481,7 @@ public:
           wali::ref_ptr<JoinLatticeToSemiRingElem<L>> wptr(
               new JoinLatticeToSemiRingElem<L>(
                   edgeFnE, static_cast<JoinLattice<L> &>(Problem)));
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "ADD CALLTORET RULE: " << Problem.DtoString(d2)
                         << " | " << Problem.NtoString(n) << " --> "
                         << Problem.DtoString(d3) << ", "
@@ -493,9 +491,9 @@ public:
             SRElem = wptr;
           }
           INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                         << "Compose: " << edgeFnE->str() << " * " << f->str());
-          LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+          LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
           IDESolver<N, D, F, T, V, L, I>::propagate(
               d1, returnSiteN, d3, f->composeWith(edgeFnE), n, false);
         }
@@ -504,11 +502,10 @@ public:
   }
 
   void processExit(PathEdge<N, D> edge) override {
-    auto &lg = lg::get();
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "WPDS::processExit");
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "WPDS::processExit");
     PAMM_GET_INSTANCE;
     INC_COUNTER("Process Exit", 1, PAMM_SEVERITY_LEVEL::Full);
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Process exit at target: "
                   << this->ideTabulationProblem.NtoString(edge.getTarget()));
     N n = edge.getTarget(); // an exit node; line 21...
@@ -585,7 +582,7 @@ public:
             wali::ref_ptr<JoinLatticeToSemiRingElem<L>> wptr(
                 new JoinLatticeToSemiRingElem<L>(
                     f5, static_cast<JoinLattice<L> &>(Problem)));
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "ADD RET RULE: " << Problem.DtoString(d2) << ", "
                           << Problem.NtoString(n) << ", "
                           << Problem.DtoString(d5) << ", " << *wptr);
@@ -595,16 +592,16 @@ public:
             }
             INC_COUNTER("EF Queries", 2, PAMM_SEVERITY_LEVEL::Full);
             // compose call function * function * return function
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str()
                           << " * " << f4->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "         (return * function * call)");
             std::shared_ptr<EdgeFunction<L>> fPrime =
                 f4->composeWith(f)->composeWith(f5);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "       = " << fPrime->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             // for each jump function coming into the call, propagate to return
             // site using the composed function
             for (auto valAndFunc :
@@ -615,10 +612,10 @@ public:
                 D d5_restoredCtx =
                     IDESolver<N, D, F, T, V, L,
                               I>::restoreContextOnReturnedFact(c, d4, d5);
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                               << "Compose: " << fPrime->str() << " * "
                               << f3->str());
-                LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+                LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
                 IDESolver<N, D, F, T, V, L, I>::propagate(
                     d3, retSiteC, d5_restoredCtx, f3->composeWith(fPrime), c,
                     false);
@@ -661,9 +658,9 @@ public:
                         IDESolver<N, D, F, T, V, L, I>::ICF->getFunctionOf(n),
                         n, d2, retSiteC, d5);
             INC_COUNTER("EF Queries", 1, PAMM_SEVERITY_LEVEL::Full);
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                           << "Compose: " << f5->str() << " * " << f->str());
-            LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << ' ');
+            LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << ' ');
             IDESolver<N, D, F, T, V, L, I>::propagteUnbalancedReturnFlow(
                 retSiteC, d5, f->composeWith(f5), c);
             // register for value processing (2nd IDE phase)

@@ -108,11 +108,11 @@ public:
                      std::vector<DataFlowAnalysisType> DataFlowAnalyses,
                      std::vector<std::string> AnalysisConfigs,
                      PointerAnalysisType PTATy, CallGraphAnalysisType CGTy,
-                     SoundnessFlag SF, std::set<std::string> EntryPoints,
+                     SoundnessFlag SF, const std::set<std::string> &EntryPoints,
                      AnalysisStrategy Strategy,
                      AnalysisControllerEmitterOptions EmitterOptions,
-                     std::string ProjectID = "default-phasar-project",
-                     std::string OutDirectory = "");
+                     const std::string &ProjectID = "default-phasar-project",
+                     const std::string &OutDirectory = "");
 
   ~AnalysisController() = default;
 

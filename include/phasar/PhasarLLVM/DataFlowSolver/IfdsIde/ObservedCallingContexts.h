@@ -33,9 +33,9 @@ private:
 public:
   ObservedCallingContexts() = default;
   ~ObservedCallingContexts() = default;
-  void addObservedCTX(std::string FName, std::vector<bool> CTX);
-  bool containsCTX(std::string FName);
-  std::set<std::vector<bool>> getObservedCTX(std::string FName);
+  void addObservedCTX(const std::string &FName, const std::vector<bool> &CTX);
+  bool containsCTX(const std::string &FName);
+  std::set<std::vector<bool>> getObservedCTX(const std::string &FName);
   void print();
 };
 } // namespace psr

@@ -36,7 +36,7 @@ namespace psr {
 class Resolver;
 class ProjectIRDB;
 class LLVMTypeHierarchy;
-class PointsToGraph;
+class LLVMPointsToGraph;
 
 class LLVMBasedBackwardsICFG
     : public ICFG<const llvm::Instruction *, const llvm::Function *>,
@@ -57,42 +57,42 @@ public:
 
   std::set<const llvm::Function *> getAllFunctions() const override;
 
-  bool isCallStmt(const llvm::Instruction *stmt) const override;
+  bool isCallStmt(const llvm::Instruction *Stmt) const override;
 
-  bool isIndirectFunctionCall(const llvm::Instruction *stmt) const override;
+  bool isIndirectFunctionCall(const llvm::Instruction *Stmt) const override;
 
-  bool isVirtualFunctionCall(const llvm::Instruction *stmt) const override;
+  bool isVirtualFunctionCall(const llvm::Instruction *Stmt) const override;
 
-  const llvm::Function *getFunction(const std::string &fun) const override;
+  const llvm::Function *getFunction(const std::string &Fun) const override;
 
   std::set<const llvm::Function *>
-  getCalleesOfCallAt(const llvm::Instruction *n) const override;
+  getCalleesOfCallAt(const llvm::Instruction *N) const override;
 
   std::set<const llvm::Instruction *>
-  getCallersOf(const llvm::Function *m) const override;
+  getCallersOf(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getCallsFromWithin(const llvm::Function *m) const override;
+  getCallsFromWithin(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getStartPointsOf(const llvm::Function *m) const override;
+  getStartPointsOf(const llvm::Function *M) const override;
 
   std::set<const llvm::Instruction *>
-  getExitPointsOf(const llvm::Function *fun) const override;
+  getExitPointsOf(const llvm::Function *Fun) const override;
 
   std::set<const llvm::Instruction *>
-  getReturnSitesOfCallAt(const llvm::Instruction *n) const override;
+  getReturnSitesOfCallAt(const llvm::Instruction *N) const override;
 
   std::set<const llvm::Instruction *> allNonCallStartNodes() const override;
 
-  const llvm::Instruction *getLastInstructionOf(const std::string &name);
+  const llvm::Instruction *getLastInstructionOf(const std::string &Name);
 
   std::vector<const llvm::Instruction *>
-  getAllInstructionsOfFunction(const std::string &name);
+  getAllInstructionsOfFunction(const std::string &Name);
 
   void mergeWith(const LLVMBasedBackwardsICFG &other);
 
-  bool isPrimitiveFunction(const std::string &name);
+  bool isPrimitiveFunction(const std::string &Name);
 
   using LLVMBasedBackwardCFG::print; // tell the compiler we wish to have both
                                      // prints
@@ -110,7 +110,7 @@ public:
 
   unsigned getNumOfEdges();
 
-  const PointsToGraph &getWholeModulePTG() const;
+  const LLVMPointsToGraph &getWholeModulePTG() const;
 
   std::vector<const llvm::Function *> getDependencyOrderedFunctions();
 };

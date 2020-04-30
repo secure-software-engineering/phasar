@@ -9,14 +9,15 @@
 namespace psr {
 
 std::set<ExtendedValue>
-CallToRetFlowFunction::computeTargetsExt(ExtendedValue &fact) {
+CallToRetFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
   /*
    * Kill every global and expect the callee to return all valid ones.
    */
-  bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact));
-  if (isGlobalMemLocationFact)
+  bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
+  if (IsGlobalMemLocationFact) {
     return {};
+  }
 
   /*
    * For functions that kill facts and are handled in getSummaryFlowFunction()
@@ -27,15 +28,16 @@ CallToRetFlowFunction::computeTargetsExt(ExtendedValue &fact) {
    * Need to keep the list in sync with "killing" functions in
    * getSummaryFlowFunction()!
    */
-  bool isHandledInSummaryFlowFunction =
+  bool IsHandledInSummaryFlowFunction =
       llvm::isa<llvm::MemTransferInst>(currentInst) ||
       llvm::isa<llvm::MemSetInst>(currentInst) ||
       llvm::isa<llvm::VAEndInst>(currentInst);
 
-  if (isHandledInSummaryFlowFunction)
+  if (IsHandledInSummaryFlowFunction) {
     return {};
+  }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

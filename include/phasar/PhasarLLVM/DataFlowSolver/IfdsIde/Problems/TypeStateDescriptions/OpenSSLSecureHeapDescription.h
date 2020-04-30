@@ -41,14 +41,14 @@ private:
   };
 
   static const std::map<std::string, std::set<int>> OpenSSLSecureHeapFuncs;
-  // delta matrix to implement the state machine's delta function
-  static const OpenSSLSecureHeapState delta[5][6];
+  // Delta matrix to implement the state machine's Delta function
+  static const OpenSSLSecureHeapState Delta[5][6];
 
   IDESolver<const llvm::Instruction *, SecureHeapFact, const llvm::Function *,
             const llvm::StructType *, const llvm::Value *, SecureHeapValue,
             LLVMBasedICFG> &secureHeapPropagationResults;
 
-  OpenSSLSecureHeapToken funcNameToToken(const std::string &F) const;
+  static OpenSSLSecureHeapToken funcNameToToken(const std::string &F);
 
 public:
   OpenSSLSecureHeapDescription(

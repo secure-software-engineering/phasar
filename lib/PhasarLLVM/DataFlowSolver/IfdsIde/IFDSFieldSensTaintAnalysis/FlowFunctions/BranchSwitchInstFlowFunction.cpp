@@ -7,49 +7,51 @@
 namespace psr {
 
 std::set<ExtendedValue>
-BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &fact) {
-  const llvm::Value *condition = nullptr;
+BranchSwitchInstFlowFunction::computeTargetsExt(ExtendedValue &Fact) {
+  const llvm::Value *Condition = nullptr;
 
-  if (const auto branchInst = llvm::dyn_cast<llvm::BranchInst>(currentInst)) {
-    bool isConditional = branchInst->isConditional();
+  if (const auto *const BranchInst =
+          llvm::dyn_cast<llvm::BranchInst>(currentInst)) {
+    bool IsConditional = BranchInst->isConditional();
 
-    if (isConditional)
-      condition = branchInst->getCondition();
-  } else if (const auto switchInst =
+    if (IsConditional) {
+      Condition = BranchInst->getCondition();
+    }
+  } else if (const auto *const SwitchInst =
                  llvm::dyn_cast<llvm::SwitchInst>(currentInst)) {
-    condition = switchInst->getCondition();
+    Condition = SwitchInst->getCondition();
   } else {
     assert(false && "This MUST not happen");
   }
 
-  if (condition) {
-    bool isConditionTainted =
-        DataFlowUtils::isValueTainted(condition, fact) ||
-        DataFlowUtils::isMemoryLocationTainted(condition, fact);
+  if (Condition) {
+    bool IsConditionTainted =
+        DataFlowUtils::isValueTainted(Condition, Fact) ||
+        DataFlowUtils::isMemoryLocationTainted(Condition, Fact);
 
-    if (isConditionTainted) {
-      const auto startBasicBlock = currentInst->getParent();
-      const auto startBasicBlockLabel = startBasicBlock->getName();
+    if (IsConditionTainted) {
+      const auto *const StartBasicBlock = currentInst->getParent();
+      const auto StartBasicBlockLabel = StartBasicBlock->getName();
 
-      LOG_DEBUG("Searching end of block label for: " << startBasicBlockLabel);
+      LOG_DEBUG("Searching end of block label for: " << StartBasicBlockLabel);
 
-      const auto endBasicBlock =
-          DataFlowUtils::getEndOfTaintedBlock(startBasicBlock);
-      const auto endBasicBlockLabel =
-          endBasicBlock ? endBasicBlock->getName() : "";
+      const auto *const EndBasicBlock =
+          DataFlowUtils::getEndOfTaintedBlock(StartBasicBlock);
+      const auto EndBasicBlockLabel =
+          EndBasicBlock ? EndBasicBlock->getName() : "";
 
-      LOG_DEBUG("End of block label: " << endBasicBlockLabel);
+      LOG_DEBUG("End of block label: " << EndBasicBlockLabel);
 
-      ExtendedValue ev(currentInst);
-      ev.setEndOfTaintedBlockLabel(endBasicBlockLabel);
+      ExtendedValue EV(currentInst);
+      EV.setEndOfTaintedBlockLabel(EndBasicBlockLabel);
 
       traceStats.add(currentInst);
 
-      return {fact, ev};
+      return {Fact, EV};
     }
   }
 
-  return {fact};
+  return {Fact};
 }
 
 } // namespace psr

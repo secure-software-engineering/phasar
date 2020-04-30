@@ -1,6 +1,6 @@
-#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/DB/ProjectIRDB.h"
 #include "phasar/PhasarLLVM/ControlFlow/LLVMBasedICFG.h"
+#include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Problems/IDELinearConstantAnalysis.h"
 #include "phasar/PhasarLLVM/DataFlowSolver/IfdsIde/Solver/IDESolver.h"
 #include "phasar/PhasarLLVM/Passes/ValueAnnotationPass.h"
 #include "phasar/PhasarLLVM/Pointer/LLVMPointsToInfo.h"
@@ -27,7 +27,8 @@ protected:
   void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   IDELinearConstantAnalysis::lca_results_t
-  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false) {
+  doAnalysis(const std::string &LlvmFilePath, bool PrintDump = false,
+             bool emitESG = false) {
     IRDB = new ProjectIRDB({PathToLlFiles + LlvmFilePath}, IRDBOptions::WPA);
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
@@ -41,6 +42,11 @@ protected:
               IDELinearConstantAnalysis::i_t>
         LCASolver(LCAProblem);
     LCASolver.solve();
+    if (emitESG) {
+      boost::log::core::get()->set_logging_enabled(true);
+      LCASolver.emitESGasDot();
+      boost::log::core::get()->set_logging_enabled(false);
+    }
     if (PrintDump) {
       LCASolver.dumpResults();
     }
@@ -76,7 +82,7 @@ protected:
 
 /* ============== BASIC TESTS ============== */
 TEST_F(IDELinearConstantAnalysisTest, HandleBasicTest_01) {
-  auto Results = doAnalysis("basic_01_cpp_dbg.ll");
+  auto Results = doAnalysis("basic_01_cpp_dbg.ll", false, true);
   std::set<LCACompactResult_t> GroundTruth;
   GroundTruth.emplace("main", 2, "i", 13);
   GroundTruth.emplace("main", 3, "i", 13);

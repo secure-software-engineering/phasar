@@ -83,6 +83,15 @@ else()
   message("PAMM metric severity level: Off")
 endif()
 
+option(PHASAR_ENABLE_DYNAMIC_LOG "Makes it possible to switch the logger on and off at runtime (default is ON)" ON)
+
+if (PHASAR_ENABLE_DYNAMIC_LOG)
+  message(STATUS "Dynamic log enabled")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDYNAMIC_LOG")
+else()
+  message(STATUS "Dynamic log disabled")
+endif()
+
 include_directories(
   ${PHASAR_SRC_DIR}/include
 )
@@ -111,10 +120,6 @@ else()
   include_directories(${LLVM_MAIN_SRC_DIR}/utils/unittest/googlemock/include)
 endif()
 
-# WALi-OpenNWA
-add_subdirectory(external/WALi-OpenNWA)
-include_directories(external/WALi-OpenNWA/Source/wali/include)
-
 # SQL
 find_path(SQLITE3_INCLUDE_DIR NAMES sqlite3.h)
 find_library(SQLITE3_LIBRARY NAMES sqlite3)
@@ -124,17 +129,53 @@ include_directories(${SQLITE3_INCLUDE_DIR})
 if (NOT PHASAR_IN_TREE)
   # Only search for LLVM if we build out of tree
   find_package(LLVM 10 REQUIRED CONFIG)
-  find_library(LLVM_LIBRARY NAMES llvm REQUIRED)
   include_directories(${LLVM_INCLUDE_DIRS})
   link_directories(${LLVM_LIB_PATH} ${LLVM_LIBRARY_DIRS})
 endif()
 
 add_definitions(${LLVM_DEFINITIONS})
 
+find_library(LLVM_LIBRARY NAMES LLVM REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+if(NOT ${LLVM_LIBRARY} STREQUAL "LLVM_LIBRARY-NOTFOUND")
+  message(STATUS "Found consolidated shared LLVM lib " ${LLVM_LIBRARY} " that will be linked against.")
+  set(USE_LLVM_FAT_LIB on)
+endif()
+
 # Clang
+# The clang-cpp shared library is now the preferred way to link dynamically against libclang if we build out of tree.
+if(NOT PHASAR_IN_TREE)
+  find_library(CLANG_LIBRARY NAMES clang-cpp REQUIRED HINTS ${LLVM_LIBRARY_DIRS})
+  if(${CLANG_LIBRARY} STREQUAL "CLANG_LIBRARY-NOTFOUND")
+    set(NEED_LIBCLANG_COMPONENT_LIBS on)
+  endif()
+endif()
+# As fallback, look for the small clang libraries
+if(PHASAR_IN_TREE OR NEED_LIBCLANG_COMPONENT_LIBS)
+  set(CLANG_LIBRARY
+    clangTooling
+    clangFrontendTool
+    clangFrontend
+    clangDriver
+    clangSerialization
+    clangCodeGen
+    clangParse
+    clangSema
+    clangStaticAnalyzerFrontend
+    clangStaticAnalyzerCheckers
+    clangStaticAnalyzerCore
+    clangAnalysis
+    clangARCMigrate
+    clangRewrite
+    clangRewriteFrontend
+    clangEdit
+    clangAST
+    clangASTMatchers
+    clangLex
+    clangBasic
+    LLVMFrontendOpenMP)
+endif()
 if (NOT PHASAR_IN_TREE)
   # Only search for clang if we build out of tree
-  find_library(CLANG_LIBRARY NAMES clang REQUIRED)
   link_directories(${CLANG_LIB_PATH})
 endif()
 
@@ -147,28 +188,10 @@ if (PHASAR_IN_TREE)
   )
 endif()
 
-set(CLANG_LIBRARIES
- clangTooling
- clangFrontendTool
- clangFrontend
- clangDriver
- clangSerialization
- clangCodeGen
- clangParse
- clangSema
- clangStaticAnalyzerFrontend
- clangStaticAnalyzerCheckers
- clangStaticAnalyzerCore
- clangAnalysis
- clangARCMigrate
- clangRewrite
- clangRewriteFrontend
- clangEdit
- clangAST
- clangASTMatchers
- clangLex
- clangBasic
- )
+# WALi-OpenNWA
+add_subdirectory(external/WALi-OpenNWA)
+include_directories(external/WALi-OpenNWA/Source/wali/include)
+
 
 # Add the Phasar subdirectories
 add_subdirectory(include)

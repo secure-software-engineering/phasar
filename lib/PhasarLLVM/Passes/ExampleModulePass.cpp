@@ -20,7 +20,7 @@ namespace psr {
 
 llvm::AnalysisKey ExampleModulePass::Key;
 
-ExampleModulePass::ExampleModulePass() {}
+ExampleModulePass::ExampleModulePass() = default;
 
 llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM) {
   cout << "ExampleModulePass::run()\n";

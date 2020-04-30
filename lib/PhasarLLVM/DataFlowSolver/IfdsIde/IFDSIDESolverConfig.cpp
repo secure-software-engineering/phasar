@@ -15,22 +15,62 @@ using namespace std;
 using namespace psr;
 
 namespace psr {
+IFDSIDESolverConfig::IFDSIDESolverConfig() {
+  setFlag(
+      options, SolverConfigOptions::EmitESG,
+      PhasarConfig::getPhasarConfig().VariablesMap().count("emit-esg-as-dot"));
+}
+IFDSIDESolverConfig::IFDSIDESolverConfig(SolverConfigOptions options)
+    : options(options) {}
 
-IFDSIDESolverConfig::IFDSIDESolverConfig(bool followReturnsPastSeeds,
-                                         bool autoAddZero, bool computeValues,
-                                         bool recordEdges, bool emitESG,
-                                         bool computePersistedSummaries)
-    : followReturnsPastSeeds(followReturnsPastSeeds), autoAddZero(autoAddZero),
-      computeValues(computeValues), recordEdges(recordEdges), emitESG(emitESG),
-      computePersistedSummaries(computePersistedSummaries) {}
+bool IFDSIDESolverConfig::followReturnsPastSeeds() const {
+  return hasFlag(options, SolverConfigOptions::FollowReturnsPastSeeds);
+}
+bool IFDSIDESolverConfig::autoAddZero() const {
+  return hasFlag(options, SolverConfigOptions::AutoAddZero);
+}
+bool IFDSIDESolverConfig::computeValues() const {
+  return hasFlag(options, SolverConfigOptions::ComputeValues);
+}
+bool IFDSIDESolverConfig::recordEdges() const {
+  return hasFlag(options, SolverConfigOptions::RecordEdges);
+}
+bool IFDSIDESolverConfig::emitESG() const {
+  return hasFlag(options, SolverConfigOptions::EmitESG);
+}
+bool IFDSIDESolverConfig::computePersistedSummaries() const {
+  return hasFlag(options, SolverConfigOptions::ComputePersistedSummaries);
+}
 
-ostream &operator<<(ostream &os, const IFDSIDESolverConfig &sc) {
-  return os << "IFDSIDESolverConfig:\n"
-            << "\tfollowReturnsPastSeeds: " << sc.followReturnsPastSeeds << "\n"
-            << "\tautoAddZero: " << sc.autoAddZero << "\n"
-            << "\tcomputeValues: " << sc.computeValues << "\n"
-            << "\trecordEdges: " << sc.recordEdges << "\n"
-            << "\tcomputePersistedSummaries: " << sc.computePersistedSummaries;
+void IFDSIDESolverConfig::setFollowReturnsPastSeeds(bool set) {
+  setFlag(options, SolverConfigOptions::FollowReturnsPastSeeds, set);
+}
+void IFDSIDESolverConfig::setAutoAddZero(bool set) {
+  setFlag(options, SolverConfigOptions::AutoAddZero, set);
+}
+void IFDSIDESolverConfig::setComputeValues(bool set) {
+  setFlag(options, SolverConfigOptions::ComputeValues, set);
+}
+void IFDSIDESolverConfig::setRecordEdges(bool set) {
+  setFlag(options, SolverConfigOptions::RecordEdges, set);
+}
+void IFDSIDESolverConfig::setEmitESG(bool set) {
+  setFlag(options, SolverConfigOptions::EmitESG, set);
+}
+void IFDSIDESolverConfig::setComputePersistedSummaries(bool set) {
+  setFlag(options, SolverConfigOptions::ComputePersistedSummaries, set);
+}
+
+ostream &operator<<(ostream &OS, const IFDSIDESolverConfig &SC) {
+  return OS << "IFDSIDESolverConfig:\n"
+            << "\tfollowReturnsPastSeeds: " << SC.followReturnsPastSeeds()
+            << "\n"
+            << "\tautoAddZero: " << SC.autoAddZero() << "\n"
+            << "\tcomputeValues: " << SC.computeValues() << "\n"
+            << "\trecordEdges: " << SC.recordEdges() << "\n"
+            << "\tcomputePersistedSummaries: " << SC.computePersistedSummaries()
+            << "\n"
+            << "\temitESG: " << SC.emitESG();
 }
 
 } // namespace psr

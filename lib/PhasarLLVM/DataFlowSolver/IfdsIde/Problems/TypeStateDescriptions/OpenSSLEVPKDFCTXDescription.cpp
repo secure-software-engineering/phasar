@@ -42,7 +42,7 @@ const map<string, set<int>> OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFFuncs = {
 // States: UNINIT = 5, CTX_ATTACHED =1, PARAM_INIT = 2,
 // DERIVED = 3, ERROR = 4, BOT = 0
 const OpenSSLEVPKDFCTXDescription::OpenSSLEVPKDFState
-    OpenSSLEVPKDFCTXDescription::delta[5][6] = {
+    OpenSSLEVPKDFCTXDescription::Delta[5][6] = {
 
         /* EVP_KDF_CTX_NEW */
         {OpenSSLEVPKDFState::CTX_ATTACHED, OpenSSLEVPKDFState::CTX_ATTACHED,
@@ -91,13 +91,13 @@ TypeStateDescription::State
 OpenSSLEVPKDFCTXDescription::getNextState(std::string Tok,
                                           TypeStateDescription::State S) const {
   if (isAPIFunction(Tok)) {
-    auto nameToTok = funcNameToToken(Tok);
-    auto ret = delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
-        nameToTok)][S];
+    auto NameToTok = funcNameToToken(Tok);
+    auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
+        NameToTok)][S];
 
     // std::cout << "delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
-    return ret;
+    return Ret;
   } else {
     return OpenSSLEVPKDFState::BOT;
   }
@@ -107,11 +107,11 @@ OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
                                           TypeStateDescription::State S,
                                           llvm::ImmutableCallSite CS) const {
   if (isAPIFunction(Tok)) {
-    auto nameToTok = funcNameToToken(Tok);
-    auto ret = delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
-        nameToTok)][S];
+    auto NameToTok = funcNameToToken(Tok);
+    auto Ret = Delta[static_cast<std::underlying_type_t<OpenSSLEVTKDFToken>>(
+        NameToTok)][S];
 
-    if (nameToTok == OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW) {
+    if (NameToTok == OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW) {
       // require the kdf here to be in KDF_FETCHED state
 
       // requiredKDFState[make_pair(CS.getInstruction(), CS.getArgOperand(0))] =
@@ -119,14 +119,16 @@ OpenSSLEVPKDFCTXDescription::getNextState(const std::string &Tok,
       // cout << "## Factory-Call: ";
       // cout.flush();
       // cout << llvmIRToShortString(CS.getInstruction()) << endl;
-      auto kdfState =
+      auto KdfState =
           kdfAnalysisResults.resultAt(CS.getInstruction(), CS.getArgOperand(0));
-      if (kdfState != OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED)
+      if (KdfState !=
+          OpenSSLEVPKDFDescription::OpenSSLEVPKDFState::KDF_FETCHED) {
         return error();
+      }
     }
     // std::cout << "delta[" << Tok << ", " << stateToString(S)
     //           << "] = " << stateToString(ret) << std::endl;
-    return ret;
+    return Ret;
   } else {
     return OpenSSLEVPKDFState::BOT;
   }
@@ -205,18 +207,19 @@ TypeStateDescription::State OpenSSLEVPKDFCTXDescription::error() const {
 }
 
 OpenSSLEVPKDFCTXDescription::OpenSSLEVTKDFToken
-OpenSSLEVPKDFCTXDescription::funcNameToToken(const std::string &F) const {
-  if (F == "EVP_KDF_CTX_new")
+OpenSSLEVPKDFCTXDescription::funcNameToToken(const std::string &F) {
+  if (F == "EVP_KDF_CTX_new") {
     return OpenSSLEVTKDFToken::EVP_KDF_CTX_NEW;
-  else if (F == "EVP_KDF_CTX_set_params")
+  } else if (F == "EVP_KDF_CTX_set_params") {
     return OpenSSLEVTKDFToken::EVP_KDF_CTX_SET_PARAMS;
-  else if (F == "EVP_KDF_derive")
+  } else if (F == "EVP_KDF_derive") {
     return OpenSSLEVTKDFToken::DERIVE;
 
-  else if (F == "EVP_KDF_CTX_free")
+  } else if (F == "EVP_KDF_CTX_free") {
     return OpenSSLEVTKDFToken::EVP_KDF_CTX_FREE;
-  else
+  } else {
     return OpenSSLEVTKDFToken::STAR;
+  }
 }
 
 // bool OpenSSLEVPKDFCTXDescription::validateKDFConstraints(

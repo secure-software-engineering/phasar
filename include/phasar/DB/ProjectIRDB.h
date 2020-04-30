@@ -60,7 +60,7 @@ private:
   void buildIDModuleMapping(llvm::Module *M);
 
   void preprocessModule(llvm::Module *M);
-  bool wasCompiledWithDebugInfo(llvm::Module *M) const;
+  static bool wasCompiledWithDebugInfo(llvm::Module *M);
 
   void preprocessAllModules();
 
@@ -141,12 +141,12 @@ public:
 
   llvm::Instruction *getInstruction(std::size_t id);
 
-  std::size_t getInstructionID(const llvm::Instruction *I) const;
+  static std::size_t getInstructionID(const llvm::Instruction *I);
 
   void print() const;
 
   void emitPreprocessedIR(std::ostream &os = std::cout,
-                          bool shortendIR = true) const;
+                          bool ShortenIR = true) const;
 
   /**
    * Allows the (de-)serialization of Instructions, Arguments, GlobalValues and
@@ -177,12 +177,12 @@ public:
    * @brief Creates a unique string representation for any given
    * llvm::Value.
    */
-  std::string valueToPersistedString(const llvm::Value *V);
+  static std::string valueToPersistedString(const llvm::Value *V);
   /**
    * @brief Convertes the given string back into the llvm::Value it represents.
    * @return Pointer to the converted llvm::Value.
    */
-  const llvm::Value *persistedStringToValue(const std::string &StringRep);
+  const llvm::Value *persistedStringToValue(const std::string &StringRep) const;
 };
 
 } // namespace psr

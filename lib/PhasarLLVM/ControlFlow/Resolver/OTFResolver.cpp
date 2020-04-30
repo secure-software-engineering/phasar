@@ -34,7 +34,8 @@ using namespace std;
 using namespace psr;
 
 OTFResolver::OTFResolver(ProjectIRDB &IRDB, LLVMTypeHierarchy &TH,
-                         LLVMPointsToInfo &PT, PointsToGraph &WholeModulePTG)
+                         LLVMPointsToInfo &PT,
+                         LLVMPointsToGraph &WholeModulePTG)
     : CHAResolver(IRDB, TH), PT(PT), WholeModulePTG(WholeModulePTG) {}
 
 void OTFResolver::preCall(const llvm::Instruction *Inst) {
@@ -44,15 +45,14 @@ void OTFResolver::preCall(const llvm::Instruction *Inst) {
 void OTFResolver::handlePossibleTargets(
     llvm::ImmutableCallSite CS,
     std::set<const llvm::Function *> &CalleeTargets) {
-  auto &lg = lg::get();
 
-  for (auto CalleeTarget : CalleeTargets) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  for (const auto *CalleeTarget : CalleeTargets) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Target name: " << CalleeTarget->getName().str());
     // Do the merge of the points-to graphs for all possible targets, but
     // only if they are available
     if (!CalleeTarget->isDeclaration()) {
-      auto CalleePTG = PT.getPointsToGraph(CalleeTarget);
+      auto *CalleePTG = PT.getPointsToGraph(CalleeTarget);
       WholeModulePTG.mergeWith(CalleePTG, CalleeTarget);
       WholeModulePTG.mergeCallSite(CS, CalleeTarget);
     }
@@ -65,65 +65,65 @@ void OTFResolver::postCall(const llvm::Instruction *Inst) {
 
 set<const llvm::Function *>
 OTFResolver::resolveVirtualCall(llvm::ImmutableCallSite CS) {
-  set<const llvm::Function *> possible_call_targets;
-  auto &lg = lg::get();
+  set<const llvm::Function *> PossibleCallTargets;
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "Call virtual function: "
                 << llvmIRToString(CS.getInstruction()));
 
-  auto vtable_index = getVFTIndex(CS);
-  if (vtable_index < 0) {
+  auto VtableIndex = getVFTIndex(CS);
+  if (VtableIndex < 0) {
     // An error occured
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                   << "Error with resolveVirtualCall : impossible to retrieve "
                      "the vtable index\n"
                   << llvmIRToString(CS.getInstruction()) << "\n");
     return {};
   }
 
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
-                << "Virtual function table entry is: " << vtable_index);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "Virtual function table entry is: " << VtableIndex);
 
-  const llvm::Value *receiver = CS.getArgOperand(0);
+  const llvm::Value *Receiver = CS.getArgOperand(0);
 
-  auto alloc_sites =
-      WholeModulePTG.getReachableAllocationSites(receiver, CallStack);
-  auto possible_allocated_types =
-      WholeModulePTG.computeTypesFromAllocationSites(alloc_sites);
+  auto AllocSites =
+      WholeModulePTG.getReachableAllocationSites(Receiver, CallStack);
+  auto PossibleAllocatedTypes =
+      psr::LLVMPointsToGraph::computeTypesFromAllocationSites(AllocSites);
 
-  auto receiver_type = getReceiverType(CS);
+  const auto *ReceiverType = getReceiverType(CS);
 
   // Now we must check if we have found some allocated struct types
-  set<const llvm::StructType *> possible_types;
-  for (auto type : possible_allocated_types) {
-    if (auto struct_type =
-            llvm::dyn_cast<llvm::StructType>(stripPointer(type))) {
-      possible_types.insert(struct_type);
+  set<const llvm::StructType *> PossibleTypes;
+  for (const auto *Type : PossibleAllocatedTypes) {
+    if (const auto *StructType =
+            llvm::dyn_cast<llvm::StructType>(stripPointer(Type))) {
+      PossibleTypes.insert(StructType);
     }
   }
 
-  for (auto possible_type_struct : possible_types) {
-    auto Target =
-        getNonPureVirtualVFTEntry(possible_type_struct, vtable_index, CS);
+  for (const auto *PossibleTypeStruct : PossibleTypes) {
+    const auto *Target =
+        getNonPureVirtualVFTEntry(PossibleTypeStruct, VtableIndex, CS);
     if (Target) {
-      possible_call_targets.insert(Target);
+      PossibleCallTargets.insert(Target);
     }
   }
-  if (possible_call_targets.empty())
+  if (PossibleCallTargets.empty()) {
     return CHAResolver::resolveVirtualCall(CS);
+  }
 
-  return possible_call_targets;
+  return PossibleCallTargets;
 }
 
 std::set<const llvm::Function *>
 OTFResolver::resolveFunctionPointer(llvm::ImmutableCallSite CS) {
   std::set<const llvm::Function *> Callees;
   auto PTS = PT.getPointsToSet(CS.getCalledValue());
-  for (auto P : PTS) {
+  for (const auto *P : PTS) {
     if (P->getType()->isPointerTy() &&
         P->getType()->getPointerElementType()->isFunctionTy()) {
-      if (auto F = llvm::dyn_cast<llvm::Function>(P)) {
+      if (const auto *F = llvm::dyn_cast<llvm::Function>(P)) {
         Callees.insert(F);
       }
     }

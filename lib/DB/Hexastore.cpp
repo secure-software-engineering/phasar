@@ -17,93 +17,95 @@ using namespace boost;
 
 namespace psr {
 
-Hexastore::Hexastore(string filename) {
-  sqlite3_open(filename.c_str(), &hs_internal_db);
-  const string query = INIT;
-  char *err;
-  sqlite3_exec(hs_internal_db, query.c_str(), callback, 0, &err);
-  if (err != NULL)
-    cout << err << "\n\n";
+Hexastore::Hexastore(const string &Filename) {
+  sqlite3_open(Filename.c_str(), &hs_internal_db);
+  const string Query = INIT;
+  char *Err;
+  sqlite3_exec(hs_internal_db, Query.c_str(), callback, nullptr, &Err);
+  if (Err != nullptr) {
+    cout << Err << "\n\n";
+  }
 }
 
 Hexastore::~Hexastore() { sqlite3_close(hs_internal_db); }
 
-int Hexastore::callback(void *NotUsed, int argc, char **argv,
-                        char **azColName) {
-  for (int i = 0; i < argc; ++i) {
-    cout << azColName[i] << " " << (argv[i] ? argv[i] : "NULL") << endl;
+int Hexastore::callback(void *NotUsed, int Argc, char **Argv,
+                        char **AzColName) {
+  for (int Idx = 0; Idx < Argc; ++Idx) {
+    cout << AzColName[Idx] << " " << (Argv[Idx] ? Argv[Idx] : "NULL") << endl;
   }
   return 0;
 }
 
-void Hexastore::put(array<string, 3> edge) {
-  doPut(SPO_INSERT, edge);
-  doPut(SOP_INSERT, edge);
-  doPut(PSO_INSERT, edge);
-  doPut(POS_INSERT, edge);
-  doPut(OSP_INSERT, edge);
-  doPut(OPS_INSERT, edge);
+void Hexastore::put(const array<string, 3> &Edge) {
+  doPut(SPOInsert, Edge);
+  doPut(SOPInsert, Edge);
+  doPut(PSOInsert, Edge);
+  doPut(POSInsert, Edge);
+  doPut(OSPInsert, Edge);
+  doPut(OPSInsert, Edge);
 }
 
-void Hexastore::doPut(string query, array<string, 3> edge) {
-  string compiled_query = str(format(query) % edge[0] % edge[1] % edge[2]);
-  char *err;
-  sqlite3_exec(hs_internal_db, compiled_query.c_str(), callback, 0, &err);
-  if (err != NULL)
-    cout << err;
+void Hexastore::doPut(const string &Query, array<string, 3> Edge) {
+  string CompiledQuery = str(format(Query) % Edge[0] % Edge[1] % Edge[2]);
+  char *Err;
+  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), callback, nullptr, &Err);
+  if (Err != nullptr) {
+    cout << Err;
+  }
 }
 
-vector<hs_result> Hexastore::get(array<string, 3> edge_query,
-                                 size_t result_size_hint) {
-  vector<hs_result> result;
-  result.reserve(result_size_hint);
-  string querystring;
-  if (edge_query[0] == "?") {
-    if (edge_query[1] == "?") {
-      if (edge_query[2] == "?") {
-        querystring = SEARCH_XXX;
+vector<hs_result> Hexastore::get(array<string, 3> EdgeQuery,
+                                 size_t ResultSizeHint) {
+  vector<hs_result> Result;
+  Result.reserve(ResultSizeHint);
+  string QueryString;
+  if (EdgeQuery[0] == "?") {
+    if (EdgeQuery[1] == "?") {
+      if (EdgeQuery[2] == "?") {
+        QueryString = SearchXXX;
       } else {
-        querystring = SEARCH_XXO;
+        QueryString = SearchXXO;
       }
     } else {
-      if (edge_query[2] == "?") {
-        querystring = SEARCH_XPX;
+      if (EdgeQuery[2] == "?") {
+        QueryString = SearchXPX;
       } else {
-        querystring = SEARCH_XPO;
+        QueryString = SearchXPO;
       }
     }
   } else {
-    if (edge_query[1] == "?") {
-      if (edge_query[2] == "?") {
-        querystring = SEARCH_SXX;
+    if (EdgeQuery[1] == "?") {
+      if (EdgeQuery[2] == "?") {
+        QueryString = SearchSXX;
       } else {
-        querystring = SEARCH_SXO;
+        QueryString = SearchSXO;
       }
     } else {
-      if (edge_query[2] == "?") {
-        querystring = SEARCH_SPX;
+      if (EdgeQuery[2] == "?") {
+        QueryString = SearchSPX;
       } else {
-        querystring = SEARCH_SPO;
+        QueryString = SearchSPO;
       }
     }
   }
-  string compiled_query =
-      str(format(querystring) % edge_query[0] % edge_query[1] % edge_query[2]);
+  string CompiledQuery =
+      str(format(QueryString) % EdgeQuery[0] % EdgeQuery[1] % EdgeQuery[2]);
   // this lambda will collect all of our results, since it is called on every
   // row of the result set
-  auto sqlite_cb_result_collector = [](void *cb, int argc, char **argv,
-                                       char **azColName) {
-    vector<hs_result> *res = static_cast<vector<hs_result> *>(cb);
-    res->emplace_back(argv[0], argv[1], argv[2]);
+  auto SqliteCBResultCollector = [](void *CB, int Argc, char **Argv,
+                                    char **AzColName) {
+    auto *Res = static_cast<vector<hs_result> *>(CB);
+    Res->emplace_back(Argv[0], Argv[1], Argv[2]);
     return 0;
   };
-  char *err;
-  sqlite3_exec(hs_internal_db, compiled_query.c_str(),
-               sqlite_cb_result_collector, &result, &err);
-  if (err != NULL) {
-    cout << err;
+  char *Err;
+  sqlite3_exec(hs_internal_db, CompiledQuery.c_str(), SqliteCBResultCollector,
+               &Result, &Err);
+  if (Err != nullptr) {
+    cout << Err;
   }
-  return result;
+  return Result;
 }
 
 } // namespace psr

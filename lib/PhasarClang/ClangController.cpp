@@ -22,19 +22,18 @@ namespace psr {
 
 ClangController::ClangController(
     clang::tooling::CommonOptionsParser &OptionsParser) {
-  auto &lg = lg::get();
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG)
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
                 << "ClangController::ClangController()");
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "Source file(s):");
-  // for (auto &src : OptionsParser.getSourcePathList()) {
-  for (auto src : OptionsParser.getCompilations().getAllFiles()) {
-    LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << src);
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << "Source file(s):");
+  for (auto Src : OptionsParser.getCompilations().getAllFiles()) {
+    LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG) << Src);
   }
   clang::tooling::ClangTool Tool(OptionsParser.getCompilations(),
                                  OptionsParser.getCompilations().getAllFiles());
-  int result = Tool.run(
+  int Result = Tool.run(
       clang::tooling::newFrontendActionFactory<RandomChangeFrontendAction>()
           .get());
-  LOG_IF_ENABLE(BOOST_LOG_SEV(lg, DEBUG) << "finished clang ast analysis.");
+  LOG_IF_ENABLE(BOOST_LOG_SEV(lg::get(), DEBUG)
+                << "finished clang ast analysis.");
 }
 } // namespace psr

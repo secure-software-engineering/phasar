@@ -5,6 +5,12 @@ function(add_phasar_unittest test_name)
     ${test_name}
   )
 
+  if(USE_LLVM_FAT_LIB)
+    llvm_config(${test} USE_SHARED ${LLVM_LINK_COMPONENTS})
+  else()
+    llvm_config(${test} ${LLVM_LINK_COMPONENTS})
+  endif()
+
   target_link_libraries(${test}
     LINK_PUBLIC
     phasar_config
@@ -28,8 +34,6 @@ function(add_phasar_unittest test_name)
     ${Boost_LIBRARIES}
     ${CMAKE_DL_LIBS}
     ${CMAKE_THREAD_LIBS_INIT}
-    # ${CLANG_LIBRARIES}
-    ${llvm_libs}
     curl
     gtest
   )
@@ -169,7 +173,11 @@ macro(add_phasar_library name)
   endif(PHASAR_LINK_LIBS)
 
   if( LLVM_LINK_COMPONENTS )
-    llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    if( USE_LLVM_FAT_LIB )
+      llvm_config(${name} USE_SHARED ${LLVM_LINK_COMPONENTS})
+    else()
+      llvm_config(${name} ${LLVM_LINK_COMPONENTS})
+    endif()
   endif( LLVM_LINK_COMPONENTS )
   if(MSVC)
     get_target_property(cflag ${name} COMPILE_FLAGS)

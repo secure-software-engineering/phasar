@@ -15,104 +15,110 @@
 namespace psr {
 
 std::set<ExtendedValue>
-MapTaintedValuesToCallee::computeTargets(ExtendedValue fact) {
-  bool isFactVarArgTemplate = fact.isVarArgTemplate();
-  if (isFactVarArgTemplate)
+MapTaintedValuesToCallee::computeTargets(ExtendedValue Fact) {
+  bool IsFactVarArgTemplate = Fact.isVarArgTemplate();
+  if (IsFactVarArgTemplate) {
     return {};
+  }
 
-  std::set<ExtendedValue> targetGlobalFacts;
-  std::set<ExtendedValue> targetParamFacts;
+  std::set<ExtendedValue> TargetGlobalFacts;
+  std::set<ExtendedValue> TargetParamFacts;
 
-  bool isGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
-      DataFlowUtils::getMemoryLocationSeqFromFact(fact));
-  if (isGlobalMemLocationFact)
-    targetGlobalFacts.insert(fact);
+  bool IsGlobalMemLocationFact = DataFlowUtils::isGlobalMemoryLocationSeq(
+      DataFlowUtils::getMemoryLocationSeqFromFact(Fact));
+  if (IsGlobalMemLocationFact) {
+    TargetGlobalFacts.insert(Fact);
+  }
 
-  long varArgIndex = 0L;
+  long VarArgIndex = 0L;
 
-  const auto sanitizedArgList = DataFlowUtils::getSanitizedArgList(
+  const auto SanitizedArgList = DataFlowUtils::getSanitizedArgList(
       callInst, destFun, zeroValue.getValue());
 
-  for (const auto &argParamTriple : sanitizedArgList) {
+  for (const auto &ArgParamTriple : SanitizedArgList) {
 
-    const auto arg = std::get<0>(argParamTriple);
-    const auto argMemLocationSeq = std::get<1>(argParamTriple);
-    const auto param = std::get<2>(argParamTriple);
+    const auto *const Arg = std::get<0>(ArgParamTriple);
+    const auto &ArgMemLocationSeq = std::get<1>(ArgParamTriple);
+    const auto *const Param = std::get<2>(ArgParamTriple);
 
-    bool isVarArgParam =
-        DataFlowUtils::isVarArgParam(param, zeroValue.getValue());
-    bool isVarArgFact = fact.isVarArg();
+    bool IsVarArgParam =
+        DataFlowUtils::isVarArgParam(Param, zeroValue.getValue());
+    bool IsVarArgFact = Fact.isVarArg();
 
-    bool isArgMemLocation = !argMemLocationSeq.empty();
-    if (isArgMemLocation) {
+    bool IsArgMemLocation = !ArgMemLocationSeq.empty();
+    if (IsArgMemLocation) {
 
-      const auto factMemLocationSeq =
-          isVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(fact)
-                       : DataFlowUtils::getMemoryLocationSeqFromFact(fact);
+      const auto FactMemLocationSeq =
+          IsVarArgFact ? DataFlowUtils::getVaListMemoryLocationSeqFromFact(Fact)
+                       : DataFlowUtils::getMemoryLocationSeqFromFact(Fact);
 
-      bool genFact = DataFlowUtils::isSubsetMemoryLocationSeq(
-          argMemLocationSeq, factMemLocationSeq);
-      if (genFact) {
-        const auto relocatableMemLocationSeq =
-            DataFlowUtils::getRelocatableMemoryLocationSeq(factMemLocationSeq,
-                                                           argMemLocationSeq);
-        std::vector<const llvm::Value *> patchablePart{param};
-        const auto patchableMemLocationSeq =
-            DataFlowUtils::joinMemoryLocationSeqs(patchablePart,
-                                                  relocatableMemLocationSeq);
+      bool GenFact = DataFlowUtils::isSubsetMemoryLocationSeq(
+          ArgMemLocationSeq, FactMemLocationSeq);
+      if (GenFact) {
+        const auto RelocatableMemLocationSeq =
+            DataFlowUtils::getRelocatableMemoryLocationSeq(FactMemLocationSeq,
+                                                           ArgMemLocationSeq);
+        std::vector<const llvm::Value *> PatchablePart{Param};
+        const auto PatchableMemLocationSeq =
+            DataFlowUtils::joinMemoryLocationSeqs(PatchablePart,
+                                                  RelocatableMemLocationSeq);
 
-        ExtendedValue ev(fact);
-        if (isVarArgFact) {
-          ev.setVaListMemLocationSeq(patchableMemLocationSeq);
+        ExtendedValue EV(Fact);
+        if (IsVarArgFact) {
+          EV.setVaListMemLocationSeq(PatchableMemLocationSeq);
         } else {
-          ev.setMemLocationSeq(patchableMemLocationSeq);
+          EV.setMemLocationSeq(PatchableMemLocationSeq);
         }
 
-        if (isVarArgParam)
-          ev.setVarArgIndex(varArgIndex);
+        if (IsVarArgParam) {
+          EV.setVarArgIndex(VarArgIndex);
+        }
 
-        targetParamFacts.insert(ev);
+        TargetParamFacts.insert(EV);
 
         LOG_DEBUG("Added patchable memory location (caller -> callee)");
         LOG_DEBUG("Source");
-        DataFlowUtils::dumpFact(fact);
+        DataFlowUtils::dumpFact(Fact);
         LOG_DEBUG("Destination");
-        DataFlowUtils::dumpFact(ev);
+        DataFlowUtils::dumpFact(EV);
       }
     } else {
-      bool genFact = DataFlowUtils::isValueTainted(arg, fact);
-      if (genFact) {
-        std::vector<const llvm::Value *> patchablePart{param};
+      bool GenFact = DataFlowUtils::isValueTainted(Arg, Fact);
+      if (GenFact) {
+        std::vector<const llvm::Value *> PatchablePart{Param};
 
-        ExtendedValue ev(fact);
-        ev.setMemLocationSeq(patchablePart);
-        if (isVarArgParam)
-          ev.setVarArgIndex(varArgIndex);
+        ExtendedValue EV(Fact);
+        EV.setMemLocationSeq(PatchablePart);
+        if (IsVarArgParam) {
+          EV.setVarArgIndex(VarArgIndex);
+        }
 
-        targetParamFacts.insert(ev);
+        TargetParamFacts.insert(EV);
 
         LOG_DEBUG("Added patchable memory location (caller -> callee)");
         LOG_DEBUG("Source");
-        DataFlowUtils::dumpFact(fact);
+        DataFlowUtils::dumpFact(Fact);
         LOG_DEBUG("Destination");
-        DataFlowUtils::dumpFact(ev);
+        DataFlowUtils::dumpFact(EV);
       }
     }
 
-    if (isVarArgParam)
-      ++varArgIndex;
+    if (IsVarArgParam) {
+      ++VarArgIndex;
+    }
   }
 
-  bool addLineNumber = !targetParamFacts.empty();
-  if (addLineNumber)
+  bool AddLineNumber = !TargetParamFacts.empty();
+  if (AddLineNumber) {
     traceStats.add(callInst);
+  }
 
-  std::set<ExtendedValue> targetFacts;
-  std::set_union(targetGlobalFacts.begin(), targetGlobalFacts.end(),
-                 targetParamFacts.begin(), targetParamFacts.end(),
-                 std::inserter(targetFacts, targetFacts.begin()));
+  std::set<ExtendedValue> TargetFacts;
+  std::set_union(TargetGlobalFacts.begin(), TargetGlobalFacts.end(),
+                 TargetParamFacts.begin(), TargetParamFacts.end(),
+                 std::inserter(TargetFacts, TargetFacts.begin()));
 
-  return targetFacts;
+  return TargetFacts;
 }
 
 } // namespace psr

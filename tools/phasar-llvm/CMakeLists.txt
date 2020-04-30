@@ -36,11 +36,10 @@ target_link_libraries(phasar-llvm
   ${CMAKE_THREAD_LIBS_INIT}
 )
 
-if(NOT PHASAR_IN_TREE)
-target_link_libraries(phasar-llvm
-  LINK_PUBLIC
-  ${llvm_libs}
-)
+if(USE_LLVM_FAT_LIB)
+  llvm_config(phasar-llvm USE_SHARED ${LLVM_LINK_COMPONENTS})
+else()
+  llvm_config(phasar-llvm ${LLVM_LINK_COMPONENTS})
 endif()
 
 set(LLVM_LINK_COMPONENTS

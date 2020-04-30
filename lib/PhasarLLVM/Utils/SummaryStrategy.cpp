@@ -31,7 +31,7 @@ const map<string, SummaryGenerationStrategy> StringToSummaryGenerationStrategy =
 
 };
 
-ostream &operator<<(ostream &os, const SummaryGenerationStrategy &s) {
-  return os << SummaryGenerationStrategyToString.at(s);
+ostream &operator<<(ostream &OS, const SummaryGenerationStrategy &S) {
+  return OS << SummaryGenerationStrategyToString.at(S);
 }
 } // namespace psr

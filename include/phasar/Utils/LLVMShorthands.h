@@ -156,7 +156,7 @@ const llvm::Argument *getNthFunctionArgument(const llvm::Function *F,
  * @return LLVM Instruction or nullptr, if instNo invalid.
  */
 const llvm::Instruction *getNthInstruction(const llvm::Function *F,
-                                           unsigned instNo);
+                                           unsigned Idx);
 
 /**
  * The Termination Instruction count starts with one (not zero, as in Function
@@ -196,7 +196,7 @@ const llvm::Module *getModuleFromVal(const llvm::Value *V);
  * @param V LLVM Value.
  * @return Module name or empty string.
  */
-const std::string getModuleNameFromVal(const llvm::Value *V);
+std::string getModuleNameFromVal(const llvm::Value *V);
 
 /**
  * @brief Computes a hash value for a given LLVM Module.

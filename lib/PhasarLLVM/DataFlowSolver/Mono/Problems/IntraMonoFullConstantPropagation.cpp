@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <ostream>
+#include <utility>
 
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
@@ -23,12 +24,12 @@
 
 namespace std {
 template <> struct hash<pair<const llvm::Value *, unsigned>> {
-  size_t operator()(const pair<const llvm::Value *, unsigned> &p) const {
-    std::hash<const llvm::Value *> hash_ptr;
-    std::hash<unsigned> hash_unsigned;
-    size_t hp = hash_ptr(p.first);
-    size_t hu = hash_unsigned(p.second);
-    return hp ^ (hu << 1);
+  size_t operator()(const pair<const llvm::Value *, unsigned> &P) const {
+    std::hash<const llvm::Value *> HashPtr;
+    std::hash<unsigned> HashUnsigned;
+    size_t HP = HashPtr(P.first);
+    size_t HU = HashUnsigned(P.second);
+    return HP ^ (HU << 1);
   }
 };
 } // namespace std
@@ -45,8 +46,8 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                        IntraMonoFullConstantPropagation::f_t,
                        IntraMonoFullConstantPropagation::t_t,
                        IntraMonoFullConstantPropagation::v_t,
-                       IntraMonoFullConstantPropagation::i_t>(IRDB, TH, CF, PT,
-                                                              EntryPoints) {}
+                       IntraMonoFullConstantPropagation::i_t>(
+          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<std::pair<const llvm::Value *, unsigned>>
 IntraMonoFullConstantPropagation::join(
@@ -77,19 +78,19 @@ IntraMonoFullConstantPropagation::initialSeeds() {
 }
 
 void IntraMonoFullConstantPropagation::printNode(
-    std::ostream &os, const llvm::Instruction *n) const {
-  os << llvmIRToString(n);
+    std::ostream &OS, const llvm::Instruction *N) const {
+  OS << llvmIRToString(N);
 }
 
 void IntraMonoFullConstantPropagation::printDataFlowFact(
-    std::ostream &os, std::pair<const llvm::Value *, unsigned> d) const {
-  os << "< " + llvmIRToString(d.first)
-     << ", " + std::to_string(d.second) + " >";
+    std::ostream &OS, std::pair<const llvm::Value *, unsigned> D) const {
+  OS << "< " + llvmIRToString(D.first)
+     << ", " + std::to_string(D.second) + " >";
 }
 
 void IntraMonoFullConstantPropagation::printFunction(
-    std::ostream &os, const llvm::Function *m) const {
-  os << m->getName().str();
+    std::ostream &OS, const llvm::Function *M) const {
+  OS << M->getName().str();
 }
 
 } // namespace psr

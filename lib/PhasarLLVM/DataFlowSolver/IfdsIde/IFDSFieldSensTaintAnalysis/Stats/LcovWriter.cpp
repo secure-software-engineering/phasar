@@ -7,34 +7,34 @@
 namespace psr {
 
 void LcovWriter::write() const {
-  std::ofstream writer(getOutFile());
+  std::ofstream Writer(getOutFile());
 
   LOG_INFO("Writing lcov trace to: " << getOutFile());
 
-  for (const auto &fileEntry : getTraceStats().getStats()) {
-    const auto file = fileEntry.first;
-    const auto functionStats = fileEntry.second;
+  for (const auto &FileEntry : getTraceStats().getStats()) {
+    const auto File = FileEntry.first;
+    const auto FunctionStats = FileEntry.second;
 
-    writer << "SF:" << file << "\n";
+    Writer << "SF:" << File << "\n";
 
-    for (const auto &functionEntry : functionStats) {
-      const auto function = functionEntry.first;
+    for (const auto &FunctionEntry : FunctionStats) {
+      const auto Function = FunctionEntry.first;
 
-      writer << "FNDA:"
-             << "1," << function << "\n";
+      Writer << "FNDA:"
+             << "1," << Function << "\n";
     }
 
-    for (const auto &functionEntry : functionStats) {
-      const auto lineNumberStats = functionEntry.second;
+    for (const auto &FunctionEntry : FunctionStats) {
+      const auto LineNumberStats = FunctionEntry.second;
 
-      for (const auto &lineNumberEntry : lineNumberStats) {
+      for (const auto &LineNumberEntry : LineNumberStats) {
 
-        writer << "DA:" << lineNumberEntry.getLineNumber() << ",1"
+        Writer << "DA:" << LineNumberEntry.getLineNumber() << ",1"
                << "\n";
       }
     }
 
-    writer << "end_of_record"
+    Writer << "end_of_record"
            << "\n";
   }
 }

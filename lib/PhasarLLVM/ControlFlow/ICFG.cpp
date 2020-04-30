@@ -26,7 +26,7 @@ using namespace std;
 
 namespace psr {
 
-std::string to_string(const CallGraphAnalysisType &CGA) {
+std::string toString(const CallGraphAnalysisType &CGA) {
   switch (CGA) {
   default:
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
@@ -37,7 +37,7 @@ std::string to_string(const CallGraphAnalysisType &CGA) {
   }
 }
 
-CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S) {
+CallGraphAnalysisType toCallGraphAnalysisType(const std::string &S) {
   CallGraphAnalysisType Type = llvm::StringSwitch<CallGraphAnalysisType>(S)
 #define ANALYSIS_SETUP_CALLGRAPH_TYPE(NAME, CMDFLAG, TYPE)                     \
   .Case(NAME, CallGraphAnalysisType::TYPE)
@@ -53,8 +53,8 @@ CallGraphAnalysisType to_CallGraphAnalysisType(const std::string &S) {
   return Type;
 }
 
-ostream &operator<<(ostream &os, const CallGraphAnalysisType &CGA) {
-  return os << to_string(CGA);
+ostream &operator<<(ostream &OS, const CallGraphAnalysisType &CGA) {
+  return OS << toString(CGA);
 }
 
 } // namespace psr
