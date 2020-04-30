@@ -169,7 +169,7 @@ public:
       computeAndPrintStatistics();
     }
     if (SolverConfig.emitESG()) {
-      emitESGasDot();
+      emitESGAsDot();
     }
   }
 
