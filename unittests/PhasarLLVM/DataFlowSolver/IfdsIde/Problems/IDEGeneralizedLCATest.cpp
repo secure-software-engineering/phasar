@@ -116,6 +116,14 @@ TEST_F(IDEGeneralizedLCATest, StringTest) {
   compareResults(groundTruth);
 }
 
+TEST_F(IDEGeneralizedLCATest, StringTestCpp) {
+  Initialize("StringTest_cpp.ll");
+  std::vector<groundTruth_t> groundTruth;
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 2, 8});
+  groundTruth.push_back({{EdgeValue("Hello, World")}, 3, 8});
+  compareResults(groundTruth);
+}
+
 TEST_F(IDEGeneralizedLCATest, StringBranchTest) {
   Initialize("StringBranchTest_c.ll");
   std::vector<groundTruth_t> groundTruth;
