@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel and others
+ *     Fabian Schiebel, Alexander Meinhold and others
  *****************************************************************************/
 
 #include <cassert>
@@ -41,13 +41,10 @@ std::ostream &printSemantics(const llvm::APFloat &fl) {
 const EdgeValue EdgeValue::top = EdgeValue(nullptr);
 
 EdgeValue::EdgeValue(const llvm::Value *val) : type(Top) {
-  memset(&value, 0, sizeof(value));
   if (auto cnst = llvm::dyn_cast<llvm::Constant>(val)) {
-
     if (cnst->getType()->isIntegerTy()) {
       type = Integer;
-      new (&value.asInt)
-          llvm::APInt(llvm::cast<llvm::ConstantInt>(cnst)->getValue());
+      value = llvm::APInt(llvm::cast<llvm::ConstantInt>(cnst)->getValue());
     } else if (cnst->getType()->isFloatingPointTy()) {
       type = FloatingPoint;
       auto &cnstFP = llvm::cast<llvm::ConstantFP>(cnst)->getValueAPF();
@@ -56,35 +53,32 @@ EdgeValue::EdgeValue(const llvm::Value *val) : type(Top) {
       bool unused;
       apf.convert(llvm::APFloat::IEEEdouble(),
                   llvm::APFloat::roundingMode::rmNearestTiesToEven, &unused);
-
-      new (&value.asFP) llvm::APFloat(apf);
+      value = llvm::APFloat(apf);
     } else if (llvm::isa<llvm::ConstantPointerNull>(cnst)) {
       type = String;
-      new (&value.asString) std::string();
+      value = std::string();
     } else if (cnst->getType()->isPointerTy() &&
                cnst->getType()->getPointerElementType()->isIntegerTy()) {
       type = String;
       auto gep = llvm::cast<llvm::ConstantExpr>(
           cnst); // already checked, hence cast instead of dyn_cast
-
       if (auto glob =
               llvm::dyn_cast<llvm::GlobalVariable>(gep->getOperand(0))) {
-
-        new (&value.asString) std::string(
+        value = std::string(
             llvm::cast<llvm::ConstantDataArray>(glob->getInitializer())
                 ->getAsCString()
                 .str());
       } else {
         // inttoptr
-        value.asTop = nullptr;
+        value = nullptr;
         type = Top;
       }
     } else {
-      value.asTop = nullptr;
+      value = nullptr;
       type = Top;
     }
   } else {
-    value.asTop = nullptr;
+    value = nullptr;
     type = Top;
   }
 }
@@ -92,17 +86,16 @@ EdgeValue::EdgeValue(const llvm::Value *val) : type(Top) {
 EdgeValue::EdgeValue(const EdgeValue &ev) : type(ev.type) {
   switch (type) {
   case Top:
-    value.asTop = nullptr;
+    value = nullptr;
     break;
   case Integer:
-    new (&value.asInt) llvm::APInt(ev.value.asInt);
+    value = std::get<llvm::APInt>(ev.value);
     break;
   case FloatingPoint:
-    // value.asFP = ev.value.asFP;
-    new (&value.asFP) llvm::APFloat(ev.value.asFP);
+    value = std::get<llvm::APFloat>(ev.value);
     break;
   case String:
-    new (&value.asString) std::string(ev.value.asString);
+    value = std::get<std::string>(ev.value);
     break;
   }
 }
@@ -113,79 +106,63 @@ EdgeValue &EdgeValue::operator=(const EdgeValue &ev) {
   return *this;
 }
 
-EdgeValue::~EdgeValue() {
-  switch (type) {
-  case Integer:
-    value.asInt.~APInt();
-    break;
-  case FloatingPoint:
-    value.asFP.~APFloat();
-    break;
-  case String:
-    value.asString.~basic_string();
-    break;
-  default:
-    break;
-  }
-}
+EdgeValue::~EdgeValue() { value.~variant(); }
 
 EdgeValue::EdgeValue(llvm::APInt &&vi) : type(EdgeValue::Integer) {
-  new (&value.asInt) llvm::APInt(std::move(vi));
+  value = llvm::APInt(std::move(vi));
 }
 
 EdgeValue::EdgeValue(const llvm::APInt &vi) : type(EdgeValue::Integer) {
-  new (&value.asInt) llvm::APInt(vi);
+  value = llvm::APInt(vi);
 }
 
 EdgeValue::EdgeValue(llvm::APFloat &&vf) : type(EdgeValue::FloatingPoint) {
-  // value.asFP = vf;
-  new (&value.asFP) llvm::APFloat(std::move(vf));
+  llvm::APFloat fp = llvm::APFloat(std::move(vf));
   bool unused;
-  value.asFP.convert(llvm::APFloat::IEEEdouble(),
-                     llvm::APFloat::roundingMode::rmNearestTiesToEven, &unused);
+  fp.convert(llvm::APFloat::IEEEdouble(),
+             llvm::APFloat::roundingMode::rmNearestTiesToEven, &unused);
+  value = fp;
 }
 
 EdgeValue::EdgeValue(long long vi) : type(EdgeValue::Integer) {
-  new (&value.asInt) llvm::APInt(llvm::APInt(sizeof(long long) << 3, vi));
+  value = llvm::APInt(llvm::APInt(sizeof(long long) << 3, vi));
 }
 
 EdgeValue::EdgeValue(int vi) : type(EdgeValue::Integer) {
-  new (&value.asInt) llvm::APInt(llvm::APInt(sizeof(int) << 3, vi));
+  value = llvm::APInt(llvm::APInt(sizeof(int) << 3, vi));
 }
 
 EdgeValue::EdgeValue(double d) : type(EdgeValue::FloatingPoint) {
-  // value.asFP = llvm::APFloat(d);
-  new (&value.asFP) llvm::APFloat(d);
+  value = llvm::APFloat(d);
 }
 
 EdgeValue::EdgeValue(float d) : type(EdgeValue::FloatingPoint) {
-  // value.asFP = llvm::APFloat(d);
-  new (&value.asFP) llvm::APFloat(d);
+  value = llvm::APFloat(d);
 }
 
 EdgeValue::EdgeValue(std::string &&vs) : type(EdgeValue::String) {
-  new (&value.asString) std::string(vs);
+  value = std::string(vs);
 }
 
 EdgeValue::EdgeValue(std::nullptr_t) : type(EdgeValue::Top) {}
 bool EdgeValue::tryGetInt(uint64_t &res) const {
   if (type != Integer)
     return false;
-  res = value.asInt.getLimitedValue();
+  res = std::get<llvm::APInt>(value).getLimitedValue();
   return true;
 }
 
 bool EdgeValue::tryGetFP(double &res) const {
   if (type != FloatingPoint)
     return false;
-  res = value.asFP.convertToDouble();
+  res = std::get<llvm::APFloat>(value).convertToDouble();
   return true;
 }
 
 bool EdgeValue::tryGetString(std::string &res) const {
   if (type != String)
     return false;
-  res = value.asString;
+  res = std::get<std::string>(value);
   return true;
 }
 
@@ -202,12 +179,11 @@ EdgeValue::Type EdgeValue::getKind() const { return type; }
 EdgeValue::operator bool() {
   switch (type) {
   case Integer:
-    return !value.asInt.isNullValue();
+    return !std::get<llvm::APInt>(value).isNullValue();
   case FloatingPoint:
-    return value.asFP.isNonZero();
+    return std::get<llvm::APFloat>(value).isNonZero();
   case String:
-    return !value.asString.empty();
-
+    return !std::get<std::string>(value).empty();
   default:
     break;
   }
@@ -226,16 +202,18 @@ bool operator==(const EdgeValue &v1, const EdgeValue &v2) {
   case EdgeValue::Integer:
     // if (v1.value.asInt != v2.value.asInt)
     //  std::cout << "integer unequal" << std::endl;
-    return v1.value.asInt == v2.value.asInt;
+    return std::get<llvm::APInt>(v1.value) == std::get<llvm::APInt>(v2.value);
   case EdgeValue::FloatingPoint: {
     // std::cout << "compare floating points" << std::endl;
-    auto cp = v1.value.asFP.compare(v2.value.asFP);
+    auto cp = std::get<llvm::APFloat>(v1.value).compare(
+        std::get<llvm::APFloat>(v2.value));
     if (cp == llvm::APFloat::cmpResult::cmpEqual) {
       // std::cout << "FP equal" << std::endl;
       return true;
     }
-    auto d1 = v1.value.asFP.convertToDouble();
-    auto d2 = v2.value.asFP.convertToDouble();
+    auto d1 = std::get<llvm::APFloat>(v1.value).convertToDouble();
+    auto d2 = std::get<llvm::APFloat>(v2.value).convertToDouble();
+
     const double epsilon = 0.000001;
     // std::cout << "Compare " << d1 << " against " << d2 << std::endl;
     return d1 == d2 || d1 - d2 < epsilon || d2 - d1 < epsilon;
@@ -243,7 +221,7 @@ bool operator==(const EdgeValue &v1, const EdgeValue &v2) {
   case EdgeValue::String:
     // if (v1.value.asString != v2.value.asString)
     //  std::cout << "String unequal" << std::endl;
-    return v1.value.asString == v2.value.asString;
+    return std::get<std::string>(v1.value) == std::get<std::string>(v2.value);
   default: // will not happen
     std::cerr << "FATAL ERROR" << std::endl;
     return false;
@@ -260,11 +238,14 @@ EdgeValue operator+(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt + v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) +
+                     std::get<llvm::APInt>(v2.value));
   case EdgeValue::FloatingPoint:
-    return EdgeValue(v1.value.asFP + v2.value.asFP);
+    return EdgeValue(std::get<llvm::APFloat>(v1.value) +
+                     std::get<llvm::APFloat>(v2.value));
   case EdgeValue::String:
-    return EdgeValue(v1.value.asString + v2.value.asString);
+    return EdgeValue(std::get<std::string>(v1.value) +
+                     std::get<std::string>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -275,11 +256,13 @@ EdgeValue operator-(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt - v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) -
+                     std::get<llvm::APInt>(v1.value));
   case EdgeValue::FloatingPoint:
     // printSemantics(v1.value.asFP) << " <=> ";
     // printSemantics(v2.value.asFP) << std::endl;
-    return EdgeValue(v1.value.asFP - v2.value.asFP);
+    return EdgeValue(std::get<llvm::APFloat>(v1.value) -
+                     std::get<llvm::APFloat>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -290,9 +273,11 @@ EdgeValue operator*(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt * v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) *
+                     std::get<llvm::APInt>(v2.value));
   case EdgeValue::FloatingPoint:
-    return EdgeValue(v1.value.asFP * v2.value.asFP);
+    return EdgeValue(std::get<llvm::APFloat>(v1.value) *
+                     std::get<llvm::APFloat>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -303,9 +288,11 @@ EdgeValue operator/(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt.sdiv(v2.value.asInt));
+    return EdgeValue(
+        std::get<llvm::APInt>(v1.value).sdiv(std::get<llvm::APInt>(v2.value)));
   case EdgeValue::FloatingPoint:
-    return EdgeValue(v1.value.asFP / v2.value.asFP);
+    return EdgeValue(std::get<llvm::APFloat>(v1.value) /
+                     std::get<llvm::APFloat>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -316,10 +303,11 @@ EdgeValue operator%(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt.srem(v2.value.asInt));
+    return EdgeValue(
+        std::get<llvm::APInt>(v1.value).srem(std::get<llvm::APInt>(v2.value)));
   case EdgeValue::FloatingPoint: {
-    llvm::APFloat fl = v1.value.asFP;
-    fl.remainder(v2.value.asFP);
+    llvm::APFloat fl = std::get<llvm::APFloat>(v1.value);
+    fl.remainder(std::get<llvm::APFloat>(v2.value));
     return EdgeValue(std::move(fl));
   }
   default:
@@ -332,7 +320,8 @@ EdgeValue operator&(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt & v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) &
+                     std::get<llvm::APInt>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -343,7 +332,8 @@ EdgeValue operator|(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt | v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) |
+                     std::get<llvm::APInt>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -354,7 +344,8 @@ EdgeValue operator^(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt ^ v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value) ^
+                     std::get<llvm::APInt>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -365,7 +356,8 @@ EdgeValue operator<<(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt << v2.value.asInt);
+    return EdgeValue(std::get<llvm::APInt>(v1.value)
+                     << std::get<llvm::APInt>(v2.value));
   default:
     return EdgeValue(nullptr);
   }
@@ -376,7 +368,8 @@ EdgeValue operator>>(const EdgeValue &v1, const EdgeValue &v2) {
     return EdgeValue(nullptr);
   switch (v1.type) {
   case EdgeValue::Integer:
-    return EdgeValue(v1.value.asInt.ashr(v2.value.asInt));
+    return EdgeValue(
+        std::get<llvm::APInt>(v1.value).ashr(std::get<llvm::APInt>(v2.value)));
   default:
     return EdgeValue(nullptr);
   }
@@ -385,20 +378,20 @@ EdgeValue operator>>(const EdgeValue &v1, const EdgeValue &v2) {
 // unary operators
 EdgeValue EdgeValue::operator-() const {
   if (type == Integer)
-    return EdgeValue(-value.asInt);
+    return EdgeValue(-std::get<llvm::APInt>(value));
   return EdgeValue(nullptr);
 }
 
 EdgeValue EdgeValue::operator~() const {
   if (type == Integer)
-    return EdgeValue(~value.asInt);
+    return EdgeValue(~std::get<llvm::APInt>(value));
   return EdgeValue(nullptr);
 }
 
 int EdgeValue::compare(const EdgeValue &v1, const EdgeValue &v2) {
   switch (v1.type) {
   case EdgeValue::Integer: {
-    auto v1_val = v1.value.asInt.getLimitedValue();
+    auto v1_val = std::get<llvm::APInt>(v1.value).getLimitedValue();
     uint64_t v2_val;
     double v2_val_fp;
     if (v2.tryGetInt(v2_val)) {
@@ -409,7 +402,7 @@ int EdgeValue::compare(const EdgeValue &v1, const EdgeValue &v2) {
     break;
   }
   case EdgeValue::FloatingPoint: {
-    auto v1_val = v1.value.asFP.convertToDouble();
+    auto v1_val = std::get<llvm::APFloat>(v1.value).convertToDouble();
     uint64_t v2_val;
     double v2_val_fp;
     bool isInt = v2.tryGetInt(v2_val);
@@ -425,7 +418,7 @@ int EdgeValue::compare(const EdgeValue &v1, const EdgeValue &v2) {
   case EdgeValue::String: {
     std::string v2_val;
     if (v2.tryGetString(v2_val)) {
-      return v1.value.asString.compare(v2_val);
+      return std::get<std::string>(v1.value).compare(v2_val);
     }
     break;
   }
@@ -441,13 +434,13 @@ std::ostream &operator<<(std::ostream &os, const EdgeValue &ev) {
   case EdgeValue::Integer: {
     std::string s;
     llvm::raw_string_ostream ros(s);
-    ros << ev.value.asInt;
+    ros << std::get<llvm::APInt>(ev.value);
     return os << ros.str();
   }
   case EdgeValue::String:
-    return os << "\"" << ev.value.asString << "\"";
+    return os << "\"" << std::get<std::string>(ev.value) << "\"";
   case EdgeValue::FloatingPoint: {
-    return os << ev.value.asFP.convertToDouble();
+    return os << std::get<llvm::APFloat>(ev.value).convertToDouble();
   }
   default:
     return os << "<TOP>";
@@ -460,14 +453,14 @@ EdgeValue EdgeValue::typecast(Type dest, unsigned bits) const {
   case Integer:
     switch (type) {
     case Integer:
-      if (value.asInt.getBitWidth() <= bits)
+      if (std::get<llvm::APInt>(value).getBitWidth() <= bits)
         return *this;
       else
-        return EdgeValue(value.asInt & ((1 << bits) - 1));
+        return EdgeValue(std::get<llvm::APInt>(value) & ((1 << bits) - 1));
     case FloatingPoint: {
       bool unused;
       llvm::APSInt ai;
-      value.asFP.convertToInteger(
+      std::get<llvm::APFloat>(value).convertToInteger(
           ai, llvm::APFloat::roundingMode::rmNearestTiesToEven, &unused);
       return EdgeValue(ai);
     }
@@ -478,9 +471,9 @@ EdgeValue EdgeValue::typecast(Type dest, unsigned bits) const {
     switch (type) {
     case Integer:
       if (bits > 32)
-        return EdgeValue((double)value.asInt.getSExtValue());
+        return EdgeValue((double)std::get<llvm::APInt>(value).getSExtValue());
       else
-        return EdgeValue((float)value.asInt.getSExtValue());
+        return EdgeValue((float)std::get<llvm::APInt>(value).getSExtValue());
     case FloatingPoint:
       return *this;
     default:
@@ -509,7 +502,8 @@ EdgeValue EdgeValue::performBinOp(llvm::BinaryOperator::BinaryOps op,
       return EdgeValue(nullptr);
     switch (type) {
     case EdgeValue::Integer:
-      return EdgeValue(value.asInt.lshr(other.value.asInt));
+      return EdgeValue(std::get<llvm::APInt>(value).lshr(
+          std::get<llvm::APInt>(other.value)));
     default:
       return EdgeValue(nullptr);
     }
@@ -532,7 +526,8 @@ EdgeValue EdgeValue::performBinOp(llvm::BinaryOperator::BinaryOps op,
       return EdgeValue(nullptr);
     switch (type) {
     case EdgeValue::Integer:
-      return EdgeValue(value.asInt.udiv(other.value.asInt));
+      return EdgeValue(std::get<llvm::APInt>(value).udiv(
+          std::get<llvm::APInt>(other.value)));
     default:
       return EdgeValue(nullptr);
     }
@@ -542,7 +537,8 @@ EdgeValue EdgeValue::performBinOp(llvm::BinaryOperator::BinaryOps op,
       return EdgeValue(nullptr);
     switch (type) {
     case EdgeValue::Integer:
-      return EdgeValue(value.asInt.urem(other.value.asInt));
+      return EdgeValue(std::get<llvm::APInt>(value).urem(
+          std::get<llvm::APInt>(other.value)));
     default:
       return EdgeValue(nullptr);
     }

@@ -4,7 +4,7 @@
  * available under the terms of LICENSE.txt.
  *
  * Contributors:
- *     Fabian Schiebel and others
+ *     Fabian Schiebel, Alexander Meinhold and others
  *****************************************************************************/
 
 #ifndef PHASAR_PHASARLLVM_IFDSIDE_PROBLEMS_IDEGENERALIZEDLCA_EDGEVALUE_H_
@@ -13,6 +13,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_set>
+#include <variant>
 
 #include "llvm/ADT/APSInt.h"
 #include "llvm/ADT/Twine.h"
@@ -26,19 +27,11 @@ enum class Ordering { Less, Greater, Equal, Incomparable };
 class EdgeValue {
 public:
   enum Type { Top, Integer, String, FloatingPoint };
-  union Value {
-    llvm::APInt asInt;
-    llvm::APFloat asFP;
-    std::string asString;
-    std::nullptr_t asTop;
-
-    Value() { asTop = nullptr; }
-    ~Value() {}
-  };
 
 private:
+  std::variant<llvm::APInt, llvm::APFloat, std::string, std::nullptr_t> value =
+      nullptr;
   Type type;
-  Value value;
 
 public:
   EdgeValue(const llvm::Value *val);
