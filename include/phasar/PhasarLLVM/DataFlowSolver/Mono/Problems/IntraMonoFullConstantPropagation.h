@@ -42,11 +42,13 @@ class LLVMBasedICFG;
 class ProjectIRDB;
 
 class IntraMonoFullConstantPropagation
-    : public IntraMonoProblem < const llvm::Instruction *,
-    std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
-    const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-    LLVMBasedCFG,
-    BitVectorSet<std::pair<const llvm::Value *, LatticeDomain<int64_t>>>> {
+    : public IntraMonoProblem<
+          const llvm::Instruction *,
+          std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
+          const llvm::Function *, const llvm::StructType *, const llvm::Value *,
+          LLVMBasedCFG,
+          BitVectorSet<
+              std::pair<const llvm::Value *, LatticeDomain<int64_t>>>> {
 public:
   using n_t = const llvm::Instruction *;
   using plain_d_t = int64_t;

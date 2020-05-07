@@ -41,7 +41,8 @@ class LLVMBasedICFG;
 class InterMonoSolverTest
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG, BitVectorSet<const llvm::Value *>> {
+                              const llvm::Value *, LLVMBasedICFG,
+                              BitVectorSet<const llvm::Value *>> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;

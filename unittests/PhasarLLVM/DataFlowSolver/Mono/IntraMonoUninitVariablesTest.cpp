@@ -42,9 +42,7 @@ protected:
 
   ProjectIRDB *IRDB = nullptr;
 
-  void SetUp() override {
-    boost::log::core::get()->set_logging_enabled(false);
-  }
+  void SetUp() override { boost::log::core::get()->set_logging_enabled(false); }
 
   void TearDown() override { delete IRDB; }
 
@@ -83,7 +81,6 @@ TEST_F(IntraMonoUninitVariablesTest, Basic_01) {
 //   CompactResults_t GroundTruth;
 //   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
 // }
-
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

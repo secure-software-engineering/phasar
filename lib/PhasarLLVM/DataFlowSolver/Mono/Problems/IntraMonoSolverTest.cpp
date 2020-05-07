@@ -41,7 +41,8 @@ IntraMonoSolverTest::IntraMonoSolverTest(const ProjectIRDB *IRDB,
                                          std::set<std::string> EntryPoints)
     : IntraMonoProblem<IntraMonoSolverTest::n_t, IntraMonoSolverTest::d_t,
                        IntraMonoSolverTest::f_t, IntraMonoSolverTest::t_t,
-                       IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t, IntraMonoSolverTest::container_t>(
+                       IntraMonoSolverTest::v_t, IntraMonoSolverTest::i_t,
+                       IntraMonoSolverTest::container_t>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 BitVectorSet<const llvm::Value *>

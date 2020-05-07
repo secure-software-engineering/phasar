@@ -43,7 +43,8 @@ public:
   InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                    const I *ICF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
-      : IntraMonoProblem<N, D, F, T, V, I, ContainerTy>(IRDB, TH, ICF, PT, EntryPoints),
+      : IntraMonoProblem<N, D, F, T, V, I, ContainerTy>(IRDB, TH, ICF, PT,
+                                                        EntryPoints),
         ICF(ICF) {}
 
   ~InterMonoProblem() override = default;

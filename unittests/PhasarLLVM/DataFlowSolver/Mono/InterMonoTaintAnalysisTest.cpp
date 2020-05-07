@@ -42,7 +42,8 @@ protected:
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
                     InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, InterMonoTaintAnalysis::container_t, 3>
+                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t,
+                    InterMonoTaintAnalysis::container_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
@@ -70,7 +71,8 @@ protected:
     InterMonoTaintAnalysis TaintProblem(IRDB, &TH, &ICFG, PT, TC, EntryPoints);
     InterMonoSolver<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
                     InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t, InterMonoTaintAnalysis::container_t, 3>
+                    InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t,
+                    InterMonoTaintAnalysis::container_t, 3>
         TaintSolver(TaintProblem);
     TaintSolver.solve();
     if (PrintDump) {
@@ -172,8 +174,8 @@ TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
 // }
 
 // TEST_F(InterMonoTaintAnalysisTest, TaintTest_04) {
-//   std::set<std::string> Facts{"21", "22", "23", "28", "29", "main.0", "main.1"};
-//   doAnalysisAndCompare("taint_12_c.ll", 35, Facts);
+//   std::set<std::string> Facts{"21", "22", "23", "28", "29", "main.0",
+//   "main.1"}; doAnalysisAndCompare("taint_12_c.ll", 35, Facts);
 // }
 
 // /******************************************************************************
@@ -261,7 +263,8 @@ TEST(InterMonoTaintAnalysisTestNF, TaintTest_05) {
 // ***********************************************************/
 // TEST_F(InterMonoTaintAnalysisTest, TaintTest_10) {
 //   auto Leaks = doAnalysis("taint_14_cpp.ll");
-//   // 11 => {10}; do not know, why it fails; getchar is definitely a source, but
+//   // 11 => {10}; do not know, why it fails; getchar is definitely a source,
+//   but
 //   // it doesn't generate a fact
 //   std::map<int, std::set<std::string>> GroundTruth;
 //   GroundTruth[11] = {"10"};

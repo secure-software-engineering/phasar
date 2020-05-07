@@ -40,8 +40,8 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                        InterMonoFullConstantPropagation::t_t,
                        InterMonoFullConstantPropagation::v_t,
                        InterMonoFullConstantPropagation::i_t,
-                       InterMonoFullConstantPropagation::container_t>(IRDB, TH, ICF, PT,
-                                                              EntryPoints),
+                       InterMonoFullConstantPropagation::container_t>(
+          IRDB, TH, ICF, PT, EntryPoints),
       IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints) {}
 
 BitVectorSet<InterMonoFullConstantPropagation::d_t>

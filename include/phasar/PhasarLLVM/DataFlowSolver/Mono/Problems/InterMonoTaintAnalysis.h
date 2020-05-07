@@ -41,7 +41,8 @@ class LLVMTypeHierarchy;
 class InterMonoTaintAnalysis
     : public InterMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedICFG, BitVectorSet<const llvm::Value *>> {
+                              const llvm::Value *, LLVMBasedICFG,
+                              BitVectorSet<const llvm::Value *>> {
 private:
   const TaintConfiguration<const llvm::Value *> &TSF;
   std::map<const llvm::Instruction *, std::set<const llvm::Value *>> Leaks;
