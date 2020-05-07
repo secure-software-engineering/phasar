@@ -39,7 +39,7 @@ class InterMonoFullConstantPropagation
           const llvm::Instruction *,
           std::pair<const llvm::Value *, LatticeDomain<int64_t>>,
           const llvm::Function *, const llvm::StructType *, const llvm::Value *,
-          LLVMBasedICFG>,
+          LLVMBasedICFG, BitVectorSet<std::pair<const llvm::Value *, LatticeDomain<int64_t>>>>,
       virtual public IntraMonoFullConstantPropagation {
 public:
   using n_t = const llvm::Instruction *;
@@ -49,6 +49,7 @@ public:
   using t_t = const llvm::StructType *;
   using v_t = const llvm::Value *;
   using i_t = LLVMBasedICFG;
+  using container_t = BitVectorSet<d_t>;
 
   InterMonoFullConstantPropagation(
       const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,

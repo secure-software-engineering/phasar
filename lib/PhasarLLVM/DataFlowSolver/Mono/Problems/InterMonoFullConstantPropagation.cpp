@@ -39,7 +39,8 @@ InterMonoFullConstantPropagation::InterMonoFullConstantPropagation(
                        InterMonoFullConstantPropagation::f_t,
                        InterMonoFullConstantPropagation::t_t,
                        InterMonoFullConstantPropagation::v_t,
-                       InterMonoFullConstantPropagation::i_t>(IRDB, TH, ICF, PT,
+                       InterMonoFullConstantPropagation::i_t,
+                       InterMonoFullConstantPropagation::container_t>(IRDB, TH, ICF, PT,
                                                               EntryPoints),
       IntraMonoFullConstantPropagation(IRDB, TH, ICF, PT, EntryPoints) {}
 

@@ -29,15 +29,15 @@
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename C>
+          typename C, typename ContainerTy>
 class IntraMonoSolver {
 public:
-  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C>;
+  using ProblemTy = IntraMonoProblem<N, D, F, T, V, C, ContainerTy>;
 
 protected:
   ProblemTy &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
-  std::unordered_map<N, BitVectorSet<D>> Analysis;
+  std::unordered_map<N, ContainerTy> Analysis;
   const C *CFG;
 
   void initialize() {
@@ -51,7 +51,7 @@ protected:
                       ControlFlowEdges.end());
       // set all analysis information to the empty set
       for (auto s : CFG->getAllInstructionsOf(Function)) {
-        Analysis.insert(std::make_pair(s, BitVectorSet<D>()));
+        Analysis.insert(std::make_pair(s, IMProblem.allTop()));
       }
     }
     // insert initial seeds
@@ -61,9 +61,11 @@ protected:
   }
 
 public:
-  IntraMonoSolver(IntraMonoProblem<N, D, F, T, V, C> &IMP)
+  IntraMonoSolver(IntraMonoProblem<N, D, F, T, V, C, ContainerTy> &IMP)
       : IMProblem(IMP), CFG(IMP.getCFG()) {}
+
   virtual ~IntraMonoSolver() = default;
+
   virtual void solve() {
     // step 1: Initalization (of Worklist and Analysis)
     initialize();
@@ -74,11 +76,18 @@ public:
       Worklist.pop_front();
       N Src = Edge.first;
       N Dst = Edge.second;
-      BitVectorSet<D> Out = IMProblem.normalFlow(Src, Analysis[Src]);
+      auto Out = IMProblem.normalFlow(Src, Analysis[Src]);
       // need to merge if Dst is a branch target
-      for (auto Pred : CFG->getPredsOf(Dst)) {
-        if (Pred != Src) {
-          Out = IMProblem.merge(Analysis[Pred], Out);
+      if (CFG->isBranchTarget(Src, Dst)) {
+        for (auto Pred : CFG->getPredsOf(Dst)) {
+          if (Pred != Src) {
+            // we need to compute the out set of Pred and merge it with the out
+            // set of Src on-the-fly as we do not have a dedicated storage for
+            // merge points (otherwise we run into trouble with merge operator
+            // such as set union)
+            auto OtherPredOut = IMProblem.normalFlow(Pred, Analysis[Pred]);
+            Out = IMProblem.merge(Out, OtherPredOut);
+          }
         }
       }
       if (!IMProblem.equal_to(Out, Analysis[Dst])) {
@@ -96,7 +105,7 @@ public:
     }
   }
 
-  BitVectorSet<D> getResultsAt(N n) { return Analysis[n]; }
+  ContainerTy getResultsAt(N n) { return Analysis[n]; }
 
   virtual void dumpResults(std::ostream &OS = std::cout) {
     OS << "Intra-Monotone solver results:\n"
@@ -124,13 +133,15 @@ template <typename Problem>
 IntraMonoSolver(Problem &)
     -> IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
                        typename Problem::f_t, typename Problem::t_t,
-                       typename Problem::v_t, typename Problem::i_t>;
+                       typename Problem::v_t, typename Problem::i_t,
+                       typename Problem::container_t>;
 
 template <typename Problem>
 using IntraMonoSolver_P =
     IntraMonoSolver<typename Problem::n_t, typename Problem::d_t,
                     typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t>;
+                    typename Problem::v_t, typename Problem::i_t,
+                    typename Problem::container_t>;
 
 } // namespace psr
 

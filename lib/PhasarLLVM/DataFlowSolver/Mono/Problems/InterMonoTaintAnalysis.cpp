@@ -37,9 +37,9 @@ InterMonoTaintAnalysis::InterMonoTaintAnalysis(
     std::set<std::string> EntryPoints)
     : InterMonoProblem<InterMonoTaintAnalysis::n_t, InterMonoTaintAnalysis::d_t,
                        InterMonoTaintAnalysis::f_t, InterMonoTaintAnalysis::t_t,
-                       InterMonoTaintAnalysis::v_t,
-                       InterMonoTaintAnalysis::i_t>(IRDB, TH, ICF, PT,
-                                                    std::move(EntryPoints)),
+                       InterMonoTaintAnalysis::v_t, InterMonoTaintAnalysis::i_t,
+                       InterMonoTaintAnalysis::container_t>(
+          IRDB, TH, ICF, PT, std::move(EntryPoints)),
       TSF(TSF) {}
 
 BitVectorSet<const llvm::Value *>

@@ -32,13 +32,13 @@
 namespace psr {
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I, unsigned K>
+          typename I, typename ContainerTy, unsigned K>
 class InterMonoSolver {
 public:
-  using ProblemTy = InterMonoProblem<N, D, F, T, V, I>;
+  using ProblemTy = InterMonoProblem<N, D, F, T, V, I, ContainerTy>;
 
 protected:
-  InterMonoProblem<N, D, F, T, V, I> &IMProblem;
+  InterMonoProblem<N, D, F, T, V, I, ContainerTy> &IMProblem;
   std::deque<std::pair<N, N>> Worklist;
   std::unordered_map<N,
                      std::unordered_map<CallStringCTX<N, K>, BitVectorSet<D>>>
@@ -157,12 +157,17 @@ protected:
   }
 
 public:
-  InterMonoSolver(InterMonoProblem<N, D, F, T, V, I> &IMP)
+  InterMonoSolver(InterMonoProblem<N, D, F, T, V, I, ContainerTy> &IMP)
       : IMProblem(IMP), ICF(IMP.getICFG()) {}
+
   InterMonoSolver(const InterMonoSolver &) = delete;
+
   InterMonoSolver &operator=(const InterMonoSolver &) = delete;
+
   InterMonoSolver(InterMonoSolver &&) = delete;
+
   InterMonoSolver &operator=(InterMonoSolver &&) = delete;
+
   virtual ~InterMonoSolver() = default;
 
   std::unordered_map<N,
@@ -309,7 +314,7 @@ template <typename Problem, unsigned K>
 using InterMonoSolver_P =
     InterMonoSolver<typename Problem::n_t, typename Problem::d_t,
                     typename Problem::f_t, typename Problem::t_t,
-                    typename Problem::v_t, typename Problem::i_t, K>;
+                    typename Problem::v_t, typename Problem::i_t, typename Problem::container_t, K>;
 
 } // namespace psr
 

@@ -43,7 +43,6 @@ protected:
   ProjectIRDB *IRDB = nullptr;
 
   void SetUp() override {
-    std::cout << "setup\n";
     boost::log::core::get()->set_logging_enabled(false);
   }
 
@@ -53,6 +52,9 @@ protected:
                                    const CompactResults_t &GroundTruth,
                                    bool printDump = false) {
     IRDB = new ProjectIRDB({pathToLLFiles + llvmFilePath});
+    if (printDump) {
+      IRDB->emitPreprocessedIR();
+    }
     ValueAnnotationPass::resetValueID();
     LLVMTypeHierarchy TH(*IRDB);
     auto *PT = new LLVMPointsToInfo(*IRDB);
@@ -77,10 +79,11 @@ TEST_F(IntraMonoUninitVariablesTest, Basic_01) {
   doAnalysisAndCompareResults("basic_01_cpp.ll", GroundTruth, true);
 }
 
-// TEST_F(IntraMonoUninitVariablesTest, Branching_01) {
+// TEST_F(IntraMonoUninitVariablesTest, Basic_02) {
 //   CompactResults_t GroundTruth;
-//   doAnalysisAndCompareResults("branching_01_cpp.ll", GroundTruth, true);
+//   doAnalysisAndCompareResults("basic_02_cpp.ll", GroundTruth, true);
 // }
+
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

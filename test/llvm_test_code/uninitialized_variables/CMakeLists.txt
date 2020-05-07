@@ -36,6 +36,7 @@ set(NoMem2RegSources
 
 set(NoMem2RegNoDbgSources
   basic_01.cpp
+  basic_02.cpp
   branching_01.cpp
 )
 

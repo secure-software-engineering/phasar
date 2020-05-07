@@ -35,33 +35,38 @@ IntraMonoUninitVariables::IntraMonoUninitVariables(
     : IntraMonoProblem<
           IntraMonoUninitVariables::n_t, IntraMonoUninitVariables::d_t,
           IntraMonoUninitVariables::f_t, IntraMonoUninitVariables::t_t,
-          IntraMonoUninitVariables::v_t, IntraMonoUninitVariables::i_t>(
-          IRDB, TH, CF, PT, std::move(EntryPoints)) {}
+          IntraMonoUninitVariables::v_t, IntraMonoUninitVariables::i_t,
+          IntraMonoUninitVariables::container_t>(IRDB, TH, CF, PT,
+                                                 std::move(EntryPoints)) {}
 
-BitVectorSet<IntraMonoUninitVariables::d_t> IntraMonoUninitVariables::merge(
-    const BitVectorSet<IntraMonoUninitVariables::d_t> &Lhs,
-    const BitVectorSet<IntraMonoUninitVariables::d_t> &Rhs) {
+IntraMonoUninitVariables::container_t IntraMonoUninitVariables::merge(
+    const IntraMonoUninitVariables::container_t &Lhs,
+    const IntraMonoUninitVariables::container_t &Rhs) {
   return Lhs.setIntersect(Rhs);
 }
 
 bool IntraMonoUninitVariables::equal_to(
-    const BitVectorSet<IntraMonoUninitVariables::d_t> &Lhs,
-    const BitVectorSet<IntraMonoUninitVariables::d_t> &Rhs) {
+    const IntraMonoUninitVariables::container_t &Lhs,
+    const IntraMonoUninitVariables::container_t &Rhs) {
   return Lhs == Rhs;
 }
 
-BitVectorSet<IntraMonoUninitVariables::d_t>
-IntraMonoUninitVariables::normalFlow(
+IntraMonoUninitVariables::container_t IntraMonoUninitVariables::allTop() {
+  return {};
+}
+
+IntraMonoUninitVariables::container_t IntraMonoUninitVariables::normalFlow(
     const llvm::Instruction *S,
-    const BitVectorSet<IntraMonoUninitVariables::d_t> &In) {
-  BitVectorSet<IntraMonoUninitVariables::d_t> Out = In;
+    const IntraMonoUninitVariables::container_t &In) {
+  auto Out = In;
   if (auto Alloca = llvm::dyn_cast<llvm::AllocaInst>(S)) {
     Out.insert(Alloca);
   }
   if (auto Store = llvm::dyn_cast<llvm::StoreInst>(S)) {
-    if (Store->getValueOperand()->getType()->isIntegerTy()) {
-      std::cout << "HERE I AM!\n";
-      Store->getValueOperand()->print(llvm::outs());
+    if (Store->getValueOperand()->getType()->isIntegerTy() &&
+        llvm::isa<llvm::ConstantData>(Store->getValueOperand())) {
+      llvm::outs() << "Found initialization at: ";
+      Store->print(llvm::outs());
       llvm::outs() << '\n';
       Out.erase(Store->getPointerOperand());
     }
@@ -69,16 +74,16 @@ IntraMonoUninitVariables::normalFlow(
   return Out;
 }
 
-unordered_map<const llvm::Instruction *,
-              BitVectorSet<IntraMonoUninitVariables::d_t>>
+unordered_map<const llvm::Instruction *, IntraMonoUninitVariables::container_t>
 IntraMonoUninitVariables::initialSeeds() {
   std::unordered_map<const llvm::Instruction *,
-                     BitVectorSet<IntraMonoUninitVariables::d_t>>
+                     IntraMonoUninitVariables::container_t>
       Seeds;
-  for (auto &EntryPoint : EntryPoints) {
-    if (auto Fun = IRDB->getFunctionDefinition(EntryPoint)) {
-      auto I = &Fun->front().front();
-      Seeds[I] = {};
+  for (const auto &EntryPoint : EntryPoints) {
+    if (const auto *Fun = IRDB->getFunctionDefinition(EntryPoint)) {
+      for (const auto *I : CF->getStartPointsOf(Fun)) {
+        Seeds[I] = allTop();
+      }
     }
   }
   return Seeds;

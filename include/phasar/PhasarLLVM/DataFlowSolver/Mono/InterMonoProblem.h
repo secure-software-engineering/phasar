@@ -30,8 +30,9 @@ template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class ICFG;
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename I>
-class InterMonoProblem : public IntraMonoProblem<N, D, F, T, V, I> {
+          typename I, typename ContainerTy>
+class InterMonoProblem
+    : public IntraMonoProblem<N, D, F, T, V, I, ContainerTy> {
   static_assert(std::is_base_of_v<ICFG<N, F>, I>,
                 "I must implement the ICFG interface!");
 
@@ -42,21 +43,26 @@ public:
   InterMonoProblem(const ProjectIRDB *IRDB, const TypeHierarchy<T, F> *TH,
                    const I *ICF, const PointsToInfo<V, N> *PT,
                    std::set<std::string> EntryPoints = {})
-      : IntraMonoProblem<N, D, F, T, V, I>(IRDB, TH, ICF, PT, EntryPoints),
+      : IntraMonoProblem<N, D, F, T, V, I, ContainerTy>(IRDB, TH, ICF, PT, EntryPoints),
         ICF(ICF) {}
 
+  ~InterMonoProblem() override = default;
+
   InterMonoProblem(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem(InterMonoProblem &&move) = delete;
+
   InterMonoProblem &operator=(const InterMonoProblem &copy) = delete;
+
   InterMonoProblem &operator=(InterMonoProblem &&move) = delete;
 
-  virtual BitVectorSet<D> callFlow(N CallSite, F Callee,
-                                   const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> returnFlow(N CallSite, F Callee, N ExitStmt,
-                                     N RetSite, const BitVectorSet<D> &In) = 0;
-  virtual BitVectorSet<D> callToRetFlow(N CallSite, N RetSite,
-                                        std::set<F> Callees,
-                                        const BitVectorSet<D> &In) = 0;
+  virtual ContainerTy callFlow(N CallSite, F Callee, const ContainerTy &In) = 0;
+
+  virtual ContainerTy returnFlow(N CallSite, F Callee, N ExitStmt, N RetSite,
+                                 const ContainerTy &In) = 0;
+
+  virtual ContainerTy callToRetFlow(N CallSite, N RetSite, std::set<F> Callees,
+                                    const ContainerTy &In) = 0;
 
   const I *getICFG() const { return ICF; }
 };

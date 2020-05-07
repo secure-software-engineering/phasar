@@ -47,7 +47,8 @@ IntraMonoFullConstantPropagation::IntraMonoFullConstantPropagation(
                        IntraMonoFullConstantPropagation::f_t,
                        IntraMonoFullConstantPropagation::t_t,
                        IntraMonoFullConstantPropagation::v_t,
-                       IntraMonoFullConstantPropagation::i_t>(
+                       IntraMonoFullConstantPropagation::i_t,
+                       IntraMonoFullConstantPropagation::container_t>(
           IRDB, TH, CF, PT, std::move(EntryPoints)) {}
 
 bool IntraMonoFullConstantPropagation::bitVectorHasInstr(

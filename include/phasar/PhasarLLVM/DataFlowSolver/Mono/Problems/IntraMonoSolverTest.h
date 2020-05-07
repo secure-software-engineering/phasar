@@ -41,7 +41,7 @@ class LLVMPointsToInfo;
 class IntraMonoSolverTest
     : public IntraMonoProblem<const llvm::Instruction *, const llvm::Value *,
                               const llvm::Function *, const llvm::StructType *,
-                              const llvm::Value *, LLVMBasedCFG> {
+                              const llvm::Value *, LLVMBasedCFG, BitVectorSet<const llvm::Value *>> {
 public:
   typedef const llvm::Instruction *n_t;
   typedef const llvm::Value *d_t;
@@ -49,6 +49,7 @@ public:
   typedef const llvm::StructType *t_t;
   typedef const llvm::Value *v_t;
   typedef LLVMBasedCFG i_t;
+  typedef BitVectorSet<const llvm::Value *> container_t;
 
   IntraMonoSolverTest(const ProjectIRDB *IRDB, const LLVMTypeHierarchy *TH,
                       const LLVMBasedCFG *CF, const LLVMPointsToInfo *PT,

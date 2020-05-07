@@ -37,7 +37,7 @@ template <typename V, typename N> class PointsToInfo;
 template <typename N, typename F> class CFG;
 
 template <typename N, typename D, typename F, typename T, typename V,
-          typename C>
+          typename C, typename ContainerTy>
 class IntraMonoProblem : public NodePrinter<N>,
                          public DataFlowFactPrinter<D>,
                          public FunctionPrinter<F> {
@@ -64,15 +64,15 @@ public:
 
   ~IntraMonoProblem() override = default;
 
-  virtual BitVectorSet<D> normalFlow(N S, const BitVectorSet<D> &In) = 0;
+  virtual ContainerTy normalFlow(N S, const ContainerTy &In) = 0;
 
-  virtual BitVectorSet<D> merge(const BitVectorSet<D> &Lhs,
-                                const BitVectorSet<D> &Rhs) = 0;
+  virtual ContainerTy merge(const ContainerTy &Lhs, const ContainerTy &Rhs) = 0;
 
-  virtual bool equal_to(const BitVectorSet<D> &Lhs,
-                        const BitVectorSet<D> &Rhs) = 0;
+  virtual bool equal_to(const ContainerTy &Lhs, const ContainerTy &Rhs) = 0;
 
-  virtual std::unordered_map<N, BitVectorSet<D>> initialSeeds() = 0;
+  virtual ContainerTy allTop() { return ContainerTy{}; }
+
+  virtual std::unordered_map<N, ContainerTy> initialSeeds() = 0;
 
   std::set<std::string> getEntryPoints() const { return EntryPoints; }
 
